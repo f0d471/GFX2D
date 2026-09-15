@@ -206,8 +206,11 @@ Flash 与 DDR 的分区见 `doc/赛题二总体设计.md` 2.1、2.2 节：程序
 
 没有做到的：
 
-- 官方预置的 bootloader 找到了出处：SoC 片上 RAM 的原始内容与 Efinity 2026.1 安装目录下 `ipm/ip/efx_soc/efx_soc/generator/bootloader/bootloader_124K.hex` 逐字节相同，说明 2025.2 与 2026.1 用的是同一个文件。IP 生成器在启用 DDR 且启用 SPI0 时直接选这个预编译文件（`generator/soc_gen.py` 第 784~785 行）。它与源码怎么对应仍未查清：原版源码用 gcc 8.3.0 在 `-Og`、`-Os`、`-O3` 与带不带 `-DSMP` 的 6 种组合下编出的结果都与它（806 字节）不同，`sdk/tool/bootloader/bootloader_124K.bin`（690 字节）也对不上。所以新 bootloader 与官方预置版本不是同一份二进制，能否正常引导要上板确认。
-- 上板判据：`sdk/software/standalone/application/bootSizeTest/` 带一个 300KB 的数据块，镜像约 295KB，启动后经串口打印数据块整体与最后 4KB 的 CRC32，与 PC 上算出的期望值一致即通过（期望值与步骤见 `doc/板卡实测记录.md` 7.4 节）。同一程序配官方 124KB bootloader 时数据块尾部是错误数据，可作对照。片上 RAM 已确认装的是新 bootloader（同文档 7.3 节），还差把程序写进 Flash 后引导这一步。
+- 官方预置的 bootloader 找到了出处：SoC 片上 RAM 的原始内容与 Efinity 2026.1 安装目录下 `ipm/ip/efx_soc/efx_soc/generator/bootloader/bootloader_124K.hex` 逐字节相同，说明 2025.2 与 2026.1 用的是同一个文件。IP 生成器在启用 DDR 且启用 SPI0 时直接选这个预编译文件（`generator/soc_gen.py` 第 784~785 行）。它与源码怎么对应仍未查清：原版源码用 gcc 8.3.0 在 `-Og`、`-Os`、`-O3` 与带不带 `-DSMP` 的 6 种组合下编出的结果都与它（806 字节）不同，`sdk/tool/bootloader/bootloader_124K.bin`（690 字节）也对不上。所以新 bootloader 与官方预置版本不是同一份二进制。它能否正常引导，已在 2026-09-16 上板确认，见下一条。
+- 上板结果（2026-09-16）：用 `sdk/software/standalone/application/bootSizeTest/` 测试。程序带一个 300KB 的数据块，镜像 301,882 字节，写入 Flash `0x380000` 后启动，经串口打印数据块整体与最后 4KB 的 CRC32。
+  - Main 比特流（512KB bootloader）：两个 CRC 与 PC 上算出的期望值一致。
+  - 对照：同一程序配官方比特流（124KB bootloader），两个 CRC 都不对。
+  - 详见 `doc/板卡实测记录.md` 7.4 节与第 8 节。
 - 回退：`bit/official/ddr_demo_ti60.bit` 里仍是官方 124KB bootloader。
 
 Flash 读取的线数：bootloader 可选 `SINGLE_SPI`、`DUAL_SPI`、`QUAD_SPI`，现在是单线。顶层只连了 `system_spi_0_io_data_0/1`，`data_2/3` 悬空，`peri.xml` 也只分配了两根数据线，所以四线现在用不了；双线可以试（手册表 14 写 Ti60F225 开发套件连 2 根数据线），留给设计文档里的实验 E6。
@@ -291,4 +294,4 @@ Flash 读取的线数：bootloader 可选 `SINGLE_SPI`、`DUAL_SPI`、`QUAD_SPI`
   - 上面 5 个改过绝对路径的文件，以及 `settings.json` 中的 `HexFile_Path`，`Main/` 换了位置就要一起改；
   - `ip/soc/source/soc_config`、`sdk/bsp/efinix/EfxSapphireSoc/openocd/debug_profile_soft.cfg` 与 gpioDemo 的 `.cproject` 仍引用 `C:\Efinity\2025.2` 和 `C:\Efinity\efinity-riscv-ide-2025.2`。本机装的是 2026.1，这些文件会在升级 SoC IP、重新导入软件工程时重新生成，不必手改。
 - 软件包的位置：官方工程里，软件包放在 Efinity 工程目录下的 `embedded_sw/soc/`。如果在 Efinity 里重新生成 SoC IP，要检查新生成的软件包输出到了哪里，再把 `bsp/` 同步到 `sdk/bsp/`。
-- 验证状态（2026-09-16）：Efinity 2026.1 编译通过，时序没有负 slack；JTAG 加载后，片上 RAM 读回的内容与新 bootloader 一致，memTest 通过，HDMI 显示器上八色竖条正确（`doc/板卡实测记录.md` 第 6、7 节）。512KB bootloader 从 Flash 引导还没有上板确认。
+- 验证状态（2026-09-16）：Efinity 2026.1 编译通过，时序没有负 slack；JTAG 加载后，片上 RAM 读回的内容与新 bootloader 一致，memTest 通过，HDMI 显示器上八色竖条正确，512KB bootloader 能从 Flash 完整拷贝 30 万字节的程序（`doc/板卡实测记录.md` 第 6~8 节）。板上 Flash `0x0` 处仍是出厂的摄像头例程，上电不会加载 Main；出厂内容已整片备份到 `bit/flash_backup/`（不进 git）。
