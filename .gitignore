@@ -1,0 +1,12 @@
+# 仿真与软件构建产物
+build/
+
+# Efinity 编译输出与工作目录
+outflow/
+work_syn/
+work_pnr/
+work_pt/
+work_dbg/
+
+# RISC-V IDE（Eclipse）工作区缓存
+.metadata/
