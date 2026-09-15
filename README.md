@@ -171,7 +171,7 @@ bash sim/hdmi/run.sh
 - yosys 解析修改前后的顶层并比较端口：只新增 14 个 HDMI 端口，原有端口不变，`hdmi_tx` 实例的端口连接可以解析。
 - `peri.xml` 新增的信号名与顶层新增端口逐一对应。不进顶层的只有 `clk_27m`、`hdmi_pll_fb`、`hdmi_tx_fast_clk`，分别是 PLL 参考时钟、PLL 本地反馈、LVDS 快时钟，与官方工程的做法相同。
 
-尚未完成：Efinity 编译（包括 Interface Designer 对 `peri.xml` 的校验和时序分析）和上板显示。
+Efinity 2026.1 编译已通过：Interface Designer 接受了 `peri.xml`，时序没有负 slack，`hdmi_tx_fast_clk` 为 126MHz、相移 90°（`doc/板卡实测记录.md` 第 7 节）。2026-09-16 上板：显示器上出现八色竖条，颜色顺序正确。
 
 ## Bootloader 与程序区
 
@@ -207,7 +207,7 @@ Flash 与 DDR 的分区见 `doc/赛题二总体设计.md` 2.1、2.2 节：程序
 没有做到的：
 
 - 官方预置的 bootloader 找到了出处：SoC 片上 RAM 的原始内容与 Efinity 2026.1 安装目录下 `ipm/ip/efx_soc/efx_soc/generator/bootloader/bootloader_124K.hex` 逐字节相同，说明 2025.2 与 2026.1 用的是同一个文件。IP 生成器在启用 DDR 且启用 SPI0 时直接选这个预编译文件（`generator/soc_gen.py` 第 784~785 行）。它与源码怎么对应仍未查清：原版源码用 gcc 8.3.0 在 `-Og`、`-Os`、`-O3` 与带不带 `-DSMP` 的 6 种组合下编出的结果都与它（806 字节）不同，`sdk/tool/bootloader/bootloader_124K.bin`（690 字节）也对不上。所以新 bootloader 与官方预置版本不是同一份二进制，能否正常引导要上板确认。
-- 上板判据：写一个镜像大于 124KB 的程序（例如带一个 300KB 的常量数组），启动后经串口打印数组最后 4KB 的校验和，与 PC 上算出的一致即通过。同一程序配旧 bootloader 时末尾是错误数据，可作对照。
+- 上板判据：`sdk/software/standalone/application/bootSizeTest/` 带一个 300KB 的数据块，镜像约 295KB，启动后经串口打印数据块整体与最后 4KB 的 CRC32，与 PC 上算出的期望值一致即通过（期望值与步骤见 `doc/板卡实测记录.md` 7.4 节）。同一程序配官方 124KB bootloader 时数据块尾部是错误数据，可作对照。片上 RAM 已确认装的是新 bootloader（同文档 7.3 节），还差把程序写进 Flash 后引导这一步。
 - 回退：`bit/official/ddr_demo_ti60.bit` 里仍是官方 124KB bootloader。
 
 Flash 读取的线数：bootloader 可选 `SINGLE_SPI`、`DUAL_SPI`、`QUAD_SPI`，现在是单线。顶层只连了 `system_spi_0_io_data_0/1`，`data_2/3` 悬空，`peri.xml` 也只分配了两根数据线，所以四线现在用不了；双线可以试（手册表 14 写 Ti60F225 开发套件连 2 根数据线），留给设计文档里的实验 E6。
@@ -228,15 +228,17 @@ Flash 读取的线数：bootloader 可选 `SINGLE_SPI`、`DUAL_SPI`、`QUAD_SPI`
 | Efinity RISC-V 嵌入式软件 IDE | 2026.1.0.7，自带 `riscv-none-elf-gcc` 13.4.0、make 4.2.1、OpenOCD | `C:\Efinity\efinity-riscv-ide-2026.1`，开始菜单有快捷方式 |
 | Java | Oracle JRE 8u381，已加入系统 PATH | `C:\Program Files\Java\jre-1.8`，安装包取自资料目录 `02_.../软件安装包/` |
 | VC++ 2022 x64 运行库 | 14.51 | 本机原来就有 |
-| 板载下载器驱动 | 未安装 | Interface 1 要用 zadig 换成 libusbK，见 `doc/板卡实测记录.md` |
+| 板载下载器驱动 | Interface 1 为 libusbK 3.1.0.0，其余接口保持 FTDI 驱动 | 用 `Efinix/02_.../驱动安装及说明/zadig-2.8.exe` 安装；`pgm\bin\ftdi_pgm.bat --scan_usb` 读到 JTAG ID `0x10660a79`，见 `doc/板卡实测记录.md` |
 
 三个安装程序由一个管理员脚本依次静默执行，退出码都是 0。两个安装包的默认目录就是上表位置，与 Sapphire 手册第 11 页一致，路径里没有空格和中文。
+
+命令行编译已验证：把官方 `01_Ti60F225_key_demo` 复制到英文路径，运行 `bin\setup.bat` 后执行 `efx_run.bat LED_8bit_Test.xml`，map、interface、pnr、pgm 四步都是 PASS，用时 71 秒，生成了 `.bit` 与 `.hex`，没有要求许可证。烧写也有命令行入口 `pgm\bin\ftdi_pgm.bat`（`--scan_usb` 列出 USB 与 FPGA，`-m jtag` 等选择模式）。
 
 安装包在 `D:\Download`。其中 `efinity-2026.1.132-windows-x64.tar.gz` 与 msi 是同一版本的另一种打包，`efinity-riscv-ide-2026.1.0.7-windows-x64 (1).msi` 与不带 `(1)` 的文件 SHA256 相同，都没有用到。`efinity-2026.1.132.4.5-windows-x64-pgm-patch.zip` 没有装：它是独立版 Programmer 的补丁，`run.bat` 默认目标是 `C:\Efinity\Programmer\2026.1`，只含 Programmer、Debugger 与加密工具的文件；打到完整版 Efinity 上会把版本号改成 2026.1.132.4.5，综合与布局布线部分却仍是 132。需要补丁时应下载完整版 Efinity 的补丁包。
 
 本工程由 Efinity 2025.2 建立，换到 2026.1 有两处不兼容：
 
-- SoC IP：工程里是 efx_soc 3.3.0，Efinity 2026.1 自带 3.4.0，打开工程会提示升级。升级会重新生成 `fpga/ddr_demo_ti60/ip/soc/` 下的文件和软件包。本目录不在 git 管理下，升级前先备份整个 `Main/`。`settings.json` 中的 `LDSize=4092` 是界面上 Application Region Size 的「4MB」选项，`HexFile_Path` 写绝对路径也可以，生成器会自动换成相对工程目录的路径（`generator/soc_gen.py` 第 746~749 行）。
+- SoC IP：工程里是 efx_soc 3.3.0，Efinity 2026.1 自带 3.4.0，打开工程会提示升级。升级会重新生成 `fpga/ddr_demo_ti60/ip/soc/` 下的文件和软件包。本目录 2026-09-16 已建 git 仓库（`main` 分支），初始提交 `f3090f0` 就是升级前的备份点，升级后可以用 `git diff` 查看生成器改了哪些文件。`settings.json` 中的 `LDSize=4092` 是界面上 Application Region Size 的「4MB」选项，`HexFile_Path` 写绝对路径也可以，生成器会自动换成相对工程目录的路径（`generator/soc_gen.py` 第 746~749 行）。
 - 软件编译：`sdk/` 里的 BSP 是 2025.2 生成的，makefile 的默认工具链前缀是 `riscv-none-embed-`，`-march` 只有 `rv32im`。实测用 IDE 2026.1 的 gcc 13.4 编译 bootloader 与 gpioDemo，都在 CSR 指令处报 `extension 'zicsr' required`。Efinity 2026.1 的软件包模板（`ipm/ip/efx_hard_soc/embedded_sw/software/standalone/common/riscv64-unknown-elf.mk`）已经加上 `_zicsr_zifencei`。所以升级 SoC IP 以后要把新生成的软件包同步到 `sdk/`，同步时保留「Bootloader 与程序区」一节列出的修改。在那之前，可以用 WSL 中的 gcc 8.3.0 编译（见 `doc/板卡实测记录.md` 第 5 节）。
 
 1. 硬件：用 Efinity 打开 `fpga/ddr_demo_ti60/ddr_demo_ti60.xml`。先在 Interface Designer 中打开接口设计，确认 `HDMI_PLL` 算出的频率与相位同上表一致，并运行 Check Design，然后再编译。
@@ -275,13 +277,18 @@ Flash 读取的线数：bootloader 可选 `SINGLE_SPI`、`DUAL_SPI`、`QUAD_SPI`
 - `fpga/ddr_demo_ti60/ip/soc/settings.json`：`LDSize`、`HexFile_PathEnable`、`HexFile_Path`；
 - `fpga/ddr_demo_ti60/ip/soc/` 与 `ip/soc/source/hardware/netlist/` 下的 8 个片上 RAM 初始文件。
 
-新增的文件在 `rtl/hdmi/`、`sim/hdmi/` 两个目录下，另有 `sdk/tool/bootloader/bootloader_512K.bin` 与 `.hex`。其中 `color_bar_rgb.v`、`dvi_encoder.v`、`encode.v` 与官方 `03_hdmi_tx_demo` 中的文件 MD5 一致。除上面列出的文件外，其余文件与官方工程逐个比对过 MD5，全部一致。
+为命令行编译修改的文件（2026-09-16）：
+
+- `fpga/ddr_demo_ti60/ddr_demo_ti60.xml`：`<efx:debugger>` 下的 `auto_instantiation` 由 `on` 改为 `off`。原因：自动插入调试核这一步要求 `work_dbg/debug_top.v` 事先存在，这个文件在 GUI 里由 Debug Wizard 生成，命令行的 `efx_run` 不生成，而 `work_dbg/` 没有搬进本目录。关掉后少的只是自动插入的逻辑分析仪 `la0`（探针 `cal_done`、`ddr_rstn`），顶层用 `` `define Efinity_Debug `` 手工例化的 `edb_top` 仍在。
+- 同一次编译中，Efinity 2026.1 把 `ddr_demo_ti60.xml` 与 `ddr_demo_ti60.peri.xml` 按新版格式重写了一遍（版本号、标签写法、子元素顺序）。用 `git diff -w` 核对过，三个 PLL 的分频、相位与反馈设置没有变化。
+
+新增的文件在 `rtl/hdmi/`、`sim/hdmi/`、`sdk/software/standalone/application/bootSizeTest/` 三个目录下，另有 `sdk/tool/bootloader/bootloader_512K.bin` 与 `.hex`。其中 `color_bar_rgb.v`、`dvi_encoder.v`、`encode.v` 与官方 `03_hdmi_tx_demo` 中的文件 MD5 一致。除上面列出的文件外，其余文件在搬入时与官方工程逐个比对过 MD5，全部一致。
 
 ## 注意事项
 
-- 接口设计：`peri.xml` 中 HDMI 相关的部分是按官方工程的格式手工写入的，还没有经过 Interface Designer 校验。如果 Interface Designer 调整了 PLL 参数，要同步检查 `sdc/ddr3.sdc` 中的时钟定义。
+- 接口设计：`peri.xml` 中 HDMI 相关的部分是按官方工程的格式手工写入的，2026-09-16 编译时已通过 Interface Designer 的检查，PLL 参数没有被改动。以后如果在 Interface Designer 里调整了 PLL 参数，要同步检查 `sdc/ddr3.sdc` 中的时钟定义。
 - 路径依赖：
   - 上面 5 个改过绝对路径的文件，以及 `settings.json` 中的 `HexFile_Path`，`Main/` 换了位置就要一起改；
   - `ip/soc/source/soc_config`、`sdk/bsp/efinix/EfxSapphireSoc/openocd/debug_profile_soft.cfg` 与 gpioDemo 的 `.cproject` 仍引用 `C:\Efinity\2025.2` 和 `C:\Efinity\efinity-riscv-ide-2025.2`。本机装的是 2026.1，这些文件会在升级 SoC IP、重新导入软件工程时重新生成，不必手改。
 - 软件包的位置：官方工程里，软件包放在 Efinity 工程目录下的 `embedded_sw/soc/`。如果在 Efinity 里重新生成 SoC IP，要检查新生成的软件包输出到了哪里，再把 `bsp/` 同步到 `sdk/bsp/`。
-- 验证状态：本目录只做过仿真、静态检查和 bootloader 的编译比对，还没有用 Efinity 编译，也没有上板。
+- 验证状态（2026-09-16）：Efinity 2026.1 编译通过，时序没有负 slack；JTAG 加载后，片上 RAM 读回的内容与新 bootloader 一致，memTest 通过，HDMI 显示器上八色竖条正确（`doc/板卡实测记录.md` 第 6、7 节）。512KB bootloader 从 Flash 引导还没有上板确认。

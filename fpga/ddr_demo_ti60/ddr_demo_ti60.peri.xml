@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efxpt:design_db name="ddr_demo_ti60" device_def="Ti60F225" version="2025.2.288.3.8" db_version="20252999" last_change_date="Tue Mar 31 13:45:18 2026" xmlns:efxpt="http://www.efinixinc.com/peri_design_db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/peri_design_db peri_design_db.xsd ">
+<efxpt:design_db name="ddr_demo_ti60" device_def="Ti60F225" version="2026.1.132" db_version="20261009" last_change_date="Wed Sep 16 05:46:20 2026" xmlns:efxpt="http://www.efinixinc.com/peri_design_db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/peri_design_db peri_design_db.xsd ">
     <efxpt:device_info>
         <efxpt:iobank_info>
             <efxpt:iobank name="1A" iostd="1.8 V LVCMOS" is_dyn_voltage="false" mode_sel_name="1A_MODE_SEL"/>
@@ -343,58 +343,40 @@
         <efxpt:pll name="pll_inst1" pll_def="PLL_TL0" ref_clock_name="clk_25m" ref_clock_freq="25.0000" multiplier="4" pre_divider="1" post_divider="2" reset_name="" locked_name="user_pll_locked" is_ipfrz="false" is_bypass_lock="true">
             <efxpt:adv_prop ref_clock_mode="core" ref_clock1_name="" ext_ref_clock_id="2" clksel_name="" feedback_clock_name="core_clk" feedback_mode="core"/>
             <efxpt:gen_pin>
-                <efxpt:pin name="" type_name="SHIFT_ENA" is_bus="false"/>
-                <efxpt:pin name="" type_name="DESKEWED" is_bus="false"/>
                 <efxpt:pin name="" type_name="SHIFT" is_bus="true"/>
                 <efxpt:pin name="" type_name="SHIFT_SEL" is_bus="true"/>
+                <efxpt:pin name="" type_name="SHIFT_ENA" is_bus="false"/>
+                <efxpt:pin name="" type_name="DESKEWED" is_bus="false"/>
             </efxpt:gen_pin>
-            <efxpt:comp_output_clock name="core_clk" number="0" out_divider="27" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="gclk">
-                <efxpt:gen_pin/>
-            </efxpt:comp_output_clock>
+            <efxpt:comp_output_clock name="core_clk" number="0" out_divider="27" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="gclk"/>
             <efxpt:comp_prop/>
         </efxpt:pll>
         <efxpt:pll name="DDR3_PLL" pll_def="PLL_TR0" ref_clock_name="clk_25m" ref_clock_freq="25.0000" multiplier="4" pre_divider="1" post_divider="1" reset_name="" locked_name="pll_locked" is_ipfrz="false" is_bypass_lock="true">
             <efxpt:adv_prop ref_clock_mode="core" ref_clock1_name="" ext_ref_clock_id="2" clksel_name="" feedback_clock_name="clk_100m" feedback_mode="core"/>
             <efxpt:gen_pin>
-                <efxpt:pin name="pll_shift_ena" type_name="SHIFT_ENA" is_bus="false"/>
-                <efxpt:pin name="" type_name="DESKEWED" is_bus="false"/>
                 <efxpt:pin name="pll_shift" type_name="SHIFT" is_bus="true"/>
                 <efxpt:pin name="pll_shift_sel" type_name="SHIFT_SEL" is_bus="true"/>
+                <efxpt:pin name="pll_shift_ena" type_name="SHIFT_ENA" is_bus="false"/>
+                <efxpt:pin name="" type_name="DESKEWED" is_bus="false"/>
             </efxpt:gen_pin>
-            <efxpt:comp_output_clock name="tx_cal_clk_90edge" number="0" out_divider="8" is_dyn_phase="true" phase_setting="0" is_inverted="false" conn_type="gclk">
-                <efxpt:gen_pin/>
-            </efxpt:comp_output_clock>
-            <efxpt:comp_output_clock name="sdram_clk" number="1" out_divider="8" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="gclk">
-                <efxpt:gen_pin/>
-            </efxpt:comp_output_clock>
-            <efxpt:comp_output_clock name="rx_cal_clk" number="2" out_divider="8" is_dyn_phase="true" phase_setting="0" is_inverted="false" conn_type="gclk">
-                <efxpt:gen_pin/>
-            </efxpt:comp_output_clock>
-            <efxpt:comp_output_clock name="tx_cal_clk" number="3" out_divider="8" is_dyn_phase="true" phase_setting="0" is_inverted="false" conn_type="gclk">
-                <efxpt:gen_pin/>
-            </efxpt:comp_output_clock>
-            <efxpt:comp_output_clock name="clk_100m" number="4" out_divider="32" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="rclk">
-                <efxpt:gen_pin/>
-            </efxpt:comp_output_clock>
+            <efxpt:comp_output_clock name="tx_cal_clk_90edge" number="0" out_divider="8" is_dyn_phase="true" phase_setting="0" is_inverted="false" conn_type="gclk"/>
+            <efxpt:comp_output_clock name="sdram_clk" number="1" out_divider="8" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="gclk"/>
+            <efxpt:comp_output_clock name="rx_cal_clk" number="2" out_divider="8" is_dyn_phase="true" phase_setting="0" is_inverted="false" conn_type="gclk"/>
+            <efxpt:comp_output_clock name="tx_cal_clk" number="3" out_divider="8" is_dyn_phase="true" phase_setting="0" is_inverted="false" conn_type="gclk"/>
+            <efxpt:comp_output_clock name="clk_100m" number="4" out_divider="32" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="rclk"/>
             <efxpt:comp_prop/>
         </efxpt:pll>
         <efxpt:pll name="HDMI_PLL" pll_def="PLL_BL0" ref_clock_name="clk_27m" ref_clock_freq="27.0000" multiplier="1" pre_divider="1" post_divider="4" reset_name="" locked_name="hdmi_pll_locked" is_ipfrz="false" is_bypass_lock="true">
             <efxpt:adv_prop ref_clock_mode="core" ref_clock1_name="" ext_ref_clock_id="2" clksel_name="" feedback_clock_name="hdmi_pll_fb" feedback_mode="local"/>
             <efxpt:gen_pin>
-                <efxpt:pin name="" type_name="SHIFT_ENA" is_bus="false"/>
-                <efxpt:pin name="" type_name="DESKEWED" is_bus="false"/>
                 <efxpt:pin name="" type_name="SHIFT" is_bus="true"/>
                 <efxpt:pin name="" type_name="SHIFT_SEL" is_bus="true"/>
+                <efxpt:pin name="" type_name="SHIFT_ENA" is_bus="false"/>
+                <efxpt:pin name="" type_name="DESKEWED" is_bus="false"/>
             </efxpt:gen_pin>
-            <efxpt:comp_output_clock name="hdmi_pll_fb" number="0" out_divider="28" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="gclk">
-                <efxpt:gen_pin/>
-            </efxpt:comp_output_clock>
-            <efxpt:comp_output_clock name="hdmi_tx_slow_clk" number="1" out_divider="30" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="gclk">
-                <efxpt:gen_pin/>
-            </efxpt:comp_output_clock>
-            <efxpt:comp_output_clock name="hdmi_tx_fast_clk" number="3" out_divider="6" is_dyn_phase="false" phase_setting="3" is_inverted="false" conn_type="gclk">
-                <efxpt:gen_pin/>
-            </efxpt:comp_output_clock>
+            <efxpt:comp_output_clock name="hdmi_pll_fb" number="0" out_divider="28" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="gclk"/>
+            <efxpt:comp_output_clock name="hdmi_tx_slow_clk" number="1" out_divider="30" is_dyn_phase="false" phase_setting="0" is_inverted="false" conn_type="gclk"/>
+            <efxpt:comp_output_clock name="hdmi_tx_fast_clk" number="3" out_divider="6" is_dyn_phase="false" phase_setting="3" is_inverted="false" conn_type="gclk"/>
             <efxpt:comp_prop/>
         </efxpt:pll>
     </efxpt:pll_info>
