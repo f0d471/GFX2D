@@ -1,0 +1,8 @@
+# 全仓关闭行尾转换。
+#
+# 理由：`Main/rtl/vendor/`、`Main/sdk/`、`Main/bit/official/` 下是厂商原样收录的文件，
+# 其中一部分用 MD5 与原件核对过，另一部分（`.launch`、`.hex`、比特流文本）
+# 里的换行是内容的一部分。克隆方的 core.autocrlf 如果是 Windows 默认的 true，
+# 这些文件会在检出时被改写，与原件不再逐字节相同。
+# `-text` 让 git 不做任何 LF/CRLF 转换，检出的字节与提交的字节一致。
+* -text

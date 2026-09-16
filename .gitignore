@@ -1,15 +1,30 @@
-# 仿真与软件构建产物
-build/
+# ---- 厂商资料包，不入库 ----
+# 赛题指南、开发板资料、参考工程、TinyML 讲义等，共约 7GB，
+# 著作权属于厂商与竞赛组织方，也不适合放进版本库。
+# 仓库里的文档按 `Efinix/...` 引用它们，取用方式见 README.md「需要另外准备的东西」。
+/Efinix/
 
-# Efinity 编译输出与工作目录
+# ---- Efinity 的编译输出与工作目录 ----
 outflow/
 work_syn/
 work_pnr/
 work_pt/
 work_dbg/
+*.vdb
+*.map.v
 
-# 板上 Flash 整片备份（每个 24MB，只留本机用于恢复）
-bit/flash_backup/
+# ---- 仿真产物 ----
+*.wlf
+transcript
+vsim.dbg
+*.mti
+build/
 
-# RISC-V IDE（Eclipse）工作区缓存
+# ---- IDE 与编辑器缓存 ----
 .metadata/
+Thumbs.db
+desktop.ini
+
+# ---- 板上 Flash 整片备份 ----
+# 每份 24MB，只留在本地用于恢复
+Main/bit/flash_backup/
