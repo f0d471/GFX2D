@@ -46,4 +46,4 @@ gcc 8.3.0 编译，bin 2418 字节。串口逐行打印 `LOW k=0..27`、`LOW k=-
 
 ## ddrBurstProbe 的期望值
 
-需要带 `axi_probe_master` 的比特流（2026-09-17 起）。gcc 8.3.0 编译，bin 3922 字节，运行约 10 秒。串口末尾为 `fail 0` 与 `done`，`IDENT`、`CROSS`、`SWEEP` 每行为 `ok`，`SHARE errs=0x00000000 ok`。周期数随板子会有约 2% 的波动，参考值与解释见 `../../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.4 节。探针主机超时或挂死时 CPU 也访问不了 DDR，串口会停在最后一行，重新加载比特流恢复。
+需要带 `axi_probe_master` 的比特流（2026-09-17 起）。gcc 8.3.0 编译，bin 3922 字节，`resume` 后 1 秒内输出完毕（2026-09-17 实测，全部 56 行在 0.5 秒左右内到达）。串口末尾为 `fail 0` 与 `done`，`IDENT`、`CROSS`、`SWEEP` 每行为 `ok`，`SHARE errs=0x00000000 ok`。周期数随板子会有约 2% 的波动，参考值与解释见 `../../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.4 节。探针主机超时或挂死时 CPU 也访问不了 DDR，串口会停在最后一行，重新加载比特流恢复。
