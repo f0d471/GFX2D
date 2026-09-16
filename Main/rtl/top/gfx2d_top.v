@@ -4,6 +4,8 @@
 //   u_soc        Sapphire RISC-V SoC（IP 生成，fpga/gfx2d_ti60/ip/soc/soc.v）
 //   u_ddr3       DDR3 软核控制器（厂商加密源码，rtl/vendor/ddr3_controller/）
 //   u_apb_probe  APB 探针寄存器，占位并验证 APB 通路（rtl/bus/apb_probe.v）
+//   u_axi_probe  AXI 探针主机，DDR3 上的第二个主机，实验 E4 用（rtl/bus/axi_probe_master.v）
+//   u_axi_mux    AXI 多路器，SoC 与探针主机共用 DDR3 控制器（rtl/vendor/axi_mux/Axi_Mux.v）
 //   u_hdmi_tx    HDMI 发送，640x480@60 八色竖条（rtl/hdmi/hdmi_tx.v）
 //
 // 时钟（全部由 Interface Designer 里的 PLL 产生，见 fpga/gfx2d_ti60/README.md）：
@@ -12,8 +14,10 @@
 //   hdmi_tx_slow_clk   25.2MHz  PLL_BL0 <- clk_27m    HDMI 像素时钟
 //
 // 连接：
-//   SoC io_ddrA（AXI4，128 位）-> DDR3 控制器的 AXI 从口
-//   SoC APB Slave 0（CPU 地址 0xF810_0000，64KB 窗口）-> apb_probe
+//   SoC io_ddrA（AXI4，128 位）-> Axi_Mux S0 --+
+//   axi_probe_master          -> Axi_Mux S1 --+--> DDR3 控制器的 AXI 从口
+//   SoC APB Slave 0（CPU 地址 0xF810_0000，64KB 窗口）
+//     0x1000~0x1FFF -> axi_probe_master 寄存器，其余 -> apb_probe
 //   HDMI 通路目前与 SoC、DDR3 没有数据交互，画面来自 hdmi_tx 内部的彩条发生器
 //
 // 端口名与 fpga/gfx2d_ti60/gfx2d_ti60.peri.xml 中的信号名一一对应，改一边要同步另一边。
@@ -137,11 +141,14 @@ wire soc_system_reset;
 // ---------------------------------------------------------------------------
 // SoC 与 DDR3 控制器之间的 AXI4
 // ---------------------------------------------------------------------------
-// 两侧位宽不同，下面两处是有意的截断，与官方参考设计一致：
-//   地址  SoC 32 位 -> 控制器 28 位。DDR3 只有 256MB，[31:28] 恒为 0；
-//         CPU 看到的 DDR 窗口是 0x0000_1000~0x0FFF_FFFF，超出部分会地址回绕（实验 E2）。
+// 两侧位宽不同，下面两处是有意的截断，与官方参考设计一致，2026-09-16 实验 E2 已查证：
+//   地址  SoC 32 位 -> 控制器 28 位。SoC 送出的地址与 CPU 地址按位相同（不减基址）。
+//         上板实测低 28 位逐位参与寻址，高 4 位丢弃，回绕周期 256MB：
+//         0x0000_1000~0x0FFF_FFFF 内 CPU 地址即控制器地址，以上全是别名。
 //   ID    SoC 8 位 -> 控制器 4 位，读写响应回来时高 4 位补 0。
-//         SoC 实际发出的 ID 是否会超过 15 还没有查证，接引擎前要确认（实验 E2 一并做）。
+//         SoC 内部 CPU 一路的 ID 接常量 0，发出的 awid/arid 恒为 8'h00，截断安全。
+//         io_ddrMasters_0 的 ID 最高位是 1，启用它会让响应回错主机，所以保持不接。
+//   依据见 Engineering/TechReports/platform/02-DDR地址译码与AXI-ID实测.md。
 wire [31:0]                    soc_ddr_awaddr;
 wire [7:0]                     soc_ddr_awid;
 wire [7:0]                     soc_ddr_awlen;
@@ -181,6 +188,72 @@ wire [1:0]                     ddr_rresp;
 wire                           ddr_rlast;
 wire                           ddr_rvalid;
 wire                           soc_ddr_rready;
+
+// SoC 侧经 Axi_Mux 回来的握手与数据
+wire                           soc_ddr_bvalid;
+wire [7:0]                     soc_ddr_bid;
+wire                           soc_ddr_rvalid;
+wire                           soc_ddr_rlast;
+wire [7:0]                     soc_ddr_rid;
+wire [`AXI_DATA_WIDTH-1:0]     soc_ddr_rdata;
+wire [1:0]                     soc_ddr_rresp;
+
+// ---------------------------------------------------------------------------
+// axi_probe_master 的 AXI 主机口（Axi_Mux S1）
+// ---------------------------------------------------------------------------
+wire [31:0]                    prb_awaddr;
+wire [7:0]                     prb_awlen;
+wire [2:0]                     prb_awsize;
+wire [1:0]                     prb_awburst;
+wire                           prb_awvalid;
+wire                           prb_awready;
+wire [`AXI_DATA_WIDTH-1:0]     prb_wdata;
+wire [`AXI_DATA_WIDTH/8-1:0]   prb_wstrb;
+wire                           prb_wlast;
+wire                           prb_wvalid;
+wire                           prb_wready;
+wire                           prb_bvalid;
+wire                           prb_bready;
+wire [31:0]                    prb_araddr;
+wire [7:0]                     prb_arlen;
+wire [2:0]                     prb_arsize;
+wire [1:0]                     prb_arburst;
+wire                           prb_arvalid;
+wire                           prb_arready;
+wire [`AXI_DATA_WIDTH-1:0]     prb_rdata;
+wire [1:0]                     prb_rresp;
+wire                           prb_rlast;
+wire                           prb_rvalid;
+wire                           prb_rready;
+wire                           mux_arb_type;
+wire [1:0]                     mux_arb_mask;
+
+// ---------------------------------------------------------------------------
+// Axi_Mux 出口，接 DDR3 控制器
+// ---------------------------------------------------------------------------
+wire [7:0]                     mux_awid;
+wire [31:0]                    mux_awaddr;
+wire [7:0]                     mux_awlen;
+wire [2:0]                     mux_awsize;
+wire [1:0]                     mux_awburst;
+wire [1:0]                     mux_awlock;
+wire                           mux_awvalid;
+wire                           ddr_awready;
+wire [`AXI_DATA_WIDTH-1:0]     mux_wdata;
+wire [`AXI_DATA_WIDTH/8-1:0]   mux_wstrb;
+wire                           mux_wlast;
+wire                           mux_wvalid;
+wire                           ddr_wready;
+wire                           mux_bready;
+wire [7:0]                     mux_arid;
+wire [31:0]                    mux_araddr;
+wire [7:0]                     mux_arlen;
+wire [2:0]                     mux_arsize;
+wire [1:0]                     mux_arburst;
+wire [1:0]                     mux_arlock;
+wire                           mux_arvalid;
+wire                           ddr_arready;
+wire                           mux_rready;
 
 // ---------------------------------------------------------------------------
 // APB Slave 0
@@ -243,47 +316,48 @@ ddr3_top u_ddr3 (
     .app_ref_ack            (),
     .app_zq_ack             (),
 
-    .s_axi_awid             (soc_ddr_awid[`AXI_ID_WIDTH-1:0]),
-    .s_axi_awaddr           (soc_ddr_awaddr[`AXI_ADDR_WIDTH-1:0]),
-    .s_axi_awlen            (soc_ddr_awlen),
-    .s_axi_awsize           (soc_ddr_awsize),
-    .s_axi_awburst          (soc_ddr_awburst),
-    .s_axi_awlock           (soc_ddr_awlock),
-    .s_axi_awcache          (soc_ddr_awcache),
-    .s_axi_awprot           (soc_ddr_awprot),
+    // 从 Axi_Mux 出口进来。Axi_Mux 不传 cache/prot/qos，接常量；lock 取它 2 位里的低位
+    .s_axi_awid             (mux_awid[`AXI_ID_WIDTH-1:0]),
+    .s_axi_awaddr           (mux_awaddr[`AXI_ADDR_WIDTH-1:0]),
+    .s_axi_awlen            (mux_awlen),
+    .s_axi_awsize           (mux_awsize),
+    .s_axi_awburst          (mux_awburst),
+    .s_axi_awlock           (mux_awlock[0]),
+    .s_axi_awcache          (4'h0),
+    .s_axi_awprot           (3'b000),
     .s_axi_awqos            (4'h0),
-    .s_axi_awvalid          (soc_ddr_awvalid),
-    .s_axi_awready          (soc_ddr_awready),
+    .s_axi_awvalid          (mux_awvalid),
+    .s_axi_awready          (ddr_awready),
 
-    .s_axi_wdata            (soc_ddr_wdata),
-    .s_axi_wstrb            (soc_ddr_wstrb),
-    .s_axi_wlast            (soc_ddr_wlast),
-    .s_axi_wvalid           (soc_ddr_wvalid),
-    .s_axi_wready           (soc_ddr_wready),
+    .s_axi_wdata            (mux_wdata),
+    .s_axi_wstrb            (mux_wstrb),
+    .s_axi_wlast            (mux_wlast),
+    .s_axi_wvalid           (mux_wvalid),
+    .s_axi_wready           (ddr_wready),
 
     .s_axi_bid              (ddr_bid),
     .s_axi_bresp            (ddr_bresp),
     .s_axi_bvalid           (ddr_bvalid),
-    .s_axi_bready           (soc_ddr_bready),
+    .s_axi_bready           (mux_bready),
 
-    .s_axi_arid             (soc_ddr_arid[`AXI_ID_WIDTH-1:0]),
-    .s_axi_araddr           (soc_ddr_araddr[`AXI_ADDR_WIDTH-1:0]),
-    .s_axi_arlen            (soc_ddr_arlen),
-    .s_axi_arsize           (soc_ddr_arsize),
-    .s_axi_arburst          (soc_ddr_arburst),
-    .s_axi_arlock           (soc_ddr_arlock),
-    .s_axi_arcache          (soc_ddr_arcache),
-    .s_axi_arprot           (soc_ddr_arprot),
+    .s_axi_arid             (mux_arid[`AXI_ID_WIDTH-1:0]),
+    .s_axi_araddr           (mux_araddr[`AXI_ADDR_WIDTH-1:0]),
+    .s_axi_arlen            (mux_arlen),
+    .s_axi_arsize           (mux_arsize),
+    .s_axi_arburst          (mux_arburst),
+    .s_axi_arlock           (mux_arlock[0]),
+    .s_axi_arcache          (4'h0),
+    .s_axi_arprot           (3'b000),
     .s_axi_arqos            (4'h0),
-    .s_axi_arvalid          (soc_ddr_arvalid),
-    .s_axi_arready          (soc_ddr_arready),
+    .s_axi_arvalid          (mux_arvalid),
+    .s_axi_arready          (ddr_arready),
 
     .s_axi_rid              (ddr_rid),
     .s_axi_rdata            (ddr_rdata),
     .s_axi_rresp            (ddr_rresp),
     .s_axi_rlast            (ddr_rlast),
     .s_axi_rvalid           (ddr_rvalid),
-    .s_axi_rready           (soc_ddr_rready),
+    .s_axi_rready           (mux_rready),
 
     // 校准与训练的调试观测口，当前没有引出
     .wrlvl_dq_check         (),
@@ -353,9 +427,9 @@ soc u_soc (
     .io_ddrA_w_valid                    (soc_ddr_wvalid),
     .io_ddrA_w_ready                    (soc_ddr_wready),
 
-    .io_ddrA_b_payload_id               ({4'b0, ddr_bid}),
+    .io_ddrA_b_payload_id               (soc_ddr_bid),
     .io_ddrA_b_payload_resp             (ddr_bresp),
-    .io_ddrA_b_valid                    (ddr_bvalid),
+    .io_ddrA_b_valid                    (soc_ddr_bvalid),
     .io_ddrA_b_ready                    (soc_ddr_bready),
 
     .io_ddrA_ar_payload_addr            (soc_ddr_araddr),
@@ -371,11 +445,11 @@ soc u_soc (
     .io_ddrA_ar_valid                   (soc_ddr_arvalid),
     .io_ddrA_ar_ready                   (soc_ddr_arready),
 
-    .io_ddrA_r_payload_id               ({4'b0, ddr_rid}),
-    .io_ddrA_r_payload_data             (ddr_rdata),
-    .io_ddrA_r_payload_resp             (ddr_rresp),
-    .io_ddrA_r_payload_last             (ddr_rlast),
-    .io_ddrA_r_valid                    (ddr_rvalid),
+    .io_ddrA_r_payload_id               (soc_ddr_rid),
+    .io_ddrA_r_payload_data             (soc_ddr_rdata),
+    .io_ddrA_r_payload_resp             (soc_ddr_rresp),
+    .io_ddrA_r_payload_last             (soc_ddr_rlast),
+    .io_ddrA_r_valid                    (soc_ddr_rvalid),
     .io_ddrA_r_ready                    (soc_ddr_rready),
 
     // APB Slave 0
@@ -399,7 +473,7 @@ soc u_soc (
     .jtagCtrl_reset                     (jtag_inst1_RESET),
 
     // 下面几组在 IP 里生成了但本设计没有使用，输入一律接常量，避免悬空。
-    // 计划在裁剪 SoC 时关掉，见 doc/开工前准备情况.md。
+    // 计划在裁剪 SoC 时关掉，见 Engineering/Todo/soc资源裁剪.md。
     .userInterruptA                     (1'b0),
 
     .system_i2c_0_io_scl_read           (1'b1),
@@ -494,19 +568,198 @@ soc u_soc (
 );
 
 // ---------------------------------------------------------------------------
-// APB 探针寄存器
+// APB Slave 0 的地址划分
 // ---------------------------------------------------------------------------
+//   0x1000~0x1FFF  axi_probe_master 的寄存器（CPU 地址 0xF810_1000 起）
+//   其余            apb_probe，它按完整 16 位译码，未映射地址仍然置 PSLVERROR
+wire        apb_sel_prb = (apb_paddr[15:12] == 4'h1);
+
+wire [31:0] probe_prdata;
+wire        probe_pready;
+wire        probe_pslverr;
+wire [31:0] prb_prdata;
+wire        prb_pready;
+wire        prb_pslverr;
+
 apb_probe u_apb_probe (
     .clk        (core_clk),
     .rst        (soc_system_reset),
     .paddr      (apb_paddr),
-    .psel       (apb_psel),
+    .psel       (apb_psel & ~apb_sel_prb),
     .penable    (apb_penable),
     .pwrite     (apb_pwrite),
     .pwdata     (apb_pwdata),
-    .prdata     (apb_prdata),
-    .pready     (apb_pready),
-    .pslverr    (apb_pslverr)
+    .prdata     (probe_prdata),
+    .pready     (probe_pready),
+    .pslverr    (probe_pslverr)
+);
+
+assign apb_prdata  = apb_sel_prb ? prb_prdata  : probe_prdata;
+assign apb_pready  = apb_sel_prb ? prb_pready  : probe_pready;
+assign apb_pslverr = apb_sel_prb ? prb_pslverr : probe_pslverr;
+
+// ---------------------------------------------------------------------------
+// AXI 探针主机（实验 E4），Axi_Mux 的 S1
+// ---------------------------------------------------------------------------
+axi_probe_master u_axi_probe (
+    .clk        (core_clk),
+    .rst        (soc_system_reset),
+    .paddr      (apb_paddr[11:0]),
+    .psel       (apb_psel & apb_sel_prb),
+    .penable    (apb_penable),
+    .pwrite     (apb_pwrite),
+    .pwdata     (apb_pwdata),
+    .prdata     (prb_prdata),
+    .pready     (prb_pready),
+    .pslverr    (prb_pslverr),
+
+    .arb_type   (mux_arb_type),
+    .arb_mask   (mux_arb_mask),
+
+    .awaddr     (prb_awaddr),
+    .awlen      (prb_awlen),
+    .awsize     (prb_awsize),
+    .awburst    (prb_awburst),
+    .awvalid    (prb_awvalid),
+    .awready    (prb_awready),
+    .wdata      (prb_wdata),
+    .wstrb      (prb_wstrb),
+    .wlast      (prb_wlast),
+    .wvalid     (prb_wvalid),
+    .wready     (prb_wready),
+    .bresp      (ddr_bresp),
+    .bvalid     (prb_bvalid),
+    .bready     (prb_bready),
+    .araddr     (prb_araddr),
+    .arlen      (prb_arlen),
+    .arsize     (prb_arsize),
+    .arburst    (prb_arburst),
+    .arvalid    (prb_arvalid),
+    .arready    (prb_arready),
+    .rdata      (prb_rdata),
+    .rresp      (prb_rresp),
+    .rlast      (prb_rlast),
+    .rvalid     (prb_rvalid),
+    .rready     (prb_rready)
+);
+
+// ---------------------------------------------------------------------------
+// Axi_Mux：S0 = SoC io_ddrA，S1 = axi_probe_master，出口 = DDR3 控制器
+// ---------------------------------------------------------------------------
+// Normal 模式下响应按事务顺序送回，与 ID 无关，所以控制器 4 位 ID 截断仍然安全。
+// Axi_Mux 没有 BRESP 端口；同一时刻只有被选中的主机看到 bvalid，控制器的 bresp 直接并接给两个主机。
+// 仲裁方式与通道屏蔽由 axi_probe_master 的 ARB 寄存器给出，复位值为轮询、两个通道都开。
+Axi_Mux #(
+    .SLAVE_ID_WIDTH (8),
+    .ID_MODE_SEL    ("Normal"),
+    .AXI_DATA_WIDTH (`AXI_DATA_WIDTH)
+) u_axi_mux (
+    .Sys_Clk        (core_clk),
+    .Sys_Rst_N      (ddr_rstn),
+
+    .O_M_AW_ID      (mux_awid),
+    .O_M_AW_ADDR    (mux_awaddr),
+    .O_M_AW_LEN     (mux_awlen),
+    .O_M_AW_SIZE    (mux_awsize),
+    .O_M_AW_BURST   (mux_awburst),
+    .O_M_AW_LOCK    (mux_awlock),
+    .O_M_AW_VALID   (mux_awvalid),
+    .I_M_AW_READY   (ddr_awready),
+    .O_M_W_ID       (),
+    .O_M_W_DATA     (mux_wdata),
+    .O_M_W_LAST     (mux_wlast),
+    .O_M_W_STRB     (mux_wstrb),
+    .O_M_W_VALID    (mux_wvalid),
+    .I_M_W_READY    (ddr_wready),
+    .I_M_B_ID       ({4'b0, ddr_bid}),
+    .I_M_B_VALID    (ddr_bvalid),
+    .O_M_B_READY    (mux_bready),
+    .O_M_AR_ID      (mux_arid),
+    .O_M_AR_ADDR    (mux_araddr),
+    .O_M_AR_LEN     (mux_arlen),
+    .O_M_AR_SIZE    (mux_arsize),
+    .O_M_AR_BURST   (mux_arburst),
+    .O_M_AR_LOCK    (mux_arlock),
+    .O_M_AR_VALID   (mux_arvalid),
+    .I_M_AR_READY   (ddr_arready),
+    .I_M_R_ID       ({4'b0, ddr_rid}),
+    .I_M_R_DATA     (ddr_rdata),
+    .I_M_R_LAST     (ddr_rlast),
+    .I_M_R_RESP     (ddr_rresp),
+    .I_M_R_VALID    (ddr_rvalid),
+    .O_M_R_READY    (mux_rready),
+
+    .I_S0_AW_ID     (soc_ddr_awid),
+    .I_S0_AW_ADDR   (soc_ddr_awaddr),
+    .I_S0_AW_LEN    (soc_ddr_awlen),
+    .I_S0_AW_SIZE   (soc_ddr_awsize),
+    .I_S0_AW_BURST  (soc_ddr_awburst),
+    .I_S0_AW_LOCK   ({1'b0, soc_ddr_awlock}),
+    .I_S0_AW_VALID  (soc_ddr_awvalid),
+    .O_S0_AW_READY  (soc_ddr_awready),
+    .I_S0_W_ID      (8'h0),
+    .I_S0_W_DATA    (soc_ddr_wdata),
+    .I_S0_W_LAST    (soc_ddr_wlast),
+    .I_S0_W_STRB    (soc_ddr_wstrb),
+    .I_S0_W_VALID   (soc_ddr_wvalid),
+    .O_S0_W_READY   (soc_ddr_wready),
+    .O_S0_B_ID      (soc_ddr_bid),
+    .O_S0_B_VALID   (soc_ddr_bvalid),
+    .I_S0_B_READY   (soc_ddr_bready),
+    .I_S0_AR_ID     (soc_ddr_arid),
+    .I_S0_AR_ADDR   (soc_ddr_araddr),
+    .I_S0_AR_LEN    (soc_ddr_arlen),
+    .I_S0_AR_SIZE   (soc_ddr_arsize),
+    .I_S0_AR_BURST  (soc_ddr_arburst),
+    .I_S0_AR_LOCK   ({1'b0, soc_ddr_arlock}),
+    .I_S0_AR_VALID  (soc_ddr_arvalid),
+    .O_S0_AR_READY  (soc_ddr_arready),
+    .O_S0_R_ID      (soc_ddr_rid),
+    .O_S0_R_DATA    (soc_ddr_rdata),
+    .O_S0_R_LAST    (soc_ddr_rlast),
+    .O_S0_R_RESP    (soc_ddr_rresp),
+    .O_S0_R_VALID   (soc_ddr_rvalid),
+    .I_S0_R_READY   (soc_ddr_rready),
+
+    .I_S1_AW_ID     (8'h0),
+    .I_S1_AW_ADDR   (prb_awaddr),
+    .I_S1_AW_LEN    (prb_awlen),
+    .I_S1_AW_SIZE   (prb_awsize),
+    .I_S1_AW_BURST  (prb_awburst),
+    .I_S1_AW_LOCK   (2'b00),
+    .I_S1_AW_VALID  (prb_awvalid),
+    .O_S1_AW_READY  (prb_awready),
+    .I_S1_W_ID      (8'h0),
+    .I_S1_W_DATA    (prb_wdata),
+    .I_S1_W_LAST    (prb_wlast),
+    .I_S1_W_STRB    (prb_wstrb),
+    .I_S1_W_VALID   (prb_wvalid),
+    .O_S1_W_READY   (prb_wready),
+    .O_S1_B_ID      (),
+    .O_S1_B_VALID   (prb_bvalid),
+    .I_S1_B_READY   (prb_bready),
+    .I_S1_AR_ID     (8'h0),
+    .I_S1_AR_ADDR   (prb_araddr),
+    .I_S1_AR_LEN    (prb_arlen),
+    .I_S1_AR_SIZE   (prb_arsize),
+    .I_S1_AR_BURST  (prb_arburst),
+    .I_S1_AR_LOCK   (2'b00),
+    .I_S1_AR_VALID  (prb_arvalid),
+    .O_S1_AR_READY  (prb_arready),
+    .O_S1_R_ID      (),
+    .O_S1_R_DATA    (prb_rdata),
+    .O_S1_R_LAST    (prb_rlast),
+    .O_S1_R_RESP    (prb_rresp),
+    .O_S1_R_VALID   (prb_rvalid),
+    .I_S1_R_READY   (prb_rready),
+
+    .Cfg_Arb_Type   (mux_arb_type),
+    .Cfg_Cnl_Mask   (mux_arb_mask),
+    .O_AW_Cnl_Num   (),
+    .O_W_Cnl_Num    (),
+    .O_B_Cnl_Num    (),
+    .O_AR_Cnl_Num   (),
+    .O_R_Cnl_Num    ()
 );
 
 // ---------------------------------------------------------------------------

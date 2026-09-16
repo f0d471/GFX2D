@@ -9,15 +9,16 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 
 | 部分 | 状态 |
 | --- | --- |
-| SoC（Sapphire RISC-V，100MHz）+ DDR3（256MB） | 已上板，memTest 通过 |
-| HDMI 输出 640x480@60 | 已上板，八色竖条显示正确。画面来自彩条发生器，还没有接帧缓冲 |
+| SoC（Sapphire RISC-V，100MHz）+ DDR3（256MB） | 已上板，memTest 通过。SoC 经 `Axi_Mux` 访问 DDR3 |
+| DDR3 上的第二个 AXI 主机 | `Axi_Mux` 已接入，暂由测量主机 `axi_probe_master` 占用。实测突发上限 256 拍，读事务固定开销约 27 个周期、写约 7 个 |
+| HDMI 输出 640x480@60 | 已上板，八色竖条显示正确（接入 `Axi_Mux` 后的比特流 2026-09-17 复核通过）。画面来自彩条发生器，还没有接帧缓冲 |
 | 程序从 Flash 引导（512KB 镜像） | 已上板验证，两个 CRC 与对照组都符合预期 |
-| APB 寄存器通路 | 已上板验证，探针寄存器四项全对 |
+| APB 寄存器通路 | 已上板验证，探针寄存器四项全对；`0x1000~0x1FFF` 分给测量主机 |
 | 渲染引擎、帧缓冲、双缓冲 | 还没有开始 |
 | SoC 资源裁剪 | 还没有做 |
 
-编译占用 XLR 14517（23.9%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack。
-这些数字的来历、五项上板判据的原始输出，以及基线是怎么搭起来的，见
+编译占用 XLR 16151（26.6%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack（2026-09-17）。
+这些数字相对第 01 章基线的变化见 `../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.2 节；五项上板判据的原始输出，以及基线是怎么搭起来的，见
 [`../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md`](../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md)。
 未完成的事项见 [`../Engineering/Todo/`](../Engineering/Todo/)。
 
@@ -67,7 +68,7 @@ efx_run.bat gfx2d_ti60.xml
 跑仿真：
 
 ```
-wsl -e bash -c 'bash sim/hdmi/run.sh && bash sim/apb_probe/run.sh'
+wsl -e bash -c 'bash sim/hdmi/run.sh && bash sim/apb_probe/run.sh && EFINITY_HOME=<EFINITY 的 WSL 路径> bash sim/axi_probe/run.sh'
 ```
 
 编译并用调试器运行一个程序见 `sw/README.md`，写 Flash 与整片备份见 `doc/开发环境.md` 第 8 节。
@@ -78,13 +79,14 @@ CPU 看到的地址，取自 `sdk/bsp/efinix/EfxSapphireSoc/include/soc.h`：
 
 | 区域 | 基址 | 大小 |
 | --- | --- | --- |
-| DDR3 | `0x0000_1000` | 窗口 `0xE000_0000`，实际颗粒 256MB |
+| DDR3 | `0x0000_1000` | 窗口 `0xE000_0000`，实际颗粒 256MB。只用 `0x0FFF_FFFF` 以下，以上按 256MB 周期回绕成别名 |
 | AXI 从设备窗口（未使用） | `0xE100_0000` | 16MB |
 | UART0 | `0xF801_0000` | `0x40` |
 | SPI0 | `0xF801_4000` | `0x1000` |
 | GPIO0（4 位，接 LED0~3） | `0xF801_5000` | `0x100` |
 | I2C0（未使用） | `0xF801_6000` | `0x100` |
-| APB Slave 0 → `apb_probe` | `0xF810_0000` | 64KB |
+| APB Slave 0 → `apb_probe` | `0xF810_0000` | 64KB，其中 `0x1000~0x1FFF` 除外 |
+| APB Slave 0 → `axi_probe_master` | `0xF810_1000` | 4KB，寄存器表见 `rtl/bus/axi_probe_master.v` |
 | CLINT | `0xF8B0_0000` | `0x1_0000` |
 | PLIC | `0xF8C0_0000` | `0x40_0000` |
 | 片上 RAM（bootloader） | `0xF900_0000` | 4KB |
@@ -103,7 +105,7 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   提交前跑一次 `--restore` 与 `--check`。
 - **判据要能注错见红**：每个仿真除了正常用例，必须有把逻辑改错后会 FAIL 的用例，
   否则不算验证过。
-- **提交前**：两个仿真各 3/3，Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
+- **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
 - **数字要标明来源**：估算与推测必须写清楚，实测要给命令和结果。
 - **状态与过程分开**：README 与 `doc/` 写当前是什么样，
   开发过程、踩过的坑、为什么这么选写在 `../Engineering/` 下。

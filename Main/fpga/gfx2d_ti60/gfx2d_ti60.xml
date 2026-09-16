@@ -8,6 +8,8 @@
         <efx:top_module name="gfx2d_top" />
         <efx:design_file name="../../rtl/top/gfx2d_top.v" version="default" library="default" />
         <efx:design_file name="../../rtl/bus/apb_probe.v" version="default" library="default" />
+        <efx:design_file name="../../rtl/bus/axi_probe_master.v" version="default" library="default" />
+        <efx:design_file name="../../rtl/vendor/axi_mux/Axi_Mux.v" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/ddr3_controller/ddr3_parameter.vh" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/ddr3_controller/ddr3_top.v" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/ddr3_controller/local_bus_ctl/local_bus_ctl.v" version="default" library="default" />

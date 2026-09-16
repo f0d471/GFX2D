@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="760" viewBox="0 0 1240 760"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1d4ed8"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .bx { fill:#eef2f7; stroke:#64748b; stroke-width:1.2 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .tg { font-size:9.5px; fill:#94a3b8 }
+      .axi { stroke:#1d4ed8; stroke-width:2.4; fill:none }
+      .bmb { stroke:#334155; stroke-width:1.7; fill:none }
+      .io  { stroke:#334155; stroke-width:1.1; fill:none }
+      .un  { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+      .f0 { fill:#ffffff; stroke:#334155; stroke-width:1 }
+      .f1 { fill:#e2e8f0; stroke:#334155; stroke-width:1 }
+      .f2 { fill:#cbd5e1; stroke:#334155; stroke-width:1 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="760" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">CPU 访问 DDR3 的通路：地址与 ID 在每一级的形态</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">2026-09-16 的比特流，与第 01 章相同，本章没有改硬件。实例名取自 SoC 网表 EfxSapphireSoc.v 与顶层 gfx2d_top.v。</text>
+
+  <!-- u_soc 边界 -->
+  <rect x="40" y="90" width="700" height="370" rx="6" fill="#fcfdff" stroke="#1e293b" stroke-width="1.8"/>
+  <text x="52" y="110" class="tt">u_soc（Sapphire SoC，IP 生成）</text>
+
+  <!-- CPU -->
+  <rect x="60" y="130" width="200" height="190" class="b"/>
+  <text x="160" y="150" class="t" text-anchor="middle" font-weight="600">system_cores_0_logic_cpu</text>
+  <text x="160" y="165" class="ts" text-anchor="middle">VexRiscv RV32</text>
+  <rect x="75" y="178" width="170" height="92" class="bi"/>
+  <text x="160" y="196" class="t" text-anchor="middle">DataCache</text>
+  <text x="160" y="213" class="ts" text-anchor="middle">1 路直接映射，4096 字节</text>
+  <text x="160" y="228" class="ts" text-anchor="middle">64 行 x 每行 64 字节</text>
+  <text x="160" y="243" class="ts" text-anchor="middle">行号 = 地址[11:6]</text>
+  <text x="160" y="258" class="ts" text-anchor="middle">标签 = 地址[31:12]</text>
+  <text x="160" y="295" class="ts" text-anchor="middle">程序与 OpenOCD 的访存</text>
+  <text x="160" y="309" class="ts" text-anchor="middle">都经过数据缓存</text>
+
+  <!-- 译码器 -->
+  <rect x="300" y="130" width="190" height="110" class="b"/>
+  <text x="395" y="150" class="t" text-anchor="middle" font-weight="600">BmbDecoder_2</text>
+  <text x="395" y="170" class="ts" text-anchor="middle">DDR 命中条件</text>
+  <text x="395" y="185" class="ts" text-anchor="middle">0x0000_1000 &lt;= a &lt; 0xE000_1000</text>
+  <text x="395" y="205" class="ts" text-anchor="middle">地址原样透传，不减基址</text>
+  <text x="395" y="225" class="ts" text-anchor="middle">其余分支：外设 0xF8xx、axiA 0xE1xx</text>
+
+  <path d="M260,185 H300" class="bmb" marker-end="url(#a)"/>
+  <text x="264" y="178" class="ts">BMB 32 位</text>
+
+  <!-- 仲裁器 -->
+  <rect x="530" y="130" width="190" height="130" class="b"/>
+  <text x="625" y="150" class="t" text-anchor="middle" font-weight="600">arbiterAxi4Write</text>
+  <text x="625" y="165" class="t" text-anchor="middle" font-weight="600">arbiterAxi4Read</text>
+  <text x="625" y="186" class="ts" text-anchor="middle">输入 0：CPU，ID 接 7'h0</text>
+  <text x="625" y="201" class="ts" text-anchor="middle">输入 1：io_ddrMasters_0</text>
+  <text x="625" y="221" class="ts" text-anchor="middle">输出 ID = {chosen, 输入 ID}</text>
+  <text x="625" y="236" class="ts" text-anchor="middle">响应按 ID[7] 送回输入</text>
+  <text x="625" y="251" class="ts" text-anchor="middle">本设计 chosen 恒 0，ID 恒 8'h00</text>
+
+  <path d="M490,185 H530" class="bmb" marker-end="url(#a)"/>
+
+  <!-- 未接入的外部主机口 -->
+  <rect x="530" y="330" width="190" height="60" class="bg"/>
+  <text x="625" y="352" class="tg" text-anchor="middle" font-weight="600">io_ddrMasters_0</text>
+  <text x="625" y="368" class="tg" text-anchor="middle">valid 接 0，时钟不接</text>
+  <text x="625" y="382" class="tg" text-anchor="middle">启用时 ID[7]=1，截断后回错主机</text>
+  <path d="M625,330 V260" class="un" marker-end="url(#ag)"/>
+
+  <!-- io_ddrA 出口 -->
+  <path d="M720,195 H860" class="axi" marker-end="url(#ab)"/>
+  <text x="726" y="186" font-size="10" fill="#1d4ed8">io_ddrA  AXI4</text>
+  <text x="746" y="214" class="ts">addr 32 / id 8</text>
+  <text x="746" y="228" class="ts">data 128 / strb 16</text>
+
+  <!-- 顶层截断 -->
+  <rect x="860" y="130" width="160" height="130" class="b"/>
+  <text x="940" y="150" class="t" text-anchor="middle" font-weight="600">gfx2d_top</text>
+  <text x="940" y="165" class="ts" text-anchor="middle">顶层连线，无逻辑</text>
+  <text x="940" y="188" class="ts" text-anchor="middle">awaddr/araddr → [27:0]</text>
+  <text x="940" y="203" class="ts" text-anchor="middle">高 4 位丢弃</text>
+  <text x="940" y="226" class="ts" text-anchor="middle">awid/arid → [3:0]</text>
+  <text x="940" y="241" class="ts" text-anchor="middle">bid/rid 回送补 {4'b0}</text>
+
+  <!-- 控制器 -->
+  <path d="M1020,195 H1060" class="axi" marker-end="url(#ab)"/>
+  <rect x="1060" y="130" width="150" height="130" class="b"/>
+  <text x="1135" y="150" class="t" text-anchor="middle" font-weight="600">u_ddr3</text>
+  <text x="1135" y="165" class="ts" text-anchor="middle">ddr3_top（加密）</text>
+  <text x="1135" y="188" class="ts" text-anchor="middle">AXI_ADDR_WIDTH 28</text>
+  <text x="1135" y="203" class="ts" text-anchor="middle">AXI_ID_WIDTH 4</text>
+  <text x="1135" y="218" class="ts" text-anchor="middle">AXI_DATA_WIDTH 128</text>
+  <text x="1135" y="241" class="ts" text-anchor="middle">bid_fifo_0 数据位已被优化掉</text>
+
+  <path d="M1135,260 V330" class="io" marker-start="url(#a)" marker-end="url(#a)"/>
+  <rect x="1060" y="330" width="150" height="60" class="bx"/>
+  <text x="1135" y="352" class="t" text-anchor="middle">DDR3 颗粒</text>
+  <text x="1135" y="370" class="ts" text-anchor="middle">256MB，16 位</text>
+  <text x="1135" y="384" class="ts" text-anchor="middle">行 14 / 列 10 / bank 3</text>
+
+  <!-- OpenOCD -->
+  <rect x="60" y="370" width="200" height="62" class="bx"/>
+  <text x="160" y="392" class="t" text-anchor="middle">jtag_inst1 → SystemDebugger</text>
+  <text x="160" y="410" class="ts" text-anchor="middle">OpenOCD 的 mdw / mww 由 CPU</text>
+  <text x="160" y="423" class="ts" text-anchor="middle">执行注入的访存指令完成</text>
+  <path d="M160,370 V320" class="io" marker-end="url(#a)"/>
+
+  <!-- 地址位段 -->
+  <text x="40" y="502" class="tt">一个 CPU 地址的 32 位，在两处各被怎样使用</text>
+
+  <text x="40" y="540" class="t">送往 u_ddr3</text>
+  <rect x="160" y="524" width="120" height="26" class="f2"/>
+  <text x="220" y="541" class="ts" text-anchor="middle">[31:28] 丢弃</text>
+  <rect x="280" y="524" width="840" height="26" class="f0"/>
+  <text x="700" y="541" class="ts" text-anchor="middle">[27:0] 控制器地址，逐位参与寻址</text>
+
+  <text x="40" y="590" class="t">DataCache 内部</text>
+  <rect x="160" y="574" width="600" height="26" class="f1"/>
+  <text x="460" y="591" class="ts" text-anchor="middle">[31:12] 标签（20 位）</text>
+  <rect x="760" y="574" width="180" height="26" class="f0"/>
+  <text x="850" y="591" class="ts" text-anchor="middle">[11:6] 行号</text>
+  <rect x="940" y="574" width="180" height="26" class="f0"/>
+  <text x="1030" y="591" class="ts" text-anchor="middle">[5:0] 行内偏移</text>
+
+  <text x="160" y="518" class="ts">31</text>
+  <text x="1110" y="518" class="ts">0</text>
+
+  <text x="160" y="630" class="ts">两处的分工不同：缓存用完整的 [31:12] 区分两行，控制器只看 [27:0]。</text>
+  <text x="160" y="646" class="ts">所以 0x0C80_0000 与 0x1C80_0000 在缓存里是两行，在颗粒上是同一个存储单元。</text>
+
+  <!-- 图例 -->
+  <rect x="40" y="672" width="1160" height="62" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="56" y="692" class="t" font-weight="600">图例</text>
+  <path d="M110,688 H160" class="axi"/>
+  <text x="168" y="692" class="ts">AXI4，128 位数据</text>
+  <path d="M290,688 H340" class="bmb"/>
+  <text x="348" y="692" class="ts">SoC 内部总线 BMB，32 位</text>
+  <path d="M500,688 H550" class="io"/>
+  <text x="558" y="692" class="ts">调试与颗粒接口</text>
+  <path d="M680,688 H730" class="un"/>
+  <text x="738" y="692" class="ts">IP 已生成、本设计未接入</text>
+  <rect x="110" y="706" width="26" height="16" class="f2"/>
+  <text x="144" y="718" class="ts">被丢弃的位</text>
+  <rect x="250" y="706" width="26" height="16" class="f1"/>
+  <text x="284" y="718" class="ts">缓存标签</text>
+  <text x="400" y="718" class="ts">线宽区分总线类型；颜色只区分「已接入」（深色、蓝色）与「未接入」（灰色）。</text>
+</svg>

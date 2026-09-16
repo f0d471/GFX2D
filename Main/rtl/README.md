@@ -17,19 +17,20 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `gfx2d_top.v` | 顶层。例化 SoC（`u_soc`）、DDR3 控制器（`u_ddr3`）、APB 探针（`u_apb_probe`）、HDMI 发送（`u_hdmi_tx`） |
+| `gfx2d_top.v` | 顶层。例化 SoC（`u_soc`）、DDR3 控制器（`u_ddr3`）、APB 探针（`u_apb_probe`）、AXI 探针主机（`u_axi_probe`）、AXI 多路器（`u_axi_mux`）、HDMI 发送（`u_hdmi_tx`） |
 
 端口名与 `fpga/gfx2d_ti60/gfx2d_ti60.peri.xml` 中的信号名一一对应，改一边必须同步另一边，否则 Interface Designer 会报 Missing Interface Pins。
 
 文件开头用 `` `default_nettype none ``，结尾恢复 `wire`。工程的综合选项是同一个编译单元（`hdl-compile-unit=1`），不恢复会影响后面编译的厂商文件。
 
-SoC 与 DDR3 控制器之间有两处有意的位宽截断，在文件里也写了：地址 32 位接 28 位（DDR3 只有 256MB），ID 8 位接 4 位（回来的响应高位补 0）。
+SoC 经 `u_axi_mux` 接 DDR3 控制器，中间有两处有意的位宽截断，在文件里也写了：地址 32 位接 28 位（DDR3 只有 256MB），ID 8 位接 4 位（回来的响应高位补 0）。两处都已查证安全：`0x0000_1000`~`0x0FFF_FFFF` 内 CPU 地址即控制器地址，以上回绕；SoC 发出的 ID 恒为 0。前提是 SoC 的外部主机口 `io_ddrMasters_0` 保持不接，它的 ID 最高位是 1。
 
 ## bus/
 
 | 文件 | 说明 |
 | --- | --- |
-| `apb_probe.v` | APB 探针寄存器，挂 APB Slave 0（CPU 地址 `0xF810_0000`，64KB 窗口）。`0x000` ID（只读，"GFX2"）、`0x004` VERSION（只读）、`0x008` SCRATCH（读写）；其余地址读回 0 并置 PSLVERROR |
+| `apb_probe.v` | APB 探针寄存器，挂 APB Slave 0（CPU 地址 `0xF810_0000`，64KB 窗口）。窗口内 `0x1000~0x1FFF` 分给 `axi_probe_master`，其余地址归它。`0x000` ID（只读，"GFX2"）、`0x004` VERSION（只读）、`0x008` SCRATCH（读写）；其余地址读回 0 并置 PSLVERROR |
+| `axi_probe_master.v` | AXI 探针主机，DDR3 上的第二个 AXI 主机，经 `Axi_Mux` S1 接入。寄存器在 APB Slave 0 的 `0x1000~0x1FFF`（CPU 地址 `0xF810_1000`），表在文件头。用于实验 E4，也是 CPU 之外的 DDR 观测者 |
 
 加速器的控制寄存器将来接在同一条 APB 上，这个模块是占位，也是 APB 通路的自检手段：上板用 OpenOCD 直接读写这几个地址即可，不需要写程序。仿真见 `sim/apb_probe/`。
 
@@ -51,12 +52,12 @@ SoC 与 DDR3 控制器之间有两处有意的位宽截断，在文件里也写�
 | 目录 | 内容 | 状态 |
 | --- | --- | --- |
 | `ddr3_controller/` | 易灵思 DDR3 软核控制器。顶层 `ddr3_top.v`，参数 `ddr3_parameter.vh`，其余为 PHY、bank 管理、AXI 从口 | 在工程源文件列表中。多数文件是加密 RTL，开源仿真工具读不了 |
-| `axi_mux/` | 第三方明文 AXI 多路器（2~8 主机进、1 出，128 位），来自官方工程 | **不在**源文件列表中。接引擎共享 DDR3 时启用 |
+| `axi_mux/` | 第三方明文 AXI 多路器（2~8 主机进、1 出，128 位），来自官方工程，官方设计里没有例化过 | 在源文件列表中，例化为 `u_axi_mux`，S0 接 SoC、S1 接 `axi_probe_master`。未改动源码。没有 BRESP 端口，顶层把控制器的 bresp 并接给各主机；`EFX_SRL8` 的输出取反、地址反向，仿真必须用厂商模型 |
 
 两处要注意的：
 
 - `ddr3_controller/common/simple_dual_port_ram.v` 用的是官方工程 `rtl/common/` 下那一份（1565 字节），也就是当前上板比特流实际编进去的版本。厂商目录里原本自带另一份同名文件（3413 字节，未被工程引用），已被这一份覆盖，原文件在 git 历史里。保留两份会出现同名模块，容易编错。
-- `axi_mux/Axi_Mux.v` 开头有 `` `define X2 ``（选择 2 个主机端口），工程是单编译单元，启用后这个宏会对后面编译的文件可见，接入时要确认没有冲突。
+- `axi_mux/Axi_Mux.v` 开头有 `` `define X2 ``（选择 2 个主机端口），工程是单编译单元，这个宏对后面编译的文件可见。2026-09-16 接入时查过，本工程其余明文文件没有用到 `X2`~`X8` 与 `Axi_Chnanel_Num`。
 
 ## 关键参数
 
