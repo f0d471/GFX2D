@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<svg id="rl" width="1080" height="860" style="position:absolute;left:0;top:10px"></svg>
+<div style="position:absolute;left:1110px;top:10px;width:0;height:860px;border-left:2px dashed #D3D9E0"></div>
+<div class="cap" style="left:1140px;top:4px">E4 实测：每笔事务的周期数</div>
+<svg id="tn" width="620" height="400" style="position:absolute;left:1120px;top:40px"></svg>
+<table class="ft" style="left:1140px;top:470px;width:600px">
+  <tr><th>读 N 拍</th><th>拍 / 周期</th><th>字节 / 周期</th><th>ALPHA 乘法 / 周期</th></tr>
+  <tr><td>1</td><td>0.035</td><td>0.56</td><td>0.14</td></tr>
+  <tr><td>16</td><td>0.357</td><td>5.7</td><td>1.43</td></tr>
+  <tr><td>256</td><td>0.838</td><td>13.4</td><td>3.35</td></tr>
+  <tr><td>计算上限</td><td>—</td><td>—</td><td>12（1 条通路）</td></tr>
+</table>
+<div class="lbl" style="left:1140px;top:690px">算术强度 = 每像素 3 次乘法 / 搬 12 字节 = 0.25</div>
+<div class="lbl" style="left:1140px;top:720px">256 拍时工作点仍在斜线段，加乘法器无收益</div>
+<div class="lbl" style="left:1140px;top:750px">单拍读的有效带宽只有 256 拍突发的 1/24</div>
+<div class="lbl" style="left:1140px;top:800px;font-size:15px;color:#87929E;white-space:normal;width:600px">Roofline 模型：Williams, Waterman, Patterson, CACM 2009。按突发长度分出多条带宽线为本设计的扩展；带宽由 E4 拟合式推算</div>
+
+<script>
+(function(){
+  const ns='http://www.w3.org/2000/svg';
+  function mk(svg){return function(t,a,txt){const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e;}}
+  const s=document.getElementById('rl'), el=mk(s);
+  const X0=110,X1=1040,Y0=760,Y1=60;
+  const lx=v=>X0+(Math.log10(v)+2)/3*(X1-X0), ly=v=>Y0-(Math.log10(v)+2)/4*(Y0-Y1);
+  el('rect',{x:X0,y:Y1,width:X1-X0,height:Y0-Y1,fill:'#FFFFFF'});
+  [0.01,0.1,1,10].forEach(v=>{el('line',{x1:lx(v),y1:Y1,x2:lx(v),y2:Y0,stroke:'#E3E7EB','stroke-width':1.5});el('text',{x:lx(v),y:Y0+30,'text-anchor':'middle','font-size':20,fill:'#5D6976'},v);});
+  [0.01,0.1,1,10,100].forEach(v=>{el('line',{x1:X0,y1:ly(v),x2:X1,y2:ly(v),stroke:'#E3E7EB','stroke-width':1.5});el('text',{x:X0-14,y:ly(v)+7,'text-anchor':'end','font-size':20,fill:'#5D6976'},v);});
+  el('rect',{x:X0,y:Y1,width:X1-X0,height:Y0-Y1,fill:'none',stroke:'#5D6976','stroke-width':2});
+  el('text',{x:(X0+X1)/2,y:Y0+70,'text-anchor':'middle','font-size':21,fill:'#1D2733','font-weight':700},'算术强度：8 位乘法次数 / 搬运字节（对数）');
+  el('text',{x:X0,y:Y1-20,'font-size':21,fill:'#1D2733','font-weight':700},'可达性能：乘法次数 / 周期（对数）');
+  const CAP=12, OI=0.25;
+  const lines=[[256,13.4,'#0C2E4E',6],[16,5.72,'#4A7FD0',5],[1,0.56,'#9DB3C8',5]];
+  lines.forEach(([n,bw,c,w])=>{
+    let d='',first=true;
+    for(let i=0;i<=300;i++){const v=Math.pow(10,-2+3*i/300);let p=Math.min(bw*v,CAP);if(p<0.01)continue;d+=(first?'M':'L')+lx(v).toFixed(1)+','+ly(p).toFixed(1);first=false;}
+    el('path',{d,fill:'none',stroke:c,'stroke-width':w,'stroke-linejoin':'round'});
+  });
+  el('line',{x1:lx(CAP/13.4),y1:ly(CAP),x2:X1,y2:ly(CAP),stroke:'#2E7D4F','stroke-width':7});
+  el('text',{x:X1-10,y:ly(CAP)-14,'text-anchor':'end','font-size':20,fill:'#2E7D4F','font-weight':700},'计算上限 12 次乘法 / 周期（1 条像素通路）');
+  el('line',{x1:lx(OI),y1:Y1,x2:lx(OI),y2:Y0,stroke:'#E8546B','stroke-width':3,'stroke-dasharray':'10 8'});
+  el('text',{x:lx(OI)+10,y:Y0-14,'font-size':20,fill:'#B23A48','font-weight':700},'ALPHA = 0.25');
+  lines.forEach(([n,bw,c])=>{const p=bw*OI;el('circle',{cx:lx(OI),cy:ly(p),r:11,fill:c,stroke:'#fff','stroke-width':3});
+    el('text',{x:lx(OI)-18,y:ly(p)+7,'text-anchor':'end','font-size':19,fill:'#1D2733'},p.toFixed(2));});
+  // 图例
+  const L0=[640,560];
+  el('rect',{x:L0[0]-16,y:L0[1]-34,width:380,height:150,fill:'#FAFAF7',stroke:'#D3D9E0'});
+  [['每次读 256 拍',lines[0]],['每次读 16 拍',lines[1]],['每次读 1 拍',lines[2]]].forEach(([t,l],i)=>{
+    el('line',{x1:L0[0],y1:L0[1]+i*42,x2:L0[0]+50,y2:L0[1]+i*42,stroke:l[2],'stroke-width':6});
+    el('text',{x:L0[0]+64,y:L0[1]+i*42+7,'font-size':20,fill:'#1D2733'},t+' · '+l[1]+' B/周期');});
+  el('text',{x:lx(0.02),y:ly(40),'font-size':22,fill:'#174A7E','font-weight':700},'访存受限区（斜线）');
+  el('text',{x:lx(2.2),y:ly(40),'font-size':22,fill:'#2E7D4F','font-weight':700},'计算受限区（水平）');
+
+  // T(N)
+  const t=document.getElementById('tn'), et=mk(t);
+  const A0=90,A1=590,B0=330,B1=30; const nx=v=>A0+v/256*(A1-A0), ny=v=>B0-v/320*(B0-B1);
+  [0,64,128,192,256].forEach(v=>{et('line',{x1:nx(v),y1:B1,x2:nx(v),y2:B0,stroke:'#E3E7EB'});et('text',{x:nx(v),y:B0+26,'text-anchor':'middle','font-size':18,fill:'#5D6976'},v);});
+  [0,100,200,300].forEach(v=>{et('line',{x1:A0,y1:ny(v),x2:A1,y2:ny(v),stroke:'#E3E7EB'});et('text',{x:A0-10,y:ny(v)+6,'text-anchor':'end','font-size':18,fill:'#5D6976'},v);});
+  et('rect',{x:A0,y:B1,width:A1-A0,height:B0-B1,fill:'none',stroke:'#5D6976','stroke-width':2});
+  et('line',{x1:nx(0),y1:ny(27.41),x2:nx(256),y2:ny(27.41+1.086*256),stroke:'#174A7E','stroke-width':4});
+  et('line',{x1:nx(0),y1:ny(7.25),x2:nx(256),y2:ny(7.25+1.183*256),stroke:'#A37A1C','stroke-width':4});
+  et('text',{x:nx(40),y:ny(170),'font-size':19,fill:'#174A7E','font-weight':700},'读 T = 27.41 + 1.086 N');
+  et('text',{x:nx(118),y:ny(70),'font-size':19,fill:'#8A6516','font-weight':700},'写 T = 7.25 + 1.183 N');
+  et('text',{x:(A0+A1)/2,y:B0+56,'text-anchor':'middle','font-size':19,fill:'#1D2733'},'突发拍数 N（1 拍 128 bit）');
+  et('text',{x:A0,y:B1-10,'font-size':19,fill:'#1D2733'},'周期');
+  et('circle',{cx:nx(0),cy:ny(27.41),r:7,fill:'#174A7E'});
+  et('text',{x:nx(0)+12,y:ny(27.41)-10,'font-size':17,fill:'#174A7E'},'读固定开销 t_tx');
+})();
+</script>
+</div></body></html>

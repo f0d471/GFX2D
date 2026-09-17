@@ -1,0 +1,68 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="grp" id="fpga" style="left:20px;top:20px;width:1420px;height:780px"><div class="gl">Ti60F225 · 顶层 gfx2d_top</div></div>
+
+<div class="grp" id="soc" style="left:50px;top:70px;width:560px;height:500px;background:#F7E9EC;border-color:#E9B8C0">
+  <div class="gl">u_soc · Sapphire SoC <span class="chip gen">IP 生成</span><span class="chip enc">部分加密</span></div></div>
+<div class="n ctl" id="cpu" style="left:80px;top:115px;width:240px;height:90px"><div class="t">VexRiscv</div><div class="s">RV32 · 100 MHz</div></div>
+<div class="n mem" id="ic" style="left:80px;top:235px;width:115px;height:80px"><div class="t">I-Cache</div><div class="s">4 KB</div></div>
+<div class="n mem" id="dc" style="left:205px;top:235px;width:115px;height:80px"><div class="t">D-Cache</div><div class="s">4 KB</div></div>
+<div class="n ext" id="jtag" style="left:80px;top:350px;width:240px;height:80px"><div class="t">硬 JTAG 调试</div><div class="s">OpenOCD</div></div>
+<div class="n ctl" id="plic" style="left:80px;top:465px;width:240px;height:80px"><div class="t">CLINT · PLIC</div><div class="s">定时器 · 中断</div></div>
+<div class="n mem" id="ocram" style="left:350px;top:115px;width:230px;height:90px"><div class="t">片上 RAM 4 KB</div><div class="s">bootloader</div></div>
+<div class="n dat" id="apbbr" style="left:350px;top:235px;width:230px;height:80px"><div class="t">APB 桥</div><div class="s">外设总线</div></div>
+<div class="n ext" id="per" style="left:350px;top:350px;width:230px;height:80px"><div class="t">UART0 · SPI0</div><div class="s">GPIO0 · I2C0</div></div>
+<div class="n dat" id="bmb" style="left:350px;top:465px;width:230px;height:80px"><div class="t">DDR 桥</div><div class="s">跨时钟 FIFO · 17 BRAM</div></div>
+
+<div class="n ctl" id="apbp" style="left:50px;top:660px;width:270px;height:110px"><div class="t">apb_probe <span class="chip own">自研</span></div><div class="s mono">0xF810_0000</div><div class="s">ID · VERSION · SCRATCH</div></div>
+<div class="n ctl" id="axip" style="left:340px;top:660px;width:270px;height:110px"><div class="t">axi_probe_master <span class="chip own">自研</span></div><div class="s mono">0xF810_1000</div><div class="s">E4 测量主机</div></div>
+
+<div class="n ext" id="pll1" style="left:680px;top:90px;width:170px;height:90px"><div class="t">PLL_TL0</div><div class="s">core 100 MHz</div></div>
+<div class="n ext" id="pll2" style="left:865px;top:90px;width:170px;height:90px"><div class="t">PLL_TR0</div><div class="s">DDR3 400 MHz</div></div>
+<div class="n ext" id="pll3" style="left:1050px;top:90px;width:170px;height:90px"><div class="t">PLL_BL0</div><div class="s">25.2 / 126 MHz</div></div>
+
+<div class="n dat" id="mux" style="left:690px;top:290px;width:220px;height:160px"><div class="t">Axi_Mux</div><div class="s">2 → 1 · 128 bit</div><div class="s">事务级仲裁</div><div style="margin-top:4px"><span class="chip off">第三方明文</span></div></div>
+<div class="n dat" id="ddrc" style="left:970px;top:290px;width:250px;height:160px"><div class="t">ddr3_top</div><div class="s">DDR3 软核控制器</div><div class="s">AXI 128 / 28 / 4 bit</div><div style="margin-top:4px"><span class="chip enc">厂商加密</span></div></div>
+<div class="n plan" id="eng" style="left:1240px;top:200px;width:185px;height:80px"><div class="t">渲染引擎</div><div class="s">扫描输出 · 未实现</div></div>
+
+<div class="grp" id="hdmi" style="left:660px;top:540px;width:770px;height:240px"><div class="gl">u_hdmi_tx <span class="chip own">自研封装</span></div></div>
+<div class="n ext" id="cbar" style="left:690px;top:610px;width:220px;height:130px"><div class="t">color_bar_rgb</div><div class="s">行场时序 · 彩条</div><div style="margin-top:4px"><span class="chip off">官方 demo</span></div></div>
+<div class="n dat" id="dvi" style="left:950px;top:610px;width:220px;height:130px"><div class="t">dvi_encoder</div><div class="s">TMDS 8b/10b × 3</div><div style="margin-top:4px"><span class="chip off">官方 demo</span></div></div>
+<div class="n dat" id="lvds" style="left:1210px;top:610px;width:200px;height:130px"><div class="t">LVDS TX</div><div class="s">10:1 串行 × 4 对</div></div>
+
+<div class="n ext" id="flash" style="left:1480px;top:70px;width:260px;height:95px"><div class="t">W25Q64 Flash</div><div class="s">8 MB · 经 SPI0</div></div>
+<div class="n ext" id="ftdi" style="left:1480px;top:185px;width:260px;height:95px"><div class="t">FT4232H</div><div class="s">B 通道 JTAG · C 通道 UART</div></div>
+<div class="n mem" id="ddr" style="left:1480px;top:320px;width:260px;height:100px"><div class="t">DDR3 256 MB</div><div class="s">MT41J128M16JT · 16 bit</div></div>
+<div class="n ext" id="osc" style="left:1480px;top:455px;width:260px;height:80px"><div class="t">晶振</div><div class="s">25 MHz · 27 MHz</div></div>
+<div class="n dat" id="hdmic" style="left:1480px;top:625px;width:260px;height:100px"><div class="t">HDMI TX 接口</div><div class="s">640×480@60</div></div>
+
+<div class="legend" style="left:30px;top:822px;flex-direction:row;gap:26px">
+  <div class="row"><div class="sw" style="background:#FBE4E7;border-color:#E8546B"></div>控制与发起者</div>
+  <div class="row"><div class="sw" style="background:#DEE8F7;border-color:#4A7FD0"></div>数据通路</div>
+  <div class="row"><div class="sw" style="background:#F5EAD2;border-color:#A37A1C"></div>存储</div>
+  <div class="row"><div class="sw" style="background:#ECEEF1;border-color:#87929E"></div>外设与器件</div>
+  <div class="row"><div class="sw" style="background:#FFF;border:2px dashed #9AA3AD"></div>未实现</div>
+  <div class="row"><div class="ln" style="border-color:#4A7FD0"></div>AXI4</div>
+  <div class="row"><div class="ln" style="border-color:#E8546B"></div>APB</div>
+  <div class="row"><div class="ln" style="border-color:#A37A1C;border-top-style:dashed"></div>时钟</div>
+</div>
+
+<script>
+L('cpu','ic',{fs:'b',ts:'t',ff:.25,c:'#A37A1C'});
+L('cpu','dc',{fs:'b',ts:'t',ff:.75,c:'#A37A1C'});
+L('apbbr','per',{fs:'b',ts:'t',c:'#E8546B'});
+L('bmb','mux',{fs:'r',ts:'l',tf:.3,r:'hvh',m:635,c:'#4A7FD0',w:4,t:'io_ddrA · S0',tx:668,ty:300});
+L('axip','mux',{fs:'r',ts:'l',tf:.8,via:[[652,715],[652,418]],c:'#4A7FD0',w:4,t:'S1',tx:675,ty:505});
+L('soc','apbp',{fs:'b',ts:'t',ff:.24,tf:.5,c:'#E8546B',w:3});
+L('soc','axip',{fs:'b',ts:'t',ff:.76,tf:.5,c:'#E8546B',w:3,t:'APB Slave 0',tx:330,ty:612});
+L('mux','ddrc',{c:'#4A7FD0',w:4});
+L('ddrc','ddr',{c:'#4A7FD0',w:4,h:'both',t:'DDR3 PHY',ty:352});
+L('cbar','dvi',{c:'#4A7FD0',w:3,t:'RGB · HS · VS · DE',tx:1100,ty:584});
+L('dvi','lvds',{c:'#4A7FD0',w:3});
+L('lvds','hdmic',{fs:'r',ts:'l',c:'#4A7FD0',w:4});
+L('osc','pll3',{fs:'l',ts:'t',via:[[1455,495],[1455,62],[1135,62]],c:'#A37A1C',d:'7 5'});
+</script>
+</div></body></html>

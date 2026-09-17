@@ -1,0 +1,77 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.seg { position:absolute; height:40px; box-sizing:border-box; font-size:16px; display:flex; align-items:center; justify-content:center; color:#1D2733; white-space:nowrap; overflow:hidden; }
+.sc { background:#DEE8F7; border:1.5px solid #4A7FD0; }
+.vb { background:#F5EAD2; border:1.5px solid #A37A1C; }
+.dr { background:#E2F1DB; border:1.5px solid #67BA4A; height:26px; }
+.bad { background:#FBE4E7; border:1.5px solid #E8546B; height:26px; }
+.px { position:absolute; width:46px; height:40px; box-sizing:border-box; border:1.5px solid #8A6516; font-family:Consolas,monospace; font-size:17px; display:flex; align-items:center; justify-content:center; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div style="position:absolute;left:20px;top:40px;width:520px;height:391px;overflow:hidden;border-radius:8px">
+  <img src="../../third-party/tearing_simulated.jpg" style="width:520px;height:391px;display:block"></div>
+<div class="cap" style="left:20px;top:4px">画面撕裂</div>
+<div class="lbl" style="left:20px;top:440px">扫描到一半时帧缓冲被改写，一屏里出现两帧</div>
+<div class="lbl" style="left:20px;top:468px;font-size:15px;color:#87929E">Tearing (simulated) · Vanessaezekowitz · Wikimedia Commons · CC BY-SA 3.0</div>
+
+<div class="cap" style="left:590px;top:4px">单缓冲与双缓冲</div>
+<div class="lbl b" style="left:590px;top:62px">扫描</div>
+<div class="seg sc" style="left:700px;top:52px;width:300px">帧 N · 可见 480 行</div><div class="seg vb" style="left:1000px;top:52px;width:50px">消隐</div>
+<div class="seg sc" style="left:1050px;top:52px;width:300px">帧 N+1</div><div class="seg vb" style="left:1350px;top:52px;width:50px">消隐</div>
+<div class="seg sc" style="left:1400px;top:52px;width:290px">帧 N+2</div><div class="seg vb" style="left:1690px;top:52px;width:50px">消隐</div>
+
+<div class="lbl b" style="left:590px;top:124px;color:#B23A48">单缓冲</div>
+<div class="seg bad" style="left:830px;top:124px;width:260px">CPU / 引擎直接写屏</div>
+<div class="lbl" style="left:830px;top:156px;color:#B23A48">扫描与写入重叠 → 撕裂</div>
+
+<div class="lbl b" style="left:590px;top:214px;color:#2E7D4F">双缓冲</div>
+<div class="seg dr" style="left:760px;top:214px;width:220px">画后缓冲 FB1</div>
+<div class="seg dr" style="left:1080px;top:214px;width:240px">画后缓冲 FB0</div>
+<div class="seg bad" style="left:1420px;top:214px;width:300px">画 FB1 · 超过消隐期</div>
+<div class="lbl b" style="left:590px;top:276px">FRONT</div>
+<div class="seg sc" style="left:700px;top:266px;width:325px;height:36px">FB0</div>
+<div class="seg sc" style="left:1025px;top:266px;width:350px;height:36px;background:#E2F1DB;border-color:#67BA4A">FB1</div>
+<div class="seg sc" style="left:1375px;top:266px;width:365px;height:36px">FB0（保持）</div>
+<div class="lbl" style="left:1400px;top:312px;color:#B23A48">没画完：不交换，FRAME_DROP + 1</div>
+<script>
+L([980,240],[1022,270],{c:'#A37A1C',w:2.5,t:'SWAP_REQ',tx:1000,ty:322,tc:'#8A6516'});
+L([1320,240],[1372,270],{c:'#A37A1C',w:2.5});
+</script>
+<div class="lbl" style="left:700px;top:370px">交换只在场消隐期生效；消隐 45 行 ≈ 1.43 ms</div>
+<div class="lbl" style="left:700px;top:398px">CPU 填第 N 帧命令表时，引擎在画第 N−1 帧</div>
+
+<div style="position:absolute;left:20px;top:500px;width:1720px;height:0;border-top:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:20px;top:514px">帧缓冲布局（DDR3）</div>
+<div class="n mem" style="left:20px;top:560px;width:220px;height:60px"><div class="t mono">0x0200_0000</div><div class="s">帧缓冲 0 · 4 MB</div></div>
+<div class="n mem" style="left:20px;top:630px;width:220px;height:60px"><div class="t mono">0x0240_0000</div><div class="s">帧缓冲 1 · 4 MB</div></div>
+<div id="rows" style="position:absolute;left:280px;top:560px;width:320px;height:250px;border:2px solid #A37A1C;box-sizing:border-box;background:repeating-linear-gradient(#F5EAD2 0 30px,#FFF 30px 31px)"></div>
+<div class="lbl" style="left:620px;top:566px">每行占 1 个 4 KB 页</div>
+<div class="lbl mono" style="left:620px;top:596px">addr = base + (y≪12) + (x≪2)</div>
+<div class="seg" id="rowz" style="left:280px;top:600px;width:320px;height:31px;border:3px solid #E8546B;background:transparent"></div>
+<div class="seg" style="left:280px;top:830px;width:240px;height:30px;background:#DEE8F7;border:1.5px solid #4A7FD0">640 像素 · 2560 B</div>
+<div class="seg" style="left:520px;top:830px;width:80px;height:30px;background:#FFF;border:1.5px dashed #9AA3AD;color:#87929E">空闲</div>
+<script>L('rowz',[440,826],{fs:'b',c:'#E8546B',w:2});</script>
+
+<div class="lbl b" style="left:620px;top:650px">一个像素 · 小端</div>
+<div class="px" style="left:620px;top:684px">B</div><div class="px" style="left:664px;top:684px">G</div><div class="px" style="left:708px;top:684px">R</div><div class="px" style="left:752px;top:684px;color:#87929E">0</div>
+<div class="lbl" style="left:810px;top:692px">XRGB8888</div>
+<div class="lbl" style="left:620px;top:740px">4 像素 = 1 拍 128 bit</div>
+<div class="lbl" style="left:620px;top:768px">1 行 = 160 拍 ≤ 256 → 一次突发</div>
+
+<div class="cap" style="left:960px;top:514px">扫描输出（规划）</div>
+<div style="position:absolute;left:1440px;top:548px;width:0;height:300px;border-left:3px dashed #A37A1C"></div>
+<div class="lbl" style="left:1300px;top:548px;color:#8A6516">100 MHz</div><div class="lbl" style="left:1452px;top:548px;color:#8A6516">25.2 MHz</div>
+<div class="n plan" id="rd" style="left:960px;top:590px;width:200px;height:110px"><div class="t">行读取</div><div class="s">FRONT 选缓冲</div><div class="s">AXI S0 · 160 拍</div></div>
+<div class="n plan" id="ff" style="left:1210px;top:590px;width:200px;height:110px;border-color:#A37A1C"><div class="t">异步 FIFO</div><div class="s">128 bit × 512</div><div class="s">格雷码指针</div></div>
+<div class="n plan" id="up" style="left:1470px;top:590px;width:270px;height:110px"><div class="t">拆拍 · 字节重排</div><div class="s">BGR → RGB</div><div class="s">行场时序 · DE</div></div>
+<div class="n dat" id="tm" style="left:1470px;top:740px;width:270px;height:80px"><div class="t">TMDS → HDMI</div><div class="s">已上板</div></div>
+<div class="n plan" id="ddr" style="left:960px;top:740px;width:200px;height:80px;border-color:#A37A1C"><div class="t">DDR3</div><div class="s">帧缓冲 0 / 1</div></div>
+<script>
+L('ddr','rd',{fs:'t',ts:'b',c:'#4A7FD0',w:3});
+L('rd','ff',{c:'#4A7FD0',w:3}); L('ff','up',{c:'#4A7FD0',w:3}); L('up','tm',{fs:'b',ts:'t',c:'#4A7FD0',w:3});
+</script>
+</div></body></html>

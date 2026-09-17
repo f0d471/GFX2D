@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.bw { position:absolute; left:0; height:40px; display:flex; }
+.bw > div { box-sizing:border-box; border:1.5px solid #1D2733; margin-left:-1.5px; display:flex; align-items:center; justify-content:center; font-size:16px; white-space:nowrap; overflow:hidden; background:#FFF; }
+.wn { position:absolute; font-family:Consolas,monospace; font-size:18px; font-weight:700; width:40px; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="n ctl" id="cpu" style="left:20px;top:60px;width:170px;height:130px"><div class="t">CPU 驱动</div><div class="s">填命令表</div><div class="s">敲门铃</div></div>
+<div class="grp" style="left:240px;top:30px;width:1020px;height:330px;background:#F3F6EF;border-color:#CFDCC4"><div class="gl">渲染引擎（规划）</div></div>
+<div class="n ctl" id="fe" style="left:270px;top:80px;width:200px;height:120px"><div class="t">前端 CSR</div><div class="s">LIST_BASE · COUNT</div><div class="s">DOORBELL · SURF[16]</div></div>
+<div class="n ctl" id="me" style="left:540px;top:80px;width:260px;height:120px"><div class="t">中端</div><div class="s">命令缓冲 256 条</div><div class="s">解码 · 裁剪 · 行 / 条带迭代</div></div>
+<div class="n cmp" id="px" style="left:540px;top:240px;width:260px;height:90px"><div class="t">像素流水线</div><div class="s">4 像素 / 拍</div></div>
+<div class="n dat" id="be" style="left:870px;top:80px;width:360px;height:250px"><div class="t">后端 · 搬运层</div><div class="s" style="margin-top:6px">连续段 → AXI 突发</div><div class="s">每段 ≤ 256 拍 · 不跨 4 KB 页</div><div class="s">读 / 写缓冲 128 bit × 256</div><div class="s">超时 → 排空 → 回空闲</div><div class="s">RESP 错误 → 粘滞位 + 命令序号</div></div>
+<div class="n dat" id="mux" style="left:1300px;top:120px;width:150px;height:120px"><div class="t">Axi_Mux</div><div class="s">S1</div></div>
+<div class="grp" id="ddr" style="left:1490px;top:30px;width:250px;height:330px;background:#FBF6EA;border-color:#E3CFA2"><div class="gl">DDR3</div></div>
+<div class="n mem" id="dl" style="left:1510px;top:74px;width:210px;height:76px"><div class="t">命令表 A / B</div><div class="s mono">0x0040_0000</div></div>
+<div class="n mem" id="da" style="left:1510px;top:166px;width:210px;height:76px"><div class="t">素材</div><div class="s mono">0x0100_0000</div></div>
+<div class="n mem" id="df" style="left:1510px;top:258px;width:210px;height:76px"><div class="t">帧缓冲 0 / 1</div><div class="s mono">0x0200_0000</div></div>
+<script>
+L('cpu','fe',{fs:'r',ts:'l',ff:.3,tf:.3,c:'#E8546B',w:3,t:'APB',ty:88});
+L('fe','cpu',{fs:'l',ts:'r',ff:.8,tf:.8,c:'#E8546B',w:2.5,d:true,t:'IRQ',ty:186});
+L('fe','me',{c:'#E8546B',w:3});
+L('me','be',{fs:'r',ts:'l',tf:.3,c:'#33445A',w:3,t:'连续段',ty:132});
+L('me','px',{fs:'b',ts:'t',c:'#2E7D4F',w:3});
+L('px','be',{fs:'r',ts:'l',tf:.8,c:'#2E7D4F',w:3,h:'both'});
+L('be','mux',{c:'#4A7FD0',w:4,h:'both'});
+L('mux','ddr',{c:'#4A7FD0',w:4,h:'both'});
+L('cpu','dl',{fs:'t',ts:'t',via:[[105,14],[1615,14]],c:'#E8546B',w:2.5,d:true,t:'CPU 经自己的 AXI 口写命令表（S0 / S2）',tx:860,ty:14});
+</script>
+
+<div style="position:absolute;left:20px;top:390px;width:1720px;height:0;border-top:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:20px;top:404px">命令记录：固定 32 字节 = 8 个字</div>
+<div id="rec" style="position:absolute;left:70px;top:480px;width:880px;height:360px"></div>
+<div class="lbl mono" style="left:70px;top:448px;font-size:16px">31</div>
+<div class="lbl mono" style="left:922px;top:448px;font-size:16px">0</div>
+
+<div class="cap" style="left:1010px;top:404px">表面表：一切地址间接寻址</div>
+<div style="position:absolute;left:1010px;top:450px;width:730px;height:48px;display:flex">
+  <div class="n dat" style="position:relative;width:200px;height:48px;border-radius:0">base · 32</div>
+  <div class="n dat" style="position:relative;width:130px;height:48px;border-radius:0">stride_log2 · 5</div>
+  <div class="n dat" style="position:relative;width:170px;height:48px;border-radius:0">width / height</div>
+  <div class="n dat" style="position:relative;width:100px;height:48px;border-radius:0">space</div>
+  <div class="n dat" style="position:relative;width:130px;height:48px;border-radius:0">format</div></div>
+<div class="lbl" style="left:1010px;top:510px">space：DDR · TEX 纹理缓存 · BAND 条带缓冲　format：XRGB · 预乘 ARGB</div>
+<div class="n wht" style="left:1010px;top:550px;width:730px;height:120px">
+  <div class="t mono" style="font-size:22px">addr = base + (y ≪ stride_log2) + (x ≪ 2)</div>
+  <div class="t mono" style="font-size:22px;margin-top:6px">cmd[k] = LIST_BASE + (k ≪ 5)</div>
+  <div class="s">记录长度取 2 的幂 → 地址只用移位；硬件统一裁剪与越界检查</div></div>
+<div class="n mem left" style="left:1010px;top:690px;width:355px;height:150px"><div class="t">纹理上传</div><div class="s">目的 space = TEX 的一条 BLIT</div><div class="s">不另设上传接口</div></div>
+<div class="n cmp left" style="left:1385px;top:690px;width:355px;height:150px"><div class="t">计数器可对账</div><div class="s mono">RD_BEAT = Σ 读突发长度</div><div class="s">CMD · PIXEL · WAIT_DDR</div><div class="s">FRAME_DROP · 场同步时快照</div></div>
+
+<script>
+const R=document.getElementById('rec'); const PX=880/32;
+function row(i,name,fields){const top=i*44;
+  const n=document.createElement('div');n.className='wn';n.style.left='-60px';n.style.top=(top+8)+'px';n.textContent=name;R.appendChild(n);
+  const b=document.createElement('div');b.className='bw';b.style.top=top+'px';
+  fields.forEach(([bits,txt,bg])=>{const d=document.createElement('div');d.style.width=(bits*PX+1.5)+'px';d.textContent=txt;if(bg)d.style.background=bg;b.appendChild(d);});
+  R.appendChild(b);}
+row(0,'w0',[[8,'常数 α','#FBE4E7'],[4,'目的表面','#DEE8F7'],[4,'源表面','#DEE8F7'],[2,'—','#ECEEF1'],[1,'着','#E2F1DB'],[1,'键','#E2F1DB'],[4,'方程','#E2F1DB'],[8,'操作码','#FBE4E7']]);
+row(1,'w1',[[16,'源 y'],[16,'源 x']]);
+row(2,'w2',[[16,'目的 y（有符号）'],[16,'目的 x（有符号）']]);
+row(3,'w3',[[16,'高'],[16,'宽']]);
+row(4,'w4',[[32,'FILL 颜色 / 着色颜色','#F5EAD2']]);
+row(5,'w5',[[32,'色键颜色（按源表面格式）','#F5EAD2']]);
+row(6,'w6',[[32,'预留：翻转 · 帧号','#ECEEF1']]);
+row(7,'w7',[[32,'序号：调试与错误定位','#ECEEF1']]);
+</script>
+<div class="lbl mono" style="left:70px;top:838px;font-size:16px;color:#5D6976">操作码：0 NOP · 1 FILL · 2 BLIT · 3 SET_CLIP · 4 BAND · 0xFF END</div>
+</div></body></html>

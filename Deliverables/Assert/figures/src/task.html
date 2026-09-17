@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div style="position:absolute;left:20px;top:40px;width:800px;height:600px;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.18)">
+  <img src="../../third-party/taisei_stage.png" style="width:800px;height:600px;display:block"></div>
+<div id="ga" style="position:absolute;left:60px;top:60px;width:480px;height:560px;border:3px solid #FFD24A;box-sizing:border-box;border-radius:4px"></div>
+<div id="hud" style="position:absolute;left:548px;top:60px;width:258px;height:340px;border:3px solid #7FD3FF;box-sizing:border-box;border-radius:4px"></div>
+<div id="fps" style="position:absolute;left:748px;top:620px;width:74px;height:22px;border:3px solid #FF7A8A;box-sizing:border-box;border-radius:4px"></div>
+<div class="lbl b" style="left:60px;top:660px">游戏区：背景 · 自机 · 敌机 · 弹幕 · 粒子</div>
+<div class="lbl" style="left:60px;top:690px">每个元素是一个 Sprite：一次纹理拷贝 + 混合</div>
+<div class="lbl b" style="left:560px;top:660px;color:#1D6FA5">HUD：分数 · N · 帧率</div>
+<div class="lbl" style="left:560px;top:690px">软 / 硬件帧率同屏对比</div>
+<div class="lbl" style="left:20px;top:735px;font-size:16px;color:#87929E">Taisei Project（开源东方同人弹幕射击）· Wikimedia Commons · CC BY 4.0</div>
+
+<div class="n wht" id="root" style="left:1030px;top:30px;width:520px;height:66px;border-color:#1D2733"><div class="t" style="font-size:24px">赛题二：RISC-V + FPGA 2D 渲染加速引擎</div></div>
+
+<div class="grp" id="gb" style="left:870px;top:140px;width:420px;height:560px"><div class="gl">基础要求</div></div>
+<div class="n cmp" id="b1" style="left:890px;top:190px;width:380px;height:84px"><div class="t">命令解析</div><div class="s">操作 · 源 / 目的地址 · 宽高 → FILL / BLIT</div></div>
+<div class="n dat" id="b2" style="left:890px;top:290px;width:380px;height:84px"><div class="t">直接访存</div><div class="s">加速器为 AXI 主机 · 突发 · 内部 FIFO</div></div>
+<div class="n dat" id="b3" style="left:890px;top:390px;width:380px;height:84px"><div class="t">HDMI 输出</div><div class="s">≥ 640×480@60</div></div>
+<div class="n ctl" id="b4" style="left:890px;top:490px;width:380px;height:84px"><div class="t">C 驱动 · 双缓冲</div><div class="s">寄存器配置 · 防撕裂</div></div>
+<div class="n ext" id="b5" style="left:890px;top:590px;width:380px;height:84px"><div class="t">软 / 硬件帧率实时对比</div><div class="s">大量方块移动 · 大图快速切换</div></div>
+
+<div class="grp" id="ga2" style="left:1320px;top:140px;width:420px;height:560px"><div class="gl">高阶要求</div></div>
+<div class="n cmp" id="h1" style="left:1340px;top:190px;width:380px;height:84px"><div class="t">Alpha 混合</div><div class="s">DSP：fg·a + bg·(1 − a)</div></div>
+<div class="n cmp" id="h2" style="left:1340px;top:290px;width:380px;height:84px"><div class="t">Color Key</div><div class="s">透明色像素不写入</div></div>
+<div class="n ext" id="h3" style="left:1340px;top:390px;width:380px;height:84px"><div class="t">高负载游戏 Demo</div><div class="s">弹幕射击 · 吸血鬼幸存者类</div></div>
+<div class="n" id="nmax" style="left:1340px;top:500px;width:380px;height:174px;background:#1E2F4D;border-color:#1E2F4D;color:#F4F6F8">
+  <div class="t" style="font-size:34px">N<sub>max</sub></div>
+  <div style="font-size:20px;color:#CFE0F5">Alpha + Color Key 开启</div>
+  <div style="font-size:20px;color:#CFE0F5">60 FPS 稳定下同屏活动 Sprite 数</div>
+  <div style="font-size:17px;color:#FFD24A;margin-top:4px">唯一排名指标</div></div>
+
+<div class="grp" style="left:870px;top:730px;width:870px;height:130px;background:#FFFFFF"><div class="gl">指标口径（本设计定义）</div></div>
+<div class="n wht" style="left:890px;top:772px;width:270px;height:72px;border-style:solid"><div class="t">稳定</div><div class="s">连续 60 s 无帧 &gt; 16.67 ms</div></div>
+<div class="n wht" style="left:1180px;top:772px;width:270px;height:72px"><div class="t">活动元素</div><div class="s">≥ 1 像素落在屏内的绘制命令</div></div>
+<div class="n wht" style="left:1470px;top:772px;width:250px;height:72px"><div class="t">搜索</div><div class="s">逐步加量 · 掉帧回退</div></div>
+
+<script>
+L('root','gb',{fs:'b',ts:'t',ff:.3,r:'vhv',c:'#5D6976'});
+L('root','ga2',{fs:'b',ts:'t',ff:.7,r:'vhv',c:'#5D6976'});
+L('h3','nmax',{fs:'b',ts:'t',c:'#1E2F4D',w:3});
+L('fps',[868,648],{fs:'r',c:'#E8546B',d:'6 5',t:'帧率',tx:846,ty:672});
+</script>
+</div></body></html>

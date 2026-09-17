@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.sb { position:absolute; height:64px; display:flex; border-radius:6px; overflow:hidden; }
+.sb > div { display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; font-weight:700; white-space:nowrap; overflow:hidden; }
+.op { display:inline-block; padding:4px 10px; border-radius:6px; font-size:18px; font-weight:700; margin:0 3px; }
+.hb { position:absolute; height:44px; border-radius:4px; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:20px;top:4px">场景 S1：Boss 弹幕段一帧（400×480 游戏区，估算）</div>
+<div class="lbl b" style="left:20px;top:72px">按像素</div>
+<div class="sb" style="left:140px;top:56px;width:1600px">
+  <div style="width:45.0%;background:#4A7FD0">COPY 背景 · HUD　307,200</div>
+  <div style="width:42.2%;background:#2E7D4F">ALPHA 敌弹　288,000</div>
+  <div style="width:8.2%;background:#A37A1C">ADD 56,320</div>
+  <div style="width:4.3%;background:#E8546B">键</div>
+  <div style="width:0.3%;background:#87929E"></div></div>
+<div class="lbl" style="left:140px;top:126px">合计约 68.3 万像素 ≈ 2.2 屏 · COPY + 色键 29,184 · FILL ≈ 2,000</div>
+<div class="lbl b" style="left:20px;top:188px">按个数</div>
+<div class="sb" style="left:140px;top:172px;width:1600px">
+  <div style="width:86.1%;background:#2E7D4F">ALPHA 敌弹 12×12　2,000 个　86%</div>
+  <div style="width:10.3%;background:#A37A1C">ADD 240</div>
+  <div style="width:3.5%;background:#E8546B">81</div>
+  <div style="width:0.1%;background:#4A7FD0"></div></div>
+<div class="lbl" style="left:140px;top:242px">合计约 2,320 个 Sprite · 敌机 · 自机 · HUD 文字为色键 COPY</div>
+
+<div style="position:absolute;left:20px;top:290px;width:1720px;height:0;border-top:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:20px;top:306px">一个 Sprite 在直通模式下的代价</div>
+<div id="spr" style="position:absolute;left:30px;top:360px;width:260px;height:260px;display:grid;grid-template-columns:repeat(16,1fr);gap:1px;background:#C9D0D8;border:2px solid #1D2733"></div>
+<div class="lbl" style="left:30px;top:630px">16 × 16 纹理 · 256 像素</div>
+
+<div class="lbl b" style="left:340px;top:370px">每个像素</div>
+<div style="position:absolute;left:340px;top:404px">
+  <span class="op" style="background:#DEE8F7">读 src</span><span class="op" style="background:#DEE8F7">读 dst</span><span class="op" style="background:#E2F1DB">× 3</span><span class="op" style="background:#E2F1DB">+ 3</span><span class="op" style="background:#E2F1DB">÷255</span><span class="op" style="background:#F5EAD2">写</span></div>
+<div class="lbl" style="left:340px;top:450px">算术每周期 4 像素：一帧全部乘法约 7.2 万周期</div>
+
+<div class="lbl b" style="left:340px;top:510px">每一行</div>
+<div style="position:absolute;left:340px;top:544px">
+  <span class="op" style="background:#4A7FD0;color:#fff">AXI 读纹理行</span><span class="op" style="background:#4A7FD0;color:#fff">AXI 读目标行</span><span class="op" style="background:#4A7FD0;color:#fff">AXI 写目标行</span></div>
+<div class="lbl" style="left:340px;top:590px">16 行 × 3 = <b>48 次 DDR 事务</b> / Sprite</div>
+<div class="lbl" style="left:340px;top:620px">读事务固定开销 27.4 周期（实测），短突发时固定开销占主导</div>
+
+<div class="cap" style="left:980px;top:306px">一帧 16.67 ms 的周期预算（100 MHz）</div>
+<div style="position:absolute;left:1400px;top:350px;width:0;height:370px;border-left:3px dashed #B23A48"></div>
+<div class="lbl" style="left:1410px;top:350px;color:#B23A48;font-size:17px">帧预算 166.7 万周期</div>
+
+<div class="lbl b" style="left:980px;top:380px">全部乘法</div>
+<div class="hb" style="left:980px;top:408px;width:18px;height:36px;background:#2E7D4F"></div>
+<div class="lbl" style="left:1010px;top:414px">7.2 万 · 预算的 4%</div>
+
+<div class="lbl b" style="left:980px;top:458px">直通 A：2,000 × 1,400 + 17 万</div>
+<div class="hb" style="left:980px;top:486px;width:748px;height:36px;background:#E8546B"></div>
+<div class="lbl" style="left:1440px;top:492px;color:#fff;font-weight:700">≈ 297 万 · 超预算</div>
+
+<div class="lbl b" style="left:980px;top:536px">条带 B：2,000 × 600 + 17 万</div>
+<div class="hb" style="left:980px;top:564px;width:345px;height:36px;background:#A37A1C"></div>
+<div class="lbl" style="left:1340px;top:570px">≈ 137 万</div>
+
+<div class="lbl b" style="left:980px;top:614px">条带 C：纹理在片上</div>
+<div class="hb" style="left:980px;top:642px;width:78px;height:36px;background:#2E7D4F"></div>
+<div class="lbl" style="left:1070px;top:648px">≈ 31 万</div>
+
+<div class="lbl" style="left:980px;top:730px;white-space:normal;width:760px">A、B、C 为设计文档 3.1 节按 t_tx = 20 周期的估算；E4 实测读 27.4、写 7.3，排序不变</div>
+<div class="n mem" style="left:30px;top:700px;width:900px;height:120px"><div class="t" style="font-size:24px">算力足够，瓶颈在访存事务次数</div><div class="s">加速方向：减少每个 Sprite 的 DDR3 事务 → 片上纹理缓存 + 条带合成</div></div>
+
+<script>
+const g=document.getElementById('spr');
+for(let y=0;y<16;y++)for(let x=0;x<16;x++){const e=document.createElement('div');const dx=x-7.5,dy=y-7.5,r=Math.sqrt(dx*dx+dy*dy);
+  e.style.background=r<3?'#FFFFFF':r<5.5?'#9BD7FF':r<7?'#3DA5FF':'#EEF1F5';g.appendChild(e);}
+</script>
+</div></body></html>

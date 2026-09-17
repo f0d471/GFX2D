@@ -1,0 +1,81 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.mm { position:absolute; box-sizing:border-box; border:2px solid #A37A1C; background:#F5EAD2; font-size:19px; display:flex; flex-direction:column; justify-content:center; padding:0 12px; }
+.mm .a { font-family:Consolas,monospace; font-size:16px; color:#5D6976; }
+.addr { position:absolute; font-family:Consolas,monospace; font-size:16px; color:#5D6976; text-align:right; width:120px; }
+.head { position:absolute; width:170px; height:62px; transform:translateX(-50%); box-sizing:border-box; }
+.life { position:absolute; width:0; border-left:2px dashed #B7BEC7; top:122px; height:720px; }
+.msg { position:absolute; font-size:19px; color:#1D2733; white-space:nowrap; transform:translateX(-50%); background:#FAFAF7; padding:0 6px; }
+.msg .k { display:inline-block; width:26px; height:26px; border-radius:13px; background:#1D2733; color:#fff; text-align:center; line-height:26px; font-size:16px; margin-right:6px; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:150px;top:10px">SPI Flash 8 MB</div>
+<div class="addr" style="left:20px;top:52px">0x000000</div>
+<div class="mm" id="f_bit" style="left:150px;top:50px;width:230px;height:170px"><b>比特流</b><span class="a">≈ 636 KB</span></div>
+<div class="addr" style="left:20px;top:220px">0x200000</div>
+<div class="mm" style="left:150px;top:220px;width:230px;height:80px;background:#FFF;border-color:#C9CFD6;color:#87929E">空闲 1.5 MB</div>
+<div class="addr" style="left:20px;top:300px">0x380000</div>
+<div class="mm" id="f_app" style="left:150px;top:300px;width:230px;height:80px;background:#FBE4E7;border-color:#E8546B"><b>应用镜像</b><span class="a">512 KB</span></div>
+<div class="addr" style="left:20px;top:380px">0x400000</div>
+<div class="mm" style="left:150px;top:380px;width:230px;height:120px;background:#FFF;border:2px dashed #9AA3AD;color:#6B7684"><b>素材包 4 MB</b><span class="a">规划</span></div>
+
+<div class="cap" style="left:150px;top:540px">片上 RAM</div>
+<div class="addr" style="left:20px;top:582px">0xF900_0000</div>
+<div class="mm" id="ocr" style="left:150px;top:580px;width:230px;height:70px"><b>bootloader 4 KB</b></div>
+
+<div class="cap" style="left:560px;top:10px">DDR3 256 MB</div>
+<div class="addr" style="left:430px;top:52px">0x0000_0000</div>
+<div class="mm" style="left:560px;top:50px;width:230px;height:36px;background:#ECEEF1;border-color:#9AA3AD;font-size:16px">保留 4 KB · 校准图样</div>
+<div class="addr" style="left:430px;top:88px">0x0000_1000</div>
+<div id="d_prog" style="position:absolute;left:560px;top:86px;width:230px;height:300px;border:3px solid #E8546B;box-sizing:border-box;background:#FFF">
+  <div class="mm" style="position:relative;height:44px;border:none;border-bottom:1px solid #E3C88F">.init · .text</div>
+  <div class="mm" style="position:relative;height:38px;border:none;border-bottom:1px solid #E3C88F">.rodata</div>
+  <div class="mm" style="position:relative;height:38px;border:none;border-bottom:1px solid #E3C88F">.data · .sdata</div>
+  <div class="mm" style="position:relative;height:38px;border:none;border-bottom:1px solid #E3C88F">.bss</div>
+  <div class="mm" style="position:relative;height:90px;border:none;background:#FFF;color:#87929E">堆 ↓　　↑ 栈</div>
+  <div style="position:absolute;right:8px;bottom:6px;font-size:16px;color:#A54A4A;font-weight:700">程序区 4092 KB</div></div>
+<div class="addr" style="left:430px;top:388px">0x0040_0000</div>
+<div class="mm" style="left:560px;top:386px;width:230px;height:60px;background:#FFF;border:2px dashed #9AA3AD;color:#6B7684">命令表 A / B</div>
+<div class="addr" style="left:430px;top:448px">0x0100_0000</div>
+<div class="mm" style="left:560px;top:446px;width:230px;height:60px;background:#FFF;border:2px dashed #9AA3AD;color:#6B7684">素材</div>
+<div class="addr" style="left:430px;top:508px">0x0200_0000</div>
+<div class="mm" style="left:560px;top:506px;width:230px;height:80px;background:#FFF;border:2px dashed #9AA3AD;color:#6B7684">帧缓冲 0 / 1</div>
+<div class="mm" style="left:560px;top:586px;width:230px;height:64px;background:#FFF;border-color:#C9CFD6;color:#87929E">…</div>
+<div class="addr" style="left:430px;top:652px">0x0FFF_FFFF</div>
+<div class="lbl" style="left:430px;top:690px;font-size:17px">链接脚本：MEMORY ram ORIGIN 0x1000</div>
+<div class="lbl" style="left:430px;top:716px;font-size:17px">虚线 = 设计文档 2.1 节的分区规划</div>
+
+<div class="n wht head" style="left:900px;top:50px"><div class="t">主机 PC</div></div>
+<div class="n ext head" style="left:1080px;top:50px"><div class="t">SPI Flash</div></div>
+<div class="n ext head" style="left:1260px;top:50px"><div class="t">FPGA 配置</div></div>
+<div class="n ctl head" style="left:1450px;top:50px"><div class="t">CPU</div></div>
+<div class="n mem head" style="left:1660px;top:50px;width:150px"><div class="t">DDR3</div></div>
+<div class="life" style="left:900px"></div><div class="life" style="left:1080px"></div><div class="life" style="left:1260px"></div>
+<div class="life" style="left:1450px"></div><div class="life" style="left:1660px"></div>
+
+<div class="msg" style="left:1170px;top:148px"><span class="k">1</span>上电读比特流</div>
+<div class="msg" style="left:1355px;top:238px"><span class="k">2</span>复位 → 片上 RAM</div>
+<div class="msg" style="left:1260px;top:318px"><span class="k">3</span>spiFlash_f2m：SPI0 读 0x380000</div>
+<div class="msg" style="left:1555px;top:418px">写 0x1000 · 512 KB</div>
+<div class="msg" style="left:1555px;top:508px"><span class="k">4</span>跳转 0x1000</div>
+<div class="msg" style="left:1555px;top:598px"><span class="k">5</span>_start → main</div>
+<div class="msg" style="left:1280px;top:698px;color:#A54A4A">开发路径：reset halt · load_image app.bin 0x1000 · resume</div>
+
+<script>
+L([1080,185],[1260,185],{c:'#5D6976',w:2.5});
+L([1260,275],[1450,275],{c:'#E8546B',w:2.5});
+L([1450,355],[1080,355],{c:'#5D6976',w:2.5});
+L([1080,388],[1450,388],{c:'#5D6976',w:2,d:true});
+L([1450,455],[1660,455],{c:'#A37A1C',w:2.5});
+L([1450,545],[1660,545],{c:'#E8546B',w:2.5});
+L([1660,635],[1450,635],{c:'#A37A1C',w:2.5,h:'both'});
+L([900,735],[1660,735],{c:'#A54A4A',w:2.5,d:true});
+L('f_app','d_prog',{fs:'r',ts:'l',tf:.5,via:[[470,340],[470,236]],c:'#E8546B',w:2,d:'4 4'});
+L('ocr',[470,612],{fs:'r',c:'#E8546B',w:2,d:'4 4',h:'none'});
+L([470,612],[470,345],{c:'#E8546B',w:2,d:'4 4',h:'none'});
+</script>
+<div class="lbl" style="left:200px;top:680px;font-size:17px;color:#A54A4A;white-space:normal;width:220px">bootloader 把应用从 Flash 拷进 DDR3 程序区</div>
+</div></body></html>

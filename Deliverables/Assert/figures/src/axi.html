@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.ch { position:absolute; font-size:18px; color:#1D2733; white-space:nowrap; transform:translateX(-50%); text-align:center; line-height:1.2; }
+.ch b { color:#2F4B7C; }
+.ch span { font-family:Consolas,monospace; font-size:16px; color:#5D6976; }
+.pg { position:absolute; box-sizing:border-box; border:2px solid #A37A1C; background:#F5EAD2; height:44px; font-family:Consolas,monospace; font-size:15px; color:#5D6976; padding:2px 6px; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:20px;top:6px">五个独立通道</div>
+<div class="n ctl" id="m" style="left:20px;top:50px;width:170px;height:350px"><div class="t" style="font-size:24px">主机</div><div class="s">发起事务</div></div>
+<div class="n dat" id="s" style="left:650px;top:50px;width:170px;height:350px"><div class="t" style="font-size:24px">从机</div><div class="s">响应事务</div></div>
+<div class="ch" style="left:420px;top:52px"><b>AW 写地址</b>　<span>AWADDR · AWLEN · AWBURST</span></div>
+<div class="ch" style="left:420px;top:118px"><b>W 写数据</b>　<span>WDATA · WSTRB · WLAST</span></div>
+<div class="ch" style="left:420px;top:184px"><b>B 写响应</b>　<span>BRESP</span></div>
+<div class="ch" style="left:420px;top:262px"><b>AR 读地址</b>　<span>ARADDR · ARLEN · ARBURST</span></div>
+<div class="ch" style="left:420px;top:328px"><b>R 读数据</b>　<span>RDATA · RRESP · RLAST</span></div>
+<div class="lbl" style="left:215px;top:370px;font-size:16px;color:#5D6976">每个通道各有 VALID（发送方）与 READY（接收方）</div>
+<script>
+L([190,90],[646,90],{c:'#4A7FD0',w:3}); L([190,156],[646,156],{c:'#4A7FD0',w:3}); L([650,222],[194,222],{c:'#4A7FD0',w:3});
+L([190,300],[646,300],{c:'#2E7D4F',w:3}); L([650,366],[194,366],{c:'#2E7D4F',w:3});
+</script>
+
+<div class="cap" style="left:900px;top:6px">握手：同一上升沿 VALID 与 READY 同为 1，传输一拍</div>
+<script>
+wave({x:880,y:50,n:10,cw:80,nw:110,rh:52,rows:[
+  {n:'ACLK',clk:true},
+  {n:'VALID',b:'0011111000'},
+  {n:'READY',b:'0000111000'},
+  {n:'DATA',d:['','','A','A','A','B','C','','','']}],hl:[4,5,6]});
+</script>
+<div class="lbl" style="left:990px;top:278px">VALID 拉高后保持到握手，不能等 READY</div>
+<div class="lbl" style="left:990px;top:306px">READY 可以随时反压；黄色列 = 传输成立（A、B、C）</div>
+<div class="lbl" style="left:990px;top:334px">一拍 128 bit = 16 B = 4 个 32 位像素</div>
+
+<div style="position:absolute;left:20px;top:420px;width:1720px;height:0;border-top:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:20px;top:436px">INCR 突发读：一次地址，多拍数据</div>
+<script>
+wave({x:10,y:480,n:10,cw:66,nw:120,rh:44,rows:[
+  {n:'ACLK',clk:true},
+  {n:'ARVALID',b:'0110000000'},
+  {n:'ARREADY',b:'0010000000'},
+  {n:'ARADDR',d:['','ADDR','ADDR','','','','','','','']},
+  {n:'RVALID',b:'0000111010'},
+  {n:'RDATA',d:['','','','','D0','D1','D2','','D3','']},
+  {n:'RLAST',b:'0000000010'}],hl:[2,4,5,6,8]});
+</script>
+<div class="n wht left" style="left:820px;top:480px;width:200px;height:320px;justify-content:flex-start;padding-top:12px">
+  <div class="t">本例</div><div class="s mono">ARLEN = 3 → 4 拍</div><div class="s mono">D0 @ ADDR</div><div class="s mono">D1 @ ADDR+16</div>
+  <div class="s mono">D2 @ ADDR+32</div><div class="s mono">D3 @ ADDR+48</div><div class="s" style="margin-top:10px">第 7 拍从机未就绪，数据停顿</div></div>
+
+<div class="cap" style="left:1070px;top:436px">本工程的 AXI4 拓扑</div>
+<div class="n ctl" id="m0" style="left:1070px;top:480px;width:190px;height:78px"><div class="t">M0 u_soc</div><div class="s">ID 恒为 0</div></div>
+<div class="n ctl" id="m1" style="left:1070px;top:578px;width:190px;height:78px"><div class="t">M1 axi_probe</div><div class="s">E4 测量主机</div></div>
+<div class="n dat" id="mx" style="left:1320px;top:480px;width:190px;height:176px"><div class="t">Axi_Mux</div><div class="s">按事务仲裁</div><div class="s">轮询 / 优先级</div><div class="s">S0 优先</div></div>
+<div class="n dat" id="dc" style="left:1560px;top:480px;width:180px;height:176px"><div class="t">ddr3_top</div><div class="s mono">DATA 128</div><div class="s mono">ADDR 32→28</div><div class="s mono">ID 8→4</div></div>
+<script>L('m0','mx',{c:'#4A7FD0',w:3,ts:'l',tf:.25}); L('m1','mx',{c:'#4A7FD0',w:3,ts:'l',tf:.75}); L('mx','dc',{c:'#4A7FD0',w:4});</script>
+
+<div class="lbl b" style="left:1070px;top:676px">4 KB 边界：突发不能跨页</div>
+<div class="pg" style="left:1070px;top:710px;width:220px">0x…0000</div>
+<div class="pg" style="left:1288px;top:710px;width:220px">0x…1000</div>
+<div class="pg" style="left:1506px;top:710px;width:230px">0x…2000</div>
+<div style="position:absolute;left:1100px;top:760px;width:160px;height:16px;background:#67BA4A;border-radius:4px"></div>
+<div class="lbl" style="left:1100px;top:780px;color:#2E7D4F">页内 ✓</div>
+<div style="position:absolute;left:1420px;top:760px;width:180px;height:16px;background:#E8546B;border-radius:4px"></div>
+<div class="lbl" style="left:1440px;top:780px;color:#B23A48">跨页 ✗</div>
+<div class="lbl" style="left:1070px;top:820px">实测：突发上限 256 拍；帧缓冲每行占满一页</div>
+</div></body></html>

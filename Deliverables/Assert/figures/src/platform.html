@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.bar { position:absolute; height:26px; background:#E3E7EB; border-radius:4px; overflow:hidden; }
+.bar > i { display:block; height:100%; }
+.dot { position:absolute; width:14px; height:14px; border-radius:7px; background:#FFD24A; border:3px solid #1D2733; transform:translate(-50%,-50%); box-sizing:border-box; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div style="position:absolute;left:20px;top:50px;width:850px;height:734px;overflow:hidden;border-radius:10px;background:#FFF">
+  <img src="../../third-party/ti60f225_board_photo.jpg" style="position:absolute;left:-664px;top:-1356px;width:1935px;height:2142px"></div>
+<div class="lbl" style="left:20px;top:846px;font-size:16px;color:#87929E">板卡照片：易灵思 Ti60F225 DEMO 板 V4 软硬件设计说明</div>
+
+<div class="dot" id="p_fpga" style="left:522px;top:319px"></div>
+<div class="dot" id="p_ddr" style="left:523px;top:510px"></div>
+<div class="dot" id="p_hdmi" style="left:814px;top:510px"></div>
+<div class="dot" id="p_ft" style="left:210px;top:530px"></div>
+<div class="dot" id="p_usb" style="left:43px;top:537px"></div>
+<div class="dot" id="p_key" style="left:356px;top:714px"></div>
+
+<div class="n wht left" id="l_fpga" style="left:920px;top:60px;width:300px;height:118px"><div class="t">Ti60F225 FPGA</div><div class="s">60,800 XLR · 160 DSP · 4 PLL</div><div class="s">片上 RAM 256 块 × 10 Kbit</div></div>
+<div class="n mem left" id="l_ddr" style="left:920px;top:200px;width:300px;height:96px"><div class="t">DDR3 256 MB</div><div class="s">16 bit · 软核控制器 800 Mbps</div></div>
+<div class="n dat left" id="l_hdmi" style="left:920px;top:318px;width:300px;height:96px"><div class="t">HDMI TX</div><div class="s">FPGA 高速 IO 直驱 · 4 对 LVDS</div></div>
+<div class="n ext left" id="l_ft" style="left:920px;top:436px;width:300px;height:96px"><div class="t">FT4232H</div><div class="s">B 通道 JTAG · C 通道 UART</div></div>
+<div class="n ext left" id="l_usb" style="left:920px;top:554px;width:300px;height:96px"><div class="t">USB-C</div><div class="s">供电 · 下载 · 串口</div></div>
+<div class="n ext left" id="l_key" style="left:920px;top:672px;width:300px;height:96px"><div class="t">KEY × 4 · LED × 8</div><div class="s">SPI Flash W25Q64 8 MB（板上）</div></div>
+
+<div class="cap" style="left:1270px;top:56px">资源占用 <span style="font-weight:400;font-size:18px;color:#5D6976">2026-09-17 编译</span></div>
+<div class="lbl" style="left:1270px;top:104px">XLR　16,151 / 60,800</div><div class="lbl b" style="left:1690px;top:104px">26.6%</div>
+<div class="bar" style="left:1270px;top:134px;width:470px"><i style="width:26.6%;background:#4A7FD0"></i></div>
+<div class="lbl" style="left:1270px;top:176px">片上 RAM　65 / 256 块</div><div class="lbl b" style="left:1690px;top:176px">25.4%</div>
+<div class="bar" style="left:1270px;top:206px;width:470px"><i style="width:25.4%;background:#A37A1C"></i></div>
+<div class="lbl" style="left:1270px;top:248px">DSP　4 / 160</div><div class="lbl b" style="left:1700px;top:248px">2.5%</div>
+<div class="bar" style="left:1270px;top:278px;width:470px"><i style="width:2.5%;background:#67BA4A"></i></div>
+
+<div class="cap" style="left:1270px;top:344px">片上 RAM 的 65 块</div>
+<div style="position:absolute;left:1270px;top:390px;width:470px;height:54px;display:flex;border-radius:6px;overflow:hidden;font-size:17px;color:#fff;font-weight:700;text-align:center;line-height:54px">
+  <div style="width:33.8%;background:#8A6516">DDR3 控制器 22</div><div style="width:24.6%;background:#A37A1C">CPU 缓存 16</div>
+  <div style="width:26.2%;background:#B98E2E">DDR CDC 17</div><div style="width:15.4%;background:#C9A866">其余 10</div></div>
+
+<div class="cap" style="left:1270px;top:480px">一帧放不进片上 RAM</div>
+<div class="lbl" style="left:1270px;top:526px">640 × 480 × 32 bit</div><div class="lbl b" style="left:1640px;top:526px">9.83 Mbit</div>
+<div class="bar" style="left:1270px;top:556px;width:470px;background:transparent"><i style="width:100%;background:#4A7FD0"></i></div>
+<div class="lbl" style="left:1270px;top:598px">全部片上 RAM 256 × 10 Kbit</div><div class="lbl b" style="left:1640px;top:598px">2.56 Mbit</div>
+<div class="bar" style="left:1270px;top:628px;width:470px;background:transparent"><i style="width:26%;background:#A37A1C"></i></div>
+<div class="n mem" style="left:1270px;top:690px;width:470px;height:100px"><div class="t">帧缓冲 · 纹理图集 → DDR3</div><div class="s">片上 RAM 只分给热纹理缓存与条带缓冲</div></div>
+
+<script>
+L('p_fpga','l_fpga',{fs:'r',ts:'l',c:'#1D2733',w:2});
+L('p_ddr','l_ddr',{fs:'r',ts:'l',c:'#1D2733',w:2});
+L('p_hdmi','l_hdmi',{fs:'r',ts:'l',c:'#1D2733',w:2});
+L('p_ft','l_ft',{fs:'b',ts:'l',via:[[210,812],[895,812],[895,484]],c:'#1D2733',w:2});
+L('p_usb','l_usb',{fs:'b',ts:'l',via:[[43,826],[907,826],[907,602]],c:'#1D2733',w:2});
+L('p_key','l_key',{fs:'b',ts:'l',via:[[356,798],[882,798],[882,720]],c:'#1D2733',w:2});
+</script>
+</div></body></html>

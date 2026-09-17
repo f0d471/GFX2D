@@ -1,0 +1,75 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>.ra { position:absolute; box-sizing:border-box; } .tt { position:absolute; font-size:17px; color:#1D2733; white-space:nowrap; }</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:30px;top:6px">一帧的扫描：800 × 525（按比例）</div>
+<div class="ra" style="left:40px;top:60px;width:600px;height:394px;background:#ECEEF1;border:2px solid #87929E"></div>
+<div class="ra" style="left:40px;top:60px;width:480px;height:360px;background:#DEE8F7;border:2px solid #4A7FD0"></div>
+<div class="ra" style="left:532px;top:60px;width:72px;height:394px;background:#F5EAD2;border-left:2px solid #A37A1C;border-right:2px solid #A37A1C"></div>
+<div class="ra" style="left:40px;top:427px;width:600px;height:4px;background:#A37A1C"></div>
+<div class="tt" style="left:150px;top:210px;font-size:22px;font-weight:700;color:#174A7E">可见区 640 × 480</div>
+<div class="tt" style="left:196px;top:244px">DE = 1 · 逐行输出像素</div>
+<div class="tt" style="left:538px;top:190px;white-space:normal;width:62px;text-align:center;color:#8A6516">HSYNC<br>96</div>
+<div class="tt" style="left:120px;top:434px;color:#8A6516">VSYNC 2 行</div>
+<div class="tt" style="left:300px;top:434px;color:#5D6976">场消隐 45 行</div>
+<div class="tt" style="left:650px;top:60px;color:#5D6976;white-space:normal;width:60px">行消隐 160</div>
+<div style="position:absolute;left:40px;top:90px;width:470px;height:0;border-top:2px dashed #4A7FD0"></div>
+<div style="position:absolute;left:40px;top:120px;width:470px;height:0;border-top:2px dashed #4A7FD0"></div>
+<div class="tt" style="left:48px;top:64px;color:#174A7E">逐行从左到右 →</div>
+
+<table class="ft" style="left:40px;top:490px;width:600px">
+  <tr><th></th><th>可见</th><th>前沿</th><th>同步</th><th>后沿</th><th>总计</th></tr>
+  <tr><td>水平 / 像素</td><td>640</td><td>16</td><td>96</td><td>48</td><td><b>800</b></td></tr>
+  <tr><td>垂直 / 行</td><td>480</td><td>10</td><td>2</td><td>33</td><td><b>525</b></td></tr>
+</table>
+<div class="n wht" style="left:40px;top:620px;width:600px;height:90px"><div class="t mono" style="font-size:24px">800 × 525 × 60 Hz = 25.2 MHz</div><div class="s">像素时钟；标准值 25.175 MHz，差 0.1%，显示器容差内</div></div>
+<div class="lbl" style="left:40px;top:730px;font-size:17px;color:#87929E">参数取自 rtl/hdmi/hdmi_tx.v · 同步脉冲低有效</div>
+
+<div style="position:absolute;left:690px;top:10px;width:0;height:860px;border-left:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:720px;top:6px">发送链路</div>
+<div class="n ext" id="osc" style="left:720px;top:56px;width:160px;height:76px"><div class="t">晶振 27 MHz</div><div class="s">H2</div></div>
+<div class="n ext" id="pll" style="left:940px;top:56px;width:190px;height:76px"><div class="t">PLL_BL0</div></div>
+<div class="n mem" id="pclk" style="left:1190px;top:40px;width:250px;height:50px"><div class="t" style="font-size:19px">像素时钟 25.2 MHz</div></div>
+<div class="n mem" id="sclk" style="left:1190px;top:100px;width:250px;height:50px"><div class="t" style="font-size:19px">串行时钟 126 MHz · 90°</div></div>
+
+<div class="n ext" id="src" style="left:720px;top:210px;width:210px;height:250px"><div class="t">color_bar_rgb</div><div class="s">行场计数</div><div class="s" style="margin-top:10px">R · G · B 各 8 bit</div><div class="s">HS · VS · DE</div>
+  <div class="s" style="margin-top:10px;color:#87929E">将替换为扫描输出</div></div>
+<div class="n dat" id="e0" style="left:1000px;top:210px;width:220px;height:74px"><div class="t">encode · 通道 0</div><div class="s">B + HS / VS</div></div>
+<div class="n dat" id="e1" style="left:1000px;top:298px;width:220px;height:74px"><div class="t">encode · 通道 1</div><div class="s">G</div></div>
+<div class="n dat" id="e2" style="left:1000px;top:386px;width:220px;height:74px"><div class="t">encode · 通道 2</div><div class="s">R</div></div>
+<div class="n dat" id="ser" style="left:1290px;top:210px;width:170px;height:250px"><div class="t">10 : 1</div><div class="t">串行化</div><div class="s">LVDS TX</div><div class="s">126 MHz</div></div>
+<div class="n dat" id="d0" style="left:1530px;top:210px;width:200px;height:50px"><div class="t mono" style="font-size:19px">TMDS D0 ±</div></div>
+<div class="n dat" id="d1" style="left:1530px;top:274px;width:200px;height:50px"><div class="t mono" style="font-size:19px">TMDS D1 ±</div></div>
+<div class="n dat" id="d2" style="left:1530px;top:338px;width:200px;height:50px"><div class="t mono" style="font-size:19px">TMDS D2 ±</div></div>
+<div class="n dat" id="dc" style="left:1530px;top:402px;width:200px;height:50px"><div class="t mono" style="font-size:19px">TMDS CLK ±</div></div>
+<div class="lbl" style="left:1530px;top:462px;font-size:17px">板上 P / N 对调，RTL 取反</div>
+
+<div class="grp" style="left:720px;top:520px;width:1020px;height:340px;background:#FFFFFF"><div class="gl">TMDS 8b/10b 编码 · encode.v</div></div>
+<div class="n wht" id="t_in" style="left:750px;top:580px;width:170px;height:90px"><div class="t mono">D[7:0]</div><div class="s">一个颜色字节</div></div>
+<div class="n cmp" id="t_1" style="left:990px;top:565px;width:300px;height:120px"><div class="t">① 过渡最小化</div><div class="s">按 1 的个数选 XOR 或 XNOR 链</div><div class="s mono">→ q_m[8:0]</div></div>
+<div class="n cmp" id="t_2" style="left:1360px;top:565px;width:340px;height:120px"><div class="t">② 直流平衡</div><div class="s">按累计 1/0 偏差决定是否取反</div><div class="s mono">→ q_out[9:0]</div></div>
+<div class="n mem" id="t_c" style="left:990px;top:720px;width:710px;height:110px"><div class="t">DE = 0（消隐期）：输出控制字</div><div class="s">{C1, C0} 选 4 个固定 10 位码字之一；通道 0 的 C0 / C1 = HSYNC / VSYNC</div></div>
+<div class="n ctl" id="t_de" style="left:750px;top:735px;width:170px;height:80px"><div class="t mono">DE</div><div class="s">选择数据或控制</div></div>
+
+<script>
+L('osc','pll',{c:'#A37A1C',w:2.5,d:'7 5'});
+L('pll','pclk',{fs:'r',ts:'l',ff:.3,c:'#A37A1C',w:2.5,d:'7 5'});
+L('pll','sclk',{fs:'r',ts:'l',ff:.7,c:'#A37A1C',w:2.5,d:'7 5'});
+L('src','e0',{fs:'r',ts:'l',ff:.15,c:'#4A7FD0',w:3});
+L('src','e1',{fs:'r',ts:'l',ff:.5,c:'#4A7FD0',w:3});
+L('src','e2',{fs:'r',ts:'l',ff:.85,c:'#4A7FD0',w:3});
+L('e0','ser',{fs:'r',ts:'l',tf:.15,c:'#4A7FD0',w:3,t:'10 bit',tx:1255,ty:232});
+L('e1','ser',{fs:'r',ts:'l',tf:.5,c:'#4A7FD0',w:3});
+L('e2','ser',{fs:'r',ts:'l',tf:.85,c:'#4A7FD0',w:3});
+L('ser','d0',{fs:'r',ts:'l',ff:.1,c:'#4A7FD0',w:3}); L('ser','d1',{fs:'r',ts:'l',ff:.37,c:'#4A7FD0',w:3});
+L('ser','d2',{fs:'r',ts:'l',ff:.63,c:'#4A7FD0',w:3}); L('ser','dc',{fs:'r',ts:'l',ff:.9,c:'#4A7FD0',w:3});
+L('pclk','src',{fs:'l',ts:'t',via:[[1160,65],[1160,185],[825,185]],c:'#A37A1C',w:2,d:'7 5'});
+L('sclk','ser',{fs:'r',ts:'t',via:[[1470,125],[1470,180],[1375,180]],c:'#A37A1C',w:2,d:'7 5'});
+L('t_in','t_1',{c:'#2E7D4F',w:3,t:'8 bit',ty:612});
+L('t_1','t_2',{c:'#2E7D4F',w:3,t:'9 bit',ty:612});
+L('t_de','t_c',{c:'#E8546B',w:3});
+</script>
+</div></body></html>

@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.st { border-radius:44px; }
+.st .t { font-family:Consolas,monospace; font-size:24px; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:20px;top:6px">axi_probe_master 状态机 <span class="chip own">rtl/bus/axi_probe_master.v</span></div>
+<div class="n ctl st" id="idle" style="left:30px;top:330px;width:190px;height:100px"><div class="t">S_IDLE</div><div class="s">等待 START</div></div>
+<div class="n ctl st" id="next" style="left:330px;top:330px;width:190px;height:100px"><div class="t">S_NEXT</div><div class="s">发下一笔</div></div>
+<div class="n dat st" id="wr" style="left:640px;top:130px;width:190px;height:100px"><div class="t">S_WR</div><div class="s">AW · W · B</div></div>
+<div class="n dat st" id="rd" style="left:640px;top:530px;width:190px;height:100px"><div class="t">S_RD</div><div class="s">AR · R</div></div>
+<div class="n mem st" id="hang" style="left:330px;top:690px;width:190px;height:100px"><div class="t">S_HANG</div><div class="s">超时停住</div></div>
+
+<script>
+L('idle','next',{fs:'r',ts:'l',ff:.3,tf:.3,c:'#1D2733',w:2.5,t:'START',ty:348});
+L('next','idle',{fs:'l',ts:'r',ff:.7,tf:.7,c:'#1D2733',w:2.5,t:'tx_left = 0 → DONE',tx:275,ty:432});
+L('next','wr',{fs:'t',ts:'l',ff:.75,r:'vh',c:'#4A7FD0',w:2.5,t:'WRITE',tx:505,ty:175});
+L('wr','next',{fs:'b',ts:'r',ff:.2,tf:.3,r:'vh',c:'#4A7FD0',w:2.5,t:'B 握手',tx:720,ty:290});
+L('next','rd',{fs:'b',ts:'l',ff:.75,r:'vh',c:'#2E7D4F',w:2.5,t:'READ',tx:500,ty:585});
+L('rd','next',{fs:'t',ts:'r',ff:.2,tf:.7,r:'vh',c:'#2E7D4F',w:2.5,t:'R 握手 ∧ RLAST',tx:748,ty:470});
+L('wr','hang',{fs:'r',ts:'r',tf:.3,via:[[870,180],[870,720]],c:'#A37A1C',w:2.5,d:true});
+L('rd','hang',{fs:'b',ts:'r',tf:.75,r:'vh',c:'#A37A1C',w:2.5,d:true,t:'TIMEOUT 个周期无握手',tx:720,ty:790});
+L('hang','idle',{fs:'l',ts:'b',r:'hv',c:'#A37A1C',w:2.5,d:true,t:'ABORT / 复位',tx:125,ty:600});
+</script>
+<div class="lbl" style="left:540px;top:210px;font-size:17px;color:#5D6976">AWVALID ← 1<br>WVALID ← 1</div>
+<div class="lbl" style="left:540px;top:640px;font-size:17px;color:#5D6976">ARVALID ← 1</div>
+<div class="lbl" style="left:40px;top:60px;font-size:18px;color:#3E4A59;line-height:1.55">状态寄存器 3 bit，每个上升沿至多转移一次<br>VALID 在进入状态前置位，握手后撤销<br>超时后 VALID 不撤销：AXI 要求 VALID 保持到握手</div>
+
+<div style="position:absolute;left:900px;top:10px;width:0;height:860px;border-left:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:940px;top:6px">模块结构</div>
+<div class="n ctl" id="csr" style="left:940px;top:50px;width:240px;height:170px"><div class="t">APB 寄存器</div><div class="s mono">CTRL · ADDR · LEN</div><div class="s mono">COUNT · MODE</div><div class="s mono">SEED · TIMEOUT</div></div>
+<div class="n ctl" id="fsm" style="left:1250px;top:50px;width:220px;height:100px"><div class="t">FSM</div><div class="s mono">state[2:0]</div></div>
+<div class="n dat" id="axi" style="left:1540px;top:50px;width:200px;height:170px"><div class="t">AXI4 主机口</div><div class="s mono">AW · W · B</div><div class="s mono">AR · R</div><div class="s">→ Axi_Mux S1</div></div>
+<div class="n mem" id="wd" style="left:1250px;top:176px;width:220px;height:70px"><div class="t">看门狗计数</div></div>
+<div class="n cmp" id="cnt" style="left:940px;top:260px;width:530px;height:70px"><div class="t mono">TX_DONE · CYCLES · LAT_SUM · ERRS</div></div>
+<script>
+L('csr','fsm',{fs:'r',ts:'l',ff:.3,c:'#E8546B',w:3,t:'START'});
+L('fsm','axi',{fs:'r',ts:'l',tf:.3,c:'#4A7FD0',w:3,h:'both'});
+L('wd','fsm',{fs:'t',ts:'b',c:'#A37A1C',w:2.5});
+L('axi','cnt',{fs:'b',ts:'r',r:'vh',c:'#2E7D4F',w:2.5,t:'握手计数'});
+L('cnt','csr',{fs:'l',ts:'b',ff:.5,r:'hv',via:[[920,295],[920,235],[1060,235]],c:'#2E7D4F',w:2.5});
+</script>
+
+<div class="code" style="left:940px;top:360px;width:800px;height:250px"><span class="k">S_NEXT</span>: <span class="k">if</span> (tx_left == 0) <span class="k">begin</span> st_done &lt;= 1; state &lt;= S_IDLE; <span class="k">end</span>
+        <span class="k">else if</span> (cfg_write) <span class="k">begin</span>
+          awaddr &lt;= cur_addr; awvalid &lt;= 1; wvalid &lt;= 1;
+          state &lt;= S_WR; <span class="k">end</span>
+        <span class="k">else begin</span> araddr &lt;= cur_addr; arvalid &lt;= 1; state &lt;= S_RD; <span class="k">end</span>
+<span class="k">S_RD</span>:   <span class="k">if</span> (ar_fire) arvalid &lt;= 0;
+        <span class="k">if</span> (r_fire &amp;&amp; rlast) <span class="k">begin</span>
+          tx_left &lt;= tx_left - 1; state &lt;= S_NEXT; <span class="k">end</span></div>
+
+<script>
+wave({x:930,y:630,n:8,cw:86,nw:110,rh:38,rows:[
+  {n:'state',d:['IDLE','NEXT','WR','WR','NEXT','RD','RD','NEXT'],f:'#FBE4E7',c:'#E8546B'},
+  {n:'AWVALID',b:'00100000'},
+  {n:'WVALID',b:'00100000'},
+  {n:'BVALID',b:'00010000'},
+  {n:'ARVALID',b:'00000100'},
+  {n:'RLAST',b:'00000010'}],hl:[2,3,5,6]});
+</script>
+</div></body></html>

@@ -1,0 +1,76 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.mr { display:flex; box-sizing:border-box; border:2px solid; border-top:none; font-size:19px; align-items:center; padding:0 10px; }
+.mr .a { font-family:Consolas,monospace; font-size:16px; color:#5D6976; width:122px; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:20px;top:8px">CPU 地址空间（不按比例）</div>
+<div style="position:absolute;left:20px;top:50px;width:380px;display:flex;flex-direction:column;border-top:2px solid #A37A1C">
+  <div class="mr" style="height:170px;background:#F5EAD2;border-color:#A37A1C"><span class="a">0x0000_1000</span><b>DDR3 256 MB</b></div>
+  <div class="mr" style="height:40px;background:#FFF;border-color:#C9CFD6;color:#87929E;font-size:16px"><span class="a"></span>低 28 位译码，以上回绕</div>
+  <div class="mr" style="height:52px;background:#FFF;border:2px dashed #9AA3AD;border-top:none;color:#87929E"><span class="a">0xE100_0000</span>AXI 从口窗口 · 未用</div>
+  <div class="mr" style="height:52px;background:#ECEEF1;border-color:#87929E"><span class="a">0xF801_0000</span>UART0</div>
+  <div class="mr" style="height:52px;background:#ECEEF1;border-color:#87929E"><span class="a">0xF801_4000</span>SPI0（Flash）</div>
+  <div class="mr" style="height:52px;background:#ECEEF1;border-color:#87929E"><span class="a">0xF801_5000</span>GPIO0（LED）</div>
+  <div class="mr" id="m_probe" style="height:60px;background:#FBE4E7;border-color:#E8546B"><span class="a">0xF810_0000</span><b>apb_probe</b></div>
+  <div class="mr" style="height:60px;background:#FBE4E7;border-color:#E8546B"><span class="a">0xF810_1000</span><b>axi_probe_master</b></div>
+  <div class="mr" style="height:52px;background:#FBE4E7;border-color:#E8546B"><span class="a">0xF8B0_0000</span>CLINT 定时器</div>
+  <div class="mr" id="m_plic" style="height:52px;background:#FBE4E7;border-color:#E8546B"><span class="a">0xF8C0_0000</span>PLIC 中断控制器</div>
+  <div class="mr" style="height:52px;background:#F5EAD2;border-color:#A37A1C"><span class="a">0xF900_0000</span>片上 RAM</div>
+</div>
+<div class="lbl" style="left:20px;top:760px;font-size:17px;color:#87929E">来源：sdk/bsp/…/include/soc.h</div>
+
+<div class="cap" style="left:450px;top:8px">驱动访问寄存器</div>
+<div class="code" style="left:450px;top:50px;width:620px;height:196px"><span class="k">#define</span> PROBE  0xF8100000
+<span class="k">#define</span> REG(o) (*(volatile uint32_t *)(PROBE + (o)))
+
+uint32_t id = REG(0x000);  <span class="c">// 板上读到 0x47465832 "GFX2"</span>
+REG(0x008) = 0xA5A55A5A;   <span class="c">// SCRATCH 读回一致</span>
+REG(0x100) = 0;            <span class="c">// 未定义地址：PSLVERR</span></div>
+
+<div class="n ctl" id="s_app" style="left:450px;top:280px;width:190px;height:80px"><div class="t">应用</div><div class="s">调用驱动函数</div></div>
+<div class="n ctl" id="s_drv" style="left:665px;top:280px;width:190px;height:80px"><div class="t">驱动</div><div class="s">寄存器表 · ISR</div></div>
+<div class="n dat" id="s_bus" style="left:880px;top:280px;width:190px;height:80px"><div class="t">dBus → APB 桥</div><div class="s">译码 → PSEL</div></div>
+
+<div class="cap" style="left:450px;top:392px">APB 传输：Setup → Access</div>
+<div id="wv" style="position:absolute;left:450px;top:430px;width:620px;height:360px"></div>
+<div class="lbl" style="left:668px;top:760px;font-size:17px">Setup</div><div class="lbl" style="left:748px;top:760px;font-size:17px">Access</div>
+<div class="lbl" style="left:838px;top:760px;font-size:17px">Setup</div><div class="lbl" style="left:918px;top:760px;font-size:17px">Access</div>
+
+<div class="cap" style="left:1120px;top:8px">apb_probe 寄存器</div>
+<table class="ft" style="left:1120px;top:50px;width:620px">
+  <tr><th>偏移</th><th>名称</th><th>读写</th><th>内容</th></tr>
+  <tr><td class="mono">0x000</td><td>ID</td><td>RO</td><td class="mono">0x47465832</td></tr>
+  <tr><td class="mono">0x004</td><td>VERSION</td><td>RO</td><td class="mono">0x00000001</td></tr>
+  <tr><td class="mono">0x008</td><td>SCRATCH</td><td>RW</td><td>任意 32 位</td></tr>
+  <tr><td class="mono">其余</td><td>—</td><td>—</td><td>读 0 · PSLVERR</td></tr>
+</table>
+
+<div class="cap" style="left:1120px;top:290px">中断路径</div>
+<div class="n ext" id="i_src" style="left:1120px;top:334px;width:290px;height:78px"><div class="t">外设中断线</div><div class="s">UART0=1 · SPI0=4 · 用户 A=16</div></div>
+<div class="n ctl" id="i_plic" style="left:1120px;top:448px;width:290px;height:78px"><div class="t">PLIC</div><div class="s">门控 · 优先级 · 使能</div></div>
+<div class="n ctl" id="i_cpu" style="left:1120px;top:562px;width:290px;height:78px"><div class="t">CPU：MEIP → mtvec</div><div class="s">陷入异常入口</div></div>
+<div class="n ctl" id="i_isr" style="left:1120px;top:676px;width:290px;height:78px"><div class="t">claim → ISR → complete</div><div class="s">驱动的中断服务函数</div></div>
+<div class="n plan left" style="left:1450px;top:334px;width:290px;height:420px;justify-content:flex-start;padding-top:18px">
+  <div class="t">引擎规划的中断</div><div class="s" style="margin-top:8px">用户中断 A（16）</div>
+  <div class="s" style="margin-top:14px">· 场同步</div><div class="s">· 命令表执行完</div><div class="s">· 错误（粘滞位 + 序号）</div>
+  <div class="s" style="margin-top:14px">轮询：CPU 反复读 STATUS</div><div class="s">中断：外设主动通知</div></div>
+
+<script>
+L('s_app','s_drv',{c:'#E8546B',w:3}); L('s_drv','s_bus',{c:'#E8546B',w:3});
+L('i_src','i_plic',{fs:'b',ts:'t',c:'#E8546B',w:3});
+L('i_plic','i_cpu',{fs:'b',ts:'t',c:'#E8546B',w:3});
+L('i_cpu','i_isr',{fs:'b',ts:'t',c:'#E8546B',w:3});
+wave({x:450,y:430,n:6,cw:86,nw:130,rh:44,rows:[
+  {n:'PCLK',clk:true},
+  {n:'PSEL',b:'011110'},
+  {n:'PENABLE',b:'001010'},
+  {n:'PWRITE',b:'011000'},
+  {n:'PADDR',d:['','0x008','0x008','0x000','0x000','']},
+  {n:'PWDATA',d:['','A5A55A5A','A5A55A5A','','','']},
+  {n:'PREADY',b:'001010'}],hl:[2,4]});
+</script>
+</div></body></html>

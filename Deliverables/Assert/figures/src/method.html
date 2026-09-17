@@ -1,0 +1,96 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.cell { position:absolute; box-sizing:border-box; border:2px solid #2E7D4F; background:#E2F1DB; border-radius:3px; }
+.col { position:absolute; text-align:center; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:20px;top:4px">Amdahl 定律：S = 1 / ((1 − p) + p / s)</div>
+<svg id="am" width="700" height="380" style="position:absolute;left:10px;top:40px;overflow:visible"></svg>
+
+<div class="cap" style="left:20px;top:452px">两种硬件形态</div>
+<div class="grp" style="left:20px;top:494px;width:680px;height:170px;background:#FFF"><div class="gl">CPU 内协处理器</div></div>
+<div class="n ctl" id="p1" style="left:44px;top:540px;width:100px;height:54px"><div class="t">IF</div></div>
+<div class="n ctl" id="p2" style="left:170px;top:540px;width:100px;height:54px"><div class="t">ID</div></div>
+<div class="n ctl" id="p3" style="left:296px;top:540px;width:100px;height:54px"><div class="t">EX</div></div>
+<div class="n ctl" id="p4" style="left:422px;top:540px;width:100px;height:54px"><div class="t">MEM</div></div>
+<div class="n ctl" id="p5" style="left:548px;top:540px;width:100px;height:54px"><div class="t">WB</div></div>
+<div class="n cmp" id="cu" style="left:246px;top:606px;width:200px;height:48px"><div class="t" style="font-size:19px">扩展指令运算单元</div></div>
+<div class="lbl" style="left:470px;top:614px;font-size:17px">寄存器进出 · 无总线往返</div>
+
+<div class="grp" style="left:20px;top:680px;width:680px;height:190px;background:#FFF"><div class="gl">SoC 外设加速器</div></div>
+<div class="n ctl" id="acpu" style="left:44px;top:730px;width:120px;height:110px"><div class="t">CPU</div><div class="s">写门铃</div></div>
+<div class="n ctl" id="afsm" style="left:230px;top:730px;width:120px;height:110px"><div class="t">控制</div><div class="s">FSM</div></div>
+<div id="arr" style="position:absolute;left:370px;top:726px;width:150px;height:118px"></div>
+<div class="n mem" id="addr" style="left:560px;top:730px;width:120px;height:110px"><div class="t">DDR</div><div class="s">批量数据</div></div>
+<div class="lbl" style="left:374px;top:846px;font-size:16px">计算阵列</div>
+
+<div style="position:absolute;left:740px;top:10px;width:0;height:860px;border-left:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:780px;top:4px">流程</div>
+<div class="n wht" id="f1" style="left:780px;top:50px;width:150px;height:90px"><div class="t">软件实现</div><div class="s">PC 与板上</div></div>
+<div class="n ctl" id="f2" style="left:970px;top:50px;width:150px;height:90px"><div class="t">拆账</div><div class="s">计数 · 计时</div></div>
+<div class="n mem" id="f3" style="left:1160px;top:50px;width:150px;height:90px"><div class="t">选靶</div><div class="s">Amdahl</div></div>
+<div class="n cmp" id="f4" style="left:1350px;top:50px;width:150px;height:90px"><div class="t">分类 · 选形态</div></div>
+<div class="n dat" id="f5" style="left:1540px;top:50px;width:190px;height:90px"><div class="t">RTL · 上板复测</div><div class="s">墙移到哪里</div></div>
+
+<div class="cap" style="left:780px;top:222px">三类计算</div>
+<div class="col" style="left:780px;top:262px;width:300px"><div class="t" style="font-size:22px;font-weight:700">标量</div></div>
+<div class="col" style="left:1100px;top:262px;width:300px"><div class="t" style="font-size:22px;font-weight:700">向量</div></div>
+<div class="col" style="left:1420px;top:262px;width:320px"><div class="t" style="font-size:22px;font-weight:700">矩阵</div></div>
+<div id="gly" style="position:absolute;left:780px;top:300px;width:960px;height:170px"></div>
+<table class="ft" style="left:780px;top:490px;width:960px">
+  <tr><th style="width:130px"></th><th>标量</th><th>向量</th><th>矩阵</th></tr>
+  <tr><td><b>一次运算</b></td><td>一个数</td><td>一维序列，逐元素同一操作</td><td>二维表，行列交叉</td></tr>
+  <tr><td><b>典型运算</b></td><td>浮点乘除 · sin · exp · rsqrt</td><td>像素混合 · 激活 · 前缀和与递推</td><td>全连接层 · 矩阵乘</td></tr>
+  <tr><td><b>合适形态</b></td><td>CPU 内协处理器</td><td>外设 + DMA</td><td>外设 + DMA + 计算阵列</td></tr>
+  <tr><td><b>瓶颈</b></td><td>CPU 调用频率</td><td>访存事务</td><td>总线带宽</td></tr>
+  <tr><td><b>以往实践</b></td><td>标量浮点协处理器</td><td>向量流 · 线性递推加速器</td><td>矩阵乘加速器（同 TPU v1）</td></tr>
+</table>
+<div style="position:absolute;left:1580px;top:760px;width:160px;height:114px;overflow:hidden;border-radius:6px"><img src="../../third-party/tpu_v3.jpg" style="width:160px;height:114px;object-fit:cover"></div>
+<div class="lbl" style="left:780px;top:776px;white-space:normal;width:780px">本题的像素混合属于向量类：逐像素运算简单、数量大，形态选外设加速器，设计重心在访存</div>
+<div class="lbl" style="left:1180px;top:840px;font-size:14px;color:#87929E">Google Cloud TPU v3 · Zinskauf · Wikimedia Commons · CC BY-SA 4.0</div>
+
+<script>
+L('p1','p2',{c:'#E8546B',w:2.5}); L('p2','p3',{c:'#E8546B',w:2.5}); L('p3','p4',{c:'#E8546B',w:2.5}); L('p4','p5',{c:'#E8546B',w:2.5});
+L('p3','cu',{fs:'b',ts:'t',ff:.5,tf:.5,c:'#2E7D4F',w:2.5,h:'both'});
+L('acpu','afsm',{c:'#E8546B',w:2.5,t:'APB',ty:770});
+L('afsm','arr',{c:'#E8546B',w:2.5});
+L('arr','addr',{c:'#4A7FD0',w:3,h:'both',t:'DMA',ty:770});
+L('f1','f2',{c:'#33445A',w:2.5}); L('f2','f3',{c:'#33445A',w:2.5}); L('f3','f4',{c:'#33445A',w:2.5}); L('f4','f5',{c:'#33445A',w:2.5});
+L('f5','f2',{fs:'b',ts:'b',via:[[1635,176],[1045,176]],c:'#A37A1C',w:2.5,d:true,t:'瓶颈转移后重新拆账',tx:1340,ty:176});
+
+// 阵列
+const arr=document.getElementById('arr');
+for(let i=0;i<3;i++)for(let j=0;j<4;j++){const c=document.createElement('div');c.className='cell';c.style.left=(j*38)+'px';c.style.top=(i*40)+'px';c.style.width='32px';c.style.height='34px';arr.appendChild(c);}
+
+// Amdahl 曲线
+(function(){
+  const s=document.getElementById('am'), ns='http://www.w3.org/2000/svg';
+  const X0=80,Y0=340,W=580,H=300; const xs=v=>X0+Math.log2(v)/6*W, ys=v=>Y0-v/20*H;
+  function el(t,a,txt){const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;s.appendChild(e);return e;}
+  [1,2,4,8,16,32,64].forEach(v=>{el('line',{x1:xs(v),y1:Y0,x2:xs(v),y2:Y0-H,stroke:'#E3E7EB'});el('text',{x:xs(v),y:Y0+26,'text-anchor':'middle','font-size':18,fill:'#5D6976'},v);});
+  [0,5,10,15,20].forEach(v=>{el('line',{x1:X0,y1:ys(v),x2:X0+W,y2:ys(v),stroke:'#E3E7EB'});el('text',{x:X0-12,y:ys(v)+6,'text-anchor':'end','font-size':18,fill:'#5D6976'},v);});
+  el('line',{x1:X0,y1:Y0,x2:X0+W,y2:Y0,stroke:'#5D6976','stroke-width':2});el('line',{x1:X0,y1:Y0,x2:X0,y2:Y0-H,stroke:'#5D6976','stroke-width':2});
+  el('text',{x:X0+W/2,y:Y0+56,'text-anchor':'middle','font-size':19,fill:'#1D2733'},'热点本身的加速倍数 s（对数）');
+  el('text',{x:X0,y:Y0-H-14,'font-size':19,fill:'#1D2733'},'整体加速比 S');
+  const P=[[.95,'#0C2E4E'],[.9,'#174A7E'],[.75,'#4A7FD0'],[.5,'#9DB3C8']];
+  P.forEach(([p,c])=>{let d='';for(let i=0;i<=60;i++){const v=Math.pow(2,i/10);d+=(i?'L':'M')+xs(v).toFixed(1)+','+ys(1/((1-p)+p/v)).toFixed(1);}
+    el('path',{d,fill:'none',stroke:c,'stroke-width':4});
+    const lim=1/(1-p);el('line',{x1:X0,y1:ys(lim),x2:X0+W,y2:ys(lim),stroke:c,'stroke-width':1.5,'stroke-dasharray':'6 5'});
+    el('text',{x:X0+W+10,y:ys(lim)+6,'font-size':18,fill:c,'font-weight':700},'p = '+p+' · 上限 '+lim.toFixed(0)+'×');});
+})();
+
+// 三类计算的示意
+(function(){
+  const g=document.getElementById('gly');
+  function box(x,y,w,h,bg,bd,txt){const e=document.createElement('div');e.style.cssText=`position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:${bg};border:2px solid ${bd};border-radius:4px;box-sizing:border-box;font-size:17px;display:flex;align-items:center;justify-content:center;font-family:Consolas,monospace`;e.textContent=txt||'';g.appendChild(e);}
+  box(60,50,60,60,'#DEE8F7','#4A7FD0','x'); box(150,50,90,60,'#E2F1DB','#2E7D4F','f(·)'); box(270,50,60,60,'#F5EAD2','#A37A1C','y');
+  for(let i=0;i<8;i++){box(320+i*34,20,30,40,'#DEE8F7','#4A7FD0');box(320+i*34,70,30,34,'#E2F1DB','#2E7D4F','f');box(320+i*34,114,30,40,'#F5EAD2','#A37A1C');}
+  for(let i=0;i<4;i++)for(let j=0;j<4;j++){box(660+j*30,20+i*30,26,26,'#DEE8F7','#4A7FD0');box(820+j*30,20+i*30,26,26,'#F5EAD2','#A37A1C');}
+  const t=document.createElement('div');t.style.cssText='position:absolute;left:785px;top:52px;font-size:28px';t.textContent='×';g.appendChild(t);
+})();
+</script>
+</div></body></html>

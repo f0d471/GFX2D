@@ -1,0 +1,99 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.sw { position:absolute; width:52px; height:52px; border-radius:6px; box-sizing:border-box; border:2px solid #1D2733; }
+.eqn { position:absolute; font-family:"Cambria Math","Times New Roman",serif; font-size:26px; color:#1D2733; white-space:nowrap; }
+.grid { position:absolute; display:grid; grid-template-columns:repeat(16, 16px); grid-template-rows:repeat(16,16px); border:2px solid #1D2733; }
+table.eq { position:absolute; border-collapse:collapse; font-size:19px; }
+table.eq th { background:#DDE3EA; padding:5px 10px; border:1.5px solid #C9D0D8; }
+table.eq td { background:#FFF; padding:4px 10px; border:1.5px solid #D6DCE3; text-align:center; }
+table.eq td .c { display:inline-block; width:40px; height:26px; border-radius:4px; border:1.5px solid #1D2733; vertical-align:middle; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:20px;top:4px">Alpha 合成</div>
+<div style="position:absolute;left:20px;top:44px;width:250px;height:250px;overflow:hidden;border-radius:6px;background:#fff">
+  <img src="../../third-party/alpha_compositing.png" style="position:absolute;left:-250px;top:-40px;width:760px"></div>
+<div class="lbl" style="left:20px;top:304px;font-size:15px;color:#87929E;white-space:normal;width:250px">Porter–Duff「A over B」上：不透明；下：半透明 · Wikimedia Commons · 公有领域</div>
+
+<div class="cap" style="left:320px;top:4px">同一像素上的多层：一阶线性递推</div>
+<div class="eqn" style="left:330px;top:48px">d<sub>k</sub> = s′<sub>k</sub> + (1 − a<sub>k</sub>) · d<sub>k−1</sub>　　s′ = s · a（预乘）</div>
+<div id="rec" style="position:absolute;left:320px;top:128px;width:760px;height:270px"></div>
+<div class="lbl b" style="left:330px;top:392px;color:#2E7D4F">↕ 像素之间无依赖：一拍 4 像素并行（向量运算）</div>
+<div class="lbl b" style="left:330px;top:420px;color:#A54A4A">→ 层之间有依赖：按命令表顺序串行（递推）</div>
+
+<div class="cap" style="left:1130px;top:4px">Color Key</div>
+<div class="grid" id="spr" style="left:1130px;top:60px"></div>
+<div class="grid" id="bg1" style="left:1440px;top:60px"></div>
+<div class="lbl" style="left:1130px;top:330px">纹理：品红 #FF00FF 为透明色</div>
+<div class="lbl" style="left:1440px;top:330px">写入后：透明色像素保持目的值</div>
+<div class="lbl mono" style="left:1130px;top:366px">if (key_en &amp;&amp; src_word == key_word) skip_write;</div>
+<div class="lbl" style="left:1130px;top:396px">比较源表面的 32 位存储字；与混合方程互不影响</div>
+<script>L([1402,190],[1434,190],{c:'#1D2733',w:3});</script>
+
+<div style="position:absolute;left:20px;top:456px;width:1720px;height:0;border-top:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:20px;top:470px">混合方程表：out = src · Fs + dst · Fd</div>
+<table class="eq" id="eqt" style="left:20px;top:512px;width:900px">
+  <tr><th>方程</th><th>Fs</th><th>Fd</th><th>src</th><th>dst</th><th>out</th><th>用途</th></tr>
+</table>
+<div class="lbl" style="left:20px;top:830px;font-size:16px;color:#5D6976">示例 src = (255, 140, 40)、a = 0.6 预乘；dst = (40, 90, 200)；CONST 取 c = 0.5</div>
+
+<div class="cap" style="left:980px;top:470px">单通道算术（R、G、B 各一份）</div>
+<div class="n cmp" id="a1" style="left:980px;top:520px;width:170px;height:70px"><div class="t mono">src × Fs</div><div class="s">8 × 8 → 16 bit</div></div>
+<div class="n cmp" id="a2" style="left:980px;top:610px;width:170px;height:70px"><div class="t mono">dst × Fd</div><div class="s">8 × 8 → 16 bit</div></div>
+<div class="n cmp" id="a3" style="left:1210px;top:565px;width:150px;height:70px"><div class="t mono">x = Σ</div><div class="s">≤ 130050 · 17 bit</div></div>
+<div class="n cmp" id="a4" style="left:1410px;top:545px;width:330px;height:110px"><div class="t mono">t = x + 128</div><div class="t mono">q = (t + (t≫8)) ≫ 8</div><div class="s">精确的 round(x / 255)</div></div>
+<div class="n cmp" id="a5" style="left:1410px;top:690px;width:330px;height:66px"><div class="t mono">out = min(255, q)</div></div>
+<div class="n wht left" style="left:980px;top:700px;width:380px;height:130px"><div class="s">Fs、Fd 以 255 为满量程</div><div class="s">先相加、再舍入一次、最后饱和</div><div class="s">中间量不能模截断到 16 bit</div><div class="s">写入时 [31:24] 强制为 0</div></div>
+<div class="lbl" style="left:1410px;top:780px;font-size:16px;color:#5D6976;white-space:normal;width:330px">x ∈ [0, 65025] 穷举与 round(x/255) 逐值一致；spec 第 01 章（待验收）</div>
+<script>
+L('a1','a3',{fs:'r',ts:'l',tf:.3,c:'#2E7D4F',w:3}); L('a2','a3',{fs:'r',ts:'l',tf:.7,c:'#2E7D4F',w:3});
+L('a3','a4',{c:'#2E7D4F',w:3}); L('a4','a5',{fs:'b',ts:'t',c:'#2E7D4F',w:3});
+
+const S=[255,140,40], A=0.6, D=[40,90,200];
+const Sp=S.map(v=>Math.round(v*A));
+const css=c=>`rgb(${c.map(v=>Math.max(0,Math.min(255,Math.round(v)))).join(',')})`;
+const rows=[
+  ['COPY','1','0',Sp,D,Sp,'背景、不透明图块'],
+  ['ALPHA','1','1 − a',Sp,D,Sp.map((v,i)=>v+(1-A)*D[i]),'半透明弹幕'],
+  ['ADD','1','1',Sp,D,Sp.map((v,i)=>v+D[i]),'发光、爆炸'],
+  ['CONST','c','1 − c',S,D,S.map((v,i)=>.5*v+.5*D[i]),'淡入淡出'],
+  ['MUL','dst','0',S,D,S.map((v,i)=>v*D[i]/255),'阴影（预留）']];
+const t=document.getElementById('eqt');
+rows.forEach(r=>{const tr=document.createElement('tr');
+  tr.innerHTML=`<td><b>${r[0]}</b></td><td class="mono">${r[1]}</td><td class="mono">${r[2]}</td><td><span class="c" style="background:${css(r[3])}"></span></td><td><span class="c" style="background:${css(r[4])}"></span></td><td><span class="c" style="background:${css(r[5])}"></span></td><td>${r[6]}</td>`;t.appendChild(tr);});
+
+// 递推示意：4 个像素行 × 3 层
+const rec=document.getElementById('rec');
+const layers=[[[230,120,40],.6],[[60,200,230],.5],[[230,60,200],.3]];
+const bgs=[[40,70,120],[60,90,140],[30,60,100],[70,100,150]];
+bgs.forEach((bg,p)=>{
+  let d=bg.slice(); let x=0; const y=p*64;
+  const cell=(c,lbl,big)=>{const e=document.createElement('div');e.className='sw';e.style.left=x+'px';e.style.top=y+'px';e.style.background=css(c);rec.appendChild(e);
+    if(lbl){const l=document.createElement('div');l.className='lbl';l.style.left=(x+2)+'px';l.style.top=(y-2)+'px';l.style.fontSize='13px';l.style.color='#fff';l.textContent=lbl;rec.appendChild(l);} x+=52;};
+  const arrow=(txt)=>{const e=document.createElement('div');e.className='lbl';e.style.left=(x+4)+'px';e.style.top=(y+12)+'px';e.style.fontSize='18px';e.textContent=txt;rec.appendChild(e);x+=46;};
+  cell(d,p==0?'d0':'');
+  layers.forEach(([s,a],k)=>{
+    arrow('+');
+    const sp=s.map(v=>v*a);
+    const e=document.createElement('div');e.className='sw';e.style.left=x+'px';e.style.top=y+'px';e.style.background=css(s);e.style.opacity=a+.25;rec.appendChild(e);
+    if(p==0){const l=document.createElement('div');l.className='lbl';l.style.left=(x-4)+'px';l.style.top=(y-26)+'px';l.style.fontSize='15px';l.textContent='a='+a;rec.appendChild(l);}
+    x+=52; arrow('→');
+    d=sp.map((v,i)=>v+(1-a)*d[i]); cell(d,p==0?('d'+(k+1)):'');
+  });
+});
+
+// 色键纹理
+const K='#FF00FF';
+function paint(id,bgfn){const g=document.getElementById(id);
+  for(let y=0;y<16;y++)for(let x=0;x<16;x++){const e=document.createElement('div');
+    const dx=x-7.5,dy=y-7.5,r=Math.sqrt(dx*dx*1.8+dy*dy);
+    let c=null; if(r<3.2)c='#FFFFFF'; else if(r<5.6)c='#3DA5FF'; else if(r<6.6)c='#1D4E9A';
+    e.style.background=c||bgfn(x,y); g.appendChild(e);}
+}
+paint('spr',()=>K);
+paint('bg1',(x,y)=>`rgb(${30+x*4},${60+y*5},${110+x*3})`);
+</script>
+</div></body></html>

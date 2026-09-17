@@ -1,0 +1,70 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.bf { position:absolute; display:flex; height:64px; font-family:Consolas,monospace; font-size:19px; }
+.bf > div { box-sizing:border-box; border:2px solid #1D2733; display:flex; align-items:center; justify-content:center; margin-left:-2px; }
+.bits { position:absolute; font-family:Consolas,monospace; font-size:16px; color:#5D6976; }
+table.ct { position:absolute; border-collapse:collapse; font-family:Consolas,monospace; font-size:18px; }
+table.ct td { border:1.5px solid #C9A866; height:34px; text-align:center; background:#FFF; }
+table.ct tr.h td { background:#F5EAD2; font-family:"Noto Sans SC"; font-weight:700; }
+table.ct tr.k td { background:#FFE9B8; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="n ctl" id="cpu" style="left:20px;top:330px;width:180px;height:140px"><div class="t" style="font-size:24px">VexRiscv</div><div class="s">iBus 取指</div><div class="s">dBus 读写</div></div>
+<div class="n mem" id="ic" style="left:270px;top:90px;width:200px;height:100px"><div class="t">I-Cache 4 KB</div><div class="s">指令</div></div>
+<div class="n ctl" id="dec" style="left:270px;top:370px;width:200px;height:110px"><div class="t">地址译码</div><div class="s">dBus</div></div>
+<div class="n mem" id="dc" style="left:520px;top:230px;width:200px;height:100px"><div class="t">D-Cache 4 KB</div><div class="s">数据</div></div>
+<div class="n dat" id="apb" style="left:520px;top:560px;width:200px;height:100px"><div class="t">APB 桥</div><div class="s">不经缓存</div></div>
+<div class="n ext" id="per" style="left:520px;top:720px;width:200px;height:110px"><div class="t">外设寄存器</div><div class="s">UART · SPI · 探针</div></div>
+<div class="n dat" id="br" style="left:780px;top:120px;width:190px;height:120px"><div class="t">DDR 桥</div><div class="s">BMB → AXI4</div><div class="s">跨时钟 FIFO</div></div>
+<div class="n dat" id="mux" style="left:780px;top:320px;width:190px;height:90px"><div class="t">Axi_Mux S0</div><div class="s">128 bit</div></div>
+<div class="n dat" id="ddrc" style="left:780px;top:490px;width:190px;height:90px"><div class="t">ddr3_top</div><div class="s">控制器 + PHY</div></div>
+<div class="n mem" id="ddr" style="left:780px;top:660px;width:190px;height:100px"><div class="t">DDR3 颗粒</div><div class="s">256 MB</div></div>
+
+<script>
+L('cpu','ic',{fs:'r',ts:'l',ff:.25,r:'hvh',m:235,c:'#A37A1C',w:3});
+L('cpu','dec',{fs:'r',ts:'l',ff:.62,tf:.4,c:'#E8546B',w:3});
+L('dec','dc',{fs:'t',ts:'l',r:'vh',c:'#A37A1C',w:3});
+L('dec','apb',{fs:'b',ts:'l',r:'vh',c:'#E8546B',w:3});
+L('apb','per',{fs:'b',ts:'t',c:'#E8546B',w:3});
+L('ic','br',{fs:'r',ts:'l',tf:.3,r:'hvh',m:745,c:'#4A7FD0',w:3,t:'未命中',tx:620,ty:140});
+L('dc','br',{fs:'r',ts:'l',tf:.75,r:'hvh',m:745,c:'#4A7FD0',w:3,t:'未命中',tx:620,ty:210});
+L('br','mux',{fs:'b',ts:'t',c:'#4A7FD0',w:3});
+L('mux','ddrc',{fs:'b',ts:'t',c:'#4A7FD0',w:3,t:'AR / R · AW / W / B',tx:875,ty:450});
+L('ddrc','ddr',{fs:'b',ts:'t',c:'#4A7FD0',w:3,h:'both'});
+</script>
+<div class="lbl mono" style="left:382px;top:340px;font-size:17px;color:#8A6516">0x0000_1000–0x0FFF_FFFF</div>
+<div class="lbl mono" style="left:300px;top:640px;font-size:17px;color:#A54A4A">0xF800_0000 以上</div>
+
+<div style="position:absolute;left:1010px;top:10px;width:0;height:860px;border-left:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:1050px;top:20px">D-Cache：1 路直接映射 · 64 行 × 64 B</div>
+<div class="bits" style="left:1050px;top:70px">31</div><div class="bits" style="left:1430px;top:70px">12</div>
+<div class="bits" style="left:1480px;top:70px">11</div><div class="bits" style="left:1590px;top:70px">6</div>
+<div class="bits" style="left:1618px;top:70px">5</div><div class="bits" style="left:1712px;top:70px">0</div>
+<div class="bf" style="left:1050px;top:92px">
+  <div id="f_tag" style="width:432px;background:#DEE8F7">标签 tag · 20 bit</div>
+  <div id="f_line" style="width:142px;background:#FFE9B8">行号 · 6</div>
+  <div style="width:142px;background:#ECEEF1">偏移 · 6</div></div>
+<div class="lbl" style="left:1050px;top:164px">CPU 访问的 32 位地址</div>
+
+<table class="ct" style="left:1050px;top:210px;width:690px">
+  <tr class="h"><td style="width:70px">行</td><td style="width:50px">V</td><td style="width:200px">标签</td><td>数据 64 B</td></tr>
+  <tr><td>0</td><td>1</td><td>0x00012</td><td>…</td></tr>
+  <tr><td>1</td><td>0</td><td>—</td><td>—</td></tr>
+  <tr class="k" id="kline"><td>k</td><td>1</td><td id="ktag">tag ?= 地址[31:12]</td><td>命中：直接返回</td></tr>
+  <tr><td>⋮</td><td>⋮</td><td>⋮</td><td>⋮</td></tr>
+  <tr><td>63</td><td>1</td><td>0x0C800</td><td>…</td></tr>
+</table>
+<script>
+L('f_line','kline',{fs:'b',ts:'r',tf:.5,via:[[1695,190],[1755,190],[1755,344]],c:'#8A6516',w:2.5});
+</script>
+
+<div class="n mem left" style="left:1050px;top:470px;width:335px;height:120px"><div class="t">读 · 未命中</div><div class="s">整行 64 B 从 DDR3 装入</div><div class="s">装入一行约 69 周期</div></div>
+<div class="n wht left" style="left:1405px;top:470px;width:335px;height:120px"><div class="t">写</div><div class="s">直接写 DDR3，不装行</div><div class="s">SoC 没有写缓冲</div></div>
+<div class="n ctl left" style="left:1050px;top:610px;width:335px;height:120px"><div class="t">第二个主机改写 DDR3</div><div class="s">缓存副本不会自动失效</div><div class="s">CPU 读回旧值</div></div>
+<div class="n cmp left" style="left:1405px;top:610px;width:335px;height:120px"><div class="t">读回前先失效</div><div class="s">单地址 4 周期 · 全清 67 周期</div><div class="s">失效须晚于外部写完成</div></div>
+<div class="lbl" style="left:1050px;top:750px;font-size:17px;color:#87929E">实验 E2 / E3 板上实测（E3 待验收）· platform 第 02、05 章</div>
+</div></body></html>
