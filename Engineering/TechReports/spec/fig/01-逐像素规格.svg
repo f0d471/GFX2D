@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="700" viewBox="0 0 1240 700"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .bx { fill:#eef2f7; stroke:#64748b; stroke-width:1.2 }
+      .bo { fill:#fffbeb; stroke:#b45309; stroke-width:1.4 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .tg { font-size:9.5px; fill:#94a3b8 }
+      .bmb { stroke:#334155; stroke-width:1.7; fill:none }
+      .un  { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+      .obs { stroke:#b45309; stroke-width:1.5; fill:none; stroke-dasharray:5 3 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="700" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">逐像素规格：方程代入后的算式与位宽</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">本章只定规格，图上没有任何已实现的模块。章节内容对应设计文档 3.5 节「逐像素规格（定稿 2026-09-18）」。</text>
+
+  <!-- 图例 -->
+  <rect x="880" y="82" width="320" height="82" class="bi"/>
+  <text x="896" y="102" class="t" font-weight="600">图例</text>
+  <line x1="896" y1="120" x2="948" y2="120" class="bmb" marker-end="url(#a)"/>
+  <text x="958" y="124" class="ts">算式与数据流</text>
+  <line x1="896" y1="142" x2="948" y2="142" class="un" marker-end="url(#ag)"/>
+  <text x="958" y="146" class="ts">尚未实现的模块</text>
+
+  <!-- 方程表的代入 -->
+  <rect x="40" y="100" width="820" height="226" class="bi"/>
+  <text x="56" y="122" class="t" font-weight="600">方程表的系数按 255 满量程代入后的算式（表中写的 1 就是 255）</text>
+
+  <text x="56" y="148" class="ts" font-weight="600">方程</text>
+  <text x="140" y="148" class="ts" font-weight="600">Fs, Fd</text>
+  <text x="240" y="148" class="ts" font-weight="600">代入后的通道算式</text>
+  <text x="610" y="148" class="ts" font-weight="600">两种舍入顺序</text>
+  <text x="750" y="148" class="ts" font-weight="600">组合数 / 不一致</text>
+  <line x1="56" y1="156" x2="844" y2="156" stroke="#cbd5e1" stroke-width="1"/>
+
+  <text x="56" y="176" class="ts">COPY</text>
+  <text x="140" y="176" class="ts">255, 0</text>
+  <text x="240" y="176" class="ts">src * 255</text>
+  <text x="610" y="176" class="ts">一致</text>
+  <text x="750" y="176" class="ts">256 / 0</text>
+
+  <text x="56" y="200" class="ts">ALPHA</text>
+  <text x="140" y="200" class="ts">255, 255-a</text>
+  <text x="240" y="200" class="ts">src_pm * 255 + dst * (255-a)     src_pm &lt;= a</text>
+  <text x="610" y="200" class="ts">一致</text>
+  <text x="750" y="200" class="ts">8421376 / 0</text>
+
+  <text x="56" y="224" class="ts" font-weight="600">ALPHA 非预乘</text>
+  <text x="140" y="224" class="ts">a, 255-a</text>
+  <text x="240" y="224" class="ts">src * a + dst * (255-a)     对照开关</text>
+  <text x="610" y="224" class="ts" font-weight="600">不一致</text>
+  <text x="750" y="224" class="ts" font-weight="600">16777216 / 4121020</text>
+
+  <text x="56" y="248" class="ts">ADD</text>
+  <text x="140" y="248" class="ts">255, 255</text>
+  <text x="240" y="248" class="ts">src_pm * 255 + dst * 255</text>
+  <text x="610" y="248" class="ts">一致</text>
+  <text x="750" y="248" class="ts">65536 / 0</text>
+
+  <text x="56" y="272" class="ts" font-weight="600">CONST</text>
+  <text x="140" y="272" class="ts">c, 255-c</text>
+  <text x="240" y="272" class="ts">src * c + dst * (255-c)</text>
+  <text x="610" y="272" class="ts" font-weight="600">不一致</text>
+  <text x="750" y="272" class="ts" font-weight="600">16777216 / 4121020</text>
+
+  <text x="56" y="296" class="ts">MUL</text>
+  <text x="140" y="296" class="ts">dst, 0</text>
+  <text x="240" y="296" class="ts">src * dst（单项）</text>
+  <text x="610" y="296" class="ts">一致</text>
+  <text x="750" y="296" class="ts">65536 / 0</text>
+
+  <text x="56" y="316" class="tg">CONST 与非预乘 ALPHA 需要定序；CONST 最小反例 c=1, src=1, dst=128：精确值 127.502，先加后舍入得 128、逐项舍入得 127。</text>
+
+  <!-- 通道算术的位宽 -->
+  <text x="40" y="348" class="t" font-weight="600">一个通道的算术与位宽（级 2 与级 3）</text>
+
+  <rect x="40" y="362" width="150" height="76" class="bx"/>
+  <text x="115" y="382" class="ts" text-anchor="middle">src_pm, dst</text>
+  <text x="115" y="397" class="tg" text-anchor="middle">各 8 位</text>
+  <text x="115" y="415" class="ts" text-anchor="middle">Fs, Fd 以 255 为满量程</text>
+  <text x="115" y="430" class="tg" text-anchor="middle">8 位整数</text>
+
+  <rect x="230" y="362" width="170" height="76" class="bx"/>
+  <text x="315" y="382" class="ts" text-anchor="middle">两个乘积</text>
+  <text x="315" y="397" class="tg" text-anchor="middle">乘积上限 255*255 = 65025</text>
+  <text x="315" y="415" class="ts" text-anchor="middle">各 16 位</text>
+  <text x="315" y="430" class="tg" text-anchor="middle">16 位放得下</text>
+
+  <rect x="440" y="356" width="190" height="88" class="bo"/>
+  <text x="535" y="376" class="ts" text-anchor="middle" font-weight="600">两项之和 + 128</text>
+  <text x="535" y="392" class="tg" text-anchor="middle">x 上限 130050</text>
+  <text x="535" y="410" class="ts" text-anchor="middle" font-weight="600">17 位，或 t 饱和到 16 位</text>
+  <text x="535" y="428" class="tg" text-anchor="middle">不能模截断到 16 位</text>
+
+  <rect x="670" y="356" width="190" height="88" class="bo"/>
+  <text x="765" y="374" class="ts" text-anchor="middle" font-weight="600">算商后 clamp 到 255</text>
+  <text x="765" y="391" class="ts" text-anchor="middle">q = (t + (t &gt;&gt; 8)) &gt;&gt; 8</text>
+  <text x="765" y="406" class="ts" text-anchor="middle">out = min(255, q)</text>
+  <text x="765" y="428" class="tg" text-anchor="middle">可与舍入分在两个流水级</text>
+
+  <rect x="900" y="356" width="150" height="88" class="bx"/>
+  <text x="975" y="376" class="ts" text-anchor="middle">输出通道</text>
+  <text x="975" y="392" class="tg" text-anchor="middle">8 位</text>
+  <text x="975" y="410" class="ts" text-anchor="middle">每拍 4 像素</text>
+  <text x="975" y="428" class="tg" text-anchor="middle">= 1 个 128 位字</text>
+
+  <line x1="190" y1="400" x2="226" y2="400" class="bmb" marker-end="url(#a)"/>
+  <line x1="400" y1="400" x2="436" y2="400" class="bmb" marker-end="url(#a)"/>
+  <line x1="630" y1="400" x2="666" y2="400" class="bmb" marker-end="url(#a)"/>
+  <line x1="860" y1="400" x2="896" y2="400" class="bmb" marker-end="url(#a)"/>
+
+  <line x1="535" y1="444" x2="535" y2="474" class="obs" marker-end="url(#ao)"/>
+  <text x="548" y="486" class="ts" fill="#b45309">裸快速式在 130050 域上有 253 处不符（首个 x=65663）；保留 17 位、算完商后 clamp 即 0 处</text>
+  <text x="548" y="502" class="ts" fill="#b45309">16 位模截断 t &amp; 0xFFFF 有 64643 处不符；min(65535, t) 饱和到 16 位 0 处不符</text>
+
+  <!-- 字节序 -->
+  <rect x="40" y="524" width="1160" height="150" class="bi"/>
+  <text x="56" y="546" class="t" font-weight="600">内存布局（小端）：一个 128 位拍 = 4 个像素，行跨取 4096 字节</text>
+
+  <text x="56" y="572" class="ts" font-weight="600">格式</text>
+  <text x="200" y="572" class="ts" font-weight="600">32 位字取值</text>
+  <text x="360" y="572" class="ts" font-weight="600">字节 0</text>
+  <text x="450" y="572" class="ts" font-weight="600">字节 1</text>
+  <text x="540" y="572" class="ts" font-weight="600">字节 2</text>
+  <text x="630" y="572" class="ts" font-weight="600">字节 3</text>
+  <text x="730" y="572" class="ts" font-weight="600">地址算式</text>
+  <line x1="56" y1="580" x2="1184" y2="580" stroke="#cbd5e1" stroke-width="1"/>
+
+  <text x="56" y="600" class="ts">帧缓冲 XRGB8888</text>
+  <text x="200" y="600" class="ts">0x00RRGGBB</text>
+  <text x="360" y="600" class="ts">B</text>
+  <text x="450" y="600" class="ts">G</text>
+  <text x="540" y="600" class="ts">R</text>
+  <text x="630" y="600" class="ts">0</text>
+  <text x="730" y="600" class="ts">addr = base + (y &lt;&lt; 12) + (x &lt;&lt; 2)</text>
+
+  <text x="56" y="624" class="ts">纹理 ARGB8888 预乘</text>
+  <text x="200" y="624" class="ts">0xAARRGGBB</text>
+  <text x="360" y="624" class="ts">B</text>
+  <text x="450" y="624" class="ts">G</text>
+  <text x="540" y="624" class="ts">R</text>
+  <text x="630" y="624" class="ts">A</text>
+  <text x="730" y="624" class="ts">拍内偏移 0, 4, 8, 12 = 4 个像素的字节 0</text>
+
+  <text x="56" y="650" class="tg">HDMI 彩条模块（rtl/hdmi/color_bar_rgb.v，厂商代码不改）输出的 24 位通道顺序是 R 在高位，扫描输出接帧缓冲时按本表做一次字节重排，重排放在扫描输出一侧。</text>
+  <text x="56" y="666" class="tg">8 位索引加调色板的格式保留定义但不实现。</text>
+</svg>

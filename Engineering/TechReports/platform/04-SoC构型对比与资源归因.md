@@ -85,8 +85,8 @@ ${EFINITY_PYTHON} ${IP_LIBRARY_ROOT}/efx_soc/efx_soc/generator/soc_gen.py
 Standard 下这两个参数不生效，内置就有）。其余参数逐字相同。
 
 四套都在仓库之外各复制一份工程来做，避免生成器覆盖 `ip/soc/` 与软件包时
-需要恢复 `sdk/README.md` 里登记的那几处修改。复制件放在
-`E:\Workspace\.e1\`、`.e1v34\`、`.e1liteclk\`，用完删除。
+需要恢复 `sdk/README.md` 里登记的那几处修改。复制件放在本仓上一级目录下的
+`.e1\`、`.e1v34\`、`.e1liteclk\`，用完删除。
 
 ### 3.3 顶层要跟着改一处
 

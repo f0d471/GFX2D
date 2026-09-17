@@ -1,0 +1,30 @@
+# COM11 @ 115200 8N1, opened 00:11:24
+cacheCoherencyTest
+build=normal
+IDENT id=0x41584950 arb=0x00000006 ok
+P cpu_to_prb expect=c0de00f1 got=c0de00f1 ok
+A immediate armed=1 ok
+A after_loads armed=1 ok
+A invalidated_after armed=1 ok
+A immediate expect=c0de00a1 got=c0de00a1 ok
+A after_loads expect=c0de00a1 got=c0de00a1 ok
+A invalidated_after expect=1fd7a5c0 got=1fd7a5c0 ok
+A immediate armed=1 ok
+A after_loads armed=1 ok
+A invalidated_after armed=1 ok
+A immediate expect=c0de00a1 got=c0de00a1 ok
+A after_loads expect=c0de00a1 got=c0de00a1 ok
+A invalidated_after expect=1fd7a5c0 got=1fd7a5c0 ok
+B invalidate_all armed=1 ok
+B invalidate_all expect=1fd7a640 got=1fd7a640 ok
+C invalidate_addr armed=1 ok
+C invalidate_addr expect=1fd7a680 got=1fd7a680 ok
+D evicted expect=1fd7b5c0 got=1fd7b5c0 ok
+D word1 expect=e0284a3f got=e0284a3f ok
+TIME raw empty=00003330 all=0002429d addr=000046ae ticks
+TIME per_call all=00000087 addr=00000004 all_plus_read=00035276 ticks
+TIME n=1000 tick=10ns sink=625f81b8
+fail 0
+done
+
+# closed 00:11:49, total 997 bytes

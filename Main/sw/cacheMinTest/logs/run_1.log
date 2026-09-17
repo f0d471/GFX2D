@@ -1,0 +1,18 @@
+# COM11 @ 115200 8N1, opened 00:18:42
+cacheMinTest
+S1 no_ddr_between expect=c0de00a1 got=c0de00a1 ok
+S1 first=c0de00a1
+S1 other_ddr_between expect=c0de00a1 got=c0de00a1 ok
+S1 first=c0de00a1
+S1 evicted_same_line expect=c0de00a1 got=c0de00a1 ok
+S1 first=c0de00a1
+S2 write_then_read expect=c0de00a1 got=c0de00a1 ok
+S2 alias_no_evict expect=c0de00a1 got=c0de00a1 ok
+S2 alias_then_evict expect=c0de00b2 got=c0de00b2 ok
+S3 CACHE_NOEVICT expect=00000011 got=22 FAIL
+S3 CACHE_EVICT   expect=00000022 got=22 ok
+sink 1cbe39f6
+fail 0
+done
+
+# closed 00:19:08, total 505 bytes

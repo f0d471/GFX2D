@@ -8,6 +8,10 @@
 | `localize_paths.py` | 展开、还原与检查仓库里的绝对路径 |
 | `gen_soc.py` | 从命令行生成 Sapphire SoC IP，可写构型参数，不必开 IP Manager 图形界面 |
 | `board_run.py` | 烧比特流、先开串口、加载程序、回收串口输出，一条命令走完 |
+| `serial_capture.ps1` | 在 Windows 侧读串口并写日志，与 `run_openocd.sh` 配对使用 |
+| `run_openocd.sh` | 在 WSL 侧调 Windows 的 `openocd.exe`，`reset halt` 后加载程序并 `resume` |
+| `check_round255.c` | 穷举校验 ÷255 的舍入、中间量位宽、「舍入/饱和顺序」与预乘路径的量化误差，E7 规格（设计文档 3.5 节）的依据 |
+| `verify_round255.c` | 复核程序：把容易混淆的候选模型（预乘 / 非预乘 ALPHA、CONST、按字面实现的系数）分开穷举，独立复现 `check_round255.c` 的数字 |
 | `openocd/gfx2d_debug.cfg` | 板上调试用的 OpenOCD 配置，修掉官方 cfg 在本板上的两处对不上 |
 
 五个脚本都只用标准库（`board_run.py` 额外用 Efinity 自带 Python 里的 pyserial 3.5）。
@@ -90,3 +94,44 @@ Verilog 字面量（`1'b1`、`32'd1048576`）会让生成器的 `eval` 抛 `Synt
    由环境变量 `workspace_loc` 直接给出目录，`board_run.py` 会设好。
 
 这两条不改 `sdk/` 下的官方文件：那是 IP 生成物，重新生成会被覆盖。
+
+## serial_capture.ps1 与 run_openocd.sh
+
+本机上直接调 Efinity 自带的 Python 会失败，两个环境各缺一半：
+`<EFINITY>/python311` 的 `python.exe` 在 `bin\` 下、标准库在同级的 `..\Lib`，
+Python 推不出 prefix，不设 `PYTHONHOME` 时报 `ModuleNotFoundError: No module named 'encodings'`（**不是缺标准库**）；
+WSL 里有 pyserial 与串口驱动，但拿不到 Windows 的 COM 口。
+补上 `PYTHONHOME` 之后 `board_run.py` 是可用的：
+
+```
+set PYTHONHOME=<EFINITY>\python311
+<EFINITY>\python311\bin\python.exe tools\board_run.py --repo <REPO> --list-ports
+```
+
+上面这条 2026-09-18 复核过：解释器 3.11.10、pyserial 3.5，`--list-ports` 正常退出并列出串口。
+下面这套两个脚本的分工仍然保留，它不依赖 `board_run.py`，也适用于 WSL 侧拿不到 COM 口的场合：
+WSL 侧只调 `openocd.exe`，串口由 Windows 侧读。
+
+```
+# 1 先开串口采集（后台，必须早于加载程序）
+pwsh -File tools/serial_capture.ps1 -Port COM11 -Log <日志> -Seconds 25 -StopOn done
+
+# 2 再加载程序并 resume（先 JTAG 加载本工程的 .bit，见 doc/开发环境.md 0.6 节）
+wsl -e bash -c 'EFINITY_IDE_HOME=/mnt/<盘符>/<IDE 安装目录> bash tools/run_openocd.sh <程序.bin> 0x1000'
+```
+
+`run_openocd.sh` 按 `EFINITY_IDE_HOME` 找 `openocd.exe`（`<IDE>/openocd/bin/`）；没设时用
+`EFINITY_HOME` 推出与 Efinity 同级的 `efinity-riscv-ide-*` 目录。两者都没设就报「找不到 openocd.exe」退出。
+脚本在加载前做 `reset halt`：不复位时，前一次实验把探针主机留在坏状态，程序一行都不跑，串口全空。
+
+两个脚本各绕开一个坑，都是实测确认的：
+
+1. **WSL 不把自定义环境变量传给 Windows 进程。** `gfx2d_debug.cfg` 第 59 行要的
+   `workspace_loc` 在 WSL 侧设不进去，改用 OpenOCD 的 `-c` 在 Tcl 里填。
+   另外 `openocd.exe` 是 Windows 程序，读不了 `/mnt/<盘符>/...`，`run_openocd.sh`
+   会把这种参数转成 `<盘符>:/...`。
+2. **`serial_capture.ps1` 必须逐字节读。** 第一版用 `BaseStream.Read`，
+   那是阻塞调用，`ReadTimeout` 对它不生效，采集进程不按时退出并且一直占着 COM 口
+   （第二次采集报 `Access to the path 'COM11' is denied`）。
+
+用 `--list-ports` 那类检查仍然可以用 `board_run.py`，它只在真正上板的那一步不行。

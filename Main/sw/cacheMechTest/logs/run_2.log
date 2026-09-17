@@ -1,0 +1,30 @@
+# COM11 @ 115200 8N1, opened 00:17:12
+cacheMechTest
+IDENT id=41584950 sp=00003aec sp_row=43
+T1 write_then_read n=4096 mismatch=0
+T1 ok
+T2 stale/16 write_only=0 write_then_read=16 alias_then_read=16
+T2 ok
+T3 no_drain n=16 armed=16 stale_after_probe=16 probe_bad=0
+T3 ok
+T4 a=0c850e00 armed_mask=ffffffff evict_mask=fffff000 bad=0
+T4 ok
+T5 invalidate_before_external_write n=8 stale=8
+T5 ok
+T7 stale/8 [none io_rd io_wr probe_write_elsewhere] row0: 8 8 8 8  row5: 8 8 8 8
+T7 ok
+T8 stale/8 [none wr_stack wr_other_row rd_other_row wr_same_line spin_then_wr_stack] 8 8 8 8 8 8
+T8 ok
+T9 stale/8 [none regspin_before stackspin_before regspin_after stackspin_after] 8 8 8 8 8
+T9 ok
+T10 stale/8 [none skip_all skip_all_1nop skip_all_2nop skip_addr nop_ctrl] 8 0 8 8 0 8
+T10 ok
+T11 n=1000 ticks empty=9016 all=76016 addr=13019 two_hits=10082 two_misses=147970
+T11 per_call_x1000 all=67000 addr=4003 miss_minus_hit_per_read=68944
+T6 csrr_0x810 a0=deadbeef mcause=00000002 mtval=81002573
+T6 csrw_0x810 mcause=00000002 mtval=81039073 mtvec_restored=00000000
+T6 ok
+fail 0
+done
+
+# closed 00:17:57, total 1053 bytes
