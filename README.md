@@ -7,6 +7,7 @@
 | --- | --- | --- |
 | `Main/` | 工程本体：RTL、Efinity 工程、SoC 的 BSP、程序、仿真、方案与环境手册 | [`Main/README.md`](Main/README.md) |
 | `Engineering/` | 开发过程：未完成事项、缺陷、技术报告 | [`Engineering/README.md`](Engineering/README.md) |
+| `Deliverables/` | 对外交付物：技术报告、讲解幻灯片、两者共用的图片与源码 | [`Deliverables/README.md`](Deliverables/README.md) |
 
 接手顺序：先看 [`Main/doc/赛题二总体设计.md`](Main/doc/赛题二总体设计.md)（打算怎么做），
 再看 [`Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md`](Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md)（现在的基线是怎么来的），

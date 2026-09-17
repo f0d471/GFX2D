@@ -9,7 +9,7 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 
 | 部分 | 状态 |
 | --- | --- |
-| SoC（Sapphire RISC-V，100MHz）+ DDR3（256MB） | 已上板，memTest 通过。SoC 经 `Axi_Mux` 访问 DDR3 |
+| SoC（Sapphire RISC-V，100MHz）+ DDR3（256MB） | 已上板，memTest 通过。SoC 经 `Axi_Mux` 访问 DDR3。**构型定在 Standard**（Lite 的对比与不采用的理由见 platform 第 04 章） |
 | DDR3 上的第二个 AXI 主机 | `Axi_Mux` 已接入，暂由测量主机 `axi_probe_master` 占用。实测突发上限 256 拍，读事务固定开销约 27 个周期、写约 7 个 |
 | HDMI 输出 640x480@60 | 已上板，八色竖条显示正确（接入 `Axi_Mux` 后的比特流 2026-09-17 复核通过）。画面来自彩条发生器，还没有接帧缓冲 |
 | 程序从 Flash 引导（512KB 镜像） | 已上板验证，两个 CRC 与对照组都符合预期 |
@@ -18,7 +18,9 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | SoC 资源裁剪 | 还没有做 |
 
 编译占用 XLR 16151（26.6%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack（2026-09-17）。
-这些数字相对第 01 章基线的变化见 `../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.2 节；五项上板判据的原始输出，以及基线是怎么搭起来的，见
+这些数字相对第 01 章基线的变化见 `../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.2 节；
+SoC 构型的对比与资源归因见 `../Engineering/TechReports/platform/04-SoC构型对比与资源归因.md`；
+五项上板判据的原始输出，以及基线是怎么搭起来的，见
 [`../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md`](../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md)。
 未完成的事项见 [`../Engineering/Todo/`](../Engineering/Todo/)。
 
