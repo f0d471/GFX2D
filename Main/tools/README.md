@@ -12,6 +12,7 @@
 | `run_openocd.sh` | 在 WSL 侧调 Windows 的 `openocd.exe`，`reset halt` 后加载程序并 `resume` |
 | `check_round255.c` | 穷举校验 ÷255 的舍入、中间量位宽、「舍入/饱和顺序」与预乘路径的量化误差，E7 规格（设计文档 3.5 节）的依据 |
 | `verify_round255.c` | 复核程序：把容易混淆的候选模型（预乘 / 非预乘 ALPHA、CONST、按字面实现的系数）分开穷举，独立复现 `check_round255.c` 的数字 |
+| `check_sw_layers.sh` | 软件分层与结构判据：`lib/` 的可见范围、注错能不能编过、同名目标文件、软浮点符号、`sdk/` 无改动，共五项含三处注错。见下 |
 | `openocd/gfx2d_debug.cfg` | 板上调试用的 OpenOCD 配置，修掉官方 cfg 在本板上的两处对不上 |
 
 五个脚本都只用标准库（`board_run.py` 额外用 Efinity 自带 Python 里的 pyserial 3.5）。
@@ -32,6 +33,31 @@ python3 tools/localize_paths.py --check      扫描整个仓库，发现机器�
 `--check` 找的是盘符路径、`/home/<用户>/` 和 `/mnt/<盘符>/` 三类写法。
 厂商代码与 IP 生成物不在扫描范围内，它们带的是生成时那台机器的工具安装位置。
 唯一允许出现实际路径的文档是 `doc/开发环境.md` 第 11 节，脚本里已登记豁免。
+
+## check_sw_layers.sh
+
+软件分层的结构判据，提交前跑（见 [`../sw/README.md`](../sw/README.md)）：
+
+```
+wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check_sw_layers.sh'
+```
+
+| 项 | 内容 |
+| --- | --- |
+| 1 | `lib/` 在只有 `-Isw/lib` 的条件下编译通过（主机 gcc） |
+| 2 | 注错：`lib/` 里 `#include "board.h"` 必须编不过；应用里 `#include <soc.h>` 必须编不过。另有一个对照组，合法的 `board.h` 与 `lib` 头文件必须编得过 |
+| 3 | 注错：`lib/core` 与 `bsp/ti60` 各放一个同名的 `x.c`，板上构建必须产出两份 `.o` 且链接出两份符号 |
+| 4 | `nm` 扫 `lib/` 与应用的目标文件没有软浮点符号；注错：临时放一个 `float` 运算必须被扫出来 |
+| 5 | `git diff --quiet HEAD -- Main/sdk`，放行 `Main/sdk/README.md`（见脚本内注释） |
+| 6 | 改了头文件必须重编**并重链**（`touch bsp/include/memmap.h` 后要出现 `CC main.c` 与 `LD`）；对照：没有改动时两者都不出现 |
+| 7 | 缓存行区间折算：主机探针包含 `bsp/include/dcache_line.h` 跑八个算例，含 `0x3F` + 2 → `0x00..0x40` |
+
+`RISCV_BIN` 是工具链前缀（第 1 节占位符）。**第 2、3、4、6 项跑真实的板上构建**，
+产物落临时目录；第 1、7 项用主机 gcc。判据与被测构建必须用同一组参数，
+理由见 [`../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md`](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md) 4.6 节。
+注错文件只在运行时临时生成，脚本退出（含中途失败）一律删干净；
+第 6 项会 `touch` 一次 `bsp/include/memmap.h`（只改时间戳，不改内容）；
+编译产物一律落临时目录，不动 `sw/gfx2dGame/build/`。
 
 ## bin2hex.py
 
@@ -94,6 +120,15 @@ Verilog 字面量（`1'b1`、`32'd1048576`）会让生成器的 `eval` 抛 `Synt
    由环境变量 `workspace_loc` 直接给出目录，`board_run.py` 会设好。
 
 这两条不改 `sdk/` 下的官方文件：那是 IP 生成物，重新生成会被覆盖。
+
+**烧写步骤不能只看退出码。** `ftdi_pgm.bat` 只在 `EFINITY_HOME` 未定义时才自己调
+`bin\setup.bat`；父进程里设过它、却没设 `PYTHONHOME` 之类时，厂商脚本跳过 setup.bat，
+内部 python 以 `Fatal Python error`（或 `KeyError: EFXPGM_HOME`）退出，
+**退出码仍然是 0**。原先 `board_run.py` 据退出码把这种情况当成功，
+接着用 FPGA 里原有的比特流跑程序，串口输出看不出任何异常（2026-09-19 复核发现）。
+现在烧写这一步会先把 Efinity 的环境变量从子进程里去掉、让厂商脚本自己配好，
+并且要求输出里出现成功标记 `finished with JTAG programming` 才算通过；
+失败时把完整输出打出来再退出。
 
 ## serial_capture.ps1 与 run_openocd.sh
 

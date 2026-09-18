@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="860" viewBox="0 0 1240 860"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#15803d"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .bx { fill:#eef2f7; stroke:#64748b; stroke-width:1.2 }
+      .bs { fill:#eff6ff; stroke:#1d4ed8; stroke-width:1.2 }
+      .bt { fill:#fffbeb; stroke:#b45309; stroke-width:1.2 }
+      .bh { fill:#f0fdf4; stroke:#15803d; stroke-width:1.2 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .tu { font-size:10px; fill:#64748b }
+      .bl { font-size:9.5px; fill:#1e3a8a }
+      .tl { font-size:9.5px; fill:#7c2d12 }
+      .hl { font-size:9.5px; fill:#14532d }
+      .dep { stroke:#334155; stroke-width:1.4; fill:none }
+      .un  { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="860" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">gfx2d 软件分层与编译可见范围</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">钛金 Ti60F225 与主机两套目标，2026-09-19 验证。底色表示一段代码属于哪一侧，灰色虚线表示已规划、尚未实现。</text>
+
+  <!-- 构建入口 -->
+  <rect x="40" y="84" width="330" height="102" class="bt"/>
+  <text x="205" y="107" class="t" text-anchor="middle" font-weight="600">mk/target.mk　板上构建</text>
+  <text x="56" y="131" class="ts">xPack riscv-none-embed-gcc 8.3.0</text>
+  <text x="56" y="153" class="ts">make RISCV_BIN=&lt;RISCV_BIN&gt;</text>
+  <text x="56" y="175" class="ts">产物 build/gfx2dGame-O2.bin</text>
+
+  <rect x="390" y="84" width="330" height="102" class="bh"/>
+  <text x="555" y="107" class="t" text-anchor="middle" font-weight="600">mk/host.mk　PC 构建</text>
+  <text x="406" y="131" class="ts">WSL gcc 15.2.0 + SDL2 2.32.10</text>
+  <text x="406" y="153" class="ts">cd sw &amp;&amp; make -f mk/host.mk</text>
+  <text x="406" y="175" class="ts">产物 build_host/gfx2dGame</text>
+
+  <rect x="740" y="84" width="460" height="102" class="bx"/>
+  <text x="756" y="107" class="t" font-weight="600">应用的 makefile 只写三行加一行平台名</text>
+  <text x="756" y="131" class="ts">APP = gfx2dGame</text>
+  <text x="756" y="151" class="ts">APP_SRCS = $(wildcard src/*.c src/game/*.c)</text>
+  <text x="756" y="171" class="ts">LIBS = core　　include ../mk/$(PLATFORM).mk</text>
+
+  <path d="M205,186 V204" class="dep" marker-end="url(#at)"/>
+  <path d="M555,186 V204" class="dep" marker-end="url(#ah)"/>
+
+  <!-- 应用层 -->
+  <rect x="40" y="204" width="1160" height="112" class="bs"/>
+  <text x="60" y="228" class="t" font-weight="600">sw/gfx2dGame　应用：只写应用，两个平台同一份源码</text>
+  <rect x="60" y="240" width="330" height="44" class="bi"/>
+  <text x="225" y="259" class="t" text-anchor="middle">src/main.c</text>
+  <text x="225" y="277" class="ts" text-anchor="middle">60 帧骨架：写帧缓冲 + 整帧 CRC32</text>
+  <rect x="406" y="240" width="290" height="44" class="bg"/>
+  <text x="551" y="259" class="tu" text-anchor="middle">src/game/　未开工</text>
+  <text x="551" y="277" class="ts" text-anchor="middle">实体池、弹型、碰撞、关卡（SW7）</text>
+  <rect x="920" y="246" width="264" height="32" class="bx"/>
+  <text x="932" y="267" class="bl">编译可见　-Isw/lib　-Isw/bsp/include</text>
+  <text x="60" y="306" class="ts">应用的编译行里没有 sdk 的路径，include &lt;soc.h&gt; 或直接调 sdk 驱动编不过</text>
+
+  <!-- lib 层 -->
+  <rect x="40" y="334" width="1160" height="166" class="bs"/>
+  <text x="60" y="358" class="t" font-weight="600">sw/lib　纯 C，两个平台编同一份，不依赖任何平台</text>
+  <rect x="60" y="370" width="350" height="104" class="bi"/>
+  <text x="235" y="391" class="t" text-anchor="middle">lib/core</text>
+  <text x="76" y="411" class="ts">crc32　与 zlib 同参，流式 begin/update/end</text>
+  <text x="76" y="429" class="ts">xorshift32　确定性随机数，种子 0 换成 1</text>
+  <text x="76" y="447" class="ts">core_out　轻量格式化，不用 printf 家族</text>
+  <text x="76" y="465" class="ts">定点、正弦表随 SW5、SW7 加</text>
+  <rect x="426" y="370" width="280" height="104" class="bg"/>
+  <text x="566" y="391" class="tu" text-anchor="middle">lib/gfx　未开工</text>
+  <text x="442" y="411" class="ts">命令表构造接口</text>
+  <text x="442" y="429" class="ts">软件执行器（3.8 节的金标准）</text>
+  <text x="442" y="447" class="ts">SW3 落地，E7 直接链接</text>
+  <rect x="722" y="370" width="270" height="104" class="bi"/>
+  <text x="857" y="391" class="t" text-anchor="middle">lib/test　只主机编</text>
+  <text x="738" y="411" class="ts">ref_crc.c　独立逐位实现</text>
+  <text x="738" y="429" class="ts">64 位与 -m32 两份，输出比对</text>
+  <text x="738" y="447" class="ts">64 位那份挂 ASan + UBSan</text>
+  <rect x="1006" y="376" width="178" height="32" class="bx"/>
+  <text x="1018" y="397" class="bl">编译可见　只有 -Isw/lib</text>
+  <text x="60" y="492" class="ts">lib 的编译行里只有自己的目录，include "board.h" 或 sdk 头文件编不过</text>
+
+  <!-- 板级接口 -->
+  <rect x="40" y="518" width="1160" height="92" class="bs"/>
+  <text x="60" y="542" class="t" font-weight="600">sw/bsp/include　板级接口，两个实现共用同一份声明</text>
+  <rect x="60" y="552" width="560" height="44" class="bi"/>
+  <text x="340" y="571" class="t" text-anchor="middle">board.h</text>
+  <text x="340" y="589" class="ts" text-anchor="middle">初始化 / 内存区 / 计时 / 日志 / 输入 / 显示 / 缓存</text>
+  <rect x="636" y="552" width="400" height="44" class="bi"/>
+  <text x="836" y="571" class="t" text-anchor="middle">memmap.h</text>
+  <text x="836" y="589" class="ts" text-anchor="middle">7 个 DDR 分区的偏移与大小</text>
+  <rect x="1052" y="558" width="132" height="32" class="bx"/>
+  <text x="1064" y="579" class="bl">无平台指针</text>
+
+  <!-- 上游与工具链 -->
+  <rect x="40" y="628" width="460" height="96" class="bt"/>
+  <text x="60" y="651" class="t" font-weight="600">sdk/　厂商上游，只读</text>
+  <text x="60" y="673" class="ts">SoC IP 生成物，重新生成时整目录被覆盖</text>
+  <text x="60" y="693" class="ts">项目对 sdk 的需求放 bsp/ 转出去，不改它</text>
+  <text x="60" y="713" class="ts">只有 bsp 那一层的编译行 -isystem 它</text>
+
+  <rect x="520" y="628" width="280" height="96" class="bt"/>
+  <text x="540" y="651" class="t" font-weight="600">xPack 交叉工具链</text>
+  <text x="540" y="673" class="ts">riscv-none-embed-gcc 8.3.0</text>
+  <text x="540" y="693" class="ts">-march=rv32im -mabi=ilp32</text>
+  <text x="540" y="713" class="ts">板上无 FPU</text>
+
+  <rect x="820" y="628" width="380" height="96" class="bh"/>
+  <text x="840" y="651" class="t" font-weight="600">SDL2 与主机 gcc</text>
+  <text x="840" y="673" class="ts">libsdl2-dev 2.32.10，sdl2-config 取参数</text>
+  <text x="840" y="693" class="ts">gcc 15.2.0，-m32 靠 gcc-multilib</text>
+  <text x="840" y="713" class="ts">只有 bsp/host 的编译行有 SDL 头文件</text>
+
+  <!-- 图例 -->
+  <rect x="40" y="742" width="1160" height="88" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
+  <path d="M56,766 H96" class="dep" marker-end="url(#a)"/>
+  <text x="104" y="770" class="ts">编译期可见并可调用：依赖方向</text>
+  <path d="M56,796 H96" class="un"/>
+  <text x="104" y="800" class="ts">已规划、尚未实现</text>
+  <rect x="430" y="756" width="26" height="16" class="bs"/>
+  <text x="464" y="769" class="ts">两个平台编同一份</text>
+  <rect x="430" y="786" width="26" height="16" class="bt"/>
+  <text x="464" y="799" class="ts">只在板上那一侧</text>
+  <rect x="640" y="756" width="26" height="16" class="bh"/>
+  <text x="674" y="769" class="ts">只在主机那一侧</text>
+  <rect x="640" y="786" width="26" height="16" class="bg"/>
+  <text x="674" y="799" class="ts">未实现</text>
+  <text x="830" y="769" class="ts">「编译可见」是 mk/target.mk 与 mk/host.mk 传给该层 gcc 的 -I 原样列出。</text>
+  <text x="830" y="799" class="ts">越界不靠约定，是编不过；判据 tools/check_sw_layers.sh 用真实构建验证。</text>
+</svg>

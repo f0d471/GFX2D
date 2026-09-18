@@ -1,13 +1,40 @@
 # sw：本项目编写的 RISC-V 程序
 
-与 `sdk/` 的分工：`sdk/` 是 IP 生成的 BSP 和官方示例，重新生成 SoC IP 时会被覆盖；本目录放本项目编写的程序，不会被生成器碰到。
+与 `sdk/` 的分工：`sdk/` 是 IP 生成的 BSP 和官方示例，重新生成 SoC IP 时会被覆盖，**只读**；本目录放本项目编写的程序，不会被生成器碰到。
+项目要往 sdk 加的东西一律放在 `bsp/` 这一层，由它转出去，不改 sdk 本身。
 
-程序仍然沿用官方的 makefile 体系，每个程序的 makefile 里用 `STANDALONE` 指到 `sdk/software/standalone`，BSP 路径由 `bsp.mk` 从中推出。
+## 分层
+
+`sdk/` 只读，项目自己的一侧分三层，**分层由编译结构保证**（各层的头文件路径），不靠约定：
+
+```
+sw/
+  mk/target.mk     板上构建（xPack riscv-none-embed-gcc + sdk 的 BSP）
+  mk/host.mk       PC 构建（WSL 的 gcc + SDL2）
+  bsp/             项目板级层：叠在只读的 sdk 之上
+    include/       board.h（板级接口）、memmap.h（DDR 分区偏移与大小）
+    memmap.c       分区表本体，两个平台共用
+    ti60/          板上实现 + linker/gfx2d.ld
+    host/          PC 实现：SDL2 显示与键盘，DDR 分区用一块内存模拟
+  lib/             纯 C，两边都编，不依赖任何平台
+    core/          CRC32、xorshift32、轻量格式化输出
+    test/          主机侧单元测试（另含 CRC32 的独立参考实现）
+  gfx2dGame/       应用：只写应用
+```
+
+依赖方向只有一个：应用 → `lib/` 与 `bsp/include/board.h`，`board.h` 由 `bsp/ti60` 或 `bsp/host` 实现。
+编 `lib/` 时只有 `-Isw/lib`，看不到 `board.h`；编应用时看不到 sdk——
+应用里写 `#include <soc.h>` 会直接编不过。PC 在这套结构里就是「另一块板子」，
+应用代码里不出现平台判断。判据 `Main/tools/check_sw_layers.sh` 会逐条验证这些。
 
 ## 目录
 
 | 目录 | 说明 |
 | --- | --- |
+| `mk/` | 两套构建。应用的 makefile 只写 `APP`、`APP_SRCS`、`LIBS` 三行再 include 其中一个 |
+| `bsp/` | 项目板级层，见上 |
+| `lib/` | 平台无关的纯算法与主机侧测试 |
+| `gfx2dGame/` | 应用（SW1 起）。当前是最小骨架，判据见下 |
 | `bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
 | `ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象 |
 | `ddrBurstProbe/` | 实验 E4：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验 |
@@ -15,9 +42,93 @@
 | `cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
 | `cacheMinTest/` | 实验 E3 早期的最小实验，只作现象可复现保留，不作为结论证据 |
 
+`bootSizeTest/`、`ddrAliasTest/`、`ddrBurstProbe/`、`cache*Test/` 六个诊断程序仍沿用官方的 makefile 体系
+（每个的 makefile 里用 `STANDALONE` 指到 `sdk/software/standalone`），**没有迁到新构建**，
+要改它们时顺手迁移。`gfx2dGame/` 与以后的应用用新构建。
+
 带 `logs/` 目录的程序，里面是与当前产物对应的上板原始日志（入库），文件名与 TechReport 里引用的一致。
 
-## 编译
+## 编译两套
+
+应用的 makefile 只写应用本身，平台由 `PLATFORM` 选（默认 `target`）：
+
+```
+# 板上：产物在 gfx2dGame/build/，名字带优化级别，如 gfx2dGame-O2.bin
+wsl -e bash -c 'cd sw/gfx2dGame && make RISCV_BIN=<RISCV_BIN>'
+
+# PC：产物 gfx2dGame/build_host/gfx2dGame，跑起来开 640x480 窗口
+wsl -e bash -c 'cd sw/gfx2dGame && make PLATFORM=host && ./build_host/gfx2dGame'
+
+# 也可以从 sw/ 目录直接编（产物落在 sw/build/）
+wsl -e bash -c 'cd sw && make -f mk/host.mk'
+wsl -e bash -c 'cd sw && make -f mk/target.mk RISCV_BIN=<RISCV_BIN>'
+```
+
+`<RISCV_BIN>` 是工具链前缀，取值见 `../doc/开发环境.md` 第 1、11 节。两套构建都用
+`-std=gnu11 -Wall -Wextra -Werror`，PC 另加 `-Werror=double-promotion -Werror=float-conversion`，
+所以「零告警」是编得过就成立，不需要人工看日志。板上构建的优化级别由 `OPT` 定（默认 `2`），
+写进产物名；`make INJECT=XS32_SHIFT` 打开注错开关，产物名再加 `-inject`；
+`EXTRA_CFLAGS=-DFRAMES=12000` 是留给一次性实验的口子。
+
+改编译选项或改任何一个头文件都会触发重编：前者由目标目录里的编译选项标记文件保证，
+后者由 gcc 的 `-MMD` 依赖文件（`.d`，makefile 末尾 `-include`）保证。
+两条都进提交前检查（下面的第 6 项），因为它们坏掉时构建照样报成功、产物却是旧的。
+
+## 主机侧单元测试与结构判据
+
+```
+wsl -e bash -c 'cd sw/gfx2dGame && make PLATFORM=host test'    # 或 cd sw && make -f mk/host.mk test
+wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check_sw_layers.sh'
+```
+
+前者把 `lib/test/` 在 64 位（挂 ASan+UBSan）与 `-m32` 下各编一份并比对输出，必须逐字节相同；
+后者查七项：分层可见范围、同名目标文件、软浮点符号、`sdk/` 无改动、
+**改了头文件必须重编并重链**、**缓存行区间折算**，其中四项带注错、两项带对照。
+第 2、3、4、6 项跑的是**真实的板上构建**（临时 `OBJDIR`），不用主机 gcc 加手写的 `-I` 去模拟——
+判据必须与被测的真实构建用同一组参数，理由见
+[`../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md`](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md) 4.6 节；
+第 7 项跑主机探针，测的是 `bsp/include/dcache_line.h` 里那段真实的纯算术。
+脚本需要交叉工具链，`RISCV_BIN=<RISCV_BIN>` 传进去。
+
+## gfx2dGame 的期望值
+
+**PC 版**：开一个 640×480 窗口，stdout 63 行，退出码 0：
+
+```
+gfx2dGame SW1
+frame 0 crc cf8e2861 cycles 500652
+...
+frame 59 crc edf398b3 cycles 272305
+frames 60
+done
+```
+
+（`cycles` 每台机器、每次运行都不同，这里照实抄的是入库日志 `logs/pc_normal.log` 的首尾两行；
+CRC 那一列才是判据。）
+
+**板上**：bin 2442 字节（`sha256:98fb37c9dc9bc060…`，xPack gcc 8.3.0，默认 `-O2`；
+`-Os` 是 2210 字节 `8699eb87f4130ce5…`，注错版 2442 字节 `577cacb50a0b29bd…`），
+串口 62 行，末尾 `frames 60` 与 `done`。板上不上屏（扫描输出属于 display 系列），
+画面以整帧 CRC 的形式输出，**60 个 CRC 必须与 PC 逐帧相同**。
+板上用的是 `Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit`
+（2026-09-19 这一份 `sha256:d8af4ce13c416834…`，2,052,291 字节）。
+
+日志四份在 `gfx2dGame/logs/`：`pc_normal.log`、`pc_inject.log` 是 PC 的 stdout（期望值），
+`board_normal.log`、`board_inject.log` 是板上串口原始输出。比对只取 `frame N crc X` 这一列：
+
+```
+diff <(grep -o 'frame [0-9]* crc [0-9a-f]*' logs/pc_normal.log) \
+     <(grep -o 'frame [0-9]* crc [0-9a-f]*' logs/board_normal.log)
+```
+
+注错版（`INJECT=XS32_SHIFT` 把 xorshift32 的第一个移位常数从 13 改成 12）从第 0 帧起就不同：
+正常 `cf8e2861`，注错 `fe77d971`。板上日志开头几行是 Flash 里旧程序在 `reset halt` 之前的输出，
+不是本程序的，比对时按上面的方式过滤。
+
+`cycles` 那一列只有参考意义：PC 上是把性能计数器折算成 100MHz 的周期数，
+不作性能结论（总览约束 5）；板上是 CLINT 的真实周期数，约 3270 万/帧。
+
+## 编译（六个诊断程序）
 
 IDE 2026.1 自带的 gcc 13.4 编不了 2025.2 生成的这套 BSP（缺 `_zicsr`），当前用 xPack 的 gcc 8.3.0，安装见 `../doc/开发环境.md` 第 2 节：
 

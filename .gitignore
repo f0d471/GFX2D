@@ -39,6 +39,12 @@ Main/sw/*/*/*.log
 Thumbs.db
 desktop.ini
 
+# ---- Python 缓存 ----
+# tools/ 下的脚本被 import 时（例如临时验证某个函数）会生成，
+# 不是源码，不入库。
+__pycache__/
+*.pyc
+
 # ---- 板上 Flash 整片备份 ----
 # 每份 24MB，只留在本地用于恢复
 Main/bit/flash_backup/

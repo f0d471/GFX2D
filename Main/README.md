@@ -17,6 +17,7 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | Cache 一致性（E3） | 已上板实测并验收（2026-09-18）：外部主机改写后 CPU 读到旧值，失效之后读到新值；共享区约定放宽为「读回前必须失效」，失效要晚于外部写入完成。判据 `sw/cacheCoherencyTest`、机理实验 `sw/cacheMechTest`，见 `../Engineering/TechReports/platform/05-CPU数据缓存与第二个主机写入的一致性.md` |
 | 像素规格（E7 §2.1） | 已定稿并经用户确认（2026-09-18）：写进 `doc/赛题二总体设计.md` 3.5 节，舍入、位宽、舍入顺序与预乘量化误差有穷举校验（`tools/check_round255.c`、`tools/verify_round255.c`）。E7 整体未验收，软件执行器未开工 |
 | 渲染引擎、帧缓冲、双缓冲 | 还没有开始 |
+| 软件平台分层与双目标构建（SW1） | **已验收**（2026-09-19）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
 | SoC 资源裁剪 | 还没有做 |
 
 编译占用 XLR 16151（26.6%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack（2026-09-17）。
@@ -77,6 +78,15 @@ wsl -e bash -c 'bash sim/hdmi/run.sh && bash sim/apb_probe/run.sh && EFINITY_HOM
 
 编译并用调试器运行一个程序见 `sw/README.md`，写 Flash 与整片备份见 `doc/开发环境.md` 第 8 节。
 
+编译软件（两套目标，见 `sw/README.md`）：
+
+```
+wsl -e bash -c 'cd sw/gfx2dGame && make RISCV_BIN=<RISCV_BIN>'                  # 板上，产物 build/gfx2dGame-O2.bin
+wsl -e bash -c 'cd sw && make -f mk/host.mk && ./build_host/gfx2dGame'          # PC，SDL2 窗口
+wsl -e bash -c 'cd sw && make -f mk/host.mk test'                              # 主机侧单元测试，64 位与 -m32 比对
+wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash tools/check_sw_layers.sh'            # 分层判据，含三处注错
+```
+
 ## 地址映射
 
 CPU 看到的地址，取自 `sdk/bsp/efinix/EfxSapphireSoc/include/soc.h`：
@@ -101,6 +111,11 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
 
 ## 约定
 
+- **`sdk/` 只读**：它是 SoC IP 的生成物，重新生成时整个目录会被覆盖。项目对 sdk 的需求
+  （板级封装、驱动包装、地址映射）一律放 `sw/bsp/` 覆盖，不改 sdk 本身；
+  提交前跑 `check_sw_layers.sh`，其中一项就是 `git diff --quiet HEAD -- Main/sdk`。
+- **分层由编译结构保证**：`sw/lib/` 编的时候只有 `-Isw/lib`，应用编的时候没有 sdk 的头文件路径。
+  越界不是靠人遵守，是编不过。见 `sw/README.md` 与 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md`。
 - **vendor 目录不改**：`rtl/vendor/` 下是厂商与第三方代码，必须改时在 `rtl/README.md` 里登记。
 - **生成物不手改**：`sdk/` 与 `fpga/gfx2d_ti60/ip/soc/` 是 IP 生成的，改动登记在 `sdk/README.md`，
   重新生成后要逐条恢复。
@@ -110,6 +125,8 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
 - **判据要能注错见红**：每个仿真除了正常用例，必须有把逻辑改错后会 FAIL 的用例，
   否则不算验证过。
 - **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
+  改了 `sw/` 下走新构建的程序（`gfx2dGame` 与以后的应用）还要过 `sw/README.md` 里的两套构建、
+  主机侧单元测试与 `tools/check_sw_layers.sh`。
 - **数字要标明来源**：估算与推测必须写清楚，实测要给命令和结果。
 - **状态与过程分开**：README 与 `doc/` 写当前是什么样，
   开发过程、踩过的坑、为什么这么选写在 `../Engineering/` 下。

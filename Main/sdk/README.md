@@ -1,6 +1,10 @@
 # sdk：SoC 的板级支持包与官方示例
 
-整个目录是 Sapphire SoC IP 生成的输出，**在 IP Manager 里重新生成 SoC 时会被覆盖**。本项目编写的程序不放这里，放 `sw/`。
+整个目录是 Sapphire SoC IP 生成的输出，**在 IP Manager 里重新生成 SoC 时会被覆盖**。本目录**只读**：本项目编写的程序不放这里，放 `sw/`。
+
+项目对 sdk 的需求（板级封装、驱动包装、缓存失效的包装、地址映射）一律放在**叠在 sdk 之上的项目板级层** `sw/bsp/`（`ti60/` 与 `host/` 两个实现），由它转出去，不改 sdk 本身，
+这样重新生成 IP 之后 `git diff --quiet HEAD -- Main/sdk` 仍然成立。分层与判据见
+[`../sw/README.md`](../sw/README.md) 与 [`../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md`](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md)。
 
 本目录的内容由厂商 IP 生成，其中还带着 lwIP、FreeRTOS、CoreMark 等第三方组件，各自的授权以其文件头或同目录的许可证文件为准。
 

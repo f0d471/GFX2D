@@ -121,6 +121,35 @@ def openocd_cmd(ocd, cfg, workspace):
     return ocd, cfg, env
 
 
+def program_bitstream(pgm, bit, jtag_url):
+    """烧写比特流，返回 (是否成功, 输出文本)。
+
+    ftdi_pgm.bat 只在 `EFINITY_HOME` 未定义时才自己去调 `bin\\setup.bat`。
+    父进程里设过 `EFINITY_HOME`、却没设 `PYTHONHOME` 之类时，它跳过 setup.bat，
+    内部的 python 以 `Fatal Python error: init_fs_encoding`（或 `KeyError: EFXPGM_HOME`）
+    退出，**退出码仍然是 0**。所以这里做两件事：
+
+    1. 把 Efinity 的环境变量从子进程环境里去掉，让厂商脚本自己配好；
+    2. 不只看退出码，还要求输出里出现成功标记 `finished with JTAG programming`。
+
+    2026-09-19 复核时发现：脚本据退出码把失败的烧写当成功，
+    接着用 FPGA 里原有的比特流跑程序，串口输出看不出任何异常。
+    """
+    env = dict(os.environ)
+    for k in ("EFINITY_HOME", "PYTHONHOME", "EFXPGM_HOME", "EFXPT_HOME",
+              "EFXDBG_HOME", "EFXIPM_HOME", "EFXSVF_HOME", "EFXSERDESDBG_HOME",
+              "EFINITY_USER_DIR_INI"):
+        env.pop(k, None)
+    try:
+        p = subprocess.run([pgm, "-m", "jtag", "-u", jtag_url, bit],
+                           env=env, capture_output=True, text=True, timeout=180)
+    except subprocess.TimeoutExpired:
+        return False, "[TIMEOUT] 烧写超过 180 秒"
+    out = (p.stdout or "") + (p.stderr or "")
+    ok = (p.returncode == 0) and ("finished with JTAG programming" in out)
+    return ok, out
+
+
 def run_openocd(ocd, cfg, workspace, cmds, timeout=90):
     """跑一次 OpenOCD，返回 (是否考察到目标, 输出文本)。超时则杀进程。"""
     env = dict(os.environ)
@@ -246,9 +275,11 @@ def main():
             print("ERROR: 找不到 ftdi_pgm.bat（Efinity 的 pgm/bin 下）", file=sys.stderr)
             return 2
         print("=== 1) 烧写比特流 %s" % bit)
-        rc = subprocess.call([pgm, "-m", "jtag", "-u", args.jtag_url, bit])
-        if rc != 0:
-            print("ERROR: 烧写失败，退出码 %d" % rc, file=sys.stderr)
+        ok, out = program_bitstream(pgm, bit, args.jtag_url)
+        if not ok:
+            print(out)
+            print("ERROR: 烧写失败。注意 ftdi_pgm.bat 出错时也可能返回 0，"
+                  "所以这里要求输出里出现成功标记。", file=sys.stderr)
             return 1
 
     if args.check_only:

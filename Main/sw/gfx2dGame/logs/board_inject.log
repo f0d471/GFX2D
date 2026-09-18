@@ -1,0 +1,69 @@
+# COM11 @ 115200 8N1, opened 05:24:33
+bootSizeTest
+image 301884 bytes, old copy size 126976 bytes
+blob 0x00001750 size 300000, tail 0x00049b30
+gfx2dGame SW1
+frame 0 crc fe77d971 cycles 32624739
+frame 1 crc 897b5e1f cycles 32605217
+frame 2 crc 08d57114 cycles 32627527
+frame 3 crc 41d97bb6 cycles 32637114
+frame 4 crc c07754bd cycles 32627918
+frame 5 crc b77bd3d3 cycles 32629735
+frame 6 crc 36d5fcd8 cycles 32619305
+frame 7 crc 5c9c64b7 cycles 32626125
+frame 8 crc dd324bbc cycles 32627843
+frame 9 crc aa3eccd2 cycles 32618444
+frame 10 crc 2b90e3d9 cycles 32638149
+frame 11 crc 629ce97b cycles 32628356
+frame 12 crc e332c670 cycles 32626618
+frame 13 crc 943e411e cycles 32627090
+frame 14 crc 15906e15 cycles 32620295
+frame 15 crc 8be2f402 cycles 32620938
+frame 16 crc 0a4cdb09 cycles 32610029
+frame 17 crc 7d405c67 cycles 32618647
+frame 18 crc fcee736c cycles 32626895
+frame 19 crc b5e279ce cycles 32629248
+frame 20 crc 344c56c5 cycles 32621999
+frame 21 crc 4340d1ab cycles 32635770
+frame 22 crc c2eefea0 cycles 32627781
+frame 23 crc a8a766cf cycles 32622642
+frame 24 crc 290949c4 cycles 32622285
+frame 25 crc 5e05ceaa cycles 32636721
+frame 26 crc dfabe1a1 cycles 32611050
+frame 27 crc 96a7eb03 cycles 32628263
+frame 28 crc 1709c408 cycles 32620127
+frame 29 crc 60054366 cycles 32623129
+frame 30 crc e1ab6c6d cycles 32612870
+frame 31 crc f75a945d cycles 32632291
+frame 32 crc 76f4bb56 cycles 32635990
+frame 33 crc 01f83c38 cycles 32632239
+frame 34 crc 80561333 cycles 32624173
+frame 35 crc c95a1991 cycles 32610562
+frame 36 crc 48f4369a cycles 32616559
+frame 37 crc 3ff8b1f4 cycles 32617387
+frame 38 crc be569eff cycles 32638578
+frame 39 crc d41f0690 cycles 32640711
+frame 40 crc 55b1299b cycles 32628958
+frame 41 crc 22bdaef5 cycles 32612701
+frame 42 crc a31381fe cycles 32617016
+frame 43 crc ea1f8b5c cycles 32623052
+frame 44 crc 6bb1a457 cycles 32636936
+frame 45 crc 1cbd2339 cycles 32625795
+frame 46 crc 9d130c32 cycles 32618060
+frame 47 crc 03619625 cycles 32615677
+frame 48 crc 82cfb92e cycles 32634093
+frame 49 crc f5c33e40 cycles 32623676
+frame 50 crc 746d114b cycles 32628309
+frame 51 crc 3d611be9 cycles 32606593
+frame 52 crc bccf34e2 cycles 32631550
+frame 53 crc cbc3b38c cycles 32632548
+frame 54 crc 4a6d9c87 cycles 32625160
+frame 55 crc 202404e8 cycles 32628573
+frame 56 crc a18a2be3 cycles 32626733
+frame 57 crc d686ac8d cycles 32616991
+frame 58 crc 57288386 cycles 32626851
+frame 59 crc 1e248924 cycles 32623450
+frames 60
+done
+
+# closed 05:24:54
