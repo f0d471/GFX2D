@@ -179,6 +179,10 @@ assign cnl_mask = cfg_mask & {1'b1, guard_allow_s1, 1'b1};
 wire ar_done = ar_hand;
 wire aw_done = aw_hand;
 
+// 保护的 0->1 沿，按方向各算一次：同一拍两个方向都触发时要加 2
+wire ar_rise = ar_reach & ~protect_ar;
+wire aw_rise = aw_reach & ~protect_aw;
+
 always @(posedge clk) begin
     if (rst) begin
         stat_hits   <= 32'h0;
@@ -190,9 +194,8 @@ always @(posedge clk) begin
             stat_max_ar <= 32'h0;
             stat_max_aw <= 32'h0;
         end else begin
-            // 保护触发次数：protect 的 0->1 沿，两个方向合并计数
-            if ((ar_reach & ~protect_ar) | (aw_reach & ~protect_aw))
-                stat_hits <= stat_hits + 32'h1;
+            // 保护触发次数：Ar、AW 两个 0->1 沿之和，同一拍可加 0/1/2（E5 2.2 节）
+            stat_hits <= stat_hits + {31'b0, ar_rise} + {31'b0, aw_rise};
 
             if (ar_done & (wait_ar > stat_max_ar))
                 stat_max_ar <= wait_ar;

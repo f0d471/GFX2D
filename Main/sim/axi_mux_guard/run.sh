@@ -57,9 +57,16 @@ check inject_noguard  FAIL -DCASE_CHAIN -DGUARD_OFF -DADDR_STALL_MAX_VAL=4 -DRD_
 check inject_mask_s0  FAIL -DCASE_CHAIN -DINJECT_MASK_S0 -DADDR_STALL_MAX_VAL=4 -DRD_QUEUE_VAL=4
 # 全链路：已授权后下游持续不 ready，guard 不得伪造抢占
 check inject_midgrant PASS -DCASE_CHAIN -DHOLD_MIDGRANT -DADDR_STALL_MAX_VAL=4 -DRD_QUEUE_VAL=4
+# 写方向：读、写由两个独立仲裁器处理，必须各验一轮（判据表「引擎替身读、写各一轮」）
+# 2026-09-19 复核发现：激进写引擎会把 CPU 的写饿住，而且 guard 挡不住
+# （20000 与 60000 周期都只完成 7 笔写，保护开/关的数字完全相同——掩码撤不掉已授权的排队 AW）。
+# 所以写方向这样安排：两例记录激进写引擎的停顿（期望 FAIL），一例用措施一证明修复（期望 PASS）。
+check wr_aggr_guard   FAIL -DCASE_CHAIN -DS1_WRITE -DADDR_STALL_MAX_VAL=4 -DRD_QUEUE_VAL=4
+check wr_aggr_noguard FAIL -DCASE_CHAIN -DGUARD_OFF -DS1_WRITE -DADDR_STALL_MAX_VAL=4 -DRD_QUEUE_VAL=4
+check wr_contract     PASS -DCASE_CHAIN -DGUARD_OFF -DS1_WRITE -DINFLIGHT1 -DADDR_STALL_MAX_VAL=4 -DRD_QUEUE_VAL=4
 
 if [ "$bad" -eq 0 ]; then
-    echo "SIM OK: 7/7 cases as expected"
+    echo "SIM OK: 9/9 cases as expected"
 else
     echo "SIM BROKEN: $bad case(s) not as expected"
     exit 1

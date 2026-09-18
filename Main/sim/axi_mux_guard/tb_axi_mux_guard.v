@@ -238,7 +238,11 @@ axi_ram_model #(
 // 三个主机
 // ---------------------------------------------------------------------------
 reg s0_en = 0, s1_en = 0, s2_en = 0;
-reg s1_mode = 0;                      // 0 = 读，1 = 写
+`ifdef S1_WRITE
+  reg s1_mode = 1;                      // 1 = 写方向满负载（读、写由两个独立仲裁器处理，必须分开验）
+`else
+  reg s1_mode = 0;                      // 0 = 读方向满负载
+`endif
 `ifdef INFLIGHT1
   wire s1_inflight1 = 1'b1;
 `else
@@ -426,6 +430,11 @@ initial begin
     if (rd_status[1:0] !== 2'b11) errors = errors + 1;
     if (guard_cnl_mask[1] !== 1'b0) errors = errors + 1;
 
+    // 同一拍两个方向都触发：GUARD_HITS 必须加 2（E5 2.2 节的寄存器定义）
+    g_rd(12'h018, rd_hits);
+    $display("DUAL 同拍触发: HITS=%0d (期望 2：AR、AW 各一次)", rd_hits);
+    if (rd_hits !== 32'd2) errors = errors + 1;
+
     // 只让 AR 完成：protect_ar 清除，protect_aw 仍在，S1 不得恢复
     dd_arready = 1;
     repeat (4) @(posedge clk);
@@ -508,26 +517,34 @@ initial begin
         $display("RESULT: PASS (S1 未撤销 valid，释放后 S2 完成 %0d 笔读)", cpu_done_rd);
     else
         $display("RESULT: FAIL (proto_err=%b cpu_rd=%0d：S1 的 valid 被撤销或 S2 没能恢复)", proto_err, cpu_done_rd);
-`elsif GUARD_OFF
-    // 保护关闭：激进 S1 时同一判据必须不通过（实测 889 > 700），
-    // 每方向一笔在途时靠措施一通过（实测 301 <= 414）
+`else
+    // 保护开启/关闭跑同一判据，方向由 S1_WRITE 选；阈值来自实测定（E5 2.2 节）。
+    // 这里**不做**「关保护就报 FAIL」的硬编码：保护关闭必须靠实测超过阈值才 FAIL，
+    // 否则把阈值改宽也看不出来（2026-09-19 复核发现的假绿漏洞）。
 `ifdef INFLIGHT1
-    if (!proto_err && cpu_done_rd >= `CPU_REQS && cpu_max_ar <= `CONTRACT_BOUND_VAL)
-        $display("RESULT: PASS (措施一：S2 读 %0d 笔，最大等待 %0d <= %0d)", cpu_done_rd, cpu_max_ar, `CONTRACT_BOUND_VAL);
-    else
-        $display("RESULT: FAIL (措施一不足：S2 读 %0d 笔，最大等待 %0d > %0d)", cpu_done_rd, cpu_max_ar, `CONTRACT_BOUND_VAL);
+`define BOUND_VAL `CONTRACT_BOUND_VAL
 `else
-    $display("RESULT: FAIL (保护关闭 + 激进 S1：S2 读 %0d 笔，最大等待 %0d 超过阈值 %0d)", cpu_done_rd, cpu_max_ar, `NORMAL_BOUND_VAL);
+`define BOUND_VAL `NORMAL_BOUND_VAL
 `endif
-`else
-    // 保护开启 + 激进 S1：S2 必须完成全部读请求，最大等待在实测阈值内
-    if (!proto_err && scan_timeout == 1'b0 && cpu_done_rd >= `CPU_REQS && cpu_max_ar <= `NORMAL_BOUND_VAL)
-        $display("RESULT: PASS (保护开启：S2 读 %0d 笔，最大等待 %0d <= %0d)", cpu_done_rd, cpu_max_ar, `NORMAL_BOUND_VAL);
+`ifdef S1_WRITE
+    // S1 写满负载：竞争在写仲裁器上，看 S2 的写地址等待
+    if (!proto_err && scan_timeout == 1'b0 && cpu_done_wr >= `CPU_REQS && cpu_max_aw <= `BOUND_VAL)
+        $display("RESULT: PASS (写方向：S2 写 %0d 笔，最大等待 %0d <= %0d)", cpu_done_wr, cpu_max_aw, `BOUND_VAL);
     else begin
-        $display("RESULT: FAIL (proto_err=%b scan_timeout=%b S2 读=%0d 最大等待=%0d 阈值=%0d)",
-                 proto_err, scan_timeout, cpu_done_rd, cpu_max_ar, `NORMAL_BOUND_VAL);
+        $display("RESULT: FAIL (写方向：proto_err=%b scan_timeout=%b S2 写=%0d 最大等待=%0d 阈值=%0d)",
+                 proto_err, scan_timeout, cpu_done_wr, cpu_max_aw, `BOUND_VAL);
         errors = errors + 1;
     end
+`else
+    // S1 读满负载：竞争在读仲裁器上，看 S2 的读地址等待
+    if (!proto_err && scan_timeout == 1'b0 && cpu_done_rd >= `CPU_REQS && cpu_max_ar <= `BOUND_VAL)
+        $display("RESULT: PASS (读方向：S2 读 %0d 笔，最大等待 %0d <= %0d)", cpu_done_rd, cpu_max_ar, `BOUND_VAL);
+    else begin
+        $display("RESULT: FAIL (读方向：proto_err=%b scan_timeout=%b S2 读=%0d 最大等待=%0d 阈值=%0d)",
+                 proto_err, scan_timeout, cpu_done_rd, cpu_max_ar, `BOUND_VAL);
+        errors = errors + 1;
+    end
+`endif
 `endif
 `endif
 
@@ -662,6 +679,7 @@ module master_aggr (
     output reg  [31:0]  txn_done
 );
     reg        rd_busy = 0;
+    reg        aw_hold = 0;
     reg [7:0]  wcnt = 0;
     reg [31:0] aw_issued = 0, w_served = 0;
 
@@ -681,7 +699,7 @@ module master_aggr (
         if (!rstn) begin
             arvalid <= 1'b0; awvalid <= 1'b0; wvalid <= 1'b0; wlast <= 1'b0;
             rd_busy <= 1'b0; wcnt <= 8'd0; txn_done <= 32'h0;
-            aw_issued <= 32'h0; w_served <= 32'h0;
+            aw_issued <= 32'h0; w_served <= 32'h0; aw_hold <= 1'b0;
             araddr <= 32'h0010_0000; awaddr <= 32'h0020_0000;
         end else begin
             // 读方向
@@ -703,12 +721,19 @@ module master_aggr (
             end else
                 arvalid <= 1'b0;
 
-            // 写方向：地址流水，W 拍按序发
+            // 写方向：地址流水，W 拍按序发。
+            // valid 一旦拉高就保持到握手（AXI 要求）；inflight1 时等上一笔的 W 拍发完再拉下一笔。
             if ((mode == 1'b1) && enable) begin
-                awvalid <= 1'b1;
-                if (awvalid && awready) begin
-                    aw_issued <= aw_issued + 32'h1;
-                    awaddr    <= awaddr + 32'd4096;
+                if (awvalid) begin
+                    if (awready) begin
+                        aw_issued <= aw_issued + 32'h1;
+                        awaddr    <= awaddr + 32'd4096;
+                        awvalid   <= inflight1 ? 1'b0 : 1'b1;
+                        aw_hold   <= inflight1;
+                    end
+                end else if (!aw_hold || (aw_issued == w_served)) begin
+                    awvalid <= 1'b1;
+                    aw_hold <= 1'b0;
                 end
                 if (w_served < aw_issued) begin
                     wvalid <= 1'b1;

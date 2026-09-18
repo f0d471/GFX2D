@@ -288,7 +288,9 @@ static int stage_share(void)
 /* E5：三方并发。扫描替身按行读 160 拍、探针替身读满负载、CPU 拷贝三者同时跑，
    记录扫描的首拍/整笔/最大拍间隙、guard 的 SoC 地址等待与命中数、CPU 拷贝耗时。
    板上只报告黑盒控制器下的实测最大值，不声称形式上界（见 E5 2.2 节）。 */
-static int stage_tri(void)
+/* 跑一轮三方并发：S1 为主机替身（mode 0=读、1=写），S0 为扫描替身，S2 为 CPU 拷贝。
+   读完先停扫描再读统计，保证 TXN 与 BEAT 是同一时刻的快照（否则 beat 读的时候还在涨）。 */
+static int tri_round(uint32_t mode, const char *name)
 {
     char a[9], b[9], c[9], d[9];
     const uint32_t len = 255u, count = 16384u;
@@ -296,84 +298,97 @@ static int stage_tri(void)
 
     scnw(S_BASE, FRAMEBUF0);
     scnw(S_CTRL, 0);
-    scnw(S_CTRL, 1);            /* 使能扫描替身 */
-    grdw(G_CLEAR, 1);           /* 清 guard 统计 */
+    scnw(S_CTRL, 1);
+    grdw(G_CLEAR, 1);
 
     wr(R_ADDR, SWEEP_BASE);
     wr(R_LEN, len);
     wr(R_COUNT, count);
-    wr(R_MODE, 0);
+    wr(R_MODE, mode ? MODE_WRITE : 0u);
     wr(R_CTRL, 1);
-    uint32_t cpu_shared = cpu_copy();
+    uint32_t cpu = cpu_copy();
     uint32_t st2;
     do {
         st2 = rd(R_STATUS);
     } while (!(st2 & ST_DONE));
 
-    uint32_t hits = grd(G_HITS), war = grd(G_MAX_AR), waw = grd(G_MAX_AW);
-    uint32_t txn = scn(S_TXN), skip = scn(S_SKIP), rerr = scn(S_RESPERR);
+    /* 统计快照：停扫描，等一笔在途事务走完，再一次性读走 */
+    scnw(S_CTRL, 0);
+    wait_ms(1);
+    uint32_t txn = scn(S_TXN), beat = scn(S_BEAT), skip = scn(S_SKIP), rerr = scn(S_RESPERR);
     uint32_t f = scn(S_MAX_FIRST), fu = scn(S_MAX_FULL), gp = scn(S_MAX_GAP);
+    uint32_t hits = grd(G_HITS), war = grd(G_MAX_AR), waw = grd(G_MAX_AW), gst = grd(G_STATUS);
 
-    hex8(a, cpu_shared);
-    bsp_printf("TRI cpu ticks=0x%s\r\n", a);
-    hex8(a, war); hex8(b, waw); hex8(c, hits); hex8(d, grd(G_STATUS));
-    bsp_printf("TRI guard max_wait_ar=0x%s max_wait_aw=0x%s hits=0x%s status=0x%s\r\n", a, b, c, d);
+    hex8(a, cpu);
+    bsp_printf("TRI %s cpu ticks=0x%s\r\n", name, a);
+    hex8(a, war); hex8(b, waw); hex8(c, hits); hex8(d, gst);
+    bsp_printf("TRI %s guard max_wait_ar=0x%s max_wait_aw=0x%s hits=0x%s status=0x%s\r\n", name, a, b, c, d);
     hex8(d, st2);
-    bsp_printf("TRI prb status=0x%s\r\n", d);
-    bsp_printf("TRI scan txn=%d beat=%d skip=%d resperr=%d\r\n", txn, scn(S_BEAT), skip, rerr);
-    bsp_printf("TRI scan max_first=%d max_full=%d max_gap=%d\r\n", f, fu, gp);
+    bsp_printf("TRI %s prb status=0x%s scan txn=%d beat=%d skip=%d resperr=%d\r\n", name, d, txn, beat, skip, rerr);
+    bsp_printf("TRI %s scan max_first=%d max_full=%d max_gap=%d\r\n", name, f, fu, gp);
 
-    /* 判据：三方都完成，扫描没被跳过、没有响应错误 */
-    int ok = (st2 == ST_DONE) && (txn > 0) && (skip == 0) && (rerr == 0);
-    bsp_printf("TRI %s\r\n", ok ? "ok" : "FAIL");
+    /* 判据：三方都完成；扫描没被跳过、没有响应错误；TXN 与 BEAT 能对账（beat = txn * 160） */
+    int ok = (st2 == ST_DONE) && (txn > 0u) && (skip == 0u) && (rerr == 0u) && (beat == txn * 160u);
+    bsp_printf("TRI %s %s\r\n", name, ok ? "ok" : "FAIL");
     fail += !ok;
     return fail;
 }
 
-/* E5：保护的上板判据。AGE_LIMIT=1 时 GUARD_HITS 必须增加且三方照常完成；
-   再把 S0 的掩码位清掉当反例，扫描替身必须完全拿不到授权。 */
-static int stage_inject(void)
+static int stage_tri(void)
+{
+    int fail = 0;
+    /* 读、写各一轮：读写由两个独立仲裁器处理，不能用读方向结果替代写方向 */
+    fail += tri_round(0u, "rd");
+    fail += tri_round(1u, "wr");
+    return fail;
+}
+
+/* 一轮注错负载：设 AGE_LIMIT、清统计、跑三方（方向由 mode 选），返回命中数与探针是否完成 */
+static int inject_round(uint32_t age, uint32_t mode, const char *name, uint32_t *o_hits)
 {
     char a[9];
     const uint32_t len = 255u, count = 4096u;
-    int fail = 0;
-
-    /* 1) AGE_LIMIT=1 */
-    grdw(G_AGE, 1u);
+    grdw(G_AGE, age);
     grdw(G_CLEAR, 1u);
+    scnw(S_BASE, FRAMEBUF0);
     scnw(S_CTRL, 1);
     wr(R_ADDR, SWEEP_BASE);
     wr(R_LEN, len);
     wr(R_COUNT, count);
-    wr(R_MODE, 0);
+    wr(R_MODE, mode ? MODE_WRITE : 0u);
     wr(R_CTRL, 1);
     (void)cpu_copy();
     uint32_t st2;
     do {
         st2 = rd(R_STATUS);
     } while (!(st2 & ST_DONE));
-    uint32_t h1 = grd(G_HITS);
-    hex8(a, h1);
-    int ok1 = (h1 > 0u) && (st2 == ST_DONE);
-    bsp_printf("INJECT age1 hits=0x%s %s\r\n", a, ok1 ? "ok" : "FAIL");
-    fail += !ok1;
+    scnw(S_CTRL, 0);
+    wait_ms(1);
+    *o_hits = grd(G_HITS);
+    hex8(a, *o_hits);
+    bsp_printf("INJECT %s age=%d hits=0x%s %s\r\n", name, age, a,
+               (st2 == ST_DONE) ? "probe_done" : "probe_TIMEOUT");
+    return (st2 == ST_DONE) ? 0 : 1;
+}
 
-    /* 设回 64，同样负载，只记录命中数 */
-    grdw(G_AGE, 64u);
-    grdw(G_CLEAR, 1u);
-    wr(R_ADDR, SWEEP_BASE);
-    wr(R_LEN, len);
-    wr(R_COUNT, count);
-    wr(R_MODE, 0);
-    wr(R_CTRL, 1);
-    (void)cpu_copy();
-    do {
-        st2 = rd(R_STATUS);
-    } while (!(st2 & ST_DONE));
-    hex8(a, grd(G_HITS));
-    bsp_printf("INJECT age64 hits=0x%s (record only)\r\n", a);
+/* E5：保护的上板判据。AGE_LIMIT=1 时读、写两个方向的 GUARD_HITS 都必须增加且探针照常完成；
+   再把 S0 的掩码位清掉当反例，扫描替身必须完全拿不到授权。 */
+static int stage_inject(void)
+{
+    int fail = 0;
+    uint32_t h_rd = 0, h_wr = 0;
 
-    /* 2) S0 掩码反例 */
+    /* 1) AGE_LIMIT=1：两个方向都必须触发 */
+    fail += inject_round(1u, 0u, "age1_rd", &h_rd);
+    fail += inject_round(1u, 1u, "age1_wr", &h_wr);
+    if (h_rd == 0u) { bsp_printf("INJECT age1_rd hits=0 FAIL\r\n"); fail++; }
+    if (h_wr == 0u) { bsp_printf("INJECT age1_wr hits=0 FAIL\r\n"); fail++; }
+
+    /* 2) 设回 64，同样两轮，只记录 */
+    (void)inject_round(64u, 0u, "age64_rd", &h_rd);
+    (void)inject_round(64u, 1u, "age64_wr", &h_wr);
+
+    /* 3) S0 掩码反例 */
     grdw(G_MASK, 7u);
     scnw(S_CTRL, 1);
     uint32_t t0 = scn(S_TXN);
@@ -391,7 +406,7 @@ static int stage_inject(void)
     bsp_printf("INJECT mask_s0 txn %d %d %d %d %d %s\r\n", t0, t1, t2, t3, t4, ok2 ? "ok" : "FAIL");
     fail += !ok2;
 
-    scnw(S_CTRL, 0);            /* 关掉扫描替身，别影响后面的回归 */
+    scnw(S_CTRL, 0);
     return fail;
 }
 

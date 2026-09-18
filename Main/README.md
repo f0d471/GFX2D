@@ -21,7 +21,8 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | 软件平台分层与双目标构建（SW1） | **已验收**（2026-09-19）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
 | SoC 资源裁剪 | 还没有做 |
 
-编译占用 XLR 16151（26.6%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack（2026-09-17）。
+编译占用 XLR 21065（34.65%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack（2026-09-19，E5 端口重分配后；
+重分配前是 XLR 16151、setup 2.994 / hold 0.026，之后 setup 3.467 / hold 0.026，增量归因见 E5 条目）。
 这些数字相对第 01 章基线的变化见 `../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.2 节；
 SoC 构型的对比与资源归因见 `../Engineering/TechReports/platform/04-SoC构型对比与资源归因.md`；
 五项上板判据的原始输出，以及基线是怎么搭起来的，见
@@ -125,7 +126,7 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   提交前跑一次 `--restore` 与 `--check`。
 - **判据要能注错见红**：每个仿真除了正常用例，必须有把逻辑改错后会 FAIL 的用例，
   否则不算验证过。
-- **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，`axi_mux_guard` 7/7，Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
+- **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，`axi_mux_guard` 9/9，Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
   改了 `sw/` 下走新构建的程序（`gfx2dGame` 与以后的应用）还要过 `sw/README.md` 里的两套构建、
   主机侧单元测试与 `tools/check_sw_layers.sh`。
 - **数字要标明来源**：估算与推测必须写清楚，实测要给命令和结果。
