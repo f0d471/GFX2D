@@ -360,7 +360,7 @@ CoreMark 1.0 : 178.630189 / GCC8.3.0 / -o3
 Standard 与 Lite + 独立时钟的构型各自连续三次会话成功；
 统一时钟的构型只成功一次，且 `resume` 挂住。
 
-Standard 构型上的程序回归：`sw/ddrAliasTest` 用新工具跑了一遍，
+Standard 构型上的程序回归：`sw/apps/probe/ddrAliasTest` 用新工具跑了一遍，
 输出与 `sw/README.md` 登记的一致（`LOW k=0..27`、`LOW k=-1`、`HIGH k=28..31`、
 `CACHE_NOEVICT`、`CACHE_EVICT` 全部 `ok`，`base 0x0c800000 fail 0`，末尾 `done`）。
 其余五项回归未在本章逐项复跑。
@@ -419,7 +419,7 @@ I2C0 370.5 XLR、`axiA` 从口窗口 22 XLR，两者都**不省 RAM**，
 - **`u_soc` 那 +63.5 XLR 与未归因的 +263.5 没有拆开。** 两者同源，
   都要在「同一版工具、同一份 IP」下重新生成才有意义。
   下一次因为别的理由重生成 SoC IP 时顺带做掉。
-- **回归表只复跑了一项。** 本章只跑了 `sw/ddrAliasTest`（它直接验证 DDR 地址通路，
+- **回归表只复跑了一项。** 本章只跑了 `sw/apps/probe/ddrAliasTest`（它直接验证 DDR 地址通路，
   与本章相关）。memTest、APB 探针、`ddrBurstProbe`、`bootSizeTest`、HDMI 未在本章复跑。
 - **`doc/开发环境.md` 第 6 节要订正两处**：`cpu0.yaml` 的查找级数写的是 4，
   官方 cfg 里实际是 3；`debug.cfg` 与 `debug_ti.cfg` 的 `irlen` 不一致（4 对 5），

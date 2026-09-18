@@ -57,7 +57,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check_sw_layers.sh'
 理由见 [`../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md`](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md) 4.6 节。
 注错文件只在运行时临时生成，脚本退出（含中途失败）一律删干净；
 第 6 项会 `touch` 一次 `bsp/include/memmap.h`（只改时间戳，不改内容）；
-编译产物一律落临时目录，不动 `sw/gfx2dGame/build/`。
+编译产物一律落临时目录，不动 `sw/apps/game/gfx2dGame/build/`。
 
 ## bin2hex.py
 
@@ -115,8 +115,8 @@ Verilog 字面量（`1'b1`、`32'd1048576`）会让生成器的 `eval` 抛 `Synt
 1. `debug.cfg` 的 `jtag newtap ... -irlen 4` 与本板不符，本板 IR 宽度是 5
    （`ftdi_pgm.bat --scan_usb` 报 `ir_width 5`），用 4 会报
    `IR capture error at bit 4, saw 0x25 not 0x..3`，连不上 CPU。
-2. 两份官方 cfg 的 `cpu0.yaml` 查找都是写死往上 3 级，而实际运行目录离
-   `Main/sdk/cpu0.yaml` 有 5 级。本文件改用它们的 `LEGACY_IDE` 分支，
+2. 两份官方 cfg 的 `cpu0.yaml` 查找都是写死往上 3 级，而 `Main/sdk/cpu0.yaml` 不在实际运行目录的
+   上级链路上（程序在 `sw/apps/<类>/<程序>/` 下，往上 4 级到 `Main/` 再进 `sdk/`）。本文件改用它们的 `LEGACY_IDE` 分支，
    由环境变量 `workspace_loc` 直接给出目录，`board_run.py` 会设好。
 
 这两条不改 `sdk/` 下的官方文件：那是 IP 生成物，重新生成会被覆盖。

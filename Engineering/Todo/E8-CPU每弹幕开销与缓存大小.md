@@ -58,9 +58,9 @@ E1 已验收（保留 Standard 构型，见 platform 第 04 章），所以缓�
 出屏回收用「位置落在 `±2×` 游戏区之外则标记为死」这一条，
 不做实体池整理（整理是每帧一次的整体操作，摊到每个弹幕上不具可比性）。
 
-### 2.2 写 `sw/entityBench`，四个用例
+### 2.2 写 `sw/apps/probe/entityBench`，四个用例
 
-新程序 `../../Main/sw/entityBench/src/main.c`，骨架照 `sw/ddrBurstProbe`：
+新程序 `../../Main/sw/apps/probe/entityBench/src/main.c`，骨架照 `sw/apps/probe/ddrBurstProbe`：
 `clint_getTimeLow(BSP_CLINT)` 打点，100MHz 计时即 10ns 一格。
 
 | 用例 | 数据布局 | 做什么 | 量什么 |
@@ -135,11 +135,11 @@ bootloader 与链接脚本这两项不受 `DCacheSize` 影响，可直接复用�
 | D | 给出 N = 1000~10000 的曲线；每弹幕周期数随 N 上升超过 20% 时，给出缓存效应的解释 |
 | 缓存 | 每档给出 `DCacheSize`、`DCACHEWAY`、`dataCache_1` 的 RAM 块数（取 `hier_util.rpt` 的行）、每弹幕周期数；`soc.h` 里 `SYSTEM_CORES_0_DCACHE_WAYS` 与 `DCACHE_SIZE` 两个宏要与该档一致，确认生成的确实是这一档 |
 | 资源 | 每档的整机 XLR 与 RAM 块数，并与 platform 第 04 章记的现行基线（XLR 16151、片上 RAM 65 块）对账 |
-| 回归 | 每份比特流都要跑一遍 `sw/ddrAliasTest` 与 `sw/ddrBurstProbe` 的 `fail 0`；多路缓存下单次异标签读不再保证驱逐，两个程序的驱逐手法要先改，见下 |
+| 回归 | 每份比特流都要跑一遍 `sw/apps/probe/ddrAliasTest` 与 `sw/apps/probe/ddrBurstProbe` 的 `fail 0`；多路缓存下单次异标签读不再保证驱逐，两个程序的驱逐手法要先改，见下 |
 | 决策 | 三行结论（每帧 CPU 时间 / P4 做不做 / 缓存定多大）都带算式与出处 |
 | 更正 | 设计文档 1.3 节的「每加倍约 8 块 RAM」按实测更正，并注明日期 |
 
-「回归」这一条是本实验特有的风险：`sw/ddrAliasTest` 与 `sw/ddrBurstProbe` 里的
+「回归」这一条是本实验特有的风险：`sw/apps/probe/ddrAliasTest` 与 `sw/apps/probe/ddrBurstProbe` 里的
 `evict_rd32` 依赖「1 路直接映射」：读一个行号相同、标签不同的地址（`XOR 0x2000_0000`），
 新标签就会顶掉目标行。每路仍是 4KB，行号仍取 [11:6]，但缓存变成 2 路或 4 路之后，
 这次读只会占用同一行的另一路，目标行可能还留在缓存里，驱逐不再生效。

@@ -1,7 +1,7 @@
 # cacheCoherencyTest —— 实验 E3
 #
 # 常规编译：
-#     wsl -e bash -c 'cd sw/cacheCoherencyTest && make BSP=efinix/EfxSapphireSoc \
+#     wsl -e bash -c 'cd sw/apps/test/cacheCoherencyTest && make BSP=efinix/EfxSapphireSoc \
 #         RISCV_BIN=<RISCV_BIN> OBJDIR=build'
 #
 # 注错编译（A3 两行加 B、C 共四行必须报 FAIL (inject)，末尾 fail 0）：
@@ -30,7 +30,7 @@ ifeq ($(INJECT),2)
     CFLAGS_ARGS += -DINJECT_NO_INVALIDATE -DINJECT_REPORT_ONLY
 endif
 
-STANDALONE=../../sdk/software/standalone
+STANDALONE=../../../../sdk/software/standalone
 
 SRCS = 	$(wildcard src/*.c) \
 		$(wildcard src/*.cpp) \

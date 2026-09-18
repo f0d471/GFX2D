@@ -1,17 +1,15 @@
-# cacheMinTest —— E3 的前置最小实验（不含外部主机）
+# cacheMechTest —— 实验 E3 的机理实验（T1~T11），需要带 axi_probe_master 的比特流
 #
-# 现象可复现用，不作为结论证据，原因见 src/main.c 文件头。
-#
-#     wsl -e bash -c 'cd sw/cacheMinTest && make BSP=efinix/EfxSapphireSoc \
+#     wsl -e bash -c 'cd sw/apps/probe/cacheMechTest && make BSP=efinix/EfxSapphireSoc \
 #         RISCV_BIN=<RISCV_BIN> OBJDIR=build'
 #
 # 编译档：DEBUG=yes 加上 bsp 的 soc.mk 里 DEBUG_OG?=yes，实际是 -g3 -Og。
 
-PROJ_NAME=cacheMinTest
+PROJ_NAME=cacheMechTest
 DEBUG=yes
 BENCH=no
 
-STANDALONE=../../sdk/software/standalone
+STANDALONE=../../../../sdk/software/standalone
 
 SRCS = 	$(wildcard src/*.c) \
 		$(wildcard src/*.cpp) \

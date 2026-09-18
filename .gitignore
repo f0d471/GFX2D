@@ -29,10 +29,10 @@ build-*/
 # ---- 板上串口日志 ----
 # 证据日志只留「与当前产物对应」的那几份，放各程序的 logs/ 下（那个目录入库）；
 # 散落在程序目录与构建目录里的一次性采集全部忽略。
-Main/sw/*/*.log
-Main/sw/*/*/*.log
-!Main/sw/*/logs/
-!Main/sw/*/logs/*.log
+Main/sw/apps/*/*/*.log
+Main/sw/apps/*/*/*/*.log
+!Main/sw/apps/*/*/logs/
+!Main/sw/apps/*/*/logs/*.log
 
 # ---- IDE 与编辑器缓存 ----
 .metadata/

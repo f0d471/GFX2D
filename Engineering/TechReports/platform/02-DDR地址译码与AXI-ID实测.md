@@ -232,7 +232,7 @@ input [5:0] io_cpu_flush_payload_lineId;       // 行号 6 位，共 64 行
 如果第 k 位没有参与寻址，两个地址是同一个存储单元，后写的值会覆盖先写的值。
 对每一位做一次，就知道哪几位参与了寻址。
 
-程序是 `Main/sw/ddrAliasTest`，分三组：
+程序是 `Main/sw/apps/probe/ddrAliasTest`，分三组：
 
 ```
 第 1 组  低 28 位，预期无别名
@@ -270,7 +270,7 @@ input [5:0] io_cpu_flush_payload_lineId;       // 行号 6 位，共 64 行
 
 ### 4.1 OpenOCD 找不到 `cpu0.yaml`
 
-**第一现场。** 按 `Main/doc/开发环境.md` 第 6 节的写法，在程序目录 `sw/ddrAliasTest` 下启动 OpenOCD：
+**第一现场。** 按 `Main/doc/开发环境.md` 第 6 节的写法，在程序目录 `sw/apps/probe/ddrAliasTest` 下启动 OpenOCD：
 
 ```
 cpu.yaml not found within 3 levels

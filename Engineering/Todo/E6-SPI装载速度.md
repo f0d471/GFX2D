@@ -54,7 +54,7 @@ IO2/IO3 是否连到 FPGA，那是另一件更大的事，本实验不做。
   做法简单，但含 FPGA 配置时间与串口驱动延迟，只能当上下界，精度约 ±100ms。
 - **板上计时**：`SYSTEM_CLINT_HZ = 100000000`（`sdk/.../include/soc.h` 第 19 行），
   `clint_getTimeLow(BSP_CLINT)` 在程序第一条语句就能读到自 SoC 复位以来的计数，
-  单位是 10 ns，32 位约 42.9 秒回绕（`sw/ddrBurstProbe` 已经这么用了）。
+  单位是 10 ns，32 位约 42.9 秒回绕（`sw/apps/probe/ddrBurstProbe` 已经这么用了）。
   读到的时间含 bootloader 的初始化、Flash 唤醒与拷贝三段，不只是拷贝；
   代价是要造一个专用的小程序，**并且必须把它写进 Flash `0x380000`**，
   因为只有从 Flash 引导才会经过 bootloader 拷贝这一段。**取这一条为准，主机侧计时作对照。**

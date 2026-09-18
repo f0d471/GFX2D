@@ -12,14 +12,17 @@ sw/
   mk/target.mk     板上构建（xPack riscv-none-embed-gcc + sdk 的 BSP）
   mk/host.mk       PC 构建（WSL 的 gcc + SDL2）
   bsp/             项目板级层：叠在只读的 sdk 之上
-    include/       board.h（板级接口）、memmap.h（DDR 分区偏移与大小）
+    include/       board.h（板级接口）、memmap.h（DDR 分区偏移与大小）、dcache_line.h（缓存行折算）
     memmap.c       分区表本体，两个平台共用
     ti60/          板上实现 + linker/gfx2d.ld
     host/          PC 实现：SDL2 显示与键盘，DDR 分区用一块内存模拟
   lib/             纯 C，两边都编，不依赖任何平台
     core/          CRC32、xorshift32、轻量格式化输出
     test/          主机侧单元测试（另含 CRC32 的独立参考实现）
-  gfx2dGame/       应用：只写应用
+  apps/            应用，只写应用，按用途分三类（见下）
+    game/          游戏与演示
+    test/          回归判据
+    probe/         探针与 benchmark
 ```
 
 依赖方向只有一个：应用 → `lib/` 与 `bsp/include/board.h`，`board.h` 由 `bsp/ti60` 或 `bsp/host` 实现。
@@ -27,24 +30,33 @@ sw/
 应用里写 `#include <soc.h>` 会直接编不过。PC 在这套结构里就是「另一块板子」，
 应用代码里不出现平台判断。判据 `Main/tools/check_sw_layers.sh` 会逐条验证这些。
 
-## 目录
+## 应用的三类
 
-| 目录 | 说明 |
+按「跑完之后拿到的是什么」分：
+
+| 目录 | 放什么 | 判断标准 |
+| --- | --- | --- |
+| `apps/game/` | 游戏与演示 | 给人看的，赛题要演示的那一类 |
+| `apps/test/` | 回归判据 | 只给通过或失败（末尾 `fail 0`），平台或构建一改就要重跑 |
+| `apps/probe/` | 探针与 benchmark | 给出数字或现象，服务于某个实验的结论；E7 的 `execSwTest`、E8 的 `entityBench` 建起来也放这里 |
+
+| 程序 | 说明 |
 | --- | --- |
-| `mk/` | 两套构建。应用的 makefile 只写 `APP`、`APP_SRCS`、`LIBS` 三行再 include 其中一个 |
-| `bsp/` | 项目板级层，见上 |
-| `lib/` | 平台无关的纯算法与主机侧测试 |
-| `gfx2dGame/` | 应用（SW1 起）。当前是最小骨架，判据见下 |
-| `bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
-| `ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象 |
-| `ddrBurstProbe/` | 实验 E4：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验 |
-| `cacheCoherencyTest/` | 实验 E3：用探针主机当外部写入者，一致性判据、注错与注错自检，并量失效指令的代价 |
-| `cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
-| `cacheMinTest/` | 实验 E3 早期的最小实验，只作现象可复现保留，不作为结论证据 |
+| `apps/game/gfx2dGame/` | 游戏应用（SW1 起）。当前是最小骨架，判据见下 |
+| `apps/test/bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
+| `apps/test/cacheCoherencyTest/` | 实验 E3 的判据程序：用探针主机当外部写入者，一致性判据、注错与注错自检，并量失效指令的代价 |
+| `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象 |
+| `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验 |
+| `apps/probe/cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
+| `apps/probe/cacheMinTest/` | 实验 E3 早期的最小实验，只作现象可复现保留，不作为结论证据 |
 
-`bootSizeTest/`、`ddrAliasTest/`、`ddrBurstProbe/`、`cache*Test/` 六个诊断程序仍沿用官方的 makefile 体系
-（每个的 makefile 里用 `STANDALONE` 指到 `sdk/software/standalone`），**没有迁到新构建**，
-要改它们时顺手迁移。`gfx2dGame/` 与以后的应用用新构建。
+除 `gfx2dGame` 以外的六个诊断程序仍沿用官方的 makefile 体系
+（每个的 makefile 里用 `STANDALONE` 指到 `sdk/software/standalone`，现在是往上四级的 `../../../../sdk/...`），
+**没有迁到新构建**，要改它们时顺手迁移。`gfx2dGame` 与以后的应用用新构建，
+makefile 里 `include ../../../mk/$(PLATFORM).mk`。
+
+2026-09-19 从 `sw/<程序>/` 搬到 `sw/apps/<类>/<程序>/`，七个程序搬迁前后的 bin 逐位相同。
+TechReports 旧章节的配图里仍是搬迁前的路径（配图画的是该章结束时的状态，按规范不改）。
 
 带 `logs/` 目录的程序，里面是与当前产物对应的上板原始日志（入库），文件名与 TechReport 里引用的一致。
 
@@ -53,11 +65,11 @@ sw/
 应用的 makefile 只写应用本身，平台由 `PLATFORM` 选（默认 `target`）：
 
 ```
-# 板上：产物在 gfx2dGame/build/，名字带优化级别，如 gfx2dGame-O2.bin
-wsl -e bash -c 'cd sw/gfx2dGame && make RISCV_BIN=<RISCV_BIN>'
+# 板上：产物在 apps/game/gfx2dGame/build/，名字带优化级别，如 gfx2dGame-O2.bin
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make RISCV_BIN=<RISCV_BIN>'
 
-# PC：产物 gfx2dGame/build_host/gfx2dGame，跑起来开 640x480 窗口
-wsl -e bash -c 'cd sw/gfx2dGame && make PLATFORM=host && ./build_host/gfx2dGame'
+# PC：产物 apps/game/gfx2dGame/build_host/gfx2dGame，跑起来开 640x480 窗口
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host && ./build_host/gfx2dGame'
 
 # 也可以从 sw/ 目录直接编（产物落在 sw/build/）
 wsl -e bash -c 'cd sw && make -f mk/host.mk'
@@ -77,7 +89,7 @@ wsl -e bash -c 'cd sw && make -f mk/target.mk RISCV_BIN=<RISCV_BIN>'
 ## 主机侧单元测试与结构判据
 
 ```
-wsl -e bash -c 'cd sw/gfx2dGame && make PLATFORM=host test'    # 或 cd sw && make -f mk/host.mk test
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host test'    # 或 cd sw && make -f mk/host.mk test
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check_sw_layers.sh'
 ```
 
@@ -113,7 +125,7 @@ CRC 那一列才是判据。）
 板上用的是 `Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit`
 （2026-09-19 这一份 `sha256:d8af4ce13c416834…`，2,052,291 字节）。
 
-日志四份在 `gfx2dGame/logs/`：`pc_normal.log`、`pc_inject.log` 是 PC 的 stdout（期望值），
+日志四份在 `apps/game/gfx2dGame/logs/`：`pc_normal.log`、`pc_inject.log` 是 PC 的 stdout（期望值），
 `board_normal.log`、`board_inject.log` 是板上串口原始输出。比对只取 `frame N crc X` 这一列：
 
 ```
@@ -133,7 +145,7 @@ diff <(grep -o 'frame [0-9]* crc [0-9a-f]*' logs/pc_normal.log) \
 IDE 2026.1 自带的 gcc 13.4 编不了 2025.2 生成的这套 BSP（缺 `_zicsr`），当前用 xPack 的 gcc 8.3.0，安装见 `../doc/开发环境.md` 第 2 节：
 
 ```
-wsl -e bash -c 'cd sw/bootSizeTest && make BSP=efinix/EfxSapphireSoc RISCV_BIN=<RISCV_BIN> OBJDIR=build'
+wsl -e bash -c 'cd sw/apps/test/bootSizeTest && make BSP=efinix/EfxSapphireSoc RISCV_BIN=<RISCV_BIN> OBJDIR=build'
 ```
 
 `<RISCV_BIN>` 是工具链前缀，取值见 `../doc/开发环境.md` 第 1、11 节。

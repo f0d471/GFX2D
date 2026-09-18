@@ -8,7 +8,7 @@
 1. **必须先开串口再加载程序。** 串口没打开期间板子发出的数据会被直接丢弃，
    驱动不缓存。程序跑完再打开串口，一个字节都读不到。
 2. **OpenOCD 的两个官方 cfg 在这块板上用不了。** `debug.cfg` 与 `debug_ti.cfg` 的
-   `cpu0.yaml` 查找是写死往上 3 级目录，而仓库里 `sdk/cpu0.yaml` 离实际运行目录有 5 级；
+   `cpu0.yaml` 查找是写死往上 3 级目录，而仓库里 `sdk/cpu0.yaml` 不在实际运行目录的上级链路上；
    且 `debug.cfg` 的 `jtag newtap ... -irlen 4` 与本板的 IR 宽度 5 不符，
    会报 `IR capture error at bit 4, saw 0x25 not 0x..3`。
    本脚本用 `openocd/gfx2d_debug.cfg`（本目录内），把 workspace 路径与 IR 宽度都写对。
@@ -42,7 +42,7 @@
 
 2026-09-17 在板上验证过三条路径：`--list-ports` 列出 FT4232H 的三路 VCP；
 `--check-only` 连续两次会话各读一次 PC，都 `Target successfully examined`；
-完整的「先开串口 + `load_image` + `resume` + 回收输出」用 `sw/ddrAliasTest` 跑通，
+完整的「先开串口 + `load_image` + `resume` + 回收输出」用 `sw/apps/probe/ddrAliasTest` 跑通，
 串口收到与 `sw/README.md` 登记一致的输出（`LOW k=0..27`、`HIGH k=28..31` 全 `ok`、
 `base 0x0c800000 fail 0`、末尾 `done`）。
 

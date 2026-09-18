@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file crc32.c: CRC32（与 zlib.crc32 同参）
 *
-* @brief  逐位算法与 `sw/bootSizeTest/src/main.c` 里那份一致，这里是查表版，
+* @brief  逐位算法与 `sw/apps/test/bootSizeTest/src/main.c` 里那份一致，这里是查表版，
 *         行为必须相同；相等由 `sw/lib/test/` 的独立逐位实现逐字节比对。
 *
 *         表在第一次使用时生成，不写成 `const` 表放 `.rodata`：

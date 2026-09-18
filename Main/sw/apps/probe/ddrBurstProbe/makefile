@@ -1,6 +1,6 @@
-PROJ_NAME=ddrAliasTest
+PROJ_NAME=ddrBurstProbe
 
-STANDALONE=../../sdk/software/standalone
+STANDALONE=../../../../sdk/software/standalone
 
 SRCS = 	$(wildcard src/*.c) \
 		$(wildcard src/*.cpp) \

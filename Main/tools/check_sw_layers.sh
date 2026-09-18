@@ -25,7 +25,7 @@
 #         bash Main/tools/check_sw_layers.sh
 #
 # 本脚本只在仓库里临时放几个注错文件，退出时（含中途失败）一律删干净。
-# 编译产物落在临时目录，不动 gfx2dGame/build。
+# 编译产物落在临时目录，不动 apps/game/gfx2dGame/build。
 # 第 6 项会 touch 一次 bsp/include/memmap.h（只改时间戳，不改内容）。
 
 set -u
@@ -40,7 +40,7 @@ RISCV_BIN="${RISCV_BIN:-riscv-none-embed-}"
 WARN="-std=gnu11 -Wall -Wextra -Werror"
 
 INJ_BOARD="$SW/lib/core/_inject_board_include.c"
-INJ_SOC="$SW/gfx2dGame/src/_inject_soc_include.c"
+INJ_SOC="$SW/apps/game/gfx2dGame/src/_inject_soc_include.c"
 INJ_FLOAT="$SW/lib/core/_inject_float.c"
 INJ_DUP_LIB="$SW/lib/core/x.c"
 INJ_DUP_BSP="$SW/bsp/ti60/x.c"
@@ -60,7 +60,7 @@ note() { printf '    %s\n'   "$1"; }
 
 # 真实的板上构建：应用目录下的 makefile，临时 OBJDIR，日志进 $TMP/build.log
 build_board() {
-    make -C "$SW/gfx2dGame" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$1" >"$TMP/build.log" 2>&1
+    make -C "$SW/apps/game/gfx2dGame" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$1" >"$TMP/build.log" 2>&1
 }
 
 # 期望这次构建失败，并且失败原因就是那个注入文件（不能随便什么错都算数）

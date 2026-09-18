@@ -70,7 +70,7 @@ FIFO 水位和欠载计数共同验收。**CPU 仍有被饿死的风险**：S1 �
 3. `mux_arb_mask` 声明成 `wire [2:0]`。仲裁方式、三位用户掩码与保护寄存器全部归永久模块
    `rtl/bus/axi_mux_guard.v`，占 APB Slave 0 的独立窗口 `0xF810_F000~0xF810_FFFF`；
    不放进临时的 `apb_probe` 或 `axi_probe_master`。探针原 `ARB` 寄存器不再驱动多路器，
-   `sw/ddrBurstProbe` 随之改读写新窗口。上电默认是优先级模式、三通道全开、guard 开启。
+   `sw/apps/probe/ddrBurstProbe` 随之改读写新窗口。上电默认是优先级模式、三通道全开、guard 开启。
 4. 接入 2.2 节的 `axi_mux_guard`，送进 `Axi_Mux` 的掩码改为「寄存器掩码 与 保护掩码」。
 5. 编译并看时序。这一刀重排的是 128 位数据通路的端口选择，`core_clk` 的 hold
    现在只有 0.026 ns（`outflow/gfx2d_ti60.timing.rpt` 第 71 行），要按
@@ -204,7 +204,7 @@ guard 命中数、是否超时与三方是否完成。数据阶段的一笔 256 
 | --- | --- | --- |
 | 引擎满负载 | `u_axi_probe` 接 S1，`LEN=255`、`COUNT` 拉满，**读、写各跑一轮**（`MODE` bit0 WRITE 分别取 0 与 1，bit1 INC 按需） | 读与写在多路器里分开仲裁，只跑一种会漏掉另一种的影响；参数与 E4 的 `SHARE` 相同，地址避开程序区 |
 | 扫描输出 | 接 S0 的一个只读小主机，按行发 160 拍的读，行周期约 31.7 微秒（`core_clk` 下约 3175 个周期），场周期 525 行，最多一笔读在途 | 新写 `rtl/bus/scanout_stub.v`，记录 `arvalid` 到首个 `rvalid`、到 `rlast` 的完整时间，以及相邻 R 拍最大间隙；三项都记最大值与直方图 |
-| CPU 负载 | `sw/ddrBurstProbe` 里的 `cpu_copy()`，逐字拷贝 256KB，接 S2 | 现成 |
+| CPU 负载 | `sw/apps/probe/ddrBurstProbe` 里的 `cpu_copy()`，逐字拷贝 256KB，接 S2 | 现成 |
 
 在优先级模式下测五件事：CPU 拷贝耗时（与现状 S0/轮询对比）、扫描替身的首拍等待与整笔完成时间、
 扫描 R 通道最大拍间隙、`S2_MAX_WAIT_AR`/`AW` 与 `GUARD_HITS`，以及三者并发时是否都完成。
@@ -252,7 +252,7 @@ S1、S2。措施一成立时，扫描最多只在信息 FIFO 中排到一笔引�
 | --- | --- |
 | 编译 | `X3` 打开后四步 PASS，`Missing Interface Pins` 仍是已知 6 项，本项目位宽截断告警为 0 |
 | 时序 | `core_clk` setup 与 hold 都不为负，并与重分配前逐行对比；hold 变负就停下先解决 |
-| 回归 | 端口重排后 memTest、`sw/ddrAliasTest` 与 `sw/ddrBurstProbe` 的 `fail 0` 都要复跑，因为它们都在走这条通路；`ddrBurstProbe` 里对探针端口号与掩码位的假设要随端口重排一起改 |
+| 回归 | 端口重排后 memTest、`sw/apps/probe/ddrAliasTest` 与 `sw/apps/probe/ddrBurstProbe` 的 `fail 0` 都要复跑，因为它们都在走这条通路；`ddrBurstProbe` 里对探针端口号与掩码位的假设要随端口重排一起改 |
 | 保护仿真 | `sim/axi_mux_guard/` 七个用例全部符合 2.2 节的期望，输出 `SIM OK`；并补进 `开发环境.md` 第 10 节与 `sim/README.md` |
 | 保护上板 | 探针替身读、写满负载各一轮，`cpu_copy()` 完成；记录 `S2_MAX_WAIT_AR`/`AW`、`GUARD_HITS` 与有无超时，不把实测最大值写成控制器的形式化保证 |
 | 保护注错 | 上板把 `AGE_LIMIT` 设成 1，同样负载下 `GUARD_HITS` 必须增加且 CPU 照常完成；设回 64 后记录 `GUARD_HITS`。不增加说明保护没有接到真正的多路器上 |
@@ -280,7 +280,7 @@ S1、S2。措施一成立时，扫描最多只在信息 FIFO 中排到一笔引�
 
 **2026-09-19 2.3 三方并发与保护上板判据全部通过（`fail 0`、`done`）**：
 
-`sw/ddrBurstProbe` 扩到六个阶段（新增 TRI 与 INJECT），重新编译后上板（bin 5850 字节，
+`sw/apps/probe/ddrBurstProbe` 扩到六个阶段（新增 TRI 与 INJECT），重新编译后上板（bin 5850 字节，
 sha256 前 16 位 `3f403073329ccafd`），末行 `fail 0` / `done`。关键数字（1 tick = 10 ns）：
 
 | 项 | 实测 | 说明 |
@@ -335,7 +335,7 @@ sha256 前 16 位 `3f403073329ccafd`），末行 `fail 0` / `done`。关键数�
   两处小订正：协议监视要在「上一拍 valid 高且 ready 低」时才判撤销（否则措施一正常撤销 valid 会被误判）；
   CPU 至少分读、写两个计数，否则无竞争的写通道会让「保护关闭应失败」的用例假通过。
 - **上板首验**：把本轮的比特流经 JTAG 加载（器件 ID `0x10660A79`），
-  然后用 `tools/board_run.py` 跑 `sw/ddrAliasTest`：`Target successfully examined`，
+  然后用 `tools/board_run.py` 跑 `sw/apps/probe/ddrAliasTest`：`Target successfully examined`，
   串口完整输出 `LOW k=0..27`、`HIGH k=28..31`、`CACHE_NOEVICT`/`CACHE_EVICT`、
   `base 0x0c800000 fail 0`、`done`。这一次**没有前置 OpenOCD 会话**，
   证明新端口分配（SoC 在 S2、guard 默认优先级 + 三通道全开）在板上成立，
@@ -343,7 +343,7 @@ sha256 前 16 位 `3f403073329ccafd`），末行 `fail 0` / `done`。关键数�
 - 剩下的是 2.3 的量测与保护的上板判据：`0xF810_F000`/`0xF810_E000` 寄存器读回、
   扫描替身在帧缓冲 0 上的首拍/整笔/最大拍间隙与直方图、探针替身满负载下的
   `S2_MAX_WAIT_AR/AW`、`GUARD_HITS`、CPU 拷贝代价、`AGE_LIMIT=1` 注错、S0 掩码反例，
-  以及 `sw/ddrBurstProbe` 改读新窗口。
+  以及 `sw/apps/probe/ddrBurstProbe` 改读新窗口。
 
 **2026-09-19 2.1~2.3 实现（RTL 与编译已闭环，仿真 7 用例中 6 例符合预期）**：
 
@@ -495,7 +495,7 @@ sha256 前 16 位 `3f403073329ccafd`），末行 `fail 0` / `done`。关键数�
    | `0xF810_103C` 探针 ID | `0x41584950` |
    | `0xF810_8008` 未映射地址 | `0` |
 
-   随后运行现有 `sw/ddrBurstProbe`，IDENT、CROSS、9 档读写 SWEEP、SHARE 全部 `ok`，
+   随后运行现有 `sw/apps/probe/ddrBurstProbe`，IDENT、CROSS、9 档读写 SWEEP、SHARE 全部 `ok`，
    `SHARE errs=0x00000000`，末尾 `fail 0`、`done`；原始串口输出暂存在其忽略的 `build/` 目录。
    这只复核当前 X2/轮询基线，不能替代 X3、优先级、guard、扫描替身和真实 FIFO 的新判据。
 

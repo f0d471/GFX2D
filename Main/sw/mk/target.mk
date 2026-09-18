@@ -26,10 +26,10 @@ SW     := $(dir $(patsubst %/,%,$(MK_DIR)))
 # 直接以 `make -f mk/target.mk` 调用时（应用 makefile 没有先定义 APP），
 # 默认编 SW1 的最小应用；被应用 makefile include 时用调用方给的值。
 # APP_SRCDIR 是「相对当前目录」的应用目录：被 include 时就是 .，
-# 直接调用时是 ./gfx2dGame；APP_SRCS 里的路径相对 APP_SRCDIR。
+# 直接调用时是 ./apps/game/gfx2dGame；APP_SRCS 里的路径相对 APP_SRCDIR。
 ifeq ($(APP),)
   APP        := gfx2dGame
-  APP_SRCDIR := $(SW)gfx2dGame
+  APP_SRCDIR := $(SW)apps/game/gfx2dGame
   LIBS       := core
   APP_SRCS   := $(patsubst $(APP_SRCDIR)/%,%,$(wildcard $(APP_SRCDIR)/src/*.c $(APP_SRCDIR)/src/game/*.c))
 endif

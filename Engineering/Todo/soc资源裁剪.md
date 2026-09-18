@@ -47,7 +47,7 @@ bootloader 的 `USER_SOFTWARE_SIZE` 改 `0x080000`、链接脚本的程序区改
 
 **第五步，软件跟进。** 3.4.0 的软件包模板 `-march` 带 `_zicsr_zifencei`，
 同步之后可以改用 IDE 自带的 gcc 13.4，`../../Main/doc/开发环境.md` 第 2、7 节与 `../../Main/sw/README.md` 的编译命令要一起改。
-改完之后 `sw/bootSizeTest` 的两个 CRC 期望值要重新计算，因为工具链变了。
+改完之后 `sw/apps/test/bootSizeTest` 的两个 CRC 期望值要重新计算，因为工具链变了。
 
 ## 3 判据
 

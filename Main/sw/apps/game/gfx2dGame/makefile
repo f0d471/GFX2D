@@ -18,4 +18,4 @@ LIBS     = core
 # INJECT=<名字>    打开 lib/ 里对应的注错宏（-DINJECT_<名字>）
 # EXTRA_CFLAGS=..  临时追加编译选项，例如 -DFRAMES=12000 做长跑
 PLATFORM ?= target
-include ../mk/$(PLATFORM).mk
+include ../../../mk/$(PLATFORM).mk

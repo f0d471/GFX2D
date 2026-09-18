@@ -54,7 +54,7 @@
 
 | 项 | 内容 |
 | --- | --- |
-| `sw/execSwTest` | 表面表（4 个表面）、命令解释（NOP/FILL/BLIT/SET_CLIP/END）、5 个混合方程加非预乘 ALPHA 开关的像素核心、色键判定 |
+| `sw/apps/probe/execSwTest` | 表面表（4 个表面）、命令解释（NOP/FILL/BLIT/SET_CLIP/END）、5 个混合方程加非预乘 ALPHA 开关的像素核心、色键判定 |
 | 九个板上用例 | FILL 全屏、BLIT COPY、BLIT 色键、BLIT ALPHA 预乘、BLIT ALPHA 非预乘、BLIT ADD、CONST、裁剪、舍入穷举 |
 | 三种编译配置 | 基线 `-O2`、省空间 `-Os`、按行处理；三份 ELF 的 SHA256 与 bin 大小登记 |
 | 吞吐口径 | `pixel_total` 与 `pixel_written`、`cycles / pixel_written`、打点范围、数据规模 |
@@ -63,7 +63,7 @@
 
 两处判据需要重写，**不要照旧验收**：其一，「舍入的穷举用例在板上跑过并通过」，
 穷举是纯整数运算、与板子无关，实际只在主机侧跑过；其二，「三种编译配置各给出数字」，
-`sw/execSwTest` 不存在，没有任何吞吐数字。详见第 01 章第六节。
+`sw/apps/probe/execSwTest` 不存在，没有任何吞吐数字。详见第 01 章第六节。
 
 规格本身留下一条账：素材流水线要校验预乘满足 `src_pm ≤ a`（第 01 章 5.3 节第二条），
 它属于素材工具，不在规格范围内。

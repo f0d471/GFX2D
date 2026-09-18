@@ -70,7 +70,7 @@ endfunction
 
 写一笔事务的寄存器取自同一份文件头：`LEN`（偏移 `0x0C`）送到 `awlen`，`LEN=0` 即单拍；
 `COUNT`（`0x10`）是事务数；`MODE`（`0x14`）的 bit0 是 WRITE；`CTRL`（`0x00`）的 bit0 是 START；
-`STATUS`（`0x04`）的 bit1 是 DONE。程序 `Main/sw/cacheCoherencyTest/src/main.c` 的写法：
+`STATUS`（`0x04`）的 bit1 是 DONE。程序 `Main/sw/apps/test/cacheCoherencyTest/src/main.c` 的写法：
 
 ```c
 static uint32_t probe_write(uint32_t a)
@@ -300,7 +300,7 @@ endif
 ### 3.6 机理实验 cacheMechTest
 
 一致性判据成立要靠几条关于缓存本身的事实，而这些事实在本章过程中都被猜错过（第四节）。
-`Main/sw/cacheMechTest` 把每一条做成一组独立判据，每组开头先失效全部缓存，自带期望值，
+`Main/sw/apps/probe/cacheMechTest` 把每一条做成一组独立判据，每组开头先失效全部缓存，自带期望值，
 不符即计入 `fail`。各组的做法与要回答的问题：
 
 - **T1** 4096 个不同页的地址，各写一个值后立刻读回：CPU 写后读会不会读到别的值。
@@ -487,7 +487,7 @@ T10 这种由代码布局触发的清除，只有在同一份源码换编译档�
 
 ### 4.3 最小实验 cacheMinTest 的关键对照无效
 
-**第一现场。** 为了把问题限定在缓存本身，新写 `Main/sw/cacheMinTest`，去掉外部主机，只问三件事：
+**第一现场。** 为了把问题限定在缓存本身，新写 `Main/sw/apps/probe/cacheMinTest`，去掉外部主机，只问三件事：
 同一地址连读两次、写之后读回、CPU 经别名写入之后原地址读到什么。原始输出（2026-09-18 复跑，与当时相同）：
 
 ```
@@ -503,7 +503,7 @@ fail 0
 done
 ```
 
-**解读。** 当时读出两条：S3 与 `sw/ddrAliasTest` 的 `CACHE_NOEVICT` 同手法，那边读到旧值 `11`、这边读到 `22`，
+**解读。** 当时读出两条：S3 与 `sw/apps/probe/ddrAliasTest` 的 `CACHE_NOEVICT` 同手法，那边读到旧值 `11`、这边读到 `22`，
 于是认定「写之后读一次不能把行装进缓存」；并据此把正式判据改成「别名写、等写缓冲排空、读一次核对 `armed`」。
 
 **定位。** S3 的序列是：
@@ -763,13 +763,13 @@ A armed=0 FAIL
 
 | 产物 | 编译 | 大小 | SHA256 前 16 位 | 日志 |
 | --- | --- | ---: | --- | --- |
-| `sw/cacheCoherencyTest` 正常版 | `-Og` | 4850 | `a4c88d7b4f3fd078` | `normal_1.log` ~ `normal_3.log` |
-| `sw/cacheCoherencyTest` 注错版 | `-Og`，`INJECT=1` | 4986 | `f3170f2da4a4c4a9` | `inject.log` |
-| `sw/cacheCoherencyTest` 注错自检版 | `-Og`，`INJECT=2` | 4994 | `98287c7a6126d411` | `inject_selftest.log` |
-| `sw/cacheCoherencyTest` 正常版 | `-O0`，`DEBUG_OG=no` | 9098 | `dfb5b2d3f767e29d` | `o0_normal.log` |
-| `sw/cacheCoherencyTest` 注错版 | `-O0`，`INJECT=1` | 9146 | `974d605510654c6f` | `o0_inject.log` |
-| `sw/cacheMechTest` | `-Og` | 6906 | `21dccb3fd0e8a20b` | `run_1.log`、`run_2.log` |
-| `sw/cacheMinTest` | `-Og` | 2690 | `ea0556fddb1f214a` | `run_1.log` |
+| `sw/apps/test/cacheCoherencyTest` 正常版 | `-Og` | 4850 | `a4c88d7b4f3fd078` | `normal_1.log` ~ `normal_3.log` |
+| `sw/apps/test/cacheCoherencyTest` 注错版 | `-Og`，`INJECT=1` | 4986 | `f3170f2da4a4c4a9` | `inject.log` |
+| `sw/apps/test/cacheCoherencyTest` 注错自检版 | `-Og`，`INJECT=2` | 4994 | `98287c7a6126d411` | `inject_selftest.log` |
+| `sw/apps/test/cacheCoherencyTest` 正常版 | `-O0`，`DEBUG_OG=no` | 9098 | `dfb5b2d3f767e29d` | `o0_normal.log` |
+| `sw/apps/test/cacheCoherencyTest` 注错版 | `-O0`，`INJECT=1` | 9146 | `974d605510654c6f` | `o0_inject.log` |
+| `sw/apps/probe/cacheMechTest` | `-Og` | 6906 | `21dccb3fd0e8a20b` | `run_1.log`、`run_2.log` |
+| `sw/apps/probe/cacheMinTest` | `-Og` | 2690 | `ea0556fddb1f214a` | `run_1.log` |
 
 ### 5.1 一致性判据
 

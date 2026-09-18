@@ -68,7 +68,7 @@ data_cache_invalidate_all();                  /* 或 data_cache_invalidate_addre
 **SW1 已于 2026-09-19 验收**，按用户要求条目暂不删除，见
 [`../../Todo/SW1-软件平台分层与双目标构建.md`](../../Todo/SW1-软件平台分层与双目标构建.md)。
 SW2 及以后的条目可以直接往这套分层里放代码：
-`sdk/` 只读、项目板级层 `sw/bsp/`（`ti60/` 与 `host/`）、纯算法 `sw/lib/`、应用 `sw/gfx2dGame/` 之类，
+`sdk/` 只读、项目板级层 `sw/bsp/`（`ti60/` 与 `host/`）、纯算法 `sw/lib/`、应用 `sw/apps/game/gfx2dGame/` 之类，
 分层由各层的头文件路径保证，构建入口是 `sw/mk/target.mk` 与 `sw/mk/host.mk`。
 本章第 01 篇记录的就是它怎么做出来的与踩过的坑。
 

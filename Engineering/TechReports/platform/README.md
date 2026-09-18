@@ -61,7 +61,7 @@ DDR3 上已经有第二个 AXI 主机的位置（第 03 章）：`u_axi_mux` 常
 `Todo/E3-缓存一致性.md` 已于 2026-09-18 验收通过；按用户要求该条目**保留观察一段时间**，
 暂不按流转规则删除。真要删之前再确认一次并入是否完整：
 它的判据计划、原始输出、每一版判据的失败过程与订正记录都已经在第 05 章里有一份，
-原始日志随程序入库（`Main/sw/cacheCoherencyTest/logs/`、`cacheMechTest/logs/`、`cacheMinTest/logs/`），
+原始日志随程序入库（`Main/sw/apps/test/cacheCoherencyTest/logs/`、`Main/sw/apps/probe/cacheMechTest/logs/`、`Main/sw/apps/probe/cacheMinTest/logs/`），
 删除该条目不会丢信息。
 软件侧要接着用的两条结论（共享区一致性规则、同帧 CRC 判据的前置条件）
 另登记在 [`../sw/README.md`](../sw/README.md)，因为软件执行器归那个系列。
