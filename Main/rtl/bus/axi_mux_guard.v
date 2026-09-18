@@ -9,14 +9,14 @@
 //
 //   偏移    名称            读写  复位值        内容
 //   0x000   ID              只读  32'h4D55_5847  ASCII "MUXG"
-//   0x004   VERSION         只读  1             寄存器接口版本
+//   0x004   VERSION         只读  2             寄存器接口版本（2：两个 MAX 改为运行中取最大，见下）
 //   0x008   CTRL            读写  3             bit0 ARB_TYPE（1 优先级），bit1 GUARD_EN
 //   0x00C   CHANNEL_MASK    读写  7             三位用户掩码，bit0 S0、bit1 S1、bit2 S2
 //   0x010   AGE_LIMIT       读写  64            保护触发阈值，单位 core_clk 周期
 //   0x014   STATUS          只读  0             bit0 protect_ar，bit1 protect_aw
 //   0x018   GUARD_HITS      只读  0             两个 protect 的 0->1 次数之和
-//   0x01C   S2_MAX_WAIT_AR  只读  0             SoC ARVALID 拉高到握手的最大周期数
-//   0x020   S2_MAX_WAIT_AW  只读  0             SoC AWVALID 拉高到握手的最大周期数
+//   0x01C   S2_MAX_WAIT_AR  只读  0             SoC ARVALID 为高、ARREADY 为低的最长连续周期数，含尚未握手的那一笔
+//   0x020   S2_MAX_WAIT_AW  只读  0             SoC AWVALID 为高、AWREADY 为低的最长连续周期数，含尚未握手的那一笔
 //   0x024   CLEAR           只写  —             bit0 写 1 清 GUARD_HITS 与两个 MAX，不改配置与保护状态
 //
 // 保护逻辑（2.2 节措施二）：
@@ -28,12 +28,16 @@
 //
 // 为什么安全：Axi_Mux 的掩码只参与新通道搜索（Axi_Mux.v 第 2491 行 Effe_S_Val），
 // 已经锁存在 Act_Cnl_List 的授权与在途事务不受掩码变化影响，所以不撤销 valid 也不违反 AXI 协议。
+//
+// 两个 MAX 每拍都更新（VERSION 2）：版本 1 只在握手那一拍取最大值，SoC 真被卡住、永不握手时
+// 寄存器停在上一笔的值上，恰好看不到这个模块要诊断的情形（E5 复核时仿真里就这样误判过一次）。
+// 对已完成的事务，两种取法的结果逐拍相同。
 `timescale 1ns/1ps
 `default_nettype none
 
 module axi_mux_guard #(
     parameter [31:0] ID      = 32'h4D55_5847,
-    parameter [31:0] VERSION = 32'h0000_0001
+    parameter [31:0] VERSION = 32'h0000_0002
 )(
     input  wire        clk,
     input  wire        rst,        // 同步复位，高有效
@@ -175,9 +179,13 @@ assign cnl_mask = cfg_mask & {1'b1, guard_allow_s1, 1'b1};
 // ---------------------------------------------------------------------------
 // 统计：protect 的 0->1 次数、两个方向的最大地址等待
 // ---------------------------------------------------------------------------
-// 等待计数在握手那一拍仍是「握手前累计的等待周期数」，此时取最大值
-wire ar_done = ar_hand;
-wire aw_done = aw_hand;
+// 运行中取最大：等待中的这一拍结束后已等了 wait+1 拍，每拍与 MAX 比较。
+// 一笔等了 N 拍再握手时，最大值正好是 N，与握手时取值相同；永不握手的那一笔也会一直往上涨。
+// 计数饱和时不再加一，避免 wait+1 回绕成 0。
+wire [31:0] ar_wait_now = wait_ar + 32'h1;
+wire [31:0] aw_wait_now = wait_aw + 32'h1;
+wire ar_grow = ar_waiting & ~(&wait_ar) & (ar_wait_now > stat_max_ar);
+wire aw_grow = aw_waiting & ~(&wait_aw) & (aw_wait_now > stat_max_aw);
 
 // 保护的 0->1 沿，按方向各算一次：同一拍两个方向都触发时要加 2
 wire ar_rise = ar_reach & ~protect_ar;
@@ -197,10 +205,10 @@ always @(posedge clk) begin
             // 保护触发次数：Ar、AW 两个 0->1 沿之和，同一拍可加 0/1/2（E5 2.2 节）
             stat_hits <= stat_hits + {31'b0, ar_rise} + {31'b0, aw_rise};
 
-            if (ar_done & (wait_ar > stat_max_ar))
-                stat_max_ar <= wait_ar;
-            if (aw_done & (wait_aw > stat_max_aw))
-                stat_max_aw <= wait_aw;
+            if (ar_grow)
+                stat_max_ar <= ar_wait_now;
+            if (aw_grow)
+                stat_max_aw <= aw_wait_now;
         end
     end
 end

@@ -6,16 +6,20 @@
 //   CASE_GRANT_SEQUENCE  直接例化 Axi_Mux_Addr_Ctrl，复现固定授权序列
 //   CASE_DUAL_DIRECTION  guard 单元用例：AR、AW 同时超限且分时完成
 //   CASE_CHAIN           全链路：三个主机 + guard + Axi_Mux + 从机
-//                       可叠加 GUARD_OFF / INFLIGHT1 / INJECT_MASK_S0 / HOLD_MIDGRANT
+//                       可叠加 GUARD_OFF / INFLIGHT1 / S1_WRITE / INJECT_MASK_S0 / HOLD_MIDGRANT / INJECT_WLAST
 //
-// 判据（对应 E5 2.2 节的用例表）：
+// 判据（对应 E5 2.2 节的用例表，阈值都是按实测定的验收口径，不是形式上界）：
 //   grant_sequence   三路持续请求复现 S0=10 S1=10 S2=0；仅 S1/S2 复现 S1=19 S2=0
-//   normal           保护开启，S2 地址等待 ≤ AGE_LIMIT + ADDR_STALL_MAX + 4 且完成全部请求
-//   inflight1        保护关闭、S1 每方向一笔在途，S2 仍能完成全部请求
-//   dual_direction   两个 protect 都清除之前 S1 不恢复
-//   inject_noguard   保护关闭 + 激进 S1，S2 必须饿死（判据报 FAIL 才算对）
+//   dual_direction   两个 protect 都清除之前 S1 不恢复；同拍触发 HITS 加 2；
+//                    未握手时 S2_MAX_WAIT 已经在涨（VERSION 2 的运行中最大值）
+//   全链路用例一律要求：S1 不撤销 valid、扫描不超时、从机的 wlast_err 为 0、
+//   S2 完成 CPU_REQS 笔、S2 最大地址等待（含未握手的那一笔）不超过阈值。
+//   阈值：遵守措施一 CONTRACT_BOUND_VAL（414），激进 S1 NORMAL_BOUND_VAL（700）。
+//   读方向 normal / inflight1 PASS，inject_noguard 同一阈值下 FAIL（保护在读方向起作用的对照）；
+//   写方向 wr_* 全部 PASS，保护开关的结果逐项相同，由 run.sh 比对（见 E5 2.2 节「写方向」）；
 //   inject_mask_s0   掩码把 S0 位一起清掉，扫描必须拿不到授权（判据报 FAIL 才算对）
 //   inject_midgrant  S1 已获授权后下游持续不 ready，S1 不得撤销 valid，S2 释放后能完成
+//   inject_wlast     复原引擎替身打一拍的 WLAST，从机的协议检查必须报 FAIL
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -24,6 +28,9 @@
 `endif
 `ifndef RD_QUEUE_VAL
   `define RD_QUEUE_VAL 4
+`endif
+`ifndef WR_QUEUE_VAL
+  `define WR_QUEUE_VAL 1
 `endif
 `ifndef AGE_LIMIT_VAL
   `define AGE_LIMIT_VAL 64
@@ -223,7 +230,7 @@ Axi_Mux #(.SLAVE_ID_WIDTH(8), .ID_MODE_SEL("Normal"), .AXI_DATA_WIDTH(128)) u_mu
 // ---------------------------------------------------------------------------
 axi_ram_model #(
     .MAX_LEN(255), .SEED(7), .STALL(1),
-    .ADDR_STALL_MAX(`ADDR_STALL_MAX_VAL), .RD_QUEUE(`RD_QUEUE_VAL)
+    .ADDR_STALL_MAX(`ADDR_STALL_MAX_VAL), .RD_QUEUE(`RD_QUEUE_VAL), .WR_QUEUE(`WR_QUEUE_VAL)
 ) u_ram (
     .clk(clk), .rst_n(rstn),
     .awaddr(s_awaddr), .awlen(s_awlen), .awvalid(s_awvalid), .awready(s_awready),
@@ -374,7 +381,7 @@ endtask
 // ---------------------------------------------------------------------------
 integer c0, c1, c2;
 integer k;
-reg [31:0] rd_hits, rd_status, rd_maxar, rd_maxaw;
+reg [31:0] rd_hits, rd_status, rd_maxar, rd_maxaw, rd_ver;
 
 `ifdef CASE_GRANT_SEQUENCE
 // 窗口：设 valid、数 n 个时钟的握手，按通道归类
@@ -434,6 +441,16 @@ initial begin
     g_rd(12'h018, rd_hits);
     $display("DUAL 同拍触发: HITS=%0d (期望 2：AR、AW 各一次)", rd_hits);
     if (rd_hits !== 32'd2) errors = errors + 1;
+
+    // 两个方向都还没握手：S2_MAX_WAIT 必须已经在涨（VERSION 2 运行中取最大）。
+    // 版本 1 只在握手那一拍更新，这里读到的会是 0，真饿死时寄存器看不到
+    g_rd(12'h004, rd_ver);
+    g_rd(12'h01C, rd_maxar);
+    g_rd(12'h020, rd_maxaw);
+    $display("DUAL 未握手时: VERSION=%0d MAX_WAIT_AR=%0d MAX_WAIT_AW=%0d (期望 2 与两者都 >= 12)",
+             rd_ver, rd_maxar, rd_maxaw);
+    if (rd_ver !== 32'd2) errors = errors + 1;
+    if (rd_maxar < 32'd12 || rd_maxaw < 32'd12) errors = errors + 1;
 
     // 只让 AR 完成：protect_ar 清除，protect_aw 仍在，S1 不得恢复
     dd_arready = 1;
@@ -502,6 +519,7 @@ initial begin
     $display("CHAIN 反压: ARREADY 连续为低最大 %0d 拍，上限 %0d", ar_low_max, `ADDR_STALL_MAX_VAL);
 `ifndef CASE_DUAL_DIRECTION
     if (proto_err) $display("CHAIN 协议违例: S1 在握手前撤销了 valid");
+    $display("CHAIN 协议: 从机 wlast_err=%0d（WLAST 与 AWLEN 对不上的拍数，必须为 0）", u_ram.wlast_err);
 `endif
 
     // 判据
@@ -513,10 +531,10 @@ initial begin
         $display("RESULT: PASS (注错没有生效：扫描仍然拿到授权)");
 `elsif HOLD_MIDGRANT
     // 已授权后持续反压：S1 不得撤销 valid，释放后 S2 必须恢复
-    if (!proto_err && cpu_done_rd >= `CPU_REQS)
+    if (!proto_err && u_ram.wlast_err == 0 && cpu_done_rd >= `CPU_REQS)
         $display("RESULT: PASS (S1 未撤销 valid，释放后 S2 完成 %0d 笔读)", cpu_done_rd);
     else
-        $display("RESULT: FAIL (proto_err=%b cpu_rd=%0d：S1 的 valid 被撤销或 S2 没能恢复)", proto_err, cpu_done_rd);
+        $display("RESULT: FAIL (proto_err=%b wlast_err=%0d cpu_rd=%0d：协议违例或 S2 没能恢复)", proto_err, u_ram.wlast_err, cpu_done_rd);
 `else
     // 保护开启/关闭跑同一判据，方向由 S1_WRITE 选；阈值来自实测定（E5 2.2 节）。
     // 这里**不做**「关保护就报 FAIL」的硬编码：保护关闭必须靠实测超过阈值才 FAIL，
@@ -528,20 +546,20 @@ initial begin
 `endif
 `ifdef S1_WRITE
     // S1 写满负载：竞争在写仲裁器上，看 S2 的写地址等待
-    if (!proto_err && scan_timeout == 1'b0 && cpu_done_wr >= `CPU_REQS && cpu_max_aw <= `BOUND_VAL)
+    if (!proto_err && u_ram.wlast_err == 0 && scan_timeout == 1'b0 && cpu_done_wr >= `CPU_REQS && cpu_max_aw <= `BOUND_VAL)
         $display("RESULT: PASS (写方向：S2 写 %0d 笔，最大等待 %0d <= %0d)", cpu_done_wr, cpu_max_aw, `BOUND_VAL);
     else begin
-        $display("RESULT: FAIL (写方向：proto_err=%b scan_timeout=%b S2 写=%0d 最大等待=%0d 阈值=%0d)",
-                 proto_err, scan_timeout, cpu_done_wr, cpu_max_aw, `BOUND_VAL);
+        $display("RESULT: FAIL (写方向：proto_err=%b wlast_err=%0d scan_timeout=%b S2 写=%0d 最大等待=%0d 阈值=%0d)",
+                 proto_err, u_ram.wlast_err, scan_timeout, cpu_done_wr, cpu_max_aw, `BOUND_VAL);
         errors = errors + 1;
     end
 `else
     // S1 读满负载：竞争在读仲裁器上，看 S2 的读地址等待
-    if (!proto_err && scan_timeout == 1'b0 && cpu_done_rd >= `CPU_REQS && cpu_max_ar <= `BOUND_VAL)
+    if (!proto_err && u_ram.wlast_err == 0 && scan_timeout == 1'b0 && cpu_done_rd >= `CPU_REQS && cpu_max_ar <= `BOUND_VAL)
         $display("RESULT: PASS (读方向：S2 读 %0d 笔，最大等待 %0d <= %0d)", cpu_done_rd, cpu_max_ar, `BOUND_VAL);
     else begin
-        $display("RESULT: FAIL (读方向：proto_err=%b scan_timeout=%b S2 读=%0d 最大等待=%0d 阈值=%0d)",
-                 proto_err, scan_timeout, cpu_done_rd, cpu_max_ar, `BOUND_VAL);
+        $display("RESULT: FAIL (读方向：proto_err=%b wlast_err=%0d scan_timeout=%b S2 读=%0d 最大等待=%0d 阈值=%0d)",
+                 proto_err, u_ram.wlast_err, scan_timeout, cpu_done_rd, cpu_max_ar, `BOUND_VAL);
         errors = errors + 1;
     end
 `endif
@@ -671,8 +689,12 @@ module master_aggr (
     input  wire         awready,
     output wire [127:0] wdata,
     output wire [15:0]  wstrb,
+`ifdef INJECT_WLAST
     output reg          wlast,
-    output reg          wvalid,
+`else
+    output wire         wlast,
+`endif
+    output wire         wvalid,
     input  wire         wready,
     input  wire         bvalid,
     output wire         bready,
@@ -681,7 +703,16 @@ module master_aggr (
     reg        rd_busy = 0;
     reg        aw_hold = 0;
     reg [7:0]  wcnt = 0;
-    reg [31:0] aw_issued = 0, w_served = 0;
+    reg [31:0] aw_issued = 0, w_served = 0, b_done = 0;
+
+    // W 通道全部用组合逻辑：有已发出地址、还没发完数据的写就拉高 wvalid，
+    // WLAST 由当前拍号直接给出。2026-09-19 之前这两个信号是打一拍的寄存器，
+    // 连续握手时末拍漏掉 WLAST、下一笔第 0 拍反而带上，W 错位后整条写通路死锁
+    // （INJECT_WLAST 复原这个错误，从机的 wlast_err 必须把它抓出来）。
+    assign wvalid = enable && mode && (w_served < aw_issued);
+`ifndef INJECT_WLAST
+    assign wlast  = (wcnt == 8'd255);
+`endif
 
     assign arlen   = 8'd255;
     assign arsize  = 3'b100;
@@ -697,9 +728,12 @@ module master_aggr (
 
     always @(posedge clk) begin
         if (!rstn) begin
-            arvalid <= 1'b0; awvalid <= 1'b0; wvalid <= 1'b0; wlast <= 1'b0;
+            arvalid <= 1'b0; awvalid <= 1'b0;
+`ifdef INJECT_WLAST
+            wlast <= 1'b0;
+`endif
             rd_busy <= 1'b0; wcnt <= 8'd0; txn_done <= 32'h0;
-            aw_issued <= 32'h0; w_served <= 32'h0; aw_hold <= 1'b0;
+            aw_issued <= 32'h0; w_served <= 32'h0; b_done <= 32'h0; aw_hold <= 1'b0;
             araddr <= 32'h0010_0000; awaddr <= 32'h0020_0000;
         end else begin
             // 读方向
@@ -721,8 +755,8 @@ module master_aggr (
             end else
                 arvalid <= 1'b0;
 
-            // 写方向：地址流水，W 拍按序发。
-            // valid 一旦拉高就保持到握手（AXI 要求）；inflight1 时等上一笔的 W 拍发完再拉下一笔。
+            // 写方向：激进时地址流水，W 拍按序发；valid 一旦拉高就保持到握手（AXI 要求）。
+            // inflight1 按 E5 措施一：上一笔的写响应（bvalid 握手，bready 恒 1）回来之前不拉下一笔 awvalid。
             if ((mode == 1'b1) && enable) begin
                 if (awvalid) begin
                     if (awready) begin
@@ -731,28 +765,23 @@ module master_aggr (
                         awvalid   <= inflight1 ? 1'b0 : 1'b1;
                         aw_hold   <= inflight1;
                     end
-                end else if (!aw_hold || (aw_issued == w_served)) begin
+                end else if (!aw_hold || (aw_issued == b_done)) begin
                     awvalid <= 1'b1;
                     aw_hold <= 1'b0;
                 end
-                if (w_served < aw_issued) begin
-                    wvalid <= 1'b1;
-                    wlast  <= (wcnt == 8'd255);
-                    if (wvalid && wready) begin
-                        if (wcnt == 8'd255) begin
-                            wcnt     <= 8'd0;
-                            w_served <= w_served + 32'h1;
-                        end else
-                            wcnt <= wcnt + 8'd1;
-                    end
-                end else begin
-                    wvalid <= 1'b0;
-                    wlast  <= 1'b0;
+                if (bvalid) b_done <= b_done + 32'h1;
+                if (wvalid && wready) begin
+                    if (wcnt == 8'd255) begin
+                        wcnt     <= 8'd0;
+                        w_served <= w_served + 32'h1;
+                    end else
+                        wcnt <= wcnt + 8'd1;
                 end
+`ifdef INJECT_WLAST
+                wlast <= (wcnt == 8'd255);     // 注错：打一拍的旧写法
+`endif
             end else begin
                 awvalid <= 1'b0;
-                wvalid  <= 1'b0;
-                wlast   <= 1'b0;
             end
         end
     end
@@ -812,10 +841,21 @@ module master_cpu (
     assign wlast   = 1'b1;
     assign bready  = 1'b1;
 
+    // 最大地址等待按运行中取最大：每拍都比较，卡住不握手的那一笔也能看到。
+    // 2026-09-19 之前只在握手那一拍更新，写通路死锁时报出来的是「已完成那几笔」的最大值 610，
+    // 真正卡住的那笔已经等了一万多拍却不出现在任何统计里。
+    always @(posedge clk) begin
+        if (!rstn) begin
+            max_ar_wait <= 32'h0; max_aw_wait <= 32'h0;
+        end else if (enable) begin
+            if (arvalid && !arready && (wait_ar + 32'h1 > max_ar_wait)) max_ar_wait <= wait_ar + 32'h1;
+            if (awvalid && !awready && (wait_aw + 32'h1 > max_aw_wait)) max_aw_wait <= wait_aw + 32'h1;
+        end
+    end
+
     always @(posedge clk) begin
         if (!rstn) begin
             arvalid <= 1'b0; awvalid <= 1'b0; done_rd <= 32'h0; done_wr <= 32'h0;
-            max_ar_wait <= 32'h0; max_aw_wait <= 32'h0;
             gap <= 32'h0; wait_ar <= 32'h0; wait_aw <= 32'h0; rd_phase <= 1'b0;
             araddr <= 32'h0000_1000; awaddr <= 32'h0000_2000;
         end else if (!enable) begin
@@ -828,7 +868,6 @@ module master_cpu (
             awvalid <= 1'b0;
             arvalid <= 1'b1;
             if (arvalid && arready) begin
-                if (wait_ar > max_ar_wait) max_ar_wait <= wait_ar;
                 wait_ar <= 32'h0;
                 arvalid <= 1'b0;
                 araddr  <= araddr + 32'd64;
@@ -841,7 +880,6 @@ module master_cpu (
             arvalid <= 1'b0;
             awvalid <= 1'b1;
             if (awvalid && awready) begin
-                if (wait_aw > max_aw_wait) max_aw_wait <= wait_aw;
                 wait_aw <= 32'h0;
                 awvalid <= 1'b0;
                 awaddr  <= awaddr + 32'd64;

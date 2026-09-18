@@ -17,12 +17,12 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | Cache 一致性（E3） | 已上板实测并验收（2026-09-18）：外部主机改写后 CPU 读到旧值，失效之后读到新值；共享区约定放宽为「读回前必须失效」，失效要晚于外部写入完成。判据 `sw/apps/test/cacheCoherencyTest`、机理实验 `sw/apps/probe/cacheMechTest`，见 `../Engineering/TechReports/platform/05-CPU数据缓存与第二个主机写入的一致性.md` |
 | 像素规格（E7 §2.1） | 已定稿并经用户确认（2026-09-18）：写进 `doc/赛题二总体设计.md` 3.5 节，舍入、位宽、舍入顺序与预乘量化误差有穷举校验（`tools/check_round255.c`、`tools/verify_round255.c`）。E7 整体未验收，软件执行器未开工 |
 | 渲染引擎、帧缓冲、双缓冲 | 还没有开始 |
-| Axi_Mux 端口重分配与防饿死（E5 §2.1~2.3） | 已上板验证（2026-09-19）：`Axi_Mux` 用 X3，S0=扫描替身、S1=探针、S2=SoC；永久模块 `axi_mux_guard`（`0xF810_F000`）给出仲裁方式、三通道掩码与 SoC 地址等待保护，`scanout_stub`（`0xF810_E000`）按行节拍发 160 拍读并记录首拍/整笔/拍间隙。三方并发下 CPU 拷贝 1.70 倍、扫描最坏首拍 78 拍、保护命中 17443、S0 掩码反例与 `AGE_LIMIT=1` 注错都符合预期，`ddrBurstProbe` 末行 `fail 0`。见 `../Engineering/Todo/E5-Axi_Mux优先级与扫描FIFO水位.md`。**2.4 真实扫描 FIFO 水位待扫描输出存在后再做** |
+| Axi_Mux 端口重分配与防饿死（E5 §2.1~2.3） | 已上板验证（2026-09-19）：`Axi_Mux` 用 X3，S0=扫描替身、S1=探针、S2=SoC；永久模块 `axi_mux_guard`（`0xF810_F000`）给出仲裁方式、三通道掩码与 SoC 地址等待保护，`scanout_stub`（`0xF810_E000`）按行节拍发 160 拍读并记录首拍/整笔/拍间隙。三方并发下 CPU 拷贝 1.70 倍（探针读）、1.92 倍（探针写），扫描没有跳行，S0 掩码反例与 `AGE_LIMIT=1` 注错都符合预期，`ddrBurstProbe` 连跑三轮 `fail 0`；guard VERSION 2（2026-09-19 复核：两个 MAX 每拍更新，写方向「CPU 被停住」的结论是测试台错误，已撤回）。**2.1~2.3 已验收（2026-09-19）**，见 `../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md` 与 `../Engineering/Todo/E5-Axi_Mux优先级与扫描FIFO水位.md`。**2.4 真实扫描 FIFO 水位待扫描输出存在后再做** |
 | 软件平台分层与双目标构建（SW1） | **已验收**（2026-09-19）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
 | SoC 资源裁剪 | 还没有做 |
 
-编译占用 XLR 21065（34.65%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack（2026-09-19，E5 端口重分配后；
-重分配前是 XLR 16151、setup 2.994 / hold 0.026，之后 setup 3.467 / hold 0.026，增量归因见 E5 条目）。
+编译占用 XLR 21753（35.78%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack，`core_clk` setup 3.780 / hold 0.026 ns
+（2026-09-19，guard VERSION 2 之后；E5 端口重分配前是 XLR 16151、setup 2.994，重分配后 21065、3.467，增量归因见 platform 第 06 章 5.1 节）。
 这些数字相对第 01 章基线的变化见 `../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.2 节；
 SoC 构型的对比与资源归因见 `../Engineering/TechReports/platform/04-SoC构型对比与资源归因.md`；
 五项上板判据的原始输出，以及基线是怎么搭起来的，见
@@ -126,7 +126,7 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   提交前跑一次 `--restore` 与 `--check`。
 - **判据要能注错见红**：每个仿真除了正常用例，必须有把逻辑改错后会 FAIL 的用例，
   否则不算验证过。
-- **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，`axi_mux_guard` 9/9，Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
+- **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，`axi_mux_guard` 17/17，Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
   改了 `sw/` 下走新构建的程序（`gfx2dGame` 与以后的应用）还要过 `sw/README.md` 里的两套构建、
   主机侧单元测试与 `tools/check_sw_layers.sh`。
 - **数字要标明来源**：估算与推测必须写清楚，实测要给命令和结果。

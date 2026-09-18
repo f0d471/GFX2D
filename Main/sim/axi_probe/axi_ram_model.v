@@ -8,12 +8,18 @@
 //                   用来给「SoC 地址等待」一个可验证的上界（E5 2.2 节）
 //   RD_QUEUE        读事务队列深度，默认 1 保持原有行为（地址通道只在空闲时开）；
 //                   大于 1 是流水从机，数据还在流也能收地址，E5 用它复现「下游基本随时可收」
+//   WR_QUEUE        写地址队列深度，默认 1 保持原有行为（只在写通道空闲时收 AW）；
+//                   大于 1 时写数据还在收也能先收下一个 AW，E5 写方向用它构造与读方向对等的条件
 //   hold_aw         高电平期间强制 AWREADY 为低（已授权之后的持续反压）
 //   hold_ar         高电平期间强制 ARREADY 为低（同上，读方向）
 //
 // 注错宏（由 run.sh 传入）：
 //   INJECT_FLIP  地址 0x0000_0100 那一拍写入时翻转最低位，读比对必须失配
 //   INJECT_HANG  永不发出写响应，主机必须超时
+//
+// 协议检查：写数据的 WLAST 与 AWLEN 对不上时打印 MODEL: wlast mismatch，并把 wlast_err 加一。
+// 测试台必须把 wlast_err 非零判为失败：E5 复核时一个主机替身的 WLAST 错了一拍，
+// 这条报警打印了几十次却没有任何用例失败，W 错位后整条写通路死锁，被误读成「CPU 被饿死」。
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -22,7 +28,8 @@ module axi_ram_model #(
     parameter integer SEED    = 1,     // 每个 ready/valid 拉低的概率约 STALL/8
     parameter integer STALL   = 3,
     parameter integer ADDR_STALL_MAX = 0,
-    parameter integer RD_QUEUE = 1
+    parameter integer RD_QUEUE = 1,
+    parameter integer WR_QUEUE = 1
 )(
     input  wire         clk,
     input  wire         rst_n,
@@ -71,6 +78,7 @@ end
 
 // ---------------- 写 ----------------
 localparam W_IDLE = 2'd0, W_DATA = 2'd1, W_RESP = 2'd2;
+localparam QDEPTH_W = 16;
 reg [1:0]  wst;
 reg [31:0] wa;
 reg [7:0]  wlen, wcnt;
@@ -80,6 +88,16 @@ reg [15:0] aw_stall_cnt;
 // 地址通道连续反压达到上限时强制 ready，给出可验证的上界
 wire aw_force_ready = (ADDR_STALL_MAX != 0) && (aw_stall_cnt >= ADDR_STALL_MAX);
 
+// 写地址队列（只在 WR_QUEUE > 1 时使用）：与读方向的 RD_QUEUE 同义，
+// 不含正在收数据的那一笔，队列里最多排 WR_QUEUE 笔
+reg [31:0] wq_addr [0:QDEPTH_W-1];
+reg [7:0]  wq_len  [0:QDEPTH_W-1];
+reg [4:0]  wq_head = 5'd0, wq_tail = 5'd0;
+wire [4:0] wq_used  = wq_tail - wq_head;
+wire       wq_empty = (wq_head == wq_tail);
+
+integer wlast_err = 0;
+
 always @(posedge clk) begin
     if (!rst_n) begin
         wst     <= W_IDLE;
@@ -88,21 +106,47 @@ always @(posedge clk) begin
         bvalid  <= 1'b0;
         bresp   <= 2'b00;
         aw_stall_cnt <= 16'd0;
+        wq_head <= 5'd0;
+        wq_tail <= 5'd0;
     end else begin
         if (awvalid && awready)     aw_stall_cnt <= 16'd0;
         else if (!awready)          aw_stall_cnt <= aw_stall_cnt + 16'd1;
         else                        aw_stall_cnt <= 16'd0;
 
+        if (WR_QUEUE > 1) begin
+            // 流水从机：AW 先入队，写通道空闲时从队头取下一笔
+            if (hold_aw || !(wq_used < WR_QUEUE))
+                awready <= 1'b0;
+            else
+                awready <= aw_force_ready ? 1'b1 : !stall(0);
+            if (awvalid && awready) begin
+                wq_addr[wq_tail[3:0]] <= awaddr;
+                wq_len [wq_tail[3:0]] <= awlen;
+                wq_tail <= wq_tail + 5'd1;
+            end
+        end
+
         case (wst)
         W_IDLE: begin
-            awready <= hold_aw ? 1'b0 : (aw_force_ready ? 1'b1 : !stall(0));
-            if (awvalid && awready) begin
-                awready <= 1'b0;
-                wa      <= awaddr;
-                wlen    <= awlen;
-                wcnt    <= 8'd0;
-                werr    <= (awlen > MAX_LEN);
-                wst     <= W_DATA;
+            if (WR_QUEUE > 1) begin
+                if (!wq_empty) begin
+                    wa      <= wq_addr[wq_head[3:0]];
+                    wlen    <= wq_len [wq_head[3:0]];
+                    wcnt    <= 8'd0;
+                    werr    <= (wq_len[wq_head[3:0]] > MAX_LEN);
+                    wq_head <= wq_head + 5'd1;
+                    wst     <= W_DATA;
+                end
+            end else begin
+                awready <= hold_aw ? 1'b0 : (aw_force_ready ? 1'b1 : !stall(0));
+                if (awvalid && awready) begin
+                    awready <= 1'b0;
+                    wa      <= awaddr;
+                    wlen    <= awlen;
+                    wcnt    <= 8'd0;
+                    werr    <= (awlen > MAX_LEN);
+                    wst     <= W_DATA;
+                end
             end
         end
         W_DATA: begin
@@ -116,8 +160,10 @@ always @(posedge clk) begin
                         ;
                 wa   <= wa + 32'd16;
                 wcnt <= wcnt + 8'd1;
-                if (wlast != (wcnt == wlen))
+                if (wlast != (wcnt == wlen)) begin
                     $display("MODEL: wlast mismatch at beat %0d", wcnt);
+                    wlast_err = wlast_err + 1;
+                end
                 if (wlast) begin
                     wready <= 1'b0;
                     wst    <= W_RESP;

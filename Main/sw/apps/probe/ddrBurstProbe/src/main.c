@@ -149,9 +149,10 @@ static int stage_ident(void)
     bsp_printf("IDENT id=0x%s arb=0x%s %s\r\n", a, b, ok ? "ok" : "FAIL");
     int fail = !ok;
 
-    /* E5 配置归属：guard 与扫描替身的窗口与上电默认值 */
+    /* E5 配置归属：guard 与扫描替身的窗口与上电默认值。
+       VERSION 2 = 两个 MAX_WAIT 改为运行中取最大（含未握手的那一笔）；加载了旧比特流时这一行报 FAIL */
     uint32_t gc = grd(G_CTRL), gm = grd(G_MASK), ga = grd(G_AGE);
-    int gok = (grd(0x00) == 0x4D555847u) && (grd(0x04) == 1u) &&
+    int gok = (grd(0x00) == 0x4D555847u) && (grd(0x04) == 2u) &&
               (gc == 3u) && (gm == 7u) && (ga == 64u);
     bsp_printf("IDENT guard ctrl=%d mask=%d age=%d %s\r\n", gc, gm, ga, gok ? "ok" : "FAIL");
     fail += !gok;
@@ -402,7 +403,10 @@ static int stage_inject(void)
     grdw(G_MASK, 7u);           /* 恢复 */
     wait_ms(20);
     uint32_t t4 = scn(S_TXN);
-    int ok2 = (t1 > t0) && (t2 == t1) && (t3 == t1) && (t4 > t3);
+    /* 清位那一刻扫描替身可能正好有一笔在途（它允许每方向一笔在途），掩码不撤销已授权事务，
+       这一笔照常完成，所以 t2 最多比 t1 多 1；之后的 20 ms 里必须一笔都不增（t3 == t2）。
+       2026-09-19 之前写的是 t2 == t1，一次上板碰上在途那笔（14903 -> 14904）报了假红 */
+    int ok2 = (t1 > t0) && (t2 - t1 <= 1u) && (t3 == t2) && (t4 > t3);
     bsp_printf("INJECT mask_s0 txn %d %d %d %d %d %s\r\n", t0, t1, t2, t3, t4, ok2 ? "ok" : "FAIL");
     fail += !ok2;
 

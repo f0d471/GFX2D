@@ -31,7 +31,7 @@ SoC 经 `u_axi_mux` 接 DDR3 控制器，中间有两处有意的位宽截断，
 | --- | --- |
 | `apb_probe.v` | APB 探针寄存器，挂 APB Slave 0（CPU 地址 `0xF810_0000`，64KB 窗口）。窗口内 `0x1000~0x1FFF` 归 `axi_probe_master`、`0xE000~0xEFFF` 归 `scanout_stub`、`0xF000~0xFFFF` 归 `axi_mux_guard`，其余地址归它。`0x000` ID（只读，"GFX2"）、`0x004` VERSION（只读）、`0x008` SCRATCH（读写）；其余地址读回 0 并置 PSLVERROR |
 | `axi_probe_master.v` | AXI 探针主机，DDR3 上的第二个 AXI 主机，经 `Axi_Mux` S1 接入。寄存器在 APB Slave 0 的 `0x1000~0x1FFF`（CPU 地址 `0xF810_1000`），表在文件头。用于实验 E4，也是 CPU 之外的 DDR 观测者。它的 `ARB` 寄存器自 2026-09-19 起不再驱动 `Axi_Mux`，仲裁配置改由 `axi_mux_guard` 给出 |
-| `axi_mux_guard.v` | `Axi_Mux` 的仲裁方式、三通道用户掩码与 SoC（S2）地址等待的防饿死保护，永久模块。挂 APB Slave 0 的 `0xF000~0xFFFF`（CPU 地址 `0xF810_F000`），寄存器表在文件头。实验 E5 的 2.1、2.2 节 |
+| `axi_mux_guard.v` | `Axi_Mux` 的仲裁方式、三通道用户掩码与 SoC（S2）地址等待的防饿死保护，永久模块。挂 APB Slave 0 的 `0xF000~0xFFFF`（CPU 地址 `0xF810_F000`），寄存器表在文件头，当前 `VERSION` 为 2（两个 `S2_MAX_WAIT` 每拍更新，含尚未握手的那一笔）。写方向上 guard 没有可观测的作用，写方向的等待靠主机侧「每方向一笔在途」的契约。实验 E5 的 2.1、2.2 节，platform 第 06 章 |
 | `scanout_stub.v` | 扫描输出在 AXI 上的替身：按行节拍发 160 拍读，每个方向在途事务不超过 1，记录首拍等待、整笔时间与 R 拍间隙的最大值与直方图。挂 APB Slave 0 的 `0xE000~0xEFFF`（CPU 地址 `0xF810_E000`），寄存器表在文件头。实验 E5 的 2.3 节，真实扫描输出接入后撤掉 |
 
 加速器的控制寄存器将来接在同一条 APB 上，这个模块是占位，也是 APB 通路的自检手段：上板用 OpenOCD 直接读写这几个地址即可，不需要写程序。仿真见 `sim/apb_probe/`。

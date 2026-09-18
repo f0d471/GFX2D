@@ -174,27 +174,27 @@ gcc 8.3.0 编译，bin 2418 字节。串口逐行打印 `LOW k=0..27`、`LOW k=-
 
 ## ddrBurstProbe 的期望值
 
-需要带 `axi_probe_master`、`axi_mux_guard` 与 `scanout_stub` 的比特流（2026-09-19 起；此前只有四个阶段）。
-gcc 8.3.0 编译，bin 5914 字节（sha256 前 16 位 `d8cc075444bf7602`），`resume` 后数秒内输出完毕
-（2026-09-19 实测，六个阶段约 2 秒）。串口末尾为 `fail 0` 与 `done`，除下列各处外每行为 `ok`：
+需要带 `axi_probe_master`、`axi_mux_guard`（VERSION 2）与 `scanout_stub` 的比特流（2026-09-19 起）。
+gcc 8.3.0 编译，bin 6322 字节（sha256 前 16 位 `ac1bcc7b4c04a26d`），`resume` 后约 3 秒输出完毕。
+串口末尾为 `fail 0` 与 `done`，除下列各处外每行为 `ok`。2026-09-19 三轮的原始输出在 `apps/probe/ddrBurstProbe/logs/e5_v2_run_*.log`，
+判据改前那次假红在 `e5_v2_mask_race.log`。
 
-- `IDENT guard ctrl=3 mask=7 age=64 ok`、`IDENT scan id=0x5343414e base=0x02000000 ok`：
-  E5 的两个新窗口的 ID 与上电默认值。**配置归属这条判据就在这里。**
+- `IDENT guard ctrl=3 mask=7 age=64 ok`：guard 的 ID、`VERSION == 2` 与上电默认值，加载旧比特流（VERSION 1）时这一行 FAIL；
+  `IDENT scan id=0x5343414e base=0x02000000 ok`：扫描替身窗口。**配置归属这条判据就在这里。**
 - `CROSS`、`SWEEP` 与 E4 相同，每行 `ok`；`SHARE errs=0x00000000 ok`。
-- `SHARE cpu ticks alone=... shared=...`：优先级 + guard 下，CPU 拷贝在探针满负载时约 **1.60 倍**
-  （2026-09-19 实测 53.9 ms → 86.5 ms；E4 轮询基线约 1.94 倍）。
-- `TRI`：三方并发（扫描替身 + 探针替身 + CPU 拷贝）。实测 CPU 拷贝 91.5 ms（单独时 1.70 倍）；
-  `max_wait_ar=0x12f`（303 周期）、`max_wait_aw=0x1dd`（477）、`hits=0x4423`（17443）、
-  guard `status=0`；扫描 `txn≈2880`、`beat=txn×160`、`skip=0`、`resperr=0`，
-  最坏 `max_first=78`、`max_full=244`、`max_gap=42`（扫描单独跑时是 63 / 236 / 44）。
-- `INJECT age1 hits=... ok`：把 `AGE_LIMIT` 设成 1，命中数必须显著增加（实测 `0x44004`）且探针照常完成；
-  设回 64 后只记录（实测 `0x15df`）。
-- `INJECT mask_s0 txn a b c d e ok`：把 guard 掩码的 S0 位清掉，扫描的 `TXN_COUNT` 必须**冻住**
-  （实测 7249 → 7879 → 7879 → 7879），恢复后继续增长（8510）。这是「掩码确实送进多路器」的反例判据。
+- `SHARE cpu ticks alone=... shared=...`：CPU 拷贝在探针满负载读时约 **1.60 倍**（实测 53.9 ms 到 86.4 ms；E4 轮询基线约 1.94 倍）。
+- `TRI rd` / `TRI wr`：三方并发（扫描替身 + 探针读或写 + CPU 拷贝）。CPU 拷贝 91.5 ms（1.70 倍）/ 103.2 ms（1.92 倍）；
+  guard `max_wait_ar` 303 / 约 491、`max_wait_aw` 477 / 约 505、`hits` 约 17460 / 约 17540、`status=0`；
+  扫描 `beat = txn × 160`、`skip=0`、`resperr=0`，最坏 `max_first` 78 / 约 362、`max_full` 244 / 约 528、`max_gap` 42 / 44。
+  写方向时扫描首拍等待变长，来自控制器内部读写共用 DDR 端口（platform 第 06 章 5.3 节）。
+- `INJECT age1_rd` / `age1_wr`：`AGE_LIMIT` 设 1，两个方向命中数都必须显著增加（实测 278537 / 278536）且 `probe_done`；
+  `age64_*` 只记录（约 5600）。这一条只证明 guard 接到了真多路器，写方向 guard 不计为等待保证。
+- `INJECT mask_s0 txn a b c d e ok`：清掉 guard 掩码的 S0 位。清位时在途的那一笔会照常完成，所以 `c - b` 最多为 1；
+  之后必须冻住（`d == c`），恢复后继续增长（`e > d`）。实测 `14277 14906 14907 14907 15537` 与 `14278 14908 14908 14908 15539` 都判 ok。
 
 周期数随板子会有约 2% 的波动；E4 各阶段的参考值与解释见
 `../../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.4 节，
-E5 三阶段的判据与实测值见 `../../Engineering/Todo/E5-Axi_Mux优先级与扫描FIFO水位.md`。
+E5 两个阶段的判据、实测值与解释见 `../../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md` 5.3 节。
 探针主机超时或挂死时 CPU 也访问不了 DDR，串口会停在最后一行，重新加载比特流恢复。
 
 ## cacheCoherencyTest 的期望值
