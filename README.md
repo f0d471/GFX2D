@@ -38,6 +38,8 @@ WSL 里的 iverilog 与 python3、xPack 的 riscv-none-embed-gcc 8.3.0。
 | `02_.../驱动安装及说明/zadig-2.8.exe` | 给下载器换 libusbK 驱动 |
 | `02_.../软件安装包/jre-8u381-windows-x64.exe` | Java 8，生成或升级 SoC IP 时要用 |
 | `03_.../03_芯片数据手册/钛金Ti60datasheet-v2_0.pdf` | 片上 RAM 与 DSP 的规格 |
+| `05_外设器件手册/摄像头SC431HAI_数据手册_V1.1.pdf` | 随板摄像头的规格与寄存器，只有摄像头那条 Todo 用到 |
+| `05_外设器件手册/摄像头SC431HAI_模组实拍_20260918.jpg` | 随板摄像头模组的实拍，不在官方资料包里，是本项目补拍放进去的 |
 | `04_TinyML/tinyml-main/.../src/tinyml_soc_top.v` | 多个 AXI 主机共享 DDR3 的官方接法 |
 | `07_官网补充文档/` | Sapphire SoC、DDR3 控制器、AXI 互连的用户手册 |
 
