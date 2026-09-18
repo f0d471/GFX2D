@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.cv { position:absolute; height:96px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:22px;
+      clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 50%, calc(100% - 26px) 100%, 0 100%, 26px 50%); padding:0 30px; box-sizing:border-box; text-align:center; }
+.cv span { font-size:16px; font-weight:400; opacity:.95; }
+.cr { position:absolute; width:270px; font-size:17px; color:#1D2733; line-height:1.45; }
+.cr b { color:#174A7E; }
+.dt { position:absolute; transform:translateX(-50%); text-align:center; font-size:18px; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:20px;top:4px">关键日期</div>
+<div style="position:absolute;left:60px;top:70px;width:1660px;height:6px;background:#D3D9E0;border-radius:3px"></div>
+<script>
+const d0=Date.UTC(2026,8,14), d1=Date.UTC(2026,10,22); const X=v=>60+(v-d0)/(d1-d0)*1660;
+const D=[[Date.UTC(2026,8,14),'09-14','开工','#2E7D4F'],[Date.UTC(2026,8,18),'09-18','平台层完成','#2E7D4F'],[Date.UTC(2026,8,22),'09-22','报名截止 · 已报名','#2E7D4F'],
+         [Date.UTC(2026,10,4),'11-04 18:00','作品提交','#B23A48'],[Date.UTC(2026,10,20),'11-20 – 22','决赛','#B23A48']];
+const f=document.getElementById('fig');
+f.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${X(d0)}px;top:70px;width:${X(Date.UTC(2026,8,18))-X(d0)}px;height:6px;background:#2E7D4F;border-radius:3px"></div>`);
+D.forEach(([t,a,b,c],i)=>{const x=X(t);f.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${x-9}px;top:64px;width:18px;height:18px;border-radius:9px;background:${c}"></div><div class="dt" style="left:${i==4?x-70:x}px;top:${i%2?96:30}px;color:${c};white-space:nowrap"><b>${a}</b> ${b}</div>`);});
+</script>
+
+<div class="cap" style="left:20px;top:150px">里程碑：每一步判据通过再进下一步（次序，不代表工期）</div>
+<div class="cv" style="left:20px;top:196px;width:280px;background:#2E7D4F">M0 平台<span>已完成</span></div>
+<div class="cv" style="left:300px;top:196px;width:280px;background:#3F668B">M1 显示</div>
+<div class="cv" style="left:580px;top:196px;width:290px;background:#174A7E">M2 直通引擎</div>
+<div class="cv" style="left:870px;top:196px;width:290px;background:#174A7E">M3 游戏 · Demo</div>
+<div class="cv" style="left:1160px;top:196px;width:290px;background:#0C2E4E">M4 条带模式</div>
+<div class="cv" style="left:1450px;top:196px;width:290px;background:#5D6976">M5 收尾</div>
+
+<div class="cr" style="left:40px;top:310px">SoC + DDR3 · Flash 引导 · APB · HDMI 竖条 · 第二主机<br><b>E1 E2 E3 E4</b> 已验收<br><b>E7 像素规格</b> 已确认</div>
+<div class="cr" style="left:320px;top:310px">扫描输出从 DDR3 读帧缓冲 · 双缓冲<br><b>判据</b>：交换无撕裂；软件画方块帧率打到串口</div>
+<div class="cr" style="left:600px;top:310px">FILL · BLIT · 色键 · ALPHA · 错误通路 · 计数器<br><b>E5</b> 扫描 FIFO 水位<br><b>判据</b>：注错见红；同帧 CRC 一致；计数器对账</div>
+<div class="cr" style="left:890px;top:310px">PC 版游戏上板 · 素材流水线 · 三种演示模式<br><b>E6 E7 E8</b><br><b>判据</b>：基础要求全部演示；第一版计算统计</div>
+<div class="cr" style="left:1180px;top:310px">BAND + TEX + 多通路 · 条带分桶<br><b>判据</b>：CRC 仍一致；N<sub>max</sub> 相对 M3 的提升</div>
+<div class="cr" style="left:1470px;top:310px">P4 运动卸载（可选）· OSD · 特效 · 报告 · 视频<br><b>判据</b>：两种运动模式各自的 N<sub>max</sub></div>
+
+<div style="position:absolute;left:20px;top:540px;width:1720px;height:0;border-top:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:20px;top:556px">瓶颈的迁移（估算）</div>
+<div class="n ext" style="left:20px;top:610px;width:380px;height:190px"><div class="t" style="font-size:24px">软件基线</div><div class="s">硬件只做扫描输出</div><div class="s" style="margin-top:12px;color:#B23A48;font-weight:700">墙：CPU 访存带宽</div></div>
+<div class="n dat" style="left:460px;top:610px;width:380px;height:190px"><div class="t" style="font-size:24px">P1 直通</div><div class="s">逐命令搬运与混合</div><div class="s" style="margin-top:12px;color:#B23A48;font-weight:700">墙：每 Sprite 数十次事务</div></div>
+<div class="n cmp" style="left:900px;top:610px;width:380px;height:190px"><div class="t" style="font-size:24px">P3 条带</div><div class="s">片上合成 · 整行读写</div><div class="s" style="margin-top:12px;color:#B23A48;font-weight:700">墙：CPU 生成命令</div><div class="s">5000 弹幕约 5 ms</div></div>
+<div class="n plan" style="left:1340px;top:610px;width:400px;height:190px"><div class="t" style="font-size:24px">P4 运动卸载</div><div class="s">硬件更新弹幕位置并直接绘制</div><div class="s" style="margin-top:12px;color:#B23A48;font-weight:700">墙：硬件合成算力</div><div class="s">规则 · 发射 · 碰撞处理留在 CPU</div></div>
+<script>L([400,705],[460,705],{c:'#33445A',w:4});L([840,705],[900,705],{c:'#33445A',w:4});L([1280,705],[1340,705],{c:'#33445A',w:4});</script>
+<div class="lbl" style="left:20px;top:830px;font-size:16px;color:#87929E">日期：竞赛通知；里程碑与瓶颈：总体设计第 1.4、3.1、8 节；实验编号见 Engineering/Todo/E1-E8总览.md</div>
+</div></body></html>

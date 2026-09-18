@@ -4,12 +4,18 @@
 
 ## 目录约定
 
-`figures/`、`figures/src/`、`third-party/` 已有内容（见下），`photos/`、`measurements/` 还没有文件。
-建立新子目录时按下表放置。
+`photos/`、`measurements/` 还没有文件，建立时按下表放置。
+
+| 已有内容 | 数量 | 说明 |
+| --- | --- | --- |
+| `figures/*.png` | 21 张 | 幻灯片用图，每张 1760×880（2 倍像素导出） |
+| `figures/src/*.html` | 21 个 | 对应图的源码；`_fig.css` 是公共样式，`_fig.js` 提供连线 `L()` 与时序波形 `wave()` |
+| `figures/src/render.sh` | 1 个 | 用 Edge 无头模式导出：`bash render.sh [名字 ...]`，不带参数导出全部；导出后检查 png 修改时间，Edge 出错时不报错只留旧图 |
+| `third-party/` | 9 个文件 | 出处台账见 `third-party/README.md` |
 
 | 子目录 | 放什么 | 要求 |
 | --- | --- | --- |
-| `figures/src/` | 自己画的图的源码：SVG，或生成 SVG/HTML 的脚本 | 一张图一个源文件，文件名与导出图同名 |
+| `figures/src/` | 自己画的图的源码：HTML（内含 SVG） | 一张图一个源文件，文件名与导出图同名 |
 | `figures/` | 从源码导出的 PNG 或 SVG | 只放导出结果，不手改 |
 | `photos/` | 板卡、显示器画面的实拍 | 文件名写拍的是什么和日期 |
 | `measurements/` | 上板录屏、串口输出截图、计数器导出的 CSV | 每个子目录写清是哪个程序、哪个比特流、哪天录的 |
@@ -17,7 +23,7 @@
 
 ## 画图约定
 
-**结构图用 SVG。** 白底，线型和颜色各承载一种含义，已上板的部分画实线，
+**结构图用 HTML + SVG 绘制。** 底色 `#FAFAF7` 与幻灯片一致，线型和颜色各承载一种含义，已上板的部分画实线，
 还没做的部分画灰色虚线。仓库里 `../../Engineering/TechReports/platform/fig/` 已有三张系统架构图，
 可以直接作为幻灯片结构图的起点。
 

@@ -46,12 +46,11 @@
   <tr><td><b>一次运算</b></td><td>一个数</td><td>一维序列，逐元素同一操作</td><td>二维表，行列交叉</td></tr>
   <tr><td><b>典型运算</b></td><td>浮点乘除 · sin · exp · rsqrt</td><td>像素混合 · 激活 · 前缀和与递推</td><td>全连接层 · 矩阵乘</td></tr>
   <tr><td><b>合适形态</b></td><td>CPU 内协处理器</td><td>外设 + DMA</td><td>外设 + DMA + 计算阵列</td></tr>
-  <tr><td><b>瓶颈</b></td><td>CPU 调用频率</td><td>访存事务</td><td>总线带宽</td></tr>
-  <tr><td><b>以往实践</b></td><td>标量浮点协处理器</td><td>向量流 · 线性递推加速器</td><td>矩阵乘加速器（同 TPU v1）</td></tr>
+  <tr><td><b>以往实践</b></td><td>标量浮点协处理器</td><td>向量流 · 线性递推加速器</td><td>矩阵乘加速器 ≈ TPU v1</td></tr>
 </table>
-<div style="position:absolute;left:1580px;top:760px;width:160px;height:114px;overflow:hidden;border-radius:6px"><img src="../../third-party/tpu_v3.jpg" style="width:160px;height:114px;object-fit:cover"></div>
-<div class="lbl" style="left:780px;top:776px;white-space:normal;width:780px">本题的像素混合属于向量类：逐像素运算简单、数量大，形态选外设加速器，设计重心在访存</div>
-<div class="lbl" style="left:1180px;top:840px;font-size:14px;color:#87929E">Google Cloud TPU v3 · Zinskauf · Wikimedia Commons · CC BY-SA 4.0</div>
+<div style="position:absolute;left:1600px;top:748px;width:140px;height:100px;overflow:hidden;border-radius:6px"><img src="../../third-party/tpu_v3.jpg" style="width:140px;height:100px;object-fit:cover"></div>
+<div class="lbl" style="left:780px;top:770px;white-space:normal;width:800px">本题的像素混合属于向量类：逐像素运算简单、数量大，形态选外设加速器，设计重心在访存</div>
+<div class="lbl" style="left:1180px;top:852px;font-size:14px;color:#87929E">Google Cloud TPU v3 · Zinskauf · Wikimedia Commons · CC BY-SA 4.0</div>
 
 <script>
 L('p1','p2',{c:'#E8546B',w:2.5}); L('p2','p3',{c:'#E8546B',w:2.5}); L('p3','p4',{c:'#E8546B',w:2.5}); L('p4','p5',{c:'#E8546B',w:2.5});
@@ -69,7 +68,7 @@ for(let i=0;i<3;i++)for(let j=0;j<4;j++){const c=document.createElement('div');c
 // Amdahl 曲线
 (function(){
   const s=document.getElementById('am'), ns='http://www.w3.org/2000/svg';
-  const X0=80,Y0=340,W=580,H=300; const xs=v=>X0+Math.log2(v)/6*W, ys=v=>Y0-v/20*H;
+  const X0=80,Y0=340,W=450,H=300; const xs=v=>X0+Math.log2(v)/6*W, ys=v=>Y0-v/20*H;
   function el(t,a,txt){const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;s.appendChild(e);return e;}
   [1,2,4,8,16,32,64].forEach(v=>{el('line',{x1:xs(v),y1:Y0,x2:xs(v),y2:Y0-H,stroke:'#E3E7EB'});el('text',{x:xs(v),y:Y0+26,'text-anchor':'middle','font-size':18,fill:'#5D6976'},v);});
   [0,5,10,15,20].forEach(v=>{el('line',{x1:X0,y1:ys(v),x2:X0+W,y2:ys(v),stroke:'#E3E7EB'});el('text',{x:X0-12,y:ys(v)+6,'text-anchor':'end','font-size':18,fill:'#5D6976'},v);});
@@ -87,8 +86,8 @@ for(let i=0;i<3;i++)for(let j=0;j<4;j++){const c=document.createElement('div');c
 (function(){
   const g=document.getElementById('gly');
   function box(x,y,w,h,bg,bd,txt){const e=document.createElement('div');e.style.cssText=`position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:${bg};border:2px solid ${bd};border-radius:4px;box-sizing:border-box;font-size:17px;display:flex;align-items:center;justify-content:center;font-family:Consolas,monospace`;e.textContent=txt||'';g.appendChild(e);}
-  box(60,50,60,60,'#DEE8F7','#4A7FD0','x'); box(150,50,90,60,'#E2F1DB','#2E7D4F','f(·)'); box(270,50,60,60,'#F5EAD2','#A37A1C','y');
-  for(let i=0;i<8;i++){box(320+i*34,20,30,40,'#DEE8F7','#4A7FD0');box(320+i*34,70,30,34,'#E2F1DB','#2E7D4F','f');box(320+i*34,114,30,40,'#F5EAD2','#A37A1C');}
+  box(20,50,60,60,'#DEE8F7','#4A7FD0','x'); box(105,50,90,60,'#E2F1DB','#2E7D4F','f(·)'); box(220,50,60,60,'#F5EAD2','#A37A1C','y');
+  for(let i=0;i<8;i++){box(345+i*34,20,30,40,'#DEE8F7','#4A7FD0');box(345+i*34,70,30,34,'#E2F1DB','#2E7D4F','f');box(345+i*34,114,30,40,'#F5EAD2','#A37A1C');}
   for(let i=0;i<4;i++)for(let j=0;j<4;j++){box(660+j*30,20+i*30,26,26,'#DEE8F7','#4A7FD0');box(820+j*30,20+i*30,26,26,'#F5EAD2','#A37A1C');}
   const t=document.createElement('div');t.style.cssText='position:absolute;left:785px;top:52px;font-size:28px';t.textContent='×';g.appendChild(t);
 })();

@@ -10,8 +10,8 @@
 | 目录 | 内容 | 状态 |
 | --- | --- | --- |
 | [Report/](Report/) | 技术报告 | 未开始 |
-| [Slides/](Slides/) | 项目讲解幻灯片 | 第一版已完成（在线 Claude Design，18 页），未导出到本目录 |
-| [Assert/](Assert/) | 报告与幻灯片用到的图片、图片源码、实拍与第三方图 | 已有 17 张自绘结构图与数据图（`figures/`，源码在 `figures/src/`）和 9 张第三方图（`third-party/`）；第三方图的出处台账尚未登记，见 `third-party/README.md` |
+| [Slides/](Slides/) | 项目讲解幻灯片 | 第二版已完成（在线 Claude Design，22 页），PDF 版已导出到本目录 |
+| [Assert/](Assert/) | 报告与幻灯片用到的图片、图片源码、实拍与第三方图 | 已有 21 张自绘结构图与数据图（`figures/`，源码在 `figures/src/`）和 9 个第三方图文件（`third-party/`，出处台账见其 README） |
 
 ## 数字从哪里取
 

@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.hb { position:absolute; height:34px; border-radius:4px; }
+.seg { height:100%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; box-sizing:border-box; border-right:1px solid #fff; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:40px;top:4px">条带合成：屏幕按 16 行切成 30 条</div>
+<div id="scr" style="position:absolute;left:40px;top:50px;width:576px;height:432px;background:#1E2F4D;border:2px solid #1D2733;overflow:hidden"></div>
+<div id="bandk" style="position:absolute;left:38px;top:222px;width:580px;height:17px;border:3px solid #FF5C77;box-sizing:border-box"></div>
+<div class="lbl" style="left:40px;top:490px">640 × 480 后缓冲 · 圆点为 Sprite · 红框为第 k 条带</div>
+
+<div class="n mem" id="band" style="left:680px;top:150px;width:220px;height:110px"><div class="t">BAND 条带缓冲</div><div class="s">640 × 16 × 32 bit</div><div class="s">32 块 BRAM</div></div>
+<div class="n mem" id="tex" style="left:680px;top:300px;width:220px;height:170px;justify-content:flex-start;padding-top:8px"><div class="t">TEX 热纹理缓存</div><div class="s">128 × 128 · 52 块</div><div id="atlas" style="display:grid;grid-template-columns:repeat(8,14px);gap:2px;margin-top:6px"></div></div>
+<div class="n cmp" id="pp" style="left:680px;top:510px;width:220px;height:80px"><div class="t">像素流水线</div><div class="s">× 2 通路</div></div>
+<script>
+L('bandk','band',{fs:'r',ts:'l',tf:.3,c:'#4A7FD0',w:3,t:'① 读 16 行 · 16 次突发',tx:650,ty:120});
+L('band','bandk',{fs:'l',ts:'r',ff:.8,c:'#A37A1C',w:3,d:'7 5',t:'③ 写回 16 行 · 16 次突发',tx:650,ty:290});
+L('tex','pp',{fs:'b',ts:'t',ff:.3,tf:.3,c:'#2E7D4F',w:3});
+L('pp','band',{fs:'r',ts:'r',via:[[930,550],[930,205]],c:'#2E7D4F',w:3,h:'both',t:'② 执行本条带全部命令',tx:1000,ty:380});
+</script>
+
+<div class="n wht left" style="left:40px;top:540px;width:600px;height:130px"><div class="t">CPU：按条带给命令分桶</div><div class="s">高 ≤ 16 的 Sprite 最多落进 2 个条带，分桶 O(N)</div><div class="s">同一条带内保持提交顺序 = 绘制顺序</div></div>
+<div class="n" style="left:40px;top:690px;width:860px;height:120px;background:#1E2F4D;border-color:#1E2F4D;color:#F4F6F8"><div class="t" style="font-size:26px">每帧 30 条带 × (16 读 + 16 写) = 960 次突发</div><div style="font-size:19px;color:#CFE0F5">与 Sprite 数量无关；Sprite 数只受流水线算力限制</div></div>
+
+<div style="position:absolute;left:1040px;top:10px;width:0;height:860px;border-left:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:1080px;top:4px">三种架构（估算）</div>
+<div class="lbl b" style="left:1080px;top:52px">每个 Sprite 的 DDR3 事务</div>
+<div class="lbl" style="left:1080px;top:92px">A 直通</div><div class="hb" style="left:1220px;top:86px;width:480px;background:#E8546B"></div><div class="lbl" style="left:1230px;top:92px;color:#fff;font-weight:700">48</div>
+<div class="lbl" style="left:1080px;top:136px">B 条带</div><div class="hb" style="left:1220px;top:130px;width:160px;background:#A37A1C"></div><div class="lbl" style="left:1230px;top:136px;color:#fff;font-weight:700">16</div>
+<div class="lbl" style="left:1080px;top:180px">C 条带 + TEX</div><div class="hb" style="left:1220px;top:174px;width:4px;background:#2E7D4F"></div><div class="lbl" style="left:1236px;top:180px;font-weight:700">0</div>
+<div class="lbl b" style="left:1080px;top:236px">N<sub>max</sub> 硬件侧上限（对数刻度）</div>
+<div class="lbl" style="left:1080px;top:276px">A</div><div class="hb" style="left:1220px;top:270px;width:300px;background:#7492AE"></div><div class="lbl" style="left:1530px;top:276px">≈ 1,000</div>
+<div class="lbl" style="left:1080px;top:320px">B</div><div class="hb" style="left:1220px;top:314px;width:340px;background:#3F668B"></div><div class="lbl" style="left:1570px;top:320px">≈ 2,500</div>
+<div class="lbl" style="left:1080px;top:364px">C</div><div class="hb" style="left:1220px;top:358px;width:420px;background:#0C2E4E"></div><div class="lbl" style="left:1650px;top:364px">≈ 20,000</div>
+<div class="lbl" style="left:1080px;top:428px;font-size:16px;color:#5D6976;white-space:normal;width:640px">按 t_tx = 20 周期估算（设计文档 3.1 节）；E4 实测读 27.4、写 7.3，排序不变。C 的上限超过 CPU 生成命令的速度</div>
+
+<div class="cap" style="left:1080px;top:500px">片上 RAM 预算：256 块</div>
+<div id="ram" style="position:absolute;left:1080px;top:548px;width:660px;height:56px;display:flex;border:2px solid #1D2733;box-sizing:border-box"></div>
+<div id="ramlg" style="position:absolute;left:1080px;top:620px;width:660px;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:17px;color:#1D2733"></div>
+<div class="lbl b" style="left:1080px;top:818px">现有 65 + 新增 108 = 173 块（67.6%），余 83 块</div>
+
+<script>
+// 屏幕与 Sprite
+const scr=document.getElementById('scr');
+for(let b=1;b<30;b++){const l=document.createElement('div');l.style.cssText=`position:absolute;left:0;top:${b*14.4}px;width:576px;height:0;border-top:1px solid rgba(255,255,255,.18)`;scr.appendChild(l);}
+let seed=7;const rnd=()=>{seed=(seed*1103515245+12345)%2147483648;return seed/2147483648;};
+for(let i=0;i<180;i++){const x=rnd()*560,y=rnd()*420;const d=document.createElement('div');const c=['#8FD3FF','#FF9BD2','#FFE08A','#A8F0B5'][i%4];
+  d.style.cssText=`position:absolute;left:${x}px;top:${y}px;width:10px;height:10px;border-radius:5px;background:${c};opacity:.9`;scr.appendChild(d);}
+const at=document.getElementById('atlas');
+for(let i=0;i<32;i++){const d=document.createElement('div');d.style.cssText=`width:14px;height:14px;border-radius:7px;background:${['#3DA5FF','#FF6BB5','#FFC940','#5CD17A'][i%4]}`;at.appendChild(d);}
+// RAM 条
+const R=[['DDR3 控制器',22,'#8A6516'],['CPU 缓存',16,'#A37A1C'],['DDR CDC',17,'#B98E2E'],['其余',10,'#C9A866'],
+  ['扫描 FIFO',7,'#1F5E3A'],['读写缓冲',8,'#2E7D4F'],['命令缓冲',7,'#3E8E5E'],['条带 BAND',32,'#4FA06E'],['热纹理 TEX',52,'#67BA4A'],['OSD',2,'#8CCB73'],['空闲',83,'#FFFFFF']];
+const ram=document.getElementById('ram'), lg=document.getElementById('ramlg');
+R.forEach(([n,v,c])=>{const s=document.createElement('div');s.className='seg';s.style.width=(v/256*100)+'%';s.style.background=c;if(c=='#FFFFFF'){s.style.color='#87929E';}
+  if(v>=17)s.textContent=v;ram.appendChild(s);
+  const r=document.createElement('div');r.innerHTML=`<span style="display:inline-block;width:14px;height:14px;background:${c};border:1px solid #87929E;vertical-align:-1px;margin-right:6px"></span>${n} ${v}`;lg.appendChild(r);});
+</script>
+</div></body></html>

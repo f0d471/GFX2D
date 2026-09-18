@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script>
+<style>
+.tl { position:absolute; height:44px; box-sizing:border-box; display:flex; align-items:center; justify-content:center; font-size:17px; border-radius:4px; white-space:nowrap; }
+.chip2 { display:inline-block; padding:3px 10px; border-radius:6px; background:#ECEEF1; border:1.5px solid #9AA3AD; font-size:17px; margin:0 6px 6px 0; }
+</style></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="cap" style="left:20px;top:4px">软件分层：同一份代码编进 PC 与板上</div>
+<div class="n wht" id="game" style="left:20px;top:50px;width:600px;height:80px"><div class="t mono">game/</div><div class="s">实体池 · 弹型 · 碰撞 · 关卡脚本</div></div>
+<div class="n wht" id="rend" style="left:20px;top:160px;width:600px;height:80px"><div class="t mono">render/</div><div class="s">命令记录 · 条带分桶 · 表面管理</div></div>
+<div class="n cmp" id="exe" style="left:20px;top:280px;width:180px;height:110px"><div class="t mono">exec_sw/</div><div class="s">软件执行器</div></div>
+<div class="n ctl" id="hb" style="left:230px;top:280px;width:180px;height:110px"><div class="t mono">hal/board</div><div class="s">引擎驱动 · 中断</div><div class="s">按键 · 素材装载</div></div>
+<div class="n ext" id="hp" style="left:440px;top:280px;width:180px;height:110px"><div class="t mono">hal/pc</div><div class="s">SDL2 窗口 · 计时</div></div>
+<div class="n dat" id="eng" style="left:230px;top:430px;width:180px;height:70px"><div class="t">渲染引擎</div></div>
+<div class="n ext" id="win" style="left:440px;top:430px;width:180px;height:70px"><div class="t">PC 窗口</div></div>
+<div class="n mem" id="tools" style="left:660px;top:50px;width:200px;height:190px"><div class="t mono">tools/</div><div class="s">PNG</div><div class="s">→ 预乘 ARGB 图集</div><div class="s">→ 素材包</div><div class="s">→ Flash 0x400000</div></div>
+<div style="position:absolute;left:20px;top:520px;width:840px">
+  <span class="chip2">无 FPU：Q12.4 定点</span><span class="chip2">1024 项正弦表</span><span class="chip2">实体 SoA 数组</span><span class="chip2">固定实体池 · 不用 malloc</span></div>
+<script>
+L('game','rend',{fs:'b',ts:'t',c:'#33445A',w:3});
+L('rend','exe',{fs:'b',ts:'t',ff:.15,c:'#33445A',w:3});
+L('rend','hb',{fs:'b',ts:'t',ff:.5,c:'#33445A',w:3});
+L('rend','hp',{fs:'b',ts:'t',ff:.85,c:'#33445A',w:3});
+L('hb','eng',{fs:'b',ts:'t',c:'#E8546B',w:3});
+L('hp','win',{fs:'b',ts:'t',c:'#87929E',w:3});
+L('tools','rend',{fs:'l',ts:'r',tf:.5,c:'#A37A1C',w:2.5,d:true});
+</script>
+
+<div class="cap" style="left:20px;top:600px">帧节拍：CPU 与引擎流水并行</div>
+<div class="lbl b" style="left:20px;top:660px">CPU</div>
+<div class="tl" style="left:110px;top:650px;width:240px;background:#FBE4E7;border:1.5px solid #E8546B">帧 N：生成命令表 A</div>
+<div class="tl" style="left:360px;top:650px;width:240px;background:#FBE4E7;border:1.5px solid #E8546B">帧 N+1：生成 B</div>
+<div class="tl" style="left:610px;top:650px;width:240px;background:#FBE4E7;border:1.5px solid #E8546B">帧 N+2：生成 A</div>
+<div class="lbl b" style="left:20px;top:720px">引擎</div>
+<div class="tl" style="left:110px;top:710px;width:240px;background:#E2F1DB;border:1.5px solid #67BA4A">执行 B（帧 N−1）</div>
+<div class="tl" style="left:360px;top:710px;width:240px;background:#E2F1DB;border:1.5px solid #67BA4A">执行 A（帧 N）</div>
+<div class="tl" style="left:610px;top:710px;width:240px;background:#E2F1DB;border:1.5px solid #67BA4A">执行 B（帧 N+1）</div>
+<div style="position:absolute;left:355px;top:640px;height:130px;border-left:3px dashed #A37A1C"></div>
+<div style="position:absolute;left:605px;top:640px;height:130px;border-left:3px dashed #A37A1C"></div>
+<div class="lbl" style="left:110px;top:780px;color:#8A6516">虚线 = 场同步：交换前后缓冲、交换命令表；代价是画面延迟一帧</div>
+
+<div style="position:absolute;left:900px;top:10px;width:0;height:860px;border-left:2px dashed #D3D9E0"></div>
+
+<div class="cap" style="left:940px;top:4px">验证：软件执行器是硬件的金标准</div>
+<div class="n mem" id="cl" style="left:940px;top:70px;width:200px;height:170px"><div class="t">同一帧命令表</div><div class="s">32 B × N 条</div></div>
+<div class="n cmp" id="sw" style="left:1200px;top:60px;width:200px;height:80px"><div class="t">exec_sw</div><div class="s">C 实现 · 同一规格</div></div>
+<div class="n dat" id="hw" style="left:1200px;top:170px;width:200px;height:80px"><div class="t">硬件引擎</div><div class="s">RTL</div></div>
+<div class="n wht" id="c1" style="left:1440px;top:60px;width:140px;height:80px"><div class="t mono">CRC32</div><div class="s">后缓冲 A</div></div>
+<div class="n wht" id="c2" style="left:1440px;top:170px;width:140px;height:80px"><div class="t mono">CRC32</div><div class="s">后缓冲 B</div></div>
+<div class="n" id="cmp" style="left:1620px;top:105px;width:120px;height:100px;background:#1E2F4D;border-color:#1E2F4D;color:#fff"><div class="t" style="font-size:30px">=</div><div style="font-size:16px">逐像素一致</div></div>
+<script>
+L('cl','sw',{fs:'r',ts:'l',ff:.3,c:'#33445A',w:3}); L('cl','hw',{fs:'r',ts:'l',ff:.75,c:'#33445A',w:3});
+L('sw','c1',{c:'#2E7D4F',w:3}); L('hw','c2',{c:'#4A7FD0',w:3});
+L('c1','cmp',{fs:'r',ts:'l',tf:.3,c:'#33445A',w:3}); L('c2','cmp',{fs:'r',ts:'l',tf:.7,c:'#33445A',w:3});
+</script>
+
+<div class="grp" style="left:940px;top:290px;width:800px;height:280px;background:#FFF"><div class="gl">单元仿真</div></div>
+<div class="n dat" id="dut" style="left:970px;top:350px;width:220px;height:110px"><div class="t">引擎 RTL</div><div class="s">被测模块</div></div>
+<div class="n ext left" id="slv" style="left:1280px;top:340px;width:430px;height:140px"><div class="t">AXI 从机模型</div><div class="s">随机反压 · 突发上限可配</div><div class="s">响应延迟可配 · 注入 SLVERR</div><div class="s">测试台的从机不能比真从机强</div></div>
+<div class="lbl" style="left:970px;top:500px">期望帧来自 exec_sw；每个判据配一个注错用例，必须报 FAIL</div>
+<div class="lbl" style="left:970px;top:530px;color:#2E7D4F">已有：hdmi 3/3 · apb_probe 3/3 · axi_probe 5/5</div>
+<script>L('dut','slv',{fs:'r',ts:'l',c:'#4A7FD0',w:4,h:'both',t:'AXI4'});</script>
+
+<div class="grp" style="left:940px;top:600px;width:800px;height:260px;background:#FFF"><div class="gl">上板判据</div></div>
+<div class="n cmp left" style="left:970px;top:650px;width:360px;height:180px"><div class="t">同帧 CRC</div><div class="s">软硬件各画同一帧，串口报告两个 CRC</div><div class="s">判据先注错见红再用</div></div>
+<div class="n cmp left" style="left:1350px;top:650px;width:360px;height:180px"><div class="t">计数器对账</div><div class="s mono">RD_BEAT = Σ 读突发长度</div><div class="s mono">WR_BEAT = Σ 写突发长度</div><div class="s">对不上说明有漏计，数据不能用</div></div>
+</div></body></html>

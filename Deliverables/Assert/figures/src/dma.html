@@ -10,9 +10,9 @@
 
 <div class="n ctl" id="cpu" style="left:20px;top:60px;width:170px;height:130px"><div class="t">CPU 驱动</div><div class="s">填命令表</div><div class="s">敲门铃</div></div>
 <div class="grp" style="left:240px;top:30px;width:1020px;height:330px;background:#F3F6EF;border-color:#CFDCC4"><div class="gl">渲染引擎（规划）</div></div>
-<div class="n ctl" id="fe" style="left:270px;top:80px;width:200px;height:120px"><div class="t">前端 CSR</div><div class="s">LIST_BASE · COUNT</div><div class="s">DOORBELL · SURF[16]</div></div>
-<div class="n ctl" id="me" style="left:540px;top:80px;width:260px;height:120px"><div class="t">中端</div><div class="s">命令缓冲 256 条</div><div class="s">解码 · 裁剪 · 行 / 条带迭代</div></div>
-<div class="n cmp" id="px" style="left:540px;top:240px;width:260px;height:90px"><div class="t">像素流水线</div><div class="s">4 像素 / 拍</div></div>
+<div class="n ctl" id="fe" style="left:262px;top:80px;width:236px;height:120px"><div class="t">前端 CSR</div><div class="s">LIST_BASE / COUNT</div><div class="s">DOORBELL · SURF</div></div>
+<div class="n ctl" id="me" style="left:560px;top:80px;width:250px;height:120px"><div class="t">中端</div><div class="s">命令缓冲 256 条</div><div class="s">解码 · 裁剪 · 行 / 条带迭代</div></div>
+<div class="n cmp" id="px" style="left:560px;top:240px;width:250px;height:90px"><div class="t">像素流水线</div><div class="s">4 像素 / 拍</div></div>
 <div class="n dat" id="be" style="left:870px;top:80px;width:360px;height:250px"><div class="t">后端 · 搬运层</div><div class="s" style="margin-top:6px">连续段 → AXI 突发</div><div class="s">每段 ≤ 256 拍 · 不跨 4 KB 页</div><div class="s">读 / 写缓冲 128 bit × 256</div><div class="s">超时 → 排空 → 回空闲</div><div class="s">RESP 错误 → 粘滞位 + 命令序号</div></div>
 <div class="n dat" id="mux" style="left:1300px;top:120px;width:150px;height:120px"><div class="t">Axi_Mux</div><div class="s">S1</div></div>
 <div class="grp" id="ddr" style="left:1490px;top:30px;width:250px;height:330px;background:#FBF6EA;border-color:#E3CFA2"><div class="gl">DDR3</div></div>
@@ -40,11 +40,11 @@ L('cpu','dl',{fs:'t',ts:'t',via:[[105,14],[1615,14]],c:'#E8546B',w:2.5,d:true,t:
 
 <div class="cap" style="left:1010px;top:404px">表面表：一切地址间接寻址</div>
 <div style="position:absolute;left:1010px;top:450px;width:730px;height:48px;display:flex">
-  <div class="n dat" style="position:relative;width:200px;height:48px;border-radius:0">base · 32</div>
-  <div class="n dat" style="position:relative;width:130px;height:48px;border-radius:0">stride_log2 · 5</div>
-  <div class="n dat" style="position:relative;width:170px;height:48px;border-radius:0">width / height</div>
+  <div class="n dat" style="position:relative;width:170px;height:48px;border-radius:0">base · 32</div>
+  <div class="n dat" style="position:relative;width:180px;height:48px;border-radius:0">stride_log2 · 5</div>
+  <div class="n dat" style="position:relative;width:160px;height:48px;border-radius:0">width / height</div>
   <div class="n dat" style="position:relative;width:100px;height:48px;border-radius:0">space</div>
-  <div class="n dat" style="position:relative;width:130px;height:48px;border-radius:0">format</div></div>
+  <div class="n dat" style="position:relative;width:120px;height:48px;border-radius:0">format</div></div>
 <div class="lbl" style="left:1010px;top:510px">space：DDR · TEX 纹理缓存 · BAND 条带缓冲　format：XRGB · 预乘 ARGB</div>
 <div class="n wht" style="left:1010px;top:550px;width:730px;height:120px">
   <div class="t mono" style="font-size:22px">addr = base + (y ≪ stride_log2) + (x ≪ 2)</div>

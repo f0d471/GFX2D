@@ -1,0 +1,55 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="fig-size" content="1760x880">
+<link rel="stylesheet" href="_fig.css"><script src="_fig.js"></script></head>
+<body><div id="fig" style="width:1760px;height:880px">
+
+<div class="grp" id="soc" style="left:20px;top:40px;width:380px;height:590px;background:#F7E9EC;border-color:#E9B8C0"><div class="gl">u_soc · 保留 Standard 构型</div></div>
+<div class="n ctl" id="cpu" style="left:40px;top:90px;width:340px;height:90px"><div class="t">VexRiscv 100 MHz</div><div class="s">游戏逻辑 · 生成命令表 · 条带分桶</div></div>
+<div class="n ctl" id="plic" style="left:40px;top:200px;width:160px;height:80px"><div class="t">PLIC</div><div class="s">用户中断 A</div></div>
+<div class="n dat" id="apb" style="left:220px;top:200px;width:160px;height:80px"><div class="t">APB 桥</div></div>
+<div class="n ext" id="gpio" style="left:40px;top:300px;width:160px;height:80px"><div class="t">GPIO</div><div class="s">KEY0–3 · LED</div></div>
+<div class="n ext" id="spi" style="left:220px;top:300px;width:160px;height:80px"><div class="t">SPI0</div><div class="s">装载素材</div></div>
+<div class="n ext" id="uart" style="left:40px;top:400px;width:160px;height:80px"><div class="t">UART0</div><div class="s">帧率 CSV</div></div>
+<div class="n mem" id="ocr" style="left:220px;top:400px;width:160px;height:80px"><div class="t">片上 RAM</div><div class="s">bootloader</div></div>
+<div class="n ext" id="flash" style="left:40px;top:510px;width:340px;height:90px"><div class="t">SPI Flash</div><div class="s">比特流 · 应用 512 KB · 素材包 4 MB</div></div>
+
+<div class="grp" id="eng" style="left:440px;top:40px;width:820px;height:540px;background:#F3F6EF;border-color:#CFDCC4"><div class="gl">渲染引擎</div></div>
+<div class="n ctl" id="fe" style="left:470px;top:90px;width:250px;height:170px"><div class="t">前端 CSR</div><div class="s mono">ID · CAPS · CTRL · STATUS</div><div class="s mono">LIST · DOORBELL · IRQ</div><div class="s mono">FRONT · SWAP · SURF[16]</div><div class="s mono">PERF 计数器</div></div>
+<div class="n ctl" id="me" style="left:470px;top:300px;width:250px;height:170px"><div class="t">中端</div><div class="s">命令缓冲 256 条</div><div class="s">解码 · 裁剪 · SET_CLIP</div><div class="s">行 / 条带迭代</div></div>
+<div class="n cmp" id="px" style="left:760px;top:90px;width:220px;height:170px"><div class="t">像素流水线 × 2</div><div class="s">5 级 · 4 像素 / 拍</div><div class="s">色键 · 方程表</div><div class="s">DSP ≈ 50 块内</div></div>
+<div class="n dat" id="be" style="left:760px;top:300px;width:220px;height:170px"><div class="t">后端搬运层</div><div class="s">读 / 写缓冲</div><div class="s">≤ 256 拍 · 4 KB 对齐</div><div class="s">超时排空 · 错误粘滞</div></div>
+<div class="n mem" id="tex" style="left:1010px;top:90px;width:220px;height:110px"><div class="t">TEX 热纹理</div><div class="s">128 × 128 · 52 块</div></div>
+<div class="n mem" id="band" style="left:1010px;top:220px;width:220px;height:110px"><div class="t">BAND 条带</div><div class="s">640 × 16 · 32 块</div></div>
+<div class="n plan" id="p4" style="left:1010px;top:360px;width:220px;height:110px"><div class="t">P4 弹幕运动</div><div class="s">可选 · 保留纯 CPU 对照</div></div>
+
+<div class="grp" id="sco" style="left:440px;top:640px;width:820px;height:220px;background:#EEF3FA;border-color:#C9D8EE"><div class="gl">扫描输出</div></div>
+<div class="n dat" id="sr" style="left:470px;top:700px;width:180px;height:130px"><div class="t">行读取</div><div class="s">FRONT 选缓冲</div><div class="s">一行一次突发</div></div>
+<div class="n mem" id="sf" style="left:680px;top:700px;width:170px;height:130px"><div class="t">异步 FIFO</div><div class="s">128 bit × 512</div><div class="s">100 → 25.2 MHz</div></div>
+<div class="n ctl" id="st" style="left:880px;top:700px;width:190px;height:130px"><div class="t">时序 · OSD</div><div class="s">淡出 3 DSP</div><div class="s">场同步 → 中断</div></div>
+<div class="n dat" id="tm" style="left:1100px;top:700px;width:140px;height:130px"><div class="t">TMDS</div><div class="s">LVDS × 4</div></div>
+
+<div class="n dat" id="mux" style="left:1300px;top:230px;width:180px;height:230px"><div class="t">Axi_Mux</div><div class="s">3 进 1 出</div><div class="s" style="margin-top:8px">S0 扫描（最高）</div><div class="s">S1 引擎</div><div class="s">S2 SoC</div></div>
+<div class="grp" id="ddr" style="left:1520px;top:40px;width:220px;height:590px;background:#FBF6EA;border-color:#E3CFA2"><div class="gl">DDR3 256 MB</div></div>
+<div class="n mem" style="left:1540px;top:90px;width:180px;height:90px"><div class="t">程序</div><div class="s mono">0x0000_1000</div></div>
+<div class="n mem" style="left:1540px;top:200px;width:180px;height:90px"><div class="t">命令表 A / B</div><div class="s mono">0x0040_0000</div></div>
+<div class="n mem" style="left:1540px;top:310px;width:180px;height:90px"><div class="t">素材</div><div class="s mono">0x0100_0000</div></div>
+<div class="n mem" style="left:1540px;top:420px;width:180px;height:90px"><div class="t">帧缓冲 0 / 1</div><div class="s mono">0x0200_0000</div></div>
+<div class="n mem" style="left:1540px;top:530px;width:180px;height:80px"><div class="t">离屏层</div></div>
+<div class="n dat" id="hd" style="left:1300px;top:730px;width:180px;height:80px"><div class="t">HDMI</div><div class="s">640×480@60</div></div>
+
+<script>
+L('apb','fe',{fs:'r',ts:'l',tf:.5,c:'#E8546B',w:3,h:'both',t:'APB · IRQ',tx:425,ty:220});
+L('fe','me',{fs:'b',ts:'t',c:'#E8546B',w:3});
+L('me','px',{fs:'r',ts:'b',ff:.2,tf:.2,r:'hv',c:'#E8546B',w:2.5});
+L('me','be',{c:'#33445A',w:3,t:'连续段',ty:385});
+L('px','be',{fs:'b',ts:'t',ff:.7,tf:.7,c:'#2E7D4F',w:3,h:'both'});
+L('tex','px',{fs:'l',ts:'r',c:'#2E7D4F',w:3});
+L('band','px',{fs:'l',ts:'r',tf:.8,c:'#2E7D4F',w:3,h:'both'});
+L('cpu','mux',{fs:'t',ts:'t',ff:.95,via:[[363,22],[1390,22]],c:'#4A7FD0',w:4,t:'S2 · CPU 访存',tx:880,ty:22});
+L('be','mux',{fs:'b',ts:'l',tf:.8,via:[[870,560],[1280,560],[1280,414]],c:'#4A7FD0',w:4,t:'S1',tx:1100,ty:560});
+L('sr','mux',{fs:'t',ts:'b',via:[[560,612],[1390,612]],c:'#4A7FD0',w:4,t:'S0 · 最高优先级',tx:980,ty:612});
+L('mux','ddr',{c:'#4A7FD0',w:4,h:'both'});
+L('sr','sf',{c:'#4A7FD0',w:3}); L('sf','st',{c:'#4A7FD0',w:3}); L('st','tm',{c:'#4A7FD0',w:3});
+L('tm','hd',{c:'#4A7FD0',w:3});
+</script>
+</div></body></html>

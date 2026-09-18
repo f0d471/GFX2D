@@ -47,7 +47,7 @@ table.eq td .c { display:inline-block; width:40px; height:26px; border-radius:4p
 <div class="n cmp" id="a4" style="left:1410px;top:545px;width:330px;height:110px"><div class="t mono">t = x + 128</div><div class="t mono">q = (t + (t≫8)) ≫ 8</div><div class="s">精确的 round(x / 255)</div></div>
 <div class="n cmp" id="a5" style="left:1410px;top:690px;width:330px;height:66px"><div class="t mono">out = min(255, q)</div></div>
 <div class="n wht left" style="left:980px;top:700px;width:380px;height:130px"><div class="s">Fs、Fd 以 255 为满量程</div><div class="s">先相加、再舍入一次、最后饱和</div><div class="s">中间量不能模截断到 16 bit</div><div class="s">写入时 [31:24] 强制为 0</div></div>
-<div class="lbl" style="left:1410px;top:780px;font-size:16px;color:#5D6976;white-space:normal;width:330px">x ∈ [0, 65025] 穷举与 round(x/255) 逐值一致；spec 第 01 章（待验收）</div>
+<div class="lbl" style="left:1410px;top:780px;font-size:16px;color:#5D6976;white-space:normal;width:330px">x ∈ [0, 65025] 穷举与 round(x/255) 逐值一致；spec 第 01 章（已确认）</div>
 <script>
 L('a1','a3',{fs:'r',ts:'l',tf:.3,c:'#2E7D4F',w:3}); L('a2','a3',{fs:'r',ts:'l',tf:.7,c:'#2E7D4F',w:3});
 L('a3','a4',{c:'#2E7D4F',w:3}); L('a4','a5',{fs:'b',ts:'t',c:'#2E7D4F',w:3});

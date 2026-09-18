@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8"><title>gfx2d 项目讲解</title>
+<!-- 与在线幻灯片同页序的打印版。导出：Edge 无头 --print-to-pdf，见 Slides/README.md -->
+<style>
+@page { size: 1920px 1080px; margin: 0; }
+html, body { margin: 0; padding: 0; }
+body { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; }
+.pg { position: relative; width: 1920px; height: 1080px; background: #FAFAF7; overflow: hidden; page-break-after: always; }
+.pg img.f { position: absolute; left: 80px; top: 96px; width: 1760px; height: 880px; object-fit: contain; }
+.tag { position: absolute; left: 80px; top: 30px; font-size: 30px; font-weight: 700; color: #174A7E; letter-spacing: 1px; }
+.no { position: absolute; right: 80px; top: 34px; font-size: 24px; color: #87929E; }
+.cv { background: #13202F; color: #E9EEF3; }
+</style></head><body>
+<div class="pg cv">
+  <img src="../Assert/third-party/taisei_danmaku.png" style="position:absolute;left:1180px;top:0;width:740px;height:1080px;object-fit:cover">
+  <div style="position:absolute;left:720px;top:560px;width:520px;height:400px;overflow:hidden;border-radius:12px;border:3px solid #E9EEF3;box-sizing:border-box">
+    <img src="../Assert/third-party/ti60f225_board_photo.jpg" style="position:absolute;left:-560px;top:-1250px;width:1560px"></div>
+  <div style="position:absolute;left:120px;top:150px;font-size:26px;color:#7FB8B3;letter-spacing:2px">2026 嵌入式芯片与系统设计竞赛 · 易灵思 FPGA 赛道 · 赛题二</div>
+  <div style="position:absolute;left:120px;top:220px;width:1020px;font-family:'Noto Serif SC',serif;font-size:84px;font-weight:700;line-height:1.2;color:#F4F6F8">gfx2d<br>RISC-V + FPGA<br>2D 渲染加速引擎</div>
+  <div style="position:absolute;left:120px;top:600px;width:560px;font-size:28px;line-height:1.6;color:#B8C4D0">Ti60F225 · Sapphire RV32 SoC<br>DDR3 256 MB · HDMI 640×480@60<br>指标 N<sub>max</sub>：60 FPS 稳定时的同屏 Sprite 数</div>
+  <div style="position:absolute;left:120px;top:940px;font-size:24px;color:#8193A6">[队伍名] · 2026-09-18</div>
+  <div style="position:absolute;right:20px;top:1030px;font-size:24px;color:#DDE6EE">Taisei Project · CC BY-SA 4.0</div>
+</div>
+<div class="pg"><img class="f" src="../Assert/figures/task.png"><div class="tag">赛题与指标</div><div class="no">02</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/platform.png"><div class="tag">Ti60F225 开发板与资源</div><div class="no">03</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/flow.png"><div class="tag">工程组成与构建流程</div><div class="no">04</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/arch_current.png"><div class="tag">当前硬件架构（已上板）</div><div class="no">05</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/boot.png"><div class="tag">启动：从 Flash 到 main</div><div class="no">06</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/cpu_mem.png"><div class="tag">CPU 取指与访存</div><div class="no">07</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/mmio.png"><div class="tag">MMIO、驱动与中断</div><div class="no">08</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/axi.png"><div class="tag">AXI4 总线</div><div class="no">09</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/fsm.png"><div class="tag">有限状态机：以 axi_probe_master 为例</div><div class="no">10</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/hdmi.png"><div class="tag">HDMI 显示链路</div><div class="no">11</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/framebuffer.png"><div class="tag">帧缓冲、撕裂与双缓冲</div><div class="no">12</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/method.png"><div class="tag">加速器设计方法</div><div class="no">13</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/profile.png"><div class="tag">本题拆账</div><div class="no">14</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/blend.png"><div class="tag">Alpha 混合、线性递推与色键</div><div class="no">15</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/pixel_pipeline.png"><div class="tag">像素流水线</div><div class="no">16</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/roofline.png"><div class="tag">Roofline：访存受限</div><div class="no">17</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/dma.png"><div class="tag">DMA 与命令描述符</div><div class="no">18</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/band_cache.png"><div class="tag">片上缓存与条带合成</div><div class="no">19</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/arch_target.png"><div class="tag">目标硬件架构</div><div class="no">20</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/sw_verify.png"><div class="tag">目标软件与验证架构</div><div class="no">21</div></div>
+<div class="pg"><img class="f" src="../Assert/figures/roadmap.png"><div class="tag">进度与计划</div><div class="no">22</div></div>
+</body></html>
