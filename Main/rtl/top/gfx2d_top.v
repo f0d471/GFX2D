@@ -5,7 +5,9 @@
 //   u_ddr3       DDR3 软核控制器（厂商加密源码，rtl/vendor/ddr3_controller/）
 //   u_apb_probe  APB 探针寄存器，占位并验证 APB 通路（rtl/bus/apb_probe.v）
 //   u_axi_probe  AXI 探针主机，DDR3 上的第二个主机，实验 E4 用（rtl/bus/axi_probe_master.v）
-//   u_axi_mux    AXI 多路器，SoC 与探针主机共用 DDR3 控制器（rtl/vendor/axi_mux/Axi_Mux.v）
+//   u_scanout   扫描输出替身，实验 E5 的 2.3 节用（rtl/bus/scanout_stub.v）
+//   u_axi_mux    AXI 多路器，扫描替身、探针主机与 SoC 共用 DDR3 控制器（rtl/vendor/axi_mux/Axi_Mux.v）
+//   u_mux_guard 仲裁配置与 SoC 防饿死保护，永久模块（rtl/bus/axi_mux_guard.v）
 //   u_hdmi_tx    HDMI 发送，640x480@60 八色竖条（rtl/hdmi/hdmi_tx.v）
 //
 // 时钟（全部由 Interface Designer 里的 PLL 产生，见 fpga/gfx2d_ti60/README.md）：
@@ -13,11 +15,16 @@
 //   sdram_clk 等四个   400MHz   PLL_TR0 <- clk_25m    DDR3 PHY
 //   hdmi_tx_slow_clk   25.2MHz  PLL_BL0 <- clk_27m    HDMI 像素时钟
 //
-// 连接：
-//   SoC io_ddrA（AXI4，128 位）-> Axi_Mux S0 --+
-//   axi_probe_master          -> Axi_Mux S1 --+--> DDR3 控制器的 AXI 从口
+// 连接（实验 E5 的 2.1 节：Axi_Mux 用 X3，端口重分配为 S0 扫描、S1 引擎、S2 SoC）：
+//   scanout_stub（引擎接入前是扫描替身）-> Axi_Mux S0 --+
+//   axi_probe_master（引擎接入前是引擎替身）-> S1 -------+--> DDR3 控制器的 AXI 从口
+//   SoC io_ddrA（AXI4，128 位）          -> S2 ----------+
+//   仲裁方式与三通道掩码由 u_mux_guard 给出，掩码 = 用户掩码 & SoC 防饿死保护掩码
 //   SoC APB Slave 0（CPU 地址 0xF810_0000，64KB 窗口）
-//     0x1000~0x1FFF -> axi_probe_master 寄存器，其余 -> apb_probe
+//     0x1000~0x1FFF -> axi_probe_master 寄存器
+//     0xE000~0xEFFF -> scanout_stub 寄存器（扫描替身的量测）
+//     0xF000~0xFFFF -> axi_mux_guard 寄存器（仲裁配置与保护）
+//     其余          -> apb_probe
 //   HDMI 通路目前与 SoC、DDR3 没有数据交互，画面来自 hdmi_tx 内部的彩条发生器
 //
 // 端口名与 fpga/gfx2d_ti60/gfx2d_ti60.peri.xml 中的信号名一一对应，改一边要同步另一边。
@@ -225,8 +232,27 @@ wire [1:0]                     prb_rresp;
 wire                           prb_rlast;
 wire                           prb_rvalid;
 wire                           prb_rready;
-wire                           mux_arb_type;
-wire [1:0]                     mux_arb_mask;
+// ---------------------------------------------------------------------------
+// scanout_stub 的 AXI 读主机口（Axi_Mux S0）
+// ---------------------------------------------------------------------------
+// 扫描替身只发起读，写通道在例化处接成不发起
+wire [31:0]                    sco_araddr;
+wire [7:0]                     sco_arlen;
+wire [2:0]                     sco_arsize;
+wire [1:0]                     sco_arburst;
+wire [1:0]                     sco_arlock;
+wire                           sco_arvalid;
+wire                           sco_arready;
+wire [7:0]                     sco_rid;
+wire [`AXI_DATA_WIDTH-1:0]     sco_rdata;
+wire [1:0]                     sco_rresp;
+wire                           sco_rlast;
+wire                           sco_rvalid;
+wire                           sco_rready;
+
+// Axi_Mux 的仲裁配置来自永久模块 u_mux_guard（E5 2.1 节第 3 步）
+wire                           guard_arb_type;
+wire [2:0]                     guard_cnl_mask;
 
 // ---------------------------------------------------------------------------
 // Axi_Mux 出口，接 DDR3 控制器
@@ -568,11 +594,15 @@ soc u_soc (
 );
 
 // ---------------------------------------------------------------------------
-// APB Slave 0 的地址划分
+// APB Slave 0 的地址划分（按 paddr[15:12] 分成四个窗口）
 // ---------------------------------------------------------------------------
 //   0x1000~0x1FFF  axi_probe_master 的寄存器（CPU 地址 0xF810_1000 起）
-//   其余            apb_probe，它按完整 16 位译码，未映射地址仍然置 PSLVERROR
+//   0xE000~0xEFFF  scanout_stub 的寄存器（实验 E5 的扫描替身量测）
+//   0xF000~0xFFFF  axi_mux_guard 的寄存器（仲裁配置与 SoC 防饿死保护）
+//   其余           apb_probe，它按完整 16 位译码，未映射地址仍然置 PSLVERROR
 wire        apb_sel_prb = (apb_paddr[15:12] == 4'h1);
+wire        apb_sel_sco = (apb_paddr[15:12] == 4'hE);
+wire        apb_sel_grd = (apb_paddr[15:12] == 4'hF);
 
 wire [31:0] probe_prdata;
 wire        probe_pready;
@@ -580,12 +610,18 @@ wire        probe_pslverr;
 wire [31:0] prb_prdata;
 wire        prb_pready;
 wire        prb_pslverr;
+wire [31:0] sco_prdata;
+wire        sco_pready;
+wire        sco_pslverr;
+wire [31:0] grd_prdata;
+wire        grd_pready;
+wire        grd_pslverr;
 
 apb_probe u_apb_probe (
     .clk        (core_clk),
     .rst        (soc_system_reset),
     .paddr      (apb_paddr),
-    .psel       (apb_psel & ~apb_sel_prb),
+    .psel       (apb_psel & ~apb_sel_prb & ~apb_sel_sco & ~apb_sel_grd),
     .penable    (apb_penable),
     .pwrite     (apb_pwrite),
     .pwdata     (apb_pwdata),
@@ -594,9 +630,15 @@ apb_probe u_apb_probe (
     .pslverr    (probe_pslverr)
 );
 
-assign apb_prdata  = apb_sel_prb ? prb_prdata  : probe_prdata;
-assign apb_pready  = apb_sel_prb ? prb_pready  : probe_pready;
-assign apb_pslverr = apb_sel_prb ? prb_pslverr : probe_pslverr;
+assign apb_prdata  = apb_sel_prb ? prb_prdata  :
+                     apb_sel_sco ? sco_prdata  :
+                     apb_sel_grd ? grd_prdata  : probe_prdata;
+assign apb_pready  = apb_sel_prb ? prb_pready  :
+                     apb_sel_sco ? sco_pready  :
+                     apb_sel_grd ? grd_pready  : probe_pready;
+assign apb_pslverr = apb_sel_prb ? prb_pslverr :
+                     apb_sel_sco ? sco_pslverr :
+                     apb_sel_grd ? grd_pslverr : probe_pslverr;
 
 // ---------------------------------------------------------------------------
 // AXI 探针主机（实验 E4），Axi_Mux 的 S1
@@ -613,8 +655,10 @@ axi_probe_master u_axi_probe (
     .pready     (prb_pready),
     .pslverr    (prb_pslverr),
 
-    .arb_type   (mux_arb_type),
-    .arb_mask   (mux_arb_mask),
+    // 仲裁配置已移到 u_mux_guard（E5 2.1 节第 3 步）：探针的 ARB 寄存器不再驱动多路器，
+    // 寄存器本身保留，供自检与旧程序读回
+    .arb_type   (),
+    .arb_mask   (),
 
     .awaddr     (prb_awaddr),
     .awlen      (prb_awlen),
@@ -644,11 +688,70 @@ axi_probe_master u_axi_probe (
 );
 
 // ---------------------------------------------------------------------------
-// Axi_Mux：S0 = SoC io_ddrA，S1 = axi_probe_master，出口 = DDR3 控制器
+// Axi_Mux 的仲裁配置与 SoC 防饿死保护（E5 2.1 节第 3、4 步，永久模块）
+// ---------------------------------------------------------------------------
+// APB 窗口 0xF810_F000~0xF810_FFFF；送进多路器的掩码 = 用户掩码 & 保护掩码。
+axi_mux_guard u_mux_guard (
+    .clk            (core_clk),
+    .rst            (soc_system_reset),
+    .paddr          (apb_paddr[11:0]),
+    .psel           (apb_psel & apb_sel_grd),
+    .penable        (apb_penable),
+    .pwrite         (apb_pwrite),
+    .pwdata         (apb_pwdata),
+    .prdata         (grd_prdata),
+    .pready         (grd_pready),
+    .pslverr        (grd_pslverr),
+
+    .arb_type       (guard_arb_type),
+    .cnl_mask       (guard_cnl_mask),
+
+    .s2_arvalid     (soc_ddr_arvalid),
+    .s2_arready     (soc_ddr_arready),
+    .s2_awvalid     (soc_ddr_awvalid),
+    .s2_awready     (soc_ddr_awready)
+);
+
+// ---------------------------------------------------------------------------
+// 扫描输出替身（E5 2.3 节：按行节拍发 160 拍读并把时间记下来）
+// ---------------------------------------------------------------------------
+// APB 窗口 0xF810_E000~0xF810_EFFF；只发起读，写通道在 Axi_Mux 例化处接成不发起。
+scanout_stub u_scanout (
+    .clk            (core_clk),
+    .rst            (soc_system_reset),
+    .paddr          (apb_paddr[11:0]),
+    .psel           (apb_psel & apb_sel_sco),
+    .penable        (apb_penable),
+    .pwrite         (apb_pwrite),
+    .pwdata         (apb_pwdata),
+    .prdata         (sco_prdata),
+    .pready         (sco_pready),
+    .pslverr        (sco_pslverr),
+
+    .ar_addr        (sco_araddr),
+    .ar_len         (sco_arlen),
+    .ar_size        (sco_arsize),
+    .ar_burst       (sco_arburst),
+    .ar_lock        (sco_arlock),
+    .ar_id          (),
+    .ar_valid       (sco_arvalid),
+    .ar_ready       (sco_arready),
+
+    .r_id           (sco_rid),
+    .r_data         (sco_rdata),
+    .r_last         (sco_rlast),
+    .r_resp         (sco_rresp),
+    .r_valid        (sco_rvalid),
+    .r_ready        (sco_rready)
+);
+
+// ---------------------------------------------------------------------------
+// Axi_Mux：S0 = scanout_stub，S1 = axi_probe_master，S2 = SoC，出口 = DDR3 控制器
 // ---------------------------------------------------------------------------
 // Normal 模式下响应按事务顺序送回，与 ID 无关，所以控制器 4 位 ID 截断仍然安全。
-// Axi_Mux 没有 BRESP 端口；同一时刻只有被选中的主机看到 bvalid，控制器的 bresp 直接并接给两个主机。
-// 仲裁方式与通道屏蔽由 axi_probe_master 的 ARB 寄存器给出，复位值为轮询、两个通道都开。
+// Axi_Mux 没有 BRESP 端口；同一时刻只有被选中的主机看到 bvalid，控制器的 bresp 直接并接给各主机。
+// 仲裁方式与三通道掩码由 u_mux_guard 给出（不再是探针主机的 ARB 寄存器）：
+// 上电为优先级模式、三通道全开、SoC 防饿死保护开启，见 E5 2.1、2.2 节。
 Axi_Mux #(
     .SLAVE_ID_WIDTH (8),
     .ID_MODE_SEL    ("Normal"),
@@ -689,37 +792,71 @@ Axi_Mux #(
     .I_M_R_VALID    (ddr_rvalid),
     .O_M_R_READY    (mux_rready),
 
-    .I_S0_AW_ID     (soc_ddr_awid),
-    .I_S0_AW_ADDR   (soc_ddr_awaddr),
-    .I_S0_AW_LEN    (soc_ddr_awlen),
-    .I_S0_AW_SIZE   (soc_ddr_awsize),
-    .I_S0_AW_BURST  (soc_ddr_awburst),
-    .I_S0_AW_LOCK   ({1'b0, soc_ddr_awlock}),
-    .I_S0_AW_VALID  (soc_ddr_awvalid),
-    .O_S0_AW_READY  (soc_ddr_awready),
+    // S0：扫描输出替身，只发起读，写通道接成不发起（E5 2.1 节第 2 步）
+    .I_S0_AW_ID     (8'h0),
+    .I_S0_AW_ADDR   (32'h0),
+    .I_S0_AW_LEN    (8'h0),
+    .I_S0_AW_SIZE   (3'b000),
+    .I_S0_AW_BURST  (2'b00),
+    .I_S0_AW_LOCK   (2'b00),
+    .I_S0_AW_VALID  (1'b0),
+    .O_S0_AW_READY  (),
     .I_S0_W_ID      (8'h0),
-    .I_S0_W_DATA    (soc_ddr_wdata),
-    .I_S0_W_LAST    (soc_ddr_wlast),
-    .I_S0_W_STRB    (soc_ddr_wstrb),
-    .I_S0_W_VALID   (soc_ddr_wvalid),
-    .O_S0_W_READY   (soc_ddr_wready),
-    .O_S0_B_ID      (soc_ddr_bid),
-    .O_S0_B_VALID   (soc_ddr_bvalid),
-    .I_S0_B_READY   (soc_ddr_bready),
-    .I_S0_AR_ID     (soc_ddr_arid),
-    .I_S0_AR_ADDR   (soc_ddr_araddr),
-    .I_S0_AR_LEN    (soc_ddr_arlen),
-    .I_S0_AR_SIZE   (soc_ddr_arsize),
-    .I_S0_AR_BURST  (soc_ddr_arburst),
-    .I_S0_AR_LOCK   ({1'b0, soc_ddr_arlock}),
-    .I_S0_AR_VALID  (soc_ddr_arvalid),
-    .O_S0_AR_READY  (soc_ddr_arready),
-    .O_S0_R_ID      (soc_ddr_rid),
-    .O_S0_R_DATA    (soc_ddr_rdata),
-    .O_S0_R_LAST    (soc_ddr_rlast),
-    .O_S0_R_RESP    (soc_ddr_rresp),
-    .O_S0_R_VALID   (soc_ddr_rvalid),
-    .I_S0_R_READY   (soc_ddr_rready),
+    .I_S0_W_DATA    ({`AXI_DATA_WIDTH{1'b0}}),
+    .I_S0_W_LAST    (1'b0),
+    .I_S0_W_STRB    ({`AXI_DATA_WIDTH/8{1'b0}}),
+    .I_S0_W_VALID   (1'b0),
+    .O_S0_W_READY   (),
+    .O_S0_B_ID      (),
+    .O_S0_B_VALID   (),
+    .I_S0_B_READY   (1'b1),
+    .I_S0_AR_ID     (8'h0),
+    .I_S0_AR_ADDR   (sco_araddr),
+    .I_S0_AR_LEN    (sco_arlen),
+    .I_S0_AR_SIZE   (sco_arsize),
+    .I_S0_AR_BURST  (sco_arburst),
+    .I_S0_AR_LOCK   (sco_arlock),
+    .I_S0_AR_VALID  (sco_arvalid),
+    .O_S0_AR_READY  (sco_arready),
+    .O_S0_R_ID      (sco_rid),
+    .O_S0_R_DATA    (sco_rdata),
+    .O_S0_R_LAST    (sco_rlast),
+    .O_S0_R_RESP    (sco_rresp),
+    .O_S0_R_VALID   (sco_rvalid),
+    .I_S0_R_READY   (sco_rready),
+
+    // S2：SoC io_ddrA（原来在 S0，E5 2.1 节第 2 步挪到这里，由 guard 保护）
+    .I_S2_AW_ID     (soc_ddr_awid),
+    .I_S2_AW_ADDR   (soc_ddr_awaddr),
+    .I_S2_AW_LEN    (soc_ddr_awlen),
+    .I_S2_AW_SIZE   (soc_ddr_awsize),
+    .I_S2_AW_BURST  (soc_ddr_awburst),
+    .I_S2_AW_LOCK   ({1'b0, soc_ddr_awlock}),
+    .I_S2_AW_VALID  (soc_ddr_awvalid),
+    .O_S2_AW_READY  (soc_ddr_awready),
+    .I_S2_W_ID      (8'h0),
+    .I_S2_W_DATA    (soc_ddr_wdata),
+    .I_S2_W_LAST    (soc_ddr_wlast),
+    .I_S2_W_STRB    (soc_ddr_wstrb),
+    .I_S2_W_VALID   (soc_ddr_wvalid),
+    .O_S2_W_READY   (soc_ddr_wready),
+    .O_S2_B_ID      (soc_ddr_bid),
+    .O_S2_B_VALID   (soc_ddr_bvalid),
+    .I_S2_B_READY   (soc_ddr_bready),
+    .I_S2_AR_ID     (soc_ddr_arid),
+    .I_S2_AR_ADDR   (soc_ddr_araddr),
+    .I_S2_AR_LEN    (soc_ddr_arlen),
+    .I_S2_AR_SIZE   (soc_ddr_arsize),
+    .I_S2_AR_BURST  (soc_ddr_arburst),
+    .I_S2_AR_LOCK   ({1'b0, soc_ddr_arlock}),
+    .I_S2_AR_VALID  (soc_ddr_arvalid),
+    .O_S2_AR_READY  (soc_ddr_arready),
+    .O_S2_R_ID      (soc_ddr_rid),
+    .O_S2_R_DATA    (soc_ddr_rdata),
+    .O_S2_R_LAST    (soc_ddr_rlast),
+    .O_S2_R_RESP    (soc_ddr_rresp),
+    .O_S2_R_VALID   (soc_ddr_rvalid),
+    .I_S2_R_READY   (soc_ddr_rready),
 
     .I_S1_AW_ID     (8'h0),
     .I_S1_AW_ADDR   (prb_awaddr),
@@ -753,8 +890,8 @@ Axi_Mux #(
     .O_S1_R_VALID   (prb_rvalid),
     .I_S1_R_READY   (prb_rready),
 
-    .Cfg_Arb_Type   (mux_arb_type),
-    .Cfg_Cnl_Mask   (mux_arb_mask),
+    .Cfg_Arb_Type   (guard_arb_type),
+    .Cfg_Cnl_Mask   (guard_cnl_mask),
     .O_AW_Cnl_Num   (),
     .O_W_Cnl_Num    (),
     .O_B_Cnl_Num    (),

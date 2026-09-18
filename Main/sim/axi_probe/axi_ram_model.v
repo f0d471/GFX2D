@@ -3,6 +3,14 @@
 // 存储 4096 拍（65536 字节），地址按 (addr >> 4) % 4096 取模。
 // 突发长度超过 MAX_LEN 时仍按协议走完整个突发，但回 SLVERR，读回的数据为 0。
 //
+// 地址通道反压的控制（实验 E5 的 3 端口仿真用，默认值保持原来只有随机反压的行为）：
+//   ADDR_STALL_MAX  0 表示不限制；大于 0 时地址通道连续反压不超过这么多拍，
+//                   用来给「SoC 地址等待」一个可验证的上界（E5 2.2 节）
+//   RD_QUEUE        读事务队列深度，默认 1 保持原有行为（地址通道只在空闲时开）；
+//                   大于 1 是流水从机，数据还在流也能收地址，E5 用它复现「下游基本随时可收」
+//   hold_aw         高电平期间强制 AWREADY 为低（已授权之后的持续反压）
+//   hold_ar         高电平期间强制 ARREADY 为低（同上，读方向）
+//
 // 注错宏（由 run.sh 传入）：
 //   INJECT_FLIP  地址 0x0000_0100 那一拍写入时翻转最低位，读比对必须失配
 //   INJECT_HANG  永不发出写响应，主机必须超时
@@ -11,8 +19,10 @@
 
 module axi_ram_model #(
     parameter integer MAX_LEN = 255,
-    parameter integer SEED    = 1,
-    parameter integer STALL   = 3      // 每个 ready/valid 拉低的概率约 STALL/8
+    parameter integer SEED    = 1,     // 每个 ready/valid 拉低的概率约 STALL/8
+    parameter integer STALL   = 3,
+    parameter integer ADDR_STALL_MAX = 0,
+    parameter integer RD_QUEUE = 1
 )(
     input  wire         clk,
     input  wire         rst_n,
@@ -37,7 +47,10 @@ module axi_ram_model #(
     output reg  [1:0]   rresp,
     output reg          rlast,
     output reg          rvalid,
-    input  wire         rready
+    input  wire         rready,
+
+    input  wire         hold_aw,
+    input  wire         hold_ar
 );
 
 reg [127:0] mem [0:4095];
@@ -62,6 +75,10 @@ reg [1:0]  wst;
 reg [31:0] wa;
 reg [7:0]  wlen, wcnt;
 reg        werr;
+reg [15:0] aw_stall_cnt;
+
+// 地址通道连续反压达到上限时强制 ready，给出可验证的上界
+wire aw_force_ready = (ADDR_STALL_MAX != 0) && (aw_stall_cnt >= ADDR_STALL_MAX);
 
 always @(posedge clk) begin
     if (!rst_n) begin
@@ -70,10 +87,15 @@ always @(posedge clk) begin
         wready  <= 1'b0;
         bvalid  <= 1'b0;
         bresp   <= 2'b00;
+        aw_stall_cnt <= 16'd0;
     end else begin
+        if (awvalid && awready)     aw_stall_cnt <= 16'd0;
+        else if (!awready)          aw_stall_cnt <= aw_stall_cnt + 16'd1;
+        else                        aw_stall_cnt <= 16'd0;
+
         case (wst)
         W_IDLE: begin
-            awready <= !stall(0);
+            awready <= hold_aw ? 1'b0 : (aw_force_ready ? 1'b1 : !stall(0));
             if (awvalid && awready) begin
                 awready <= 1'b0;
                 wa      <= awaddr;
@@ -120,37 +142,75 @@ always @(posedge clk) begin
 end
 
 // ---------------- 读 ----------------
-localparam R_IDLE = 2'd0, R_DATA = 2'd1;
-reg [1:0]  rst_;
+// 读事务队列：RD_QUEUE=1 时地址通道只在完全空闲时打开，与本文原有行为一致；
+// 大于 1 时是流水从机（数据还在流也能收地址），用来给地址反压一个可验证的小上界
+// （E5 的 inject_noguard 用例需要「下游地址通道基本随时可收」才能复现 S2 饿死）。
+localparam QDEPTH = 16;
+reg [31:0] q_addr [0:QDEPTH-1];
+reg [7:0]  q_len  [0:QDEPTH-1];
+reg [4:0]  q_head = 5'd0, q_tail = 5'd0;
+wire [4:0] q_used  = q_tail - q_head;
+wire       q_empty = (q_head == q_tail);
+wire       q_room  = (q_used < RD_QUEUE);
+
+reg        srv = 1'b0;
 reg [31:0] ra;
 reg [7:0]  rlen, rcnt;
 reg        rerr;
+reg [15:0] ar_stall_cnt;
+
+wire ar_force_ready = (ADDR_STALL_MAX != 0) && (ar_stall_cnt >= ADDR_STALL_MAX);
+wire addr_open = q_room && ((RD_QUEUE > 1) || (!srv && q_empty));
 
 always @(posedge clk) begin
     if (!rst_n) begin
-        rst_    <= R_IDLE;
         arready <= 1'b0;
         rvalid  <= 1'b0;
         rlast   <= 1'b0;
         rresp   <= 2'b00;
+        ar_stall_cnt <= 16'd0;
+        q_head  <= 5'd0;
+        q_tail  <= 5'd0;
+        srv     <= 1'b0;
+        ra      <= 32'h0;
+        rlen    <= 8'd0;
+        rcnt    <= 8'd0;
+        rerr    <= 1'b0;
     end else begin
-        case (rst_)
-        R_IDLE: begin
-            arready <= !stall(0);
-            if (arvalid && arready) begin
-                arready <= 1'b0;
-                ra      <= araddr;
-                rlen    <= arlen;
-                rcnt    <= 8'd0;
-                rerr    <= (arlen > MAX_LEN);
-                rst_    <= R_DATA;
-            end
+        // 地址通道连续反压计数（ADDR_STALL_MAX 用它给出上界）
+        if (arvalid && arready)     ar_stall_cnt <= 16'd0;
+        else if (!arready)          ar_stall_cnt <= ar_stall_cnt + 16'd1;
+        else                        ar_stall_cnt <= 16'd0;
+
+        // ARREADY：hold 优先，其次看队列有没有空间，最后是随机反压与反压上界
+        if (hold_ar || !addr_open)
+            arready <= 1'b0;
+        else
+            arready <= ar_force_ready ? 1'b1 : !stall(0);
+
+        // 入队
+        if (arvalid && arready) begin
+            q_addr[q_tail[3:0]] <= araddr;
+            q_len [q_tail[3:0]] <= arlen;
+            q_tail <= q_tail + 5'd1;
         end
-        R_DATA: begin
+
+        // 取下一笔开始服务
+        if (!srv && !q_empty) begin
+            srv  <= 1'b1;
+            ra   <= q_addr[q_head[3:0]];
+            rlen <= q_len [q_head[3:0]];
+            rcnt <= 8'd0;
+            rerr <= (q_len[q_head[3:0]] > MAX_LEN);
+            q_head <= q_head + 5'd1;
+        end
+
+        // 数据流
+        if (srv) begin
             if (!rvalid || rready) begin
                 if (rvalid && rlast) begin
                     rvalid <= 1'b0;
-                    rst_   <= R_IDLE;
+                    srv    <= 1'b0;
                 end else if (!stall(0)) begin
                     rvalid <= 1'b1;
                     rdata  <= rerr ? 128'h0 : mem[(ra >> 4) % 4096];
@@ -162,8 +222,6 @@ always @(posedge clk) begin
                     rvalid <= 1'b0;
             end
         end
-        default: rst_ <= R_IDLE;
-        endcase
     end
 end
 

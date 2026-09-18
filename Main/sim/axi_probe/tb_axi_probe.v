@@ -59,7 +59,7 @@ wire         m_rvalid  [0:1];
 wire         m_rready  [0:1];
 
 wire         arb_type;
-wire [1:0]   arb_mask;
+wire [2:0]   arb_mask;
 wire         unused_type;
 wire [1:0]   unused_mask;
 
@@ -103,7 +103,9 @@ assign prdata1  = gm[1].u_m.prdata;
 assign pslverr0 = gm[0].u_m.pslverr;
 assign pslverr1 = gm[1].u_m.pslverr;
 assign arb_type = gm[1].u_m.arb_type;
-assign arb_mask = gm[1].u_m.arb_mask;
+// Axi_Mux 改成 X3 之后 Cfg_Cnl_Mask 是 3 位（E5 2.1 节）；探针的 ARB 只有 2 位，
+// 最高位补 1，保持「三个通道都开」的语义
+assign arb_mask = {1'b1, gm[1].u_m.arb_mask};
 
 Axi_Mux #(.SLAVE_ID_WIDTH(8), .ID_MODE_SEL("Normal"), .AXI_DATA_WIDTH(128)) u_mux (
     .Sys_Clk(clk), .Sys_Rst_N(~rst),
@@ -138,6 +140,18 @@ Axi_Mux #(.SLAVE_ID_WIDTH(8), .ID_MODE_SEL("Normal"), .AXI_DATA_WIDTH(128)) u_mu
     .O_S1_R_ID(), .O_S1_R_DATA(m_rdata[1]), .O_S1_R_LAST(m_rlast[1]), .O_S1_R_RESP(m_rresp[1]),
     .O_S1_R_VALID(m_rvalid[1]), .I_S1_R_READY(m_rready[1]),
 
+    // Axi_Mux 改成 X3（E5 2.1 节）之后多出 S2 一组端口；本测试台只用两个主机，
+    // 把 S2 明确接成不发起，避免输入悬空
+    .I_S2_AW_ID(8'h0), .I_S2_AW_ADDR(32'h0), .I_S2_AW_LEN(8'h0), .I_S2_AW_SIZE(3'b000),
+    .I_S2_AW_BURST(2'b00), .I_S2_AW_LOCK(2'b00), .I_S2_AW_VALID(1'b0), .O_S2_AW_READY(),
+    .I_S2_W_ID(8'h0), .I_S2_W_DATA(128'h0), .I_S2_W_LAST(1'b0), .I_S2_W_STRB(16'h0),
+    .I_S2_W_VALID(1'b0), .O_S2_W_READY(),
+    .O_S2_B_ID(), .O_S2_B_VALID(), .I_S2_B_READY(1'b0),
+    .I_S2_AR_ID(8'h0), .I_S2_AR_ADDR(32'h0), .I_S2_AR_LEN(8'h0), .I_S2_AR_SIZE(3'b000),
+    .I_S2_AR_BURST(2'b00), .I_S2_AR_LOCK(2'b00), .I_S2_AR_VALID(1'b0), .O_S2_AR_READY(),
+    .O_S2_R_ID(), .O_S2_R_DATA(), .O_S2_R_LAST(), .O_S2_R_RESP(), .O_S2_R_VALID(),
+    .I_S2_R_READY(1'b0),
+
     .Cfg_Arb_Type(arb_type), .Cfg_Cnl_Mask(arb_mask),
     .O_AW_Cnl_Num(), .O_W_Cnl_Num(), .O_B_Cnl_Num(), .O_AR_Cnl_Num(), .O_R_Cnl_Num()
 );
@@ -155,7 +169,9 @@ axi_ram_model #(
     .wdata(s_wdata), .wlast(s_wlast), .wvalid(s_wvalid), .wready(s_wready),
     .bresp(s_bresp), .bvalid(s_bvalid), .bready(s_bready),
     .araddr(s_araddr), .arlen(s_arlen), .arvalid(s_arvalid), .arready(s_arready),
-    .rdata(s_rdata), .rresp(s_rresp), .rlast(s_rlast), .rvalid(s_rvalid), .rready(s_rready)
+    .rdata(s_rdata), .rresp(s_rresp), .rlast(s_rlast), .rvalid(s_rvalid), .rready(s_rready),
+    // E5 加的地址通道持续反压控制，本测试台不用
+    .hold_aw(1'b0), .hold_ar(1'b0)
 );
 
 // ---------------------------------------------------------------------------

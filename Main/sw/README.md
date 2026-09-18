@@ -162,7 +162,28 @@ gcc 8.3.0 编译，bin 2418 字节。串口逐行打印 `LOW k=0..27`、`LOW k=-
 
 ## ddrBurstProbe 的期望值
 
-需要带 `axi_probe_master` 的比特流（2026-09-17 起）。gcc 8.3.0 编译，bin 3922 字节，`resume` 后 1 秒内输出完毕（2026-09-17 实测，全部 56 行在 0.5 秒左右内到达）。串口末尾为 `fail 0` 与 `done`，`IDENT`、`CROSS`、`SWEEP` 每行为 `ok`，`SHARE errs=0x00000000 ok`。周期数随板子会有约 2% 的波动，参考值与解释见 `../../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.4 节。探针主机超时或挂死时 CPU 也访问不了 DDR，串口会停在最后一行，重新加载比特流恢复。
+需要带 `axi_probe_master`、`axi_mux_guard` 与 `scanout_stub` 的比特流（2026-09-19 起；此前只有四个阶段）。
+gcc 8.3.0 编译，bin 5914 字节（sha256 前 16 位 `d8cc075444bf7602`），`resume` 后数秒内输出完毕
+（2026-09-19 实测，六个阶段约 2 秒）。串口末尾为 `fail 0` 与 `done`，除下列各处外每行为 `ok`：
+
+- `IDENT guard ctrl=3 mask=7 age=64 ok`、`IDENT scan id=0x5343414e base=0x02000000 ok`：
+  E5 的两个新窗口的 ID 与上电默认值。**配置归属这条判据就在这里。**
+- `CROSS`、`SWEEP` 与 E4 相同，每行 `ok`；`SHARE errs=0x00000000 ok`。
+- `SHARE cpu ticks alone=... shared=...`：优先级 + guard 下，CPU 拷贝在探针满负载时约 **1.60 倍**
+  （2026-09-19 实测 53.9 ms → 86.5 ms；E4 轮询基线约 1.94 倍）。
+- `TRI`：三方并发（扫描替身 + 探针替身 + CPU 拷贝）。实测 CPU 拷贝 91.5 ms（单独时 1.70 倍）；
+  `max_wait_ar=0x12f`（303 周期）、`max_wait_aw=0x1dd`（477）、`hits=0x4423`（17443）、
+  guard `status=0`；扫描 `txn≈2880`、`beat=txn×160`、`skip=0`、`resperr=0`，
+  最坏 `max_first=78`、`max_full=244`、`max_gap=42`（扫描单独跑时是 63 / 236 / 44）。
+- `INJECT age1 hits=... ok`：把 `AGE_LIMIT` 设成 1，命中数必须显著增加（实测 `0x44004`）且探针照常完成；
+  设回 64 后只记录（实测 `0x15df`）。
+- `INJECT mask_s0 txn a b c d e ok`：把 guard 掩码的 S0 位清掉，扫描的 `TXN_COUNT` 必须**冻住**
+  （实测 7249 → 7879 → 7879 → 7879），恢复后继续增长（8510）。这是「掩码确实送进多路器」的反例判据。
+
+周期数随板子会有约 2% 的波动；E4 各阶段的参考值与解释见
+`../../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.4 节，
+E5 三阶段的判据与实测值见 `../../Engineering/Todo/E5-Axi_Mux优先级与扫描FIFO水位.md`。
+探针主机超时或挂死时 CPU 也访问不了 DDR，串口会停在最后一行，重新加载比特流恢复。
 
 ## cacheCoherencyTest 的期望值
 

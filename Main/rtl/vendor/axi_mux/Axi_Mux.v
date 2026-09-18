@@ -40,7 +40,7 @@
 
 `timescale 1ns/100ps
 
-`define     X2 
+`define     X3 
 
 `include  "Axi_Mux_Param.vh"
 

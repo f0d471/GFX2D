@@ -9,6 +9,8 @@
         <efx:design_file name="../../rtl/top/gfx2d_top.v" version="default" library="default" />
         <efx:design_file name="../../rtl/bus/apb_probe.v" version="default" library="default" />
         <efx:design_file name="../../rtl/bus/axi_probe_master.v" version="default" library="default" />
+        <efx:design_file name="../../rtl/bus/axi_mux_guard.v" version="default" library="default" />
+        <efx:design_file name="../../rtl/bus/scanout_stub.v" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/axi_mux/Axi_Mux.v" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/ddr3_controller/ddr3_parameter.vh" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/ddr3_controller/ddr3_top.v" version="default" library="default" />

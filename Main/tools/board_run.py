@@ -313,8 +313,11 @@ def main():
         print("ERROR: 打不开串口 %s：%s" % (args.port, result["error"]), file=sys.stderr)
         return 2
 
-    print("=== 3) load_image + resume")
-    cmds = ["load_image {%s} %s bin" % (args.bin, args.addr),
+    print("=== 3) reset halt + load_image + resume")
+    # reset halt 不能省：不复位时前一次实验可能把探针主机或 DDR 控制器留在坏状态，
+    # 程序一行都不跑而现象与程序有 bug 相同（E5 2026-09-19 发现本脚本漏了这一步）
+    cmds = ["reset halt",
+            "load_image {%s} %s bin" % (args.bin, args.addr),
             "resume %s" % args.addr, "shutdown"]
     ok, out = run_openocd(ocd, cfg, workspace, cmds, timeout=90)
     for line in out.splitlines():

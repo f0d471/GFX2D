@@ -46,6 +46,29 @@
 #define R_ARB           0x38
 #define R_ID            0x3C
 
+/* guard（rtl/bus/axi_mux_guard.v）与扫描替身（rtl/bus/scanout_stub.v）窗口内的偏移 */
+#define GRD             0xF810F000u
+#define SCN             0xF810E000u
+#define G_CTRL          0x08
+#define G_MASK          0x0C
+#define G_AGE           0x10
+#define G_STATUS        0x14
+#define G_HITS          0x18
+#define G_MAX_AR        0x1C
+#define G_MAX_AW        0x20
+#define G_CLEAR         0x24
+#define S_CTRL          0x08
+#define S_BASE          0x0C
+#define S_MAX_FIRST     0x18
+#define S_MAX_FULL      0x1C
+#define S_MAX_GAP       0x20
+#define S_TXN           0x24
+#define S_BEAT          0x2C
+#define S_SKIP          0x30
+#define S_RESPERR       0x34
+#define S_STATUS        0x38
+#define FRAMEBUF0       0x02000000u
+
 #define ST_BUSY         0x01u
 #define ST_DONE         0x02u
 #define ST_TIMEOUT      0x04u
@@ -102,16 +125,42 @@ static uint32_t evict_rd32(uint32_t a)
     return *(volatile uint32_t *)a;
 }
 
+static inline uint32_t grd(uint32_t off)            { return *(volatile uint32_t *)(GRD + off); }
+static inline void     grdw(uint32_t off, uint32_t v){ *(volatile uint32_t *)(GRD + off) = v; }
+static inline uint32_t scn(uint32_t off)            { return *(volatile uint32_t *)(SCN + off); }
+static inline void     scnw(uint32_t off, uint32_t v){ *(volatile uint32_t *)(SCN + off) = v; }
+
+/* 1 tick = 10 ns（core_clk 100MHz） */
+#define TICKS_PER_MS    100000u
+static void wait_ms(uint32_t ms)
+{
+    uint32_t t0 = now();
+    while ((now() - t0) < ms * TICKS_PER_MS) { }
+}
+
 static int stage_ident(void)
 {
-    char a[9], b[9];
+    char a[9], b[9], c[9];
     uint32_t id = rd(R_ID);
     uint32_t arb = rd(R_ARB);
     hex8(a, id);
     hex8(b, arb);
     int ok = (id == 0x41584950u) && (arb == 0x6u);
     bsp_printf("IDENT id=0x%s arb=0x%s %s\r\n", a, b, ok ? "ok" : "FAIL");
-    return !ok;
+    int fail = !ok;
+
+    /* E5 配置归属：guard 与扫描替身的窗口与上电默认值 */
+    uint32_t gc = grd(G_CTRL), gm = grd(G_MASK), ga = grd(G_AGE);
+    int gok = (grd(0x00) == 0x4D555847u) && (grd(0x04) == 1u) &&
+              (gc == 3u) && (gm == 7u) && (ga == 64u);
+    bsp_printf("IDENT guard ctrl=%d mask=%d age=%d %s\r\n", gc, gm, ga, gok ? "ok" : "FAIL");
+    fail += !gok;
+
+    hex8(c, scn(0x00));
+    int sok = (scn(0x00) == 0x5343414Eu) && (scn(0x04) == 1u) && (scn(S_BASE) == FRAMEBUF0);
+    bsp_printf("IDENT scan id=0x%s base=0x%s %s\r\n", c, (scn(S_BASE) == FRAMEBUF0) ? "02000000" : "other", sok ? "ok" : "FAIL");
+    fail += !sok;
+    return fail;
 }
 
 static int stage_cross(void)
@@ -236,6 +285,116 @@ static int stage_share(void)
     return !(st == ST_DONE && bprb_shared_done);
 }
 
+/* E5：三方并发。扫描替身按行读 160 拍、探针替身读满负载、CPU 拷贝三者同时跑，
+   记录扫描的首拍/整笔/最大拍间隙、guard 的 SoC 地址等待与命中数、CPU 拷贝耗时。
+   板上只报告黑盒控制器下的实测最大值，不声称形式上界（见 E5 2.2 节）。 */
+static int stage_tri(void)
+{
+    char a[9], b[9], c[9], d[9];
+    const uint32_t len = 255u, count = 16384u;
+    int fail = 0;
+
+    scnw(S_BASE, FRAMEBUF0);
+    scnw(S_CTRL, 0);
+    scnw(S_CTRL, 1);            /* 使能扫描替身 */
+    grdw(G_CLEAR, 1);           /* 清 guard 统计 */
+
+    wr(R_ADDR, SWEEP_BASE);
+    wr(R_LEN, len);
+    wr(R_COUNT, count);
+    wr(R_MODE, 0);
+    wr(R_CTRL, 1);
+    uint32_t cpu_shared = cpu_copy();
+    uint32_t st2;
+    do {
+        st2 = rd(R_STATUS);
+    } while (!(st2 & ST_DONE));
+
+    uint32_t hits = grd(G_HITS), war = grd(G_MAX_AR), waw = grd(G_MAX_AW);
+    uint32_t txn = scn(S_TXN), skip = scn(S_SKIP), rerr = scn(S_RESPERR);
+    uint32_t f = scn(S_MAX_FIRST), fu = scn(S_MAX_FULL), gp = scn(S_MAX_GAP);
+
+    hex8(a, cpu_shared);
+    bsp_printf("TRI cpu ticks=0x%s\r\n", a);
+    hex8(a, war); hex8(b, waw); hex8(c, hits); hex8(d, grd(G_STATUS));
+    bsp_printf("TRI guard max_wait_ar=0x%s max_wait_aw=0x%s hits=0x%s status=0x%s\r\n", a, b, c, d);
+    hex8(d, st2);
+    bsp_printf("TRI prb status=0x%s\r\n", d);
+    bsp_printf("TRI scan txn=%d beat=%d skip=%d resperr=%d\r\n", txn, scn(S_BEAT), skip, rerr);
+    bsp_printf("TRI scan max_first=%d max_full=%d max_gap=%d\r\n", f, fu, gp);
+
+    /* 判据：三方都完成，扫描没被跳过、没有响应错误 */
+    int ok = (st2 == ST_DONE) && (txn > 0) && (skip == 0) && (rerr == 0);
+    bsp_printf("TRI %s\r\n", ok ? "ok" : "FAIL");
+    fail += !ok;
+    return fail;
+}
+
+/* E5：保护的上板判据。AGE_LIMIT=1 时 GUARD_HITS 必须增加且三方照常完成；
+   再把 S0 的掩码位清掉当反例，扫描替身必须完全拿不到授权。 */
+static int stage_inject(void)
+{
+    char a[9];
+    const uint32_t len = 255u, count = 4096u;
+    int fail = 0;
+
+    /* 1) AGE_LIMIT=1 */
+    grdw(G_AGE, 1u);
+    grdw(G_CLEAR, 1u);
+    scnw(S_CTRL, 1);
+    wr(R_ADDR, SWEEP_BASE);
+    wr(R_LEN, len);
+    wr(R_COUNT, count);
+    wr(R_MODE, 0);
+    wr(R_CTRL, 1);
+    (void)cpu_copy();
+    uint32_t st2;
+    do {
+        st2 = rd(R_STATUS);
+    } while (!(st2 & ST_DONE));
+    uint32_t h1 = grd(G_HITS);
+    hex8(a, h1);
+    int ok1 = (h1 > 0u) && (st2 == ST_DONE);
+    bsp_printf("INJECT age1 hits=0x%s %s\r\n", a, ok1 ? "ok" : "FAIL");
+    fail += !ok1;
+
+    /* 设回 64，同样负载，只记录命中数 */
+    grdw(G_AGE, 64u);
+    grdw(G_CLEAR, 1u);
+    wr(R_ADDR, SWEEP_BASE);
+    wr(R_LEN, len);
+    wr(R_COUNT, count);
+    wr(R_MODE, 0);
+    wr(R_CTRL, 1);
+    (void)cpu_copy();
+    do {
+        st2 = rd(R_STATUS);
+    } while (!(st2 & ST_DONE));
+    hex8(a, grd(G_HITS));
+    bsp_printf("INJECT age64 hits=0x%s (record only)\r\n", a);
+
+    /* 2) S0 掩码反例 */
+    grdw(G_MASK, 7u);
+    scnw(S_CTRL, 1);
+    uint32_t t0 = scn(S_TXN);
+    wait_ms(20);
+    uint32_t t1 = scn(S_TXN);
+    grdw(G_MASK, 6u);           /* 清掉 S0 位：反例 */
+    wait_ms(20);
+    uint32_t t2 = scn(S_TXN);
+    wait_ms(20);
+    uint32_t t3 = scn(S_TXN);
+    grdw(G_MASK, 7u);           /* 恢复 */
+    wait_ms(20);
+    uint32_t t4 = scn(S_TXN);
+    int ok2 = (t1 > t0) && (t2 == t1) && (t3 == t1) && (t4 > t3);
+    bsp_printf("INJECT mask_s0 txn %d %d %d %d %d %s\r\n", t0, t1, t2, t3, t4, ok2 ? "ok" : "FAIL");
+    fail += !ok2;
+
+    scnw(S_CTRL, 0);            /* 关掉扫描替身，别影响后面的回归 */
+    return fail;
+}
+
 void main()
 {
     int fail = 0;
@@ -244,6 +403,8 @@ void main()
     fail += stage_cross();
     fail += stage_sweep();
     fail += stage_share();
+    fail += stage_tri();
+    fail += stage_inject();
     bsp_printf("fail %d\r\n", fail);
     bsp_printf("done\r\n");
 }

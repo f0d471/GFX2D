@@ -17,7 +17,7 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `gfx2d_top.v` | 顶层。例化 SoC（`u_soc`）、DDR3 控制器（`u_ddr3`）、APB 探针（`u_apb_probe`）、AXI 探针主机（`u_axi_probe`）、AXI 多路器（`u_axi_mux`）、HDMI 发送（`u_hdmi_tx`） |
+| `gfx2d_top.v` | 顶层。例化 SoC（`u_soc`）、DDR3 控制器（`u_ddr3`）、APB 探针（`u_apb_probe`）、AXI 探针主机（`u_axi_probe`）、扫描输出替身（`u_scanout`）、AXI 多路器（`u_axi_mux`）、仲裁配置与防饿死保护（`u_mux_guard`）、HDMI 发送（`u_hdmi_tx`） |
 
 端口名与 `fpga/gfx2d_ti60/gfx2d_ti60.peri.xml` 中的信号名一一对应，改一边必须同步另一边，否则 Interface Designer 会报 Missing Interface Pins。
 
@@ -29,8 +29,10 @@ SoC 经 `u_axi_mux` 接 DDR3 控制器，中间有两处有意的位宽截断，
 
 | 文件 | 说明 |
 | --- | --- |
-| `apb_probe.v` | APB 探针寄存器，挂 APB Slave 0（CPU 地址 `0xF810_0000`，64KB 窗口）。窗口内 `0x1000~0x1FFF` 分给 `axi_probe_master`，其余地址归它。`0x000` ID（只读，"GFX2"）、`0x004` VERSION（只读）、`0x008` SCRATCH（读写）；其余地址读回 0 并置 PSLVERROR |
-| `axi_probe_master.v` | AXI 探针主机，DDR3 上的第二个 AXI 主机，经 `Axi_Mux` S1 接入。寄存器在 APB Slave 0 的 `0x1000~0x1FFF`（CPU 地址 `0xF810_1000`），表在文件头。用于实验 E4，也是 CPU 之外的 DDR 观测者 |
+| `apb_probe.v` | APB 探针寄存器，挂 APB Slave 0（CPU 地址 `0xF810_0000`，64KB 窗口）。窗口内 `0x1000~0x1FFF` 归 `axi_probe_master`、`0xE000~0xEFFF` 归 `scanout_stub`、`0xF000~0xFFFF` 归 `axi_mux_guard`，其余地址归它。`0x000` ID（只读，"GFX2"）、`0x004` VERSION（只读）、`0x008` SCRATCH（读写）；其余地址读回 0 并置 PSLVERROR |
+| `axi_probe_master.v` | AXI 探针主机，DDR3 上的第二个 AXI 主机，经 `Axi_Mux` S1 接入。寄存器在 APB Slave 0 的 `0x1000~0x1FFF`（CPU 地址 `0xF810_1000`），表在文件头。用于实验 E4，也是 CPU 之外的 DDR 观测者。它的 `ARB` 寄存器自 2026-09-19 起不再驱动 `Axi_Mux`，仲裁配置改由 `axi_mux_guard` 给出 |
+| `axi_mux_guard.v` | `Axi_Mux` 的仲裁方式、三通道用户掩码与 SoC（S2）地址等待的防饿死保护，永久模块。挂 APB Slave 0 的 `0xF000~0xFFFF`（CPU 地址 `0xF810_F000`），寄存器表在文件头。实验 E5 的 2.1、2.2 节 |
+| `scanout_stub.v` | 扫描输出在 AXI 上的替身：按行节拍发 160 拍读，每个方向在途事务不超过 1，记录首拍等待、整笔时间与 R 拍间隙的最大值与直方图。挂 APB Slave 0 的 `0xE000~0xEFFF`（CPU 地址 `0xF810_E000`），寄存器表在文件头。实验 E5 的 2.3 节，真实扫描输出接入后撤掉 |
 
 加速器的控制寄存器将来接在同一条 APB 上，这个模块是占位，也是 APB 通路的自检手段：上板用 OpenOCD 直接读写这几个地址即可，不需要写程序。仿真见 `sim/apb_probe/`。
 
@@ -52,12 +54,12 @@ SoC 经 `u_axi_mux` 接 DDR3 控制器，中间有两处有意的位宽截断，
 | 目录 | 内容 | 状态 |
 | --- | --- | --- |
 | `ddr3_controller/` | 易灵思 DDR3 软核控制器。顶层 `ddr3_top.v`，参数 `ddr3_parameter.vh`，其余为 PHY、bank 管理、AXI 从口 | 在工程源文件列表中。多数文件是加密 RTL，开源仿真工具读不了 |
-| `axi_mux/` | 第三方明文 AXI 多路器（2~8 主机进、1 出，128 位），来自官方工程，官方设计里没有例化过 | 在源文件列表中，例化为 `u_axi_mux`，S0 接 SoC、S1 接 `axi_probe_master`。未改动源码。没有 BRESP 端口，顶层把控制器的 bresp 并接给各主机；`EFX_SRL8` 的输出取反、地址反向，仿真必须用厂商模型 |
+| `axi_mux/` | 第三方明文 AXI 多路器（2~8 主机进、1 出，128 位），来自官方工程，官方设计里没有例化过 | 在源文件列表中，例化为 `u_axi_mux`，2026-09-19 起 S0 接 `scanout_stub`（扫描替身）、S1 接 `axi_probe_master`、S2 接 SoC，见下。除第 43 行的宏以外未改动。没有 BRESP 端口，顶层把控制器的 bresp 并接给各主机；`EFX_SRL8` 的输出取反、地址反向，仿真必须用厂商模型 |
 
 两处要注意的：
 
 - `ddr3_controller/common/simple_dual_port_ram.v` 用的是官方工程 `rtl/common/` 下那一份（1565 字节），也就是当前上板比特流实际编进去的版本。厂商目录里原本自带另一份同名文件（3413 字节，未被工程引用），已被这一份覆盖，原文件在 git 历史里。保留两份会出现同名模块，容易编错。
-- `axi_mux/Axi_Mux.v` 开头有 `` `define X2 ``（选择 2 个主机端口），工程是单编译单元，这个宏对后面编译的文件可见。2026-09-16 接入时查过，本工程其余明文文件没有用到 `X2`~`X8` 与 `Axi_Chnanel_Num`。
+- **`axi_mux/Axi_Mux.v` 第 43 行改过一处**：2026-09-19 实验 E5 把 `` `define X2 `` 改成 `` `define X3 ``，启用现成的第三个主机端口（端口列表 164~199 行、声明 552~591 行、输入选择 911~936 行、输出解复用 1373~1386 行都是厂商写好的 `ifdef X3` 块），仲裁状态机一行未动。`X3` 会连带定义 `X2` 并把 `Axi_Chnanel_Num` 定为 3，因而 `Cfg_Cnl_Mask` 由 2 位变 3 位、`O_*_Cnl_Num` 由 1 位变 2 位（顶层这五个输出仍是空连接）。工程是单编译单元，这个宏对后面编译的文件可见；2026-09-16 与 09-19 各查过一次，本工程其余明文文件没有用到 `X2`~`X8` 与 `Axi_Chnanel_Num`。对照原件时只需还原这一行。
 
 ## 关键参数
 
