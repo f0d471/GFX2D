@@ -9,7 +9,7 @@
 
 ```
 sw/
-  mk/target.mk     板上构建（xPack riscv-none-embed-gcc + sdk 的 BSP）
+  mk/target.mk     板上构建（xPack riscv-none-elf-gcc 13.4.0 + sdk 的 BSP）
   mk/host.mk       PC 构建（WSL 的 gcc + SDL2）
   bsp/             项目板级层：叠在只读的 sdk 之上
     include/       board.h（板级接口）、memmap.h（DDR 分区偏移与大小）、dcache_line.h（缓存行折算）
@@ -45,12 +45,13 @@ sw/
 | `apps/game/gfx2dGame/` | 游戏应用（SW1 起）。当前是最小骨架，判据见下 |
 | `apps/test/bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
 | `apps/test/cacheCoherencyTest/` | 实验 E3 的判据程序：用探针主机当外部写入者，一致性判据、注错与注错自检，并量失效指令的代价 |
+| `apps/test/keyTest/` | SoC IP 定型的按键判据：空闲时 GPIO1 读口应为 `0x0f`，30 秒窗口内 KEY0~3 各要出现一次按下与松开（要人按） |
 | `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象 |
 | `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验 |
 | `apps/probe/cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
 | `apps/probe/cacheMinTest/` | 实验 E3 早期的最小实验，只作现象可复现保留，不作为结论证据 |
 
-除 `gfx2dGame` 以外的六个诊断程序仍沿用官方的 makefile 体系
+除 `gfx2dGame` 以外的七个诊断程序仍沿用官方的 makefile 体系
 （每个的 makefile 里用 `STANDALONE` 指到 `sdk/software/standalone`，现在是往上四级的 `../../../../sdk/...`），
 **没有迁到新构建**，要改它们时顺手迁移。`gfx2dGame` 与以后的应用用新构建，
 makefile 里 `include ../../../mk/$(PLATFORM).mk`。
@@ -118,12 +119,12 @@ done
 （`cycles` 每台机器、每次运行都不同，这里照实抄的是入库日志 `logs/pc_normal.log` 的首尾两行；
 CRC 那一列才是判据。）
 
-**板上**：bin 2442 字节（`sha256:98fb37c9dc9bc060…`，xPack gcc 8.3.0，默认 `-O2`；
+**板上**：gcc 13.4.0（2026-09-19 起）bin 2578 字节（`sha256:27a4157520558dbe…`，`-O2`），60 帧 CRC 与 PC 日志逐帧相同。此前 gcc 8.3.0 时 bin 2442 字节（`sha256:98fb37c9dc9bc060…`，xPack gcc 8.3.0，默认 `-O2`；
 `-Os` 是 2210 字节 `8699eb87f4130ce5…`，注错版 2442 字节 `577cacb50a0b29bd…`），
 串口 62 行，末尾 `frames 60` 与 `done`。板上不上屏（扫描输出属于 display 系列），
 画面以整帧 CRC 的形式输出，**60 个 CRC 必须与 PC 逐帧相同**。
 板上用的是 `Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit`
-（2026-09-19 这一份 `sha256:d8af4ce13c416834…`，2,052,291 字节）。
+（2026-09-19 SoC IP 定型之后这一份 `sha256:4f1c7ec23d99f9ba…`，2,070,156 字节；此前 `d8af4ce13c416834…`）。
 
 日志四份在 `apps/game/gfx2dGame/logs/`：`pc_normal.log`、`pc_inject.log` 是 PC 的 stdout（期望值），
 `board_normal.log`、`board_inject.log` 是板上串口原始输出。比对只取 `frame N crc X` 这一列：
@@ -140,9 +141,9 @@ diff <(grep -o 'frame [0-9]* crc [0-9a-f]*' logs/pc_normal.log) \
 `cycles` 那一列只有参考意义：PC 上是把性能计数器折算成 100MHz 的周期数，
 不作性能结论（总览约束 5）；板上是 CLINT 的真实周期数，约 3270 万/帧。
 
-## 编译（六个诊断程序）
+## 编译（七个诊断程序）
 
-IDE 2026.1 自带的 gcc 13.4 编不了 2025.2 生成的这套 BSP（缺 `_zicsr`），当前用 xPack 的 gcc 8.3.0，安装见 `../doc/开发环境.md` 第 2 节：
+2026-09-19 起 `sdk/` 是 efx_soc 3.4.0 生成的，工具链换成 xPack 的 gcc 13.4.0（与 IDE 2026.1 自带的同版本，Linux 版装在 WSL 里），安装见 `../doc/开发环境.md` 第 2 节：
 
 ```
 wsl -e bash -c 'cd sw/apps/test/bootSizeTest && make BSP=efinix/EfxSapphireSoc RISCV_BIN=<RISCV_BIN> OBJDIR=build'
@@ -153,7 +154,7 @@ wsl -e bash -c 'cd sw/apps/test/bootSizeTest && make BSP=efinix/EfxSapphireSoc R
 - 必须写 `wsl -e`，否则命令会先经过一层 shell，`$` 开头的变量被提前展开成空，make 会退回用主机的 gcc。
 - 在仓库里任意位置调用即可，`wsl.exe` 会把当前的 Windows 目录映射进去。
 - `OBJDIR` 指到仓库外面，产物不进版本库。默认值是程序目录下的 `build/`，已在 `.gitignore` 中。
-- 升级 SoC IP、同步新 BSP 之后，改用 IDE 自带的工具链，这一段要跟着改。
+- 工具链前缀跟着 `sdk/` 的版本走：3.4.0 的软件包要 `riscv-none-elf-`（gcc 13.4），旧的 8.3.0 编不了。
 
 ## 上板运行
 
@@ -166,16 +167,18 @@ wsl -e bash -c 'cd sw/apps/test/bootSizeTest && make BSP=efinix/EfxSapphireSoc R
 
 ## bootSizeTest 的期望值
 
-gcc 8.3.0 编译结果：bin 301,882 字节，数据块起于 `0x00001750`、长 300,000 字节，`crc_all = 0x47df83a8`，`crc_tail = 0x78c8c48f`。程序或工具链变化后要重新计算，构造与对照组设计见 `../../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md` 3.5 节。
+gcc 13.4.0 编译结果（2026-09-19）：bin 302,026 字节，数据块起于 `0x000017dc`、长 300,000 字节，`crc_all = 0x47df83a8`，`crc_tail = 0x78c8c48f`。
+两个 CRC 只取决于数据块的内容，与 gcc 8.3.0 时相同（那时 bin 301,882 字节、数据块起于 `0x00001750`）。
+对照组必须先跑：先跑 512KB 版会把完整镜像留在 DDR 里，重载比特流不给 DDR 断电，对照组会读到这份残留而假通过（2026-09-19 实际踩到，见 platform 第 07 章）。程序或工具链变化后要重新计算，构造与对照组设计见 `../../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md` 3.5 节。
 
 ## ddrAliasTest 的期望值
 
-gcc 8.3.0 编译，bin 2418 字节。串口逐行打印 `LOW k=0..27`、`LOW k=-1`、`HIGH k=28..31`、`CACHE_NOEVICT`、`CACHE_EVICT`，全部为 `ok`，最后一行之前是 `base 0x0c800000 fail 0`。其中 `CACHE_NOEVICT` 读到 `11`（缓存里的旧值）是预期现象，不计入 `fail`。实验设计与原始输出见 `../../Engineering/TechReports/platform/02-DDR地址译码与AXI-ID实测.md`。
+gcc 13.4.0 编译，bin 2562 字节（`sha256:9d179bece4f1ff31…`，gcc 8.3.0 时 2418 字节），2026-09-19 上板输出与下面一致。串口逐行打印 `LOW k=0..27`、`LOW k=-1`、`HIGH k=28..31`、`CACHE_NOEVICT`、`CACHE_EVICT`，全部为 `ok`，最后一行之前是 `base 0x0c800000 fail 0`。其中 `CACHE_NOEVICT` 读到 `11`（缓存里的旧值）是预期现象，不计入 `fail`。实验设计与原始输出见 `../../Engineering/TechReports/platform/02-DDR地址译码与AXI-ID实测.md`。
 
 ## ddrBurstProbe 的期望值
 
 需要带 `axi_probe_master`、`axi_mux_guard`（VERSION 2）与 `scanout_stub` 的比特流（2026-09-19 起）。
-gcc 8.3.0 编译，bin 6322 字节（sha256 前 16 位 `ac1bcc7b4c04a26d`），`resume` 后约 3 秒输出完毕。
+gcc 13.4.0 编译，bin 6602 字节（sha256 前 16 位 `b31871c65b8e3fea`；gcc 8.3.0 时 6322 字节 `ac1bcc7b4c04a26d`），`resume` 后约 3 秒输出完毕。
 串口末尾为 `fail 0` 与 `done`，除下列各处外每行为 `ok`。2026-09-19 三轮的原始输出在 `apps/probe/ddrBurstProbe/logs/e5_v2_run_*.log`，
 判据改前那次假红在 `e5_v2_mask_race.log`。
 
@@ -199,7 +202,7 @@ E5 两个阶段的判据、实测值与解释见 `../../Engineering/TechReports/
 
 ## cacheCoherencyTest 的期望值
 
-需要带 `axi_probe_master` 的比特流。gcc 8.3.0，默认编译档 `-Og`（`DEBUG=yes` 加 BSP 的 `DEBUG_OG?=yes`）。**加载前必须 `reset halt`**（`tools/run_openocd.sh` 已包含）；不复位时探针挂住的坏状态会让程序一行都不跑，现象与程序有 bug 相同。
+需要带 `axi_probe_master` 的比特流。gcc 13.4.0（bin 5050 字节 `sha256:98b875e0d3baa9f5…`，2026-09-19 起；此前 gcc 8.3.0），默认编译档 `-Og`（`DEBUG=yes` 加 BSP 的 `DEBUG_OG?=yes`）。**加载前必须 `reset halt`**（`tools/run_openocd.sh` 已包含）；不复位时探针挂住的坏状态会让程序一行都不跑，现象与程序有 bug 相同。
 
 | 产物 | 编译 | bin 字节 | SHA256 前 16 位 | 末尾 | 日志 |
 | --- | --- | ---: | --- | --- | --- |
@@ -225,7 +228,7 @@ E5 两个阶段的判据、实测值与解释见 `../../Engineering/TechReports/
 
 ## cacheMechTest 的期望值
 
-需要带 `axi_probe_master` 的比特流。gcc 8.3.0，`-Og`，bin 6906 字节（`sha256:21dccb3fd0e8a20b…`）。每组一行数据加一行 `Tn ok`，末尾 `fail 0` 与 `done`（`logs/run_1.log`、`run_2.log`）。各组的期望：
+需要带 `axi_probe_master` 的比特流。gcc 13.4.0，`-Og`，bin 7018 字节（`sha256:4369e2ff4ae43938…`；gcc 8.3.0 时 6906 字节 `21dccb3fd0e8a20b…`）。每组一行数据加一行 `Tn ok`，末尾 `fail 0` 与 `done`（`logs/run_1.log`、`run_2.log`）。各组的期望：
 
 - `T1 mismatch=0`；`T2 write_only=0 write_then_read=16 alias_then_read=16`；`T3 armed=16 stale_after_probe=16 probe_bad=0`；
 - `T4 armed_mask=ffffffff evict_mask=fffff000 bad=0`；`T5 stale=8`；
@@ -238,7 +241,7 @@ E5 两个阶段的判据、实测值与解释见 `../../Engineering/TechReports/
 
 ## cacheMinTest 的期望值
 
-不需要探针主机。gcc 8.3.0，`-Og`，bin 2690 字节（`sha256:ea0556fddb1f214a…`，改注释前后不变）。串口逐行打印 `S1`、`S2`、`S3` 三组，末尾 `fail 0` 与 `done`（`logs/run_1.log`）：
+不需要探针主机。gcc 13.4.0，`-Og`，bin 2858 字节（`sha256:0182ca614d78cf86…`；gcc 8.3.0 时 2690 字节 `ea0556fddb1f214a…`）。串口逐行打印 `S1`、`S2`、`S3` 三组，末尾 `fail 0` 与 `done`（`logs/run_1.log`）：
 
 - `S3 CACHE_NOEVICT` 按设计报 FAIL（读到 `22`），不计入 `fail`；`S3 CACHE_EVICT` 为 `ok`；
 - `S1` 三项与 `S2` 三项都 `ok`。

@@ -259,6 +259,18 @@
         <efxpt:comp_gpio name="ddr_we_n" gpio_def="GPIOR_P_05" mode="output" bus_name="" io_standard="1.5 V SSTL">
             <efxpt:output_config name="ddr_we_n" name_ddio_lo="" register_option="register" clock_name="sdram_clk" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" delay="0" is_serial="false" drive_strength="8" fastclk_name=""/>
         </efxpt:comp_gpio>
+        <efxpt:comp_gpio name="key_n[0]" gpio_def="GPIOL_07" mode="input" bus_name="key_n" io_standard="3.3 V LVCMOS">
+            <efxpt:input_config name="key_n[0]" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none" is_bus_hold="false" delay="0" is_serial="false" is_dyn_delay="false" fastclk_name="" pullup_ena_name="key_n_PULL_UP_ENA[0]" dyn_delay_en_name="key_n_DLY_ENA[0]" dyn_delay_reset_name="key_n_DLY_RST[0]" dyn_delay_ctrl_name="key_n_DLY_CTRL[0]" clkmux_buf_name=""/>
+        </efxpt:comp_gpio>
+        <efxpt:comp_gpio name="key_n[1]" gpio_def="GPIOR_22" mode="input" bus_name="key_n" io_standard="3.3 V LVCMOS">
+            <efxpt:input_config name="key_n[1]" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none" is_bus_hold="false" delay="0" is_serial="false" is_dyn_delay="false" fastclk_name="" pullup_ena_name="key_n_PULL_UP_ENA[1]" dyn_delay_en_name="key_n_DLY_ENA[1]" dyn_delay_reset_name="key_n_DLY_RST[1]" dyn_delay_ctrl_name="key_n_DLY_CTRL[1]" clkmux_buf_name=""/>
+        </efxpt:comp_gpio>
+        <efxpt:comp_gpio name="key_n[2]" gpio_def="GPIOR_21" mode="input" bus_name="key_n" io_standard="3.3 V LVCMOS">
+            <efxpt:input_config name="key_n[2]" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none" is_bus_hold="false" delay="0" is_serial="false" is_dyn_delay="false" fastclk_name="" pullup_ena_name="key_n_PULL_UP_ENA[2]" dyn_delay_en_name="key_n_DLY_ENA[2]" dyn_delay_reset_name="key_n_DLY_RST[2]" dyn_delay_ctrl_name="key_n_DLY_CTRL[2]" clkmux_buf_name=""/>
+        </efxpt:comp_gpio>
+        <efxpt:comp_gpio name="key_n[3]" gpio_def="GPIOL_03" mode="input" bus_name="key_n" io_standard="3.3 V LVCMOS">
+            <efxpt:input_config name="key_n[3]" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none" is_bus_hold="false" delay="0" is_serial="false" is_dyn_delay="false" fastclk_name="" pullup_ena_name="key_n_PULL_UP_ENA[3]" dyn_delay_en_name="key_n_DLY_ENA[3]" dyn_delay_reset_name="key_n_DLY_RST[3]" dyn_delay_ctrl_name="key_n_DLY_CTRL[3]" clkmux_buf_name=""/>
+        </efxpt:comp_gpio>
         <efxpt:comp_gpio name="soc_gpio[0]" gpio_def="GPIOR_27" mode="inout" bus_name="soc_gpio" io_standard="3.3 V LVCMOS">
             <efxpt:input_config name="soc_gpio_IN[0]" name_ddio_lo="" conn_type="normal" is_register="false" clock_name="" is_clock_inverted="false" pull_option="none" is_schmitt_trigger="false" ddio_type="none" is_bus_hold="false" delay="0" is_serial="false" is_dyn_delay="false" fastclk_name="" pullup_ena_name="soc_gpio_PULL_UP_ENA[0]" dyn_delay_en_name="soc_gpio_DLY_ENA[0]" dyn_delay_reset_name="soc_gpio_DLY_RST[0]" dyn_delay_ctrl_name="soc_gpio_DLY_CTRL[0]" clkmux_buf_name=""/>
             <efxpt:output_config name="soc_gpio_OUT[0]" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" delay="0" is_serial="false" drive_strength="4" fastclk_name=""/>
@@ -316,6 +328,7 @@
         <efxpt:bus name="ddr_dq" mode="inout" msb="15" lsb="0"/>
         <efxpt:bus name="ddr_dqs" mode="inout" msb="1" lsb="0"/>
         <efxpt:bus name="ddr_odt" mode="output" msb="0" lsb="0"/>
+        <efxpt:bus name="key_n" mode="input" msb="3" lsb="0"/>
         <efxpt:bus name="soc_gpio" mode="inout" msb="3" lsb="0"/>
     </efxpt:gpio_info>
     <efxpt:pll_info>

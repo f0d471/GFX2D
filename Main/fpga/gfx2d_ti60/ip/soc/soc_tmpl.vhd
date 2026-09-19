@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Copyright (C) 2013-2025 Efinix Inc. All rights reserved.              
+-- Copyright (C) 2013-2026 Efinix Inc. All rights reserved.              
 --
 -- This   document  contains  proprietary information  which   is        
 -- protected by  copyright. All rights  are reserved.  This notice       
@@ -42,27 +42,6 @@ port (
     io_systemClk : in std_logic;
     io_ddrA_w_payload_strb : out std_logic_vector(15 downto 0);
     io_ddrA_w_payload_data : out std_logic_vector(127 downto 0);
-    axiA_awready : in std_logic;
-    axiA_awlen : out std_logic_vector(7 downto 0);
-    axiA_awsize : out std_logic_vector(2 downto 0);
-    axiA_arburst : out std_logic_vector(1 downto 0);
-    axiA_awlock : out std_logic;
-    axiA_arcache : out std_logic_vector(3 downto 0);
-    axiA_awqos : out std_logic_vector(3 downto 0);
-    axiA_awprot : out std_logic_vector(2 downto 0);
-    axiA_arsize : out std_logic_vector(2 downto 0);
-    axiA_arregion : out std_logic_vector(3 downto 0);
-    axiA_arready : in std_logic;
-    axiA_arqos : out std_logic_vector(3 downto 0);
-    axiA_arprot : out std_logic_vector(2 downto 0);
-    axiA_arlock : out std_logic;
-    axiA_arlen : out std_logic_vector(7 downto 0);
-    axiA_arid : out std_logic_vector(7 downto 0);
-    axiA_awcache : out std_logic_vector(3 downto 0);
-    axiA_awburst : out std_logic_vector(1 downto 0);
-    axiA_awaddr : out std_logic_vector(31 downto 0);
-    axiAInterrupt : in std_logic;
-    axiA_rlast : in std_logic;
     jtagCtrl_enable : in std_logic;
     jtagCtrl_tdi : in std_logic;
     jtagCtrl_capture : in std_logic;
@@ -71,25 +50,6 @@ port (
     jtagCtrl_reset : in std_logic;
     jtagCtrl_tdo : out std_logic;
     jtagCtrl_tck : in std_logic;
-    axiA_araddr : out std_logic_vector(31 downto 0);
-    axiA_wvalid : out std_logic;
-    axiA_wready : in std_logic;
-    axiA_wdata : out std_logic_vector(31 downto 0);
-    axiA_wstrb : out std_logic_vector(3 downto 0);
-    axiA_wlast : out std_logic;
-    axiA_bvalid : in std_logic;
-    axiA_bready : out std_logic;
-    axiA_bid : in std_logic_vector(7 downto 0);
-    axiA_bresp : in std_logic_vector(1 downto 0);
-    axiA_rvalid : in std_logic;
-    axiA_rready : out std_logic;
-    axiA_rdata : in std_logic_vector(31 downto 0);
-    axiA_rid : in std_logic_vector(7 downto 0);
-    axiA_rresp : in std_logic_vector(1 downto 0);
-    axiA_arvalid : out std_logic;
-    axiA_awid : out std_logic_vector(7 downto 0);
-    axiA_awregion : out std_logic_vector(3 downto 0);
-    axiA_awvalid : out std_logic;
     io_ddrA_r_payload_last : in std_logic;
     io_ddrA_r_payload_resp : in std_logic_vector(1 downto 0);
     io_ddrA_r_payload_id : in std_logic_vector(7 downto 0);
@@ -140,6 +100,8 @@ port (
     system_spi_0_io_data_3_write : out std_logic;
     system_spi_0_io_data_3_writeEnable : out std_logic;
     system_spi_0_io_sclk_write : out std_logic;
+    userInterruptC : in std_logic;
+    userInterruptB : in std_logic;
     userInterruptA : in std_logic;
     io_apbSlave_0_PADDR : out std_logic_vector(15 downto 0);
     io_apbSlave_0_PENABLE : out std_logic;
@@ -160,48 +122,10 @@ port (
     system_i2c_0_io_sda_read : in std_logic;
     system_i2c_0_io_sda_write : out std_logic;
     system_gpio_0_io_writeEnable : out std_logic_vector(3 downto 0);
-    io_ddrMasters_0_reset : out std_logic;
-    io_ddrMasters_0_clk : in std_logic;
-    io_ddrMasters_0_r_payload_last : out std_logic;
-    io_ddrMasters_0_r_payload_resp : out std_logic_vector(1 downto 0);
-    io_ddrMasters_0_r_payload_id : out std_logic_vector(3 downto 0);
-    io_ddrMasters_0_r_payload_data : out std_logic_vector(31 downto 0);
-    io_ddrMasters_0_r_ready : in std_logic;
-    io_ddrMasters_0_r_valid : out std_logic;
-    io_ddrMasters_0_ar_payload_prot : in std_logic_vector(2 downto 0);
-    io_ddrMasters_0_ar_payload_qos : in std_logic_vector(3 downto 0);
-    io_ddrMasters_0_ar_payload_cache : in std_logic_vector(3 downto 0);
-    io_ddrMasters_0_ar_payload_lock : in std_logic;
-    io_ddrMasters_0_ar_payload_burst : in std_logic_vector(1 downto 0);
-    io_ddrMasters_0_ar_payload_size : in std_logic_vector(2 downto 0);
-    io_ddrMasters_0_ar_payload_len : in std_logic_vector(7 downto 0);
-    io_ddrMasters_0_ar_payload_region : in std_logic_vector(3 downto 0);
-    io_ddrMasters_0_ar_payload_id : in std_logic_vector(3 downto 0);
-    io_ddrMasters_0_ar_payload_addr : in std_logic_vector(31 downto 0);
-    io_ddrMasters_0_ar_ready : out std_logic;
-    io_ddrMasters_0_ar_valid : in std_logic;
-    io_ddrMasters_0_b_payload_resp : out std_logic_vector(1 downto 0);
-    io_ddrMasters_0_b_payload_id : out std_logic_vector(3 downto 0);
-    io_ddrMasters_0_b_ready : in std_logic;
-    io_ddrMasters_0_b_valid : out std_logic;
-    io_ddrMasters_0_w_payload_last : in std_logic;
-    io_ddrMasters_0_w_payload_strb : in std_logic_vector(3 downto 0);
-    io_ddrMasters_0_w_payload_data : in std_logic_vector(31 downto 0);
-    io_ddrMasters_0_w_ready : out std_logic;
-    io_ddrMasters_0_w_valid : in std_logic;
-    io_ddrMasters_0_aw_payload_prot : in std_logic_vector(2 downto 0);
-    io_ddrMasters_0_aw_payload_qos : in std_logic_vector(3 downto 0);
-    io_ddrMasters_0_aw_payload_cache : in std_logic_vector(3 downto 0);
-    io_ddrMasters_0_aw_payload_lock : in std_logic;
-    io_ddrMasters_0_aw_payload_burst : in std_logic_vector(1 downto 0);
-    io_ddrMasters_0_aw_payload_size : in std_logic_vector(2 downto 0);
-    io_ddrMasters_0_aw_payload_len : in std_logic_vector(7 downto 0);
-    io_ddrMasters_0_aw_payload_region : in std_logic_vector(3 downto 0);
-    io_ddrMasters_0_aw_payload_id : in std_logic_vector(3 downto 0);
-    io_ddrMasters_0_aw_payload_addr : in std_logic_vector(31 downto 0);
-    io_ddrMasters_0_aw_ready : out std_logic;
-    io_ddrMasters_0_aw_valid : in std_logic;
     system_gpio_0_io_write : out std_logic_vector(3 downto 0);
+    system_gpio_1_io_write : out std_logic_vector(7 downto 0);
+    system_gpio_1_io_read : in std_logic_vector(7 downto 0);
+    system_gpio_1_io_writeEnable : out std_logic_vector(7 downto 0);
     system_gpio_0_io_read : in std_logic_vector(3 downto 0);
     system_spi_0_io_ss : out std_logic_vector(0 to 0)
 );
@@ -214,27 +138,6 @@ port map (
     io_systemClk => io_systemClk,
     io_ddrA_w_payload_strb => io_ddrA_w_payload_strb,
     io_ddrA_w_payload_data => io_ddrA_w_payload_data,
-    axiA_awready => axiA_awready,
-    axiA_awlen => axiA_awlen,
-    axiA_awsize => axiA_awsize,
-    axiA_arburst => axiA_arburst,
-    axiA_awlock => axiA_awlock,
-    axiA_arcache => axiA_arcache,
-    axiA_awqos => axiA_awqos,
-    axiA_awprot => axiA_awprot,
-    axiA_arsize => axiA_arsize,
-    axiA_arregion => axiA_arregion,
-    axiA_arready => axiA_arready,
-    axiA_arqos => axiA_arqos,
-    axiA_arprot => axiA_arprot,
-    axiA_arlock => axiA_arlock,
-    axiA_arlen => axiA_arlen,
-    axiA_arid => axiA_arid,
-    axiA_awcache => axiA_awcache,
-    axiA_awburst => axiA_awburst,
-    axiA_awaddr => axiA_awaddr,
-    axiAInterrupt => axiAInterrupt,
-    axiA_rlast => axiA_rlast,
     jtagCtrl_enable => jtagCtrl_enable,
     jtagCtrl_tdi => jtagCtrl_tdi,
     jtagCtrl_capture => jtagCtrl_capture,
@@ -243,25 +146,6 @@ port map (
     jtagCtrl_reset => jtagCtrl_reset,
     jtagCtrl_tdo => jtagCtrl_tdo,
     jtagCtrl_tck => jtagCtrl_tck,
-    axiA_araddr => axiA_araddr,
-    axiA_wvalid => axiA_wvalid,
-    axiA_wready => axiA_wready,
-    axiA_wdata => axiA_wdata,
-    axiA_wstrb => axiA_wstrb,
-    axiA_wlast => axiA_wlast,
-    axiA_bvalid => axiA_bvalid,
-    axiA_bready => axiA_bready,
-    axiA_bid => axiA_bid,
-    axiA_bresp => axiA_bresp,
-    axiA_rvalid => axiA_rvalid,
-    axiA_rready => axiA_rready,
-    axiA_rdata => axiA_rdata,
-    axiA_rid => axiA_rid,
-    axiA_rresp => axiA_rresp,
-    axiA_arvalid => axiA_arvalid,
-    axiA_awid => axiA_awid,
-    axiA_awregion => axiA_awregion,
-    axiA_awvalid => axiA_awvalid,
     io_ddrA_r_payload_last => io_ddrA_r_payload_last,
     io_ddrA_r_payload_resp => io_ddrA_r_payload_resp,
     io_ddrA_r_payload_id => io_ddrA_r_payload_id,
@@ -312,6 +196,8 @@ port map (
     system_spi_0_io_data_3_write => system_spi_0_io_data_3_write,
     system_spi_0_io_data_3_writeEnable => system_spi_0_io_data_3_writeEnable,
     system_spi_0_io_sclk_write => system_spi_0_io_sclk_write,
+    userInterruptC => userInterruptC,
+    userInterruptB => userInterruptB,
     userInterruptA => userInterruptA,
     io_apbSlave_0_PADDR => io_apbSlave_0_PADDR,
     io_apbSlave_0_PENABLE => io_apbSlave_0_PENABLE,
@@ -332,48 +218,10 @@ port map (
     system_i2c_0_io_sda_read => system_i2c_0_io_sda_read,
     system_i2c_0_io_sda_write => system_i2c_0_io_sda_write,
     system_gpio_0_io_writeEnable => system_gpio_0_io_writeEnable,
-    io_ddrMasters_0_reset => io_ddrMasters_0_reset,
-    io_ddrMasters_0_clk => io_ddrMasters_0_clk,
-    io_ddrMasters_0_r_payload_last => io_ddrMasters_0_r_payload_last,
-    io_ddrMasters_0_r_payload_resp => io_ddrMasters_0_r_payload_resp,
-    io_ddrMasters_0_r_payload_id => io_ddrMasters_0_r_payload_id,
-    io_ddrMasters_0_r_payload_data => io_ddrMasters_0_r_payload_data,
-    io_ddrMasters_0_r_ready => io_ddrMasters_0_r_ready,
-    io_ddrMasters_0_r_valid => io_ddrMasters_0_r_valid,
-    io_ddrMasters_0_ar_payload_prot => io_ddrMasters_0_ar_payload_prot,
-    io_ddrMasters_0_ar_payload_qos => io_ddrMasters_0_ar_payload_qos,
-    io_ddrMasters_0_ar_payload_cache => io_ddrMasters_0_ar_payload_cache,
-    io_ddrMasters_0_ar_payload_lock => io_ddrMasters_0_ar_payload_lock,
-    io_ddrMasters_0_ar_payload_burst => io_ddrMasters_0_ar_payload_burst,
-    io_ddrMasters_0_ar_payload_size => io_ddrMasters_0_ar_payload_size,
-    io_ddrMasters_0_ar_payload_len => io_ddrMasters_0_ar_payload_len,
-    io_ddrMasters_0_ar_payload_region => io_ddrMasters_0_ar_payload_region,
-    io_ddrMasters_0_ar_payload_id => io_ddrMasters_0_ar_payload_id,
-    io_ddrMasters_0_ar_payload_addr => io_ddrMasters_0_ar_payload_addr,
-    io_ddrMasters_0_ar_ready => io_ddrMasters_0_ar_ready,
-    io_ddrMasters_0_ar_valid => io_ddrMasters_0_ar_valid,
-    io_ddrMasters_0_b_payload_resp => io_ddrMasters_0_b_payload_resp,
-    io_ddrMasters_0_b_payload_id => io_ddrMasters_0_b_payload_id,
-    io_ddrMasters_0_b_ready => io_ddrMasters_0_b_ready,
-    io_ddrMasters_0_b_valid => io_ddrMasters_0_b_valid,
-    io_ddrMasters_0_w_payload_last => io_ddrMasters_0_w_payload_last,
-    io_ddrMasters_0_w_payload_strb => io_ddrMasters_0_w_payload_strb,
-    io_ddrMasters_0_w_payload_data => io_ddrMasters_0_w_payload_data,
-    io_ddrMasters_0_w_ready => io_ddrMasters_0_w_ready,
-    io_ddrMasters_0_w_valid => io_ddrMasters_0_w_valid,
-    io_ddrMasters_0_aw_payload_prot => io_ddrMasters_0_aw_payload_prot,
-    io_ddrMasters_0_aw_payload_qos => io_ddrMasters_0_aw_payload_qos,
-    io_ddrMasters_0_aw_payload_cache => io_ddrMasters_0_aw_payload_cache,
-    io_ddrMasters_0_aw_payload_lock => io_ddrMasters_0_aw_payload_lock,
-    io_ddrMasters_0_aw_payload_burst => io_ddrMasters_0_aw_payload_burst,
-    io_ddrMasters_0_aw_payload_size => io_ddrMasters_0_aw_payload_size,
-    io_ddrMasters_0_aw_payload_len => io_ddrMasters_0_aw_payload_len,
-    io_ddrMasters_0_aw_payload_region => io_ddrMasters_0_aw_payload_region,
-    io_ddrMasters_0_aw_payload_id => io_ddrMasters_0_aw_payload_id,
-    io_ddrMasters_0_aw_payload_addr => io_ddrMasters_0_aw_payload_addr,
-    io_ddrMasters_0_aw_ready => io_ddrMasters_0_aw_ready,
-    io_ddrMasters_0_aw_valid => io_ddrMasters_0_aw_valid,
     system_gpio_0_io_write => system_gpio_0_io_write,
+    system_gpio_1_io_write => system_gpio_1_io_write,
+    system_gpio_1_io_read => system_gpio_1_io_read,
+    system_gpio_1_io_writeEnable => system_gpio_1_io_writeEnable,
     system_gpio_0_io_read => system_gpio_0_io_read,
     system_spi_0_io_ss => system_spi_0_io_ss
 );

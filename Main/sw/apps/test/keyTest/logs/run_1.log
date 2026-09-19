@@ -1,0 +1,17 @@
+keyTest
+idle expect=0x0f got=0x0000000f ok
+press KEY0~3 one by one within 30 s
+t=22651 ms KEY0 down raw=0x0000000e
+t=22796 ms KEY0 up raw=0x0000000f
+t=25116 ms KEY1 down raw=0x0000000d
+t=25316 ms KEY1 up raw=0x0000000f
+t=25857 ms KEY2 down raw=0x0000000b
+t=26036 ms KEY2 up raw=0x0000000f
+t=26489 ms KEY3 down raw=0x00000007
+t=26654 ms KEY3 up raw=0x0000000f
+KEY0 down=1 up=1 ok
+KEY1 down=1 up=1 ok
+KEY2 down=1 up=1 ok
+KEY3 down=1 up=1 ok
+fail 0
+done

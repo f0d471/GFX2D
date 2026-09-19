@@ -3,13 +3,13 @@
         "-o",
         "soc",
         "--base_path",
-        "__REPO_ROOT_BS2__\\fpga\\gfx2d_ti60\\ip",
+        "ip",
         "--vlnv",
         {
             "vendor": "efinixinc.com",
             "library": "soc",
             "name": "efx_soc",
-            "version": "3.3.0"
+            "version": "3.4.0"
         }
     ],
     "conf": {
@@ -42,10 +42,10 @@
         "APBSlave1": "1'b0",
         "APBSlave3": "1'b0",
         "USER_1_INTR_ID": "17",
-        "USER_1_INTR": "1'b0",
+        "USER_1_INTR": "1'b1",
         "USER_0_INTR_ID": "16",
         "USER_0_INTR": "1'b1",
-        "USER_2_INTR": "1'b0",
+        "USER_2_INTR": "1'b1",
         "USER_2_INTR_ID": "22",
         "USER_3_INTR": "1'b0",
         "USER_3_INTR_ID": "23",
@@ -78,7 +78,7 @@
         "DDR_IdWidth": "8",
         "DDRSize": "32'd3758096384",
         "OCRSize": "4096",
-        "AXISlave": "1'b1",
+        "AXISlave": "1'b0",
         "AXISlaveSize": "16777216",
         "GPIO1_INT_ID1": "15",
         "GPIO1_INT_ID0": "14",
@@ -87,7 +87,7 @@
         "GPIO0": "1'b1",
         "GPIO0Width": "4",
         "GPIO1Width": "8",
-        "GPIO1": "1'b0",
+        "GPIO1": "1'b1",
         "UART0_FIFODEPTH": "128",
         "UART0_INT_ID": "1",
         "UART0_M_Addr": "32'd4096",
@@ -136,7 +136,7 @@
         "AXIMasterWidth_1": "32",
         "AXIMaster_1": "1'b0",
         "AXIMasterWidth": "32",
-        "AXIMaster": "1'b1",
+        "AXIMaster": "1'b0",
         "USER_TIMER0": "1'b0",
         "USER_TIMER0_CNT_WIDTH": "12",
         "USER_TIMER0_PS_WIDTH": "8",
@@ -175,9 +175,16 @@
             "soc\\soc.v"
         ],
         "external_script_script": [],
-        "external_script_embedded_sw": []
+        "external_script_embedded_sw": [],
+        "external_example_design": [],
+        "external_example_design_ti": [],
+        "external_testbench_testbench": [],
+        "external_testbench_modelsim": [],
+        "external_testbench_aldec": [],
+        "external_testbench_ncsim": [],
+        "external_testbench_synopsys": []
     },
     "ooc_synthesis": {},
-    "sw_version": "2025.2.288.3.8",
-    "generated_date": "2026-03-31T04:10:55.739835+00:00"
-}
+    "sw_version": "2026.1.132",
+    "external_path_option": "RELATIVE_PATH"
+}

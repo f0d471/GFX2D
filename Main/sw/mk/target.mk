@@ -1,4 +1,4 @@
-# SW1-板上构建：xPack riscv-none-embed-gcc + sdk 的 BSP
+# SW1-板上构建：xPack riscv-none-elf-gcc 13.4.0 + sdk 的 BSP
 #
 # 用法（两种都可以）：
 #   1) 应用目录下：make                 （应用 makefile include 本文件）
@@ -98,7 +98,7 @@ endif
 # 链接参数照抄 sdk 的 standalone.mk，只把链接脚本换成项目自己那份。
 LDFLAGS += -L$(STANDALONE)/common
 LDFLAGS += -specs=nosys.specs -lgcc -nostartfiles -ffreestanding -lc -lm
-LDFLAGS += -Wl,-Bstatic,-T,$(LDSCRIPT),-Map,$(OBJDIR)/$(NAME).map,--print-memory-usage
+LDFLAGS += -Wl,-Bstatic,-T,$(LDSCRIPT),-Map,$(OBJDIR)/$(NAME).map,--print-memory-usage,--no-warn-rwx-segment
 
 APP_OBJS  := $(addprefix $(OBJDIR)/app/,$(APP_SRCS:.c=.o))
 LIB_SRCS  := $(foreach l,$(LIBS),$(wildcard $(SW)lib/$(l)/*.c))

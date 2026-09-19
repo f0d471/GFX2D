@@ -3,6 +3,8 @@ io_asyncReset sampled by
 io_memoryClk sampled by 
 io_memoryReset clocked by io_memoryClk
 jtagCtrl_tck sampled by 
+userInterruptC sampled by 
+userInterruptB sampled by 
 userInterruptA sampled by 
 io_systemReset clocked by io_systemClk
 jtagCtrl_tdi sampled by jtagCtrl_tck
@@ -51,87 +53,6 @@ io_ddrA_b_valid sampled by io_memoryClk
 io_ddrA_b_ready clocked by io_memoryClk
 io_ddrA_b_payload_id sampled by io_memoryClk
 io_ddrA_b_payload_resp sampled by io_memoryClk
-io_ddrMasters_0_ar_valid sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_ready clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_addr sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_id sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_region sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_len sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_size sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_burst sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_lock sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_cache sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_qos sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_ar_payload_prot sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_valid sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_ready clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_addr sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_id sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_region sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_len sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_size sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_burst sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_lock sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_cache sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_qos sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_aw_payload_prot sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_w_valid sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_w_ready clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_w_payload_data sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_w_payload_strb sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_w_payload_last sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_r_valid clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_r_ready sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_r_payload_data clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_r_payload_id clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_r_payload_resp clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_r_payload_last clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_b_valid clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_b_ready sampled by io_ddrMasters_0_clk
-io_ddrMasters_0_b_payload_id clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_b_payload_resp clocked by io_ddrMasters_0_clk
-io_ddrMasters_0_clk sampled by 
-io_ddrMasters_0_reset clocked by io_ddrMasters_0_clk
-axiA_arvalid clocked by io_systemClk
-axiA_arready sampled by io_systemClk
-axiA_araddr clocked by io_systemClk
-axiA_arid clocked by 
-axiA_arregion clocked by 
-axiA_arlen clocked by io_systemClk
-axiA_arsize clocked by 
-axiA_arburst clocked by 
-axiA_arlock clocked by 
-axiA_arcache clocked by 
-axiA_arqos clocked by 
-axiA_arprot clocked by 
-axiA_awvalid clocked by io_systemClk
-axiA_awready sampled by io_systemClk
-axiA_awaddr clocked by io_systemClk
-axiA_awid clocked by 
-axiA_awregion clocked by 
-axiA_awlen clocked by io_systemClk
-axiA_awsize clocked by 
-axiA_awburst clocked by 
-axiA_awlock clocked by 
-axiA_awcache clocked by 
-axiA_awqos clocked by 
-axiA_awprot clocked by 
-axiA_wvalid clocked by io_systemClk
-axiA_wready sampled by io_systemClk
-axiA_wdata clocked by io_systemClk
-axiA_wstrb clocked by io_systemClk
-axiA_wlast clocked by io_systemClk
-axiA_rvalid sampled by io_systemClk
-axiA_rready clocked by io_systemClk
-axiA_rdata sampled by io_systemClk
-axiA_rid sampled by io_systemClk
-axiA_rresp sampled by io_systemClk
-axiA_rlast sampled by io_systemClk
-axiA_bvalid sampled by io_systemClk
-axiA_bready clocked by io_systemClk
-axiA_bid sampled by 
-axiA_bresp sampled by io_systemClk
-axiAInterrupt sampled by io_systemClk
 system_uart_0_io_txd clocked by io_systemClk
 system_uart_0_io_rxd sampled by 
 system_i2c_0_io_sda_write clocked by io_systemClk
@@ -141,6 +62,9 @@ system_i2c_0_io_scl_read sampled by
 system_gpio_0_io_read sampled by io_systemClk
 system_gpio_0_io_write clocked by io_systemClk
 system_gpio_0_io_writeEnable clocked by io_systemClk
+system_gpio_1_io_read sampled by io_systemClk
+system_gpio_1_io_write clocked by io_systemClk
+system_gpio_1_io_writeEnable clocked by io_systemClk
 io_apbSlave_0_PADDR clocked by io_systemClk
 io_apbSlave_0_PSEL clocked by io_systemClk
 io_apbSlave_0_PENABLE clocked by io_systemClk

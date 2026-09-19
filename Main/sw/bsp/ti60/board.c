@@ -62,7 +62,9 @@ void board_puts(const char *s)
 
 uint32_t board_keys(void)
 {
-    return 0u;          /* KEY0~3 接进 GPIO 之后由 SW9 补 */
+    /* KEY0~3 已接到 GPIO1 的 [3:0]（SYSTEM_GPIO_1_IO_CTRL，0xF801_6000），低有效，
+       板上由 sw/apps/test/keyTest 验证。映射到哪几个 BOARD_KEY_* 位由 SW9 定，在那之前恒为 0。 */
+    return 0u;
 }
 
 uint32_t *board_fb(int index)

@@ -19,10 +19,10 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | 渲染引擎、帧缓冲、双缓冲 | 还没有开始 |
 | Axi_Mux 端口重分配与防饿死（E5 §2.1~2.3） | 已上板验证（2026-09-19）：`Axi_Mux` 用 X3，S0=扫描替身、S1=探针、S2=SoC；永久模块 `axi_mux_guard`（`0xF810_F000`）给出仲裁方式、三通道掩码与 SoC 地址等待保护，`scanout_stub`（`0xF810_E000`）按行节拍发 160 拍读并记录首拍/整笔/拍间隙。三方并发下 CPU 拷贝 1.70 倍（探针读）、1.92 倍（探针写），扫描没有跳行，S0 掩码反例与 `AGE_LIMIT=1` 注错都符合预期，`ddrBurstProbe` 连跑三轮 `fail 0`；guard VERSION 2（2026-09-19 复核：两个 MAX 每拍更新，写方向「CPU 被停住」的结论是测试台错误，已撤回）。**2.1~2.3 已验收（2026-09-19）**，见 `../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md` 与 `../Engineering/Todo/hw/E5-Axi_Mux优先级与扫描FIFO水位.md`。**2.4 真实扫描 FIFO 水位待扫描输出存在后再做** |
 | 软件平台分层与双目标构建（SW1） | **已验收**（2026-09-19）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
-| SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 还没有做，spec 见 `../Engineering/Todo/hw/SoC-IP定型.md` |
+| SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 已上板（2026-09-19），**待验收**：efx_soc 3.4.0 重新生成，开 GPIO1 接 KEY0~3、开用户中断 A/B/C、保留 I2C0 给摄像头、关 `axiA` 与 `io_ddrMasters_0`；工具链换成 gcc 13.4.0。调试通路连续 6 次会话、memTest、APB 探针、`ddrAliasTest`、`ddrBurstProbe`、E3 三件套、`bootSizeTest`（含对照组）与 gfx2dGame 60 帧 CRC 全过；HDMI 八色竖条与 SW0~SW3 按键已由用户确认。见 `../Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md` |
 
-编译占用 XLR 21753（35.78%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack，`core_clk` setup 3.780 / hold 0.026 ns
-（2026-09-19，guard VERSION 2 之后；E5 端口重分配前是 XLR 16151、setup 2.994，重分配后 21065、3.467，增量归因见 platform 第 06 章 5.1 节）。
+编译占用 XLR 21653（35.61%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack，`core_clk` setup 3.405 / hold 0.026 ns
+（2026-09-19，SoC IP 定型之后；定型前是 XLR 21753、setup 3.780，差值归因见 platform 第 07 章；E5 端口重分配前是 XLR 16151、setup 2.994，重分配后 21065、3.467，见 platform 第 06 章 5.1 节）。
 这些数字相对第 01 章基线的变化见 `../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.2 节；
 SoC 构型的对比与资源归因见 `../Engineering/TechReports/platform/04-SoC构型对比与资源归因.md`；
 五项上板判据的原始输出，以及基线是怎么搭起来的，见
@@ -96,18 +96,20 @@ CPU 看到的地址，取自 `sdk/bsp/efinix/EfxSapphireSoc/include/soc.h`：
 | 区域 | 基址 | 大小 |
 | --- | --- | --- |
 | DDR3 | `0x0000_1000` | 窗口 `0xE000_0000`，实际颗粒 256MB。只用 `0x0FFF_FFFF` 以下，以上按 256MB 周期回绕成别名 |
-| AXI 从设备窗口（未使用） | `0xE100_0000` | 16MB |
 | UART0 | `0xF801_0000` | `0x40` |
 | SPI0 | `0xF801_4000` | `0x1000` |
 | GPIO0（4 位，接 LED0~3） | `0xF801_5000` | `0x100` |
-| I2C0（未使用） | `0xF801_6000` | `0x100` |
+| GPIO1（8 位，[3:0] 接 KEY0~3 即板上 SW0~SW3，低有效；[4] 预留摄像头复位） | `0xF801_6000` | `0x100` |
+| I2C0（预留给摄像头，未使用） | `0xF801_7000` | `0x100` |
 | APB Slave 0 → `apb_probe` | `0xF810_0000` | 64KB，其中 `0x1000~0x1FFF` 除外 |
 | APB Slave 0 → `axi_probe_master` | `0xF810_1000` | 4KB，寄存器表见 `rtl/bus/axi_probe_master.v` |
 | CLINT | `0xF8B0_0000` | `0x1_0000` |
 | PLIC | `0xF8C0_0000` | `0x40_0000` |
 | 片上 RAM（bootloader） | `0xF900_0000` | 4KB |
 
-中断号：UART0 = 1，SPI0 = 4，I2C0 = 8，用户中断 A = 16，AXI 从设备窗口 = 30。
+中断号：UART0 = 1，SPI0 = 4，I2C0 = 8，GPIO0 = 12、13，GPIO1 = 14、15，
+用户中断 A = 16（扫描输出场同步）、B = 17（引擎）、C = 22（摄像头），三条的源模块接入前在顶层接 0。
+`axiA` 从设备窗口（原 `0xE100_0000`，中断 30）已于 2026-09-19 随 SoC IP 定型关掉。
 
 DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节。
 

@@ -1,7 +1,7 @@
 // gfx2d 顶层
 //
 // 组成：
-//   u_soc        Sapphire RISC-V SoC（IP 生成，fpga/gfx2d_ti60/ip/soc/soc.v）
+//   u_soc        Sapphire RISC-V SoC（efx_soc 3.4.0 生成，fpga/gfx2d_ti60/ip/soc/soc.v）
 //   u_ddr3       DDR3 软核控制器（厂商加密源码，rtl/vendor/ddr3_controller/）
 //   u_apb_probe  APB 探针寄存器，占位并验证 APB 通路（rtl/bus/apb_probe.v）
 //   u_axi_probe  AXI 探针主机，DDR3 上的第二个主机，实验 E4 用（rtl/bus/axi_probe_master.v）
@@ -58,6 +58,9 @@ module gfx2d_top (
     input  wire [3:0]                  soc_gpio_IN,
     output wire [3:0]                  soc_gpio_OUT,
     output wire [3:0]                  soc_gpio_OE,
+
+    // KEY0~3：板上四个按键，低有效（按下为 0），接 GPIO1 的 [3:0]
+    input  wire [3:0]                  key_n,
 
     // SPI0：接配置 Flash（顶层只引出 data0/1，四线模式用不了）
     input  wire                        system_spi_0_io_data_0_IN,
@@ -154,7 +157,8 @@ wire soc_system_reset;
 //         0x0000_1000~0x0FFF_FFFF 内 CPU 地址即控制器地址，以上全是别名。
 //   ID    SoC 8 位 -> 控制器 4 位，读写响应回来时高 4 位补 0。
 //         SoC 内部 CPU 一路的 ID 接常量 0，发出的 awid/arid 恒为 8'h00，截断安全。
-//         io_ddrMasters_0 的 ID 最高位是 1，启用它会让响应回错主机，所以保持不接。
+//         io_ddrMasters_0 的 ID 最高位是 1，启用它会让响应回错主机；这个口已在 SoC IP 里关掉
+//         （efx_soc 3.4.0 重新生成，AXIMaster=0）。
 //   依据见 Engineering/TechReports/platform/02-DDR地址译码与AXI-ID实测.md。
 wire [31:0]                    soc_ddr_awaddr;
 wire [7:0]                     soc_ddr_awid;
@@ -416,6 +420,12 @@ soc u_soc (
     .system_gpio_0_io_read              (soc_gpio_IN),
     .system_gpio_0_io_writeEnable       (soc_gpio_OE),
 
+    // GPIO1：[3:0] 按键 KEY0~3（低有效，软件取反），[4] 预留给摄像头模组复位，[7:5] 备用。
+    // 摄像头工作点接 [4] 的管脚之前，写口与使能口悬空。
+    .system_gpio_1_io_read              ({4'b0000, key_n}),
+    .system_gpio_1_io_write             (),
+    .system_gpio_1_io_writeEnable       (),
+
     // SPI0
     .system_spi_0_io_sclk_write         (system_spi_0_io_sclk_write),
     .system_spi_0_io_ss                 (system_spi_0_io_ss),
@@ -498,99 +508,18 @@ soc u_soc (
     .jtagCtrl_update                    (jtag_inst1_UPDATE),
     .jtagCtrl_reset                     (jtag_inst1_RESET),
 
-    // 下面几组在 IP 里生成了但本设计没有使用，输入一律接常量，避免悬空。
-    // 各组的去留（关掉、保留给摄像头、接中断）见 Engineering/Todo/hw/SoC-IP定型.md 2.1 节。
+    // 用户中断：A 扫描输出场同步，B 引擎，C 摄像头帧完成（中断号 16/17/22，见 sdk 的 soc.h）。
+    // 中断源的模块还没有接入，先接 0。分配见 Engineering/Todo/hw/SoC-IP定型.md 2.1 节。
     .userInterruptA                     (1'b0),
+    .userInterruptB                     (1'b0),
+    .userInterruptC                     (1'b0),
 
+    // I2C0：保留给摄像头配置传感器（0xF801_7000）。管脚等摄像头工作点再接，
+    // 在那之前读口接空闲电平 1，写口悬空。
     .system_i2c_0_io_scl_read           (1'b1),
     .system_i2c_0_io_sda_read           (1'b1),
     .system_i2c_0_io_scl_write          (),
-    .system_i2c_0_io_sda_write          (),
-
-    .axiA_awready                       (1'b0),
-    .axiA_wready                        (1'b0),
-    .axiA_bvalid                        (1'b0),
-    .axiA_bid                           (8'h0),
-    .axiA_bresp                         (2'b00),
-    .axiA_arready                       (1'b0),
-    .axiA_rvalid                        (1'b0),
-    .axiA_rdata                         (32'h0),
-    .axiA_rid                           (8'h0),
-    .axiA_rresp                         (2'b00),
-    .axiA_rlast                         (1'b0),
-    .axiAInterrupt                      (1'b0),
-    .axiA_awaddr                        (),
-    .axiA_awid                          (),
-    .axiA_awlen                         (),
-    .axiA_awsize                        (),
-    .axiA_awburst                       (),
-    .axiA_awlock                        (),
-    .axiA_awcache                       (),
-    .axiA_awprot                        (),
-    .axiA_awqos                         (),
-    .axiA_awregion                      (),
-    .axiA_awvalid                       (),
-    .axiA_wdata                         (),
-    .axiA_wstrb                         (),
-    .axiA_wlast                         (),
-    .axiA_wvalid                        (),
-    .axiA_bready                        (),
-    .axiA_araddr                        (),
-    .axiA_arid                          (),
-    .axiA_arlen                         (),
-    .axiA_arsize                        (),
-    .axiA_arburst                       (),
-    .axiA_arlock                        (),
-    .axiA_arcache                       (),
-    .axiA_arprot                        (),
-    .axiA_arqos                         (),
-    .axiA_arregion                      (),
-    .axiA_arvalid                       (),
-    .axiA_rready                        (),
-
-    // 时钟故意不接：这条外部主机进 DDR 的通路没有使用，一旦给了时钟，SoC 里的
-    // 位宽转换、写仲裁和两个队列就无法被优化掉，实测多占 853 个 XLR 与 5 块片上 RAM。
-    .io_ddrMasters_0_clk                (),
-    .io_ddrMasters_0_reset              (),
-    .io_ddrMasters_0_aw_valid           (1'b0),
-    .io_ddrMasters_0_aw_payload_addr    (32'h0),
-    .io_ddrMasters_0_aw_payload_id      (4'h0),
-    .io_ddrMasters_0_aw_payload_len     (8'h0),
-    .io_ddrMasters_0_aw_payload_size    (3'b000),
-    .io_ddrMasters_0_aw_payload_burst   (2'b01),
-    .io_ddrMasters_0_aw_payload_lock    (1'b0),
-    .io_ddrMasters_0_aw_payload_cache   (4'h0),
-    .io_ddrMasters_0_aw_payload_prot    (3'b000),
-    .io_ddrMasters_0_aw_payload_qos     (4'h0),
-    .io_ddrMasters_0_aw_payload_region  (4'h0),
-    .io_ddrMasters_0_aw_ready           (),
-    .io_ddrMasters_0_w_valid            (1'b0),
-    .io_ddrMasters_0_w_payload_data     (32'h0),
-    .io_ddrMasters_0_w_payload_strb     (4'h0),
-    .io_ddrMasters_0_w_payload_last     (1'b0),
-    .io_ddrMasters_0_w_ready            (),
-    .io_ddrMasters_0_b_ready            (1'b1),
-    .io_ddrMasters_0_b_valid            (),
-    .io_ddrMasters_0_b_payload_id       (),
-    .io_ddrMasters_0_b_payload_resp     (),
-    .io_ddrMasters_0_ar_valid           (1'b0),
-    .io_ddrMasters_0_ar_payload_addr    (32'h0),
-    .io_ddrMasters_0_ar_payload_id      (4'h0),
-    .io_ddrMasters_0_ar_payload_len     (8'h0),
-    .io_ddrMasters_0_ar_payload_size    (3'b000),
-    .io_ddrMasters_0_ar_payload_burst   (2'b01),
-    .io_ddrMasters_0_ar_payload_lock    (1'b0),
-    .io_ddrMasters_0_ar_payload_cache   (4'h0),
-    .io_ddrMasters_0_ar_payload_prot    (3'b000),
-    .io_ddrMasters_0_ar_payload_qos     (4'h0),
-    .io_ddrMasters_0_ar_payload_region  (4'h0),
-    .io_ddrMasters_0_ar_ready           (),
-    .io_ddrMasters_0_r_ready            (1'b1),
-    .io_ddrMasters_0_r_valid            (),
-    .io_ddrMasters_0_r_payload_id       (),
-    .io_ddrMasters_0_r_payload_data     (),
-    .io_ddrMasters_0_r_payload_resp     (),
-    .io_ddrMasters_0_r_payload_last     ()
+    .system_i2c_0_io_sda_write          ()
 );
 
 // ---------------------------------------------------------------------------

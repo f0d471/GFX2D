@@ -6,7 +6,8 @@
 | --- | --- |
 | `bin2hex.py` | 把程序 bin 转成 Efinity Programmer 用的 hex 文本（每字节一行、两位大写十六进制、LF 换行），写 Flash 前用 |
 | `localize_paths.py` | 展开、还原与检查仓库里的绝对路径 |
-| `gen_soc.py` | 从命令行生成 Sapphire SoC IP，可写构型参数，不必开 IP Manager 图形界面 |
+| `ipm_gen_soc.py` | 用 IP Manager 的官方 Python API 完整生成 SoC IP（包装文件 `soc.v`、网表、软件包），端口增减也能做。现行的生成工具，用法见 `../sdk/README.md` |
+| `gen_soc.py` | 只调生成器 `soc_gen.py`，出网表与片上 RAM 初始文件，不出 `soc.v` 与软件包。E1 做构型对比时用，端口集合变了就不够用 |
 | `board_run.py` | 烧比特流、先开串口、加载程序、回收串口输出，一条命令走完 |
 | `serial_capture.ps1` | 在 Windows 侧读串口并写日志，与 `run_openocd.sh` 配对使用 |
 | `run_openocd.sh` | 在 WSL 侧调 Windows 的 `openocd.exe`，`reset halt` 后加载程序并 `resume` |
@@ -21,7 +22,8 @@
 
 ## localize_paths.py
 
-有五个文件由厂商工具生成，里面必须写绝对路径：`fpga/gfx2d_ti60/ip/soc/settings.json`
+有六个文件由厂商工具生成，里面必须写绝对路径：`fpga/gfx2d_ti60/ip/soc/settings.json`、
+`fpga/gfx2d_ti60/ip/soc/source/soc_config`（2026-09-19 起，3.4.0 生成器把 bootloader hex 的路径写进它），
 与 gpioDemo 的 `.cproject`、三个 `.launch`。仓库里存的是占位符形式。
 
 ```

@@ -1,4 +1,4 @@
-RISCV_BIN ?= riscv-none-embed-
+RISCV_BIN ?= riscv-none-elf-
 RISCV_CC=${RISCV_BIN}gcc
 RISCV_OBJCOPY=${RISCV_BIN}objcopy
 RISCV_OBJDUMP=${RISCV_BIN}objdump
@@ -52,6 +52,7 @@ ifneq ($(DEBUG),yes)
     endif
 endif
 
-CFLAGS += -march=$(MARCH) -mabi=$(MABI) -DUSE_GP
+MARCH := $(MARCH)_zicsr_zifencei
+CFLAGS += -march=$(MARCH) -mabi=$(MABI) -DUSE_GP -fcommon
 LDFLAGS += -march=$(MARCH) -mabi=$(MABI)
 

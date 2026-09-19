@@ -1,7 +1,8 @@
 # SoC IP 定型：升级 3.4.0、接按键、预留中断与摄像头、顺带裁剪
 
-状态：**未开工，排在扫描输出之前做**（2026-09-19 用户决定尽快做完、关闭本条）。
-第 2.1 节的分配表按建议执行，用户开工前看一眼即可。
+状态：**待验收**（2026-09-19 已生成、编译、上板，判据全部跑过；HDMI 八色竖条与 `keyTest` 按键两项已由用户看屏、按键确认）。
+过程、数据与解释已写进 [platform 第 07 章](../../TechReports/platform/07-SoC-IP定型与工具链升级.md)。
+第 3 节「归因」一项没有做，留在第 07 章第六节。
 它阻塞三件事：游戏的按键输入（SW9 与演示都要）、扫描输出与引擎的中断线、改用 gcc 13.4。
 
 本条原名「soc资源裁剪」，2026-09-19 改写并改名。原来的三项裁剪里，
@@ -116,6 +117,28 @@ SoC 是 IP 生成器的产物，改它就要重新生成 `ip/soc/` 与软件包 
 「程序恰好短到 124KB 也能跑」的判据。
 
 ## 4 开发日志
+
+**2026-09-19 生成、编译、上板，状态改为待验收。**
+
+1. 生成路径：`gen_soc.py` 只出网表，不出工程引用的 `soc.v` 与软件包，端口增减做不了。
+   改用 IP Manager 的 Python API（`IPMDesignAPI`），新写 `Main/tools/ipm_gen_soc.py`；
+   要在 `setup.bat` 的环境里跑（否则 `devicedb` DLL `0x7e`），复制工程要与 hex 同盘（否则 `relpath` 跨盘报错）。
+   `--dry-run`：152 项用户参数全部对上，新版本没有取默认值的参数。
+2. 复制工程试生成：端口删 `axiA_*` 40 个、`io_ddrMasters_0_*` 41 个，增 GPIO1 三组与 `userInterruptB/C`；
+   四个片上 RAM 初始文件逐字节相同。I2C0 被自动排址挪到 `0xF801_7000`（GPIO1 占了 `0x6000`）。
+3. 主线生成，软件包同步进 `Main/sdk/`：17 个改动、2 个新文件逐个归类；恢复 `bootloaderConfig.h`、两份链接脚本的断言；
+   `ftdi_ti.cfg` 的 `device_desc` 保持注释掉并补登记；`soc_config` 加进 `localize_paths.py`；
+   `settings.json` 的源文件清单被 API 写空，补回。
+4. 顶层删 `axiA`、`io_ddrMasters_0` 两段，接 GPIO1 与中断 B/C；`peri.xml` 加 `key_n[3:0]`（取自官方按键例程）。
+5. 工具链：WSL 装 xPack `riscv-none-elf-gcc` 13.4.0-1（SHA256 与发布页一致）；七个诊断程序、memTest、gfx2dGame 全部编过；
+   `target.mk` 加 `--no-warn-rwx-segment`。新程序 `sw/apps/test/keyTest`。
+6. 编译：四步 PASS，XLR 21753 → 21653，RAM 65 不变，`core_clk` setup 3.780 → 3.405、hold 0.026 不变，
+   无新增告警，Missing Interface Pins 仍 6 项。
+7. 上板：调试通路 6 次会话全过；memTest、APB 探针、`ddrAliasTest`、`ddrBurstProbe`、E3 三件套、`cacheMechTest`、
+   `cacheMinTest` 全部符合；GPIO1 空闲读数 `0x0f`；gfx2dGame 60 帧 CRC 与 PC 日志逐帧相同；
+   `bootSizeTest` 第一次先跑了实验组，对照组因 DDR 残留假通过，清零尾段后按「先对照、后实验」重跑，结果符合。
+8. 用户确认 HDMI 八色竖条；`keyTest` 用户依次按 SW0~SW3（即 KEY0~3），四键各一次 down/up，`fail 0`，日志入库。
+9. 未做：第 3 节「归因」；新中断线使能后不误触发没有单独测。两项都留在第 07 章第六节。
 
 **2026-09-19 改写。** 原条目以「裁剪省 RAM」为目标，E1 定下保留 Standard 之后，能省 RAM 的那一项已不存在。
 用户确认：SoC 的配置逐项可选，不因选 Standard 而结束；要尽快做完关闭本条，并给摄像头留位置。

@@ -34,19 +34,33 @@
 | 镜像超限断言 | 无 | 超过 512KB 时链接报错 | 同上 |
 | 编译好的 bootloader | 无 | `tool/bootloader/bootloader_512K.bin` 与 `.hex` | 新增 |
 | gpioDemo 的 BSP 路径 | 生成时那台机器的绝对路径 | 占位符，由 `tools/localize_paths.py` 展开 | `software/standalone/gpio/gpioDemo/.cproject`、三个 `.launch` |
+| 下载器描述字符串 | `ftdi device_desc "Titanium Ti60F225 Development Kit"` 生效 | 注释掉，只按 VID/PID 找下载器 | `bsp/efinix/EfxSapphireSoc/openocd/ftdi_ti.cfg` |
 
 `gpioDemo` 的 `.cproject` 里还留着生成它的那台机器上 RISC-V IDE 2025.2 的工具链路径，
 本项目不用 IDE 编译，所以没有动它。要在 IDE 里导入这个官方示例时，
 由 IDE 重新指向本机的工具链。
 
+程序区长度 4092K 由 SoC 配置里的 `LDSize` 决定，生成器直接写进链接脚本，重新生成后不用手改；
+要恢复的只有断言那几行。下载器描述字符串一项是 2026-09-19 升级 3.4.0 时补登记的：
+3.3.0 的软件包入库时这一行就是注释掉的，3.4.0 模板把它打开了；板上一直按注释掉的版本工作，
+它与本板下载器的描述对不对得上没有核实过，所以保持原样。
+
 改了 `bootloaderConfig.h` 就要重新编译 bootloader，并同步更新 `tool/bootloader/bootloader_512K.hex` 和 SoC IP 里的 8 个片上 RAM 初始文件（`fpga/gfx2d_ti60/ip/soc/` 与 `ip/soc/source/hardware/netlist/` 各 4 个）。做法与校验见 `../doc/开发环境.md` 第 9 节。
 
 ## 重新生成 SoC IP 时
 
-1. 生成前提交或备份，生成器会覆盖 `ip/soc/` 和软件包；
-2. 确认 Cache/Memory 页勾了 Custom On-Chip RAM Application，路径指向 `sdk/tool/bootloader/bootloader_512K.hex`，Application Region Size 选 4MB；
-3. 生成后把新软件包同步到本目录，再把上表逐条改回去；
-4. 2026.1 的软件包模板 `-march` 带 `_zicsr_zifencei`，同步后可以改用 IDE 自带的 gcc 13.4，届时 `sw/README.md` 里的编译命令要一起改。
+当前软件包由 efx_soc 3.4.0（Efinity 2026.1）生成，2026-09-19。生成走 IP Manager 的 Python API，
+不用图形界面，工具是 `../tools/ipm_gen_soc.py`，做法与原因见
+`../../Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md`。
+
+1. 工作区干净，当前提交就是回退点；
+2. `python3 tools/localize_paths.py --apply` 展开 `settings.json` 里 bootloader hex 的路径；
+3. 在 Efinity 的环境里运行生成（`call <EFINITY>\bin\setup.bat` 之后用它自带的 python），
+   参数改动用 `--override` 给出，先 `--dry-run` 看参数对照；
+4. 生成器把软件包写到 `fpga/gfx2d_ti60/embedded_sw/soc/`，整体复制到本目录后删掉那个目录；
+   `ip/soc/` 下多出的 `T120F324_devkit/`、`Ti60F225_devkit/`、`Testbench/` 是示例，不入库，删掉；
+5. 把上表逐条改回去，再看一次 `git diff Main/sdk`，剩下的每一处都要说得出来源；
+6. `localize_paths.py --restore`，然后按 `../doc/开发环境.md` 0.4 与 0.6 节编译、上板回归。
 
 ## OpenOCD
 

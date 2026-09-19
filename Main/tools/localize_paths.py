@@ -24,6 +24,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # bs2  两个反斜杠，JSON 字符串里的转义写法
 TARGETS = {
     "fpga/gfx2d_ti60/ip/soc/settings.json": ["bs2", "fs"],
+    "fpga/gfx2d_ti60/ip/soc/source/soc_config": ["bs"],
     "sdk/software/standalone/gpio/gpioDemo/.cproject": ["bs"],
     "sdk/software/standalone/gpio/gpioDemo/gpioDemo_ti.launch": ["bs"],
     "sdk/software/standalone/gpio/gpioDemo/gpioDemo_trion.launch": ["bs"],

@@ -118,9 +118,29 @@
                                     "bitOffset": "13",
                                     "bitWidth": "1"
                                 },
+                                "gpio1i0_ip": {
+                                    "description": "GPIO 1 Interrupt 0 Pending",
+                                    "bitOffset": "14",
+                                    "bitWidth": "1"
+                                },
+                                "gpio1i1_ip": {
+                                    "description": "GPIO 1 Interrupt 1 Pending",
+                                    "bitOffset": "15",
+                                    "bitWidth": "1"
+                                },
                                 "userIntA_ip": {
                                     "description": "User Interrupt A Pending",
                                     "bitOffset": "16",
+                                    "bitWidth": "1"
+                                },
+                                "userIntB_ip": {
+                                    "description": "User Interrupt B Pending",
+                                    "bitOffset": "17",
+                                    "bitWidth": "1"
+                                },
+                                "userIntC_ip": {
+                                    "description": "User Interrupt C Pending",
+                                    "bitOffset": "22",
                                     "bitWidth": "1"
                                 },
                                 "axiA_ip": {
@@ -231,9 +251,85 @@
                                         }
                                     }
                                 },
+                                "gpio1i0": {
+                                    "addressOffset": "0x0038",
+                                    "description": "The priority for GPIO 1 Interrupt 0 global interrupt",
+                                    "registers": {
+                                        "priority": {
+                                            "description": "The Priority Register",
+                                            "addressOffset": "0x0000",
+                                            "fields": {
+                                                "value": {
+                                                    "description": "The priority value",
+                                                    "bitOffset": "0",
+                                                    "bitWidth": "2",
+                                                    "resetMask": "all",
+                                                    "resetValue": "0x0"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "gpio1i1": {
+                                    "addressOffset": "0x003c",
+                                    "description": "The priority for GPIO 1 Interrupt 1 global interrupt",
+                                    "registers": {
+                                        "priority": {
+                                            "description": "The Priority Register",
+                                            "addressOffset": "0x0000",
+                                            "fields": {
+                                                "value": {
+                                                    "description": "The priority value",
+                                                    "bitOffset": "0",
+                                                    "bitWidth": "2",
+                                                    "resetMask": "all",
+                                                    "resetValue": "0x0"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
                                 "userIntA": {
                                     "addressOffset": "0x0040",
                                     "description": "The priority for User Interrupt A global interrupt",
+                                    "registers": {
+                                        "priority": {
+                                            "description": "The Priority Register",
+                                            "addressOffset": "0x0000",
+                                            "fields": {
+                                                "value": {
+                                                    "description": "The priority value",
+                                                    "bitOffset": "0",
+                                                    "bitWidth": "2",
+                                                    "resetMask": "all",
+                                                    "resetValue": "0x0"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "userIntB": {
+                                    "addressOffset": "0x0044",
+                                    "description": "The priority for User Interrupt B global interrupt",
+                                    "registers": {
+                                        "priority": {
+                                            "description": "The Priority Register",
+                                            "addressOffset": "0x0000",
+                                            "fields": {
+                                                "value": {
+                                                    "description": "The priority value",
+                                                    "bitOffset": "0",
+                                                    "bitWidth": "2",
+                                                    "resetMask": "all",
+                                                    "resetValue": "0x0"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "userIntC": {
+                                    "addressOffset": "0x0058",
+                                    "description": "The priority for User Interrupt C global interrupt",
                                     "registers": {
                                         "priority": {
                                             "description": "The Priority Register",
@@ -283,9 +379,19 @@
                                             "description": "Interrupt Enable Bits Registers",
                                             "addressOffset": "0x0000",
                                             "fields": {
+                                                "userInterruptC": {
+                                                    "description": "User Interrupt C Enable Bit",
+                                                    "bitOffset": "22",
+                                                    "bitWidth": "1"
+                                                },
                                                 "userInterruptA": {
                                                     "description": "User Interrupt A Enable Bit",
                                                     "bitOffset": "16",
+                                                    "bitWidth": "1"
+                                                },
+                                                "userInterruptB": {
+                                                    "description": "User Interrupt B Enable Bit",
+                                                    "bitOffset": "17",
                                                     "bitWidth": "1"
                                                 },
                                                 "uart0": {
@@ -311,6 +417,16 @@
                                                 "gpio0i1": {
                                                     "description": "GPIO 0 Interrupt 1 Interrupt Enable Bit",
                                                     "bitOffset": "13",
+                                                    "bitWidth": "1"
+                                                },
+                                                "gpio1i0": {
+                                                    "description": "GPIO 1 Interrupt 0 Interrupt Enable Bit",
+                                                    "bitOffset": "14",
+                                                    "bitWidth": "1"
+                                                },
+                                                "gpio1i1": {
+                                                    "description": "GPIO 1 Interrupt 1 Interrupt Enable Bit",
+                                                    "bitOffset": "15",
                                                     "bitWidth": "1"
                                                 },
                                                 "axiA": {
@@ -367,6 +483,14 @@
                         "userInterruptA": {
                             "description": "User Interrupt A",
                             "value": "16"
+                        },
+                        "userInterruptB": {
+                            "description": "User Interrupt B",
+                            "value": "17"
+                        },
+                        "userInterruptC": {
+                            "description": "User Interrupt C",
+                            "value": "22"
                         }
                     }
                 },
@@ -402,7 +526,7 @@
                                 }
                             }
                         },
-                        "outputen": {
+                        "outputEnable": {
                             "description": "Output Enable Register",
                             "addressOffset": "0x0008",
                             "fields": {
@@ -415,7 +539,7 @@
                                 }
                             }
                         },
-                        "riseie": {
+                        "InterruptRiseEnable": {
                             "description": "Rise Interrupt Enable Register",
                             "addressOffset": "0x0020",
                             "fields": {
@@ -428,7 +552,7 @@
                                 }
                             }
                         },
-                        "fallie": {
+                        "interruptFallEnable": {
                             "description": "Fall Interrupt Enable Register",
                             "addressOffset": "0x0024",
                             "fields": {
@@ -441,7 +565,7 @@
                                 }
                             }
                         },
-                        "highie": {
+                        "interruptHighEnable": {
                             "description": "High Interrupt Enable Register",
                             "addressOffset": "0x0028",
                             "fields": {
@@ -454,7 +578,7 @@
                                 }
                             }
                         },
-                        "lowie": {
+                        "interruptLowEnable": {
                             "description": "Low Interrupt Enable Register",
                             "addressOffset": "0x002C",
                             "fields": {
@@ -476,6 +600,115 @@
                         "gpio0int1": {
                             "description": "GPIO0 Interrupt 1",
                             "value": "13"
+                        }
+                    }
+                },
+                "gpio 1": {
+                    "description": "General Purpose Input/Output Controller (GPIO) 1 Peripheral",
+                    "baseAddress": "0xf8016000",
+                    "size": "0x100",
+                    "registers": {
+                        "Input": {
+                            "description": "Input Pin Value Register",
+                            "addressOffset": "0x0000",
+                            "fields": {
+                                "bit": {
+                                    "repeatGenerator": "0-7",
+                                    "description": "Input Bit Field",
+                                    "bitOffset": "0",
+                                    "bitWidth": "1",
+                                    "headerName": "",
+                                    "access": "r"
+                                }
+                            }
+                        },
+                        "output": {
+                            "description": "Output Register",
+                            "addressOffset": "0x0004",
+                            "fields": {
+                                "bit": {
+                                    "repeatGenerator": "0-7",
+                                    "description": "Output Bit Field",
+                                    "bitOffset": "0",
+                                    "bitWidth": "1",
+                                    "headerName": ""
+                                }
+                            }
+                        },
+                        "outputEnable": {
+                            "description": "Output Enable Register",
+                            "addressOffset": "0x0008",
+                            "fields": {
+                                "bit": {
+                                    "repeatGenerator": "0-7",
+                                    "description": "Pin Output Enable Bit Field",
+                                    "bitOffset": "0",
+                                    "bitWidth": "1",
+                                    "headerName": ""
+                                }
+                            }
+                        },
+                        "InterruptRiseEnable": {
+                            "description": "Rise Interrupt Enable Register",
+                            "addressOffset": "0x0020",
+                            "fields": {
+                                "bit": {
+                                    "repeatGenerator": "0-1",
+                                    "description": "Rise Interrupt Enable Bit Field",
+                                    "bitOffset": "0",
+                                    "bitWidth": "1",
+                                    "headerName": ""
+                                }
+                            }
+                        },
+                        "interruptFallEnable": {
+                            "description": "Fall Interrupt Enable Register",
+                            "addressOffset": "0x0024",
+                            "fields": {
+                                "bit": {
+                                    "repeatGenerator": "0-1",
+                                    "description": "Fall Interrupt Enable Bit Field",
+                                    "bitOffset": "0",
+                                    "bitWidth": "1",
+                                    "headerName": ""
+                                }
+                            }
+                        },
+                        "interruptHighEnable": {
+                            "description": "High Interrupt Enable Register",
+                            "addressOffset": "0x0028",
+                            "fields": {
+                                "bit": {
+                                    "repeatGenerator": "0-1",
+                                    "description": "High Interrupt Enable Bit Field",
+                                    "bitOffset": "0",
+                                    "bitWidth": "1",
+                                    "headerName": ""
+                                }
+                            }
+                        },
+                        "interruptLowEnable": {
+                            "description": "Low Interrupt Enable Register",
+                            "addressOffset": "0x002C",
+                            "fields": {
+                                "bit": {
+                                    "repeatGenerator": "0-1",
+                                    "description": "Low Interrupt Enable Bit Field",
+                                    "bitOffset": "0",
+                                    "bitWidth": "1",
+                                    "headerName": ""
+                                }
+                            }
+                        }
+                    },
+                    "interrupts": {
+                        "gpio0": {
+                            "description": "GPIO1 Interrupt 0",
+                            "value": "14"
+                        },
+                        "gpio1": {
+                            "description": "GPIO1 Interrupt 1",
+                            "value": "15"
                         }
                     }
                 },
@@ -710,7 +943,7 @@
                             }
                         },
                         "interrupt": {
-                            "description": "Interrupt Register",
+                            "description": "Interrupt Enable Register",
                             "addressOffset": "0x000C",
                             "fields": {
                                 "cmdIntEn": {
@@ -801,8 +1034,8 @@
                                 }
                             }
                         },
-                        "cmd32_0": {
-                            "description": "cmd32_0 Register. Large data transmit",
+                        "cmd_writeLarge": {
+                            "description": "cmd_writeLarge Register. Large data transmit",
                             "addressOffset": "0x0050",
                             "fields": {
                                 "data": {
@@ -813,8 +1046,8 @@
                                 }
                             }
                         },
-                        "cmd32_1": {
-                            "description": "cmd32_1 Register. Large data transmit",
+                        "cmd_readWriteLarge": {
+                            "description": "cmd_readWriteLarge Register. Large data transmit",
                             "addressOffset": "0x0054",
                             "fields": {
                                 "data": {
@@ -825,8 +1058,8 @@
                                 }
                             }
                         },
-                        "rsp32": {
-                            "description": "rsp32 Register. Large data transmit",
+                        "cmd_readLarge": {
+                            "description": "cmd_readLarge Register. Large data receive",
                             "addressOffset": "0x0058",
                             "fields": {
                                 "data": {
@@ -847,7 +1080,7 @@
                 },
                 "i2c0": {
                     "description": "Inter-Integrated Circuit (I2C) 0 Peripheral",
-                    "baseAddress": "0xf8016000",
+                    "baseAddress": "0xf8017000",
                     "size": "0x100",
                     "resetMask": "none",
                     "groupName": "i2c",
@@ -964,8 +1197,8 @@
                                 }
                             }
                         },
-                        "interrupt": {
-                            "description": "Interrupt Register",
+                        "interruptEnable": {
+                            "description": "Interrupt Enable Register",
                             "addressOffset": "0x0020",
                             "fields": {
                                 "rxDataEnable": {
@@ -1025,8 +1258,8 @@
                                 }
                             }
                         },
-                        "interruptClear": {
-                            "description": "Interrupt Clear Register",
+                        "interruptFlag": {
+                            "description": "Interrupt Flag Register",
                             "addressOffset": "0x0024",
                             "fields": {
                                 "startFlag": {
@@ -1216,7 +1449,7 @@
                         },
                         "tBuf": {
                             "description": "tBuf Register",
-                            "addressOffset": "0x0054",
+                            "addressOffset": "0x0058",
                             "fields": {
                                 "value": {
                                     "description": "Start and stop bus free time",

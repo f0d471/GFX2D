@@ -47,7 +47,7 @@ WSL 里的 iverilog 与 python3、xPack 的 riscv-none-embed-gcc 8.3.0。
 
 ## 克隆之后
 
-有五个文件是厂商工具生成的，里面必须写绝对路径，仓库里存的是占位符，展开一次：
+有六个文件是厂商工具生成的，里面必须写绝对路径，仓库里存的是占位符，展开一次：
 
 ```
 python3 Main/tools/localize_paths.py --apply
