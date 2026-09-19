@@ -131,7 +131,7 @@ PC 上同时在窗口里显示。
 
 ### 2.5 检查脚本
 
-`Main/tools/check_sw_layers.sh` 把结构判据集中到一处，提交前跑：
+`Main/tools/check/check_sw_layers.sh` 把结构判据集中到一处，提交前跑：
 
 1. `lib/` 在只有 `-Isw/lib` 的条件下编译通过（主机 gcc 即可）；
 2. 注错：临时生成一个 `#include "board.h"` 的 `lib/` 文件，编译必须失败；另一个 `#include <soc.h>` 的应用文件，编译也必须失败。

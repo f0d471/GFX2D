@@ -4,11 +4,12 @@
 厂商工具生成的少数几个文件必须写绝对路径，仓库里存的是占位符形式，
 克隆之后展开一次即可使用，提交之前还原成占位符。
 
-    python3 tools/localize_paths.py --apply      占位符 -> 本机路径
-    python3 tools/localize_paths.py --restore    本机路径 -> 占位符
-    python3 tools/localize_paths.py --check      扫描整个仓库，发现机器专属路径就报错
+    python3 tools/check/localize_paths.py --apply      占位符 -> 本机路径
+    python3 tools/check/localize_paths.py --restore    本机路径 -> 占位符
+    python3 tools/check/localize_paths.py --check      扫描整个仓库，发现机器专属路径就报错
 
-三种模式都不接受额外参数，仓库根目录由本脚本的位置推出。
+三种模式都不接受额外参数，目录由本脚本的位置推出。
+占位符代表的是 `Main/` 的路径（历史原因叫 __REPO_ROOT__）；`--check` 扫的是整个 git 仓库。
 """
 
 import argparse
@@ -16,7 +17,8 @@ import os
 import re
 import sys
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MAIN = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.dirname(MAIN)          # git 仓库根，--check 从这里扫
 
 # 需要处理的文件，以及每个占位符在该文件里用的分隔符风格。
 # bs   反斜杠，Windows 原样写法
@@ -39,19 +41,19 @@ TOKEN = {
 
 
 def win_repo():
-    """仓库根目录的 Windows 写法。
+    """Main 目录的 Windows 写法（占位符代表的就是它）。
 
     这几个文件由 Windows 上的厂商工具读取，所以即使在 WSL 里运行本脚本，
     写进去的也必须是盘符路径。`/mnt/e/x` 这样的挂载点在这里换算回 `E:\\x`。
     """
-    m = re.match(r"^/mnt/([a-z])(/.*)?$", REPO)
+    m = re.match(r"^/mnt/([a-z])(/.*)?$", MAIN)
     if m:
         return m.group(1).upper() + ":" + (m.group(2) or "/").replace("/", "\\")
-    return REPO.replace("/", "\\")
+    return MAIN.replace("/", "\\")
 
 
 def rendered(style):
-    """仓库根目录在该分隔符风格下的写法。"""
+    """Main 目录在该分隔符风格下的写法。"""
     win = win_repo()
     if style == "bs":
         return win
@@ -68,20 +70,24 @@ SUSPECT = re.compile(r"(?:(?<![A-Za-z0-9])[A-Za-z]:[\\/]"
                      r"|/home/[A-Za-z0-9._-]+/"
                      r"|/mnt/[a-z]/)")
 
+# 以下路径都相对 git 仓库根。
 # 允许保留绝对路径的文件。
-#   doc/开发环境.md   按约定集中记录本机取值，见该文件第 11 节
-#   tools/localize_paths.py    本脚本的说明里要举路径的例子
+#   Main/doc/开发环境.md   按约定集中记录本机取值，见该文件第 11 节
+#   本脚本                 说明里要举路径的例子
+#   platform 第 07 章      原样引用的报错输出里带 Efinity 的安装路径（4.1 节）
 ALLOW = {
-    "doc/开发环境.md",
-    "tools/localize_paths.py",
+    "Main/doc/开发环境.md",
+    "Main/tools/check/localize_paths.py",
+    "Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md",
 }
 
 # 厂商代码与 IP 生成物不在检查范围内，它们带的是生成时那台机器的工具安装位置。
 # 其中需要跟着仓库位置走的几个文件在 TARGETS 里逐个检查。
-SKIP_PREFIXES = ("rtl/vendor/", "sdk/", "fpga/gfx2d_ti60/ip/", "bit/")
+# Efinix/ 是不入库的厂商资料包。
+SKIP_PREFIXES = ("Efinix/", "Main/rtl/vendor/", "Main/sdk/", "Main/fpga/gfx2d_ti60/ip/", "Main/bit/")
 
 SKIP_DIRS = {".git", "outflow", "work_syn", "work_pnr", "work_pt", "work_dbg",
-             "build", ".metadata", "flash_backup"}
+             "build", ".metadata", "flash_backup", "__pycache__"}
 
 TEXT_SUFFIX = {".md", ".v", ".vh", ".c", ".h", ".S", ".s", ".py", ".sh", ".json",
                ".xml", ".sdc", ".ld", ".cfg", ".yaml", ".mk", ".launch", ".cproject",
@@ -102,7 +108,7 @@ def substitute(forward):
     """forward 为真时展开占位符，否则还原。"""
     changed = 0
     for rel, styles in TARGETS.items():
-        path = os.path.join(REPO, rel.replace("/", os.sep))
+        path = os.path.join(MAIN, rel.replace("/", os.sep))
         if not os.path.exists(path):
             print("缺文件：%s" % rel)
             return 1
@@ -114,17 +120,17 @@ def substitute(forward):
             write(path, text)
             changed += 1
             print("已改写 %s" % rel)
-    print("%s 完成，改写 %d 个文件，仓库根目录 %s"
-          % ("展开" if forward else "还原", changed, REPO))
+    print("%s 完成，改写 %d 个文件，Main 目录 %s"
+          % ("展开" if forward else "还原", changed, MAIN))
     return 0
 
 
 def walk():
-    for root, dirs, files in os.walk(REPO):
+    for root, dirs, files in os.walk(ROOT):
         dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
         for name in files:
             path = os.path.join(root, name)
-            rel = os.path.relpath(path, REPO).replace(os.sep, "/")
+            rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
             suffix = os.path.splitext(name)[1]
             if suffix in TEXT_SUFFIX or name in ("README", "Makefile", "makefile"):
                 yield rel, path
@@ -135,7 +141,7 @@ def check():
     for rel, path in walk():
         if rel in ALLOW:
             continue
-        if rel.startswith(SKIP_PREFIXES) and rel not in TARGETS:
+        if rel.startswith(SKIP_PREFIXES) and rel[len("Main/"):] not in TARGETS:
             continue
         try:
             text = read(path)
@@ -148,7 +154,7 @@ def check():
         print("发现 %d 处机器专属路径：" % len(hits))
         for rel, num, line in hits:
             print("  %s:%d  %s" % (rel, num, line))
-        print("按 doc/开发环境.md 第 1 节改成占位符，"
+        print("按 Main/doc/开发环境.md 第 1 节改成占位符，"
               "或者确认它属于该文件第 11 节那类记录再加进本脚本的 ALLOW。")
         return 1
     print("检查通过，没有机器专属路径。")

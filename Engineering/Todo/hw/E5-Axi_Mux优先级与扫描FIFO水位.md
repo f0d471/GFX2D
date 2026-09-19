@@ -428,7 +428,7 @@ sha256 前 16 位 `3f403073329ccafd`），末行 `fail 0` / `done`。关键数�
   两处小订正：协议监视要在「上一拍 valid 高且 ready 低」时才判撤销（否则措施一正常撤销 valid 会被误判）；
   CPU 至少分读、写两个计数，否则无竞争的写通道会让「保护关闭应失败」的用例假通过。
 - **上板首验**：把本轮的比特流经 JTAG 加载（器件 ID `0x10660A79`），
-  然后用 `tools/board_run.py` 跑 `sw/apps/probe/ddrAliasTest`：`Target successfully examined`，
+  然后用 `tools/board/board_run.py` 跑 `sw/apps/probe/ddrAliasTest`：`Target successfully examined`，
   串口完整输出 `LOW k=0..27`、`HIGH k=28..31`、`CACHE_NOEVICT`/`CACHE_EVICT`、
   `base 0x0c800000 fail 0`、`done`。这一次**没有前置 OpenOCD 会话**，
   证明新端口分配（SoC 在 S2、guard 默认优先级 + 三通道全开）在板上成立，

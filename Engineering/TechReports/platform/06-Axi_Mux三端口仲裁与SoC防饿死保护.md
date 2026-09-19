@@ -310,7 +310,7 @@ fail 1
 - `GUARD_HITS` 规格是两个方向 0 到 1 次数之和，RTL 原来同一拍只加 1。改成 `ar_rise + aw_rise`，
   `dual_direction` 增加同拍触发 `HITS=2` 的检查。
 - `TRI` 统计原来先读 `TXN`，打印时才读还在增长的 `BEAT`。改成停扫描、等 1 ms、一次性读，并对账 `BEAT = TXN × 160`。
-- `tools/board_run.py` 的文件头和开发环境文档都说会先 `reset halt`，脚本实际只发了 `load_image`、`resume`。
+- `tools/board/board_run.py` 的文件头和开发环境文档都说会先 `reset halt`，脚本实际只发了 `load_image`、`resume`。
   之前能跑是因为前一个会话恰好把 CPU 停住了。补上之后在没有前置会话的条件下单独跑通 `ddrAliasTest`。
   另一个相关现象：`reset halt` 会复位 SoC 系统复位域，把 guard 与扫描替身的配置清回默认值，
   跨两个 OpenOCD 会话「先写使能、后读结果」读到的全是 0，写使能和读结果要在同一个会话里做。

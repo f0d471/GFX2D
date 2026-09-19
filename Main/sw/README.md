@@ -28,7 +28,7 @@ sw/
 依赖方向只有一个：应用 → `lib/` 与 `bsp/include/board.h`，`board.h` 由 `bsp/ti60` 或 `bsp/host` 实现。
 编 `lib/` 时只有 `-Isw/lib`，看不到 `board.h`；编应用时看不到 sdk——
 应用里写 `#include <soc.h>` 会直接编不过。PC 在这套结构里就是「另一块板子」，
-应用代码里不出现平台判断。判据 `Main/tools/check_sw_layers.sh` 会逐条验证这些。
+应用代码里不出现平台判断。判据 `Main/tools/check/check_sw_layers.sh` 会逐条验证这些。
 
 ## 应用的三类
 
@@ -91,7 +91,7 @@ wsl -e bash -c 'cd sw && make -f mk/target.mk RISCV_BIN=<RISCV_BIN>'
 
 ```
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host test'    # 或 cd sw && make -f mk/host.mk test
-wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check_sw_layers.sh'
+wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw_layers.sh'
 ```
 
 前者把 `lib/test/` 在 64 位（挂 ASan+UBSan）与 `-m32` 下各编一份并比对输出，必须逐字节相同；
@@ -161,7 +161,7 @@ wsl -e bash -c 'cd sw/apps/test/bootSizeTest && make BSP=efinix/EfxSapphireSoc R
 两种方式：
 
 - 调试器加载：OpenOCD 连上后 `reset halt`，`load_image <bin> 0x1000 bin`，`resume 0x1000`。**加载前必须复位**，否则 CPU 取到的是指令缓存里的旧内容。**OpenOCD 要在 `sdk/bsp` 下启动**，在本目录的程序目录里启动会找不到 `cpu0.yaml`。
-- 从 Flash 启动：把 bin 转成 hex（`tools/bin2hex.py`）写入 Flash `0x380000`，复位后由 bootloader 拷进 DDR。
+- 从 Flash 启动：把 bin 转成 hex（`tools/board/bin2hex.py`）写入 Flash `0x380000`，复位后由 bootloader 拷进 DDR。
 
 两种方式的命令见 `../doc/开发环境.md` 第 6、8 节。
 

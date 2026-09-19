@@ -50,16 +50,16 @@ WSL 里的 iverilog 与 python3、xPack 的 riscv-none-embed-gcc 8.3.0。
 有六个文件是厂商工具生成的，里面必须写绝对路径，仓库里存的是占位符，展开一次：
 
 ```
-python3 Main/tools/localize_paths.py --apply
+python3 Main/tools/check/localize_paths.py --apply
 ```
 
-Windows 上没有 python 时用 WSL 调用：`wsl -e python3 Main/tools/localize_paths.py --apply`。
+Windows 上没有 python 时用 WSL 调用：`wsl -e python3 Main/tools/check/localize_paths.py --apply`。
 
 ## 提交之前
 
 ```
-python3 Main/tools/localize_paths.py --restore   本机路径还原成占位符
-python3 Main/tools/localize_paths.py --check     扫描机器专属的绝对路径
+python3 Main/tools/check/localize_paths.py --restore   本机路径还原成占位符
+python3 Main/tools/check/localize_paths.py --check     扫描机器专属的绝对路径
 ```
 
 改了 RTL 或程序，还要跑两个仿真与一次 Efinity 编译，判据见
@@ -69,4 +69,4 @@ python3 Main/tools/localize_paths.py --check     扫描机器专属的绝对路�
 
 **不写绝对路径。** 文档用 `Main/doc/开发环境.md` 第 1 节的占位符，
 实际取值只出现在该文件第 11 节。厂商生成物里必须写路径的几个文件用
-`Main/tools/localize_paths.py` 展开与还原。编译与仿真产物一律不入库。
+`Main/tools/check/localize_paths.py` 展开与还原。编译与仿真产物一律不入库。

@@ -20,9 +20,8 @@
 # 判据通过了但分层没有生效。见 TechReports sw 第 01 章 4.6。
 #
 # 用法（在 WSL 里，仓库根或任意位置）：
-#     bash Main/tools/check_sw_layers.sh
-#     RISCV_BIN=~/opt/xpack-riscv-none-embed-gcc-8.3.0-2.3/bin/riscv-none-embed- \
-#         bash Main/tools/check_sw_layers.sh
+#     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw_layers.sh
+# RISCV_BIN 不给时取 riscv-none-elf-（要在 PATH 里），与 sdk 的 makefile 默认值一致。
 #
 # 本脚本只在仓库里临时放几个注错文件，退出时（含中途失败）一律删干净。
 # 编译产物落在临时目录，不动 apps/game/gfx2dGame/build。
@@ -30,12 +29,12 @@
 
 set -u
 
-MAIN="$(cd "$(dirname "$0")/.." && pwd)"
+MAIN="$(cd "$(dirname "$0")/../.." && pwd)"
 REPO="$(cd "$MAIN/.." && pwd)"
 SW="$MAIN/sw"
 
 HOST_CC="${HOST_CC:-gcc}"
-RISCV_BIN="${RISCV_BIN:-riscv-none-embed-}"
+RISCV_BIN="${RISCV_BIN:-riscv-none-elf-}"
 
 WARN="-std=gnu11 -Wall -Wextra -Werror"
 
@@ -80,7 +79,7 @@ expect_build_fail() {   # $1 = OBJDIR，$2 = 注入文件名，$3 = 判据名
 # 工具链在不在，决定第 2、3、4 项能不能做
 if ! command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
     printf 'RISCV_BIN=%s 找不到交叉编译器，第 2、3、4 项要它。\n' "$RISCV_BIN"
-    printf '用法见脚本头部，或 doc/开发环境.md 第 1、11 节。\n'
+    printf '用 RISCV_BIN=<工具链前缀> 指定，见 doc/开发环境.md 第 1、11 节。\n'
     exit 1
 fi
 

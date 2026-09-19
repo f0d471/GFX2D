@@ -68,7 +68,7 @@ ${EFINITY_PYTHON} ${IP_LIBRARY_ROOT}/efx_soc/efx_soc/generator/soc_gen.py
 `Lib` 在上一层），这是 `ftdi_pgm.bat` 与 `efx_run.bat` 能跑而我们直接调它跑不起来的原因。
 
 照着这个关系生成，先后撞上四个生成器自身的健壮性问题，见第 4.1 节。
-解决之后生成本身是稳的，工具固化成 `tools/gen_soc.py`。
+解决之后生成本身是稳的。现在的生成工具是 `tools/soc/ipm_gen_soc.py`，它走 IP Manager 的 Python API，见第 07 章。
 
 ### 3.2 四套构型的参数
 
@@ -126,10 +126,10 @@ bin 33,970 字节），这样两边只有硬件的差别。
 
 ### 3.7 工具与文档
 
-上板过程中固化了两个工具，放在 `Main/tools/`：
-`gen_soc.py`（3.1 节的生成调用）与 `board_run.py` 加
-`openocd/gfx2d_debug.cfg`（3.5 节的上板流程，含官方 cfg 在本板上的两处修正）。
-两者都写进了 `tools/README.md`。
+上板过程中固化的工具放在 `Main/tools/`：
+`soc/ipm_gen_soc.py`（3.1 节的生成）与 `board/board_run.py` 加
+`board/gfx2d_debug.cfg`（3.5 节的上板流程，含官方 cfg 在本板上的两处修正）。
+用法写在各自目录的 README 里。
 
 ## 四、遇到的问题
 
@@ -157,14 +157,14 @@ Verilog 字面量抛的是 `SyntaxError`，会直接冒出来
 （为把程序区改成 4092K、把 bootloader 指到 512KB 那几处），这类自动项全丢了。
 
 定位办法是把 27 个占位符一次列全：导入生成器模块，把它 `config_dict` 里用到的
-167 个占位符与配置里的 152 个键做差集（`tools/gen_soc.py` 现在做同样的事）。
+167 个占位符与配置里的 152 个键做差集（`tools/soc/ipm_gen_soc.py` 的 `--dry-run` 现在列出同类清单）。
 补齐的规则来自生成器自己的 `alignAddress()`：外设
 `X_Addr = X_M_Addr & 0xffffff000`，APB 从机掩码由 `APBSlave0_Size` 决定，
 `Base_AXIS/Base_IO = Base_M_* & 0xff000000`，`Base_IM` 取 IP 定义里的默认片上 RAM 地址。
 
 **根因与修法**：四条都是厂商生成器的健壮性问题，不是本工程配置错。
 修法是在调用侧补：逐项传参、解析 Verilog 字面量、按 `alignAddress()` 的规则补齐自动项。
-固化在 `tools/gen_soc.py` 里，并在脚本头注明依据与出处，便于升级 Efinity 之后重新核对。
+现在的 `tools/soc/ipm_gen_soc.py` 改走 IP Manager 的 API，参数解析与自动项由 API 负责，这四个问题不再出现。
 
 **原判据为什么没有覆盖到它**：这一层此前一直是人在图形界面上点的，
 界面负责解析参数与保存完整的配置，所以这四个问题在命令行路径上才第一次出现。
@@ -228,7 +228,7 @@ Error: target 'fpga_spinal.cpu0' init failed
 
 **根因与修法**：两条都是官方 cfg 与这块板的实际不符。
 修法是不改 `sdk/` 下的生成物（重新生成 IP 会覆盖），另写一份
-`Main/tools/openocd/gfx2d_debug.cfg`，复刻 `debug_ti.cfg` 的目标定义、
+`Main/tools/board/gfx2d_debug.cfg`，复刻 `debug_ti.cfg` 的目标定义、
 `irlen` 取 5、`cpu0.yaml` 走 `workspace_loc`。
 
 **原判据为什么没有覆盖到它**：`doc/开发环境.md` 第 6 节给的命令是

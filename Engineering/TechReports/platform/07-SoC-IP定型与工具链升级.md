@@ -35,7 +35,7 @@
 7. 编译比特流，按 0.4 节检查时序、资源、告警、接口。
 8. 上板：调试通路、回归表全部、`bootSizeTest` 与对照组、gfx2dGame 的逐帧 CRC、按键。
 
-第 2 步是这一章新增的。E1（第 04 章）用 `tools/gen_soc.py` 直接调生成器 `soc_gen.py`，
+第 2 步是这一章新增的。E1（第 04 章）直接调生成器 `soc_gen.py`，
 只换了网表，没有换工程引用的包装文件 `soc.v`：那一次只动构型，端口集合几乎不变
 （Lite 统一时钟少一个 `io_memoryClk`，手工删掉即可）。这一次要开 GPIO1、开两条中断、关 `axiA`，
 端口集合变了几十项，只换网表不够。第 3 步是因为生成器会整体覆盖 `ip/soc/`，
@@ -78,7 +78,7 @@ IP Manager 有官方的 Python 入口 `ipm_api_service.design.IPMDesignAPI`，
 Efinity 安装目录下附了示例 `project/example_scripts/ipm/example_fifo.py`：
 `create_ip` 取当前安装里最新版本的 IP，`config_ip` 设参数，`validate_ip` 校验，`generate_ip` 生成。
 这条路走的是图形界面背后的同一套代码，端口裁剪、改名、软件包都在里面。
-本章把它写成 `Main/tools/ipm_gen_soc.py`：读 `settings.json` 的用户参数逐项设置，
+本章把它写成 `Main/tools/soc/ipm_gen_soc.py`：读 `settings.json` 的用户参数逐项设置，
 `--override` 给改动项，`--outputs` 只选 `generator`、`source`、`script`、`embedded_sw` 四个文件集
 （示例工程与四种仿真器的文件集会往工程里写一堆用不到的东西），并在生成前列出三份清单：
 `settings.json` 里有而新版本没有的参数、`settings.json` 里的自动参数、新版本里取默认值的用户参数。
@@ -100,7 +100,8 @@ validate_ip 通过
 三份清单都是空的：3.3.0 的 152 项用户参数在 3.4.0 里一一对应，没有新参数取默认值。
 所以升级本身不带来配置上的变化，差异只来自五个改动项与 3.4.0 的模板。
 
-`gen_soc.py` 保留，用途写明为「只换网表的构型对比」。
+构型对比也用它：`--override` 只改一个参数。同一份配置反复生成时 `soc_config` 选项顺序与网表里外设内部编号会变，
+原因与固定哈希种子的修法见 `Main/tools/soc/README.md`。
 
 ### 3.3 在复制工程里试生成
 
@@ -170,7 +171,7 @@ GPIO1 一开，就占了 I2C0 原来的 `0xF801_6000`，I2C0 挪到 `0xF801_7000
   它的 `output.external_source_source` 被 API 写成了空列表（图形界面生成时这里记着 `soc.v` 等四个源文件），
   按实际生成的四个文件补回。生成器还把行尾写成了 CRLF，与原文件一致，保持。
 - `source/soc_config`：3.4.0 把 bootloader hex 的完整路径写进了这个文件（旧版这里是 Efinity 自带的 124K hex 的安装路径）。
-  它含仓库的本机路径，加进 `tools/localize_paths.py` 的处理清单，风格 `bs`。
+  它含仓库的本机路径，加进 `tools/check/localize_paths.py` 的处理清单，风格 `bs`。
 - 其余是生成物，原样入库。
 
 ### 3.5 顶层与约束

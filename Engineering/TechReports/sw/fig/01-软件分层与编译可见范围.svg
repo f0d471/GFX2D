@@ -141,5 +141,5 @@
   <rect x="640" y="786" width="26" height="16" class="bg"/>
   <text x="674" y="799" class="ts">未实现</text>
   <text x="830" y="769" class="ts">「编译可见」是 mk/target.mk 与 mk/host.mk 传给该层 gcc 的 -I 原样列出。</text>
-  <text x="830" y="799" class="ts">越界不靠约定，是编不过；判据 tools/check_sw_layers.sh 用真实构建验证。</text>
+  <text x="830" y="799" class="ts">越界不靠约定，是编不过；判据 tools/check/check_sw_layers.sh 用真实构建验证。</text>
 </svg>

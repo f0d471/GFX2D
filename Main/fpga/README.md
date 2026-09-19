@@ -66,7 +66,7 @@ Ti60 的 PLL 有两条容易踩的规则：静态相移的单位是 0.5 个 FPLL
 
 - 改顶层端口要同步改 `peri.xml`，反过来也一样。对不上时 Interface Designer 会在 Missing Interface Pins 里列出来，但不会报错，容易漏。
 - 改 PLL 参数要同步改 `sdc/gfx2d_ti60.sdc` 里的时钟周期与波形。
-- `settings.json` 里 `HexFile_Path` 必须是绝对路径（3.4.0 起 `--base_path` 改成相对路径 `ip`，不再需要占位符）；`ip/soc/source/soc_config` 里也记着 bootloader hex 的路径。仓库里存的是占位符，克隆之后用 `tools/localize_paths.py --apply` 展开，提交前用 `--restore` 还原，见 `../doc/开发环境.md` 第 3 节。
+- `settings.json` 里 `HexFile_Path` 必须是绝对路径（3.4.0 起 `--base_path` 改成相对路径 `ip`，不再需要占位符）；`ip/soc/source/soc_config` 里也记着 bootloader hex 的路径。仓库里存的是占位符，克隆之后用 `tools/check/localize_paths.py --apply` 展开，提交前用 `--restore` 还原，见 `../doc/开发环境.md` 第 3 节。
 - 调试核：`<efx:debugger>` 的 `auto_instantiation` 是 `off`。打开的话，命令行编译会失败，因为自动插入这一步要求 `work_dbg/debug_top.v` 事先存在，而这个文件只有 GUI 的 Debug Wizard 会生成。要用逻辑分析仪时，在 GUI 里生成一次再编译，原因见 `../../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md` 4.2 节。
 
 ## SoC IP
@@ -86,4 +86,4 @@ Standard 构型、单核 100MHz、指令与数据缓存各 4KB、无 FPU、DDR �
 | `axiA` 从口、`io_ddrMasters_0` 外部主机口 | 关 | — | 不用；控制寄存器走 APB，第二个主机走 `Axi_Mux` |
 
 程序区 `LDSize=4092`，片上 RAM 启用自定义 hex（512KB bootloader）。
-重新生成用 `tools/ipm_gen_soc.py`，步骤见 `sdk/README.md`「重新生成 SoC IP 时」。生成前先提交。
+重新生成用 `tools/soc/ipm_gen_soc.py`，步骤见 `sdk/README.md`「重新生成 SoC IP 时」。生成前先提交。

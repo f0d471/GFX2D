@@ -365,43 +365,34 @@ loop_two_misses:                     a 与 a^0x2000_0000 同行号、不同标�
 <EFINITY>\pgm\bin\ftdi_pgm.bat -m jtag -u ftdi://0x0403:0x6011:0:ff/1 fpga\gfx2d_ti60\outflow\gfx2d_ti60.bit
 ```
 
-串口必须在加载程序之前打开，程序跑完再打开就一个字节都读不到。本机的分工是：
-OpenOCD 走 WSL 调 Windows 的 `openocd.exe`，串口由 `Main/tools/serial_capture.ps1` 在 Windows 侧读。
+串口必须在加载程序之前打开，程序跑完再打开就一个字节都读不到。
+上板用 `Main/tools/board/board_run.py`，一条命令按顺序走完：
 
 ```
-主机 (WSL)                                主机 (Windows)                      板子
-  |                                            |                                |
-  | 1  serial_capture.ps1 后台启动             |                                |
-  |    pwsh -File ... -Port COM11              |--- 打开 COM11 ---------------->|
-  |                                            |                                |
-  | 2  run_openocd.sh                          |                                |
-  |    wslpath 把 bin 与 sdk 转成 Windows 路径 |                                |
-  |    openocd.exe -c "set ::env(...)" ...     |                                |
-  |      reset halt                            |--- JTAG ---------------------->|
-  |      load_image {<bin>} 0x1000 bin         |                                |
-  |      resume 0x1000                         |                                |
-  |                                            |<-- COM11 逐行输出 -------------|
-  |                                            |    写进 <日志>                  |
-  | 3  读 <日志>                               |                                |
-  v                                            v                                v
+主机 (Windows，board_run.py)                               板子
+  |                                                          |
+  | 1  ftdi_pgm.bat -m jtag ... gfx2d_ti60.bit               |
+  |    输出里要有 finished with JTAG programming ------------>| 烧比特流
+  | 2  后台线程打开 COM11，清掉残留字节 --------------------->|
+  | 3  openocd.exe -c "set ::env(workspace_loc) {...}"       |
+  |               -f tools/board/gfx2d_debug.cfg             |
+  |      reset halt ---------------------------------------->| JTAG
+  |      load_image {<bin>} 0x1000 bin                       |
+  |        写入字节数要等于 bin 的大小                        |
+  |      resume 0x1000                                       |
+  |<----------------------------------------- COM11 逐行输出 |
+  | 4  收到 --stop-on 的文本（如 done）或超时，打印日志      |
+  v                                                          v
 ```
 
-`tools/board_run.py` 在本机需要多设一个环境变量才可用（**订正 2026-09-18**，本章初稿记的是「本机用不了」）：
-Efinity 自带的 Python（`<EFINITY>/python311`）的 `python.exe` 在 `bin\` 下、标准库在同级的 `..\Lib`，
-Python 推不出 prefix，不设 `PYTHONHOME` 时报 `ModuleNotFoundError: No module named 'encodings'`；
-设 `PYTHONHOME=<EFINITY>\python311` 之后它带 pyserial 3.5，`board_run.py --list-ports` 正常。
-另有一半在 WSL：WSL 里有 pyserial 3.5，但拿不到 Windows 的 COM 口。
-下面这套「WSL 只调 `openocd.exe`、串口由 Windows 侧读」的分工是 E3 当时实际用的链路，
-本文记录它的用法与两处坑；它不依赖 `board_run.py`，继续可用。
-另有两处要绕：
+它要用 Efinity 自带的 Python（`<EFINITY>/python311`）运行，并设 `PYTHONHOME=<EFINITY>\python311`：
+`python.exe` 在 `bin\` 下、标准库在同级的 `..\Lib`，Python 推不出 prefix，
+不设时报 `ModuleNotFoundError: No module named 'encodings'`。这份 Python 带 pyserial 3.5；
+WSL 里也有 pyserial，但拿不到 Windows 的 COM 口，所以串口只能在 Windows 侧读。
 
-- WSL 不把自定义环境变量传给 Windows 进程，`tools/openocd/gfx2d_debug.cfg` 第 59 行要的 `workspace_loc`
-  设不进去，报 `can't read "::env(workspace_loc)": no such element in array`。
-  改用 `-c "set ::env(workspace_loc) {…}"` 在 Tcl 里填；`openocd.exe` 读不了 `/mnt/<盘符>/...`，用 `wslpath` 转换。
-  `run_openocd.sh` 按 `EFINITY_IDE_HOME`（或由 `EFINITY_HOME` 推出）找 `openocd.exe`。
-- `serial_capture.ps1` 第一版用 `BaseStream.Read`，那是阻塞调用，`ReadTimeout` 对它不生效，
-  采集进程不按时退出并一直占着 COM 口，第二次采集报 `Access to the path 'COM11' is denied`。
-  改成逐字节 `ReadByte` 并在每次循环里查时钟。
+`workspace_loc` 用 `-c "set ::env(workspace_loc) {…}"` 在 Tcl 里设，而不是设环境变量：
+从 WSL 调 `openocd.exe` 时自定义环境变量传不进 Windows 进程，`gfx2d_debug.cfg` 第 59 行会报
+`can't read "::env(workspace_loc)": no such element in array`；`-c` 两边都成立。
 
 加载前的 `reset halt` 不能省，4.5 节是没有它时的现象。
 
@@ -574,11 +565,11 @@ shutdown command invoked
 
 **定位。** 先在新代码里找了很久（排空、`probe_check`、声明顺序），逐个排除之后，
 把此前跑通过的旧二进制用同样方式加载，也是零输出，范围就从新代码缩到加载流程。
-差别在于复核时手工敲的命令带 `reset halt`，而 `tools/run_openocd.sh` 没有。
+差别在于复核时手工敲的命令带 `reset halt`，而加载脚本没有。
 探针主机被前一次实验留在坏状态（挂住总线）时，不复位直接加载运行，程序不能正常起来。
 加上 `reset halt` 后同一份旧二进制立刻恢复输出。
 
-**根因与修法。** `run_openocd.sh` 补上 `reset halt`。`Main/doc/开发环境.md` 第 6 节本来就写了加载前必须复位，脚本没有照做。
+**根因与修法。** 加载前补上 `reset halt`，现在由 `tools/board/board_run.py` 每次加载前执行。`Main/doc/开发环境.md` 第 6 节本来就写了加载前必须复位，脚本没有照做。
 
 原判据为什么没有覆盖到它：这是加载流程的问题，程序判据覆盖不到。
 改动判据之后输出全空，先用已知可用的二进制确认链路，再怀疑新代码。
