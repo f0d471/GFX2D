@@ -509,7 +509,7 @@ soc u_soc (
     .jtagCtrl_reset                     (jtag_inst1_RESET),
 
     // 用户中断：A 扫描输出场同步，B 引擎，C 摄像头帧完成（中断号 16/17/22，见 sdk 的 soc.h）。
-    // 中断源的模块还没有接入，先接 0。分配见 Engineering/Todo/hw/SoC-IP定型.md 2.1 节。
+    // 中断源的模块还没有接入，先接 0。分配见 Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md 3.1 节。
     .userInterruptA                     (1'b0),
     .userInterruptB                     (1'b0),
     .userInterruptC                     (1'b0),

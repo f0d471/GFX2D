@@ -62,6 +62,9 @@
 `axiA_*` 与 `axiAInterrupt` 是 `${AXISlave} == 1`，`io_ddrMasters_0_*` 是 `(${AXIMaster} == 1)&&(${DDR} == 1)`，
 `userInterruptB`、`userInterruptC` 分别是 `${USER_1_INTR} == 1`、`${USER_2_INTR} == 1`，`system_gpio_1_io_*` 是 `${GPIO1} == 1`。
 
+生成后 `soc.h` 里的中断号：A 是 16，B 是 17，C 是 22（`SYSTEM_PLIC_USER_INTERRUPT_[ABC]_INTERRUPT`）。
+摄像头只在 SoC 里预留，不接管脚、不改 `peri.xml`：管脚、I2C 的顶层连线与复位线都等摄像头工作点自己接，那时不需要重新生成 IP。
+
 ### 3.2 找一条能改端口的生成路径
 
 `ip/soc/soc.v`（27250 行）的第 49 行是包装模块 `soc`，第 392 行起是网表，
