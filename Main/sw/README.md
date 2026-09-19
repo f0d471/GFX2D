@@ -202,7 +202,7 @@ E5 两个阶段的判据、实测值与解释见 `../../Engineering/TechReports/
 
 ## cacheCoherencyTest 的期望值
 
-需要带 `axi_probe_master` 的比特流。gcc 13.4.0（bin 5050 字节 `sha256:98b875e0d3baa9f5…`，2026-09-19 起；此前 gcc 8.3.0），默认编译档 `-Og`（`DEBUG=yes` 加 BSP 的 `DEBUG_OG?=yes`）。**加载前必须 `reset halt`**（`tools/run_openocd.sh` 已包含）；不复位时探针挂住的坏状态会让程序一行都不跑，现象与程序有 bug 相同。
+需要带 `axi_probe_master` 的比特流。gcc 13.4.0（bin 5050 字节 `sha256:98b875e0d3baa9f5…`，2026-09-19 起；此前 gcc 8.3.0），默认编译档 `-Og`（`DEBUG=yes` 加 BSP 的 `DEBUG_OG?=yes`）。**加载前必须 `reset halt`**（`tools/board/board_run.py` 已包含）；不复位时探针挂住的坏状态会让程序一行都不跑，现象与程序有 bug 相同。
 
 | 产物 | 编译 | bin 字节 | SHA256 前 16 位 | 末尾 | 日志 |
 | --- | --- | ---: | --- | --- | --- |

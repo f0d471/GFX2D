@@ -19,7 +19,7 @@
 HDMI 显示器与线。
 
 **工具链**：Efinity 2026.1、Efinity RISC-V 嵌入式 IDE、Java 8、libusbK 驱动、
-WSL 里的 iverilog 与 python3、xPack 的 riscv-none-embed-gcc 8.3.0。
+WSL 里的 iverilog 与 python3、xPack 的 riscv-none-elf-gcc 13.4.0。
 版本要求、获取方式与安装后的检查见 [`Main/doc/开发环境.md`](Main/doc/开发环境.md) 第 2 节。
 
 **厂商资料包**：不在本仓库里。它约 7 GB，著作权属于厂商与竞赛组织方，
