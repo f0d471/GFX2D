@@ -46,7 +46,7 @@ bootloader 的 `USER_SOFTWARE_SIZE` 改 `0x080000`、链接脚本的程序区改
 `rtl/README.md` 与 `fpga/README.md` 的表跟着改。
 
 **第五步，软件跟进。** 3.4.0 的软件包模板 `-march` 带 `_zicsr_zifencei`，
-同步之后可以改用 IDE 自带的 gcc 13.4，`../../Main/doc/开发环境.md` 第 2、7 节与 `../../Main/sw/README.md` 的编译命令要一起改。
+同步之后可以改用 IDE 自带的 gcc 13.4，`../../../Main/doc/开发环境.md` 第 2、7 节与 `../../../Main/sw/README.md` 的编译命令要一起改。
 改完之后 `sw/apps/test/bootSizeTest` 的两个 CRC 期望值要重新计算，因为工具链变了。
 
 ## 3 判据
@@ -56,7 +56,7 @@ bootloader 的 `USER_SOFTWARE_SIZE` 改 `0x080000`、链接脚本的程序区改
 | 生成前 | 工程已提交或备份，否则覆盖不可逆 |
 | 登记项 | `sdk/README.md` 的表逐条核对，bootloader bin 的 SHA256 与片上 RAM 初始文件一致 |
 | 编译 | 四步 PASS，约束告警 0，位宽截断告警仍只有厂商加密文件里那 2 条 |
-| 资源 | 与 `../TechReports/platform/01-从零搭起可上板的硬件基线.md` 5.1 节的表逐行对比，写明每一项的变化来自哪一个改动 |
+| 资源 | 与 `../../TechReports/platform/01-从零搭起可上板的硬件基线.md` 5.1 节的表逐行对比，写明每一项的变化来自哪一个改动 |
 | 归因 | 当前基线相对官方工程有约 506 个 XLR 是差额反推出来的，没有逐项归因。这一刀要重新生成 IP、重跑布局，正好借层次报告把这部分认领掉，不要让它一直挂在表里 |
 | 时序 | `core_clk` 与 `sdram_clk` 的 setup 与 hold 全为正，hold 与改前对比 |
 | 上板 | APB 探针四项、memTest PASS、HDMI 八色竖条，三项都过 |

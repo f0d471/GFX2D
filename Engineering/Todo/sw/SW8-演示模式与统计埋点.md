@@ -46,7 +46,7 @@ cyc_logic, cyc_build, cyc_exec, cmd_by_eq[0..5], pixel_by_eq[0..5]
 | 压力测试 | 在 PC 上人为给执行器加固定延时模拟慢速平台，`N_max` 随延时单调下降；流程能自动结束并输出结果 |
 | 对账 | 每行 CSV 里 `pixel_by_eq` 之和等于 `pixel`，`cmd_by_eq` 之和等于 `cmd` |
 | 第一版统计 | PC 上场景 S1 的按方程像素占比与设计文档 4.5 节的推算并列登记，差异逐项解释 |
-| 画图 | `plot_stats.py` 对一份样例 CSV 出图；图的去处与格式按 [`Deliverables/README.md`](../../Deliverables/README.md) 的约定 |
+| 画图 | `plot_stats.py` 对一份样例 CSV 出图；图的去处与格式按 [`Deliverables/README.md`](../../../Deliverables/README.md) 的约定 |
 
 ## 4 开发日志
 

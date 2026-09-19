@@ -65,7 +65,7 @@ IO2/IO3 是否连到 FPGA，那是另一件更大的事，本实验不做。
 
 ### 2.2 单线与双线各做一份 bootloader
 
-按 `../../Main/doc/开发环境.md` 第 9 节的五步走，改动只有一处：
+按 `../../../Main/doc/开发环境.md` 第 9 节的五步走，改动只有一处：
 `sdk/software/standalone/bootloader/src/bootloaderConfig.h` 第 21 行现在是
 `#define SINGLE_SPI 1`，双线版改成 `#define DUAL_SPI 1`。
 
@@ -130,7 +130,7 @@ IO2/IO3 是否连到 FPGA，那是另一件更大的事，本实验不做。
 | 上限 | 4MB 装载时间给出数字与算法，并据此写明素材包大小上限与是否必须压缩 |
 | 瓶颈 | 给出「慢在 SPI 时钟还是每字节软件开销」的判断及依据；判断不出就写判断不出 |
 | 时钟 | `clkDivider = 2` 对应的 SCLK 频率（约 16.7MHz）写明，并注明这是按 `spi.h` 的公式推导的、不是示波器实测 |
-| 文档 | `../../Main/sw/README.md` 登记新程序的期望输出与 bin 大小；`../../Main/doc/开发环境.md` 第 8 节若新增读 Flash 的用法一并补上 |
+| 文档 | `../../../Main/sw/README.md` 登记新程序的期望输出与 bin 大小；`../../../Main/doc/开发环境.md` 第 8 节若新增读 Flash 的用法一并补上 |
 
 「注错」这一条是关键的：双线读的代码路径与单线只差一个 `spiFlash_init_mode_(spi, 0x01)`
 （`spiFlash.h` 第 743 行），如果这根线没接、或者模式寄存器没配好，

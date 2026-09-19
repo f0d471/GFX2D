@@ -61,17 +61,15 @@ DDR3 上已经有第二个 AXI 主机的位置（第 03 章）：`u_axi_mux` 常
 
 ## 未完成事项
 
-见 [`../../Todo/soc资源裁剪.md`](../../Todo/soc资源裁剪.md)（裁剪动作，**不含**换构型，
+见 [`../../Todo/hw/soc资源裁剪.md`](../../Todo/hw/soc资源裁剪.md)（裁剪动作，**不含**换构型，
 第 04 章已把换构型这条关闭）。E1 的条目已按流转规则在验收后删除，剩余账写在第 04 章第六节。
-第 06 章对应的 [`../../Todo/E5-Axi_Mux优先级与扫描FIFO水位.md`](../../Todo/E5-Axi_Mux优先级与扫描FIFO水位.md)
+第 06 章对应的 [`../../Todo/hw/E5-Axi_Mux优先级与扫描FIFO水位.md`](../../Todo/hw/E5-Axi_Mux优先级与扫描FIFO水位.md)
 前三节已于 2026-09-19 验收，第四节（真实扫描 FIFO 水位）等扫描输出。
 第 05 章留下的账见该章第六节：单地址失效的作用范围、无条件跳转之后的失效指令、
 判据第一版垃圾值的原因、引擎接入后的复跑、整帧读回的实测。
 
-`Todo/E3-缓存一致性.md` 已于 2026-09-18 验收通过；按用户要求该条目**保留观察一段时间**，
-暂不按流转规则删除。真要删之前再确认一次并入是否完整：
-它的判据计划、原始输出、每一版判据的失败过程与订正记录都已经在第 05 章里有一份，
-原始日志随程序入库（`Main/sw/apps/test/cacheCoherencyTest/logs/`、`Main/sw/apps/probe/cacheMechTest/logs/`、`Main/sw/apps/probe/cacheMinTest/logs/`），
-删除该条目不会丢信息。
+E3 条目已于 2026-09-18 验收通过，2026-09-19 按流转规则删除。
+它的判据计划、原始输出、每一版判据的失败过程与订正记录都在第 05 章里，
+原始日志随程序入库（`Main/sw/apps/test/cacheCoherencyTest/logs/`、`Main/sw/apps/probe/cacheMechTest/logs/`、`Main/sw/apps/probe/cacheMinTest/logs/`）。
 软件侧要接着用的两条结论（共享区一致性规则、同帧 CRC 判据的前置条件）
 另登记在 [`../sw/README.md`](../sw/README.md)，因为软件执行器归那个系列。

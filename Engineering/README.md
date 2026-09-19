@@ -11,7 +11,7 @@
 | 目录 | 收录范围 | 维护方式 |
 | --- | --- | --- |
 | [TechReports/](TechReports/) | 每个工作点的开发过程 | 一个主题一个系列，完成一个工作点增加一章，写完定稿 |
-| [Todo/](Todo/) | 未完成事项的 spec 与开发日志 | 完成后删除文件，内容并入 TechReports |
+| [Todo/](Todo/) | 未完成事项的 spec 与开发日志，分 `hw/`、`sw/` 两个子目录 | 完成后删除文件，内容并入 TechReports |
 | [Bugs/](Bugs/) | 未修复的在产缺陷 | 修复后删除文件，内容并入 TechReports |
 
 当前实现是什么样，由 [`../Main/rtl/README.md`](../Main/rtl/README.md) 等目录 README

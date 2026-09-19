@@ -18,7 +18,7 @@
 #   编 bsp/   只有 -Isw/bsp/include —— 看不到 lib
 #   编应用    只有 lib 与 bsp/include —— 想直接调 sdk 驱动会编不过
 #
-# 变量的含义见 Engineering/Todo/SW1-软件平台分层与双目标构建.md 2.3 节。
+# 变量的含义见 Engineering/Todo/sw/SW1-软件平台分层与双目标构建.md 2.3 节。
 
 MK_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 SW     := $(dir $(patsubst %/,%,$(MK_DIR)))

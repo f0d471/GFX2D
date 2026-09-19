@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check_sw_layers.sh —— 提交前跑一次的结构判据
 #
-# 判据见 Engineering/Todo/SW1-软件平台分层与双目标构建.md 2.5 节：
+# 判据见 Engineering/Todo/sw/SW1-软件平台分层与双目标构建.md 2.5 节：
 #   1  lib/ 在只有 -Isw/lib 的条件下编译通过；
 #   2  注错：lib/ 里 include "board.h" 必须编不过；应用里 include <soc.h> 必须编不过；
 #      另有一个对照组：合法的 board.h 与 lib 头文件必须编得过；

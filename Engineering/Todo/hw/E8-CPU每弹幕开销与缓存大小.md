@@ -60,7 +60,7 @@ E1 已验收（保留 Standard 构型，见 platform 第 04 章），所以缓�
 
 ### 2.2 写 `sw/apps/probe/entityBench`，四个用例
 
-新程序 `../../Main/sw/apps/probe/entityBench/src/main.c`，骨架照 `sw/apps/probe/ddrBurstProbe`：
+新程序 `../../../Main/sw/apps/probe/entityBench/src/main.c`，骨架照 `sw/apps/probe/ddrBurstProbe`：
 `clint_getTimeLow(BSP_CLINT)` 打点，100MHz 计时即 10ns 一格。
 
 | 用例 | 数据布局 | 做什么 | 量什么 |
@@ -100,7 +100,7 @@ D 组是关键的一组。若每弹幕开销随 N 上升，说明数据装不进
 在仓库外复制一份工程来做，共用生成、编译与回归脚本，不动主线也就不涉及 `sdk/` 登记项的恢复。
 E1 已确认保留 Standard 构型，所以四行都基于现行构型，只改 `DCacheSize` 与 `DCACHEWAY` 两列。
 
-复制工程里每次生成之后，仍要照 `../../Main/sdk/README.md` 的「已登记的修改」表逐条改回，
+复制工程里每次生成之后，仍要照 `../../../Main/sdk/README.md` 的「已登记的修改」表逐条改回，
 否则比特流里的 bootloader 与程序区不是 512KB 版，回归会在启动这一步就失败。
 bootloader 与链接脚本这两项不受 `DCacheSize` 影响，可直接复用现成产物，
 但**必须逐一核对**，不能假设。
@@ -145,7 +145,7 @@ bootloader 与链接脚本这两项不受 `DCacheSize` 影响，可直接复用�
 这次读只会占用同一行的另一路，目标行可能还留在缓存里，驱逐不再生效。
 这不是缓存本身的缺陷，但它会让既有判据失效，所以两份程序都要改成连续读「路数」个不同标签的同行地址，
 或用 `data_cache_invalidate_all()` / `data_cache_invalidate_address()` 重写之后再复跑，
-改了要登记进 `../../Main/sw/README.md`。`ddrAliasTest` 的 `CACHE_NOEVICT` 期望值也可能随之变化，要重新确认。
+改了要登记进 `../../../Main/sw/README.md`。`ddrAliasTest` 的 `CACHE_NOEVICT` 期望值也可能随之变化，要重新确认。
 
 ## 4 开发日志
 

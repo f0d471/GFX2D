@@ -14,7 +14,7 @@
 *         素材按编号查找是 `lib/core` 解析素材包，录像一段按键缓冲是
 *         `lib/core` 处理，文件读写才归 `bsp/host`。
 *
-*         接口的取舍见 Engineering/Todo/SW1-软件平台分层与双目标构建.md 2.2 节。
+*         接口的取舍见 Engineering/Todo/sw/SW1-软件平台分层与双目标构建.md 2.2 节。
 ******************************************************************************/
 #ifndef GFX2D_BOARD_H
 #define GFX2D_BOARD_H
