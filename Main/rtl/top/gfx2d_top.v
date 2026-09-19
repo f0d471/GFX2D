@@ -499,7 +499,7 @@ soc u_soc (
     .jtagCtrl_reset                     (jtag_inst1_RESET),
 
     // 下面几组在 IP 里生成了但本设计没有使用，输入一律接常量，避免悬空。
-    // 计划在裁剪 SoC 时关掉，见 Engineering/Todo/hw/soc资源裁剪.md。
+    // 各组的去留（关掉、保留给摄像头、接中断）见 Engineering/Todo/hw/SoC-IP定型.md 2.1 节。
     .userInterruptA                     (1'b0),
 
     .system_i2c_0_io_scl_read           (1'b1),

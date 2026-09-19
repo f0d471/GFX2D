@@ -19,7 +19,7 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | 渲染引擎、帧缓冲、双缓冲 | 还没有开始 |
 | Axi_Mux 端口重分配与防饿死（E5 §2.1~2.3） | 已上板验证（2026-09-19）：`Axi_Mux` 用 X3，S0=扫描替身、S1=探针、S2=SoC；永久模块 `axi_mux_guard`（`0xF810_F000`）给出仲裁方式、三通道掩码与 SoC 地址等待保护，`scanout_stub`（`0xF810_E000`）按行节拍发 160 拍读并记录首拍/整笔/拍间隙。三方并发下 CPU 拷贝 1.70 倍（探针读）、1.92 倍（探针写），扫描没有跳行，S0 掩码反例与 `AGE_LIMIT=1` 注错都符合预期，`ddrBurstProbe` 连跑三轮 `fail 0`；guard VERSION 2（2026-09-19 复核：两个 MAX 每拍更新，写方向「CPU 被停住」的结论是测试台错误，已撤回）。**2.1~2.3 已验收（2026-09-19）**，见 `../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md` 与 `../Engineering/Todo/hw/E5-Axi_Mux优先级与扫描FIFO水位.md`。**2.4 真实扫描 FIFO 水位待扫描输出存在后再做** |
 | 软件平台分层与双目标构建（SW1） | **已验收**（2026-09-19）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
-| SoC 资源裁剪 | 还没有做 |
+| SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 还没有做，spec 见 `../Engineering/Todo/hw/SoC-IP定型.md` |
 
 编译占用 XLR 21753（35.78%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack，`core_clk` setup 3.780 / hold 0.026 ns
 （2026-09-19，guard VERSION 2 之后；E5 端口重分配前是 XLR 16151、setup 2.994，重分配后 21065、3.467，增量归因见 platform 第 06 章 5.1 节）。
