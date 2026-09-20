@@ -1,0 +1,204 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="900" viewBox="0 0 1240 900"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b   { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bn  { fill:#eff6ff; stroke:#1d4ed8; stroke-width:1.3 }
+      .bd  { fill:#fffbeb; stroke:#b45309; stroke-width:1.2 }
+      .bt  { fill:#f0fdf4; stroke:#15803d; stroke-width:1.2 }
+      .bg  { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .grp { fill:none; stroke:#cbd5e1; stroke-width:1; stroke-dasharray:3 3 }
+      .tt  { font-size:12.5px; font-weight:600; fill:#0f172a }
+      .t   { font-size:11px; fill:#0f172a }
+      .ts  { font-size:9.5px; fill:#475569 }
+      .tg  { font-size:10.5px; font-weight:600; fill:#64748b }
+      .flow { stroke:#334155; stroke-width:1.4; fill:none }
+      .chk  { stroke:#b45309; stroke-width:1.4; fill:none; stroke-dasharray:7 3 }
+      .un   { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="900" fill="#ffffff"/>
+  <text x="40" y="36" font-size="18" font-weight="600" fill="#0f172a">gfx2d 命令表的构造与执行</text>
+  <text x="40" y="58" font-size="12" fill="#64748b">SW3 结束时的状态，2026-09-21。命令 ABI v1，规格见 spec 第 01、02 章。底色表示一个文件属于哪一层，灰色虚线表示尚未实现。</text>
+
+  <!-- ===== 上半：产品库与共享数据 ===== -->
+  <rect class="grp" x="32" y="80" width="600" height="300" rx="2"/>
+  <text class="tg" x="44" y="98">产品库 sw/lib/gfx/（板上与 PC 同一份）</text>
+
+  <rect class="bn" x="48" y="112" width="264" height="58" rx="2"/>
+  <text class="tt" x="60" y="134">list.c  构造层</text>
+  <text class="ts" x="60" y="152">gfx_list_begin / gfx_fill / gfx_blit / gfx_set_clip</text>
+  <text class="ts" x="60" y="164">gfx_list_end；位域用移位与掩码打包</text>
+
+  <rect class="bn" x="48" y="196" width="264" height="70" rx="2"/>
+  <text class="tt" x="60" y="218">check.c  gfx_cmd_check()</text>
+  <text class="ts" x="60" y="236">规范条款 §5 的第 2~10 步，纯函数</text>
+  <text class="ts" x="60" y="248">构造层与执行器调用同一份，规则不分叉</text>
+  <text class="ts" x="60" y="260">gfx_surface_struct_ok() 的六条谓词也在这里</text>
+
+  <rect class="bn" x="48" y="292" width="264" height="70" rx="2"/>
+  <text class="tt" x="60" y="314">exec_sw.c  exec_sw_run()</text>
+  <text class="ts" x="60" y="332">有界取数 → 检查 → 四者求交 → 逐像素</text>
+  <text class="ts" x="60" y="344">六个方程各一份特化循环，算术只写一处</text>
+  <text class="ts" x="60" y="356">-DINJECT_EQ_* 每个方程一个注错开关</text>
+
+  <rect class="bn" x="344" y="112" width="272" height="58" rx="2"/>
+  <text class="tt" x="356" y="134">cases.c  11 个整帧用例</text>
+  <text class="ts" x="356" y="152">640x480、stride_log2=12，与板上一致</text>
+  <text class="ts" x="356" y="164">E7 与引擎仿真共用的金标准输入</text>
+
+  <rect class="b" x="344" y="196" width="272" height="70" rx="2"/>
+  <text class="tt" x="356" y="218">gfx_abi.h  数据布局</text>
+  <text class="ts" x="356" y="236">gfx_cmd 32 B；gfx_surf_raw 3 字 / 12 B</text>
+  <text class="ts" x="356" y="248">与硬件 SURF[0..15] 窗口逐位相同</text>
+  <text class="ts" x="356" y="260">gfx_mem {dev_base, host, bytes} 地址窗口</text>
+
+  <rect class="b" x="344" y="292" width="272" height="70" rx="2"/>
+  <text class="tt" x="356" y="314">exec_sw_state  跨提交状态</text>
+  <text class="ts" x="356" y="332">只装一个 clip：SET_CLIP 的框持续到</text>
+  <text class="ts" x="356" y="344">下一条 SET_CLIP 或软复位，不随帧复位</text>
+  <text class="ts" x="356" y="356">由调用方持有，不放模块全局</text>
+
+  <!-- 右上：运行时对象 -->
+  <rect class="grp" x="656" y="80" width="552" height="300" rx="2"/>
+  <text class="tg" x="668" y="98">运行时对象</text>
+
+  <rect class="b" x="672" y="112" width="240" height="58" rx="2"/>
+  <text class="tt" x="684" y="134">gfx_cmd list[]</text>
+  <text class="ts" x="684" y="152">LIST_COUNT 条，w7 默认是表内零基索引</text>
+  <text class="ts" x="684" y="164">readable_count 另给，越界即 FETCH</text>
+
+  <rect class="b" x="672" y="196" width="240" height="70" rx="2"/>
+  <text class="tt" x="684" y="218">gfx_surface_table</text>
+  <text class="ts" x="684" y="236">16 项，每项 base / dim / ctrl 三个原始字</text>
+  <text class="ts" x="684" y="248">存原始字，非法描述符才表达得出来</text>
+  <text class="ts" x="684" y="260">软复位清全部 valid</text>
+
+  <rect class="b" x="944" y="196" width="248" height="166" rx="2"/>
+  <text class="tt" x="956" y="218">设备内存</text>
+  <text class="ts" x="956" y="238">addr(x,y) = base</text>
+  <text class="ts" x="956" y="252">     + (y &lt;&lt; stride_log2) + (x &lt;&lt; 2)</text>
+  <text class="ts" x="956" y="272">板上就是 DDR3，dev_base 取恒等映射</text>
+  <text class="ts" x="956" y="286">PC 上是一块缓冲，经 gfx_mem 换算</text>
+  <text class="ts" x="956" y="306">每次换算都查窗口边界；命令执行前</text>
+  <text class="ts" x="956" y="320">先查整张表面在窗口内，中途不会失败</text>
+  <text class="ts" x="956" y="344">写 XRGB8888 时 [31:24] 恒为 0</text>
+
+  <rect class="bd" x="672" y="292" width="240" height="70" rx="2"/>
+  <text class="tt" x="684" y="314">exec_sw_error / exec_sw_stats</text>
+  <text class="ts" x="684" y="332">code / index / tag 与硬件三个寄存器同口径</text>
+  <text class="ts" x="684" y="344">cmd、records_read、pixel_total、</text>
+  <text class="ts" x="684" y="356">pixel_written、key_skip、src_oob</text>
+
+  <!-- ===== 下半：判据 ===== -->
+  <rect class="grp" x="32" y="404" width="1176" height="264" rx="2"/>
+  <text class="tg" x="44" y="422">判据 sw/lib/test/（不进产品库）</text>
+
+  <rect class="bd" x="48" y="436" width="300" height="58" rx="2"/>
+  <text class="tt" x="60" y="458">check_cmd_semantics.py --emit</text>
+  <text class="ts" x="60" y="476">159 条 ABI 1，规范的可执行镜像</text>
+  <text class="ts" x="60" y="488">生成物不入库，由 make test VEC=… 传入</text>
+
+  <rect class="bt" x="380" y="436" width="300" height="58" rx="2"/>
+  <text class="tt" x="392" y="458">vec_builtin.c  45 条手写</text>
+  <text class="ts" x="392" y="476">照第 02 章条文写，不看工具的常量</text>
+  <text class="ts" x="392" y="488">不依赖 python，make test 默认就跑</text>
+
+  <rect class="bt" x="712" y="436" width="300" height="58" rx="2"/>
+  <text class="tt" x="724" y="458">ref_exec.c  独立参考实现</text>
+  <text class="ts" x="724" y="476">自解位域、自写十步、(x+127)/255</text>
+  <text class="ts" x="724" y="488">与产品实现不共用任何判定代码</text>
+
+  <rect class="b" x="214" y="534" width="300" height="58" rx="2"/>
+  <text class="tt" x="226" y="556">vec_replay.c  vec_run_one()</text>
+  <text class="ts" x="226" y="574">摆好表面表、内存与 clip，按 lists 张表依次跑</text>
+  <text class="ts" x="226" y="586">逐项比对 code / index / tag / reads / 内存 / clip</text>
+
+  <rect class="b" x="546" y="534" width="300" height="58" rx="2"/>
+  <text class="tt" x="558" y="556">test_gfx.c  T6~T12</text>
+  <text class="ts" x="558" y="574">编解码往返、构造失败、单像素、裁剪</text>
+  <text class="ts" x="558" y="586">向量两组、整帧十一个用例</text>
+
+  <rect class="bt" x="878" y="534" width="300" height="58" rx="2"/>
+  <text class="tt" x="890" y="556">golden.txt</text>
+  <text class="ts" x="890" y="574">整帧 CRC32：逐行前 2560 B、共 480 行</text>
+  <text class="ts" x="890" y="586">跳过行跨间隙；注错时用到该方程的用例必变</text>
+
+  <text class="ts" x="48" y="626">两个来源 x 两个实现 x 64 位与 -m32，四种组合逐项一致才算过；注错宏逐方程各验一次。</text>
+  <text class="ts" x="48" y="644">python 镜像、exec_sw、ref_exec 一共三份实现，向量有两份来源，「两份实现共享同一个错误」才不容易发生。</text>
+
+  <!-- ===== 下游 ===== -->
+  <rect class="bg" x="48" y="700" width="272" height="52" rx="2"/>
+  <text class="tt" x="60" y="722" fill="#64748b">E7  apps/probe/execSwTest</text>
+  <text class="ts" x="60" y="740">板上用例、打点、三种编译配置与吞吐表</text>
+
+  <rect class="bg" x="352" y="700" width="272" height="52" rx="2"/>
+  <text class="tt" x="364" y="722" fill="#64748b">SW4  bsp/host 的 SDL 显示</text>
+  <text class="ts" x="364" y="740">把执行器画出来的帧开窗口显示</text>
+
+  <rect class="bg" x="656" y="700" width="272" height="52" rx="2"/>
+  <text class="tt" x="668" y="722" fill="#64748b">engine  RTL 与仿真 TB</text>
+  <text class="ts" x="668" y="740">按同一 ABI 实现，复用交换向量与 golden</text>
+
+  <rect class="bg" x="960" y="700" width="232" height="52" rx="2"/>
+  <text class="tt" x="972" y="722" fill="#64748b">SW6 / SW7  Demo 与游戏</text>
+  <text class="ts" x="972" y="740">只经构造层出画面</text>
+
+  <!-- ===== 连线 ===== -->
+  <path class="flow" d="M180,170 L180,196" marker-end="url(#a)"/>
+  <path class="flow" d="M480,170 L480,196" marker-end="url(#a)"/>
+  <path class="flow" d="M180,266 L180,292" marker-end="url(#a)"/>
+
+  <path class="flow" d="M312,141 L328,141 L328,183 L656,183 L656,141 L672,141" marker-end="url(#a)"/>
+  <text class="ts" x="520" y="194">打包后追加</text>
+  <path class="flow" d="M312,231 L328,231 L328,279 L656,279 L656,231 L672,231" marker-end="url(#a)"/>
+  <text class="ts" x="520" y="290">查表面表</text>
+  <path class="flow" d="M312,327 L328,327 L328,378 L656,378 L656,327 L672,327" marker-end="url(#a)"/>
+  <path class="flow" d="M656,378 L1068,378 L1068,362" marker-end="url(#a)"/>
+  <text class="ts" x="806" y="394">逐像素读写，地址经 gfx_mem 换算</text>
+  <path class="flow" d="M912,231 L944,231" marker-end="url(#a)"/>
+
+  <path class="chk" d="M198,494 L198,534" marker-end="url(#ac)"/>
+  <path class="chk" d="M530,494 L530,534" marker-end="url(#ac)"/>
+  <path class="chk" d="M514,563 L546,563" marker-end="url(#ac)"/>
+  <path class="chk" d="M862,494 L862,534" marker-end="url(#ac)"/>
+  <path class="chk" d="M120,362 L120,436" marker-end="url(#ac)"/>
+  <text class="ts" x="66" y="398">被测</text>
+
+  <path class="un" d="M180,592 L180,700" marker-end="url(#ag)"/>
+  <path class="un" d="M488,592 L488,700" marker-end="url(#ag)"/>
+  <path class="un" d="M792,592 L792,700" marker-end="url(#ag)"/>
+  <path class="un" d="M1028,592 L1028,700" marker-end="url(#ag)"/>
+
+  <!-- ===== 图例 ===== -->
+  <rect class="grp" x="32" y="786" width="1176" height="82" rx="2"/>
+  <text class="tg" x="44" y="806">图例</text>
+
+  <rect class="bn" x="48" y="818" width="26" height="14"/>
+  <text class="ts" x="82" y="829">产品库 sw/lib/gfx/，本章新增</text>
+  <rect class="b" x="268" y="818" width="26" height="14"/>
+  <text class="ts" x="302" y="829">数据结构与运行时对象</text>
+  <rect class="bt" x="488" y="818" width="26" height="14"/>
+  <text class="ts" x="522" y="829">判据侧，本章新增</text>
+  <rect class="bd" x="708" y="818" width="26" height="14"/>
+  <text class="ts" x="742" y="829">已存在或由别处生成</text>
+  <rect class="bg" x="928" y="818" width="26" height="14"/>
+  <text class="ts" x="962" y="829">尚未实现</text>
+
+  <path class="flow" d="M48,850 L104,850" marker-end="url(#a)"/>
+  <text class="ts" x="112" y="854">实线：数据流</text>
+  <path class="chk" d="M268,850 L324,850" marker-end="url(#ac)"/>
+  <text class="ts" x="332" y="854">虚线（深）：判据对照</text>
+  <path class="un" d="M556,850 L612,850" marker-end="url(#ag)"/>
+  <text class="ts" x="620" y="854">虚线（灰）：尚未接入的下游</text>
+</svg>

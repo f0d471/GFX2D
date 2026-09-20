@@ -92,14 +92,24 @@ BSP_SRCS := $(wildcard $(SW)bsp/*.c) $(wildcard $(SW)bsp/host/*.c)
 BSP_OBJS := $(patsubst $(SW)bsp/%.c,$(OBJDIR)/bsp/%.o,$(BSP_SRCS))
 
 TARGET    := $(OBJDIR)/$(NAME)
-TEST_SRCS := $(wildcard $(SW)lib/core/*.c) $(wildcard $(SW)lib/test/*.c)
 
 # 默认目标写死：下面的 -include $(DEPS) 会把 .d 文件里的目标读进来，
 # 如果不显式指定，第一个被读到的目标就成了默认目标，
 # `make` 只重编那个目标文件而不链接（见 TechReports sw 第 01 章 4.8）。
 .DEFAULT_GOAL := all
 
-.PHONY: all run test clean
+.PHONY: all run test gen-golden clean
+
+# lib/test 覆盖 lib/core 与 lib/gfx 两个库。
+# VEC 指向 `python3 tools/check/check_cmd_semantics.py --emit <file>` 的产物：
+# 那一组向量是生成物、不入库，所以不给 VEC 时这一组跳过，其余照跑。
+TEST_LIBS   := core gfx
+TEST_SRCS   := $(foreach l,$(TEST_LIBS),$(wildcard $(SW)lib/$(l)/*.c)) \
+               $(wildcard $(SW)lib/test/*.c)
+GOLDEN      := $(SW)lib/test/golden.txt
+VEC         ?=
+TEST_ARGS   := --golden $(GOLDEN) $(if $(VEC),--vec $(VEC),)
+TEST_INJECT := $(if $(INJECT),-DINJECT_$(INJECT),)
 
 all: $(TARGET)
 
@@ -133,12 +143,12 @@ test:
 	mkdir -p $(OBJDIR)/test; \
 	echo "== lib/test 64-bit =="; \
 	$(HOST_CC) -std=gnu11 -O$(OPT) -g $(WARN) -fsanitize=address,undefined \
-	    -I$(SW)lib -o $(OBJDIR)/test/libTest64 $(TEST_SRCS); \
-	$(OBJDIR)/test/libTest64 > $(OBJDIR)/test/out64.txt; \
+	    $(TEST_INJECT) -I$(SW)lib -o $(OBJDIR)/test/libTest64 $(TEST_SRCS); \
+	$(OBJDIR)/test/libTest64 $(TEST_ARGS) > $(OBJDIR)/test/out64.txt; \
 	echo "== lib/test 32-bit =="; \
 	$(HOST_CC) -std=gnu11 -O$(OPT) -g $(WARN) -m32 \
-	    -I$(SW)lib -o $(OBJDIR)/test/libTest32 $(TEST_SRCS); \
-	$(OBJDIR)/test/libTest32 > $(OBJDIR)/test/out32.txt; \
+	    $(TEST_INJECT) -I$(SW)lib -o $(OBJDIR)/test/libTest32 $(TEST_SRCS); \
+	$(OBJDIR)/test/libTest32 $(TEST_ARGS) > $(OBJDIR)/test/out32.txt; \
 	echo "== 两份输出比对 =="; \
 	if diff -u $(OBJDIR)/test/out64.txt $(OBJDIR)/test/out32.txt; then \
 	    echo "libTest 64/32 identical ok"; \
@@ -146,6 +156,15 @@ test:
 	    echo "libTest 64/32 DIFFERENT FAIL"; exit 1; \
 	fi; \
 	tail -2 $(OBJDIR)/test/out64.txt
+
+# 重新生成整帧用例的期望 CRC。只在用例本身或规格有意改动之后跑，
+# 跑完要把 golden.txt 的变化当成结论看，不是当成噪声顺手提交。
+gen-golden:
+	@set -e; \
+	mkdir -p $(OBJDIR)/test; \
+	$(HOST_CC) -std=gnu11 -O$(OPT) -g $(WARN) -fsanitize=address,undefined \
+	    -I$(SW)lib -o $(OBJDIR)/test/libTestGen $(TEST_SRCS); \
+	$(OBJDIR)/test/libTestGen --golden $(GOLDEN) --gen-golden | tail -3
 
 clean:
 	@rm -rf $(OBJDIR)

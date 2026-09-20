@@ -18,7 +18,8 @@ sw/
     host/          PC 实现：SDL2 显示与键盘，DDR 分区用一块内存模拟
   lib/             纯 C，两边都编，不依赖任何平台
     core/          CRC32、xorshift32、轻量格式化输出
-    test/          主机侧单元测试（另含 CRC32 的独立参考实现）
+    gfx/           命令表构造层、软件执行器、十一个整帧用例（命令 ABI v1）
+    test/          主机侧单元测试（另含 CRC32 与软件执行器的独立参考实现、两组一致性向量）
     s3l/           第三方：small3dlib（CC0，header-only 的整数 3D 光栅器），见下
   apps/            应用，只写应用，按用途分三类（见下）
     game/          游戏与演示
@@ -96,6 +97,24 @@ wsl -e bash -c 'cd sw && make -f mk/target.mk RISCV_BIN=<RISCV_BIN>'
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host test'    # 或 cd sw && make -f mk/host.mk test
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw_layers.sh'
 ```
+
+`lib/gfx/` 的判据有三个开关，都加在 `test` 目标上：
+
+```
+# 加上工具导出的 159 条一致性向量（生成物不入库，先跑一次工具）
+wsl -e bash -c 'cd <REPO> && python3 Main/tools/check/check_cmd_semantics.py --emit /tmp/vec.txt'
+wsl -e bash -c 'cd sw && make -f mk/host.mk test VEC=/tmp/vec.txt'
+
+# 逐方程注错：用到该方程的整帧用例 CRC 必须变，其余必须不变
+wsl -e bash -c 'cd sw && make -f mk/host.mk test INJECT=EQ_COPY'   # EQ_ALPHA / EQ_ADD / EQ_CONST / EQ_MUL / EQ_ALPHA_STRAIGHT
+
+# 重新生成整帧用例的期望 CRC（只在用例或规格有意改动之后跑）
+wsl -e bash -c 'cd sw && make -f mk/host.mk gen-golden'
+```
+
+不给 `VEC` 时只跳过那一组，其余照跑：导出向量是生成物、不入库，不能当默认判据的前置。
+`lib/test/golden.txt` 是十一个整帧用例的 CRC32 期望值，入库，E7 与引擎仿真拿它当金标准；
+它变了就是结论变了，不是噪声。
 
 前者把 `lib/test/` 在 64 位（挂 ASan+UBSan）与 `-m32` 下各编一份并比对输出，必须逐字节相同；
 后者查七项：分层可见范围、同名目标文件、软浮点符号、`sdk/` 无改动、

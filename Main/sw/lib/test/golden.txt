@@ -1,0 +1,11 @@
+fill-screen              9cd34cb7
+blit-copy                bc9be6ff
+blit-key                 084d6bb2
+blit-alpha-pm            0b14ce03
+blit-alpha-straight      5b4feb8d
+blit-add                 cfcef0ee
+fill-const               f50e8644
+blit-mul                 46667f89
+blit-clip-partial        0fd9dcaf
+set-clip-state           a07324ee
+copy-argb-high-byte      8843eb2f

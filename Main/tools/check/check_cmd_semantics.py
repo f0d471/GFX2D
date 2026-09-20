@@ -1185,7 +1185,8 @@ def emit(S, vectors):
     out.append("# gfx2d 命令语义一致性向量  abi=%d" % ABI)
     out.append("# 生成者 %s" % TOOL)
     out.append("# 格式说明见 Engineering/TechReports/spec/02-命令语义.md 规范条款 §7.2")
-    out.append("# [vector] group name lists reads code errlist erridx errtag clip new")
+    out.append("# [vector] group name lists reads code errlist erridx errtag clip new mem")
+    out.append("#          mem=0 表示这条向量不判内存，因此不写 [exp]（只判错误码那一类）")
     out.append("# [surf]   slot base width height ctrl=…（保留位原始掩码为 0x7FFF0CE0）")
     out.append("# [list]   count=…；后续 [cmd] 属于该命令表，直到下一段开始")
     out.append("# [cmd]    8 个字（w0..w7）")
@@ -1218,12 +1219,13 @@ def emit(S, vectors):
                     addrs.add(addr_of(s, x, y))
         etag = expected_tag(v)
         out.append("[vector] group=%s name=%s lists=%d reads=%d code=%d errlist=%d erridx=%d "
-                   "errtag=0x%08X clip=%d,%d,%d,%d new=%d"
+                   "errtag=0x%08X clip=%d,%d,%d,%d new=%d mem=%d"
                    % (v.group, v.name, len(v.lists),
                        v.reads if v.reads is not None else -1,
                        v.code, v.errlist, v.erridx, etag,
                        v.clip_after[0], v.clip_after[1],
-                       v.clip_after[2], v.clip_after[3], 1 if v.newspec else 0))
+                       v.clip_after[2], v.clip_after[3], 1 if v.newspec else 0,
+                       1 if v.check_mem else 0))
         for sid in sorted(slots):
             s = Sx[sid]
             ctrl = ((s["stride_log2"] & 0x1F) | ((s["space"] & 0x3) << 8)
@@ -1240,8 +1242,9 @@ def emit(S, vectors):
                 out.append("[cmd] " + " ".join("0x%08X" % x for x in r))
         for k in sorted(a for a in addrs if a in m0):
             out.append("[mem] 0x%08X 0x%08X" % (k, m0[k]))
-        for k in sorted(a for a in addrs if a in exp):
-            out.append("[exp] 0x%08X 0x%08X" % (k, exp[k]))
+        if v.check_mem:
+            for k in sorted(a for a in addrs if a in exp):
+                out.append("[exp] 0x%08X 0x%08X" % (k, exp[k]))
     return "\n".join(out) + "\n"
 
 

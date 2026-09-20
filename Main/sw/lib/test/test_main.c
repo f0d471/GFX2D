@@ -16,6 +16,7 @@
 #include "core/format.h"
 #include "core/xorshift32.h"
 #include "ref_crc.h"
+#include "test_gfx.h"
 
 /* 两个平台的区别就在这几行的字面量上：只要有一处类型宽度不对，
    32 位那份测试会先编不过，而不是等到板上才发现。 */
@@ -217,8 +218,26 @@ static void t5_format(void)
     check("T5 cap0", core_out_len(&o) == 3u);
 }
 
-int main(void)
+/* 命令行只有三个开关，都由 mk/host.mk 传进来：
+     --vec <file>     重放 check_cmd_semantics.py --emit 出来的向量（不给就跳过这一组）
+     --golden <file>  整帧用例的 CRC 期望值
+     --gen-golden     把当前 CRC 写进上面那个文件，而不是拿来比对 */
+int main(int argc, char **argv)
 {
+    const char *vecpath = 0;
+    const char *golden  = "golden.txt";
+    int         gen     = 0;
+    int         i;
+
+    for (i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--vec") == 0 && i + 1 < argc)
+            vecpath = argv[++i];
+        else if (strcmp(argv[i], "--golden") == 0 && i + 1 < argc)
+            golden = argv[++i];
+        else if (strcmp(argv[i], "--gen-golden") == 0)
+            gen = 1;
+    }
+
     out("libTest crc32/xorshift32/format\n");
 
     /* 独立参考实现与查表实现的结果先对齐，后面的黄金值才有意义 */
@@ -227,6 +246,8 @@ int main(void)
     t3_crc_stream();
     t4_xorshift();
     t5_format();
+
+    g_fail += test_gfx_run(vecpath, golden, gen);
 
     {
         char     line[48];
