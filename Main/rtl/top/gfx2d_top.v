@@ -237,9 +237,9 @@ wire                           prb_rlast;
 wire                           prb_rvalid;
 wire                           prb_rready;
 // ---------------------------------------------------------------------------
-// scanout_stub 的 AXI 读主机口（Axi_Mux S0）
+// 扫描输出（display）的 AXI 读主机口（Axi_Mux S0）
 // ---------------------------------------------------------------------------
-// 扫描替身只发起读，写通道在例化处接成不发起
+// 只发起读，写通道在例化处接成不发起
 wire [31:0]                    sco_araddr;
 wire [7:0]                     sco_arlen;
 wire [2:0]                     sco_arsize;
@@ -247,12 +247,21 @@ wire [1:0]                     sco_arburst;
 wire [1:0]                     sco_arlock;
 wire                           sco_arvalid;
 wire                           sco_arready;
+wire [7:0]                     sco_arid;
 wire [7:0]                     sco_rid;
 wire [`AXI_DATA_WIDTH-1:0]     sco_rdata;
 wire [1:0]                     sco_rresp;
 wire                           sco_rlast;
 wire                           sco_rvalid;
 wire                           sco_rready;
+
+// 扫描输出与 HDMI 之间（D10 取 B′）：像素与同步由 display 出，复位由 hdmi_tx 出
+wire [23:0]                    disp_vid_rgb;
+wire                           disp_vid_hs;
+wire                           disp_vid_vs;
+wire                           disp_vid_de;
+wire                           hdmi_vid_rst_n;
+wire                           disp_irq;
 
 // Axi_Mux 的仲裁配置来自永久模块 u_mux_guard（E5 2.1 节第 3 步）
 wire                           guard_arb_type;
@@ -509,8 +518,9 @@ soc u_soc (
     .jtagCtrl_reset                     (jtag_inst1_RESET),
 
     // 用户中断：A 扫描输出场同步，B 引擎，C 摄像头帧完成（中断号 16/17/22，见 sdk 的 soc.h）。
-    // 中断源的模块还没有接入，先接 0。分配见 Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md 3.1 节。
-    .userInterruptA                     (1'b0),
+    // A 已接到扫描输出的场起始中断（电平，复位后 IRQ_EN=0，见扫描输出 spec 的 D5）；
+    // B、C 的模块还没有接入，先接 0。分配见 Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md 3.1 节。
+    .userInterruptA                     (disp_irq),
     .userInterruptB                     (1'b0),
     .userInterruptC                     (1'b0),
 
@@ -644,10 +654,29 @@ axi_mux_guard u_mux_guard (
 // ---------------------------------------------------------------------------
 // 扫描输出替身（E5 2.3 节：按行节拍发 160 拍读并把时间记下来）
 // ---------------------------------------------------------------------------
-// APB 窗口 0xF810_E000~0xF810_EFFF；只发起读，写通道在 Axi_Mux 例化处接成不发起。
-scanout_stub u_scanout (
-    .clk            (core_clk),
-    .rst            (soc_system_reset),
+// 扫描输出（display）
+// ---------------------------------------------------------------------------
+// APB 窗口 0xF810_E000~0xF810_EFFF（接管替身那一页）；只发起读，写通道在 Axi_Mux 例化处接成不发起。
+// 像素侧与 hdmi_tx 对接（D10 取 B′）：display 出像素与 hs/vs/de，hdmi_tx 出 vid_rst_n 与 TMDS。
+// 顶层管脚与 peri.xml 都不变。
+display_top #(
+    .H_ACTIVE   (640),
+    .H_FP       (16),
+    .H_SYNC     (96),
+    .H_BP       (48),
+    .V_ACTIVE   (480),
+    .V_FP       (10),
+    .V_SYNC     (2),
+    .V_BP       (33),
+    .SYNC_POL   (1'b0),
+    .FRONT_BASE_DEF (32'h0200_0000),
+    .BACK_BASE_DEF  (32'h0240_0000)
+) u_display (
+    .clk_core       (core_clk),
+    .rst_core       (soc_system_reset),
+    .clk_pixel      (hdmi_tx_slow_clk),
+    .rst_pixel_n    (hdmi_vid_rst_n),
+
     .paddr          (apb_paddr[11:0]),
     .psel           (apb_psel & apb_sel_sco),
     .penable        (apb_penable),
@@ -662,7 +691,7 @@ scanout_stub u_scanout (
     .ar_size        (sco_arsize),
     .ar_burst       (sco_arburst),
     .ar_lock        (sco_arlock),
-    .ar_id          (),
+    .ar_id          (sco_arid),
     .ar_valid       (sco_arvalid),
     .ar_ready       (sco_arready),
 
@@ -671,11 +700,17 @@ scanout_stub u_scanout (
     .r_last         (sco_rlast),
     .r_resp         (sco_rresp),
     .r_valid        (sco_rvalid),
-    .r_ready        (sco_rready)
+    .r_ready        (sco_rready),
+
+    .irq            (disp_irq),
+    .vid_rgb        (disp_vid_rgb),
+    .vid_hs         (disp_vid_hs),
+    .vid_vs         (disp_vid_vs),
+    .vid_de         (disp_vid_de)
 );
 
 // ---------------------------------------------------------------------------
-// Axi_Mux：S0 = scanout_stub，S1 = axi_probe_master，S2 = SoC，出口 = DDR3 控制器
+// Axi_Mux：S0 = 扫描输出，S1 = axi_probe_master，S2 = SoC，出口 = DDR3 控制器
 // ---------------------------------------------------------------------------
 // Normal 模式下响应按事务顺序送回，与 ID 无关，所以控制器 4 位 ID 截断仍然安全。
 // Axi_Mux 没有 BRESP 端口；同一时刻只有被选中的主机看到 bvalid，控制器的 bresp 直接并接给各主机。
@@ -721,7 +756,7 @@ Axi_Mux #(
     .I_M_R_VALID    (ddr_rvalid),
     .O_M_R_READY    (mux_rready),
 
-    // S0：扫描输出替身，只发起读，写通道接成不发起（E5 2.1 节第 2 步）
+    // S0：扫描输出，只发起读，写通道接成不发起（E5 2.1 节第 2 步）
     .I_S0_AW_ID     (8'h0),
     .I_S0_AW_ADDR   (32'h0),
     .I_S0_AW_LEN    (8'h0),
@@ -739,7 +774,7 @@ Axi_Mux #(
     .O_S0_B_ID      (),
     .O_S0_B_VALID   (),
     .I_S0_B_READY   (1'b1),
-    .I_S0_AR_ID     (8'h0),
+    .I_S0_AR_ID     (sco_arid),
     .I_S0_AR_ADDR   (sco_araddr),
     .I_S0_AR_LEN    (sco_arlen),
     .I_S0_AR_SIZE   (sco_arsize),
@@ -829,11 +864,17 @@ Axi_Mux #(
 );
 
 // ---------------------------------------------------------------------------
-// HDMI 发送
+// HDMI 发送（D10 取 B′：本模块是纯编码封装，彩条在 display_out 里）
 // ---------------------------------------------------------------------------
+// 像素与 hs/vs/de 由 u_display 给；本模块把复位同步的结果 vid_rst_n 回给像素侧共用。
 hdmi_tx u_hdmi_tx (
     .clk_pixel  (hdmi_tx_slow_clk),
     .pll_locked (hdmi_pll_locked),
+    .vid_rgb    (disp_vid_rgb),
+    .vid_hs     (disp_vid_hs),
+    .vid_vs     (disp_vid_vs),
+    .vid_de     (disp_vid_de),
+    .vid_rst_n  (hdmi_vid_rst_n),
     .tmds_clk   (tmds_tx_clk_TX_DATA),
     .tmds_data0 (tmds_tx_data0_TX_DATA),
     .tmds_data1 (tmds_tx_data1_TX_DATA),

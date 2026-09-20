@@ -1,5 +1,10 @@
 // hdmi_tx 通路仿真：把 4 路 10 位 TMDS 字按 DVI 1.0 规则解码回同步与像素，逐项核对
 //
+// 被测模块 2026-09-20 起是纯编码封装（D10 的 B′）：彩条 `color_bar_rgb` 搬到了
+// `rtl/display/display_out.v`，所以这里由测试台自己例化一个彩条驱动它的 `vid_*` 输入，
+// 复位用被测模块导出的 `vid_rst_n`——这与真实接线一致（display_out 也用这个复位）。
+// 三个用例的判据一条没改。
+//
 // 判据（每一项都对每个完整帧逐像素检查）：
 //   1. 时钟通道恒为 10'b1111100000
 //   2. 三个数据通道对「控制期/数据期」的判断一致
@@ -8,7 +13,7 @@
 //   5. 有效像素颜色与八色竖条一致
 //
 // 注错开关（run.sh 用来确认判据会报错）：
-//   INJECT_HBP   ：被测模块的行后沿比期望少 1 个像素
+//   INJECT_HBP   ：测试台这个彩条（时序发生器）的行后沿比期望少 1 个像素
 //   INJECT_NOINV ：测试台不撤销板级 P/N 取反
 `timescale 1ns/1ps
 module tb_hdmi_tx;
@@ -23,6 +28,7 @@ localparam V_SYNC   = 2;
 localparam V_BP     = 33;
 localparam H_TOTAL  = H_ACTIVE + H_FP + H_SYNC + H_BP;
 localparam V_TOTAL  = V_ACTIVE + V_FP + V_SYNC + V_BP;
+localparam SYNC_POL = 1'b0;            // 同步脉冲低有效
 localparam FRAMES_TO_CHECK = 2;
 
 `ifdef INJECT_HBP
@@ -41,11 +47,46 @@ wire [9:0] tx_d0;
 wire [9:0] tx_d1;
 wire [9:0] tx_d2;
 
-hdmi_tx #(
-    .H_BP (DUT_H_BP)
-) dut (
+// 时序发生器（被测模块之外的彩条）：驱动 hdmi_tx 的像素输入
+wire        bar_hs, bar_vs, bar_de;
+wire [23:0] bar_rgb_w;
+wire        vid_rst_n;
+
+color_bar_rgb #(
+    .HS_POLORY     (SYNC_POL),
+    .VS_POLORY     (SYNC_POL),
+    .SYMBOL_WIDTH  (8),
+    .SYMBOL_NUM    (3),
+    .PAR_PIXEL_NUM (1),
+    .HFP           (H_FP),
+    .HST           (H_SYNC),
+    .HACT          (H_ACTIVE),
+    .HBP           (DUT_H_BP),
+    .VFP           (V_FP),
+    .VST           (V_SYNC),
+    .VACT          (V_ACTIVE),
+    .VBP           (V_BP),
+    .TEST_MODE     (2'd2)              // 2'd2：白黄青绿品红蓝黑八色竖条
+) u_bar (
+    .clk        (clk),
+    .rst_n      (vid_rst_n),
+    .i_cfg_vid  (24'd0),
+    .h_cnt      (),
+    .v_cnt      (),
+    .hs         (bar_hs),
+    .vs         (bar_vs),
+    .de         (bar_de),
+    .o_vid_data (bar_rgb_w)
+);
+
+hdmi_tx dut (
     .clk_pixel  (clk),
     .pll_locked (locked),
+    .vid_rgb    (bar_rgb_w),
+    .vid_hs     (bar_hs),
+    .vid_vs     (bar_vs),
+    .vid_de     (bar_de),
+    .vid_rst_n  (vid_rst_n),
     .tmds_clk   (tx_clk),
     .tmds_data0 (tx_d0),
     .tmds_data1 (tx_d1),

@@ -74,15 +74,101 @@ uint32_t *board_fb(int index)
     return (uint32_t *)(uintptr_t)g_mem_regions[REGION_FB0 + index].offset;
 }
 
+/* --- 扫描输出（display）------------------------------------------------- */
+/* 寄存器表见 `rtl/display/display_fetch.v` 文件头与
+   `../Engineering/Todo/hw/扫描输出.md` 2.2 节。窗口是 APB Slave 0 的 `0xE000~0xEFFF`。
+   这些地址只出现在本文件：应用经 board_fb / board_present / board_wait_frame 用它，
+   不碰寄存器。 */
+#define DISP_BASE           0xF810E000u
+#define DISP_ID             (DISP_BASE + 0x000u)
+#define DISP_CTRL           (DISP_BASE + 0x008u)
+#define DISP_BACK_BASE      (DISP_BASE + 0x010u)
+#define DISP_SWAP_REQ       (DISP_BASE + 0x014u)
+#define DISP_FRAME_COUNT    (DISP_BASE + 0x0D8u)
+#define DISP_SWAP_COUNT     (DISP_BASE + 0x0DCu)
+
+#define DISP_ID_VALUE       0x44495350u     /* "DISP" */
+#define DISP_CTRL_EN        (1u << 0)
+#define DISP_CTRL_SRC_FB    (1u << 1)
+#define DISP_CTRL_CLEAR     (1u << 2)
+
+/* 轮询上界。两件事都以场为节拍（60Hz，一场 16.7ms），给到 100ms 是六倍余量。
+   不设上界的轮询在本仓踩过：比特流里没有扫描输出、或者取数没起来时，
+   程序会停在这里不再输出，现象像死机而不是像失败。 */
+#define DISP_POLL_LIMIT     (BOARD_HZ / 10u)
+
+static uint32_t disp_rd(uint32_t addr)
+{
+    return *(volatile uint32_t *)(uintptr_t)addr;
+}
+
+static void disp_wr(uint32_t addr, uint32_t value)
+{
+    *(volatile uint32_t *)(uintptr_t)addr = value;
+}
+
+/* 比特流里有没有扫描输出。没有就退回空操作，老程序照常跑完。 */
+static int disp_present_in_bitstream(void)
+{
+    return disp_rd(DISP_ID) == DISP_ID_VALUE;
+}
+
+static int s_disp_started;      /* 第一次 board_present 时打开取数并切到帧缓冲 */
+
 void board_present(int index)
 {
-    (void)index;        /* 扫描输出（display 系列）就绪之前不上屏 */
+    uint32_t fb;
+    uint32_t swaps;
+    uint32_t t0;
+
+    if (index < 0 || index >= BOARD_FB_COUNT)
+        return;
+    if (!disp_present_in_bitstream())
+        return;
+
+    /* 写方向不需要先刷缓存：本构型没有写缓冲，CPU 的写返回时已经落到 DDR
+       （platform 第 05 章 T3、T6）。要失效的是「读回外部主机写的东西」那个方向。 */
+    fb = g_mem_regions[REGION_FB0 + index].offset;
+    disp_wr(DISP_BACK_BASE, fb);
+
+    if (!s_disp_started) {
+        /* CLEAR 与使能一起写：core 复位不会复位像素域（它的复位来自 pll_locked），
+           上一次会话留下的 SRC=1 会让像素侧在取数没开时空读一整场，
+           把欠载计数灌满（见 display 条目 2026-09-21 的开发日志）。
+           取数开始之前清一次，统计量才是本次运行的。 */
+        disp_wr(DISP_CTRL, DISP_CTRL_EN | DISP_CTRL_SRC_FB | DISP_CTRL_CLEAR);
+        s_disp_started = 1;
+    }
+
+    /* 切换在下一个场起始生效，一场的 480 行都来自同一个基址，所以不会撕裂。
+       等它真的换过去再返回：返回之后调用方要画的是另一面，
+       那一面必须已经不在扫描了。 */
+    swaps = disp_rd(DISP_SWAP_COUNT);
+    disp_wr(DISP_SWAP_REQ, 1u);
+
+    t0 = board_cycles();
+    while (disp_rd(DISP_SWAP_COUNT) == swaps) {
+        if ((board_cycles() - t0) > DISP_POLL_LIMIT)
+            return;
+    }
 }
 
 void board_wait_frame(void)
 {
-    /* 板上没有场同步可用之前不等：帧节拍由引擎的场同步中断给（display 系列）。
-       这里的空实现让程序尽快跑完，把 CRC 打到串口上做逐帧比对。 */
+    uint32_t f0;
+    uint32_t t0;
+
+    if (!disp_present_in_bitstream())
+        return;
+
+    /* FRAME_COUNT 数的是场起始，与 EN 无关：像素侧的时序发生器一直在跑，
+       所以还没 present 过也能用它对齐到场节拍。 */
+    f0 = disp_rd(DISP_FRAME_COUNT);
+    t0 = board_cycles();
+    while (disp_rd(DISP_FRAME_COUNT) == f0) {
+        if ((board_cycles() - t0) > DISP_POLL_LIMIT)
+            return;
+    }
 }
 
 /* 按 E3 规则包成带 "memory" clobber 的函数（platform 第 05 章）：

@@ -11,7 +11,22 @@
 | `top/` | 顶层 | 本项目 | 可改 |
 | `bus/` | 挂在 SoC 总线上的从设备 | 本项目 | 可改 |
 | `hdmi/` | HDMI 发送通路 | 封装为本项目编写，编码器取自官方例程 | 封装可改，官方文件不改 |
+| `display/` | 扫描输出（display） | 本项目 | 可改 |
 | `vendor/` | 厂商与第三方代码 | 见下 | 原则上不改，改了要在本文件登记 |
+
+## display/
+
+| 文件 | 说明 |
+| --- | --- |
+| `display_top.v` | 扫描输出的对外入口：APB 从口、AXI 读主机口（Axi_Mux 的 S0）、中断，以及给 `hdmi_tx` 的像素与同步。里面三块 |
+| `display_fetch.v` | 取数侧（`core_clk`）：AXI 读主机、按水位取数、场起始清空的六步、APB 寄存器与统计、帧快照接收 |
+| `display_fifo.v` | 跨时钟的异步 FIFO：仓内厂商明文源码 `efx_fifo_wrapper` 的薄封装（`SYNC_CLK=0`、512 深 × 128 位、`OUTPUT_REG=0`），定值与三条纪律写在文件头 |
+| `display_out.v` | 像素侧（像素时钟）：唯一的视频时序发生器（例化官方 `color_bar_rgb`）、拍拆像素、D=1 对齐、`SRC` 二选一、水位与欠载观测、帧快照 |
+
+`display_fetch`/`display_out` 各有一个 `parameter integer INJECT`，是**仿真注错口**：0 是正式配置，
+综合时它是常量、对应分支会被优化掉。位定义见两个文件的端口说明，用它的地方只有 `sim/display/run.sh`。
+设计依据、寄存器表、判据与实测数据见
+[`../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md`](../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md)。
 
 ## top/
 
@@ -44,14 +59,16 @@ I2C0（`0xF801_7000`）预留给摄像头，读口接 1、写口悬空；`axiA` 
 
 | 文件 | 来源 | 说明 |
 | --- | --- | --- |
-| `hdmi_tx.v` | 本项目 | 封装：复位同步、彩条、TMDS 编码、P/N 取反。参数化行场时序，默认 640x480@60 |
-| `color_bar_rgb.v` | 官方 `03_hdmi_tx_demo` | 行场时序与八色竖条发生器 |
+| `hdmi_tx.v` | 本项目 | 纯编码封装：复位同步（导出的 `vid_rst_n` 给像素侧共用）、TMDS 编码、P/N 取反。像素与行场同步由 `display_out` 给（`vid_rgb`/`vid_hs`/`vid_vs`/`vid_de`）。行场参数表保留在它的参数表里，但按 D10 的 B′ 已不再使用，真正生效的一份在 `display_out` |
+| `color_bar_rgb.v` | 官方 `03_hdmi_tx_demo` | 行场时序与八色竖条发生器。2026-09-20 起由 `display_out` 例化，是全设计唯一的时序发生器 |
 | `dvi_encoder.v` | 官方 `03_hdmi_tx_demo` | 三通道 TMDS 编码 |
 | `encode.v` | 官方 `03_hdmi_tx_demo` | 单通道 8b/10b 编码 |
 
 三个官方文件与资料包中的原件 MD5 一致。仿真见 `sim/hdmi/`。
 
-将来扫描输出改为从 DDR3 读帧缓冲时，替换的是 `color_bar_rgb`，编码器与 `hdmi_tx` 的对外接口不动。
+彩条搬到了 `rtl/display/display_out.v`（D10 取 B′，见 `Engineering/Todo/hw/扫描输出.md` 2.1 节）：
+这样「场」只有一个真源，彩条与帧缓冲两条通路共用同一个编码器，唯一的差别就是像素来源。
+`sim/hdmi/tb_hdmi_tx.v` 因此自己例化一个彩条来驱动 `hdmi_tx` 的像素输入，三个用例的判据一条没改。
 
 ## vendor/
 

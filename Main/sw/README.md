@@ -46,6 +46,7 @@ sw/
 | `apps/test/bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
 | `apps/test/cacheCoherencyTest/` | 实验 E3 的判据程序：用探针主机当外部写入者，一致性判据、注错与注错自检，并量失效指令的代价 |
 | `apps/test/keyTest/` | SoC IP 定型的按键判据：空闲时 GPIO1 读口应为 `0x0f`，30 秒窗口内 KEY0~3 各要出现一次按下与松开（要人按） |
+| `apps/test/displayTest/` | 扫描输出的板上判据，也是 `board_present`/`board_wait_frame` 的验证程序：IDENT、PATTERN（画定位图案上屏，这一段看屏幕）、FILL（整屏填充计时）、ANIM（120 帧移动方块，打帧率）、STATS（120 场快照）。走 SW1 的分层构建，产物 `build/displayTest-O2.bin`。期望输出见下 |
 | `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象 |
 | `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验 |
 | `apps/probe/cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
@@ -247,3 +248,28 @@ E5 两个阶段的判据、实测值与解释见 `../../Engineering/TechReports/
 - `S1` 三项与 `S2` 三项都 `ok`。
 
 **这个程序只作「现象可复现」保留，不作为判据。** `S3` 在别名写之前先读了 `Q ^ EVICT`，那一步本身就把 `Q` 的行换出去了，它的 FAIL 证明不了「写之后读一次不装行」。装行规则以 `cacheMechTest` 的 T2 为准：只写不装行，写之后读一次会装行。过程见 platform 第 05 章 4.3 节。
+
+## displayTest 的期望值
+
+需要带扫描输出（`u_display`）的比特流，2026-09-21 起的版本。gcc 13.4.0，`-O2`，
+走 SW1 的分层构建（`make RISCV_BIN=<RISCV_BIN>`，产物 `build/displayTest-O2.bin`）。
+末尾 `fail 0` 与 `done`：
+
+- `IDENT id=0x44495350`（`"DISP"`）、`version=0x00000001`、`front_base=0x02000000`，三行 `ok`；
+- `PATTERN ctrl=0x00000003 front=0x02000000 status=0x00000004`、`resperr=0x00000000 ok`；
+- `ANIM frames=0x78`、`fps_x100=0x170c`（**59.9 fps**）、`swap_count=0x79`（与请求次数相等）；
+  每帧的三段：`fill_per_frame` 约 `0x14c7b0`（1,361,837 个周期）、`present_per_frame` 约 `0x4470b`、
+  画方块约 25,200；
+- `STATS` 五行全 `ok`：`frame_beats_bad=0`、`end_level_bad=0`、
+  `min_level_floor=0x15b`（347 拍，判据是不低于 160）、`zero_hits=0`、`underflow_beats=0`；
+  同一行还打 `max_full`（约 `0xfe`~`0xff`）与 `max_first`（约 `0x55`~`0x59`）。
+
+**`PATTERN` 那一段的判据是看屏幕**，串口只给寄存器侧的数：四角依次是红、绿、蓝、白，
+最左四列是红、绿、蓝、白（正好一个 128 位拍里的 4 个像素），
+再加一条黄色横线与一条青色竖线。颜色顺序反了说明字节序或拍内像素顺序有问题，
+线的位置差一说明行跨或边界算错。
+
+`FILL` 一段的三个数（`back2back_cyc`、`after_vsync_cyc` 与 `ANIM` 的 `fill_per_frame`）
+是同一个 `fb_fill` 在不同位置量出来的，相差 58%，归因未定，见
+`../../Engineering/Todo/hw/扫描输出.md` 第 4 节 2026-09-21 条与 E7。
+判据只卡一个很宽的上界（`per_px_x100` 不超过 10000），不拿它当性能结论。

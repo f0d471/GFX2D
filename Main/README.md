@@ -15,15 +15,20 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | 程序从 Flash 引导（512KB 镜像） | 已上板验证，两个 CRC 与对照组都符合预期 |
 | APB 寄存器通路 | 已上板验证，探针寄存器四项全对；`0x1000~0x1FFF` 分给测量主机 |
 | Cache 一致性（E3） | 已上板实测并验收（2026-09-18）：外部主机改写后 CPU 读到旧值，失效之后读到新值；共享区约定放宽为「读回前必须失效」，失效要晚于外部写入完成。判据 `sw/apps/test/cacheCoherencyTest`、机理实验 `sw/apps/probe/cacheMechTest`，见 `../Engineering/TechReports/platform/05-CPU数据缓存与第二个主机写入的一致性.md` |
-| 像素规格（E7 §2.1） | 已定稿并经用户确认（2026-09-18）：写进 `doc/赛题二总体设计.md` 3.5 节，舍入、位宽、舍入顺序与预乘量化误差有穷举校验（`tools/check/check_round255.c`）。E7 整体未验收，软件执行器未开工 |
+| 像素规格（E7 §2.1） | 已定稿并已确认（2026-09-18）：写进 `doc/赛题二总体设计.md` 3.5 节，舍入、位宽、舍入顺序与预乘量化误差有穷举校验（`tools/check/check_round255.c`）。E7 整体未验收，软件执行器未开工 |
 | 命令语义规格（SW2） | **已定稿、确认并复核闭环（2026-09-20）**：v1 为 DDR 直通、XRGB 目的，不实现 tint；新增 ARGB8888_STRAIGHT；重叠 BLIT 报错；字段矩阵、COUNT/END、错误优先级和副作用写入 `doc/赛题二总体设计.md` 3.4 节及 `../Engineering/TechReports/spec/02-命令语义.md`。九组一致性用例落成 159 条向量（ABI 1），校验工具 `tools/check/check_cmd_semantics.py` 全部通过六项注错和交换格式回读；五项语义选择已定案，多命令表、FETCH、保留位与零面积边界已补齐 |
+| 扫描输出（display，M1 显示） | **硬件侧判据全过**（2026-09-21）：新建 `rtl/display/`（`display_fetch` 取数/`display_fifo` 异步 FIFO 封装/`display_out` 像素侧/`display_top`），`hdmi_tx` 按 D10 的 B′ 改成纯编码封装（彩条搬进 `display_out`，三个官方文件一字未动），顶层换接（撤 `u_scanout`、`userInterruptA` 接场起始中断）。`sim/display` 正常 9 项 + 注错 7 项 + 整帧 640×480 全过，四步编译 PASS、`core_clk` hold 仍是 0.026 ns、片上 RAM +6 块，板上读回 `"DISP"`、`FRAME_BEATS` 76800、最低水位 347 拍、欠载 0，屏幕色带与双缓冲切换已确认。还欠四项要软件侧程序的判据与 E5 2.4 的水位数据，过程与数据见 `../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md` |
 | 渲染引擎、帧缓冲、双缓冲 | 还没有开始 |
 | Axi_Mux 端口重分配与防饿死（E5 §2.1~2.3） | 已上板验证（2026-09-19）：`Axi_Mux` 用 X3，S0=扫描替身、S1=探针、S2=SoC；永久模块 `axi_mux_guard`（`0xF810_F000`）给出仲裁方式、三通道掩码与 SoC 地址等待保护，`scanout_stub`（`0xF810_E000`）按行节拍发 160 拍读并记录首拍/整笔/拍间隙。三方并发下 CPU 拷贝 1.70 倍（探针读）、1.92 倍（探针写），扫描没有跳行，S0 掩码反例与 `AGE_LIMIT=1` 注错都符合预期，`ddrBurstProbe` 连跑三轮 `fail 0`；guard VERSION 2（2026-09-19 复核：两个 MAX 每拍更新，写方向「CPU 被停住」的结论是测试台错误，已撤回）。**2.1~2.3 已验收（2026-09-19）**，见 `../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md` 与 `../Engineering/Todo/hw/E5-Axi_Mux优先级与扫描FIFO水位.md`。**2.4 真实扫描 FIFO 水位待扫描输出存在后再做** |
 | 软件平台分层与双目标构建（SW1） | **已验收**（2026-09-19）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
-| SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 已上板并验收（2026-09-19）：efx_soc 3.4.0 重新生成，开 GPIO1 接 KEY0~3、开用户中断 A/B/C、保留 I2C0 给摄像头、关 `axiA` 与 `io_ddrMasters_0`；工具链换成 gcc 13.4.0。调试通路连续 6 次会话、memTest、APB 探针、`ddrAliasTest`、`ddrBurstProbe`、E3 三件套、`bootSizeTest`（含对照组）与 gfx2dGame 60 帧 CRC 全过；HDMI 八色竖条与 SW0~SW3 按键已由用户确认。见 `../Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md` |
+| SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 已上板并验收（2026-09-19）：efx_soc 3.4.0 重新生成，开 GPIO1 接 KEY0~3、开用户中断 A/B/C、保留 I2C0 给摄像头、关 `axiA` 与 `io_ddrMasters_0`；工具链换成 gcc 13.4.0。调试通路连续 6 次会话、memTest、APB 探针、`ddrAliasTest`、`ddrBurstProbe`、E3 三件套、`bootSizeTest`（含对照组）与 gfx2dGame 60 帧 CRC 全过；HDMI 八色竖条与 SW0~SW3 按键已确认。见 `../Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md` |
 
-编译占用 XLR 21653（35.61%）、片上 RAM 65 块（25.4%）、DSP 4 个，约束告警 0 条，无负 slack，`core_clk` setup 3.405 / hold 0.026 ns
-（2026-09-19，SoC IP 定型之后；定型前是 XLR 21753、setup 3.780，差值归因见 platform 第 07 章；E5 端口重分配前是 XLR 16151、setup 2.994，重分配后 21065、3.467，见 platform 第 06 章 5.1 节）。
+编译占用 XLR 21807（35.87%）、片上 RAM 71 块（27.7%）、DSP 4 个，约束告警 0 条，无负 slack，`core_clk` setup 3.898 / hold 0.026 ns
+（2026-09-21，扫描输出接入之后：相对上一版 XLR +154、片上 RAM +6 块——那 6 块就是扫描输出的 128 位 × 512 深异步 FIFO，
+在设计文档 2.3 节 7 块的预算内；hold 没有被挤薄。像素域 `hdmi_tx_slow_clk` setup 33.807 / hold 0.071 ns。
+上一版是 2026-09-19 SoC IP 定型之后的 XLR 21653、RAM 65 块、setup 3.405；
+定型前是 XLR 21753、setup 3.780，差值归因见 platform 第 07 章；
+E5 端口重分配前是 XLR 16151、setup 2.994，重分配后 21065、3.467，见 platform 第 06 章 5.1 节）。
 这些数字相对第 01 章基线的变化见 `../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.2 节；
 SoC 构型的对比与资源归因见 `../Engineering/TechReports/platform/04-SoC构型对比与资源归因.md`；
 五项上板判据的原始输出，以及基线是怎么搭起来的，见
@@ -109,7 +114,8 @@ CPU 看到的地址，取自 `sdk/bsp/efinix/EfxSapphireSoc/include/soc.h`：
 | 片上 RAM（bootloader） | `0xF900_0000` | 4KB |
 
 中断号：UART0 = 1，SPI0 = 4，I2C0 = 8，GPIO0 = 12、13，GPIO1 = 14、15，
-用户中断 A = 16（扫描输出场同步）、B = 17（引擎）、C = 22（摄像头），三条的源模块接入前在顶层接 0。
+用户中断 A = 16（扫描输出场同步，2026-09-20 起已接到 `u_display` 的场起始中断，电平、复位后 `IRQ_EN=0`）、
+B = 17（引擎）、C = 22（摄像头），B、C 的源模块接入前在顶层接 0。
 `axiA` 从设备窗口（原 `0xE100_0000`，中断 30）已于 2026-09-19 随 SoC IP 定型关掉。
 
 DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节。

@@ -14,6 +14,7 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 | `apb_probe/` | `rtl/bus/apb_probe.v` | 正常 + 2 个注错 |
 | `axi_probe/` | `rtl/bus/axi_probe_master.v` 与 `rtl/vendor/axi_mux/Axi_Mux.v`，两个主机并发 | 正常 + 4 个注错。需要 `EFINITY_HOME` 指向 Efinity 安装目录（取 `EFX_SRL8` 原语模型） |
 | `axi_mux_guard/` | `rtl/bus/axi_mux_guard.v` 与 `Axi_Mux`（X3，三个主机：扫描替身、引擎替身、CPU 替身） | 读、写两个方向各一组：14 个用例（11 正常/对照 + 3 注错），加两项保护开关逐项比对与一项「inject_wlast 的 FAIL 来自 wlast_err」检查，共 17 项，实验 E5 2.2 节。同样需要 `EFINITY_HOME` |
+| `display/` | `rtl/display/` 的扫描输出：`display_fifo`（厂商异步 FIFO 的封装）与 `display_top` | 两个测试台。`tb_fifo_semantics`：正常 + `inject_no_reset`；`tb_display`：`image`（含像素时钟 ±0.5% 两组）、`swap`、`inflight`、`level`、`starve`、`snapshot`、`image_full`（整帧 640×480，用 `FULL=1` 打开）与 7 个注错。见 `../../Engineering/Todo/hw/扫描输出.md` 2.3 节。只有明文 RTL，不需要 `EFINITY_HOME` |
 
 ## 规则
 
@@ -48,7 +49,9 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 
 ## 范围
 
-DDR3 控制器与官方的 `axi_interconnect_beta` 是加密 RTL，SoC 网表里也有两个 CPU 运算模块（`EfxCPUSp1`、`EfxCPUSp2`）加密，开源工具读不了，所以整机仿不了。能仿的只有明文模块；第三方的 `Axi_Mux` 是明文，但例化了厂商原语 `EFX_SRL8`，要带 Efinity 的原语仿真模型。引擎开发阶段要自己写 AXI 从机模型，并且必须带随机反压和可配的响应延迟，测试台里的从机比真从机强等于没验。
+DDR3 控制器与官方的 `axi_interconnect_beta` 是加密 RTL，SoC 网表里也有两个 CPU 运算模块（`EfxCPUSp1`、`EfxCPUSp2`）加密，开源工具读不了，所以整机仿不了。能仿的只有明文模块；第三方的 `Axi_Mux` 是明文，但例化了厂商原语 `EFX_SRL8`，要带 Efinity 的原语仿真模型。
+扫描输出的异步 FIFO 用的是 `rtl/vendor/ddr3_controller/common/efx_fifo_v2.3/efx_fifo_wrapper.v`：厂商文件，但是明文、不例化任何原语，iverilog 直接能编，所以 `display/` 不需要 `EFINITY_HOME`。
+引擎开发阶段要自己写 AXI 从机模型，并且必须带随机反压和可配的响应延迟，测试台里的从机比真从机强等于没验。
 
 `axi_ram_model.v` 是 `axi_probe` 与 `axi_mux_guard` 共用的从机，它的 `ADDR_STALL_MAX`、`RD_QUEUE`、`WR_QUEUE`
 （读、写地址队列深度）与 `hold_ar`/`hold_aw` 都带默认值，默认值保持原来只有随机反压的行为不变；
