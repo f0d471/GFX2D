@@ -208,8 +208,14 @@ int main(void)
     S3L_Model3D model;
     S3L_Scene   scene;
     uint32_t    frame;
-    uint32_t    t_start, t_total;
-    uint32_t    acc_clear = 0, acc_shade = 0, acc_raster = 0, acc_present = 0;
+    /* 累加量一律 64 位：board_cycles() 是 32 位回绕的，100MHz 下 2^32 个周期只有
+       42.9 秒（board.h 写明了这一条）。本程序一帧就要 500 万个周期，
+       900 帧是 45 亿——既不能拿首尾两个读数相减（区间超过 42.9 秒就回绕），
+       32 位的累加器也存不下。每帧取一次区间（区间本身远小于 42.9 秒，相减成立），
+       累加到 64 位里。 */
+    uint32_t    t_frame;
+    uint64_t    t_total = 0;
+    uint64_t    acc_clear = 0, acc_shade = 0, acc_raster = 0, acc_present = 0;
     int         idx = 0;
 
     board_init();
@@ -233,10 +239,10 @@ int main(void)
     scene.camera.transform.translation.z = CAM_Z;
     scene.camera.focalLength = (ZOOM * S3L_F * S3L_RESOLUTION_Y) / S3L_RESOLUTION_X;
 
-    t_start = board_cycles();
     for (frame = 0; frame < FRAMES; frame++) {
         S3L_Unit ay = (S3L_Unit)((frame * (S3L_F / 48)) % (4 * S3L_F));
         uint32_t m;
+        uint32_t f0 = board_cycles();
 
         g_fb = board_fb(idx);
 
@@ -260,26 +266,31 @@ int main(void)
         acc_present += board_cycles() - m;
 
         idx ^= 1;
+        t_frame = board_cycles() - f0;
+        t_total += t_frame;
     }
-    t_total = board_cycles() - t_start;
 
-    line_begin("frames=");
-    core_out_u32(&s_out, FRAMES);
-    core_out_str(&s_out, " cycles=");
-    core_out_hex32(&s_out, t_total);
-    core_out_str(&s_out, " fps_x100=");
-    core_out_u32(&s_out, (BOARD_HZ / (t_total / FRAMES)) * 100u);
-    line_end();
+    {
+        uint32_t per_frame = (uint32_t)(t_total / FRAMES);
 
-    line_begin("per_frame clear=");
-    core_out_u32(&s_out, acc_clear / FRAMES);
-    core_out_str(&s_out, " shade=");
-    core_out_u32(&s_out, acc_shade / FRAMES);
-    core_out_str(&s_out, " raster=");
-    core_out_u32(&s_out, acc_raster / FRAMES);
-    core_out_str(&s_out, " present=");
-    core_out_u32(&s_out, acc_present / FRAMES);
-    line_end();
+        line_begin("frames=");
+        core_out_u32(&s_out, FRAMES);
+        core_out_str(&s_out, " per_frame=");
+        core_out_u32(&s_out, per_frame);
+        core_out_str(&s_out, " fps_x100=");
+        core_out_u32(&s_out, (BOARD_HZ / per_frame) * 100u);
+        line_end();
+
+        line_begin("per_frame clear=");
+        core_out_u32(&s_out, (uint32_t)(acc_clear / FRAMES));
+        core_out_str(&s_out, " shade=");
+        core_out_u32(&s_out, (uint32_t)(acc_shade / FRAMES));
+        core_out_str(&s_out, " raster=");
+        core_out_u32(&s_out, (uint32_t)(acc_raster / FRAMES));
+        core_out_str(&s_out, " present=");
+        core_out_u32(&s_out, (uint32_t)(acc_present / FRAMES));
+        line_end();
+    }
 
     board_puts("done\r\n");
     return 0;
