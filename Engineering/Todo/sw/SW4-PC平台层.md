@@ -429,9 +429,20 @@ done
 所以第 3 节那两条已改成宽上下界，见 4.5。
 
 顺带核对既有产物：`gfx2dGame` 的 PC 日志与入库的 `logs/pc_normal.log` 60 个 CRC 逐帧相同
-（删掉那次多余的 `board_wait_frame` 不影响 CRC 与行数）；板上产物变成 4210 字节
-（`sha256:a8df1ef4b1d5d618`，其中 80 字节是本次三个查询，其余是扫描输出的寄存器通路）。
+（删掉那次多余的 `board_wait_frame` 不影响 CRC 与行数）；板上产物从 2810 字节变成 **4210 字节**
+（`sha256:a8df1ef4b1d5d618`）：80 字节是本条在 `bsp/ti60` 补的三个查询，
+1320 字节是不引用录像也链进来的 `replay.o`（见下面的已知代价）。
 `make -f mk/host.mk test` 与 `check_sw_layers.sh` 各跑一遍，都是 `fail 0`。
+
+**一处已知代价：`LIBS = core` 的应用都会链进 `replay.o`。** `target.mk` 与 `host.mk`
+按目录取库（`$(wildcard lib/<库>/*.c)`），没有按符号裁剪，所以不引用录像的那些应用也带上它。
+实测（`displayTest`，另起一个空 `OBJDIR` 各编一次）：无 `replay.c` 5226 字节、
+有 6546 字节，**差 1320 字节**；`cup3d` 同样 +1408。`-g3` 的调试信息不进 bin，这 1320 是代码。
+当前最大应用 22 KB、bootloader 上限 512 KB，占比 0.3%，**本条不改**：
+要改有两条路，一是两套 mk 加 `-ffunction-sections -fdata-sections` 与 `-Wl,--gc-sections`
+（会动所有已登记的产物大小，还要核对 `bsp/ti60/linker/gfx2d.ld` 的 KEEP），
+二是把录像挪成自己的库目录 `lib/replay/`、由应用显式 `LIBS = core replay`
+（与 D9 定的 `lib/core/replay` 冲突，要改 spec）。两条都留到有实际资源压力时再评估。
 
 #### 遇到的问题
 

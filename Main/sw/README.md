@@ -158,9 +158,10 @@ CRC 那一列才是判据。）
 （2026-09-19 SoC IP 定型之后这一份 `sha256:4f1c7ec23d99f9ba…`，2,070,156 字节；此前 `d8af4ce13c416834…`）。
 
 **2026-09-21 扫描输出与 SW4 之后，板上产物变成 4210 字节**（`sha256:a8df1ef4b1d5d618…`，`-O2`，
-工具链与优化级别不变）：多出来的是 `bsp/ti60/board.c` 里扫描输出的寄存器通路
-（`board_present`/`board_wait_frame` 板上实测 59.9 fps，见 display 第 01 章）与 SW4 补的
-`board_frame_count`/`board_swap_count`/`board_should_quit` 三个查询。
+工具链与优化级别不变）：入库那两份日志对应的产物是 2578 字节；扫描输出把寄存器通路接进
+`bsp/ti60/board.c` 之后是 2810；SW4 补的三个查询加 80，`LIBS = core` 链进来的
+`lib/core/replay.c` 再加 1320（这一笔不引用录像的应用也有，见
+[SW4](../../Engineering/Todo/sw/SW4-PC平台层.md) 第 4 节的已知代价）。
 **入库的那两份板上日志是 2026-09-19 采的**，当时的比特流里没有扫描输出，
 `board_present` 与 `board_wait_frame` 都是空操作，所以 60 个 CRC 仍然有效、不必重采；
 要重采时按 `displayTest` 那份比特流（2026-09-21 起）走。
@@ -360,7 +361,9 @@ wsl -e bash -c 'bash Main/tools/check/check_sw4_pc.sh'                          
 
 ## cup3d 的期望值
 
-需要带扫描输出的比特流。gcc 13.4.0，`-O2`，bin 20,394 字节。
+需要带扫描输出的比特流。gcc 13.4.0，`-O2`，bin 22,346 字节
+（2026-09-21 SW4 之前是 20,394；`LIBS = core` 会链进 `lib/core/replay.c` 的约 1.3 KB，
+不引用录像的应用也带上，见 [SW4](../Engineering/Todo/sw/SW4-PC平台层.md) 第 4 节的已知代价）。
 串口三行加 `done`，**画面要看屏幕**：屏幕正中间 320×240 的区域里是一只有明暗的茶杯，
 四周是黑的（边框只在启动时清一次，之后每帧只清画面那一块）。
 
