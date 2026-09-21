@@ -13,14 +13,14 @@
 *         模型做：`base` 在 board_init 取一次，场号是 (now − base) / step，
 *         present 记下进入时的场号、等到场号变化再返回。free 的不是「第几帧画面」
 *         而是「第几场」，没 present 过它照样走，这样 `Δ场 − Δ切换` 才等于掉帧数。
-*         模型与实测见 Engineering/Todo/sw/SW4-PC平台层.md 2.2 节与 4.2 节。
+*         模型与实测见 Engineering/TechReports/sw/03-PC平台层与帧节拍.md 3.4 节与 3.1 节。
 *
 *         帧缓冲行跨固定 4096 字节，上传纹理时按同一个 pitch 交给 SDL，
 *         不再另拷贝：PC 与板上的缓冲布局必须一模一样，否则 SW9 的逐帧
 *         CRC 对比没有意义。
 *
 *         无窗口模式不改这里的代码：把 SDL_VIDEODRIVER 置成 dummy 再跑同一个
-*         二进制即可（SW4 的 D3、2.5 节）。这样有窗与无窗确实是同一条执行路径。
+*         二进制即可（sw 第 03 章 3.2 节的 D3、3.5 节）。这样有窗与无窗确实是同一条执行路径。
 ******************************************************************************/
 
 #define SDL_MAIN_HANDLED        1
@@ -110,7 +110,7 @@ void board_init(void)
     if (s_ren == NULL)
         die("SDL_CreateRenderer");
 
-    /* 缩放用最近邻（SW4 的 D4）。SDL 对这个 hint 的默认值是**未设**，
+    /* 缩放用最近邻（sw 第 03 章 3.2 节的 D4）。SDL 对这个 hint 的默认值是**未设**，
        所以必须显式写 "0"；它在建纹理时被读走，之后改没有用。 */
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
@@ -180,7 +180,7 @@ void board_puts(const char *s)
 }
 
 /* **F1~F3 不在这里**：窗口大小是宿主的事，缩放键在 pump_events 里被吃掉。
-   加进来就会进录像、改变回放的按键序列（SW4 的 D4）。 */
+   加进来就会进录像、改变回放的按键序列（sw 第 03 章 3.2 节的 D4）。 */
 uint32_t board_keys(void)
 {
     const Uint8 *k;

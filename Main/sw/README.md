@@ -52,15 +52,17 @@ sw/
 | `apps/test/displayTest/` | 扫描输出的板上判据，也是 `board_present`/`board_wait_frame` 的验证程序：IDENT、PATTERN（画定位图案上屏，这一段看屏幕）、FILL（整屏填充计时）、ANIM（120 帧移动方块，打帧率）、STATS（120 场快照）。走 SW1 的分层构建，产物 `build/displayTest-O2.bin`。期望输出见下 |
 | `apps/test/platformTest/` | PC 平台层（SW4）的判据程序：十一个整帧用例、600 帧帧节拍、掉帧注错、实时输入与关窗退出、录制的往返与两次回放。**一段要人动手**（按 F1~F3、点关闭按钮），其余自己判并打印 `fail N`。默认编 PC 版（`make` 即 `PLATFORM=host`）；串起来跑的是 `Main/tools/check/check_sw4_pc.sh`。期望输出见下 |
 | `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象 |
-| `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验 |
+| `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验（E5 的 SHARE/TRI/INJECT 阶段） |
+| `apps/probe/displayFifoProbe/` | 实验 E5 2.4 节：真实扫描 FIFO 的压力矩阵与深度定值。`idle` / 满负载 `read` / 满负载 `write` 三组各收 120 场连续快照，报最低水位的最小值、最大值、首次最小值帧号与两个中位数。**target-only**（只在 Ti60 上跑，不提供 host 构建），产物 `build/displayFifoProbe-O2.bin`。期望输出见下 |
 | `apps/probe/cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
 | `apps/probe/cacheMinTest/` | 实验 E3 早期的最小实验，只作现象可复现保留，不作为结论证据 |
 
 除 `gfx2dGame` 以外的七个诊断程序仍沿用官方的 makefile 体系
 （每个的 makefile 里用 `STANDALONE` 指到 `sdk/software/standalone`，现在是往上四级的 `../../../../sdk/...`），
-**没有迁到新构建**，要改它们时顺手迁移。`gfx2dGame`、`cup3d`、`displayTest` 与 `platformTest`
-用新构建，makefile 里 `include ../../../mk/$(PLATFORM).mk`；
-`platformTest` 是 PC 侧的判据程序，`PLATFORM` 默认取 `host`（其余应用默认 `target`）。
+**没有迁到新构建**，要改它们时顺手迁移。`gfx2dGame`、`cup3d`、`displayTest`、`platformTest`
+与 `displayFifoProbe` 用新构建，makefile 里 `include ../../../mk/$(PLATFORM).mk`；
+`platformTest` 是 PC 侧的判据程序，`PLATFORM` 默认取 `host`（其余应用默认 `target`），
+`displayFifoProbe` 是板上实验工具，直接 include `target.mk`，不走 `PLATFORM` 二选一。
 
 2026-09-19 从 `sw/<程序>/` 搬到 `sw/apps/<类>/<程序>/`，七个程序搬迁前后的 bin 逐位相同。
 TechReports 旧章节的配图里仍是搬迁前的路径（配图画的是该章结束时的状态，按规范不改）。
@@ -116,7 +118,7 @@ wsl -e bash -c 'cd sw && make -f mk/host.mk test INJECT=EQ_COPY'   # EQ_ALPHA / 
 wsl -e bash -c 'cd sw && make -f mk/host.mk gen-golden'
 ```
 
-- 录像格式那一组（SW4 第 1、7 条判据）不用开关：`test` 目标先跑
+- 录像格式那一组（[sw 第 03 章](../../Engineering/TechReports/sw/03-PC平台层与帧节拍.md) 5.2 节的第 1、7 条判据）不用开关：`test` 目标先跑
   `python3 Main/tools/check/replay2c.py`，把入库的 `lib/test/replay_fixture.g2dr`
   转成 C 数组放进 `$(OBJDIR)/test/`，再与直接解析 `.g2dr` 的结果逐帧对账。
   **脚本进判据路径而不是一次性生成器**，这样这条判据测的是转换本身。它需要 `python3`。
@@ -161,12 +163,12 @@ CRC 那一列才是判据。）
 工具链与优化级别不变）：入库那两份日志对应的产物是 2578 字节；扫描输出把寄存器通路接进
 `bsp/ti60/board.c` 之后是 2810；SW4 补的三个查询加 80，`LIBS = core` 链进来的
 `lib/core/replay.c` 再加 1320（这一笔不引用录像的应用也有，见
-[SW4](../../Engineering/Todo/sw/SW4-PC平台层.md) 第 4 节的已知代价）。
+[sw 第 03 章](../../Engineering/TechReports/sw/03-PC平台层与帧节拍.md) 5.4 节的已知代价）。
 **入库的那两份板上日志是 2026-09-19 采的**，当时的比特流里没有扫描输出，
 `board_present` 与 `board_wait_frame` 都是空操作，所以 60 个 CRC 仍然有效、不必重采；
 要重采时按 `displayTest` 那份比特流（2026-09-21 起）走。
 本轮还改了主循环：`board_present` 现在自己等掉一场，原来的 `board_wait_frame()` 已经删掉，
-两个都调会让帧率掉到 30（SW4 的 2.2 节）。CRC 与行数不受影响。
+两个都调会让帧率掉到 30（[sw 第 03 章](../../Engineering/TechReports/sw/03-PC平台层与帧节拍.md) 3.4 节）。CRC 与行数不受影响。
 
 日志四份在 `apps/game/gfx2dGame/logs/`：`pc_normal.log`、`pc_inject.log` 是 PC 的 stdout（期望值），
 `board_normal.log`、`board_inject.log` 是板上串口原始输出。比对只取 `frame N crc X` 这一列：
@@ -345,7 +347,7 @@ wsl -e bash -c 'bash Main/tools/check/check_sw4_pc.sh'                          
   十一用例的 CRC 与 `pace`/`drop` 各段不受影响。
 
 **有窗与无窗跑的是同一个二进制**（`SDL_VIDEODRIVER=dummy` 只是换驱动），
-两条 CRC 序列必须逐行相同；这是 SW4 第 8 条判据，由 `check_sw4_pc.sh` 比。
+两条 CRC 序列必须逐行相同；这是 [sw 第 03 章](../../Engineering/TechReports/sw/03-PC平台层与帧节拍.md) 5.2 节的第 8 条判据，由 `check_sw4_pc.sh` 比。
 日志行尾是 `\r\n`，比对前先做 CRLF 归一。
 
 ## 第三方：lib/s3l/small3dlib.h
@@ -363,7 +365,7 @@ wsl -e bash -c 'bash Main/tools/check/check_sw4_pc.sh'                          
 
 需要带扫描输出的比特流。gcc 13.4.0，`-O2`，bin 22,346 字节
 （2026-09-21 SW4 之前是 20,394；`LIBS = core` 会链进 `lib/core/replay.c` 的约 1.3 KB，
-不引用录像的应用也带上，见 [SW4](../Engineering/Todo/sw/SW4-PC平台层.md) 第 4 节的已知代价）。
+不引用录像的应用也带上，见 [sw 第 03 章](../../Engineering/TechReports/sw/03-PC平台层与帧节拍.md) 5.4 节的已知代价）。
 串口三行加 `done`，**画面要看屏幕**：屏幕正中间 320×240 的区域里是一只有明暗的茶杯，
 四周是黑的（边框只在启动时清一次，之后每帧只清画面那一块）。
 

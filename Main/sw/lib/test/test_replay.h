@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file test_replay.h: 录像格式的主机侧测试
 *
-* @brief  见 test_replay.c 的文件头。判据是 SW4 第 3 节的第 7 条。
+* @brief  见 test_replay.c 的文件头。判据是 Engineering/TechReports/sw/03-PC平台层与帧节拍.md 5.2 节的第 7 条。
 ******************************************************************************/
 #ifndef GFX2D_TEST_REPLAY_H
 #define GFX2D_TEST_REPLAY_H

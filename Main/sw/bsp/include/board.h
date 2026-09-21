@@ -106,7 +106,7 @@ void       board_wait_frame(void);
    PC：场数由 board_init 起算的 60Hz 时间轴给（同样与有没有 present 无关），
        切换数是成功 present 过的次数。
 
-   口径与判据见 Engineering/Todo/sw/SW4-PC平台层.md 2.2 节。 */
+   口径与判据见 Engineering/TechReports/sw/03-PC平台层与帧节拍.md 3.4 节。 */
 uint32_t   board_frame_count(void);
 uint32_t   board_swap_count(void);
 

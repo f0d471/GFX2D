@@ -94,7 +94,7 @@ wsl -e python3 Main/tools/check/replay2c.py --check F.g2dr                      
 wsl -e python3 Main/tools/check/replay2c.py --selftest                                     文本往返与坏输入自检
 ```
 
-只用标准库，不依赖板子、编译器与 SDL。格式的权威是 `sw/lib/core/replay.h`（SW4 的 D6）：
+只用标准库，不依赖板子、编译器与 SDL。格式的权威是 `sw/lib/core/replay.h`（sw 第 03 章 3.2 节的 D6）：
 头部 16 字节记魔数 `G2DR`、版本、标志、种子与帧数，之后每帧一个 32 位按键位图，全部小端、
 定长、无对齐洞。**逐字节读写，不把缓冲强制转成结构体**，所以 LP64 与 ILP32 解出同一串按键。
 
@@ -122,7 +122,7 @@ wsl -e bash -c 'bash Main/tools/check/check_sw4_pc.sh'
 wsl -e bash -c 'SW4_QUICK=1 bash Main/tools/check/check_sw4_pc.sh'     少跑几帧，改代码时用
 ```
 
-PC 平台层（[SW4](../../../Engineering/Todo/sw/SW4-PC平台层.md)）第 3 节里「要跑多次再比」的几条：
+PC 平台层（[sw 第 03 章](../../../Engineering/TechReports/sw/03-PC平台层与帧节拍.md)）5.2 节里「要跑多次再比」的几条：
 第 1 条用例 CRC 对 `lib/test/golden.txt`、第 8 条有窗与无窗用**同一个二进制**跑两次再逐行比、
 第 7 条把录制文本灌回 `.g2dr`、第 2 条跑缩放探针，另跑一次注错构建
 （`INJECT=REPLAY_CLOCK`，画面依赖时刻之后两次回放必须出现不同，用来证明「两次相同」不是空转）。

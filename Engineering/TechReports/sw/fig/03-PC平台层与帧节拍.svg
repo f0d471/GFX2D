@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1024" viewBox="0 0 1240 1024"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b   { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bn  { fill:#eff6ff; stroke:#1d4ed8; stroke-width:1.3 }
+      .bd  { fill:#fffbeb; stroke:#b45309; stroke-width:1.2 }
+      .bt  { fill:#f0fdf4; stroke:#15803d; stroke-width:1.2 }
+      .bg  { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .grp { fill:none; stroke:#cbd5e1; stroke-width:1; stroke-dasharray:3 3 }
+      .tt  { font-size:12.5px; font-weight:600; fill:#0f172a }
+      .t   { font-size:11px; fill:#0f172a }
+      .ts  { font-size:9.5px; fill:#475569 }
+      .tg  { font-size:10.5px; font-weight:600; fill:#64748b }
+      .flow { stroke:#334155; stroke-width:1.4; fill:none }
+      .chk  { stroke:#b45309; stroke-width:1.4; fill:none; stroke-dasharray:7 3 }
+      .un   { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="1024" fill="#ffffff"/>
+  <text x="40" y="36" font-size="18" font-weight="600" fill="#0f172a">gfx2d PC 平台层与帧节拍</text>
+  <text x="40" y="58" font-size="12" fill="#64748b">SW4 结束时的状态，2026-09-21。底色表示一个文件属于哪一层，灰色虚线表示尚未接入的下游；实测数字在正文表格里。</text>
+
+  <!-- ===== 应用 ===== -->
+  <rect class="grp" x="32" y="76" width="1176" height="120" rx="2"/>
+  <text class="tg" x="44" y="94">应用 sw/apps/（板上与 PC 同一份源码）</text>
+
+  <rect class="bn" x="48" y="104" width="552" height="78" rx="2"/>
+  <text class="tt" x="60" y="126">apps/test/platformTest  判据程序</text>
+  <text class="ts" x="60" y="146">六段：cases / pace / drop / live / replay / 汇总；不加开关</text>
+  <text class="ts" x="60" y="160">（板上 start.S 是 call main，没有 argv）</text>
+  <text class="ts" x="60" y="174">cases 的 CRC 交给脚本对 golden.txt，其余自己判并打印 fail N</text>
+
+  <rect class="b" x="632" y="104" width="560" height="78" rx="2"/>
+  <text class="tt" x="644" y="126">apps/game/gfx2dGame  最小应用</text>
+  <text class="ts" x="644" y="146">每帧只调 board_present：它自己等掉一场；再调 board_wait_frame 就掉到 30 fps</text>
+  <text class="ts" x="644" y="160">60 个整帧 CRC 与入库日志逐帧相同（那份日志采于扫描输出之前）</text>
+  <text class="ts" x="644" y="174">回放段从 lib/core/replay 取键，不读键盘</text>
+
+  <!-- ===== 板级接口 ===== -->
+  <rect class="grp" x="32" y="212" width="1176" height="84" rx="2"/>
+  <text class="tg" x="44" y="230">板级接口 sw/bsp/include/board.h（两个平台都实现）</text>
+
+  <rect class="bn" x="48" y="238" width="1144" height="46" rx="2"/>
+  <text class="ts" x="60" y="256">已有 10 个：board_init / board_region / board_cycles / board_puts / board_keys / board_fb / board_present / board_wait_frame / board_dcache_invalidate_all / _range</text>
+  <text class="ts" x="60" y="274">本章新增 3 个：board_frame_count、board_swap_count（32 位回绕；掉帧数 = 两个增量之差，先在 uint32_t 上减完）、board_should_quit（板上恒 0）</text>
+
+  <!-- ===== 板级实现 ===== -->
+  <rect class="grp" x="32" y="312" width="1176" height="224" rx="2"/>
+  <text class="tg" x="44" y="330">板级实现 sw/bsp/（两个平台各一份，接口相同）</text>
+
+  <rect class="bn" x="48" y="338" width="704" height="184" rx="2"/>
+  <text class="tt" x="60" y="360">host/board.c  PC 实现（SDL2）</text>
+  <text class="ts" x="60" y="380">场节拍：场号 = (now − base) / step，step = freq / 60</text>
+  <text class="ts" x="60" y="396">board_present 记下进入时的场号，等到场号变化再返回并加一切换</text>
+  <text class="ts" x="60" y="412">等待：超过 1 毫秒就 SDL_Delay 整毫秒减一，最后一毫秒自旋</text>
+  <text class="ts" x="60" y="428">事件泵：SDL_QUIT 置 s_quit，两个等待立即返回；F1~F3 改窗口，不进按键位图</text>
+  <text class="ts" x="60" y="444">最近邻：SDL_SetHint(RENDER_SCALE_QUALITY, "0")；渲染器不带 PRESENTVSYNC</text>
+  <text class="ts" x="60" y="460">无窗：SDL_VIDEODRIVER=dummy，程序里一行都不写，跑同一个二进制</text>
+  <text class="ts" x="60" y="476">两个计数：场号取自时间轴；切换数是成功 present 的次数</text>
+  <text class="ts" x="60" y="500">行跨 4096 字节，上传纹理不另拷贝；帧缓冲尺寸恒 640x480</text>
+
+  <rect class="b" x="784" y="338" width="408" height="184" rx="2"/>
+  <text class="tt" x="796" y="360">ti60/board.c  板上实现</text>
+  <text class="ts" x="796" y="380">board_frame_count → FRAME_COUNT（每个场起始加一，自由运行）</text>
+  <text class="ts" x="796" y="396">board_swap_count → SWAP_COUNT（切完才加一）</text>
+  <text class="ts" x="796" y="412">board_should_quit → 恒 0（板上没有宿主）</text>
+  <text class="ts" x="796" y="428">board_present 在扫描输出验收时接上：写 BACK_BASE /</text>
+  <text class="ts" x="796" y="444">SWAP_REQ，轮询 SWAP_COUNT 递增；切换在场起始生效</text>
+  <text class="ts" x="796" y="460">比特流里没有扫描输出时两个计数返回 0</text>
+  <text class="ts" x="796" y="476">寄存器窗口 0xF810_E000，见 display 第 01 章</text>
+  <text class="ts" x="796" y="500">板上输入（KEY0~3 与串口）归 SW9</text>
+
+  <!-- ===== 判据 ===== -->
+  <rect class="grp" x="32" y="552" width="1176" height="128" rx="2"/>
+  <text class="tg" x="44" y="570">判据</text>
+
+  <rect class="bd" x="48" y="578" width="520" height="90" rx="2"/>
+  <text class="tt" x="60" y="600">tools/check/check_sw4_pc.sh</text>
+  <text class="ts" x="60" y="620">有窗、无窗（SDL_VIDEODRIVER=dummy）、注错构建各跑一遍</text>
+  <text class="ts" x="60" y="636">对 golden.txt、比有窗与无窗两条序列、灌回录制文本</text>
+  <text class="ts" x="60" y="652">S0~S8；SW4_QUICK=1 把三段帧数压到 60/30/180</text>
+
+  <rect class="bt" x="592" y="578" width="288" height="90" rx="2"/>
+  <text class="tt" x="604" y="600">tools/check/check_sw4_scale.c</text>
+  <text class="ts" x="604" y="620">8x8 棋盘放大 80 倍，读回边界像素</text>
+  <text class="ts" x="604" y="636">判最近邻；hint 默认未设、两个值结果不同</text>
+  <text class="ts" x="604" y="652">三种窗口尺寸都设得下去</text>
+
+  <rect class="bt" x="904" y="578" width="288" height="90" rx="2"/>
+  <text class="tt" x="916" y="600">lib/test/test_replay.c</text>
+  <text class="ts" x="916" y="620">R1~R5 共 64 项：头部字节序、坏输入、</text>
+  <text class="ts" x="916" y="636">流式录制、录制文本、固件三方对账</text>
+  <text class="ts" x="916" y="652">64 位与 -m32 输出逐字节相同</text>
+
+  <!-- ===== 录像与转换 ===== -->
+  <rect class="grp" x="32" y="696" width="1176" height="128" rx="2"/>
+  <text class="tg" x="44" y="714">录像 sw/lib/core/replay（纯算法，两个平台同一份）与它的转换</text>
+
+  <rect class="bn" x="48" y="722" width="520" height="90" rx="2"/>
+  <text class="tt" x="60" y="744">lib/core/replay.h / replay.c</text>
+  <text class="ts" x="60" y="764">格式：头部 16 字节（G2DR / 版本 / 标志 / 种子 / 帧数）+ 每帧 4 字节按键位图</text>
+  <text class="ts" x="60" y="780">全部小端、定长、无对齐洞；逐字节读写，不把缓冲强制转成结构体</text>
+  <text class="ts" x="60" y="796">replay_pack / replay_rec_* / replay_open / replay_key_at / 录制文本</text>
+
+  <rect class="bd" x="592" y="722" width="288" height="90" rx="2"/>
+  <text class="tt" x="604" y="744">tools/check/replay2c.py</text>
+  <text class="ts" x="604" y="764">.g2dr 与 C 数组、录制文本互转</text>
+  <text class="ts" x="604" y="780">--check 结构校验、--selftest 文本往返</text>
+  <text class="ts" x="604" y="796">进 make test 的判据路径，不是一次性生成器</text>
+
+  <rect class="b" x="904" y="722" width="288" height="90" rx="2"/>
+  <text class="tt" x="916" y="744">lib/test/replay_fixture.g2dr</text>
+  <text class="ts" x="916" y="764">入库的 256 帧固件（1040 字节）</text>
+  <text class="ts" x="916" y="780">make test 生成 replay_fixture.h，再与文件对账</text>
+  <text class="ts" x="916" y="796">按键序列另用 xorshift32 重算一遍对账</text>
+
+  <!-- ===== 下游 ===== -->
+  <rect class="bg" x="48" y="852" width="520" height="66" rx="2"/>
+  <text class="tt" x="60" y="874" fill="#64748b">SW9  板上移植</text>
+  <text class="ts" x="60" y="892">把录像编进程序，板上逐帧 CRC 与 PC 互比；</text>
+  <text class="ts" x="60" y="906">板上按键输入与场起始中断驱动帧节拍</text>
+
+  <rect class="bg" x="592" y="852" width="288" height="66" rx="2"/>
+  <text class="tt" x="604" y="874" fill="#64748b">SW6 / SW7  Demo 与游戏</text>
+  <text class="ts" x="604" y="892">现在能在 PC 上出画面</text>
+  <text class="ts" x="604" y="906">只经构造层，不直接写像素</text>
+
+  <rect class="bg" x="904" y="852" width="288" height="66" rx="2"/>
+  <text class="tt" x="916" y="874" fill="#64748b">engine  RTL 与仿真 TB</text>
+  <text class="ts" x="916" y="892">板上上屏与硬件渲染</text>
+  <text class="ts" x="916" y="906">尚无条目</text>
+
+  <!-- ===== 连线 ===== -->
+  <path class="flow" d="M150,182 L150,238" marker-end="url(#a)"/>
+  <path class="flow" d="M900,182 L900,238" marker-end="url(#a)"/>
+  <path class="flow" d="M300,284 L300,338" marker-end="url(#a)"/>
+  <path class="flow" d="M980,284 L980,338" marker-end="url(#a)"/>
+
+  <path class="chk" d="M180,578 L180,522" marker-end="url(#ac)"/>
+  <text class="ts" x="188" y="552">被测</text>
+  <path class="chk" d="M700,578 L700,522" marker-end="url(#ac)"/>
+  <path class="chk" d="M1000,678 L1000,722" marker-end="url(#ac)"/>
+  <text class="ts" x="1008" y="704">对账</text>
+
+  <path class="flow" d="M880,767 L904,767" marker-end="url(#a)"/>
+  <path class="un" d="M1040,812 L1040,852" marker-end="url(#ag)"/>
+  <text class="ts" x="1048" y="836">同一份录像</text>
+
+  <!-- ===== 图例 ===== -->
+  <rect class="grp" x="32" y="936" width="1176" height="76" rx="2"/>
+  <text class="tg" x="44" y="954">图例</text>
+
+  <rect class="bn" x="48" y="962" width="26" height="14"/>
+  <text class="ts" x="82" y="973">本章新增或重写</text>
+  <rect class="b" x="232" y="962" width="26" height="14"/>
+  <text class="ts" x="266" y="973">已存在或数据结构</text>
+  <rect class="bt" x="424" y="962" width="26" height="14"/>
+  <text class="ts" x="458" y="973">判据侧新增</text>
+  <rect class="bd" x="592" y="962" width="26" height="14"/>
+  <text class="ts" x="626" y="973">已存在或由别处生成</text>
+  <rect class="bg" x="800" y="962" width="26" height="14"/>
+  <text class="ts" x="834" y="973">尚未接入</text>
+
+  <path class="flow" d="M48,990 L100,990" marker-end="url(#a)"/>
+  <text class="ts" x="108" y="994">实线：调用或数据流</text>
+  <path class="chk" d="M268,990 L320,990" marker-end="url(#ac)"/>
+  <text class="ts" x="328" y="994">深虚线：判据对照</text>
+  <path class="un" d="M488,990 L540,990" marker-end="url(#ag)"/>
+  <text class="ts" x="548" y="994">灰虚线：尚未接入的下游</text>
+</svg>

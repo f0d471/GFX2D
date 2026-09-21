@@ -1,7 +1,9 @@
 # SW9 板上移植
 
 状态：未开工。分两半：
-**前半**（板上软件执行器跑游戏、串口逐帧 CRC 与 PC 比对）只要 SW4 的录像回放与 SW7 的部分逻辑（SW3 已于 2026-09-21 验收），不等硬件；
+**前半**（板上软件执行器跑游戏、串口逐帧 CRC 与 PC 比对）只要 SW4 的录像回放与 SW7 的部分逻辑
+（SW3、SW4 已于 2026-09-21 验收与归档，见 [sw 第 02 章](../../TechReports/sw/02-命令表构造层与软件执行器.md)
+与 [sw 第 03 章](../../TechReports/sw/03-PC平台层与帧节拍.md)），不等硬件；
 **后半**（上屏显示、场同步、硬件引擎驱动、软硬件帧率对比）等 display 与 engine 两个系列：
 display 的扫描输出已于 2026-09-21 验收（[display 第 01 章](../../TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md)），engine 还没有条目。本系列里只有这一条有硬件前置。
 
@@ -18,7 +20,7 @@ PC 版证明的是逻辑与画面正确，板上要回答三件事：同一份�
 - 补全 `sw/bsp/ti60/`：输入（KEY0~3 + 串口）、素材区（`board_region` 指向 DDR 素材区，素材由 JTAG 或 Flash 预先放入，解析用 `sw/lib/core` 的素材包代码）。计时与日志在 SW1 已有。
 - 录像回放：把 PC 录的一段按键序列编进程序（或经串口送入），板上跑同样的帧数，
   每帧用软件执行器画进 DDR 帧缓冲 0（`0x0200_0000`），算整帧 CRC32 打到串口。
-  CRC 口径按 [SW4](SW4-PC平台层.md) 2.4 节：逐行取前 `width × 4` 字节、跳过行跨的间隙，
+  CRC 口径按 [sw 第 03 章](../../TechReports/sw/03-PC平台层与帧节拍.md) 3.6 节：逐行取前 `width × 4` 字节、跳过行跨的间隙，
   两边都用 `lib/core/crc32.h` 的流式接口。把行跨的空隙算进去，板上 DDR 的上电残值与
   PC 上的零必然不同，比对会在与渲染无关的地方全线报错。
 - 与 PC 无窗口回放的 CRC 序列逐帧比对。这一步验证的是 ILP32 与 LP64、gcc 8.3 与 gcc 15 之间没有行为差异。
@@ -28,9 +30,11 @@ PC 版证明的是逻辑与画面正确，板上要回答三件事：同一份�
 ### 2.2 后半：上屏与硬件引擎（等 display、engine）
 
 - display 就绪后：`sw/bsp/ti60/` 的 `board_present` 与 `board_wait_frame` 已在扫描输出验收时接上
-  （写 `BACK_BASE`/`SWAP_REQ`、轮询 `SWAP_COUNT` 与 `FRAME_COUNT`），本条要补的是
-  把帧节拍从轮询改成场起始中断驱动，以及 `board_frame_count`/`board_swap_count` 的板上实现
-  （接口见 [SW4](SW4-PC平台层.md) 2.2 节）。
+  （写 `BACK_BASE`/`SWAP_REQ`、轮询 `SWAP_COUNT` 与 `FRAME_COUNT`）；
+  `board_frame_count`/`board_swap_count` 由 [sw 第 03 章](../../TechReports/sw/03-PC平台层与帧节拍.md)
+  补齐并已于 2026-09-21
+  上板验过（600 帧 `dfield=dswap=600`、每帧恰一场、掉帧减法 2 减 1），本条不必再验一遍。
+  本条要补的是把帧节拍从轮询改成场起始中断驱动。
 - engine 就绪后：引擎驱动放 `sw/bsp/ti60/`，按设计文档 3.4 节的寄存器表提交命令表（`LIST_BASE`/`LIST_COUNT`/`DOORBELL`），
   完成中断后请求交换；按 sw 系列 README 的一致性规则，读回共享区之前失效。
 - Tab 切软硬件，HUD 两个帧率都填实数；硬件计数器（`PERF_*`）并入 SW8 的 CSV。

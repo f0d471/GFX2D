@@ -2,7 +2,7 @@
 #
 # 一次跑完全部场景，不加开关：十一个整帧用例、600 帧帧节拍、掉帧注错、
 # 实时输入与关窗退出、录制的往返与两次回放。判据与取舍见
-# Engineering/Todo/sw/SW4-PC平台层.md 第 3 节。
+# Engineering/TechReports/sw/03-PC平台层与帧节拍.md 5.2 节。
 #
 #   make PLATFORM=host                   PC，产物 build_host/platformTest
 #   SDL_VIDEODRIVER=dummy ./build_host/platformTest    无窗口跑同一个二进制

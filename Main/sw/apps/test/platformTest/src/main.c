@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file main.c: platformTest —— PC 平台层的判据程序
 *
-* @brief  一次跑完全部场景，不加开关（SW4 的 D5：共享的应用不能用 argv 选模式，
+* @brief  一次跑完全部场景，不加开关（sw 第 03 章 3.2 节的 D5：共享的应用不能用 argv 选模式，
 *         板上 `start.S` 是 `call main`）。六个场景按顺序：
 *
 *           1. cases   十一个整帧用例经软件执行器画进帧缓冲 0，逐帧 CRC 打出来，
@@ -19,7 +19,7 @@
 *         注错 `INJECT_REPLAY_CLOCK` 把时刻混进画面，两次的序列必须因此不同，
 *         用来证明「两次相同」那条判据不是空转。
 *
-*         判据与取舍见 Engineering/Todo/sw/SW4-PC平台层.md 第 3 节与 1.1 节。
+*         判据与取舍见 Engineering/TechReports/sw/03-PC平台层与帧节拍.md 3.2 节与 5.2 节。
 *
 *         无窗口模式不改这里的代码：`SDL_VIDEODRIVER=dummy ./platformTest`，
 *         跑的是同一个二进制（2.5 节）。
