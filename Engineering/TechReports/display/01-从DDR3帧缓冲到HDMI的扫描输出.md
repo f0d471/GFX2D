@@ -513,6 +513,114 @@ INJECT age64_rd age=64 hits=0x0000155c probe_done
 - **上电没有清 FIFO。** 厂商 FIFO 的指针在第一次 `a_rst_i` 之前是 X，快照读回一堆 X。
   复位后 FSM 从清空态起，先清一次再进运行态。
 
+### 4.8 帧快照的跨域握手会被 core 复位吃掉一次翻转，然后永久冻结
+
+**第一现场。** E5 2.4 节六次完整烧写启动里有一次（`logs/e5_2_4_review_run3.log`）从头到尾
+报 `no_frame`，三组场景一个水位样本都没收到：
+
+```
+SCEN idle scan txn=480 beat=76800 max_first=66 max_full=239 max_gap=44 status=00000000
+SCEN idle scene aborted=0 ... snap_frame=00000000 snap_min=0 snap_zero=00000000
+                              snap_under=00000000 snap_beats=00000000 snap_end=00000000
+SCEN idle FAIL why=no_frame
+```
+
+当时只记了「像素侧没有正常启动」，疑点放在像素时钟、PLL 锁定或跨域启动时序上，没有定位。
+
+**解读：这一行里的每个数都说像素侧是好的。** `txn=480`、`beat=76800` 恰好是**一整场**：
+取数侧被 FIFO 水位节流，能把 480 行全部发完，只能是像素侧在这一整场里把 76800 拍都弹走了。
+程序随后的 `scan_off()` 也成功了（末态 `status=0`），而 `started` 只在**场起始**才会清——
+也就是说至少还有第二个 `fs_event` 到过 core 侧。取数停在 480 笔，也正是「行号只在场起始归零」
+的必然结果：第二个场起始把 `en_eff` 关掉了，于是它就停在那里。
+唯一坏掉的是快照：`snap_*` 六个寄存器全是复位值（若收到过哪怕一组，`snap_min` 该是 512 而不是 0），
+core 侧一组都没收到过。所以故障不在像素侧，在**帧快照那条跨域通路**上。
+
+**机理。** 快照走 toggle/ack：像素侧在场起始锁存一组、翻 `snap_toggle`、置 `snap_busy`，
+要等 core 侧把 `snap_ack` 跟成同一电平才肯翻下一次。原来的接收侧是这样写的：
+
+```verilog
+always @(posedge clk) begin
+    snap_sync <= {snap_sync[0], snap_toggle};   // 不在 rst 分支里，复位期间照样移位
+    if (rst) begin snap_seen <= 1'b0; snap_ack <= 1'b0; ... end
+    else begin
+        snap_seen <= (snap_sync[1] ^ snap_sync[0]);   // 认的是**沿**
+        if (snap_seen) begin ...; snap_ack <= snap_sync[1]; end
+    end
+end
+```
+
+同步器在复位期间继续移位，而事件位被 `rst` 压住：**发生在 core 复位窗口里的那一次翻转被吃掉**。
+复位一撤销，`snap_sync` 已经是 `11`，再没有沿可认；像素侧的 `snap_busy` 永远等不到 ack，
+也就再也不翻。两侧各守一个电平，快照永久冻结，`SNAP_FRAME` 停在复位值 0——直到像素域自己被复位
+（也就是重新配置比特流）为止。重烧同一份比特流就恢复，正是因为它把像素域一起复位了。
+
+这件事能发生，是因为两个域的复位源不同、谁先出复位不由本设计决定：core 侧是 `soc_system_reset`
+（SoC 内部 `io_asyncReset = ~pll_all_locked` 之后四千多个周期），像素侧是 `hdmi_tx` 的 `vid_rst_n`
+（HDMI PLL 锁定后同步释放）。像素侧领先到「它的第一个场起始落在 core 复位里」就中招。
+`color_bar_rgb` 复位后从 `S_VST` 起步、`vs` 复位为 0，第一个 `vs` 下降沿要等一整场
+（约 16.6 毫秒）才来，所以余量正好只有一场——这不是一个宽裕的余量，而是刀尖。
+
+**判据。** `sim/display` 新增 `corerst` 用例，两段都要求 `SNAP_FRAME` 每场恰好 +1：
+
+1. 像素域先出复位、它的头两个场起始落在 core 复位窗口里；
+2. 两侧都跑起来之后再单独复位 core 域，跨过两个场起始。
+
+改前两段全红（各 8 场全部没有 +1），改后全绿。测试台每场打的那行诊断把冻结态直接写出来：
+`SNAP tog=1 busy=1 acksync=00 fsync=11 fack=0`——源侧举着 1 等 ack，接收侧两级同步器已经
+都是 1、没有沿，`snap_ack` 停在 0。
+
+**修法。** 接收侧改成比**电平**而不是认沿：
+
+```verilog
+wire snap_new = (snap_sync[1] ^ snap_ack) & (snap_sync[1] == snap_sync[0]);
+always @(posedge clk) begin
+    snap_sync <= {snap_sync[0], snap_toggle};
+    if (rst) begin snap_go <= 1'b0; ...; snap_ack <= 1'b0; end
+    else begin
+        snap_go <= snap_new & ~snap_go;
+        if (snap_go) begin ...; snap_ack <= snap_sync[1]; end
+    end
+end
+```
+
+复位期间错过了什么都不要紧：只要 `snap_ack` 与同步进来的电平不一致，撤销复位之后就会被重新认出来，
+收一组、把 ack 跟上去，源侧的 `snap_busy` 随即放开。反方向（像素域单独复位）同样自愈。
+`snap_go` 与「两级读数一致」这两条为什么长这样，见下面一段——它们不改判据，
+改的是综合后的结构与跨域数据总线的建立时间。顺带删掉了 `snap_seen` / `snap_event`，它们没有任何使用者。
+
+**原判据为什么没有覆盖到它。** 仿真里两个域的复位一直是**同时给**的，而且顺序还是 core 先出复位——
+正好是安全的那一侧。`snapshot` 用例查的是「每场 +1」，但它从来没有在复位不对称的条件下跑过。
+这与 4.4 节是同一类账：**两个域的复位不对称，只在上板流程里出现，仿真默认把它抹平了。**
+4.4 那次改的是量测值清不掉，这次是通路本身失活；判据补的都是同一条——复位不能只在 `initial` 里给一次。
+
+**改完之后同步器被综合折掉了，靠网表核对才发现。** 改法从「认沿」变成「比电平」，
+副作用是 `snap_sync[0]` 不再被读——原来的 `snap_sync[1] ^ snap_sync[0]` 两级都用得到，
+改后只用 `snap_sync[1]`，第 0 级成了死端。综合于是把两级折成一条 `EFX_SRL8` 移位链
+（`async_reg=TRUE` 属性还挂着，但同步器的第一级不再是独立触发器）。
+仿真全绿、时序全绿、CDC 报告也仍然是 `No Synchronizer warnings`，只有到 `outflow/gfx2d_ti60.map.v` 里
+按 5.2 节那张表逐条核对才看得见。中间还试过「加第三级 `snap_lvl`」，结果一样被折成 `EFX_SRL8`——
+可见触发折叠的是「只用最后一级」，不是级数。同一份设计里 `fs_sync` 保持成两个带 `async_reg` 的 `EFX_FF`，
+正是因为它的两级都被读到。
+
+最终形态把两件事分开：
+
+- `snap_new = (snap_sync[1] ^ snap_ack) & (snap_sync[1] == snap_sync[0])`：
+  判据仍然是电平（自愈），而「两级读数一致才算电平稳下来」这一条既有实义，又让第 0 级重新被用到，
+  综合折不掉。核对后 `snap_sync[0]`、`snap_sync[1]` 是两个独立的 `EFX_FF`，都带 `async_reg="true"`。
+- `snap_go <= snap_new & ~snap_go`：把锁存推后一拍。快照数据总线是一条跨域的组合路径，
+  SDC 把两个时钟切开了、STA 不查它，这样从像素侧那个边沿算起有三个 `core_clk` 周期的建立时间。
+  `& ~snap_go` 不能省：`snap_ack` 要到锁存那一拍才更新，在那之前 `snap_new` 一直成立，少了它会连锁存两次。
+
+**判据过了不等于结构对了。** 这一条三层判据（仿真、时序、CDC 报告）全都拦不住，
+只有 5.2 节那张「到综合后网表里逐条看跨域通道」的表能拦。
+
+**顺带查过、没有改的两条复位不对称。** 一是 `fs_toggle`：它的接收侧也是纯沿检测，
+同样会在 core 复位期间丢掉一次场起始事件，但它不带 ack、不成对，丢一次只是少数一场，
+下一场（16.7 毫秒后）自愈，不会失活。二是 `clear_toggle`：它是 core 域的寄存器，
+core 复位时若它正停在 1，会被清成 0 而像素侧看到一个沿，也就是多清一次累计值——
+方向是安全的（那两个数的判据本来就要求恒为 0），而且复位本身已经让那一段计量窗口作废。
+两条都记在这里，不改。
+
 ## 五、结果
 
 ### 5.1 仿真
@@ -524,7 +632,8 @@ fifo/semantics: RESULT: PASS checks=23
 fifo/inject_no_reset: RESULT: FAIL errors=7 checks=23
 display/image: PASS   display/image_clk_plus: PASS   display/image_clk_minus: PASS
 display/swap: PASS    display/inflight: PASS         display/level: PASS
-display/starve: PASS  display/snapshot: PASS         display/image_full: PASS
+display/starve: PASS  display/snapshot: PASS         display/corerst: PASS
+display/image_full: PASS
 display/inj_lag0 / inj_order / inj_phase / inj_no_drain / inj_no_clear / inj_inflight2 / inj_swap_now: 全部 FAIL
 SIM OK
 ```
@@ -561,7 +670,7 @@ Efinity 2026.1，四步（map / interface / pnr / pgm）PASS。`Missing Interfac
 | 通道 | 网表里的结构 |
 | --- | --- |
 | 场起始 `fs_toggle`（像素 → core） | `u_display/u_fetch/fs_sync[1:0]`：两级 `EFX_FF`，`async_reg="true"`，都在 `core_clk` |
-| 帧快照 `snap_toggle`（像素 → core） | `u_display/u_fetch/snap_sync[1:0]`：同上；`snap_ack` 的 D 直接取 `snap_sync[1]` |
+| 帧快照 `snap_toggle`（像素 → core） | `u_display/u_fetch/snap_sync[1:0]`：同上；`snap_ack` 的 D 取 `snap_sync[1]`、CE 取 `snap_go`（4.8 节改后的形态） |
 | `src_sel` 电平（core → 像素） | `u_display/u_out/dff_59`：两级移位，`async_reg=TRUE`，D 接 `u_display/src_sel`，时钟 `hdmi_tx_slow_clk` |
 | `snap_ack` 电平（core → 像素） | `u_display/u_out/dff_123`：同型结构，D 接 `snap_ack` |
 | `CLEAR`（core → 像素） | `u_display/clear_toggle` 与像素侧的两级 `clr_sync` 加边沿检测 |
@@ -621,6 +730,73 @@ FIFO_UNDERFLOW_BEATS = 0x13EC00 = 1305600 = 17 × 76800
 `MAX_FULL_TXN` 随仲裁与控制器状态有约 2% 的波动（第 06 章已记），
 所以第 1 节 7.4% 的预算与板上 7.5% 的实测按量级对齐，不当成精确复现。
 
+### 5.4 4.8 节那次修复的编译与上板（2026-09-21）
+
+4.8 的修复只动 `display_fetch` 的快照接收块，另加 `sim/display` 的 `corerst` 用例。
+与改前（`git HEAD`）同条件重跑 map 的对照：
+
+| 项 | 改前 | 改后 | 差值 |
+| --- | ---: | ---: | --- |
+| `EFX_LUT4` | 14035 | 14164 | +129 |
+| `EFX_FF` | 11646 | 11641 | −5 |
+| `EFX_ADD` | 1681 | 1681 | 0 |
+| `EFX_SRL8` | 755 | 755 | 0 |
+| 片上 RAM（`EFX_RAM10`） | 71 | 71 | 0 |
+| `EFX_DSP48` | 4 | 4 | 0 |
+
+改动本身是「删一个触发器、加一个触发器」，净增减为零；`EFX_LUT4` 那一百多个的出入是综合对
+同一块逻辑重新做优化的连带结果（同一份源码连跑两次 map，资源表逐行一致，所以不是随机数）。
+片上 RAM 与 DSP 是这里唯一有预算的两项，都没有变。布局布线后 XLR 21935 / 60800（36.08%）。
+
+四步 map / interface / pnr / pgm 全 PASS。时序（全设计最紧的一条是 `core_clk` 的 hold，历次编译都盯着它）：
+
+| 时钟 | setup slack | hold slack |
+| --- | ---: | ---: |
+| `core_clk` | 3.516 ns | **0.026 ns** |
+| `sdram_clk` | 0.354 ns | 0.064 ns |
+| `rx_cal_clk` | 0.451 ns | 0.029 ns |
+| `tx_cal_clk` | 0.599 ns | 0.078 ns |
+| `tx_cal_clk_90edge` | 0.400 ns | 0.072 ns |
+| `hdmi_tx_slow_clk` | 34.652 ns | 0.072 ns |
+
+`core_clk` 的 hold 仍是 0.026 ns，没有被这次重新布局挤薄；无负 slack。
+`Missing Interface Pins` 仍是已知的 6 项（顶层管脚与 `peri.xml` 都没动）；
+CDC 报告 `No Synchronizer warnings to report`；自写代码没有新告警。
+仿真五个目录（`hdmi`、`apb_probe`、`display`、`axi_probe`、`axi_mux_guard`）全部符合预期。
+
+**网表核对**（按 5.2 节那张表的口径，到 `outflow/gfx2d_ti60.map.v` 里看）：
+`u_display/u_fetch/snap_sync[0]~FF` 与 `snap_sync[1]~FF` 是两个独立的 `EFX_FF`，
+都带 `async_reg="true"`，时钟 `core_clk`；`u_display/snap_ack~FF` 的 D 接 `snap_sync[1]`、
+CE 接 `snap_go`。4.8 节末尾那一段记的就是这一条为什么必须逐条核对。
+顺带记下两件与本次无关、但核对时看到的事实：像素侧三条 core→像素的两级同步器
+（`src_sel`、`clear_toggle`、`snap_ack`）都被综合成 `EFX_SRL8`（`async_reg=TRUE` 仍在），
+与 FIFO 的格雷码指针同型；网表里那些 `u_out/dff_N` 的实例号每次编译都会变，
+5.2 节表里记的号码只对它那一版成立，核对时按 D 端接的信号找，不要按号码找。
+
+**上板**（最终比特流）：
+
+| 项 | 结果 |
+| --- | --- |
+| 四次配置后直接 `halt`（不 `reset`）读 `FRAME_CNT`/`SNAP_FRAME` | 68/67、66/65、68/67、66/66，两个计数器同步前进 |
+| `displayFifoProbe` 三次**完整烧写启动** | 三次都 `fail 0`；三组 120 场水位 **347 / 331 / 329** 拍，`bad` 三计数 0，`beat = txn × 160` |
+| `displayTest` | `fail 0` |
+| `ddrBurstProbe` | `fail 0` |
+| `ddrAliasTest` | 全部 `ok`，`base 0x0c800000 fail 0`、`done` |
+| `cacheMechTest` | T1~T11 每组 `ok`、`T6 ok`，`fail 0`、`done` |
+| 调试通路 | 连续两次会话各读一次 PC，都 `Target successfully examined` |
+| APB 探针 | ID `0x47465832`、VERSION 1、SCRATCH 写 `0xa5a5f00f` 读回一致、`0xF810_8008` 读回 0 |
+| 按键 | 空闲读数 `0x0000000f` |
+| HDMI 画面 | 八色竖条正常 |
+
+水位 347 / 331 / 329 拍与修复前在旧比特流上取的基线逐项一致（第 08 章的 `write` 组基线是 327~329），
+说明这次修复不触及取数、FIFO 与 AXI 通路，E5 2.4 的压力矩阵结论不需要重做。
+
+两条操作上的注意：`ddrAliasTest` 与 `cacheMechTest` 的 `--seconds` 要放到 200，默认 60 秒装不下它们；
+另外 `board_run.py` 的 `--stop-on` 分界线偶尔会落到程序输出之后，把通过的运行报成退出码 1
+（日志本身是完整的，`fail 0` 照常在里面），已开条目
+[`Bugs/board_run的stop-on分界线会落在程序输出之后.md`](../../Bugs/board_run的stop-on分界线会落在程序输出之后.md)，
+本节表里 `cacheMechTest` 一行就踩到过一次，判读依据取的是串口原文而不是退出码。
+
 ## 六、还欠什么
 
 1. **三项判据要软件侧的程序。** 帧率（在后缓冲画一个移动的方块、每场切换一次，把帧率打到串口）、
@@ -631,7 +807,8 @@ FIFO_UNDERFLOW_BEATS = 0x13EC00 = 1305600 = 17 × 76800
 2. **E5 的第四节（真实扫描 FIFO 水位）已于 2026-09-21 做完。** 新程序 `sw/apps/probe/displayFifoProbe`
    在 `idle` / 满负载 `read` / 满负载 `write` 三组下各收 120 场连续快照：独立复现修复后的最低水位 **347 / 331 / 327** 拍
    （都远高于 160 拍的下界），触底与欠载计数 0、`FRAME_BEATS` 76800、场末残留 0，五个有效完整会话 `fail 0`；
-   另一次完整启动在压力前报 `no_frame` 并留档，下一次重烧恢复，不计入压力数据。
+   另一次完整启动在压力前报 `no_frame` 并留档，不计入压力数据；它的根因当天查清是帧快照跨域握手的失活缺陷，
+   已在 4.8 节改掉并重新上板（5.4 节）。
    结果表与解释见 [platform 第 08 章](../platform/08-扫描FIFO的压力矩阵与深度定值.md)；本章量到的 347 拍与它逐项吻合。
    CPU 拷贝倍数一并重测（`SHARE` 1.64 倍、三方并发读 1.70 倍、写 1.92 倍），与替身时代同量级。
 3. **`ddrBurstProbe` 已改并完整复跑（2026-09-21）。** 扫描 ID 改 `0x4449_5350`、两处等待 1 ms → 20 ms、

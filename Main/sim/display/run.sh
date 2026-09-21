@@ -66,6 +66,7 @@ check_disp inflight         PASS -DCASE_INFLIGHT
 check_disp level            PASS -DCASE_LEVEL
 check_disp starve           PASS -DCASE_STARVE
 check_disp snapshot         PASS -DCASE_SNAPSHOT
+check_disp corerst          PASS -DCASE_CORERST
 
 # ---- 注错：每一个都要红在它对应的判据上 ----
 check_disp inj_lag0         FAIL -DCASE_IMAGE -DINJECT_VAL=16

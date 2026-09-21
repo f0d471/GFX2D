@@ -1,7 +1,7 @@
 // display_top（扫描输出）仿真：取数、跨域、像素对齐、双缓冲切换与自愈
 //
 // 判据来自 Engineering/Todo/hw/扫描输出.md 2.3 节。用 -D 选用例：
-//   CASE_IMAGE / CASE_SWAP / CASE_INFLIGHT / CASE_LEVEL / CASE_STARVE / CASE_SNAPSHOT
+//   CASE_IMAGE / CASE_SWAP / CASE_INFLIGHT / CASE_LEVEL / CASE_STARVE / CASE_SNAPSHOT / CASE_CORERST
 //   FULL_FRAME     整帧 640x480（默认小帧 640x8，逐像素比对跑得动）
 //   CLK_PLUS / CLK_MINUS   像素时钟偏 ±0.5%，结论不能依赖固定相位
 //   INJECT_VAL=n   注错（位定义见 rtl/display 两个子模块的端口说明）：
@@ -405,10 +405,21 @@ module tb_display;
 
         rst_core = 1'b1;
         rst_pix_n = 1'b0;
+`ifdef CASE_CORERST
+        // 上板那一侧的真实顺序：两个域的复位源不同（core 是 soc_system_reset，
+        // 像素是 hdmi PLL 锁定后的 vid_rst_n），谁先出复位不由设计决定。
+        // 这里把像素域先放开，让它的头两个场起始落在 core 复位窗口里。
+        repeat (20) @(posedge clk_pix);
+        rst_pix_n = 1'b1;
+        wait_fields(2);
+        repeat (20) @(posedge clk_core);
+        rst_core = 1'b0;
+`else
         repeat (20) @(posedge clk_core);
         rst_core = 1'b0;
         repeat (20) @(posedge clk_pix);
         rst_pix_n = 1'b1;
+`endif
         $display("CASE: V_ACT=%0d INJECT=%0d", V_ACT, INJECT);
 
         wait_fields(2);
@@ -507,6 +518,48 @@ module tb_display;
                 prev = now;
             end
             chk("snapshot frame +1 every field", bad, 0, 0);
+        end
+`elsif CASE_CORERST
+        // 跨域帧快照在「core 域单独复位」下的活性。
+        // 快照走 toggle/ack：像素侧翻 snap_toggle 之后要等 core 侧的 snap_ack 跟上来才肯翻下一次。
+        // core 复位把 snap_ack 清成 0，而像素域不跟着复位，所以复位期间发生的那次翻转
+        // 必须在复位撤销之后还能被认出来，否则两侧各守一个电平，快照永久冻结，
+        // SNAP_FRAME 一直停在复位值 0（2026-09-21 上板 run 3 的现场就是这样）。
+        // 本用例只看快照通路，取数关掉，免得 core 复位打断 AXI 去触发别的监视器。
+        begin : corerst_case
+            integer prev, now, bad;
+            apb_write(A_CTRL, 32'h0);
+            wait_fields(2);
+            chk_on = 0;
+
+            // 第一段：像素域先出复位（上面的复位块），头两个场起始落在 core 复位里
+            bad = 0;
+            wait_fields(1);
+            apb_read(A_SNAPFR, prev);
+            for (k = 0; k < 8; k = k + 1) begin
+                wait_fields(1);
+                apb_read(A_SNAPFR, now);
+                if (((now - prev) & 32'hFFFF) != 1) bad = bad + 1;
+                prev = now;
+            end
+            chk("SNAP_FRAME +1/field, pixel-first reset", bad, 0, 0);
+
+            // 第二段：两侧都跑起来之后再单独复位 core 域，跨过两个场起始
+            rst_core = 1'b1;
+            wait_fields(2);
+            repeat (20) @(posedge clk_core);
+            rst_core = 1'b0;
+            wait_fields(2);
+
+            bad = 0;
+            apb_read(A_SNAPFR, prev);
+            for (k = 0; k < 8; k = k + 1) begin
+                wait_fields(1);
+                apb_read(A_SNAPFR, now);
+                if (((now - prev) & 32'hFFFF) != 1) bad = bad + 1;
+                prev = now;
+            end
+            chk("SNAP_FRAME +1/field, core-only reset", bad, 0, 0);
         end
 `else
         // CASE_IMAGE（默认）与 CASE_INFLIGHT 共用：连续若干场逐像素全对

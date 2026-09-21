@@ -8,6 +8,8 @@
 //      锁存本场基址 → 开始预取。清空由这里执行，因为必须在等 rlast 之后才动写指针。
 //   4. APB 寄存器与统计（寄存器表见 2.2 节，偏移即窗口内偏移）。
 //   5. 接收像素侧的帧快照（toggle/ack），并给出场同步中断。
+//      ack 按**电平**追 toggle，不按沿：两个域的复位源不同，落在 core 复位窗口里的翻转
+//      若按沿判就会被吃掉，两侧各守一个电平、快照永久冻结。详见下面接收块的注释。
 //
 // 发行条件（结论 3，别照字面理解阈值）：
 //      !in_flight && (row < V_ACTIVE) && en && (DEPTH - wr_level) >= LINE_BEATS
@@ -225,21 +227,43 @@ module display_fetch #(
     // ------------------------------------------------------------------
     // 帧快照的接收：收到就把整组锁存，并把 ack 跟成收到的电平
     // ------------------------------------------------------------------
+    // 判据是**电平**不是沿：同步进来的 snap_toggle 与回给源侧的 snap_ack 不一致，
+    // 就说明有一组快照还没收。
+    //
+    // 不能用 snap_sync[1] ^ snap_sync[0] 这个**沿**来判：snap_sync 不受 rst 约束，
+    // 复位期间照样移位，而事件位被 rst 压住，于是**落在 core 复位窗口里的那一次翻转会被吃掉**。
+    // 两个域的复位源不同（core 是 soc_system_reset，像素是 hdmi PLL 锁定后的 vid_rst_n），
+    // 谁先出复位不由本设计决定；像素侧先出复位时，它的第一个场起始就落在 core 复位里，
+    // 那一次翻转被吃掉之后源侧的 snap_busy 永远等不到 ack、再也不翻，
+    // SNAP_FRAME 就永久停在复位值 0（2026-09-21 上板 run 3 的现场，判据见 sim 的 corerst 用例）。
+    // 比电平没有这个问题：复位期间错过了什么都不要紧，一撤销复位两边不一致就会被重新认出来。
+    //
+    // 再加两条，判据本身不变，都是为了**综合后的结构**与建立时间：
+    //   `snap_sync[1] == snap_sync[0]`：两级同步器读数一致才算这个电平已经稳下来。
+    //     它还有一个结构上的作用——只比 snap_sync[1] 的话第 0 级就成了死端，
+    //     综合会把两级折成一条 EFX_SRL8 移位链，同步器的第一级不再是独立触发器
+    //     （同一份设计里 fs_sync 因为两级都被用到才保持成两个带 async_reg 的 EFX_FF；
+    //      网表核对见 TechReports display 第 01 章 5.2 节）。用上第 0 级就折不掉。
+    //   snap_go：把锁存再推后一拍。快照数据总线是一条跨域的组合路径，
+    //     SDC 把两个时钟切开了、STA 不查它，这样从像素侧那个边沿算起有三个 core 周期的建立时间。
+    //     `& ~snap_go` 不能省：snap_ack 要到锁存那一拍才更新，在那之前 snap_new 一直成立，
+    //     少了它会连锁存两次。
+    //
+    // snap_sync / snap_go / s_* / snap_ack 全部只在这一个块里驱动（map 会查多驱动）。
     (* async_reg = "true" *) reg [1:0] snap_sync;
-    reg snap_seen;
-    // 事件延后一拍：这样 snap_sync[1] 已经是被同步进来的新电平，可以直接拿它当 ack 回过去。
-    // 直接用同一拍的 snap_sync[1] 会拿到旧值，ack 永远追不上 toggle，源侧就一直占着不更新。
-    // snap_sync / snap_seen / s_* / snap_ack 全部只在这一个块里驱动（map 会查多驱动）。
+    reg snap_go;
+    wire snap_new = (snap_sync[1] ^ snap_ack) & (snap_sync[1] == snap_sync[0]);
+
     always @(posedge clk) begin
         snap_sync <= {snap_sync[0], snap_toggle};
         if (rst) begin
-            snap_seen <= 1'b0;
+            snap_go <= 1'b0;
             s_frame <= 16'h0; s_min <= 10'h0; s_zero <= 32'h0;
             s_under <= 32'h0; s_beats <= 32'h0; s_end <= 10'h0;
             snap_ack <= 1'b0;
         end else begin
-            snap_seen <= (snap_sync[1] ^ snap_sync[0]);
-            if (snap_seen) begin
+            snap_go <= snap_new & ~snap_go;
+            if (snap_go) begin
                 s_frame <= snap_frame;
                 s_min   <= snap_min_level;
                 s_zero  <= snap_zero_hits;
@@ -250,8 +274,6 @@ module display_fetch #(
             end
         end
     end
-
-    wire snap_event = snap_seen;
 
     // ------------------------------------------------------------------
     // 发行与收数
