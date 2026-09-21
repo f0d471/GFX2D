@@ -24,7 +24,7 @@ set PYTHONHOME=<EFINITY>\python311
 | --- | --- |
 | `--no-program` | 跳过烧比特流。默认烧 `Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit`，`--bit` 换别的 |
 | `--port` | 串口号，默认 `COM11`（`doc/开发环境.md` 第 11 节的参考值） |
-| `--stop-on` | 收到该文本就结束采集；没收到时退出码为 1 |
+| `--stop-on` | 收到该文本就结束采集；没收到时退出码为 1。**只从 `load_image` + `resume` 之后开始匹配**，取程序末尾的标记（见下面第 4 条坑） |
 | `--log` | 串口日志存哪，默认 `%TEMP%\board_run.log` |
 | `--addr` | 加载地址，默认 `0x1000` |
 | `--dry-run` | 只打印将执行的步骤 |
@@ -46,6 +46,14 @@ OpenOCD 考察到目标，`load_image` 报的写入字节数等于 bin 的大小
    父进程设过它时，内部 python 以 `Fatal Python error` 退出而退出码仍是 0，接着就用 FPGA 里原有的比特流跑了程序。
    所以烧写前把 Efinity 的环境变量从子进程里去掉，并要求输出里有成功标记。
 4. **串口号错了也不报错。** 打开一个存在但不对的 COM 口，读到 0 字节；这种情况按失败处理。
+5. **Flash 里上一次固化的程序会混进这一次的输出。** 第 1 条要求串口先于加载打开，
+   而烧完比特流板子就从 Flash 自启动，那份程序照样打 `done`、`fail 0`。
+   直接拿它匹配 `--stop-on`，会在要跑的程序一行都没输出的时候报成功、退出码 0
+   （2026-09-21 实测：Flash 里是 `bootSizeTest`，`--stop-on done` 当场命中）。
+   所以匹配窗口从 `load_image` + `resume` 之后才开始，日志里插一行
+   `# --- 程序已加载，以下才是它的输出 ---` 作分界。
+   代价：resume 到 OpenOCD 退出之间（不到一秒）的输出也在窗口外，
+   `--stop-on` 要取程序末尾的标记，不要取开头的横幅。
 
 ## gfx2d_debug.cfg
 

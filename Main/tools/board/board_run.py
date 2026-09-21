@@ -7,6 +7,10 @@
 
 1. **必须先开串口再加载程序。** 串口没打开期间板子发出的数据会被直接丢弃，
    驱动不缓存。程序跑完再打开串口，一个字节都读不到。
+   代价是这期间板子会从 Flash 自启动跑上一次固化的程序，它打的 `done`、`fail 0`
+   混在同一条串口上。所以 `--stop-on` 只从 `load_image` + `resume` 之后开始匹配，
+   加载前的那一段照样进日志、但不作数（2026-09-21 踩到：Flash 里是 `bootSizeTest`，
+   `--stop-on done` 当场命中，退出码 0，而要跑的程序一行都还没输出）。
 2. **加载前必须 `reset halt`。** 不复位时前一次实验可能把总线留在坏状态，
    `load_image` 照样报成功，程序却一行都不跑。
 3. **OpenOCD 的两个官方 cfg 在这块板上用不了**，本目录的 `gfx2d_debug.cfg` 改好了，原因写在它的头部。
@@ -37,7 +41,10 @@
 
 2026-09-19 在板上跑过：完整流程（`sw/apps/probe/ddrAliasTest`，`fail 0`、`done`，退出码 0）；
 串口号填错（0 字节，退出码 1）；`--stop-on` 的文本没出现（退出码 1）；`--check-only`；
-`--cmd` 读 APB 探针与 GPIO1。未验证：`--jtag-url` 换别的下载器。
+`--cmd` 读 APB 探针与 GPIO1。
+2026-09-21 又跑过：`sw/apps/test/platformTest`（`--no-program`，`--stop-on "fail ="`，
+`fail =0`，退出码 0），并在同一块板上复现了上面第 1 条那个假绿。
+未验证：`--jtag-url` 换别的下载器。
 """
 import argparse
 import codecs
@@ -138,8 +145,20 @@ def run_openocd(ocd, cfg, workspace, cmds, timeout=90):
     return "Target successfully examined" in out, out
 
 
-def serial_worker(port, baud, out_path, seconds, stop_on, ready, result):
-    """先开串口再让主线程去加载程序；读到的内容边读边写文件。"""
+def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result):
+    """先开串口再让主线程去加载程序；读到的内容边读边写文件。
+
+    `armed` 是主线程在 load_image + resume 之后置位的事件。它之前收到的字节
+    **不参与 `stop_on` 匹配**：串口要先于加载打开（见模块头第 1 条），而烧完比特流
+    板子会从 Flash 自启动，跑的是上一次固化的程序。那个程序同样会打 `done`、
+    `fail 0` 这类字样，直接匹配就会在新程序还没开始跑的时候报成功退出——
+    日志里留下的是另一个程序的输出，而退出码是 0。
+
+    加载前的内容照样写进日志（要能看出板子自启动跑了什么），只是匹配窗口从
+    `# --- 程序已加载` 这一行之后才开始。代价是 resume 到 openocd 退出之间
+    （不到一秒）新程序的输出也落在窗口外，所以 `stop_on` 要取程序末尾的标记，
+    不要取开头的横幅。
+    """
     try:
         sp = serial.Serial(port, baud, timeout=0.2)
         sp.reset_input_buffer()                   # 不让上一次运行残留的字节混进这一次
@@ -151,11 +170,16 @@ def serial_worker(port, baud, out_path, seconds, stop_on, ready, result):
     dec = codecs.getincrementaldecoder("utf-8")("replace")   # 多字节字符可能跨两次 read
     text = ""
     nbytes = 0
+    match_from = None                             # None 表示还没加载完，先不匹配
     deadline = time.time() + seconds
     try:
         with open(out_path, "w", encoding="utf-8", newline="") as f:
             f.write("# %s @ %d 8N1, opened %s\n" % (port, baud, time.strftime("%H:%M:%S")))
             while time.time() < deadline:
+                if match_from is None and armed.is_set():
+                    match_from = len(text)
+                    f.write("\n# --- 程序已加载，以下才是它的输出 ---\n")
+                    f.flush()
                 chunk = sp.read(4096)
                 if not chunk:
                     continue
@@ -164,13 +188,14 @@ def serial_worker(port, baud, out_path, seconds, stop_on, ready, result):
                 f.write(s)
                 f.flush()
                 text += s
-                if stop_on and stop_on in text:
+                if stop_on and match_from is not None and stop_on in text[match_from:]:
                     result["stopped"] = True
                     break
             f.write("\n# closed %s, %d bytes\n" % (time.strftime("%H:%M:%S"), nbytes))
     finally:
         sp.close()
         result["bytes"] = nbytes
+        result["pre_load_bytes"] = 0 if match_from is None else match_from
 
 
 def main():
@@ -276,10 +301,11 @@ def main():
 
     print("=== 先开串口 %s，再加载程序（顺序不能反）" % args.port)
     ready = threading.Event()
+    armed = threading.Event()       # 加载完成之前收到的字节不参与 stop_on 匹配
     result = {}
     th = threading.Thread(target=serial_worker, daemon=True,
                           args=(args.port, args.baud, log, args.seconds,
-                                args.stop_on, ready, result))
+                                args.stop_on, ready, armed, result))
     th.start()
     ready.wait(timeout=10)
     if result.get("error"):
@@ -296,6 +322,9 @@ def main():
     loaded = ok and written and int(written.group(1)) == size
     if not loaded:
         print("ERROR: 加载没有正面证据（要求考察到目标，且写入 %d 字节）" % size, file=sys.stderr)
+    # 从这里开始收到的才算这个程序的输出：烧完比特流板子会从 Flash 自启动，
+    # 那一份程序打的 done / fail 0 不能拿来当本次的证据（见 serial_worker）。
+    armed.set()
 
     print("=== 等串口采集结束（上限 %d 秒）" % args.seconds)
     th.join(timeout=args.seconds + 30)
@@ -312,6 +341,10 @@ def main():
         rc = 1
     elif args.stop_on and not result.get("stopped"):
         print("ERROR: %d 秒内没有收到 %r" % (args.seconds, args.stop_on), file=sys.stderr)
+        if result.get("pre_load_bytes"):
+            print("       （加载前板子自启动打了 %d 字节，那一段不参与匹配；"
+                  "--stop-on 要取程序末尾的标记）" % result["pre_load_bytes"],
+                  file=sys.stderr)
         rc = 1
     return rc
 
