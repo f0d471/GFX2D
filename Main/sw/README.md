@@ -221,28 +221,81 @@ gcc 13.4.0 编译，bin 2562 字节（`sha256:9d179bece4f1ff31…`，gcc 8.3.0 �
 
 ## ddrBurstProbe 的期望值
 
-需要带 `axi_probe_master`、`axi_mux_guard`（VERSION 2）与 `scanout_stub` 的比特流（2026-09-19 起）。
-gcc 13.4.0 编译，bin 6602 字节（sha256 前 16 位 `b31871c65b8e3fea`；gcc 8.3.0 时 6322 字节 `ac1bcc7b4c04a26d`），`resume` 后约 3 秒输出完毕。
-串口末尾为 `fail 0` 与 `done`，除下列各处外每行为 `ok`。2026-09-19 三轮的原始输出在 `apps/probe/ddrBurstProbe/logs/e5_v2_run_*.log`，
-判据改前那次假红在 `e5_v2_mask_race.log`。
+需要带 `axi_probe_master`、`axi_mux_guard`（VERSION 2）与扫描输出 `display` 的比特流
+（2026-09-21 起；2026-09-19~20 那批数据用的是 `scanout_stub` 替身，同一个 APB 窗口）。
+gcc 13.4.0 编译，当前有界轮询版 bin 6730 字节（sha256 前 16 位 `2b2a06117bb68e38`；
+适配 display 的初版是 6602 字节 `65797eb605112cdf`，更早是 `b31871c65b8e3fea`），`resume` 后约 3 秒输出完毕。
+串口末尾为 `fail 0` 与 `done`，除下列各处外每行为 `ok`。
+2026-09-21 两轮的原始输出在 `apps/probe/ddrBurstProbe/logs/e5_display_run_{1,2}.log`（3535 字节），
+独立复现审查后的有界轮询版两轮在 `e5_display_review_run{1,2}.log`，同样六阶段全 `ok`、末行 `fail 0`/`done`；
+2026-09-19 三轮（替身时代）在 `e5_v2_run_*.log`，判据改前那次假红在 `e5_v2_mask_race.log`。
+
+**采集时 `--stop-on` 不要用 `done`。** 这个程序会打 `probe_done`，而 `done` 是它的子串：
+`board_run.py --stop-on done` 会在第一行 `INJECT ... probe_done` 处就停止采集，日志缺尾、看起来像程序卡住
+（2026-09-21 复现两次）。用只出现在末行的 `--stop-on "fail "`。
 
 - `IDENT guard ctrl=3 mask=7 age=64 ok`：guard 的 ID、`VERSION == 2` 与上电默认值，加载旧比特流（VERSION 1）时这一行 FAIL；
-  `IDENT scan id=0x5343414e base=0x02000000 ok`：扫描替身窗口。**配置归属这条判据就在这里。**
+  `IDENT scan id=0x44495350 base=0x02000000 ok`：扫描输出窗口（`"DISP"`）。**配置归属这条判据就在这里。**
 - `CROSS`、`SWEEP` 与 E4 相同，每行 `ok`；`SHARE errs=0x00000000 ok`。
-- `SHARE cpu ticks alone=... shared=...`：CPU 拷贝在探针满负载读时约 **1.60 倍**（实测 53.9 ms 到 86.4 ms；E4 轮询基线约 1.94 倍）。
-- `TRI rd` / `TRI wr`：三方并发（扫描替身 + 探针读或写 + CPU 拷贝）。CPU 拷贝 91.5 ms（1.70 倍）/ 103.2 ms（1.92 倍）；
-  guard `max_wait_ar` 303 / 约 491、`max_wait_aw` 477 / 约 505、`hits` 约 17460 / 约 17540、`status=0`；
-  扫描 `beat = txn × 160`、`skip=0`、`resperr=0`，最坏 `max_first` 78 / 约 362、`max_full` 244 / 约 528、`max_gap` 42 / 44。
-  写方向时扫描首拍等待变长，来自控制器内部读写共用 DDR 端口（platform 第 06 章 5.3 节）。
-- `INJECT age1_rd` / `age1_wr`：`AGE_LIMIT` 设 1，两个方向命中数都必须显著增加（实测 278537 / 278536）且 `probe_done`；
-  `age64_*` 只记录（约 5600）。这一条只证明 guard 接到了真多路器，写方向 guard 不计为等待保证。
+- `SHARE cpu ticks alone=... shared=...`：CPU 拷贝在探针满负载读时约 **1.64 倍**（实测 52.0 ms 到 85.2 ms；E4 轮询基线约 1.94 倍）。
+- `TRI rd` / `TRI wr`：三方并发（扫描输出 + 探针读或写 + CPU 拷贝）。CPU 拷贝 88.7 ms（1.70 倍）/ 99.3 ms（1.92 倍）；
+  guard `max_wait_ar` 303 / 491、`max_wait_aw` 476 / 507、`hits` 约 17300 / 16900、`status=0`；
+  扫描 `beat = txn × 160`、`skip=0`、`resperr=0`，最坏 `max_first` 78 / 约 364、`max_full` 244 / 约 530、`max_gap` 42~44 / 44。
+  写方向时扫描首拍等待变长，来自控制器内部读写共用 DDR 端口（platform 第 06 章 5.3、5.4 节）。
+- `INJECT age1_rd` / `age1_wr`：`AGE_LIMIT` 设 1，两个方向命中数都必须显著增加（实测 278536 / 278535）且 `probe_done`；
+  `age64_*` 只记录（实测 5455 / 5185，替身时代约 5600）。这一条只证明 guard 接到了真多路器，写方向 guard 不计为等待保证。
 - `INJECT mask_s0 txn a b c d e ok`：清掉 guard 掩码的 S0 位。清位时在途的那一笔会照常完成，所以 `c - b` 最多为 1；
-  之后必须冻住（`d == c`），恢复后继续增长（`e > d`）。实测 `14277 14906 14907 14907 15537` 与 `14278 14908 14908 14908 15539` 都判 ok。
+  之后必须冻住（`d == c`），恢复后继续增长（`e > d`）。实测 `13440 13771 13771 13771 14362` 与 `12000 12158 12158 12158 12750` 都判 ok。
 
 周期数随板子会有约 2% 的波动；E4 各阶段的参考值与解释见
 `../../Engineering/TechReports/platform/03-DDR3上的第二个主机与突发预算.md` 5.4 节，
-E5 两个阶段的判据、实测值与解释见 `../../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md` 5.3 节。
-探针主机超时或挂死时 CPU 也访问不了 DDR，串口会停在最后一行，重新加载比特流恢复。
+E5 两个阶段的判据、实测值与解释见 `../../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md` 5.3 节，
+扫描输出从替身换成真实模块之后的复测见同一章 5.4 节。
+所有探针 DONE 轮询现在都有 5 秒总上限并检查 TIMEOUT/RESP_ERR/LAST_ERR；错误或越界时 ABORT 后判 FAIL，
+`age64_rd/wr` 也不再忽略返回值。若 AXI 总线本身已经挂死到 CPU 无法继续执行，仍需重新加载比特流恢复。
+
+## displayFifoProbe 的期望值
+
+实验 E5 2.4 节的判据程序：真实扫描 FIFO 的压力矩阵与深度定值。**只在 Ti60 上跑**，
+`make RISCV_BIN=<RISCV_BIN>` 直接调 `target.mk`，产物 `build/displayFifoProbe-O2.bin`；
+需要带扫描输出 `display`（VERSION 1）、`axi_mux_guard`（VERSION 2）与 `axi_probe_master` 的比特流。
+gcc 13.4.0，最终复核版 bin 11322 字节（sha256 前 16 位 `e5cf7dabcfe782af`）；`resume` 后约 11 秒输出完毕
+（`idle` 约 2 秒，`read`/`write` 各约 3.4 秒，其余是等探针跑满 `COUNT`）。
+**每次上板都从完整烧写比特流开始**，不要用 `--no-program` 复用上一次的配置：core 复位不碰像素域，
+上一次留下的 `SRC` 与累计值会灌进这一轮的量测。
+采集的 `--stop-on` 用只在末行出现的 `"fail "`，不要用 `done`：失败现场字段 `ptxdone` 也包含
+这个子串，会像 `ddrBurstProbe` 的 `probe_done` 一样让采集提前关闭。
+
+初版三轮在 `e5_2_4_run{1,2,3}.log`，但其中 display `status=0x4`，说明旧 `scan_off()` 没有真正停机；
+复核阶段六次完整启动在 `e5_2_4_review_run{1..6}.log`：run 1~5 使用已修正压力路径的 11306 字节版
+（`f832cb6e2e5f56b1`），run 3 又抓到探针尚未启动时失败清理会误等并误写 ABORT；最终 11322 字节版
+只修该失败分支，并由 run 6 复核正常路径。run 1、2、4、5、6 末行 `fail 0`/`done`，run 3 在压力开始前
+报 `no_frame`/`fail 3`，完整重烧后恢复。失败轮没有样本，不混入下面的压力数据：
+
+- 前三行 `IDENT` 必须全 `ok`：`disp id=44495350 ver=00000001`、
+  `guard id=4d555847 ver=00000002 ctrl=00000003 mask=00000007 age=00000040`、`probe id=41584950`。
+  任一行 FAIL 就是比特流不对，程序打 `fail 1` 直接结束，不再测后面的。
+- `SETUP fb0=02000000 front=02000000 ctrl=00000003`。
+- 每个场景出六行（摘要 / bad / probe / scan / guard / 结论），三组的期望值：
+
+| 场景 | `min` / `max` / `med_lo` / `med_hi` | 首次最小值帧号 | 扫描 `max_first` / `max_full` / `max_gap` | `txn` / `beat` | 探针 |
+| --- | --- | --- | --- | --- | --- |
+| `idle` | 347 / 347 / 347 / 347 | 127~130 | 66 / 239 / 44 | 59520 / 9523200 | 不启动（没有 `probe` 行） |
+| `read` | 331 / 331 / 331 / 331 | 255~258 | 65~66 / 237~239 / 44 | 97440 / 15590400 | `status=0x2`、`txdone=0x100000`、`errs=0`、`cycles≈0x1405xxxx`（3.36 s） |
+| `write` | 327~329 / 329 / 329 / 329 | 464~568 | 353~378 / 521~544 / 44 | 99360 / 15897600 | 同上，`cycles≈0x1467xxxx`（3.42 s） |
+
+- 每组的 `bad beats=0 end=0 low=0`、`zero=0`、`under=0`、`resperr=0`、`skip=0`；
+  `scan` 行必须 `status=0` 且 `beat == txn × 160`；CLEAR 也必须在停稳后执行，不能从半笔事务中间开始计数。
+  guard 的 `status=0`；命中数只作诊断，最终有效会话的累计末值约 824~835，不设阈值。
+- 采样期不打印：串口上先是 `IDENT`/`SETUP`，中间静默约 10 秒（三个场景在跑），再一次性出全部结果。
+- `first`（首次最小值的帧号）是三组里唯一明显变化的一项，它跟着像素域的 `SNAP_FRAME` 走，
+  与 `FRAME_COUNT` 原点不同、不能相减；它只回答「最小值出现在哪一场」，不作判据。
+- 失败时该场景多打一行 `SCEN <名字> scene aborted=... pstatus=... snap_*...`。程序先保存现场；
+  健康探针在原 5 秒预算内自然 DONE，只有硬件错误或真超时才 ABORT，避免在健康写事务中途撤销 valid。
+- 每个场景的固定起点是：两侧停稳 → 事务边界 CLEAR 并确认累计值为 0 → 无压力预装 2 场 →
+  启动探针 → 正式压力预热 2 场 → 收 120 场。`no_frame`、欠载或坏样本直接 FAIL，不能用第二轮抹掉。
+
+结果表、解释与适用边界见 `../../Engineering/TechReports/platform/08-扫描FIFO的压力矩阵与深度定值.md`。
 
 ## cacheCoherencyTest 的期望值
 

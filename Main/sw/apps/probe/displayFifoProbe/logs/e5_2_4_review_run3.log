@@ -1,0 +1,36 @@
+# COM11 @ 115200 8N1, opened 18:26:09
+bootSizeTest
+image 302028 bytes, old copy size 126976 bytes
+blob 0x000017dc size 300000, tail 0x00049bbc
+
+displayFifoProbe
+IDENT disp id=44495350 ver=00000001 ok
+IDENT guard id=4d555847 ver=00000002 ctrl=00000003 mask=00000007 age=00000040 ok
+IDENT probe id=41584950 ok
+SETUP fb0=02000000 front=02000000 ctrl=00000003
+
+# --- 程序已加载，以下才是它的输出 ---
+SCEN idle n=0 min=0 max=0 first=0 med_lo=0 med_hi=0
+SCEN idle bad beats=0 end=0 low=0 zero=00000000 under=00000000 resperr=00000000 skip=0
+SCEN idle scan txn=480 beat=76800 max_first=66 max_full=239 max_gap=44 status=00000000
+SCEN idle guard status=00000000 hits=00000003 max_ar=00000000 max_aw=00000000
+SCEN idle scene aborted=0 after=00000000 pstatus=00000000 ptxdone=00000000 snap_frame=00000000 snap_min=0 snap_zero=00000000 snap_under=00000000 snap_beats=00000000 snap_end=00000000
+SCEN idle FAIL why=no_frame
+SCEN read n=0 min=0 max=0 first=0 med_lo=0 med_hi=0
+SCEN read bad beats=0 end=0 low=0 zero=00000000 under=00000000 resperr=00000000 skip=0
+SCEN read probe status=00000000 txdone=00000000 count=00100000 errs=00000000 cycles=00000000
+SCEN read scan txn=480 beat=76800 max_first=66 max_full=239 max_gap=44 status=00000000
+SCEN read guard status=00000000 hits=00000003 max_ar=00000000 max_aw=00000000
+SCEN read scene aborted=1 after=00000000 pstatus=00000000 ptxdone=00000000 snap_frame=00000000 snap_min=0 snap_zero=00000000 snap_under=00000000 snap_beats=00000000 snap_end=00000000
+SCEN read FAIL why=no_frame
+SCEN write n=0 min=0 max=0 first=0 med_lo=0 med_hi=0
+SCEN write bad beats=0 end=0 low=0 zero=00000000 under=00000000 resperr=00000000 skip=0
+SCEN write probe status=00000000 txdone=00000000 count=00100000 errs=00000000 cycles=00000000
+SCEN write scan txn=480 beat=76800 max_first=66 max_full=239 max_gap=44 status=00000000
+SCEN write guard status=00000000 hits=00000003 max_ar=00000000 max_aw=00000000
+SCEN write scene aborted=1 after=00000000 pstatus=00000000 ptxdone=00000000 snap_frame=00000000 snap_min=0 snap_zero=00000000 snap_under=00000000 snap_beats=00000000 snap_end=00000000
+SCEN write FAIL why=no_frame
+fail 3
+done
+
+# closed 18:26:21, 2099 bytes

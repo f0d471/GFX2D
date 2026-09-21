@@ -7,7 +7,8 @@
 *
 *         寄存器表见 rtl/bus/axi_probe_master.v 文件头，基址 0xF810_1000。
 *
-*         四个阶段，串口逐行输出，任何一步卡死都能从最后一行看出卡在哪：
+*         四个阶段，串口逐行输出；所有探针轮询都有 5 秒总上限，错误或越界时 ABORT
+*         救场并让该项 FAIL，不能把总线异常表现成程序永久无输出：
 *
 *         1 IDENT   读探针主机 ID 与 ARB 复位值。
 *         2 CROSS   交叉读。CPU 写、探针读：CPU 在 A 写 0x5000_0000+k，探针读一拍，RDATA0 应相等；
@@ -74,6 +75,7 @@
 #define ST_TIMEOUT      0x04u
 #define ST_RESPERR      0x08u
 #define ST_LASTERR      0x10u
+#define ST_FATAL        (ST_TIMEOUT | ST_RESPERR | ST_LASTERR)
 
 #define MODE_WRITE      0x1u
 #define MODE_INC        0x2u
@@ -84,6 +86,7 @@
 #define SHARE_SRC       0x0E000000u
 #define SHARE_DST       0x0E800000u
 #define EVICT           0x20000000u
+#define PROBE_WAIT_TICKS 500000000u     /* 5 s @ 100 MHz，差值按 uint32_t 允许回绕 */
 
 static inline uint32_t rd(uint32_t off)            { return *(volatile uint32_t *)(PRB + off); }
 static inline void     wr(uint32_t off, uint32_t v) { *(volatile uint32_t *)(PRB + off) = v; }
@@ -103,20 +106,33 @@ static uint32_t now(void)
     return clint_getTimeLow(BSP_CLINT);
 }
 
-/* 配置并启动一轮，轮询到 DONE，返回 STATUS */
+/* 等到 DONE/硬件错误/5 秒总上限。失败时 ABORT 只用于救场，返回 ABORT 前的 STATUS。 */
+static uint32_t wait_probe(uint32_t t0)
+{
+    for (;;) {
+        uint32_t st = rd(R_STATUS);
+        if (st & ST_DONE)
+            return st;
+        if ((st & ST_FATAL) || ((uint32_t)(now() - t0) > PROBE_WAIT_TICKS)) {
+            wr(R_CTRL, 2u);              /* bit1 ABORT */
+            return st;
+        }
+    }
+}
+
+/* 配置并启动一轮，按上面的有界规则等待，返回 STATUS */
 static uint32_t run(uint32_t addr, uint32_t len, uint32_t count, uint32_t mode, uint32_t seed)
 {
+    uint32_t t0;
+
     wr(R_ADDR, addr);
     wr(R_LEN, len);
     wr(R_COUNT, count);
     wr(R_MODE, mode);
     wr(R_SEED, seed);
+    t0 = now();
     wr(R_CTRL, 1);
-    uint32_t st;
-    do {
-        st = rd(R_STATUS);
-    } while (!(st & ST_DONE));
-    return st;
+    return wait_probe(t0);
 }
 
 static uint32_t evict_rd32(uint32_t a)
@@ -157,8 +173,11 @@ static int stage_ident(void)
     bsp_printf("IDENT guard ctrl=%d mask=%d age=%d %s\r\n", gc, gm, ga, gok ? "ok" : "FAIL");
     fail += !gok;
 
+    /* 扫描输出（display）：替身在 2026-09-21 被真实模块接管，同一个 0xF810_E000 窗口的
+       ID 从 "SCAN" 变成 "DISP"；FRONT_BASE（0x00C）仍是只读、复位值 0x02000000，
+       写它被静默忽略，所以下面 S_BASE 那一项照旧成立。 */
     hex8(c, scn(0x00));
-    int sok = (scn(0x00) == 0x5343414Eu) && (scn(0x04) == 1u) && (scn(S_BASE) == FRAMEBUF0);
+    int sok = (scn(0x00) == 0x44495350u) && (scn(0x04) == 1u) && (scn(S_BASE) == FRAMEBUF0);
     bsp_printf("IDENT scan id=0x%s base=0x%s %s\r\n", c, (scn(S_BASE) == FRAMEBUF0) ? "02000000" : "other", sok ? "ok" : "FAIL");
     fail += !sok;
     return fail;
@@ -268,12 +287,10 @@ static int stage_share(void)
     wr(R_LEN, len);
     wr(R_COUNT, count);
     wr(R_MODE, 0);
+    uint32_t t_start = now();
     wr(R_CTRL, 1);
     uint32_t cpu_shared = cpu_copy();
-    uint32_t st2;
-    do {
-        st2 = rd(R_STATUS);
-    } while (!(st2 & ST_DONE));
+    uint32_t st2 = wait_probe(t_start);
     uint32_t prb_shared = rd(R_CYCLES);
     int bprb_shared_done = (st2 == ST_DONE);
 
@@ -286,9 +303,13 @@ static int stage_share(void)
     return !(st == ST_DONE && bprb_shared_done);
 }
 
-/* E5：三方并发。扫描替身按行读 160 拍、探针替身读满负载、CPU 拷贝三者同时跑，
+/* E5：三方并发。扫描输出按水位从 DDR 取数、探针替身读满负载、CPU 拷贝三者同时跑，
    记录扫描的首拍/整笔/最大拍间隙、guard 的 SoC 地址等待与命中数、CPU 拷贝耗时。
-   板上只报告黑盒控制器下的实测最大值，不声称形式上界（见 E5 2.2 节）。 */
+   板上只报告黑盒控制器下的实测最大值，不声称形式上界（见 E5 2.2 节）。
+   2026-09-21：这里的 S0 从扫描替身换成了真实 display，`S_CTRL=1`（只开 EN）就已经是
+   完整的取数负载——像素侧的弹出判据不看 `src_eff`，`SRC` 只决定显示哪一路。
+   本阶段只读 `MAX_*`/`TXN`/`BEAT`/`SKIP`/`RESPERR`，所以不必把 CTRL 写成 3。
+   统计口径随之重测过，见 E5 2.4 节与 platform 第 06 章。 */
 /* 跑一轮三方并发：S1 为主机替身（mode 0=读、1=写），S0 为扫描替身，S2 为 CPU 拷贝。
    读完先停扫描再读统计，保证 TXN 与 BEAT 是同一时刻的快照（否则 beat 读的时候还在涨）。 */
 static int tri_round(uint32_t mode, const char *name)
@@ -306,16 +327,14 @@ static int tri_round(uint32_t mode, const char *name)
     wr(R_LEN, len);
     wr(R_COUNT, count);
     wr(R_MODE, mode ? MODE_WRITE : 0u);
+    uint32_t t_start = now();
     wr(R_CTRL, 1);
     uint32_t cpu = cpu_copy();
-    uint32_t st2;
-    do {
-        st2 = rd(R_STATUS);
-    } while (!(st2 & ST_DONE));
+    uint32_t st2 = wait_probe(t_start);
 
     /* 统计快照：停扫描，等一笔在途事务走完，再一次性读走 */
     scnw(S_CTRL, 0);
-    wait_ms(1);
+    wait_ms(20);        /* EN 在场起始才生效（最长 16.7 毫秒），1 毫秒停不住扫描 */
     uint32_t txn = scn(S_TXN), beat = scn(S_BEAT), skip = scn(S_SKIP), rerr = scn(S_RESPERR);
     uint32_t f = scn(S_MAX_FIRST), fu = scn(S_MAX_FULL), gp = scn(S_MAX_GAP);
     uint32_t hits = grd(G_HITS), war = grd(G_MAX_AR), waw = grd(G_MAX_AW), gst = grd(G_STATUS);
@@ -357,14 +376,12 @@ static int inject_round(uint32_t age, uint32_t mode, const char *name, uint32_t 
     wr(R_LEN, len);
     wr(R_COUNT, count);
     wr(R_MODE, mode ? MODE_WRITE : 0u);
+    uint32_t t_start = now();
     wr(R_CTRL, 1);
     (void)cpu_copy();
-    uint32_t st2;
-    do {
-        st2 = rd(R_STATUS);
-    } while (!(st2 & ST_DONE));
+    uint32_t st2 = wait_probe(t_start);
     scnw(S_CTRL, 0);
-    wait_ms(1);
+    wait_ms(20);        /* EN 在场起始才生效（最长 16.7 毫秒），1 毫秒停不住扫描 */
     *o_hits = grd(G_HITS);
     hex8(a, *o_hits);
     bsp_printf("INJECT %s age=%d hits=0x%s %s\r\n", name, age, a,
@@ -386,8 +403,8 @@ static int stage_inject(void)
     if (h_wr == 0u) { bsp_printf("INJECT age1_wr hits=0 FAIL\r\n"); fail++; }
 
     /* 2) 设回 64，同样两轮，只记录 */
-    (void)inject_round(64u, 0u, "age64_rd", &h_rd);
-    (void)inject_round(64u, 1u, "age64_wr", &h_wr);
+    fail += inject_round(64u, 0u, "age64_rd", &h_rd);
+    fail += inject_round(64u, 1u, "age64_wr", &h_wr);
 
     /* 3) S0 掩码反例 */
     grdw(G_MASK, 7u);

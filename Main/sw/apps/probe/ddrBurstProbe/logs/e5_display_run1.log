@@ -1,0 +1,81 @@
+# COM11 @ 115200 8N1, opened 17:40:18
+bootSizeTest
+image 302028 bytes, old copy size 126976 bytes
+blob 0x000017dc size 300000, tail 0x00049bbc
+ddrBurstProbe
+IDENT id=0x41584950 arb=0x00000006 ok
+IDENT guard ctrl=3 mask=7 age=64 ok
+IDENT scan id=0x44495350 base=0x02000000 ok
+CROSS cpu->prb addr=0x0c900000 expect=0x50000000 got=0x50000000 ok
+CROSS neighbor addr=0x0c900010 got=0x60000000 differs ok
+CROSS cpu->prb addr=0x0c901000 expect=0x50000001 got=0x50000001 ok
+CROSS neighbor addr=0x0c901010 got=0x60000001 differs ok
+CROSS cpu->prb addr=0x0c902000 expect=0x50000002 got=0x50000002 ok
+CROSS neighbor addr=0x0c902010 got=0x60000002 differs ok
+# --- 程序已加载，以下才是它的输出 ---
+
+CROSS cpu->prb addr=0x0c903000 expect=0x50000003 got=0x50000003 ok
+CROSS neighbor addr=0x0c903010 got=0x60000003 differs ok
+CROSS prb->cpu addr=0x0c908000 expect=0x1fe78000 got=0x1fe78000 ok
+CROSS prb->cpu addr=0x0c909000 expect=0x1fe79000 got=0x1fe79000 ok
+CROSS prb->cpu addr=0x0c90a000 expect=0x1fe7a000 got=0x1fe7a000 ok
+CROSS prb->cpu addr=0x0c90b000 expect=0x1fe7b000 got=0x1fe7b000 ok
+SWEEP op len tx cycles latsum errs status
+SWEEP start wr len=0
+SWEEP wr 0 4096 0x00008508 0x00007507 0x00000000 0x00000002 ok
+SWEEP start rd len=0
+SWEEP rd 0 4096 0x0001d048 0x0001c047 0x00000000 0x00000002 ok
+SWEEP start wr len=1
+SWEEP wr 1 2048 0x00004bda 0x000043d9 0x00000000 0x00000002 ok
+SWEEP start rd len=1
+SWEEP rd 1 2048 0x0000efca 0x0000dbaf 0x00000000 0x00000002 ok
+SWEEP start wr len=3
+SWEEP wr 3 1024 0x00002e40 0x00002a3f 0x00000000 0x00000002 ok
+SWEEP start rd len=3
+SWEEP rd 3 1024 0x000080c1 0x000070c0 0x00000000 0x00000002 ok
+SWEEP start wr len=7
+SWEEP wr 7 512 0x0000234c 0x0000214b 0x00000000 0x00000002 ok
+SWEEP start rd len=7
+SWEEP rd 7 512 0x000049d1 0x000036dc 0x00000000 0x00000002 ok
+SWEEP start wr len=15
+SWEEP wr 15 256 0x00001a7e 0x0000197d 0x00000000 0x00000002 ok
+SWEEP start rd len=15
+SWEEP rd 15 256 0x00002cb9 0x00001b92 0x00000000 0x00000002 ok
+SWEEP start wr len=31
+SWEEP wr 31 128 0x00001707 0x00001686 0x00000000 0x00000002 ok
+SWEEP start rd len=31
+SWEEP rd 31 128 0x00001ee6 0x00000ebb 0x00000000 0x00000002 ok
+SWEEP start wr len=63
+SWEEP wr 63 64 0x00001499 0x00001458 0x00000000 0x00000002 ok
+SWEEP start rd len=63
+SWEEP rd 63 64 0x000017c7 0x000006f4 0x00000000 0x00000002 ok
+SWEEP start wr len=127
+SWEEP wr 127 32 0x00001358 0x00001337 0x00000000 0x00000002 ok
+SWEEP start rd len=127
+SWEEP rd 127 32 0x00001487 0x00000360 0x00000000 0x00000002 ok
+SWEEP start wr len=255
+SWEEP wr 255 16 0x00001347 0x00001336 0x00000000 0x00000002 ok
+SWEEP start rd len=255
+SWEEP rd 255 16 0x00001347 0x000001b0 0x00000000 0x00000002 ok
+SHARE prb cycles alone=0x004cb519 shared=0x004d15c9
+SHARE cpu ticks  alone=0x004f4955 shared=0x0081f028
+SHARE errs=0x00000000 ok
+TRI rd cpu ticks=0x008767d5
+TRI rd guard max_wait_ar=0x0000012f max_wait_aw=0x000001dc hits=0x0000439e status=0x00000000
+TRI rd prb status=0x00000002 scan txn=2880 beat=460800 skip=0 resperr=0
+TRI rd scan max_first=78 max_full=244 max_gap=44
+TRI rd ok
+TRI wr cpu ticks=0x0097931c
+TRI wr guard max_wait_ar=0x000001eb max_wait_aw=0x000001fb hits=0x000041c8 status=0x00000000
+TRI wr prb status=0x00000002 scan txn=5760 beat=921600 skip=0 resperr=0
+TRI wr scan max_first=364 max_full=530 max_gap=44
+TRI wr ok
+INJECT age1_rd age=1 hits=0x00044008 probe_done
+INJECT age1_wr age=1 hits=0x00044007 probe_done
+INJECT age64_rd age=64 hits=0x0000154f probe_done
+INJECT age64_wr age=64 hits=0x00001441 probe_done
+INJECT mask_s0 txn 13440 13771 13771 13771 14362 ok
+fail 0
+done
+
+# closed 17:40:20, 3535 bytes
