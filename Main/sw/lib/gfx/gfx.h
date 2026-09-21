@@ -141,4 +141,12 @@ uint32_t gfx_case_build(uint32_t idx, gfx_surface_table *t, const gfx_mem *m,
 #define GFX_CASE_TEX_H          64u
 #define GFX_CASE_TEX_STRIDE_LOG2 8u
 
+/* 用例在设备地址空间里的落点：帧缓冲在前，纹理从 0x20_0000 起，两者不重叠
+   （帧缓冲占 480 x 4096 = 0x1E_0000 字节，纹理 64 x 256 = 0x4000 字节）。
+   主机侧单元测试与 PC 平台层的判据程序共用这一组值：各写一遍会漂移，
+   而漂移的后果是同一个用例在两处算出不同的 CRC、与 golden.txt 对不上却查不出原因。 */
+#define GFX_CASE_FB_BASE        0x00001000u
+#define GFX_CASE_TEX_BASE       0x00200000u
+#define GFX_CASE_DEV_BYTES      0x00210000u
+
 #endif /* GFX2D_GFX_H */

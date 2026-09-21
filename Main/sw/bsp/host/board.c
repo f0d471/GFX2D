@@ -7,12 +7,20 @@
 *         应用代码里不出现任何平台判断，所以这里必须把板上有的服务都实现出来，
 *         哪怕只是空操作。
 *
-*         本条（SW1）只做最小可用：开窗、显示帧缓冲、60Hz 节拍、按键位图。
-*         双缓冲语义（SWAP_REQ / FRAME_DROP）、缩放、录像回放归 SW4。
+*         **场节拍在 PC 上是什么。** 板上「场」是像素域时序发生器的一根自由运行
+*         时间轴：FRAME_COUNT 每个场起始加一（与 EN 无关），SWAP_REQ 是一个粘滞
+*         请求位，在紧接的那一个场起始锁存、SWAP_COUNT 加一。所以 PC 侧照这个
+*         模型做：`base` 在 board_init 取一次，场号是 (now − base) / step，
+*         present 记下进入时的场号、等到场号变化再返回。free 的不是「第几帧画面」
+*         而是「第几场」，没 present 过它照样走，这样 `Δ场 − Δ切换` 才等于掉帧数。
+*         模型与实测见 Engineering/Todo/sw/SW4-PC平台层.md 2.2 节与 4.2 节。
 *
 *         帧缓冲行跨固定 4096 字节，上传纹理时按同一个 pitch 交给 SDL，
 *         不再另拷贝：PC 与板上的缓冲布局必须一模一样，否则 SW9 的逐帧
 *         CRC 对比没有意义。
+*
+*         无窗口模式不改这里的代码：把 SDL_VIDEODRIVER 置成 dummy 再跑同一个
+*         二进制即可（SW4 的 D3、2.5 节）。这样有窗与无窗确实是同一条执行路径。
 ******************************************************************************/
 
 #define SDL_MAIN_HANDLED        1
@@ -24,19 +32,56 @@
 
 #include "board.h"
 
+/* 板级帧节拍：一场的秒数取 1/60。step 由性能计数器的频率折算，不是墙钟。 */
+#define BOARD_FPS           60u
+
+/* 缩放上限。F1~F3 切 1x / 2x / 3x。 */
+#define BOARD_SCALE_MAX     3
+
 static uint8_t  *s_ddr;             /* 模拟的 DDR，64MB */
 static SDL_Window   *s_win;
 static SDL_Renderer *s_ren;
 static SDL_Texture  *s_tex;
-static uint64_t      s_perf_base;
+static uint64_t      s_perf_base;   /* 场 0 的性能计数器读数 */
 static uint64_t      s_perf_freq;
-static uint64_t      s_next_frame;
+static uint64_t      s_perf_ms;     /* 1 毫秒等于多少个计数器单位 */
+static uint64_t      s_step;        /* 一场等于多少个计数器单位 */
+static uint32_t      s_swaps;       /* 成功 present 过的次数 */
+static int           s_scale;
 static int           s_quit;
 
 static void die(const char *what)
 {
     fprintf(stderr, "board: %s: %s\n", what, SDL_GetError());
     exit(1);
+}
+
+/* 事件泵。两件事：
+   - SDL_QUIT 置 s_quit，应用经 board_should_quit 拿到；
+   - F1~F3 切窗口大小。**缩放是宿主的事，不进 board_keys 的位图**：
+     进了位图就会被录进录像、改变回放的按键序列，破坏确定性。 */
+static void pump_events(void)
+{
+    SDL_Event e;
+
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            s_quit = 1;
+        } else if (e.type == SDL_KEYDOWN && s_win != NULL) {
+            int want = 0;
+
+            switch (e.key.keysym.scancode) {
+            case SDL_SCANCODE_F1: want = 1; break;
+            case SDL_SCANCODE_F2: want = 2; break;
+            case SDL_SCANCODE_F3: want = 3; break;
+            default: break;
+            }
+            if (want != 0 && want != s_scale) {
+                s_scale = want;
+                SDL_SetWindowSize(s_win, (int)FB_WIDTH * want, (int)FB_HEIGHT * want);
+            }
+        }
+    }
 }
 
 void board_init(void)
@@ -51,17 +96,23 @@ void board_init(void)
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
         die("SDL_Init");
 
-    s_win = SDL_CreateWindow("gfx2d PC (SW1)",
+    s_win = SDL_CreateWindow("gfx2d PC (SW4)",
                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                              (int)FB_WIDTH, (int)FB_HEIGHT, 0);
     if (s_win == NULL)
         die("SDL_CreateWindow");
 
+    /* 不带 SDL_RENDERER_PRESENTVSYNC：PC 的场节拍由下面的时间轴给，
+       交给显示器的刷新率之后，高刷屏上量出来的帧率就不是 60 了。 */
     s_ren = SDL_CreateRenderer(s_win, -1, SDL_RENDERER_ACCELERATED);
     if (s_ren == NULL)
-        s_ren = SDL_CreateRenderer(s_win, -1, SDL_RENDERER_SOFTWARE);   /* 无 3D 驱动的机器 */
+        s_ren = SDL_CreateRenderer(s_win, -1, SDL_RENDERER_SOFTWARE);   /* 无 3D 驱动 / dummy 驱动 */
     if (s_ren == NULL)
         die("SDL_CreateRenderer");
+
+    /* 缩放用最近邻（SW4 的 D4）。SDL 对这个 hint 的默认值是**未设**，
+       所以必须显式写 "0"；它在建纹理时被读走，之后改没有用。 */
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
     s_tex = SDL_CreateTexture(s_ren, SDL_PIXELFORMAT_XRGB8888,
                               SDL_TEXTUREACCESS_STREAMING,
@@ -70,9 +121,18 @@ void board_init(void)
         die("SDL_CreateTexture");
 
     s_perf_freq = (uint64_t)SDL_GetPerformanceFrequency();
+    s_perf_ms   = s_perf_freq / 1000u;
+    s_step      = s_perf_freq / (uint64_t)BOARD_FPS;
+    if (s_perf_freq == 0u || s_perf_ms == 0u || s_step == 0u) {
+        fprintf(stderr, "board: 性能计数器频率 %llu 折算不出一场，本平台不适用\n",
+                (unsigned long long)s_perf_freq);
+        exit(1);
+    }
+
     s_perf_base = (uint64_t)SDL_GetPerformanceCounter();
-    s_next_frame = s_perf_base;
-    s_quit = 0;
+    s_swaps     = 0u;
+    s_scale     = 1;
+    s_quit      = 0;
 }
 
 board_mem board_region(board_region_id id)
@@ -119,10 +179,16 @@ void board_puts(const char *s)
     fflush(stdout);         /* 每次输出都落地：串口采集端不会漏行 */
 }
 
+/* **F1~F3 不在这里**：窗口大小是宿主的事，缩放键在 pump_events 里被吃掉。
+   加进来就会进录像、改变回放的按键序列（SW4 的 D4）。 */
 uint32_t board_keys(void)
 {
     const Uint8 *k;
     uint32_t     bits = 0u;
+
+    /* 顺手泵一次事件：关窗那一刻要能被看到，哪怕这一帧没有 present。
+       （SDL_PumpEvents 只更新键盘状态，SDL_QUIT 要 SDL_PollEvent 才取出来。） */
+    pump_events();
 
     SDL_PumpEvents();
     k = SDL_GetKeyboardState(NULL);
@@ -149,11 +215,53 @@ uint32_t *board_fb(int index)
     return (uint32_t *)(s_ddr + g_mem_regions[REGION_FB0 + index].offset);
 }
 
+/* 场号。自由运行，与有没有 present 无关（板上 FRAME_COUNT 也是这样）。 */
+static uint32_t field_index(void)
+{
+    return (uint32_t)(((uint64_t)SDL_GetPerformanceCounter() - s_perf_base) / s_step);
+}
+
+/* 等到场号大于 f0，也就是「下一个场起始」。板上写 SWAP_REQ 之后等的是同一个东西。
+
+   睡法：剩下超过 1 毫秒就 SDL_Delay 掉整毫秒减一，最后一毫秒自旋。
+   本机 SDL_Delay(1) 实测 1058~1149 微秒，指望它精确到微秒会把每一帧都睡过头
+   （实测最大值 17.13 毫秒对一场 16.667 毫秒，偏差 3% 以内）。 */
+static void wait_next_field(uint32_t f0)
+{
+    uint64_t target = s_perf_base + ((uint64_t)f0 + 1u) * s_step;
+
+    for (;;) {
+        uint64_t now = (uint64_t)SDL_GetPerformanceCounter();
+        uint64_t left;
+
+        if (s_quit)
+            return;
+        if (now >= target)
+            return;
+
+        left = target - now;
+        if (left > s_perf_ms) {
+            uint64_t ms = left / s_perf_ms;
+
+            SDL_Delay((ms > 1u) ? (Uint32)(ms - 1u) : 1u);
+        }
+    }
+}
+
 void board_present(int index)
 {
-    SDL_Event e;
-    uint32_t *fb = board_fb(index);
+    uint32_t *fb;
+    uint32_t  f0;
 
+    /* 关窗之后不再做任何等待，否则退出前每一帧还要各挂一场。 */
+    if (s_quit)
+        return;
+    /* 帧缓冲号越界与板上同处理：直接返回，不等场也不计切换。
+       板上是 `index < 0 || index >= BOARD_FB_COUNT` 就返回。 */
+    if (index < 0 || index >= BOARD_FB_COUNT)
+        return;
+
+    fb = board_fb(index);
     if (fb != NULL) {
         SDL_UpdateTexture(s_tex, NULL, fb, (int)FB_STRIDE_BYTES);
         SDL_RenderClear(s_ren);
@@ -161,37 +269,41 @@ void board_present(int index)
         SDL_RenderPresent(s_ren);
     }
 
-    while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_QUIT)
-            s_quit = 1;
-    }
+    /* 关窗按钮可能在这一次等待里被按下，泵一次再看：看到了就立即返回，
+       这一帧的场数增量是 0，应用据此知道「不是掉帧，是退出」。 */
+    pump_events();
+    if (s_quit)
+        return;
+
+    f0 = field_index();
+    wait_next_field(f0);
+    s_swaps++;
 }
 
 void board_wait_frame(void)
 {
-    uint64_t step = s_perf_freq / 60u;
+    uint32_t f0;
 
-    if (s_quit || step == 0u)
+    if (s_quit)
         return;
 
-    s_next_frame += step;
+    f0 = field_index();
+    wait_next_field(f0);
+}
 
-    for (;;) {
-        uint64_t now  = (uint64_t)SDL_GetPerformanceCounter();
-        uint64_t left;
+uint32_t board_frame_count(void)
+{
+    return field_index();
+}
 
-        if (now >= s_next_frame)
-            break;
-        left = s_next_frame - now;
-        {
-            uint32_t ms = (uint32_t)((left * 1000u) / s_perf_freq);
-            SDL_Delay((ms > 0u) ? ms : 1u);
-        }
-    }
+uint32_t board_swap_count(void)
+{
+    return s_swaps;
+}
 
-    /* 渲染比一帧还慢时不要攒账：直接对齐到当前时刻，后面按整帧走 */
-    if (s_next_frame + step < (uint64_t)SDL_GetPerformanceCounter())
-        s_next_frame = (uint64_t)SDL_GetPerformanceCounter();
+int board_should_quit(void)
+{
+    return s_quit;
 }
 
 /* 数据缓存只有那颗 VexRiscv 有，PC 上都是空操作。

@@ -50,6 +50,7 @@ sw/
 | `apps/test/cacheCoherencyTest/` | 实验 E3 的判据程序：用探针主机当外部写入者，一致性判据、注错与注错自检，并量失效指令的代价 |
 | `apps/test/keyTest/` | SoC IP 定型的按键判据：空闲时 GPIO1 读口应为 `0x0f`，30 秒窗口内 KEY0~3 各要出现一次按下与松开（要人按） |
 | `apps/test/displayTest/` | 扫描输出的板上判据，也是 `board_present`/`board_wait_frame` 的验证程序：IDENT、PATTERN（画定位图案上屏，这一段看屏幕）、FILL（整屏填充计时）、ANIM（120 帧移动方块，打帧率）、STATS（120 场快照）。走 SW1 的分层构建，产物 `build/displayTest-O2.bin`。期望输出见下 |
+| `apps/test/platformTest/` | PC 平台层（SW4）的判据程序：十一个整帧用例、600 帧帧节拍、掉帧注错、实时输入与关窗退出、录制的往返与两次回放。**一段要人动手**（按 F1~F3、点关闭按钮），其余自己判并打印 `fail N`。默认编 PC 版（`make` 即 `PLATFORM=host`）；串起来跑的是 `Main/tools/check/check_sw4_pc.sh`。期望输出见下 |
 | `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象 |
 | `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验 |
 | `apps/probe/cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
@@ -57,8 +58,9 @@ sw/
 
 除 `gfx2dGame` 以外的七个诊断程序仍沿用官方的 makefile 体系
 （每个的 makefile 里用 `STANDALONE` 指到 `sdk/software/standalone`，现在是往上四级的 `../../../../sdk/...`），
-**没有迁到新构建**，要改它们时顺手迁移。`gfx2dGame` 与以后的应用用新构建，
-makefile 里 `include ../../../mk/$(PLATFORM).mk`。
+**没有迁到新构建**，要改它们时顺手迁移。`gfx2dGame`、`cup3d`、`displayTest` 与 `platformTest`
+用新构建，makefile 里 `include ../../../mk/$(PLATFORM).mk`；
+`platformTest` 是 PC 侧的判据程序，`PLATFORM` 默认取 `host`（其余应用默认 `target`）。
 
 2026-09-19 从 `sw/<程序>/` 搬到 `sw/apps/<类>/<程序>/`，七个程序搬迁前后的 bin 逐位相同。
 TechReports 旧章节的配图里仍是搬迁前的路径（配图画的是该章结束时的状态，按规范不改）。
@@ -98,7 +100,9 @@ wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host test'    # 或 c
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw_layers.sh'
 ```
 
-`lib/gfx/` 的判据有三个开关，都加在 `test` 目标上：
+`lib/test/` 的判据分两组，都加在 `test` 目标上：
+
+- `lib/gfx/` 的三个开关：
 
 ```
 # 加上工具导出的 159 条一致性向量（生成物不入库，先跑一次工具）
@@ -111,6 +115,11 @@ wsl -e bash -c 'cd sw && make -f mk/host.mk test INJECT=EQ_COPY'   # EQ_ALPHA / 
 # 重新生成整帧用例的期望 CRC（只在用例或规格有意改动之后跑）
 wsl -e bash -c 'cd sw && make -f mk/host.mk gen-golden'
 ```
+
+- 录像格式那一组（SW4 第 1、7 条判据）不用开关：`test` 目标先跑
+  `python3 Main/tools/check/replay2c.py`，把入库的 `lib/test/replay_fixture.g2dr`
+  转成 C 数组放进 `$(OBJDIR)/test/`，再与直接解析 `.g2dr` 的结果逐帧对账。
+  **脚本进判据路径而不是一次性生成器**，这样这条判据测的是转换本身。它需要 `python3`。
 
 不给 `VEC` 时只跳过那一组，其余照跑：导出向量是生成物、不入库，不能当默认判据的前置。
 `lib/test/golden.txt` 是十一个整帧用例的 CRC32 期望值，入库，E7 与引擎仿真拿它当金标准；
@@ -147,6 +156,16 @@ CRC 那一列才是判据。）
 画面以整帧 CRC 的形式输出，**60 个 CRC 必须与 PC 逐帧相同**。
 板上用的是 `Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit`
 （2026-09-19 SoC IP 定型之后这一份 `sha256:4f1c7ec23d99f9ba…`，2,070,156 字节；此前 `d8af4ce13c416834…`）。
+
+**2026-09-21 扫描输出与 SW4 之后，板上产物变成 4210 字节**（`sha256:a8df1ef4b1d5d618…`，`-O2`，
+工具链与优化级别不变）：多出来的是 `bsp/ti60/board.c` 里扫描输出的寄存器通路
+（`board_present`/`board_wait_frame` 板上实测 59.9 fps，见 display 第 01 章）与 SW4 补的
+`board_frame_count`/`board_swap_count`/`board_should_quit` 三个查询。
+**入库的那两份板上日志是 2026-09-19 采的**，当时的比特流里没有扫描输出，
+`board_present` 与 `board_wait_frame` 都是空操作，所以 60 个 CRC 仍然有效、不必重采；
+要重采时按 `displayTest` 那份比特流（2026-09-21 起）走。
+本轮还改了主循环：`board_present` 现在自己等掉一场，原来的 `board_wait_frame()` 已经删掉，
+两个都调会让帧率掉到 30（SW4 的 2.2 节）。CRC 与行数不受影响。
 
 日志四份在 `apps/game/gfx2dGame/logs/`：`pc_normal.log`、`pc_inject.log` 是 PC 的 stdout（期望值），
 `board_normal.log`、`board_inject.log` 是板上串口原始输出。比对只取 `frame N crc X` 这一列：
@@ -294,6 +313,39 @@ E5 两个阶段的判据、实测值与解释见 `../../Engineering/TechReports/
 是同一个 `fb_fill` 在不同位置量出来的，相差 58%，归因未定，见
 `../../Engineering/Todo/hw/扫描输出.md` 第 4 节 2026-09-21 条与 E7。
 判据只卡一个很宽的上界（`per_px_x100` 不超过 10000），不拿它当性能结论。
+
+## platformTest 的期望值
+
+PC 平台层（SW4）的判据程序，只跑在 PC 上，开一个 640×480 窗口：
+
+```
+wsl -e bash -c 'cd sw/apps/test/platformTest && make && ./build_host/platformTest'
+wsl -e bash -c 'cd sw/apps/test/platformTest && SDL_VIDEODRIVER=dummy ./build_host/platformTest'   # 无窗，同一个二进制
+wsl -e bash -c 'bash Main/tools/check/check_sw4_pc.sh'                                             # 全部判据串起来
+```
+
+一次跑完六段，末尾 `fail =0` 与 `done`，退出码 0。各段的期望：
+
+- `cases`：十一行 `case <n> <名字> crc <八位十六进制>`，**必须与 `lib/test/golden.txt` 逐行相同**
+  （判据脚本拿来对）；这一段每帧仍然 present，所以窗口里能看到每个用例画出来的整屏图案。
+- `pace`：`dfield` 与 `dswap` 都必须等于 600，`missed=0`，`min_us`/`max_us` 落在 15~18 毫秒
+  （实测 16.5~16.8 毫秒，一场是 16.667 毫秒），六行 `chk P1~P6` 全 `ok`。
+- `drop`：`dfield=2`、`dswap=1`，三行 `chk D1~D3` 全 `ok`。**掉帧数是两者增量之差，先在 32 位上减完**。
+- `live`：每帧一行 `live <帧> field <场号> df <增量> keys <位图>`。
+  **这一段要人动手**：按 F1~F3 看窗口在 1×/2×/3× 之间切换（`keys` 那一列必须一位都不变），
+  点窗口的关闭按钮验退出。关窗之后会多打一行 `live quit_frame=` 与 `live quit_df=0`，
+  并且 `chk L1 关窗当帧没有等场 ok`；不点关闭按钮就一直跑到 300 帧，
+  打 `live 没有关窗（退出那一条要人点窗口的关闭按钮）`，不算失败。
+- `replay`：先打一组 `g2dr`/`key` 行（**录制结果就是日志**，可用
+  `python3 Main/tools/check/replay2c.py --from-text` 收成 `.g2dr`），再打 `play1`/`play2` 两串
+  各 1800 行 `<帧> crc <八位> keys <位图>`，`replay diff=0` 与 `chk R3` 表示两次逐帧相同。
+- 注错版（`make INJECT=REPLAY_CLOCK`，产物 `platformTest-inject`）把时刻混进画面，
+  `replay diff` 必须大于 0，`chk R3 注错后两次回放必须不同 ok`；
+  十一用例的 CRC 与 `pace`/`drop` 各段不受影响。
+
+**有窗与无窗跑的是同一个二进制**（`SDL_VIDEODRIVER=dummy` 只是换驱动），
+两条 CRC 序列必须逐行相同；这是 SW4 第 8 条判据，由 `check_sw4_pc.sh` 比。
+日志行尾是 `\r\n`，比对前先做 CRLF 归一。
 
 ## 第三方：lib/s3l/small3dlib.h
 

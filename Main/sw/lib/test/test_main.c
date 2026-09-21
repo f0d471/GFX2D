@@ -17,6 +17,7 @@
 #include "core/xorshift32.h"
 #include "ref_crc.h"
 #include "test_gfx.h"
+#include "test_replay.h"
 
 /* 两个平台的区别就在这几行的字面量上：只要有一处类型宽度不对，
    32 位那份测试会先编不过，而不是等到板上才发现。 */
@@ -218,14 +219,16 @@ static void t5_format(void)
     check("T5 cap0", core_out_len(&o) == 3u);
 }
 
-/* 命令行只有三个开关，都由 mk/host.mk 传进来：
+/* 命令行只有四个开关，都由 mk/host.mk 传进来：
      --vec <file>     重放 check_cmd_semantics.py --emit 出来的向量（不给就跳过这一组）
      --golden <file>  整帧用例的 CRC 期望值
+     --replay <file>  录像格式的固件（.g2dr），与生成的 C 数组对账
      --gen-golden     把当前 CRC 写进上面那个文件，而不是拿来比对 */
 int main(int argc, char **argv)
 {
     const char *vecpath = 0;
     const char *golden  = "golden.txt";
+    const char *replay  = "replay_fixture.g2dr";
     int         gen     = 0;
     int         i;
 
@@ -234,6 +237,8 @@ int main(int argc, char **argv)
             vecpath = argv[++i];
         else if (strcmp(argv[i], "--golden") == 0 && i + 1 < argc)
             golden = argv[++i];
+        else if (strcmp(argv[i], "--replay") == 0 && i + 1 < argc)
+            replay = argv[++i];
         else if (strcmp(argv[i], "--gen-golden") == 0)
             gen = 1;
     }
@@ -248,6 +253,7 @@ int main(int argc, char **argv)
     t5_format();
 
     g_fail += test_gfx_run(vecpath, golden, gen);
+    g_fail += test_replay_run(replay);
 
     {
         char     line[48];

@@ -86,8 +86,35 @@ uint32_t  *board_fb(int index);
 void       board_present(int index);
 
 /* 等下一个场同步。板上轮询扫描输出的 FRAME_COUNT（与 EN 无关，没 present 过也能用），
-   PC 上按 60Hz 节拍。两边都有轮询上界，不会停在这里不返回。 */
+   PC 上等到下一个 60Hz 场边界。两边都有轮询上界，不会停在这里不返回。
+   board_should_quit() 置位时立即返回。 */
 void       board_wait_frame(void);
+
+/* --- 帧节拍的两个计数 --------------------------------------------------- */
+/* 两个平台都真实存在的两个量，掉帧数由应用做减法：Δ场 − Δ切换。
+
+   都按 32 位回绕，与 board_cycles 同一约定：取两次读数相减。
+   **减法要先用 uint32_t 减完，再往更宽的类型上累加**：
+
+       uint32_t d = (uint32_t)(f1 - f0) - (uint32_t)(s1 - s0);   // 这一段错过的场数
+       total += d;                                              // 累加放宽类型里
+
+   先提升再减会把一次回绕放大成天文数字（SW8 要按秒累加掉帧数，踩到一次整列作废）。
+
+   板上：FRAME_COUNT 由像素域时序发生器在每一个场起始加一，与 EN 无关、任何时刻可读；
+         SWAP_COUNT 在完成的切换上加一。比特流里没有扫描输出时两个都恒为 0。
+   PC：场数由 board_init 起算的 60Hz 时间轴给（同样与有没有 present 无关），
+       切换数是成功 present 过的次数。
+
+   口径与判据见 Engineering/Todo/sw/SW4-PC平台层.md 2.2 节。 */
+uint32_t   board_frame_count(void);
+uint32_t   board_swap_count(void);
+
+/* 宿主要求结束（PC：窗口关闭按钮；板上恒为 0）。
+   置位之后 board_present 与 board_wait_frame 都立即返回，不再等场边界，
+   否则关窗之后每一帧照样各等掉一场。退出不是游戏输入，**不进按键位图**：
+   进了位图就会被录进录像，回放时凭空多出一个按键，破坏确定性。 */
+int        board_should_quit(void);
 
 /* --- 缓存 --------------------------------------------------------------- */
 /* 按 E3 规则包成带 "memory" clobber 的函数：CPU 数据缓存会遮蔽外部主机

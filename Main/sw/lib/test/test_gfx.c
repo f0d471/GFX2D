@@ -32,10 +32,11 @@
 #endif
 
 /* 整帧用例的设备内存布局。帧缓冲按板上的 stride 4096 排，
-   纹理放在它后面，两者都在同一块窗口里。 */
-#define CASE_FB_BASE   0x00001000u
-#define CASE_TEX_BASE  0x00200000u
-#define CASE_DEV_BYTES 0x00210000u
+   纹理放在它后面，两者都在同一块窗口里。
+   三个常量在 gfx.h 里，判据程序（SW4 的 platformTest）用的是同一组值。 */
+#define CASE_FB_BASE   GFX_CASE_FB_BASE
+#define CASE_TEX_BASE  GFX_CASE_TEX_BASE
+#define CASE_DEV_BYTES GFX_CASE_DEV_BYTES
 
 static uint32_t g_fail;
 

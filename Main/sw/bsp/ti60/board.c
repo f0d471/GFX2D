@@ -171,6 +171,30 @@ void board_wait_frame(void)
     }
 }
 
+/* 两个计数直接读寄存器：它们是同一条通路的真实状态，本层不另做影子计数
+   （做了反而会与硬件漂移）。比特流里没有扫描输出时读回来没有意义，恒返回 0，
+   与 board_present 退回空操作是同一件事。 */
+uint32_t board_frame_count(void)
+{
+    if (!disp_present_in_bitstream())
+        return 0u;
+    return disp_rd(DISP_FRAME_COUNT);
+}
+
+uint32_t board_swap_count(void)
+{
+    if (!disp_present_in_bitstream())
+        return 0u;
+    return disp_rd(DISP_SWAP_COUNT);
+}
+
+/* 板上没有「宿主」。按键与复位都来自板上，没有谁可以在运行中要求结束；
+   SW9 若要按 KEY 退出，那时改这里，接口不变。 */
+int board_should_quit(void)
+{
+    return 0;
+}
+
 /* 按 E3 规则包成带 "memory" clobber 的函数（platform 第 05 章）：
    sdk 的宏没有 clobber，紧邻的空 asm 屏障保证编译器不会把相邻的访存
    重排到失效之前——失效的作用是让后面的读真的去 DDR 取数。 */

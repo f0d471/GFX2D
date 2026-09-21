@@ -113,8 +113,10 @@ int main(void)
 
         put_frame_line(f, crc, cycles);
 
+        /* 每帧只调 present：它自己已经等掉一场（板上是等 SWAP_COUNT 递增，
+           PC 上是等到下一个 60Hz 场边界）。再调一次 board_wait_frame 就成了
+           一帧两场，帧率掉到 30（SW4 的 2.2 节）。 */
         board_present(index);
-        board_wait_frame();
     }
 
     {

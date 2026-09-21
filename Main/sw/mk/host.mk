@@ -107,8 +107,11 @@ TEST_LIBS   := core gfx
 TEST_SRCS   := $(foreach l,$(TEST_LIBS),$(wildcard $(SW)lib/$(l)/*.c)) \
                $(wildcard $(SW)lib/test/*.c)
 GOLDEN      := $(SW)lib/test/golden.txt
+REPLAY_FIX  := $(SW)lib/test/replay_fixture.g2dr
+REPLAY_HDR  := $(OBJDIR)/test/replay_fixture.h
+REPLAY2C    := $(SW)../tools/check/replay2c.py
 VEC         ?=
-TEST_ARGS   := --golden $(GOLDEN) $(if $(VEC),--vec $(VEC),)
+TEST_ARGS   := --golden $(GOLDEN) --replay $(REPLAY_FIX) $(if $(VEC),--vec $(VEC),)
 TEST_INJECT := $(if $(INJECT),-DINJECT_$(INJECT),)
 
 all: $(TARGET)
@@ -138,16 +141,22 @@ run: $(TARGET)
 # 主机侧单元测试：64 位与 -m32 各编一份，两边输出必须逐字节相同。
 # -m32 需要 gcc-multilib；16 位的 ASan 运行库不一定装，所以 -m32 那份默认不挂
 # sanitizer（SAN32=1 可以强行打开）。
+#
+# 录像那一组要先跑一次转换脚本：`lib/test/replay_fixture.g2dr` 是入库的输入，
+# 生成的 C 数组落在 $(OBJDIR)/test/ 里、不入库。脚本进判据路径而不是一次性生成器，
+# 这样「C 数组与 .g2dr 解析出同一串按键」这条判据才真的在测转换本身。
 test:
 	@set -e; \
 	mkdir -p $(OBJDIR)/test; \
+	command -v python3 >/dev/null || { echo "python3 不可用：录像那一组要它生成 C 数组"; exit 1; }; \
+	python3 $(REPLAY2C) --in $(REPLAY_FIX) --out $(REPLAY_HDR) --name replay_fixture; \
 	echo "== lib/test 64-bit =="; \
 	$(HOST_CC) -std=gnu11 -O$(OPT) -g $(WARN) -fsanitize=address,undefined \
-	    $(TEST_INJECT) -I$(SW)lib -o $(OBJDIR)/test/libTest64 $(TEST_SRCS); \
+	    $(TEST_INJECT) -I$(SW)lib -I$(OBJDIR)/test -o $(OBJDIR)/test/libTest64 $(TEST_SRCS); \
 	$(OBJDIR)/test/libTest64 $(TEST_ARGS) > $(OBJDIR)/test/out64.txt; \
 	echo "== lib/test 32-bit =="; \
 	$(HOST_CC) -std=gnu11 -O$(OPT) -g $(WARN) -m32 \
-	    $(TEST_INJECT) -I$(SW)lib -o $(OBJDIR)/test/libTest32 $(TEST_SRCS); \
+	    $(TEST_INJECT) -I$(SW)lib -I$(OBJDIR)/test -o $(OBJDIR)/test/libTest32 $(TEST_SRCS); \
 	$(OBJDIR)/test/libTest32 $(TEST_ARGS) > $(OBJDIR)/test/out32.txt; \
 	echo "== 两份输出比对 =="; \
 	if diff -u $(OBJDIR)/test/out64.txt $(OBJDIR)/test/out32.txt; then \
@@ -162,9 +171,10 @@ test:
 gen-golden:
 	@set -e; \
 	mkdir -p $(OBJDIR)/test; \
+	python3 $(REPLAY2C) --in $(REPLAY_FIX) --out $(REPLAY_HDR) --name replay_fixture; \
 	$(HOST_CC) -std=gnu11 -O$(OPT) -g $(WARN) -fsanitize=address,undefined \
-	    -I$(SW)lib -o $(OBJDIR)/test/libTestGen $(TEST_SRCS); \
-	$(OBJDIR)/test/libTestGen --golden $(GOLDEN) --gen-golden | tail -3
+	    -I$(SW)lib -I$(OBJDIR)/test -o $(OBJDIR)/test/libTestGen $(TEST_SRCS); \
+	$(OBJDIR)/test/libTestGen --golden $(GOLDEN) --replay $(REPLAY_FIX) --gen-golden | tail -3
 
 clean:
 	@rm -rf $(OBJDIR)
