@@ -25,6 +25,9 @@ PC 上由软件执行器把命令表画进内存、SDL2 窗口显示出来，板
 本机环境 2026-09-19 已核对：WSL（Ubuntu 26.04）里有 gcc 15.2、make、pkg-config、
 `libsdl2-dev` 2.32.10，WSLg 可以开窗口（`DISPLAY=:0`、`WAYLAND_DISPLAY=wayland-0`），
 python3 3.14 带 Pillow 12.2。Windows 侧没有原生 C 编译器，PC 版在 WSL 里编译运行即可，不必另装。
+2026-09-21 SW4 的前期研究把 SDL 侧的细则复测了一遍（性能计数器 1e9、`SDL_Delay` 粒度约 1 毫秒、
+video driver 六个、最近邻要显式设 hint、去掉显示相关变量后 SDL 自己落到 offscreen、`-m32` 可用），
+实测数据与结论见 [SW4](SW4-PC平台层.md) 第 4 节。
 
 ## 清单
 
@@ -33,7 +36,7 @@ python3 3.14 带 Pillow 12.2。Windows 侧没有原生 C 编译器，PC 版在 W
 | SW1 | 软件平台分层与双目标构建 | **已验收**（2026-09-19），条目保留 | [SW1-软件平台分层与双目标构建.md](SW1-软件平台分层与双目标构建.md) |
 | SW2 | 命令语义规格（spec 第 02 章） | **已归档**（2026-09-20）：159 条一致性向量与校验工具就位，五项语义选择已定案；Todo 已删除 | [TechReport](../../TechReports/spec/02-命令语义.md) |
 | SW3 | 命令表构造层与软件执行器 | **已归档**（2026-09-21）：`sw/lib/gfx/` 与判据就位，两份向量 × 两个实现 × 两个位宽全过，十一个整帧用例的 CRC 入库；Todo 已删除 | [TechReport](../../TechReports/sw/02-命令表构造层与软件执行器.md) |
-| SW4 | PC 平台层 | 未开工 | [SW4-PC平台层.md](SW4-PC平台层.md) |
+| SW4 | PC 平台层 | **进行中**（2026-09-21 前期研究完成：场节拍模型与十项取舍定案，可开工） | [SW4-PC平台层.md](SW4-PC平台层.md) |
 | SW5 | 素材流水线 | 未开工 | [SW5-素材流水线.md](SW5-素材流水线.md) |
 | SW6 | 基础 Demo | 未开工 | [SW6-基础Demo.md](SW6-基础Demo.md) |
 | SW7 | 游戏本体 | 未开工 | [SW7-游戏本体.md](SW7-游戏本体.md) |
