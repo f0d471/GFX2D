@@ -51,6 +51,7 @@ sw/
 | `apps/test/keyTest/` | SoC IP 定型的按键判据：空闲时 GPIO1 读口应为 `0x0f`，30 秒窗口内 KEY0~3 各要出现一次按下与松开（要人按） |
 | `apps/test/displayTest/` | 扫描输出的板上判据，也是 `board_present`/`board_wait_frame` 的验证程序：IDENT、PATTERN（画定位图案上屏，这一段看屏幕）、FILL（整屏填充计时）、ANIM（120 帧移动方块，打帧率）、STATS（120 场快照）。走 SW1 的分层构建，产物 `build/displayTest-O2.bin`。期望输出见下 |
 | `apps/test/platformTest/` | PC 平台层（SW4）的判据程序：十一个整帧用例、600 帧帧节拍、掉帧注错、实时输入与关窗退出、录制的往返与两次回放。**一段要人动手**（按 F1~F3、点关闭按钮），其余自己判并打印 `fail N`。默认编 PC 版（`make` 即 `PLATFORM=host`）；串起来跑的是 `Main/tools/check/check_sw4_pc.sh`。期望输出见下 |
+| `apps/test/assetTest/` | 素材流水线（SW5）的判据程序：经板级读入口把素材包装进 DDR 素材区、完整校验、与生成的 `assets.h` 对账、挑条目登记表面，再用软件执行器画一整帧并打印整帧 CRC 与一张 64×24 字符画。PC 与板上跑同一份源码、同一份包，整帧 CRC 必须相同；默认编 PC 版（`make`），板上是 `make PLATFORM=target RISCV_BIN=<RISCV_BIN>`。串起来跑的是 `Main/tools/check/check_sw5_assets.sh`。期望输出见下 |
 | `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象 |
 | `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验（E5 的 SHARE/TRI/INJECT 阶段） |
 | `apps/probe/displayFifoProbe/` | 实验 E5 2.4 节：真实扫描 FIFO 的压力矩阵与深度定值。`idle` / 满负载 `read` / 满负载 `write` 三组各收 120 场连续快照，报最低水位的最小值、最大值、首次最小值帧号与两个中位数。**target-only**（只在 Ti60 上跑，不提供 host 构建），产物 `build/displayFifoProbe-O2.bin`。期望输出见下 |
@@ -94,6 +95,13 @@ wsl -e bash -c 'cd sw && make -f mk/target.mk RISCV_BIN=<RISCV_BIN>'
 改编译选项或改任何一个头文件都会触发重编：前者由目标目录里的编译选项标记文件保证，
 后者由 gcc 的 `-MMD` 依赖文件（`.d`，makefile 末尾 `-include`）保证。
 两条都进提交前检查（下面的第 6 项），因为它们坏掉时构建照样报成功、产物却是旧的。
+
+**素材（SW5）：** 两个 `mk/*.mk` 给**应用**那一层的编译规则加
+`-I$(ASSETS_BUILD)`（默认 `Main/assets/build`，由 `tools/assets/pack_assets.py` 生成
+`assets.h` 与 `assets.pak`）；`lib/` 与 `bsp/` 那一层不加，分层不变。
+PC 的素材包路径由 `mk/host.mk` 的 `ASSETS_PAK` 编进 `bsp/host`（取绝对路径），
+运行时可以用 `GFX2D_ASSETS_PAK=<文件>` 覆盖——判据脚本用它喂坏包。
+`ASSETS_PAK` 进了编译选项标记文件，换路径会触发重编（否则 `board.o` 会留着上一个路径）。
 
 ## 主机侧单元测试与结构判据
 
@@ -402,6 +410,41 @@ wsl -e bash -c 'bash Main/tools/check/check_sw4_pc.sh'                          
 **有窗与无窗跑的是同一个二进制**（`SDL_VIDEODRIVER=dummy` 只是换驱动），
 两条 CRC 序列必须逐行相同；这是 [sw 第 03 章](../../Engineering/TechReports/sw/03-PC平台层与帧节拍.md) 5.2 节的第 8 条判据，由 `check_sw4_pc.sh` 比。
 日志行尾是 `\r\n`，比对前先做 CRLF 归一。
+
+## assetTest 的期望值
+
+素材流水线（SW5）的判据程序。PC 上开一个 640×480 窗口显示合成出来的那一帧：
+
+```
+wsl -e bash -c 'cd sw/apps/test/assetTest && make && ./build_host/assetTest'
+wsl -e bash -c 'bash Main/tools/check/check_sw5_assets.sh'        # 全部判据串起来
+wsl -e bash -c 'cd sw/apps/test/assetTest && make PLATFORM=target RISCV_BIN=<RISCV_BIN>'
+```
+
+一次跑完，末尾 `fail 0` 与 `done`、退出码 0。期望输出（入库日志
+`logs/pc_normal.log`，板上是 `logs/board_normal.log`，两者**判据行与 24 行字符画逐行相同**）：
+
+| 行 | 期望 |
+| --- | --- |
+| `pak bytes/entries=` | `2142784 8`（当前 8 项素材包；重打素材后跟着变） |
+| `pak crc=` | `fc13ee10` |
+| `chk P1~P3` | 版本、整包 CRC、总长与条目数与生成的 `assets.h` 三项一致 |
+| `chk E1~E8` | 八项素材的几何与 `assets.h` 一致；`BULLET_PM`/`BULLET_ST` 分别是预乘/直通；`KEY_DEMO` 带色键且键字相符；`SOLID8` 是 8×8 |
+| `entry 0..7` | 逐项 `id/fmt/宽高/sl/len/crc`，**与 `check_sw5_pak.py` 的独立实现逐行相同** |
+| `chk M1` | 相邻分区指针之差等于分区表偏移之差（`gfx_mem` 的窗口才成立） |
+| `chk S1~S7` | 六个素材条目与帧缓冲各自 `gfx_surface_set()` 成功——**按需要挑，不是按 ID 全登** |
+| `chk C1` | 48 条命令全被构造层接受；`list used/cap= 48 32768` |
+| `chk X1` | 软件执行器无错；`exec cmd/pixel= 48 710506` |
+| `frame crc=` | `e530fc2c`（**PC 与板上必须相同**，这是跨平台判据） |
+| `win crc=` | `223df92a`（图集那 4 个半透明格子所在的 64×64 窗口） |
+| `thumb 64x24` | 24 行 64 列的字符画，由帧缓冲采样得到，留档的那张「可目视核对」的图 |
+
+板上产物 `build/assetTest-O2.bin`，2026-09-23 复核后是 25,770 字节
+（sha256 前 16 位 `397a8827203610f7`）。
+板上跑要先把镜像写进 Flash（`tools/board/make_flash_image.py` + `ftdi_pgm`），
+再用 `tools/board/board_run.py --flash-boot` 采集——`--bin` 会走 JTAG 把程序直接写进 DDR，
+把要验的 Flash 启动路径绕过去。破坏素材包里一项数据再烧进 Flash，板上必须报
+`pak err 14 entry_crc id=<编号>` 并拒绝使用（日志 `logs/board_broken.log`）。
 
 ## 第三方：lib/s3l/small3dlib.h
 

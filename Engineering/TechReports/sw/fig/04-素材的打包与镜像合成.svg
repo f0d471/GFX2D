@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="960" viewBox="0 0 1240 960"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b   { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bn  { fill:#eff6ff; stroke:#1d4ed8; stroke-width:1.3 }
+      .bd  { fill:#fffbeb; stroke:#b45309; stroke-width:1.2 }
+      .bt  { fill:#f0fdf4; stroke:#15803d; stroke-width:1.2 }
+      .bg  { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .grp { fill:none; stroke:#cbd5e1; stroke-width:1; stroke-dasharray:3 3 }
+      .tt  { font-size:12.5px; font-weight:600; fill:#0f172a }
+      .t   { font-size:11px; fill:#0f172a }
+      .ts  { font-size:9.5px; fill:#475569 }
+      .tg  { font-size:10.5px; font-weight:600; fill:#64748b }
+      .flow { stroke:#334155; stroke-width:1.4; fill:none }
+      .chk  { stroke:#b45309; stroke-width:1.4; fill:none; stroke-dasharray:7 3 }
+      .un   { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="960" fill="#ffffff"/>
+  <text x="40" y="36" font-size="18" font-weight="600" fill="#0f172a">gfx2d 素材的打包与镜像合成</text>
+  <text x="40" y="58" font-size="12" fill="#64748b">SW5 结束时的状态，2026-09-23。底色表示由谁产出，灰虚线表示尚未接入的下游；实测数字在正文表格里。</text>
+
+  <!-- ===== 输入 ===== -->
+  <rect class="grp" x="32" y="76" width="1176" height="104" rx="2"/>
+  <text class="tg" x="44" y="94">输入 Main/assets/（入库；占位 PNG 与字库都是仓库里的文件）</text>
+
+  <rect class="b" x="48" y="102" width="266" height="66" rx="2"/>
+  <text class="tt" x="60" y="122">manifest.txt</text>
+  <text class="ts" x="60" y="140">TSV：kind/id/name/alpha_mode/</text>
+  <text class="ts" x="60" y="154">png/size/slice/key/purpose</text>
+
+  <rect class="b" x="326" y="102" width="266" height="66" rx="2"/>
+  <text class="tt" x="338" y="122">placeholder/*.png</text>
+  <text class="ts" x="338" y="140">gen_placeholder.py 生成，6 张</text>
+  <text class="ts" x="338" y="154">图案按坐标算，无随机数</text>
+
+  <rect class="b" x="604" y="102" width="266" height="66" rx="2"/>
+  <text class="tt" x="616" y="122">font/ascii8x16.txt</text>
+  <text class="ts" x="616" y="140">自绘 8x16 点阵，95 个字形</text>
+  <text class="ts" x="616" y="154">每字 16 行、每行 8 个 . 或 #</text>
+
+  <rect class="b" x="882" y="102" width="310" height="66" rx="2"/>
+  <text class="tt" x="894" y="122">LICENSES.md</text>
+  <text class="ts" x="894" y="140">每个非生成文件的来源与许可；</text>
+  <text class="ts" x="894" y="154">S9 按这条扫，没登记就报红</text>
+
+  <!-- ===== 打包工具 ===== -->
+  <rect class="grp" x="32" y="204" width="1176" height="146" rx="2"/>
+  <text class="tg" x="44" y="222">打包 tools/assets/pack_assets.py（python3 + Pillow，只用标准库与 Pillow）</text>
+
+  <rect class="bn" x="48" y="230" width="1144" height="108" rx="2"/>
+  <text class="ts" x="60" y="250">1 路径规范化：相对 Main/assets/，跳出素材根或写成绝对路径一律报错</text>
+  <text class="ts" x="60" y="266">2 只接受可展开为 8 位 RGBA 的 PNG 模式：1 / L / LA / P / RGB / RGBA；I;16 等一律报错</text>
+  <text class="ts" x="60" y="282">3 转目标字节：premult 用 65536 项查表 (c*a+127)/255，straight 原样，xrgb 高字节写 0</text>
+  <text class="ts" x="60" y="298">4 布局：每项起点 64 字节对齐，行跨取不小于 宽x4 的最小 2 的幂且 [2,31]，行尾填 0</text>
+  <text class="ts" x="60" y="314">5 组包：32 字节头 + 每项 32 字节目录 + 数据；逐项 CRC32 与整包 CRC32（CRC 字段按 0 参与）</text>
+  <text class="ts" x="60" y="330">6 上限：超过运行预算（默认 4 MiB 分区）报错并以非 0 退出；相同输入逐字节产出相同的两个产物</text>
+
+  <!-- ===== 生成物 ===== -->
+  <rect class="grp" x="32" y="368" width="1176" height="104" rx="2"/>
+  <text class="tg" x="44" y="386">生成物 Main/assets/build/（不入库；.gitignore 的 build/ 已排除）</text>
+
+  <rect class="bn" x="48" y="394" width="560" height="66" rx="2"/>
+  <text class="tt" x="60" y="414">assets.pak</text>
+  <text class="ts" x="60" y="432">当前 8 项、2,142,784 字节 = 2.044 MiB，占 4 MiB 分区的 51.1%</text>
+  <text class="ts" x="60" y="446">设备地址 = REGION_ASSET 偏移 + 条目偏移，DDR 里不再重排</text>
+
+  <rect class="bn" x="632" y="394" width="560" height="66" rx="2"/>
+  <text class="tt" x="644" y="414">assets.h</text>
+  <text class="ts" x="644" y="432">包版本 / 总长 / 整包 CRC / 条目数 + 每项的 ID、ENTRY、宽高、行跨、格式</text>
+  <text class="ts" x="644" y="446">装载后由程序与包对账；只有应用层能包含它（-I$(ASSETS_BUILD)）</text>
+
+  <!-- ===== 镜像合成 ===== -->
+  <rect class="grp" x="32" y="492" width="1176" height="132" rx="2"/>
+  <text class="tg" x="44" y="510">镜像合成 tools/board/make_flash_image.py（只生成与校验，不烧录）</text>
+
+  <rect class="bd" x="48" y="518" width="1144" height="94" rx="2"/>
+  <text class="ts" x="60" y="538">比特流输入是 fpga/gfx2d_ti60/outflow/gfx2d_ti60.hex（active），不是 .bit（passive）：同一编译的两份输出解码后差 20 字节，</text>
+  <text class="ts" x="60" y="554">  差异全在 ASCII 头里，头部之后 698,623 字节逐字节相同；写 Flash 用的是 active 那一份</text>
+  <text class="ts" x="60" y="570">空洞与预留区填 0xFF；输出范围按「分区起点 + 输入实际字节数」向上取整到 4 KiB 扇区（末尾 0xFF 不许丢），--full 出整片 8 MiB</text>
+  <text class="ts" x="60" y="586">合成后解回字节与三份输入逐字节比、区外必须是 0xFF；分区起点断言扇区对齐，容量逐项检查</text>
+
+  <!-- ===== Flash 分区 ===== -->
+  <rect class="grp" x="32" y="644" width="1176" height="152" rx="2"/>
+  <text class="tg" x="44" y="662">Flash W25Q64 8 MiB（ftdi_pgm 按扇区写入；实测擦除 32 s、写入 34 s、校验 23 s）</text>
+
+  <rect class="bt" x="48" y="672" width="300" height="70" rx="2"/>
+  <text class="tt" x="60" y="692">比特流 0x000000</text>
+  <text class="ts" x="60" y="710">0x000000-0x1FFFFF，2 MiB</text>
+  <text class="ts" x="60" y="726">实际 699,047 字节 = 0.667 MiB</text>
+
+  <rect class="bt" x="356" y="672" width="200" height="70" rx="2"/>
+  <text class="tt" x="368" y="692">预留</text>
+  <text class="ts" x="368" y="710">0x200000-0x37FFFF</text>
+  <text class="ts" x="368" y="726">1.5 MiB，填 0xFF</text>
+
+  <rect class="bt" x="564" y="672" width="230" height="70" rx="2"/>
+  <text class="tt" x="576" y="692">程序 0x380000</text>
+  <text class="ts" x="576" y="710">0x380000-0x3FFFFF，512 KiB</text>
+  <text class="ts" x="576" y="726">bootloader 拷到 DDR 0x1000</text>
+
+  <rect class="bt" x="802" y="672" width="390" height="70" rx="2"/>
+  <text class="tt" x="814" y="692">素材包 0x400000</text>
+  <text class="ts" x="814" y="710">0x400000-0x7FFFFF，4 MiB（物理上限）</text>
+  <text class="ts" x="814" y="726">板上装载从这里读进 REGION_ASSET（0x0100_0000，16 MiB）</text>
+
+  <text class="ts" x="48" y="764">四个分区起点（0x0 / 0x200000 / 0x380000 / 0x400000）都落在 4 KiB 扇区边界上，满足 开发环境.md 第 8 节「写入地址必须落在扇区边界上」。</text>
+  <text class="ts" x="48" y="780">运行预算是另一个参数（--max-pak / --max-asset），只能收紧；物理上限 4 MiB 不能越过。E6 未开工，默认值仍取 4 MiB。</text>
+
+  <!-- ===== 下游 ===== -->
+  <rect class="bg" x="48" y="812" width="560" height="60" rx="2"/>
+  <text class="tt" x="60" y="832" fill="#64748b">SW6 / SW7  基础 Demo 与游戏</text>
+  <text class="ts" x="60" y="850">调用 assetpak_load + gfx_surface_set 取现成表面，不再各自写一套装载</text>
+  <text class="ts" x="60" y="864">正式美术随主题另排，届时重打素材并重新登记许可</text>
+
+  <rect class="bg" x="632" y="812" width="560" height="60" rx="2"/>
+  <text class="tt" x="644" y="832" fill="#64748b">engine  硬件渲染路径</text>
+  <text class="ts" x="644" y="850">引擎读 REGION_ASSET 的同一份包（尚无条目）；那时素材的设备地址</text>
+  <text class="ts" x="644" y="864">按 2.1 节的约定直接下发，不需要另一份布局</text>
+
+  <!-- ===== 连线 ===== -->
+  <path class="flow" d="M181,168 L181,230" marker-end="url(#a)"/>
+  <path class="flow" d="M459,168 L459,230" marker-end="url(#a)"/>
+  <path class="flow" d="M737,168 L737,230" marker-end="url(#a)"/>
+  <path class="flow" d="M1037,168 L1037,230" marker-end="url(#a)"/>
+
+  <path class="flow" d="M328,338 L328,394" marker-end="url(#a)"/>
+  <path class="flow" d="M912,338 L912,394" marker-end="url(#a)"/>
+
+  <path class="flow" d="M328,460 L328,518" marker-end="url(#a)"/>
+  <path class="flow" d="M912,460 L912,518" marker-end="url(#a)"/>
+  <path class="flow" d="M1037,612 L1037,672" marker-end="url(#a)"/>
+
+  <path class="un" d="M328,796 L328,812" marker-end="url(#ag)"/>
+  <path class="un" d="M912,796 L912,812" marker-end="url(#ag)"/>
+
+  <!-- ===== 图例 ===== -->
+  <rect class="grp" x="32" y="880" width="1176" height="64" rx="2"/>
+  <text class="tg" x="44" y="896">图例</text>
+
+  <rect class="bn" x="48" y="904" width="26" height="14"/>
+  <text class="ts" x="82" y="915">本章新增</text>
+  <rect class="b" x="182" y="904" width="26" height="14"/>
+  <text class="ts" x="216" y="915">已存在</text>
+  <rect class="bt" x="312" y="904" width="26" height="14"/>
+  <text class="ts" x="346" y="915">写进 Flash 的分区</text>
+  <rect class="bd" x="486" y="904" width="26" height="14"/>
+  <text class="ts" x="520" y="915">工具与它的约束</text>
+  <rect class="bg" x="654" y="904" width="26" height="14"/>
+  <text class="ts" x="688" y="915">尚未接入</text>
+
+  <path class="flow" d="M48,930 L100,930" marker-end="url(#a)"/>
+  <text class="ts" x="108" y="934">实线：调用或数据流</text>
+  <path class="un" d="M268,930 L320,930" marker-end="url(#ag)"/>
+  <text class="ts" x="328" y="934">灰虚线：尚未接入的下游</text>
+</svg>

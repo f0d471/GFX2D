@@ -116,6 +116,28 @@ uint32_t   board_swap_count(void);
    进了位图就会被录进录像，回放时凭空多出一个按键，破坏确定性。 */
 int        board_should_quit(void);
 
+/* --- 素材包装载 --------------------------------------------------------- */
+/* Flash 素材分区（设计文档 2.2 节）：起点 0x400000、物理上限 4 MiB。
+   这一组常量属于板级层：lib/core/assetpak 不认识分区，
+   它只接受调用方算好的 assetpak_limits。 */
+#define BOARD_ASSET_FLASH_OFFSET 0x00400000u
+#define BOARD_ASSET_MAX_BYTES    (4u * 1024u * 1024u)
+
+#define BOARD_ASSET_OK           0
+#define BOARD_ASSET_E_RANGE     (-1)    /* 请求越出素材分区容量 */
+#define BOARD_ASSET_E_IO        (-2)    /* 读失败（文件打不开、SPI 无响应） */
+#define BOARD_ASSET_E_PATH      (-3)    /* PC：路径取不到 */
+
+/* 从素材分区读 bytes 个字节到 dst。offset **相对分区起点**，不是 Flash 物理地址：
+   板上把它加到 BOARD_ASSET_FLASH_OFFSET 上，PC 上就是 assets.pak 的文件偏移。
+   板上走 SPI Flash（单线/双线由本层选），PC 走 GFX2D_ASSETS_PAK 指的文件。
+   返回 0 或上面的负错误码。
+
+   本函数只管搬运，**不解析**：素材包的结构与校验规则在 lib/core/assetpak 里，
+   由 assetpak_load() 调用它。这样 bsp 不依赖 lib、lib 不依赖 bsp，
+   仍然只有应用把两者接起来（SW1 2.1 节的分层）。 */
+int board_asset_read(uint32_t offset, void *dst, uint32_t bytes);
+
 /* --- 缓存 --------------------------------------------------------------- */
 /* 按 E3 规则包成带 "memory" clobber 的函数：CPU 数据缓存会遮蔽外部主机
    （引擎、扫描输出）写入 DDR 的结果，共享区读回之前必须失效一次。

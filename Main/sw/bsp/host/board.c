@@ -32,6 +32,13 @@
 
 #include "board.h"
 
+/* 素材包文件：GFX2D_ASSETS_PAK 环境变量优先，不给时用构建时写进来的默认路径
+   （mk/host.mk 由 -DGFX2D_ASSETS_PAK_DEFAULT 传，指向 Main/assets/build/assets.pak）。
+   路径不进仓库文档，也不写死在源码里（改构建目录时只改 makefile 的变量）。 */
+#ifndef GFX2D_ASSETS_PAK_DEFAULT
+#define GFX2D_ASSETS_PAK_DEFAULT ""
+#endif
+
 /* 板级帧节拍：一场的秒数取 1/60。step 由性能计数器的频率折算，不是墙钟。 */
 #define BOARD_FPS           60u
 
@@ -147,6 +154,46 @@ board_mem board_region(board_region_id id)
     m.ptr  = s_ddr + g_mem_regions[id].offset;
     m.size = g_mem_regions[id].size;
     return m;
+}
+
+/* --- 素材分区（SW5 2.3 节）----------------------------------------------- */
+/* PC 上素材分区就是 assets.pak 这一个文件：offset 是文件偏移。
+   每次调用开一次文件，读两段（包头、正文）就是开两次，
+   比起把整包先读进内存再校验，这样不会在包头就坏掉时读进一个来路不明的长度。 */
+static const char *asset_pak_path(void)
+{
+    const char *env = getenv("GFX2D_ASSETS_PAK");
+
+    if (env != NULL && env[0] != '\0')
+        return env;
+    return GFX2D_ASSETS_PAK_DEFAULT;
+}
+
+int board_asset_read(uint32_t offset, void *dst, uint32_t bytes)
+{
+    const char *path = asset_pak_path();
+    FILE       *f;
+    size_t      got;
+
+    if (path[0] == '\0')
+        return BOARD_ASSET_E_PATH;      /* 构建时没给默认路径，也没设环境变量 */
+    if (dst == NULL)
+        return BOARD_ASSET_E_RANGE;
+    if (offset > BOARD_ASSET_MAX_BYTES || bytes > BOARD_ASSET_MAX_BYTES - offset)
+        return BOARD_ASSET_E_RANGE;
+
+    f = fopen(path, "rb");
+    if (f == NULL)
+        return BOARD_ASSET_E_IO;
+    if (fseek(f, (long)offset, SEEK_SET) != 0) {
+        fclose(f);
+        return BOARD_ASSET_E_IO;
+    }
+    got = fread(dst, 1u, (size_t)bytes, f);
+    fclose(f);
+    if (got != (size_t)bytes)
+        return BOARD_ASSET_E_IO;        /* 文件比包头里写的短 */
+    return BOARD_ASSET_OK;
 }
 
 uint32_t board_cycles(void)

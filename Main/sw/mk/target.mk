@@ -38,6 +38,10 @@ APP_SRCDIR ?= .
 LIBS       ?= core
 APP_SRCS   ?= $(wildcard src/*.c src/game/*.c)
 
+# SW5：素材工具生成的 assets.h 落在 Main/assets/build/。只有**应用**那一层用这个 -I，
+# lib/ 与 bsp/ 都看不到它（分层不变）。
+ASSETS_BUILD ?= $(abspath $(SW)../assets/build)
+
 OPT      ?= 2
 OBJDIR   ?= build
 INJECT   ?=
@@ -127,7 +131,7 @@ $(ELF): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(START_OBJ)
 $(OBJDIR)/app/%.o: $(APP_SRCDIR)/%.c
 	@mkdir -p $(dir $@)
 	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(RISCV_CC) -c $(CFLAGS) -I$(SW)lib -I$(SW)bsp/include -o $@ $<
+	@$(RISCV_CC) -c $(CFLAGS) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -o $@ $<
 
 $(OBJDIR)/lib/%.o: $(SW)lib/%.c
 	@mkdir -p $(dir $@)

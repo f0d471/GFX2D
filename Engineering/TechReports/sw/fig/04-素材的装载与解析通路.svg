@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1000" viewBox="0 0 1240 1000"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b   { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bn  { fill:#eff6ff; stroke:#1d4ed8; stroke-width:1.3 }
+      .bd  { fill:#fffbeb; stroke:#b45309; stroke-width:1.2 }
+      .bt  { fill:#f0fdf4; stroke:#15803d; stroke-width:1.2 }
+      .bg  { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .grp { fill:none; stroke:#cbd5e1; stroke-width:1; stroke-dasharray:3 3 }
+      .tt  { font-size:12.5px; font-weight:600; fill:#0f172a }
+      .t   { font-size:11px; fill:#0f172a }
+      .ts  { font-size:9.5px; fill:#475569 }
+      .tg  { font-size:10.5px; font-weight:600; fill:#64748b }
+      .flow { stroke:#334155; stroke-width:1.4; fill:none }
+      .chk  { stroke:#b45309; stroke-width:1.4; fill:none; stroke-dasharray:7 3 }
+      .un   { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="1000" fill="#ffffff"/>
+  <text x="40" y="36" font-size="18" font-weight="600" fill="#0f172a">gfx2d 素材的装载与解析通路</text>
+  <text x="40" y="58" font-size="12" fill="#64748b">SW5 结束时的状态，2026-09-23。两个平台跑同一份 lib 与应用源码；灰虚线表示尚未接入的下游。</text>
+
+  <!-- ===== 包的来源 ===== -->
+  <rect class="grp" x="32" y="76" width="1176" height="100" rx="2"/>
+  <text class="tg" x="44" y="94">同一个包的两种来源（逐字节相同：打包确定性 S1 与镜像回环 S7 各对一次）</text>
+
+  <rect class="bt" x="48" y="102" width="556" height="62" rx="2"/>
+  <text class="tt" x="60" y="122">板上：Flash 0x400000（素材分区 4 MiB）</text>
+  <text class="ts" x="60" y="140">整包由 make_flash_image.py 写进去；设备地址 = REGION_ASSET 偏移 0x0100_0000 + 条目偏移</text>
+  <text class="ts" x="60" y="156">bootloader 从 0x380000 拷程序，程序再自己把素材读进 DDR 素材区</text>
+
+  <rect class="b" x="628" y="102" width="564" height="62" rx="2"/>
+  <text class="tt" x="640" y="122">PC：assets.pak 文件</text>
+  <text class="ts" x="640" y="140">路径取 GFX2D_ASSETS_PAK 环境变量，不给时用 mk/host.mk 编进去的绝对路径</text>
+  <text class="ts" x="640" y="156">编进 bsp/host；换了路径会触发重编（ASSETS_PAK 在编译选项标记文件里）</text>
+
+  <!-- ===== 板级层 ===== -->
+  <rect class="grp" x="32" y="196" width="1176" height="132" rx="2"/>
+  <text class="tg" x="44" y="214">板级层 sw/bsp（只读字节，不认识包格式：读的规则在 lib 里，分层的边界就在这里）</text>
+
+  <rect class="bn" x="48" y="222" width="556" height="94" rx="2"/>
+  <text class="tt" x="60" y="242">ti60/board.c   board_asset_read(offset, dst, bytes)</text>
+  <text class="ts" x="60" y="262">每次读都自己 spiFlash_init / wake / exit4ByteAddr，不假设 bootloader 留下的状态</text>
+  <text class="ts" x="60" y="278">spiFlash_f2m(0x400000 + offset) 单线为默认；双线留 BOARD_ASSET_SPI_DUAL 一个宏</text>
+  <text class="ts" x="60" y="294">offset 或 bytes 越过 4 MiB 分区就在读之前返回 BOARD_ASSET_E_RANGE</text>
+  <text class="ts" x="60" y="310">SPI 与片选在本地定义（SPI/SPI_CS 在 bootloaderConfig.h 里，不在 spiFlash.h 里）</text>
+
+  <rect class="bn" x="628" y="222" width="564" height="94" rx="2"/>
+  <text class="tt" x="640" y="242">host/board.c   board_asset_read(offset, dst, bytes)</text>
+  <text class="ts" x="640" y="262">fopen / fseek / fread，offset 就是文件偏移；读满即成功</text>
+  <text class="ts" x="640" y="278">文件比头里写的总长短时读不满，返回 BOARD_ASSET_E_IO(-2)</text>
+  <text class="ts" x="640" y="294">这就是判据里「文件比总长短」那一条报 board_read 的原因；解析器的 bad_total 由</text>
+  <text class="ts" x="640" y="310">主机侧单测（B09/B26）与「头写 6 MiB 总长」那一组覆盖</text>
+
+  <!-- ===== 解析与装载 ===== -->
+  <rect class="grp" x="32" y="344" width="1176" height="230" rx="2"/>
+  <text class="tg" x="44" y="362">lib/core/assetpak（纯算法，两个平台同一份；不分配内存、不用浮点）</text>
+
+  <rect class="bn" x="48" y="370" width="556" height="192" rx="2"/>
+  <text class="tt" x="60" y="390">assetpak_load(pk, rd, dst, dst_bytes, lim, out_len)</text>
+  <text class="ts" x="60" y="410">1 只读 32 字节包头（不碰正文）</text>
+  <text class="ts" x="60" y="426">2 校验头：magic / 版本 / 头长 / 保留 / 条目数 / 目录字节数 / 总长关系，</text>
+  <text class="ts" x="60" y="442">   且 总长 &lt;= lim-&gt;max_total 与 dst 容量——这一步不拿未校验的长度去写 DDR</text>
+  <text class="ts" x="60" y="458">3 按校验过的总长读正文进 dst（dst 由应用从 board_region(REGION_ASSET) 取）</text>
+  <text class="ts" x="60" y="474">4 交给 assetpak_parse 做完整校验，通过才返回可用表面</text>
+  <text class="ts" x="60" y="494">读入口的负错误码原样传出去（PC 上就是 board_read），</text>
+  <text class="ts" x="60" y="510">解析错误用自己的码并记下出错的条目：fail_index / fail_id</text>
+  <text class="ts" x="60" y="530">示例：坏一项数据 -> 14 entry_crc id=1；头写 6 MiB -> 6 bad_total（读正文前）</text>
+  <text class="ts" x="60" y="550">assetpak_find(id) / assetpak_entry_at(i) / assetpak_data() 按需解码，不建索引表</text>
+
+  <rect class="b" x="628" y="370" width="564" height="192" rx="2"/>
+  <text class="tt" x="640" y="390">assetpak_parse 的五段校验顺序（固定，一条多处错的记录只报一个码）</text>
+  <text class="ts" x="640" y="412">1 头  magic(2) / 版本(3) / 头字段(4) / 条目数(5) / 总长(6)</text>
+  <text class="ts" x="640" y="428">2 逐项字段与几何：对齐(7) / 行跨与数据长(8) / 格式(9) / 标志与色键(10)</text>
+  <text class="ts" x="640" y="444">   格式只认 v1 的三种，INDEX8(3) 在素材包里被拒</text>
+  <text class="ts" x="640" y="460">3 越界(12) 与 ID 重复(13)</text>
+  <text class="ts" x="640" y="476">4 数据区不得互相重叠(11) —— 256 项两两比，比建索引表省内存</text>
+  <text class="ts" x="640" y="492">5 逐项数据 CRC(14) -> 整包 CRC(15，头里那 4 字节按 0 参与)</text>
+  <text class="ts" x="640" y="512">第 5 段有注错开关 INJECT_ASSET_SKIP_CRC：判据脚本用它证明</text>
+  <text class="ts" x="640" y="528">「坏包被拒」不是空转（注错版收下坏包，画面 CRC 随之与参考不同）</text>
+  <text class="ts" x="640" y="550">包格式常量与头文件同源：ASSETPAK_VERSION 与生成的 assets.h 在编译期对齐</text>
+
+  <!-- ===== 应用 ===== -->
+  <rect class="grp" x="32" y="590" width="1176" height="166" rx="2"/>
+  <text class="tg" x="44" y="608">应用 sw/apps/test/assetTest（板上与 PC 同一份源码）</text>
+
+  <rect class="bn" x="48" y="616" width="556" height="128" rx="2"/>
+  <text class="tt" x="60" y="636">从包到画面</text>
+  <text class="ts" x="60" y="656">与编译时生成的 assets.h 对账：版本、条目数、总长、整包 CRC、逐项几何</text>
+  <text class="ts" x="60" y="672">按当前画面需要挑条目：挑 6 个素材 + 帧缓冲登记进 gfx_surface_table</text>
+  <text class="ts" x="60" y="688">  包 ID 不是表面槽号：包最多 256 项，v1 只有 16 槽，不能按 ID 一次全登</text>
+  <text class="ts" x="60" y="704">组 48 条命令（FILL / 整屏 BLIT / 棋盘平铺 / 图集 ALPHA 子矩形 / 预乘与直通对照 /</text>
+  <text class="ts" x="60" y="720">色键 / 字库文字），exec_sw 画进 FB0，再算整帧 CRC 与 64x24 字符画</text>
+  <text class="ts" x="60" y="736">同一个二进制也编出板上产物；两边的整帧 CRC 与字符画必须逐行相同</text>
+
+  <rect class="bd" x="628" y="616" width="564" height="128" rx="2"/>
+  <text class="tt" x="640" y="636">gfx_mem 的窗口必须盖住两段</text>
+  <text class="ts" x="640" y="656">dev_base = REGION_ASSET 偏移 0x0100_0000，host 指向 board_region(REGION_ASSET).ptr</text>
+  <text class="ts" x="640" y="672">bytes = (FB0 偏移 - REGION_ASSET 偏移) + 一帧字节数，覆盖到测试目标帧缓冲末端</text>
+  <text class="ts" x="640" y="688">只填 REGION_ASSET.size 会让帧缓冲落在窗口外，BLIT 按 GFX_E_BAD_SURFACE 失败</text>
+  <text class="ts" x="640" y="704">登记前先核对相邻分区的指针之差等于分区表偏移之差（M1）</text>
+  <text class="ts" x="640" y="720">素材条目的设备地址 = 0x0100_0000 + 条目偏移，DDR 里不重排，引擎将来读同一份</text>
+  <text class="ts" x="640" y="736">不管搬运：CPU 经驱动逐字节写 DDR，不经外部主机，所以这一段不需要缓存失效</text>
+
+  <!-- ===== 下游 ===== -->
+  <rect class="bg" x="48" y="772" width="556" height="64" rx="2"/>
+  <text class="tt" x="60" y="792" fill="#64748b">SW6 / SW7  基础 Demo 与游戏</text>
+  <text class="ts" x="60" y="810">直接调 assetpak_load 与 gfx_surface_set，按画面挑表面；</text>
+  <text class="ts" x="60" y="826">正式美术随主题另排</text>
+
+  <rect class="bg" x="628" y="772" width="564" height="64" rx="2"/>
+  <text class="tt" x="640" y="792" fill="#64748b">engine  硬件渲染路径</text>
+  <text class="ts" x="640" y="810">引擎按同一份设备地址读 REGION_ASSET（尚无条目）；</text>
+  <text class="ts" x="640" y="826">引擎与扫描输出写 DDR 时，读回之前要按 E3 规则失效</text>
+
+  <!-- ===== 连线 ===== -->
+  <path class="flow" d="M326,164 L326,222" marker-end="url(#a)"/>
+  <path class="flow" d="M910,164 L910,222" marker-end="url(#a)"/>
+  <path class="flow" d="M326,316 L326,370" marker-end="url(#a)"/>
+  <path class="flow" d="M910,316 L910,370" marker-end="url(#a)"/>
+  <path class="flow" d="M326,562 L326,616" marker-end="url(#a)"/>
+  <path class="flow" d="M910,562 L910,616" marker-end="url(#a)"/>
+  <path class="chk" d="M604,678 L628,678" marker-end="url(#ac)"/>
+  <text class="ts" x="596" y="670" text-anchor="end">表面</text>
+  <path class="un" d="M326,744 L326,772" marker-end="url(#ag)"/>
+  <path class="un" d="M910,744 L910,772" marker-end="url(#ag)"/>
+
+  <!-- ===== 图例 ===== -->
+  <rect class="grp" x="32" y="856" width="1176" height="64" rx="2"/>
+  <text class="tg" x="44" y="872">图例</text>
+
+  <rect class="bn" x="48" y="880" width="26" height="14"/>
+  <text class="ts" x="82" y="891">本章新增</text>
+  <rect class="b" x="182" y="880" width="26" height="14"/>
+  <text class="ts" x="216" y="891">已存在</text>
+  <rect class="bt" x="312" y="880" width="26" height="14"/>
+  <text class="ts" x="346" y="891">板上 Flash 里的包</text>
+  <rect class="bd" x="486" y="880" width="26" height="14"/>
+  <text class="ts" x="520" y="891">约束与边界</text>
+  <rect class="bg" x="654" y="880" width="26" height="14"/>
+  <text class="ts" x="688" y="891">尚未接入</text>
+
+  <path class="flow" d="M48,906 L100,906" marker-end="url(#a)"/>
+  <text class="ts" x="108" y="910">实线：调用或数据流</text>
+  <path class="chk" d="M268,906 L320,906" marker-end="url(#ac)"/>
+  <text class="ts" x="328" y="910">深虚线：登记表面</text>
+  <path class="un" d="M488,906 L540,906" marker-end="url(#ag)"/>
+  <text class="ts" x="548" y="910">灰虚线：尚未接入的下游</text>
+</svg>

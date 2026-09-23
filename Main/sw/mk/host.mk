@@ -35,6 +35,15 @@ APP_SRCDIR ?= .
 LIBS       ?= core
 APP_SRCS   ?= $(wildcard src/*.c src/game/*.c)
 
+# SW5：素材工具生成的 assets.h 与 assets.pak 落在 Main/assets/build/。
+# 只有**应用**那一层的编译规则用 ASSETS_BUILD 这个 -I，lib/ 与 bsp/ 都看不到
+# （lib/core/assetpak.h 只放通用格式，本项目的素材编号只在 assets.h 里）。
+#
+# ASSETS_PAK 会被 -D 编进 bsp/host，作为「没设 GFX2D_ASSETS_PAK 时读哪里」的默认值，
+# 所以取绝对路径（abspath）：相对路径只在构建时的当前目录下成立，换一个目录跑就找不到包。
+ASSETS_BUILD ?= $(abspath $(SW)../assets/build)
+ASSETS_PAK   ?= $(ASSETS_BUILD)/assets.pak
+
 OBJDIR   ?= build_host
 HOST_CC  ?= gcc
 OPT      ?= 2
@@ -82,8 +91,11 @@ BASE += $(EXTRA_CFLAGS)
 # 用标记文件记住上一轮的选项，不一致就把这一轮的目标文件清掉。
 # 没有这一步时 `make INJECT=XS32_SHIFT` 会静默复用上一次的对象，
 # 注错版与正常版逐位一样（第一次跑判据时踩到，见开发日志）。
+# 标记里还要带上 ASSETS_PAK：它被 -D 编进 bsp/host/board.c，
+# 换了素材包路径而标记不变的话，board.o 会留着上次那个路径。
 FLAGS_STAMP := $(OBJDIR)/.cflags
-$(shell mkdir -p $(OBJDIR); if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(BASE)" ]; then rm -rf $(OBJDIR)/app $(OBJDIR)/lib $(OBJDIR)/bsp; printf '%s' "$(BASE)" > $(FLAGS_STAMP); fi)
+STAMP_VALUE := $(BASE) $(ASSETS_PAK)
+$(shell mkdir -p $(OBJDIR); if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(STAMP_VALUE)" ]; then rm -rf $(OBJDIR)/app $(OBJDIR)/lib $(OBJDIR)/bsp; printf '%s' "$(STAMP_VALUE)" > $(FLAGS_STAMP); fi)
 
 APP_OBJS := $(addprefix $(OBJDIR)/app/,$(APP_SRCS:.c=.o))
 LIB_SRCS := $(foreach l,$(LIBS),$(wildcard $(SW)lib/$(l)/*.c))
@@ -123,7 +135,7 @@ $(TARGET): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS)
 $(OBJDIR)/app/%.o: $(APP_SRCDIR)/%.c
 	@mkdir -p $(dir $@)
 	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(HOST_CC) $(BASE) -I$(SW)lib -I$(SW)bsp/include -c $< -o $@
+	@$(HOST_CC) $(BASE) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -c $< -o $@
 
 $(OBJDIR)/lib/%.o: $(SW)lib/%.c
 	@mkdir -p $(dir $@)
@@ -133,7 +145,8 @@ $(OBJDIR)/lib/%.o: $(SW)lib/%.c
 $(OBJDIR)/bsp/%.o: $(SW)bsp/%.c
 	@mkdir -p $(dir $@)
 	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(HOST_CC) $(BASE) -I$(SW)bsp/include $(SDL_CFLAGS) -c $< -o $@
+	@$(HOST_CC) $(BASE) -I$(SW)bsp/include $(SDL_CFLAGS) \
+	    -DGFX2D_ASSETS_PAK_DEFAULT='"$(ASSETS_PAK)"' -c $< -o $@
 
 run: $(TARGET)
 	@$(TARGET)

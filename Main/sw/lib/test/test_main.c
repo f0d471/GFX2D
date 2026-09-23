@@ -16,6 +16,7 @@
 #include "core/format.h"
 #include "core/xorshift32.h"
 #include "ref_crc.h"
+#include "test_assetpak.h"
 #include "test_gfx.h"
 #include "test_replay.h"
 
@@ -252,6 +253,7 @@ int main(int argc, char **argv)
     t4_xorshift();
     t5_format();
 
+    g_fail += test_assetpak_run();
     g_fail += test_gfx_run(vecpath, golden, gen);
     g_fail += test_replay_run(replay);
 

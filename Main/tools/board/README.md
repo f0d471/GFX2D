@@ -2,9 +2,10 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| `board_run.py` | 烧比特流、先开串口、复位并加载程序、回收串口输出，一条命令走完；也做调试通路检查与寄存器读写 |
+| `board_run.py` | 烧比特流、先开串口、复位并加载程序、回收串口输出，一条命令走完；也做调试通路检查、寄存器读写与「从 Flash 启动」的采集 |
 | `gfx2d_debug.cfg` | 本板用的 OpenOCD 配置，修掉官方 cfg 在本板上的两处对不上，`board_run.py` 用它 |
 | `bin2hex.py` | 把程序 bin 转成 Efinity Programmer 写 Flash 用的 hex 文本 |
+| `make_flash_image.py` | 比特流 + 程序 + 素材包合成一个 Flash 镜像，并做回环校验（不烧录） |
 
 ## board_run.py
 
@@ -16,9 +17,21 @@ set PYTHONHOME=<EFINITY>\python311
 | 用法 | 做什么 |
 | --- | --- |
 | `--bin <程序.bin>` | 烧比特流，开串口，`reset halt`、`load_image`、`resume`，收串口到 `--stop-on` 的文本或 `--seconds` 超时 |
+| `--flash-boot` | **从 Flash 启动**：先开串口，再烧比特流；SoC 复位后 bootloader 从 `0x380000` 把程序拷进 DDR 自己跑，本模式不 `load_image`。程序与素材包都在 Flash 里时用它（SW5、SW9 的板上判据） |
 | `--check-only` | 调试通路检查：连开两次 OpenOCD 会话各读一次 PC（`doc/开发环境.md` 0.6 节第 5 步） |
 | `--cmd "<OpenOCD 命令>"` | 不加载程序，复位后执行命令，可给多个。回归表的 APB 探针：`--cmd "mdw 0xf8100000 3"`；按键：`--cmd "mdw 0xf8016000"` |
 | `--list-ports` | 列串口 |
+
+`--flash-boot` 与 `--bin` 的区别只有一处：`--bin` 走 JTAG 把程序写进 DDR，
+`--flash-boot` 让板子自己从 Flash 拷。**判 Flash 启动路径必须用后者**——
+`--bin` 会把要验的那一段（bootloader 从 Flash 拷贝）绕过去。
+它不用 OpenOCD：配置完 FPGA 的那一刻 SoC 就复位并开始打印，所以串口必须先开。
+
+```
+set PYTHONHOME=<EFINITY>\python311
+<EFINITY>\python311\bin\python.exe tools\board\board_run.py --flash-boot ^
+    --stop-on done --seconds 90 --log Main\sw\apps\test\assetTest\logs\board_normal.log
+```
 
 | 参数 | 说明 |
 | --- | --- |
@@ -75,3 +88,31 @@ python3 tools/board/bin2hex.py <输入.bin> <输出.hex>
 
 Efinity 的 `jtag_bridge` 写 Flash 只接受 hex 文本（每字节一行、两位大写十六进制、LF 换行），不接受裸 bin。
 转换后把 hex 解码回字节与输入逐字节比较，不一致时退出码为 1。写 Flash 的命令见 `doc/开发环境.md` 第 8 节。
+
+## make_flash_image.py
+
+```
+python3 Main/tools/board/make_flash_image.py --app <程序.bin> [--out <镜像.hex>] [--full]
+```
+
+按设计文档 2.2 节把三段合成一个镜像：比特流 `0x000000`（2 MiB）、程序 `0x380000`（512 KiB）、
+素材包 `0x400000`（4 MiB）；`0x200000`–`0x37FFFF` 是预留区，填 `0xFF`。
+
+- 比特流输入是 Efinity 出来的 **`.hex`（active），不是 `.bit`（passive）**。
+  同一编译的两份输出解码后差 20 字节，差异全在 ASCII 头里（`.bit` 写 `Mode: passive`），
+  写 Flash 用的是 active 那一份；工具会检查头部的 `Mode: active` 并拒绝 passive 输入。
+- 输出范围按「分区起点 + 输入实际字节数」算并向上取整到 4 KiB 扇区，
+  **不按最后一个非 `0xFF` 字节截断**——有效输入本身可以以 `0xFF` 结尾。`--full` 出整片 8 MiB。
+- 四个分区起点都断言扇区对齐；容量逐项检查；合成后解回字节与三份输入逐字节比，
+  区外必须是 `0xFF`。素材超过 4 MiB 分区或超过 `--max-asset` 的运行预算时报错退出。
+- **本工具不烧录。** 写 Flash 用 `ftdi_pgm.bat`（`doc/开发环境.md` 第 8 节），写之前先整片读出备份：
+
+```
+%PGM% -m jtag -u <JTAG> <EFINITY>\pgm\fli\titanium\u10660A79.bit
+%PGM% -m jtag_bridge --jtag_bridge_mode all --verify_method hostx1 --address 0x0 ^
+      -u <JTAG> <镜像.hex>
+```
+
+实测（2026-09-23，6.047 MiB 镜像）：擦除 32 秒、写入 34 秒、读回校验 23 秒，末尾 `Flash verify successful`。
+写完之后 FPGA 停在桥接镜像上；再按上面的 `--flash-boot` 烧一次自己的比特流，
+SoC 复位后就会从 Flash 启动。

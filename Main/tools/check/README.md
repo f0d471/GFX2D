@@ -9,6 +9,8 @@
 | `replay2c.py` | 录像（`.g2dr`）与 C 数组、录制文本之间的转换；`--check` / `--selftest` 做结构校验与文本往返 | 改录像格式时；`mk/host.mk test` 与 `check_sw4_pc.sh` 会调它 |
 | `check_sw4_scale.c` | PC 平台层「缩放用最近邻」的主机侧探针：把 8×8 棋盘放大 80 倍再读回边界像素 | 改缩放或像素格式时 |
 | `check_sw4_pc.sh` | PC 平台层（SW4）的提交前判据：整帧用例对 `golden.txt`、有窗与无窗逐行互比、注错构建、录像文本回灌、缩放探针 | 改 `sw/bsp/` 或 PC 侧构建时，提交前 |
+| `check_sw5_assets.sh` | 素材流水线（SW5）的提交前判据：打包确定性与输入边界、独立实现对账、装载与画面、七种坏包注错、注错构建、镜像回环与 active/passive 边界、许可台账 | 改素材、打包工具、`assetpak`、`assetTest` 或镜像工具时，提交前 |
+| `check_sw5_pak.py` | 素材包的**独立实现**：自己解包、自己从 PNG 与字库文本重算像素字节再逐字节比 | 由 `check_sw5_assets.sh` 调用，也可单独跑 |
 
 ## localize_paths.py
 
@@ -22,7 +24,7 @@ wsl -e python3 Main/tools/check/localize_paths.py --check      扫描整个仓�
 gpioDemo 的 `.cproject` 与三个 `.launch`，仓库里存的是占位符形式。占位符代表 `Main/` 的路径。
 在 WSL 里运行时，写进去的仍是盘符路径，因为读这些文件的是 Windows 上的厂商工具。
 
-`--check` 找盘符路径、`/home/<用户>/`、`/mnt/<盘符>/` 三类写法，扫的是整个 git 仓库（`Main/` 与 `Engineering/`）。
+`--check` 找盘符路径、`/home/<账户名>/`、`/mnt/<盘符>/` 三类写法，扫的是整个 git 仓库（`Main/` 与 `Engineering/`）。
 不扫：不入库的厂商资料包 `Efinix/`，厂商代码与 IP 生成物（它们带生成时那台机器的工具安装位置），编译产物。
 豁免登记在脚本的 `ALLOW` 里，现有三项：`doc/开发环境.md`（第 11 节集中记本机取值）、本脚本、
 platform 第 07 章（原样引用的报错输出里带 Efinity 的安装路径）。
@@ -130,3 +132,41 @@ PC 平台层（[sw 第 03 章](../../../Engineering/TechReports/sw/03-PC平台�
 
 全量一次约四分钟（判据程序每遍 600 帧节拍加 1800 帧回放两遍）；`SW4_QUICK=1` 把三段帧数压到
 60/30/180。日志行尾是 `\r\n`（与板上 UART 逐字节相同的约定），脚本比对前先做 CRLF 归一。
+
+## check_sw5_assets.sh
+
+```
+wsl -e bash -c 'bash Main/tools/check/check_sw5_assets.sh'
+```
+
+素材流水线的结构判据，九项，见 [`SW5-素材流水线.md`](../../../Engineering/Todo/sw/SW5-素材流水线.md) 第 3 节：
+
+| 项 | 内容 |
+| --- | --- |
+| S1 | 打包确定性与输入边界：同一 manifest 打两次，`assets.pak` 与 `assets.h` 逐字节相同；字库行首 `#`、非 PNG 内容、大小写宏碰撞三个反例符合预期；六张占位 PNG 与生成器逐像素一致 |
+| S2 | 独立实现对账：`check_sw5_pak.py` 自己解包、自己重算像素字节 |
+| S3 | `assetTest` 跑通：装载 → 解析 → 与 `assets.h` 对账 → 挑条目登记表面 → 软件执行器画一整帧；C 侧逐项 CRC 行与独立实现 diff |
+| S4 | 整帧 CRC、窗口 CRC 与 64×24 字符画对入库参考日志（`sw/apps/test/assetTest/logs/pc_normal.log`） |
+| S5 | 七种坏包各自报指定的错误码：数据翻一位报条目 ID、magic、目录、文件比总长短、重叠、越界、头写 6 MiB 总长（必须在读正文前拒） |
+| S6 | 注错构建 `INJECT=ASSET_SKIP_CRC`：关掉两轮 CRC 之后同一个坏包不再被拒，且画面 CRC 与参考不同——证明 S5 不是空转 |
+| S7 | 镜像：`make_flash_image.py` 合成后解回，三个分区逐字节一致、区外全 `0xFF` |
+| S8 | 镜像边界：输入末字节是 `0xFF` 时必须保留；超预算与越过 4 MiB 物理上限都必须报错退出；passive `.bit` 不得作为 active `.hex` 接受 |
+| S9 | 许可：`Main/assets/` 下每个非生成文件都在 `LICENSES.md` 里登记 |
+
+第 5 项里「文件比总长短」那一条落在**读入口**上：PC 从文件读，文件不够长时读不满声明的长度，
+报的是板级读错误 `board_read`（`-2`）。解析器自己的 `bad_total` 由主机侧单测
+（`sw/lib/test/test_assetpak.c` 的 B09/B26）与第 5g 条覆盖。不需要板子与交叉工具链；
+板上那一条（Flash 启动 → 读出长度与整包 CRC → 画出已知图块 → 破坏一项后拒绝并报 ID）
+需在板上单独执行，见 SW5 第 3 节。
+
+## check_sw5_pak.py
+
+```
+wsl -e python3 Main/tools/check/check_sw5_pak.py [--pak <文件>] [--assets <目录>]
+```
+
+**另一份实现**，故意不复用 `pack_assets.py` 的任何函数：它自己按 `assetpak` 的字节格式解头与目录、
+自己按 manifest 从 PNG（含预乘、直通、色键三种口径）与字库文本重算每一项的像素字节，
+再与 `.pak` 逐字节比；也逐项核 CRC、行尾为 0、64 字节对齐、不重叠。
+输出与 `assetTest` 的 C 侧逐项行同格式，所以 `check_sw5_assets.sh` 能把两边 diff 一下——
+两边都算对，才说明格式没写歪。

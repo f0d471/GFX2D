@@ -1,0 +1,22 @@
+# SW5 素材清单（manifest）。制表符分隔，字段见下面这一行；# 开头是注释。
+#
+# kind       surf = 一张 PNG 一项表面；atlas = 一张 PNG 按 slice 切成网格；
+#            font  = 文本点阵字库，由打包工具渲染成网格图集
+# id         显式编号，1~4294967295，全表唯一；重排行不改变编号
+# name       大写字母、数字与下划线，作为 assets.h 里的宏后缀，全表唯一
+# alpha_mode premult = ARGB8888 预乘（主用）；straight = ARGB8888 不预乘（对照）；
+#            xrgb = 高字节写 0、不预乘（可带色键）
+# png        相对 Main/assets/ 的路径，规范化后必须仍在该目录内
+# size       期望的图像尺寸 WxH，与文件不符即报错
+# slice      网格单元 WxH，surf 用 -；atlas/font 里 size 必须被它整除
+# key        色键字 0x00RRGGBB，只有 xrgb 能带；不带写 -
+# purpose    自由标签，写进 assets.h 的注释
+kind	id	name	alpha_mode	png	size	slice	key	purpose
+surf	1	BG_GRAD	xrgb	placeholder/bg_gradient.png	640x480	-	-	bg
+surf	2	CHECKER_TILE	xrgb	placeholder/bg_checker.png	128x128	-	-	bg
+atlas	3	TILE_ATLAS	premult	placeholder/tile_sheet.png	128x96	16x16	-	sprite
+font	4	FONT8X16	xrgb	font/ascii8x16.txt	128x96	8x16	-	hud
+surf	5	BULLET_PM	premult	placeholder/bullet.png	32x32	-	-	sprite
+surf	6	BULLET_ST	straight	placeholder/bullet.png	32x32	-	-	sprite
+surf	7	KEY_DEMO	xrgb	placeholder/key_demo.png	32x32	-	0x00FF00FF	sprite
+surf	8	SOLID8	xrgb	placeholder/solid8.png	8x8	-	-	sprite

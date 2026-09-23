@@ -206,6 +206,10 @@ def main():
     ap.add_argument("--cmd", action="append", default=[],
                     help="不加载程序，复位后执行这条 OpenOCD 命令；可给多个，按顺序执行")
     ap.add_argument("--check-only", action="store_true", help="只做调试通路检查")
+    ap.add_argument("--flash-boot", action="store_true",
+                    help="从 Flash 启动：先开串口，再烧比特流；SoC 复位后 bootloader 从 "
+                         "Flash 0x380000 把程序拷进 DDR 并运行，本模式不 load_image。"
+                         "SW5 的板上装载判据用它（程序与素材包都在 Flash 里）")
     ap.add_argument("--list-ports", action="store_true", help="列出串口后退出")
     ap.add_argument("--bit", default=None,
                     help="要烧的比特流，默认 Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit")
@@ -231,8 +235,8 @@ def main():
     if args.list_ports:
         list_ports()
         return 0
-    if sum(map(bool, (args.bin, args.cmd, args.check_only))) != 1:
-        print("ERROR: --bin、--cmd、--check-only 三选一", file=sys.stderr)
+    if sum(map(bool, (args.bin, args.cmd, args.check_only, args.flash_boot))) != 1:
+        print("ERROR: --bin、--cmd、--check-only、--flash-boot 四选一", file=sys.stderr)
         return 2
     if args.bin and not os.path.isfile(args.bin):
         print("ERROR: 找不到程序 %s" % args.bin, file=sys.stderr)
@@ -252,6 +256,59 @@ def main():
     load_cmds = ["reset halt", "load_image {%s} %s bin" % (os.path.abspath(args.bin or "").replace("\\", "/"), args.addr),
                  "resume %s" % args.addr, "shutdown"]
 
+    # 从 Flash 启动：串口必须先开，再把比特流烧进去——FPGA 配置完成的那一刻
+    # SoC 就复位了，bootloader 立刻开始拷程序并打印，晚开串口就丢开头。
+    # 这里不用 OpenOCD：板子自己会从 Flash 跑，load_image 反而会把 Flash 启动路径绕过去。
+    if args.flash_boot and not args.dry_run:
+        print("=== 先开串口 %s，再烧比特流（从 Flash 启动）" % args.port)
+        ready = threading.Event()
+        armed = threading.Event()
+        result = {}
+        th = threading.Thread(target=serial_worker, daemon=True,
+                              args=(args.port, args.baud, log, args.seconds,
+                                    args.stop_on, ready, armed, result))
+        th.start()
+        ready.wait(timeout=10)
+        if result.get("error"):
+            print("ERROR: 打不开串口 %s：%s" % (args.port, result["error"]), file=sys.stderr)
+            return 2
+
+        # 配置完成之后跑的就是 Flash 里的程序，所以现在就开匹配窗口。
+        armed.set()
+        if not args.no_program:
+            if not os.path.isfile(bit):
+                print("ERROR: 找不到比特流 %s" % bit, file=sys.stderr)
+                return 2
+            if not pgm:
+                print("ERROR: 找不到 Efinity（pgm/bin/ftdi_pgm.bat），用 --efinity 指定",
+                      file=sys.stderr)
+                return 2
+            print("=== 烧写比特流 %s" % bit)
+            ok, out = program_bitstream(pgm, bit, args.jtag_url)
+            if not ok:
+                print(out)
+                print("ERROR: 烧写失败（输出里没有成功标记；ftdi_pgm.bat 出错时也可能返回 0）",
+                      file=sys.stderr)
+                return 1
+
+        print("=== 等串口采集结束（上限 %d 秒）" % args.seconds)
+        th.join(timeout=args.seconds + 30)
+        print("--- 串口输出（%s）---" % log)
+        try:
+            with open(log, "r", encoding="utf-8", errors="replace") as f:
+                sys.stdout.write(f.read())
+        except OSError as e:
+            print("读日志失败：%s" % e)
+
+        rc = 0
+        if not result.get("bytes"):
+            print("ERROR: 串口 0 字节。先查串口号（--list-ports）、比特流是否已加载", file=sys.stderr)
+            rc = 1
+        elif args.stop_on and not result.get("stopped"):
+            print("ERROR: %d 秒内没有收到 %r" % (args.seconds, args.stop_on), file=sys.stderr)
+            rc = 1
+        return rc
+
     if args.dry_run:
         print("OpenOCD   : %s\n配置      : %s\nworkspace : %s" % (ocd, cfg, workspace))
         if not args.no_program:
@@ -260,6 +317,9 @@ def main():
             print("命令      : reg pc; exit（连两次）")
         elif args.cmd:
             print("命令      : %s" % "; ".join(["reset halt"] + args.cmd + ["shutdown"]))
+        elif args.flash_boot:
+            print("串口      : %s @ %d -> %s" % (args.port, args.baud, log))
+            print("流程      : 先开串口，再烧比特流，等板子从 Flash 自启动")
         else:
             print("串口      : %s @ %d -> %s" % (args.port, args.baud, log))
             print("命令      : %s" % "; ".join(load_cmds))

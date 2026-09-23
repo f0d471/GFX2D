@@ -23,9 +23,34 @@
 #include "bsp.h"            /* sdk：uart_write、clint_getTimeLow、BSP_* 基址 */
 #include "vexriscv.h"       /* sdk：data_cache_invalidate_all / _address */
 
+/* 上游 spiFlash.h 里有两个 static 只有声明、没有定义
+   （spiFlash_init_mode 与 spiFlash_enable_quad_access，它们的定义在
+   `#if defined(MX25_FLASH)` / `GD25_FLASH` 分支里，本构型一个都不走），
+   GCC 于是报 -Wunused-function「声明了 static 却从未定义」。
+   这条诊断在 TU 结束时按当时的 pragma 状态发出，所以只包住 include 没用，
+   必须对整个 TU 关掉。sdk 是只读的，不能去补它的头文件；
+   而本文件的几个 static 都被用到，这一条豁免的代价可以接受。
+   只关这一条，别的告警照旧当错误。 */
+#pragma GCC diagnostic ignored "-Wunused-function"
+
+#include "spiFlash.h"       /* sdk：spiFlash_init/wake/exit4ByteAddr/f2m */
+
+/* 素材分区用的 SPI 口与片选。取值与 bootloader 一致（bootloaderConfig.h），
+   但在这里自己定义，不包含 bootloader 的配置头——那是它自己的东西。 */
+#define ASSET_SPI     SYSTEM_SPI_0_IO_CTRL
+#define ASSET_SPI_CS  0u
+
 /* 数据缓存是 1 路直接映射、64 行 x 64 字节（cacheMechTest 的 T4 逐位实测），
    失效按行做，跨行的区间要逐行失效。 */
 #define DCACHE_LINE_BYTES   64u
+
+/* 素材分区的 SPI 读法。0 = 单线（与 bootloader 现状一致，`spiFlash_f2m`），
+   1 = 双线（`spiFlash_f2m_dual`，板上 data_0/1 已接好）。
+   默认取单线：它是当前唯一经过完整启动验证的路径；双线能不能用、值不值得用
+   由 E6 的实测决定，那时只改这一个宏。 */
+#ifndef BOARD_ASSET_SPI_DUAL
+#define BOARD_ASSET_SPI_DUAL 0
+#endif
 
 void board_init(void)
 {
@@ -52,6 +77,37 @@ board_mem board_region(board_region_id id)
 uint32_t board_cycles(void)
 {
     return (uint32_t)clint_getTimeLow(BSP_CLINT);   /* 1 tick = 10ns */
+}
+
+/* --- 素材分区（SW5 2.3 节）----------------------------------------------- */
+/* 每次读都自己初始化一遍 SPI 与 Flash，不假设 bootloader 跑完之后
+   外设还保持着它留下的状态。驱动的调用顺序与 bootloaderConfig.h 一致。 */
+static void asset_spi_begin(void)
+{
+    spiFlash_init(ASSET_SPI, ASSET_SPI_CS);
+    spiFlash_wake(ASSET_SPI, ASSET_SPI_CS);
+    spiFlash_exit4ByteAddr(ASSET_SPI, ASSET_SPI_CS);
+}
+
+int board_asset_read(uint32_t offset, void *dst, uint32_t bytes)
+{
+    if (dst == NULL)
+        return BOARD_ASSET_E_RANGE;
+    if (bytes == 0u)
+        return BOARD_ASSET_OK;
+    /* 越界在这里拦掉：不拿一个算错的长度去读 Flash 或者写 DDR。 */
+    if (offset > BOARD_ASSET_MAX_BYTES || bytes > BOARD_ASSET_MAX_BYTES - offset)
+        return BOARD_ASSET_E_RANGE;
+
+    asset_spi_begin();
+#if BOARD_ASSET_SPI_DUAL
+    spiFlash_f2m_dual(ASSET_SPI, ASSET_SPI_CS, BOARD_ASSET_FLASH_OFFSET + offset,
+                      (uint32_t)(uintptr_t)dst, bytes);
+#else
+    spiFlash_f2m(ASSET_SPI, ASSET_SPI_CS, BOARD_ASSET_FLASH_OFFSET + offset,
+                 (uint32_t)(uintptr_t)dst, bytes);
+#endif
+    return BOARD_ASSET_OK;
 }
 
 void board_puts(const char *s)
