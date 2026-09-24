@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="900" viewBox="0 0 1240 900"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1d4ed8"/>
+    </marker>
+    <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .bx { fill:#eef2f7; stroke:#64748b; stroke-width:1.2 }
+      .bo { fill:#fffbeb; stroke:#b45309; stroke-width:1.3 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .tg { font-size:9.5px; fill:#94a3b8 }
+      .axi { stroke:#1d4ed8; stroke-width:2.4; fill:none }
+      .bmb { stroke:#334155; stroke-width:1.7; fill:none }
+      .obs { stroke:#b45309; stroke-width:1.5; fill:none; stroke-dasharray:5 3 }
+      .un  { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+      .mono { font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace; font-size:9.5px; fill:#0f172a }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="900" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">E8 的量测装置：一份产物，三档数据缓存，两条校验路径</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">同一份 entityBench 二进制在三份比特流上各跑一遍；缓存大小不改程序的设备地址布局，因此不重编。实例名取自 rtl/、sw/bsp/ 与 ip/soc/settings.json。</text>
+
+  <!-- 图例 -->
+  <rect x="884" y="80" width="316" height="154" class="bi"/>
+  <text x="900" y="100" class="t" font-weight="600">图例</text>
+  <line x1="900" y1="118" x2="952" y2="118" class="axi" marker-end="url(#ab)"/>
+  <text x="962" y="122" class="ts">同一份 entityBench 产物跑在三档上</text>
+  <line x1="900" y1="140" x2="952" y2="140" class="bmb" marker-end="url(#a)"/>
+  <text x="962" y="144" class="ts">CPU 时钟打点：board_cycles() 只包一帧的更新循环</text>
+  <line x1="900" y1="162" x2="952" y2="162" class="obs" marker-end="url(#ao)"/>
+  <text x="962" y="166" class="ts">判据核对：计时遍与复核遍、板上与主机</text>
+  <line x1="900" y1="184" x2="952" y2="184" class="un" marker-end="url(#ag)"/>
+  <text x="962" y="188" class="ts">灰色虚线：本轮尚未完成的部分</text>
+  <text x="900" y="212" class="ts">计量单位：周期 / 弹幕 / 帧，1000 帧的均值</text>
+
+  <!-- 三档比特流 -->
+  <rect x="40" y="80" width="820" height="196" class="b"/>
+  <text x="60" y="102" class="t" font-weight="600">三份比特流：只差 DCacheSize 与受约束跟着变的 DCACHEWAY</text>
+  <text x="60" y="118" class="ts">IP 约束 DCacheSize &lt;= DCACHEWAY x 4096；ICacheSize 三档保持 4096/1 路不变。</text>
+
+  <rect x="64" y="132" width="252" height="126" class="bx"/>
+  <text x="190" y="152" class="ts" text-anchor="middle" font-weight="600">4KB / 1 路（主线）</text>
+  <text x="190" y="170" class="mono" text-anchor="middle">DCacheSize 4096  WAY 1</text>
+  <text x="190" y="188" class="ts" text-anchor="middle">整机 RAM 71 块 · XLR 21935</text>
+  <text x="190" y="205" class="ts" text-anchor="middle">dataCache_1：64 RAM / 6 块</text>
+  <text x="190" y="222" class="ts" text-anchor="middle">比特流 SHA256 5198db64…</text>
+  <text x="190" y="242" class="ts" text-anchor="middle">setup/hold +3.516/+0.026 ns</text>
+
+  <rect x="324" y="132" width="252" height="126" class="bx"/>
+  <text x="450" y="152" class="ts" text-anchor="middle" font-weight="600">8KB / 2 路</text>
+  <text x="450" y="170" class="mono" text-anchor="middle">DCacheSize 8192  WAY 2</text>
+  <text x="450" y="188" class="ts" text-anchor="middle">整机 RAM 77 块 · XLR 22175</text>
+  <text x="450" y="205" class="ts" text-anchor="middle">dataCache_1：128 RAM / 6 块</text>
+  <text x="450" y="222" class="ts" text-anchor="middle">在仓库外复制工程生成</text>
+  <text x="450" y="242" class="ts" text-anchor="middle">setup/hold +3.613/+0.026 ns</text>
+
+  <rect x="584" y="132" width="252" height="126" class="bx"/>
+  <text x="710" y="152" class="ts" text-anchor="middle" font-weight="600">16KB / 4 路</text>
+  <text x="710" y="170" class="mono" text-anchor="middle">DCacheSize 16384  WAY 4</text>
+  <text x="710" y="188" class="ts" text-anchor="middle">整机 RAM 89 块 · XLR 22177</text>
+  <text x="710" y="205" class="ts" text-anchor="middle">dataCache_1：256 RAM / 6 块</text>
+  <text x="710" y="222" class="ts" text-anchor="middle">比特流 SHA256 7d4cd463…</text>
+  <text x="710" y="242" class="ts" text-anchor="middle">setup/hold +3.535/+0.026 ns</text>
+
+  <line x1="316" y1="195" x2="324" y2="195" class="bmb" marker-end="url(#a)"/>
+  <line x1="576" y1="195" x2="584" y2="195" class="bmb" marker-end="url(#a)"/>
+  <text x="60" y="268" class="ts">RAM 代价实测：4KB→8KB 多 6 块，8KB→16KB 再多 12 块，4KB→16KB 共多 18 块。</text>
+
+  <!-- 板 -->
+  <rect x="40" y="292" width="820" height="330" class="b"/>
+  <text x="60" y="314" class="t" font-weight="600">板上：entityBench 一份二进制（69,034 字节，不随缓存档重编）</text>
+
+  <!-- CPU -->
+  <rect x="64" y="330" width="240" height="150" class="bx"/>
+  <text x="184" y="350" class="ts" text-anchor="middle" font-weight="600">system_cores_0</text>
+  <text x="184" y="366" class="ts" text-anchor="middle">Sapphire VexRiscv RV32 100MHz</text>
+  <rect x="80" y="378" width="208" height="88" class="bi"/>
+  <text x="184" y="396" class="ts" text-anchor="middle" font-weight="600">entityBench</text>
+  <text x="184" y="413" class="ts" text-anchor="middle">计时遍：只包一帧的更新</text>
+  <text x="184" y="429" class="ts" text-anchor="middle">复核遍：同种子重跑，逐帧比</text>
+  <text x="184" y="445" class="ts" text-anchor="middle">两遍分开是为了不改缓存热度</text>
+  <text x="184" y="461" class="ts" text-anchor="middle">lib/core/entity.c 两边共编</text>
+
+  <!-- 四组用例 -->
+  <rect x="324" y="330" width="250" height="150" class="bx"/>
+  <text x="449" y="350" class="ts" text-anchor="middle" font-weight="600">四组用例</text>
+  <text x="340" y="370" class="ts">A 纯更新 / AoS，N=1000</text>
+  <text x="340" y="387" class="ts">B 纯更新 / SoA，N=1000</text>
+  <text x="340" y="404" class="ts">C 更新并提交 / SoA</text>
+  <text x="356" y="418" class="tg">N=1000 / 2000 / 5000 / 10000</text>
+  <text x="340" y="436" class="ts">D 规模扫描 / SoA 纯更新</text>
+  <text x="356" y="450" class="tg">N=2000 / 5000 / 10000</text>
+  <text x="340" y="470" class="ts">每帧末尾补入，维持固定活动数</text>
+
+  <!-- DDR -->
+  <rect x="594" y="330" width="242" height="150" class="bx"/>
+  <text x="715" y="350" class="ts" text-anchor="middle" font-weight="600">DDR 共享区（显式分区）</text>
+  <rect x="610" y="362" width="210" height="40" class="bi"/>
+  <text x="715" y="378" class="ts" text-anchor="middle">+0 AoS 实体池 10000x20B</text>
+  <text x="715" y="393" class="ts" text-anchor="middle">偏离 .bss，让缓存真的参与</text>
+  <rect x="610" y="408" width="210" height="28" class="bi"/>
+  <text x="715" y="427" class="ts" text-anchor="middle">+512KB SoA 六并列数组</text>
+  <rect x="610" y="442" width="210" height="28" class="bi"/>
+  <text x="715" y="461" class="ts" text-anchor="middle">+2MB 命令表 10002x32B</text>
+
+  <line x1="304" y1="405" x2="324" y2="405" class="bmb" marker-end="url(#a)"/>
+  <line x1="574" y1="405" x2="594" y2="405" class="axi" marker-end="url(#ab)"/>
+
+  <!-- 打点 -->
+  <rect x="64" y="492" width="772" height="50" class="bo"/>
+  <text x="82" y="512" class="ts" font-weight="600">打点范围：</text>
+  <text x="158" y="512" class="ts">t0 = board_cycles() → eb_frame_*() → dt = board_cycles() - t0，逐帧累加进 64 位</text>
+  <text x="82" y="531" class="ts">区间外：种子初始化、终态摘要、计时外的逐帧复核遍、串口输出；整组开始前失效一次缓存，不逐帧失效</text>
+
+  <!-- 校验路径 -->
+  <rect x="40" y="646" width="1160" height="238" class="bg"/>
+  <text x="60" y="670" class="t" font-weight="600">两条校验路径</text>
+
+  <rect x="64" y="686" width="356" height="180" class="bi"/>
+  <text x="242" y="706" class="ts" text-anchor="middle" font-weight="600">路径一：板上逐帧复核遍（同种子重跑，不计时）</text>
+  <text x="80" y="728" class="ts">同一种子重跑 1000 帧，逐帧比较：</text>
+  <text x="80" y="746" class="ts">· A/B/D：实体六字段 x/y/vx/vy/sprite/flags</text>
+  <text x="80" y="764" class="ts">· C：再加当帧全部 32xN 命令字节</text>
+  <text x="80" y="782" class="ts">判据：每组 state_bad=0、cmd_bad=0</text>
+  <text x="80" y="804" class="ts">期望序列由主机侧生成器产出，随源码入库</text>
+  <text x="80" y="826" class="ts">计时遍只读终态，两遍分开避免污染缓存</text>
+  <text x="80" y="848" class="ts">四档缓存下这套判据的验证结果相同</text>
+
+  <rect x="440" y="686" width="356" height="180" class="bi"/>
+  <text x="618" y="706" class="ts" text-anchor="middle" font-weight="600">路径二：主机侧生成器 + 独立 ABI 工具</text>
+  <text x="456" y="728" class="ts">e8_entity_golden.c 用与板上相同的实体函数生成：</text>
+  <text x="456" y="746" class="ts">· 九组 x 1000 帧的六字段状态 CRC 序列</text>
+  <text x="456" y="764" class="ts">· C 组每帧 32xN 命令字节 CRC 序列</text>
+  <text x="456" y="782" class="ts">· 补入次数与提交条数</text>
+  <text x="456" y="804" class="ts">e8_entity_abi.c 独立核对记录字节：</text>
+  <text x="456" y="822" class="ts">64 个图集索引、双记录 w7 标签、8 个出屏边界反例</text>
+  <text x="456" y="844" class="ts">同一份 entity.c 两边共编，摘要不一致即定位到帧</text>
+
+  <rect x="816" y="686" width="364" height="180" class="un"/>
+  <text x="998" y="706" class="ts" text-anchor="middle" font-weight="600">本轮尚未完成（灰色虚线）</text>
+  <text x="832" y="728" class="ts">· 新产物在 8KB/2 路上的逐帧复核遍</text>
+  <text x="832" y="746" class="ts">· 三档各自的三次重复性（只有旧 4KB 档做了）</text>
+  <text x="832" y="764" class="ts">· 改过的两份 DDR 回归探针在 4KB/16KB 上板：</text>
+  <text x="848" y="780" class="ts">rd8_fresh 已改为 data_cache_invalidate_address</text>
+  <text x="832" y="800" class="ts">· 16KB 进入主线（当前主线仍为 4KB/1 路）</text>
+  <text x="832" y="818" class="ts">· SW9 的真实游戏整帧与扫描 FIFO 压力复核</text>
+  <text x="832" y="840" class="ts">在这些之前，16KB 只是有条件推荐</text>
+</svg>

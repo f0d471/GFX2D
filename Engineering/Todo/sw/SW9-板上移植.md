@@ -17,7 +17,13 @@ PC 版证明的是逻辑与画面正确，板上要回答三件事：同一份�
 
 ### 2.1 前半：无显示运行（现在就能做到的部分）
 
-- 补全 `sw/bsp/ti60/` 的输入（KEY0~3 + 串口）。正式素材由 SW5 已验收的板级装载入口从
+- 补全 `sw/bsp/ti60/` 的输入（KEY0~3 + 串口），映射按 SW7 的 G3 定案（2026-09-25）：
+  KEY0~3（丝印 SW0~SW3）依次映射到 `BOARD_KEY_LEFT`、`DOWN`、`UP`、`RIGHT`，低有效，`board_keys()` 每帧读一次；
+  和弦（上+下切模式、左+右切软硬件）是 SW8 应用侧的事，bsp 只给原始位图。
+  串口转发：`tools/board/board_run.py` 加一个选项，在同一进程里用 `ctypes` 调 Windows 的 `GetAsyncKeyState`、
+  `XInputGetState` 读键盘与手柄，按键位图变化时经串口发出（两字节即可，格式在本条定）；
+  板上从 UART 接收 FIFO 非阻塞地取，与 KEY0~3 按位或。按键的物理排布以实物为准，映射只是一张表。
+  正式素材由 SW5 已验收的板级装载入口从
   Flash 读入 DDR 素材区，再由 `sw/lib/core/assetpak` 解析；本条只调用，不重写装载器。
   JTAG 预装 DDR 仅作调试捷径，不代替 SW5 的 Flash 启动判据。占位画面的无素材测试仍可先做。
   计时与日志在 SW1 已有。

@@ -17,10 +17,8 @@
 *         3. CPU 数据缓存会不会遮住别名。先读 Q 让它进缓存，再经别名写入，
 *            不做驱逐直接读 Q，预期读到缓存里的旧值；驱逐后再读，预期读到新值。
 *
-*         数据缓存是 1 路直接映射，64 行，每行 64 字节，行号取地址 [11:6]，
-*         标签取地址 [31:12]。读一个行号相同、标签不同的地址，会把原来那一行
-*         挤出缓存。所以每次校验读之前，先读 X ^ EVICT（第 29 位不同，
-*         行号相同），保证随后对 X 的读取从 DDR 重新装载。
+ *         每次校验读之前按地址失效缓存行，保证随后从 DDR 重新装载。
+ *         单次异标签读只在 1 路缓存下保证驱逐，多路缓存不能沿用。
 *
 *         测试区选在 0x0C80_0000 附近，远离程序与栈（0x1000 起不足 1MB）。
 *         即使控制器实际只译码 26 或 27 位，这些写入也落不到程序区。
@@ -29,9 +27,9 @@
 
 #include <stdint.h>
 #include "bsp.h"
+#include "vexriscv.h"
 
 #define BASE        0x0C800000u
-#define EVICT       0x20000000u
 #define CACHE_Q     0x0D000000u
 
 static uint8_t rd8(uint32_t a)
@@ -44,10 +42,11 @@ static void wr8(uint32_t a, uint8_t v)
     *(volatile uint8_t *)a = v;
 }
 
-/* 先读同一缓存行、不同标签的地址，把 a 所在行挤出缓存，再读 a */
+/* 按地址失效涵盖该地址可能占据的所有缓存路；memory 屏障防止读被提前。 */
 static uint8_t rd8_fresh(uint32_t a)
 {
-    (void)rd8(a ^ EVICT);
+    data_cache_invalidate_address((uintptr_t)a);
+    __asm__ volatile ("" ::: "memory");
     return rd8(a);
 }
 
@@ -118,7 +117,7 @@ void main()
         fail += !ok;
     }
 
-    /* 第 3 组：缓存遮蔽。预期不驱逐读到旧值 0x11，驱逐后读到新值 0x22 */
+    /* 第 3 组：缓存遮蔽。预期不失效读到旧值 0x11，按地址失效后读到新值 0x22。 */
     wr8(CACHE_Q, 0x11);
     (void)rd8_fresh(CACHE_Q);                   /* 让 Q 所在行进缓存 */
     wr8(CACHE_Q ^ 0x10000000u, 0x22);            /* 经别名写，缓存里 Q 这一行不更新 */
@@ -126,7 +125,8 @@ void main()
         uint8_t stale = rd8(CACHE_Q);
         uint8_t fresh = rd8_fresh(CACHE_Q);
         int ok_fresh = (fresh == 0x22);
-        /* 不驱逐的那次是观测项，读到哪个值都是结论，不计入 fail */
+        /* 不失效的那次是观测项，读到哪个值都是结论，不计入 fail。
+           CACHE_EVICT 标签为历史日志兼容保留，实际机制已改为单地址失效。 */
         line("CACHE_NOEVICT", 0, CACHE_Q, 0x11, stale, stale == 0x11);
         line("CACHE_EVICT", 0, CACHE_Q, 0x22, fresh, ok_fresh);
         fail += !ok_fresh;

@@ -1,0 +1,20 @@
+# COM11 @ 115200 8N1, opened 01:34:56
+
+entityBench E8 前期研究版
+BOARD_HZ 100000000 frames 1000 cases 9
+CAL cyc/pair-call 25 cyc/empty-loop-x100 0 cyc/x-modsum-x100 7307
+
+# --- 程序已加载，以下才是它的输出 ---
+A-upd-aos n 1000 cyc_k 49216 us/frame 492 c/ent/frame 49.21 fmin 46709 fmax 52342 resp 1720 crc 0x04cf54b4
+B-upd-soa n 1000 cyc_k 71362 us/frame 713 c/ent/frame 71.36 fmin 69359 fmax 73656 resp 1720 crc 0x04cf54b4
+C-submit-soa n 1000 cyc_k 175981 us/frame 1759 c/ent/frame 175.98 fmin 170976 fmax 179189 resp 1720 cmd 1000 crc 0x04cf54b4/0xf0b3c4bf
+C-n2000-soa n 2000 cyc_k 350598 us/frame 3505 c/ent/frame 175.29 fmin 344866 fmax 356804 resp 3427 cmd 2000 crc 0xfe5bf0c7/0x2149fc49
+C-n5000-soa n 5000 cyc_k 850740 us/frame 8507 c/ent/frame 170.14 fmin 843848 fmax 860473 resp 8587 cmd 5000 crc 0x2f3c0725/0x61bda89a
+C-n10000-soa n 10000 cyc_k 1742267 us/frame 17422 c/ent/frame 174.22 fmin 1731785 fmax 1756826 resp 17187 cmd 10000 crc 0x062e4654/0xc74b78bb
+D-n2000-soa n 2000 cyc_k 142135 us/frame 1421 c/ent/frame 71.06 fmin 137365 fmax 145994 resp 3427 crc 0xfe5bf0c7
+D-n5000-soa n 5000 cyc_k 356670 us/frame 3566 c/ent/frame 71.33 fmin 349886 fmax 364483 resp 8587 crc 0x2f3c0725
+D-n10000-soa n 10000 cyc_k 708191 us/frame 7081 c/ent/frame 70.81 fmin 697495 fmax 724022 resp 17187 crc 0x062e4654
+fail 0
+done
+
+# closed 01:35:43, 1265 bytes

@@ -1,0 +1,53 @@
+# COM11 @ 115200 8N1, opened 01:19:31
+
+execSwTest E7 前期研究版
+BOA
+# --- 程序已加载，以下才是它的输出 ---
+RD_HZ 100000000 cmd_cap 4096
+SEED key[1][1] 0x000a1603 key_crc 0x52eb5029 fb0_crc 0x6ab1aca3 keybase 0x02f00000
+VERIFY 十一个整帧用例 vs golden.txt
+0 fill-screen crc 0x9cd34cb7 CHANGED FAIL
+1 blit-copy crc 0xbc9be6ff CHANGED FAIL
+2 blit-key crc 0x084d6bb2 CHANGED FAIL
+3 blit-alpha-pm crc 0x3479c65e same FAIL
+4 blit-alpha-straight crc 0x5b4feb8d same ok
+5 blit-add crc 0xcfcef0ee CHANGED FAIL
+6 fill-const crc 0xf50e8644 same ok
+7 blit-mul crc 0x46667f89 same ok
+8 blit-clip-partial crc 0x0fd9dcaf CHANGED FAIL
+9 set-clip-state crc 0xa07324ee CHANGED FAIL
+10 copy-argb-high-byte crc 0x8843eb2f CHANGED FAIL
+THR 每方程在 FB0/FB1 各 11 轮取最小（区间只包 exec_sw_run）
+case fb cmd px wr ksk oob cyc_k us c/px Mpx/s rounds mean_k spread% r1..r4_k crc
+fill-copy fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 8653 us 86537 c/px 88.03 Mpx/s 1.13 rounds 11 mean_k 8653 spread% 100 r1..r4_k 8655/8653/8653/8653 crc 0xbb65a76f
+BMP fill-copy fb33554432 wincrc 0xb0df8f1e 80,60=0x00204060 272,188=0x00204060 80,315=0x00204060 463,60=0x00204060 79,60=0x008bed2c 81,61=0x00204060
+fill-const fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 12047 us 120472 c/px 122.55 Mpx/s 0.81 rounds 11 mean_k 12049 spread% 100 r1..r4_k 12051/12050/12049/12049 crc 0x8d6f5572
+BMP fill-const fb33554432 wincrc 0x9c707764 80,60=0x008bef2c 272,188=0x00cb30ab 80,315=0x008aef27 463,60=0x000b6d2c 79,60=0x008bed2c 81,61=0x008df231
+blit-copy fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 13517 us 135179 c/px 137.51 Mpx/s 0.72 rounds 11 mean_k 13520 spread% 100 r1..r4_k 13520/13521/13520/13522 crc 0x307b0cad
+BMP blit-copy fb33554432 wincrc 0x77a0cc51 128,96=0x00000000 320,224=0x00906d90 128,351=0x00000000 511,96=0x003a083d 127,96=0x00df7de0 129,97=0x00000000
+blit-key fb0 cmd 2 px 98304 wr 49152 ksk 49152 oob 0 cyc_k 10330 us 103309 c/px 105.09 Mpx/s 0.95 rounds 11 mean_k 10334 spread% 100 r1..r4_k 10336/10336/10335/10332 crc 0x2afab790
+BMP blit-key fb33554432 wincrc 0x62b021ba 64,64=0x00001100 256,192=0x00c091c0 64,319=0x007fc03b 447,64=0x00ff3d40 63,64=0x007fbd40 65,65=0x000a1603
+blit-alpha-pm fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 17914 us 179145 c/px 182.23 Mpx/s 0.54 rounds 11 mean_k 17918 spread% 100 r1..r4_k 17921/17920/17915/17916 crc 0x8a83d728
+BMP blit-alpha-pm fb33554432 wincrc 0xe644080b 128,96=0x00e080e1 320,224=0x00989ca9 128,351=0x00df80da 511,96=0x006b8bb0 127,96=0x00df7de0 129,97=0x00de80e0
+blit-alpha-st fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 18095 us 180955 c/px 184.07 Mpx/s 0.54 rounds 11 mean_k 18098 spread% 100 r1..r4_k 18096/18100/18101/18100 crc 0xe7ca08bb
+BMP blit-alpha-st fb33554432 wincrc 0x976f80fe 128,96=0x00e080e0 320,224=0x00989da8 128,351=0x00df80db 511,96=0x006c8bb1 127,96=0x00df7de0 129,97=0x00de81e1
+blit-add fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 15415 us 154156 c/px 156.81 Mpx/s 0.63 rounds 11 mean_k 15418 spread% 100 r1..r4_k 15421/15419/15420/15417 crc 0x16ff1a3f
+BMP blit-add fb33554432 wincrc 0xea7ced00 128,96=0x00e080e0 320,224=0x00b0fff0 128,351=0x00df80db 511,96=0x0099ffff 127,96=0x00df7de0 129,97=0x00e283e5
+blit-mul fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 14200 us 142001 c/px 144.45 Mpx/s 0.69 rounds 11 mean_k 14203 spread% 100 r1..r4_k 14203/14204/14203/14202 crc 0xa5003f83
+BMP blit-mul fb33554432 wincrc 0x017bf2d3 128,96=0x00000000 320,224=0x00125236 128,351=0x00000000 511,96=0x00160836 127,96=0x00df7de0 129,97=0x00000000
+fill-copy fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 8653 us 86537 c/px 88.03 Mpx/s 1.13 rounds 11 mean_k 8653 spread% 100 r1..r4_k 8655/8653/8653/8653 crc 0xbb65a76f
+BMP fill-copy fb37748736 wincrc 0xb0df8f1e 80,60=0x00204060 272,188=0x00204060 80,315=0x00204060 463,60=0x00204060 79,60=0x008bed2c 81,61=0x00204060
+fill-const fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 12047 us 120471 c/px 122.54 Mpx/s 0.81 rounds 11 mean_k 12049 spread% 100 r1..r4_k 12050/12047/12050/12048 crc 0x8d6f5572
+BMP fill-const fb37748736 wincrc 0x9c707764 80,60=0x008bef2c 272,188=0x00cb30ab 80,315=0x008aef27 463,60=0x000b6d2c 79,60=0x008bed2c 81,61=0x008df231
+blit-copy fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 13516 us 135166 c/px 137.49 Mpx/s 0.72 rounds 11 mean_k 13520 spread% 100 r1..r4_k 13521/13516/13521/13520 crc 0x307b0cad
+BMP blit-copy fb37748736 wincrc 0x77a0cc51 128,96=0x00000000 320,224=0x00906d90 128,351=0x00000000 511,96=0x003a083d 127,96=0x00df7de0 129,97=0x00000000
+blit-key fb1 cmd 2 px 98304 wr 49152 ksk 49152 oob 0 cyc_k 10330 us 103309 c/px 105.09 Mpx/s 0.95 rounds 11 mean_k 10334 spread% 100 r1..r4_k 10334/10335/10335/10335 crc 0x2afab790
+BMP blit-key fb37748736 wincrc 0x62b021ba 64,64=0x00001100 256,192=0x00c091c0 64,319=0x007fc03b 447,64=0x00ff3d40 63,64=0x007fbd40 65,65=0x000a1603
+blit-alpha-pm fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 17915 us 179158 c/px 182.24 Mpx/s 0.54 rounds 11 mean_k 17919 spread% 100 r1..r4_k 17921/17917/17918/17915 crc 0x8a83d728
+BMP blit-alpha-pm fb37748736 wincrc 0xe644080b 128,96=0x00e080e1 320,224=0x00989ca9 128,351=0x00df80da 511,96=0x006b8bb0 127,96=0x00df7de0 129,97=0x00de80e0
+blit-alpha-st fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 18096 us 180960 c/px 184.08 Mpx/s 0.54 rounds 11 mean_k 18098 spread% 100 r1..r4_k 18097/18099/18100/18100 crc 0xe7ca08bb
+BMP blit-alpha-st fb37748736 wincrc 0x976f80fe 128,96=0x00e080e0 320,224=0x00989da8 128,351=0x00df80db 511,96=0x006c8bb1 127,96=0x00df7de0 129,97=0x00de81e1
+blit-add fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 15416 us 154168 c/px 156.82 Mpx/s 0.63 rounds 11 mean_k 15419 spread% 100 r1..r4_k 15416/15418/15422/15419 crc 0x16ff1a3f
+BMP blit-add fb37748736 wincrc 0xea7ced00 128,96=0x00e080e0 320,224=0x00b0fff0 128,351=0x00df80db 511,96=0x0099ffff 127,96=0x00df7de0 129,97=0x00e283e5
+blit-mul fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 14199 us 141990 c/px 144.44 Mpx/s 0.69 rounds 11 mean_k 14203 spread% 100 r1..r4_k 14205/14202/14199/14204 crc 0xa5003f83
+BMP blit-mul fb37748736 wincrc 0x017bf2d3 128,96=0x00000000 320,224=0x00125236 128,351=0x00000000 511,96=0x00160836 127,96=0x00df7de0 129,97=0x00000000

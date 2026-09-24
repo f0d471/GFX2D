@@ -13,7 +13,7 @@
 *         1 IDENT   读探针主机 ID 与 ARB 复位值。
 *         2 CROSS   交叉读。CPU 写、探针读：CPU 在 A 写 0x5000_0000+k，探针读一拍，RDATA0 应相等；
 *                   再读 A+16（CPU 写的是另一个值），RDATA0 应不等，证明判据能分辨。
-*                   探针写、CPU 读：探针在 B 写一拍图样，CPU 驱逐缓存后读 B 与 B+4，
+ *                   探针写、CPU 读：探针在 B 写一拍图样，CPU 按地址失效后读 B 与 B+4，
 *                   应为 v 与 ~v（v = SEED + B）。
 *         3 SWEEP   LEN = 0,1,3,...,255，每档固定 4096 拍（65536 字节）：先写、再读比对。
 *                   输出事务数、总周期、延迟累计、错误。按 LEN 从小到大，
@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include "bsp.h"
 #include "clint.h"
+#include "vexriscv.h"
 
 #define PRB             0xF8101000u
 #define R_CTRL          0x00
@@ -85,7 +86,6 @@
 #define SWEEP_BASE      0x0D000000u
 #define SHARE_SRC       0x0E000000u
 #define SHARE_DST       0x0E800000u
-#define EVICT           0x20000000u
 #define PROBE_WAIT_TICKS 500000000u     /* 5 s @ 100 MHz，差值按 uint32_t 允许回绕 */
 
 static inline uint32_t rd(uint32_t off)            { return *(volatile uint32_t *)(PRB + off); }
@@ -135,9 +135,10 @@ static uint32_t run(uint32_t addr, uint32_t len, uint32_t count, uint32_t mode, 
     return wait_probe(t0);
 }
 
-static uint32_t evict_rd32(uint32_t a)
+static uint32_t fresh_rd32(uint32_t a)
 {
-    (void)*(volatile uint32_t *)(a ^ EVICT);
+    data_cache_invalidate_address((uintptr_t)a);
+    __asm__ volatile ("" ::: "memory");
     return *(volatile uint32_t *)a;
 }
 
@@ -217,8 +218,8 @@ static int stage_cross(void)
         uint32_t B = CROSS_BASE + 0x8000u + ((uint32_t)k << 12);
         uint32_t st = run(B, 0, 1, MODE_WRITE, seed);
         uint32_t v = seed + B;
-        uint32_t g0 = evict_rd32(B);
-        uint32_t g1 = evict_rd32(B + 4);
+        uint32_t g0 = fresh_rd32(B);
+        uint32_t g1 = fresh_rd32(B + 4);
         int ok = (st == ST_DONE) && (g0 == v) && (g1 == ~v);
         hex8(a, B); hex8(e, v); hex8(g, g0);
         bsp_printf("CROSS prb->cpu addr=0x%s expect=0x%s got=0x%s %s\r\n", a, e, g, ok ? "ok" : "FAIL");

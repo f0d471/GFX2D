@@ -40,7 +40,7 @@ sw/
 | --- | --- | --- |
 | `apps/game/` | 游戏与演示 | 给人看的，赛题要演示的那一类 |
 | `apps/test/` | 回归判据 | 只给通过或失败（末尾 `fail 0`），平台或构建一改就要重跑 |
-| `apps/probe/` | 探针与 benchmark | 给出数字或现象，服务于某个实验的结论；E7 的 `execSwTest`、E8 的 `entityBench` 建起来也放这里 |
+| `apps/probe/` | 探针与 benchmark | 给出数字或现象，服务于某个实验的结论；E7 的 `execSwTest`、E8 的 `entityBench` 已在这里 |
 
 | 程序 | 说明 |
 | --- | --- |
@@ -52,8 +52,10 @@ sw/
 | `apps/test/displayTest/` | 扫描输出的板上判据，也是 `board_present`/`board_wait_frame` 的验证程序：IDENT、PATTERN（画定位图案上屏，这一段看屏幕）、FILL（整屏填充计时）、ANIM（120 帧移动方块，打帧率）、STATS（120 场快照）。走 SW1 的分层构建，产物 `build/displayTest-O2.bin`。期望输出见下 |
 | `apps/test/platformTest/` | PC 平台层（SW4）的判据程序：十一个整帧用例、600 帧帧节拍、掉帧注错、实时输入与关窗退出、录制的往返与两次回放。**一段要人动手**（按 F1~F3、点关闭按钮），其余自己判并打印 `fail N`。默认编 PC 版（`make` 即 `PLATFORM=host`）；串起来跑的是 `Main/tools/check/check_sw4_pc.sh`。期望输出见下 |
 | `apps/test/assetTest/` | 素材流水线（SW5）的判据程序：经板级读入口把素材包装进 DDR 素材区、完整校验、与生成的 `assets.h` 对账、挑条目登记表面，再用软件执行器画一整帧并打印整帧 CRC 与一张 64×24 字符画。PC 与板上跑同一份源码、同一份包，整帧 CRC 必须相同；默认编 PC 版（`make`），板上是 `make PLATFORM=target RISCV_BIN=<RISCV_BIN>`。串起来跑的是 `Main/tools/check/check_sw5_assets.sh`。期望输出见下 |
-| `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象 |
-| `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验（E5 的 SHARE/TRI/INJECT 阶段） |
+| `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象。E8 复核把 `rd8_fresh` 从单次异标签读改为按地址失效（SDK 指令覆盖所有可能路）；原 4KB 日志只证明旧版，新源码待 4KB/16KB 上板回归 |
+| `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验（E5 的 SHARE/TRI/INJECT 阶段）。E8 复核把只适用单路的读后驱逐改为按地址失效，改后待 4KB/16KB 上板回归 |
+| `apps/probe/execSwTest/` | E7 板上软件执行器探针。`VERIFY` 对 SW3 十一个整帧 CRC，`THR` 按方程及 FB0/FB1 分列（单项 11 轮、累计 >100 万像素），`S1` 是精确 S1 整表（2003 条、693,504 像素），`OVH` 测 NOP 固定开销。当前 `build/execSwTest-O2.bin` **36,090 字节**、SHA256 `81f859988862e66489884b19302743ec38983539d75a1ec0a49f5a45c9cf632d`，gcc 13.4.0、`-O2`；4KB 主线日志 `logs/board_review_4k_fixed_20260925.log` 为 `fail 0`，18 项整帧 CRC32 与逐像素加和经 `tools/check/e7_output_check.py` 独立复算全对，精确 S1 约 805 ms。旧注错判据把 CRC 变化误写成等于 `golden ^ 1`，修正后六方程加一次自检的七个构建尚待上板复验；构建时须同时给 `-DE7_VERIFY_ONLY` 与 `-DE7_INJECT_EQ=<GFX_EQ_*>` |
+| `apps/probe/entityBench/` | E8 实体更新与合法命令记录微基准，缓存三档使用同一份产物。九组：A（AoS 纯更新）、B（SoA 纯更新）、C（SoA 更新并提交，N=1000/2000/5000/10000）、D（SoA 纯更新，N=2000/5000/10000）。当前 `build/entityBench-O2.bin` **69,034 字节**、SHA256 `b0f2bbc5100b24702b750cca803ce5c94c34c8f81aee68372317f35381184e29`，gcc 13.4.0、`-O2`；计时外再运行 1000 帧，对每帧实体六字段及 C 组全部 `32×N` 命令字节与主机期望摘要校验。新产物 4KB、16KB 各九组全为 `state_bad 0 cmd_bad 0`、`fail 0`；日志 `logs/board_framecheck_{4k,16k}_20260925.log`。旧版终态摘要产物的 8KB 结果只作历史对照，新版 8KB 尚未复测 |
 | `apps/probe/displayFifoProbe/` | 实验 E5 2.4 节：真实扫描 FIFO 的压力矩阵与深度定值。`idle` / 满负载 `read` / 满负载 `write` 三组各收 120 场连续快照，报最低水位的最小值、最大值、首次最小值帧号与两个中位数。**target-only**（只在 Ti60 上跑，不提供 host 构建），产物 `build/displayFifoProbe-O2.bin`。期望输出见下 |
 | `apps/probe/cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
 | `apps/probe/cacheMinTest/` | 实验 E3 早期的最小实验，只作现象可复现保留，不作为结论证据 |

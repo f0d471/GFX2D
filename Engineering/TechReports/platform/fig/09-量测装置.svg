@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="820" viewBox="0 0 1240 820"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1d4ed8"/>
+    </marker>
+    <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .bx { fill:#eef2f7; stroke:#64748b; stroke-width:1.2 }
+      .bo { fill:#fffbeb; stroke:#b45309; stroke-width:1.3 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .tg { font-size:9.5px; fill:#94a3b8 }
+      .axi { stroke:#1d4ed8; stroke-width:2.4; fill:none }
+      .bmb { stroke:#334155; stroke-width:1.7; fill:none }
+      .obs { stroke:#b45309; stroke-width:1.5; fill:none; stroke-dasharray:5 3 }
+      .un  { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="820" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">E7 的量测装置：同一个软件执行器，两条独立的输出路径</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">2026-09-25 从 4KB/1 路主线源码重编的比特流。实例名与设备地址取自 rtl/ 与 sw/bsp/include/memmap.h。</text>
+
+  <!-- 图例 -->
+  <rect x="880" y="80" width="320" height="132" class="bi"/>
+  <text x="896" y="100" class="t" font-weight="600">图例</text>
+  <line x1="896" y1="118" x2="948" y2="118" class="axi" marker-end="url(#ab)"/>
+  <text x="958" y="122" class="ts">被执行的同一份命令表：板的执行器与主机复算器</text>
+  <line x1="896" y1="140" x2="948" y2="140" class="bmb" marker-end="url(#a)"/>
+  <text x="958" y="144" class="ts">CPU 时钟打点：board_cycles() 只包 exec_sw_run()</text>
+  <line x1="896" y1="162" x2="948" y2="162" class="obs" marker-end="url(#ao)"/>
+  <text x="958" y="166" class="ts">判据核对：两条路径的整帧 CRC32 与逐像素加和</text>
+  <line x1="896" y1="184" x2="948" y2="184" class="un" marker-end="url(#ag)"/>
+  <text x="958" y="188" class="ts">灰色虚线：只有主机复算器，板上不存在的部分</text>
+
+  <!-- 板 -->
+  <rect x="40" y="80" width="820" height="440" class="b"/>
+  <text x="60" y="102" class="t" font-weight="600">gfx2d_ti60 比特流（Ti60F225）</text>
+  <text x="60" y="118" class="ts">4KB/1 路数据缓存 · RAM 71 块 · 片上 100MHz</text>
+
+  <!-- CPU -->
+  <rect x="70" y="140" width="230" height="170" class="bx"/>
+  <text x="185" y="160" class="t" text-anchor="middle" font-weight="600">system_cores_0</text>
+  <text x="185" y="176" class="ts" text-anchor="middle">Sapphire VexRiscv RV32</text>
+  <rect x="86" y="188" width="198" height="62" class="bi"/>
+  <text x="185" y="205" class="ts" text-anchor="middle" font-weight="600">execSwTest</text>
+  <text x="185" y="220" class="ts" text-anchor="middle">执行器 exec_sw_run()</text>
+  <text x="185" y="235" class="ts" text-anchor="middle">board_cycles() 打点</text>
+  <rect x="86" y="258" width="198" height="40" class="bi"/>
+  <text x="185" y="274" class="ts" text-anchor="middle">DataCache 4096B / 1 路</text>
+  <text x="185" y="289" class="ts" text-anchor="middle">64 行 x 64B</text>
+
+  <!-- 表面 -->
+  <rect x="340" y="140" width="240" height="170" class="bx"/>
+  <text x="460" y="160" class="t" text-anchor="middle" font-weight="600">gfx_surface_table</text>
+  <text x="460" y="176" class="ts" text-anchor="middle">0 号 = 目的帧缓冲</text>
+  <text x="460" y="192" class="ts" text-anchor="middle">1 号 = 源纹理（512x512）</text>
+  <text x="460" y="208" class="ts" text-anchor="middle">登记见 lib/gfx/list.c</text>
+  <rect x="356" y="222" width="208" height="74" class="bi"/>
+  <text x="460" y="239" class="ts" text-anchor="middle">窗口一律 384x256 = 98304 px</text>
+  <text x="460" y="254" class="ts" text-anchor="middle">源与窗口同尺寸</text>
+  <text x="460" y="269" class="ts" text-anchor="middle">src_oob 必须为 0</text>
+  <text x="460" y="284" class="ts" text-anchor="middle">色键命中 49152（确定值）</text>
+
+  <!-- DDR -->
+  <rect x="620" y="140" width="220" height="400" class="bx"/>
+  <text x="730" y="160" class="t" text-anchor="middle" font-weight="600">DDR3 256MB</text>
+  <rect x="636" y="176" width="188" height="34" class="bi"/>
+  <text x="730" y="197" class="ts" text-anchor="middle">0x0040_0000 命令表 A/B</text>
+  <rect x="636" y="216" width="188" height="34" class="bi"/>
+  <text x="730" y="237" class="ts" text-anchor="middle">0x0100_0000 素材区</text>
+  <rect x="636" y="256" width="188" height="34" class="bi"/>
+  <text x="730" y="277" class="ts" text-anchor="middle">0x0200_0000 FB0</text>
+  <rect x="636" y="296" width="188" height="34" class="bi"/>
+  <text x="730" y="317" class="ts" text-anchor="middle">0x0240_0000 FB1</text>
+  <rect x="636" y="336" width="188" height="34" class="bi"/>
+  <text x="730" y="357" class="ts" text-anchor="middle">0x0280_0000 离屏层</text>
+  <rect x="636" y="376" width="188" height="88" class="bo"/>
+  <text x="730" y="394" class="ts" text-anchor="middle" font-weight="600">性能纹理（离屏层尾部）</text>
+  <text x="730" y="410" class="ts" text-anchor="middle">0x02C0_0000 cmp 预乘色键</text>
+  <text x="730" y="425" class="ts" text-anchor="middle">0x02D0_0000 直通 ST</text>
+  <text x="730" y="440" class="ts" text-anchor="middle">0x02E0_0000 预乘 PM</text>
+  <text x="730" y="455" class="ts" text-anchor="middle">0x02F0_0000 短程色键</text>
+
+  <!-- 连线：CPU -> DDR -->
+  <line x1="300" y1="224" x2="340" y2="224" class="bmb" marker-end="url(#a)"/>
+  <line x1="580" y1="224" x2="620" y2="224" class="axi" marker-end="url(#ab)"/>
+  <text x="600" y="216" class="ts">AXI4</text>
+
+  <!-- 打点标注 -->
+  <rect x="70" y="326" width="770" height="52" class="bo"/>
+  <text x="88" y="346" class="ts" font-weight="600">打点范围（严格）：</text>
+  <text x="196" y="346" class="ts">t0 = board_cycles() → exec_sw_run() → dt = board_cycles() - t0</text>
+  <text x="88" y="364" class="ts">区间外：命令表构建、seed_fb 铺底、整帧 CRC32、逐像素加和、串口输出</text>
+
+  <!-- 扫描输出 -->
+  <rect x="70" y="396" width="500" height="60" class="bx"/>
+  <text x="88" y="416" class="ts" font-weight="600">u_display</text>
+  <text x="150" y="416" class="ts">扫描输出保持开启，持续读前缓冲</text>
+  <text x="88" y="436" class="ts">量的是「扫描在跑」时的稳态，不是静止板子的理想值</text>
+
+  <!-- FPGA 外：主机复算器 -->
+  <rect x="40" y="552" width="1160" height="228" class="bg"/>
+  <text x="60" y="576" class="t" font-weight="600">主机侧：独立复算器 Main/tools/check/e7_output_check.py</text>
+  <text x="60" y="594" class="ts">不看板上任何中间量，按 spec 第 01 章的混合方程与 list.c 的位域，从初始帧缓冲与纹理重画那一帧</text>
+
+  <rect x="70" y="612" width="250" height="96" class="bi"/>
+  <text x="195" y="632" class="ts" text-anchor="middle" font-weight="600">输入：与板上同源的定义</text>
+  <text x="195" y="650" class="ts" text-anchor="middle">seed_fb 渐变公式</text>
+  <text x="195" y="666" class="ts" text-anchor="middle">seed_tex / seed_cmp_tex 纹理</text>
+  <text x="195" y="682" class="ts" text-anchor="middle">r255 舍入 + 六方程系数表</text>
+  <text x="195" y="698" class="ts" text-anchor="middle">窗口夹取与色键比较</text>
+
+  <rect x="360" y="612" width="250" height="96" class="bi"/>
+  <text x="485" y="632" class="ts" text-anchor="middle" font-weight="600">逐负载重画</text>
+  <text x="485" y="650" class="ts" text-anchor="middle">九个负载 x FB0/FB1 = 18 项</text>
+  <text x="485" y="666" class="ts" text-anchor="middle">每项都从整帧种子重铺开始</text>
+  <text x="485" y="682" class="ts" text-anchor="middle">整帧 CRC32 + 32 位逐像素加和</text>
+  <text x="485" y="698" class="ts" text-anchor="middle">逐行喂 640 px，跳过行跨间隙</text>
+
+  <rect x="650" y="612" width="250" height="96" class="bi"/>
+  <text x="775" y="632" class="ts" text-anchor="middle" font-weight="600">外部判据</text>
+  <text x="775" y="650" class="ts" text-anchor="middle">恰好 18 行、无重复或未知用例</text>
+  <text x="775" y="666" class="ts" text-anchor="middle">两面 CRC 与加和逐项相等</text>
+  <text x="775" y="682" class="ts" text-anchor="middle">日志末尾必须有 fail 0 与 done</text>
+  <text x="775" y="698" class="ts" text-anchor="middle">被截断的日志直接判失败</text>
+
+  <rect x="940" y="612" width="240" height="96" class="bi"/>
+  <text x="1060" y="632" class="ts" text-anchor="middle" font-weight="600">板的第二条路径</text>
+  <text x="1060" y="650" class="ts" text-anchor="middle">十一个 SW3 用例对 golden.txt</text>
+  <text x="1060" y="666" class="ts" text-anchor="middle">注错构建：变化集合对 g_case_eq[]</text>
+  <text x="1060" y="682" class="ts" text-anchor="middle">逐方程各一次 + 错配自检</text>
+  <text x="1060" y="698" class="ts" text-anchor="middle">串口原文整段入库</text>
+</svg>

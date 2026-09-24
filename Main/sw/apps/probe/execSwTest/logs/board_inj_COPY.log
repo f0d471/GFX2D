@@ -1,0 +1,64 @@
+# COM11 @ 115200 8N1, opened 01:10:46
+
+execSwTest E7 前期研究版
+BOARD_HZ 100000000 cmd_cap 4096
+
+# --- 程序已加载，以下才是它的输出 ---
+SEED key[1][1] 0x000a1603 key_crc 0x52eb5029 fb0_crc 0x6ab1aca3 keybase 0x02f00000
+VERIFY 十一个整帧用例 vs golden.txt
+0 fill-screen crc 0x1d362f11 CHANGED FAIL
+1 blit-copy crc 0xa53596fe CHANGED FAIL
+2 blit-key crc 0xc9e7c49e CHANGED FAIL
+3 blit-alpha-pm crc 0x0b14ce03 same ok
+4 blit-alpha-straight crc 0x5b4feb8d same ok
+5 blit-add crc 0xb2e9fd00 CHANGED FAIL
+6 fill-const crc 0xf50e8644 same ok
+7 blit-mul crc 0x46667f89 same ok
+8 blit-clip-partial crc 0x35ef4265 CHANGED FAIL
+9 set-clip-state crc 0xfefd2cd2 CHANGED FAIL
+10 copy-argb-high-byte crc 0xfaa3f455 CHANGED FAIL
+THR 每方程在 FB0/FB1 各 11 轮取最小（区间只包 exec_sw_run）
+case fb cmd px wr ksk oob cyc_k us c/px Mpx/s rounds mean_k spread% r1..r4_k crc
+fill-copy fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 8751 us 87519 c/px 89.02 Mpx/s 1.12 rounds 11 mean_k 8752 spread% 100 r1..r4_k 8753/8752/8752/8751 crc 0xc890bc9e
+BMP fill-copy fb33554432 wincrc 0x11bc6f3e 80,60=0x00204061 272,188=0x00204061 80,315=0x00204061 463,60=0x00204061 79,60=0x008bed2c 81,61=0x00204061
+fill-const fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 12047 us 120477 c/px 122.55 Mpx/s 0.81 rounds 11 mean_k 12049 spread% 100 r1..r4_k 12050/12049/12051/12048 crc 0x8d6f5572
+BMP fill-const fb33554432 wincrc 0x9c707764 80,60=0x008bef2c 272,188=0x00cb30ab 80,315=0x008aef27 463,60=0x000b6d2c 79,60=0x008bed2c 81,61=0x008df231
+blit-copy fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 13529 us 135291 c/px 137.62 Mpx/s 0.72 rounds 11 mean_k 13530 spread% 100 r1..r4_k 13531/13530/13530/13530 crc 0x005a8d96
+BMP blit-copy fb33554432 wincrc 0xd6c32c71 128,96=0x00000001 320,224=0x00906d91 128,351=0x00000001 511,96=0x003a083c 127,96=0x00df7de0 129,97=0x00000001
+blit-key fb0 cmd 2 px 98304 wr 49152 ksk 49152 oob 0 cyc_k 10332 us 103321 c/px 105.10 Mpx/s 0.95 rounds 11 mean_k 10336 spread% 100 r1..r4_k 10336/10334/10335/10336 crc 0x17b81954
+BMP blit-key fb33554432 wincrc 0xd1b38c00 64,64=0x00001101 256,192=0x00c091c1 64,319=0x007fc03b 447,64=0x00ff3d40 63,64=0x007fbd40 65,65=0x000a1602
+blit-alpha-pm fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 17524 us 175245 c/px 178.26 Mpx/s 0.56 rounds 11 mean_k 17528 spread% 100 r1..r4_k 17531/17525/17528/17529 crc 0xbaa25613
+BMP blit-alpha-pm fb33554432 wincrc 0x4727e82b 128,96=0x00e080e0 320,224=0x00989ca8 128,351=0x00df80db 511,96=0x006b8bb1 127,96=0x00df7de0 129,97=0x00de80e1
+blit-alpha-st fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 17818 us 178188 c/px 181.26 Mpx/s 0.55 rounds 11 mean_k 17821 spread% 100 r1..r4_k 17826/17821/17818/17818 crc 0xe7ca08bb
+BMP blit-alpha-st fb33554432 wincrc 0x976f80fe 128,96=0x00e080e0 320,224=0x00989da8 128,351=0x00df80db 511,96=0x006c8bb1 127,96=0x00df7de0 129,97=0x00de81e1
+blit-add fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 15405 us 154055 c/px 156.71 Mpx/s 0.63 rounds 11 mean_k 15409 spread% 100 r1..r4_k 15410/15411/15407/15409 crc 0x16ff1a3f
+BMP blit-add fb33554432 wincrc 0xea7ced00 128,96=0x00e080e0 320,224=0x00b0fff0 128,351=0x00df80db 511,96=0x0099ffff 127,96=0x00df7de0 129,97=0x00e283e5
+blit-mul fb0 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 14200 us 142005 c/px 144.45 Mpx/s 0.69 rounds 11 mean_k 14203 spread% 100 r1..r4_k 14201/14206/14204/14203 crc 0xa5003f83
+BMP blit-mul fb33554432 wincrc 0x017bf2d3 128,96=0x00000000 320,224=0x00125236 128,351=0x00000000 511,96=0x00160836 127,96=0x00df7de0 129,97=0x00000000
+fill-copy fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 8751 us 87519 c/px 89.02 Mpx/s 1.12 rounds 11 mean_k 8752 spread% 100 r1..r4_k 8753/8752/8751/8752 crc 0xc890bc9e
+BMP fill-copy fb37748736 wincrc 0x11bc6f3e 80,60=0x00204061 272,188=0x00204061 80,315=0x00204061 463,60=0x00204061 79,60=0x008bed2c 81,61=0x00204061
+fill-const fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 12047 us 120470 c/px 122.54 Mpx/s 0.81 rounds 11 mean_k 12048 spread% 100 r1..r4_k 12049/12051/12049/12048 crc 0x8d6f5572
+BMP fill-const fb37748736 wincrc 0x9c707764 80,60=0x008bef2c 272,188=0x00cb30ab 80,315=0x008aef27 463,60=0x000b6d2c 79,60=0x008bed2c 81,61=0x008df231
+blit-copy fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 13528 us 135289 c/px 137.62 Mpx/s 0.72 rounds 11 mean_k 13530 spread% 100 r1..r4_k 13530/13530/13529/13530 crc 0x005a8d96
+BMP blit-copy fb37748736 wincrc 0xd6c32c71 128,96=0x00000001 320,224=0x00906d91 128,351=0x00000001 511,96=0x003a083c 127,96=0x00df7de0 129,97=0x00000001
+blit-key fb1 cmd 2 px 98304 wr 49152 ksk 49152 oob 0 cyc_k 10330 us 103303 c/px 105.08 Mpx/s 0.95 rounds 11 mean_k 10335 spread% 100 r1..r4_k 10339/10336/10330/10335 crc 0x17b81954
+BMP blit-key fb37748736 wincrc 0xd1b38c00 64,64=0x00001101 256,192=0x00c091c1 64,319=0x007fc03b 447,64=0x00ff3d40 63,64=0x007fbd40 65,65=0x000a1602
+blit-alpha-pm fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 17526 us 175268 c/px 178.29 Mpx/s 0.56 rounds 11 mean_k 17528 spread% 100 r1..r4_k 17529/17528/17528/17527 crc 0xbaa25613
+BMP blit-alpha-pm fb37748736 wincrc 0x4727e82b 128,96=0x00e080e0 320,224=0x00989ca8 128,351=0x00df80db 511,96=0x006b8bb1 127,96=0x00df7de0 129,97=0x00de80e1
+blit-alpha-st fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 17816 us 178165 c/px 181.23 Mpx/s 0.55 rounds 11 mean_k 17820 spread% 100 r1..r4_k 17826/17818/17819/17816 crc 0xe7ca08bb
+BMP blit-alpha-st fb37748736 wincrc 0x976f80fe 128,96=0x00e080e0 320,224=0x00989da8 128,351=0x00df80db 511,96=0x006c8bb1 127,96=0x00df7de0 129,97=0x00de81e1
+blit-add fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 15406 us 154067 c/px 156.72 Mpx/s 0.63 rounds 11 mean_k 15410 spread% 100 r1..r4_k 15412/15406/15410/15408 crc 0x16ff1a3f
+BMP blit-add fb37748736 wincrc 0xea7ced00 128,96=0x00e080e0 320,224=0x00b0fff0 128,351=0x00df80db 511,96=0x0099ffff 127,96=0x00df7de0 129,97=0x00e283e5
+blit-mul fb1 cmd 2 px 98304 wr 98304 ksk 0 oob 0 cyc_k 14200 us 142002 c/px 144.45 Mpx/s 0.69 rounds 11 mean_k 14203 spread% 100 r1..r4_k 14208/14204/14203/14202 crc 0xa5003f83
+BMP blit-mul fb37748736 wincrc 0x017bf2d3 128,96=0x00000000 320,224=0x00125236 128,351=0x00000000 511,96=0x00160836 127,96=0x00df7de0 129,97=0x00000000
+s1-exact fb0 cmd 2003 px 693504 wr 516352 ksk 177152 oob 0 cyc_k 100037 us 1000372 c/px 144.24 Mpx/s 0.69 rounds 10 mean_k 100050 spread% 100 r1..r4_k 100053/100042/100052/100053 crc 0xeb4d4d2a
+s1-exact fb1 cmd 2003 px 693504 wr 516352 ksk 177152 oob 0 cyc_k 100027 us 1000277 c/px 144.23 Mpx/s 0.69 rounds 10 mean_k 100049 spread% 100 r1..r4_k 100057/100048/100052/100058 crc 0xeb4d4d2a
+OVH 纯 NOP 表的固定开销（每条命令 32 字节，不含末尾 END）
+nop_n cyc_k mean_k rounds spread% cyc_per_cmd_x100
+15 cyc_k 4 mean_k 4 rounds 10 spread% 134 cyc/cmd_x100 30073
+255 cyc_k 61 mean_k 61 rounds 10 spread% 102 cyc/cmd_x100 24052
+1023 cyc_k 244 mean_k 245 rounds 10 spread% 100 cyc/cmd_x100 23934
+fail 7
+done
+
+# closed 01:12:17, 6871 bytes
