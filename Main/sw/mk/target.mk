@@ -30,7 +30,8 @@ SW     := $(dir $(patsubst %/,%,$(MK_DIR)))
 ifeq ($(APP),)
   APP        := gfx2dGame
   APP_SRCDIR := $(SW)apps/game/gfx2dGame
-  LIBS       := core
+  LIBS       := core gfx
+  REPLAYS    := sw6_a sw6_b
   APP_SRCS   := $(patsubst $(APP_SRCDIR)/%,%,$(wildcard $(APP_SRCDIR)/src/*.c $(APP_SRCDIR)/src/game/*.c))
 endif
 
@@ -46,6 +47,13 @@ OPT      ?= 2
 OBJDIR   ?= build
 INJECT   ?=
 EXTRA_CFLAGS ?=
+
+# SW6：录像（`.g2dr`）在构建时转成 C 数组，见 mk/host.mk 里的同一段与 replay.h。
+# 两个 mk 都要有这一条：判据与演示才走同一条落地路径。
+REPLAY_DIR  ?= replay
+REPLAYS     ?=
+REPLAY2C    ?= $(SW)../tools/check/replay2c.py
+REPLAY_HDRS := $(addprefix $(OBJDIR)/replay/,$(addsuffix .h,$(REPLAYS)))
 
 # --- sdk（只读上游）-------------------------------------------------------
 STANDALONE ?= $(SW)../sdk/software/standalone
@@ -131,7 +139,16 @@ $(ELF): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(START_OBJ)
 $(OBJDIR)/app/%.o: $(APP_SRCDIR)/%.c
 	@mkdir -p $(dir $@)
 	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(RISCV_CC) -c $(CFLAGS) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -o $@ $<
+	@$(RISCV_CC) -c $(CFLAGS) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -I$(OBJDIR)/replay -o $@ $<
+
+# 录像 -> C 数组（SW6），与 mk/host.mk 里的同一条。应用目标文件粗粒度地依赖全部
+# 生成的录像头；REPLAYS 为空时是空操作。
+$(OBJDIR)/replay/%.h: $(APP_SRCDIR)/$(REPLAY_DIR)/%.g2dr
+	@mkdir -p $(dir $@)
+	@echo "REPLAY $(patsubst $(SW)%,%,$<)"
+	@python3 $(REPLAY2C) --in $< --out $@ --name $*
+
+$(APP_OBJS): $(REPLAY_HDRS)
 
 $(OBJDIR)/lib/%.o: $(SW)lib/%.c
 	@mkdir -p $(dir $@)

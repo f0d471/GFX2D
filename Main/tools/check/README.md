@@ -11,6 +11,9 @@
 | `check_sw4_pc.sh` | PC 平台层（SW4）的提交前判据：整帧用例对 `golden.txt`、有窗与无窗逐行互比、注错构建、录像文本回灌、缩放探针 | 改 `sw/bsp/` 或 PC 侧构建时，提交前 |
 | `check_sw5_assets.sh` | 素材流水线（SW5）的提交前判据：打包确定性与输入边界、独立实现对账、装载与画面、七种坏包注错、注错构建、镜像回环与 active/passive 边界、许可台账 | 改素材、打包工具、`assetpak`、`assetTest` 或镜像工具时，提交前 |
 | `check_sw5_pak.py` | 素材包的**独立实现**：自己解包、自己从 PNG 与字库文本重算像素字节再逐字节比 | 由 `check_sw5_assets.sh` 调用，也可单独跑 |
+| `check_sw6_demo.sh` | 基础 Demo（SW6）的提交前判据，十项：录像可重生成、判据模式编过并跑通、对期望日志、有窗与无窗、两遍一致、HUD 与字形、场景 B、`off` 与 `eq` 计数、四个方程的注错见红、Sanitizer 与板上目标构建 | 改 `gfx2dGame`、`lib/gfx` 的执行器、SW5 素材或录像时，提交前 |
+| `check_sw6_log.py` | SW6 判据日志的**外部核对**：两遍比对、`hud` 对上一帧统计、`hcrc` 按字库文本独立重画、`s` 与 `scene` 参考值、`off` 与 `eq`；`--board` 把板上串口日志从 `pak` 行起与期望日志对账 | 由 `check_sw6_demo.sh` 调用；板上对账时单独跑 |
+| `gen_sw6_replay.py` | 生成 SW6 的两段确定性录像（`.g2dr`）：A 把 N 从 100 升到 5000 再回到 100，B 把 k 从 30 降到 1 再升到 120；形状与停留段写在脚本里 | 录像要改时；`check_sw6_demo.sh` 每次重跑并逐字节比 |
 
 ## localize_paths.py
 
@@ -51,6 +54,8 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw_layers.sh'
 
 注错文件只在运行时临时生成，脚本退出（含中途失败）一律删干净；编译产物落临时目录，不动应用的 `build/`；
 第 6 项会 `touch` 一次 `bsp/include/memmap.h`（只改时间戳）。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。
+**开头先跑一次 `assets/pack_assets.py`**：`gfx2dGame` 从 SW6 起包含生成物 `assets.h`，
+干净克隆里不先打包，第 2、3、4、6 项那几次真实构建会因为找不到 `assets.h` 而失败（那是假红）。
 
 ## check_round255.c
 
@@ -170,3 +175,75 @@ wsl -e python3 Main/tools/check/check_sw5_pak.py [--pak <文件>] [--assets <目
 再与 `.pak` 逐字节比；也逐项核 CRC、行尾为 0、64 字节对齐、不重叠。
 输出与 `assetTest` 的 C 侧逐项行同格式，所以 `check_sw5_assets.sh` 能把两边 diff 一下——
 两边都算对，才说明格式没写歪。
+
+## check_sw6_demo.sh
+
+```
+wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw6_demo.sh'
+wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> SW6_QUICK=1 bash Main/tools/check/check_sw6_demo.sh'      每段每遍只跑 120 帧
+```
+
+基础 Demo（[SW6](../../../Engineering/Todo/sw/SW6-基础Demo.md)）的十项结构判据。开头先跑
+`assets/pack_assets.py`（`assets.h` 与 `assets.pak` 是生成物、不入库）。默认构建是**演示模式**，
+所以每一项都用 `EXTRA_CFLAGS=-DSW6_JUDGE=1` 构建判据模式；`SW6_QUICK=1` 时另加
+`-DSW6_FRAMES=120` 并把期望日志换成 `logs/sw6_judge_quick.log`。
+
+| 项 | 内容 |
+| --- | --- |
+| D1 | 录像可重生成：`gen_sw6_replay.py` 重打两份 `.g2dr` 与入库的逐字节相同；`replay2c.py --check` 独立解析 |
+| D2 | `make PLATFORM=host` 编过；判据模式（有窗）跑一遍，`^fail 0`、`^done`、退出码 0。D2b：演示模式加帧数上限编过并冒烟，A、B 两段都出现。D2c：双缓冲不变量的反例 `INJECT=SW6_FB_PER_PASS`（按每遍帧号选面、每遍 121 帧）必须打出 `fb err` |
+| D3 | 去掉 `cyc` 三列后与入库期望日志逐行相同；快速档的逐帧行按段按遍是全量档的前缀（`eq A` 除外，它是这一遍实际跑过的帧的累计） |
+| D4 | 同一个二进制在 `SDL_VIDEODRIVER=dummy` 下再跑一遍，逐字节相同 |
+| D5 | 每段 `p 1` 与 `p 2` 逐帧相同；反例 `INJECT=SW6_LIVE_HUD` 必须见红 |
+| D6 | `hud` 列等于同一遍上一帧的 `cmd`／`pix`（每遍首帧 `- -`）；`hcrc` 等于按字库文本与本行字段独立重画的 CRC；反例 `INJECT=EQ_COPY` 见红 |
+| D7 | 三个 `scene` 参考值两两不同；每个 B 帧的 `scrc` 等于本帧 `s` 那张图；k=1 段内 `s` 逐帧轮换且三张都轮到；反例 `EQ_COPY` 见红 |
+| D8 | A 帧 `off ≥ 4`；`eq A` 的 copy／alpha／add、`eq P` 的 copy／alpha／straight 都非 0 |
+| D9 | `EQ_COPY`／`EQ_ALPHA`／`EQ_ADD`／`EQ_ALPHA_STRAIGHT` 各构建运行一次，每次与快速档期望日志至少一行不同 |
+| D10 | `SAN=1` 跑一遍，ASan／UBSan 无报告、`fail 0`；另编判据与演示两种板上构建，零告警且 bin ≤ 524288 字节。交叉工具链装在 WSL 里、不在 PATH 上，要传 `RISCV_BIN=<RISCV_BIN>`（`../../doc/开发环境.md` 第 11 节）；不传时找不到就跳过并提示，**跳过不算通过**，验收前必须带上它跑 |
+
+全量一次约 2 分 40 秒，`SW6_QUICK=1` 约 2 分 10 秒（2026-09-24 实测，带 `RISCV_BIN`，含 D2c 与两种板上构建；
+D2 与 D4 在全量档各跑 1226 帧，约 22 秒一遍；D5、D9、D10 两档都用快速档的帧数）。
+**本脚本不上板**：板上对账按 SW6 第 3 节「板上对账」用 `tools/board/board_run.py --bin`
+单独跑判据模式快速档，再用 `check_sw6_log.py --board <串口日志> logs/sw6_judge_quick.log`
+对账，原始串口日志入库 `logs/sw6_board_quick.log`。
+
+## check_sw6_log.py
+
+```
+wsl -e python3 Main/tools/check/check_sw6_log.py --pair      Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log
+wsl -e python3 Main/tools/check/check_sw6_log.py --hud  <日志> --font Main/assets/font/ascii8x16.txt
+wsl -e python3 Main/tools/check/check_sw6_log.py --scene <日志>
+wsl -e python3 Main/tools/check/check_sw6_log.py --counts <日志>
+wsl -e python3 Main/tools/check/check_sw6_log.py --compare <期望> <实际>
+wsl -e python3 Main/tools/check/check_sw6_log.py --quick-prefix <全量> <快速档>
+wsl -e python3 Main/tools/check/check_sw6_log.py --board <串口日志> <期望>
+```
+
+`--board` 给板上对账用。`board_run.py` 的串口日志里还有三样别的东西：它自己的 `#` 标记行、
+加载之前 Flash 里旧程序在 `reset halt` 之前打的几行，以及常常抢在「程序已加载」标记之前出现的
+本程序横幅。所以它去掉 `#` 行与空行，取**最后一个** `gfx2dGame SW6` 横幅之后、从 `pak` 行起的部分，
+与期望日志从 `pak` 行起逐行比（去掉 `cyc` 三列）。`--counts` 在一行 `eq` 都没有时报错，不空转。
+
+日志格式的权威是 SW6 的 2.7 节，这个脚本是它的**外部实现**：按字段位置解析 `f` 行
+（行里不出现字符本身，按空白切分即可），`hcrc` 那条按 `Main/assets/font/ascii8x16.txt`
+与本行的 `n`／`k`／`hud` 字段独立重画整块 HUD 矩形再算 CRC——C 侧与 Python 侧各算一遍，
+两边都对才说明 HUD 的路径（字形、位置、数字、`--`、纯黑底）没写歪。
+字库解析照 `pack_assets.py` 的规则：`#` 后跟空白才是注释，`########` 是合法像素行（SW5 4.21 第 1 条踩过）。
+只用标准库（`zlib.crc32` 与 `lib/core/crc32` 同参，SW5 4.10 节对过账）。
+
+## gen_sw6_replay.py
+
+```
+wsl -e python3 Main/tools/check/gen_sw6_replay.py            写进应用的 replay/
+wsl -e python3 Main/tools/check/gen_sw6_replay.py --out <目录>
+wsl -e python3 Main/tools/check/gen_sw6_replay.py --to-text  打成录制文本（给人看）
+```
+
+SW6 两段确定性录像的生成器，形状是 spec 定死的（SW6 2.5 节与 4.11 第 8 条）：
+A 停 10 帧、上键 49 次升到 N=5000、停 30 帧、下键 49 次回到 100、停 10 帧，共 246 帧；
+B 停 31 帧、下键 29 次降到 k=1、停 30 帧、上键 119 次升到 120、停 10 帧，共 367 帧。
+每步「按 1 帧、松 1 帧」，应用按按下沿判，两帧一步。
+
+它是**独立于 `replay2c.py` 的第二份写法**，只按格式写字节；`check_sw6_demo.sh` 的 D1
+既用它重生成再逐字节比，也用 `replay2c.py --check` 独立解析一遍。
+入库的是 `.g2dr`（源数据），构建时由两个 `mk` 调 `replay2c.py` 转成 C 数组落到 `$(OBJDIR)/replay/`。

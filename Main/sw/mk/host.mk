@@ -27,7 +27,8 @@ SW     := $(dir $(patsubst %/,%,$(MK_DIR)))
 ifeq ($(APP),)
   APP        := gfx2dGame
   APP_SRCDIR := $(SW)apps/game/gfx2dGame
-  LIBS       := core
+  LIBS       := core gfx
+  REPLAYS    := sw6_a sw6_b
   APP_SRCS   := $(patsubst $(APP_SRCDIR)/%,%,$(wildcard $(APP_SRCDIR)/src/*.c $(APP_SRCDIR)/src/game/*.c))
 endif
 
@@ -51,6 +52,15 @@ BITS     ?= 64
 SAN      ?= 0
 INJECT   ?=
 EXTRA_CFLAGS ?=
+
+# SW6：录像（`.g2dr`）在构建时转成 C 数组。板上没有文件系统，SW4 定这个格式
+# 就是为了「一步转成 C 数组」（replay.h 的文件头）。应用在 makefile 里写
+# `REPLAYS = sw6_a sw6_b`，源文件放在 `<应用>/replay/<名字>.g2dr`（入库的源数据），
+# 生成物落在 `$(OBJDIR)/replay/`、不入库，和 assets.h 一样。
+REPLAY_DIR  ?= replay
+REPLAYS     ?=
+REPLAY2C    ?= $(SW)../tools/check/replay2c.py
+REPLAY_HDRS := $(addprefix $(OBJDIR)/replay/,$(addsuffix .h,$(REPLAYS)))
 
 # SDL2 的头文件当系统头处理（-isystem）：它们是第三方代码，
 # 不该因为它的告警把 -Werror 的构建打断。
@@ -121,7 +131,6 @@ TEST_SRCS   := $(foreach l,$(TEST_LIBS),$(wildcard $(SW)lib/$(l)/*.c)) \
 GOLDEN      := $(SW)lib/test/golden.txt
 REPLAY_FIX  := $(SW)lib/test/replay_fixture.g2dr
 REPLAY_HDR  := $(OBJDIR)/test/replay_fixture.h
-REPLAY2C    := $(SW)../tools/check/replay2c.py
 VEC         ?=
 TEST_ARGS   := --golden $(GOLDEN) --replay $(REPLAY_FIX) $(if $(VEC),--vec $(VEC),)
 TEST_INJECT := $(if $(INJECT),-DINJECT_$(INJECT),)
@@ -132,10 +141,19 @@ $(TARGET): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS)
 	@echo "LD $(TARGET)"
 	@$(HOST_CC) $(BASE) -o $@ $^ $(SDL_LIBS)
 
+# 录像 -> C 数组（SW6）。应用目标文件粗粒度地依赖全部生成的录像头：
+# 头是编译期 include 的，必须在编 .o 之前就位；REPLAYS 为空时这几行是空操作。
+$(OBJDIR)/replay/%.h: $(APP_SRCDIR)/$(REPLAY_DIR)/%.g2dr
+	@mkdir -p $(dir $@)
+	@echo "REPLAY $(patsubst $(SW)%,%,$<)"
+	@python3 $(REPLAY2C) --in $< --out $@ --name $*
+
+$(APP_OBJS): $(REPLAY_HDRS)
+
 $(OBJDIR)/app/%.o: $(APP_SRCDIR)/%.c
 	@mkdir -p $(dir $@)
 	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(HOST_CC) $(BASE) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -c $< -o $@
+	@$(HOST_CC) $(BASE) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -I$(OBJDIR)/replay -c $< -o $@
 
 $(OBJDIR)/lib/%.o: $(SW)lib/%.c
 	@mkdir -p $(dir $@)

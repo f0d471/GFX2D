@@ -12,10 +12,14 @@
 
 APP      = gfx2dGame
 APP_SRCS = $(wildcard src/*.c src/game/*.c)
-LIBS     = core
+LIBS     = core gfx
+
+# SW6：两段确定性录像（源数据入库，见 src/game/sw6_*）。两个 mk 把它们转成
+# $(OBJDIR)/replay/<名字>.h，应用以 #include "sw6_a.h" 取到 <名字>_bytes 与 <名字>_LEN。
+REPLAYS  = sw6_a sw6_b
 
 # OPT=2|s|0        优化级别，写进产物名
-# INJECT=<名字>    打开 lib/ 里对应的注错宏（-DINJECT_<名字>）
-# EXTRA_CFLAGS=..  临时追加编译选项，例如 -DFRAMES=12000 做长跑
+# INJECT=<名字>    打开注错宏（-DINJECT_<名字>）：lib/gfx 的 EQ_*，或本应用的 SW6_LIVE_HUD
+# EXTRA_CFLAGS=..  临时追加编译选项，例如 -DSW6_JUDGE=1 -DSW6_FRAMES=120
 PLATFORM ?= target
 include ../../../mk/$(PLATFORM).mk

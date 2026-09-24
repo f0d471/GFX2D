@@ -57,6 +57,16 @@ ok()   { printf '%s ok\n'   "$1"; }
 bad()  { printf '%s FAIL\n' "$1"; FAIL=$((FAIL + 1)); }
 note() { printf '    %s\n'   "$1"; }
 
+# SW6 起 gfx2dGame 包含生成物 assets.h，素材包与头文件都不入库：干净克隆里不先打包，
+# 第 2、3、4、6 项那几次真实构建会因为找不到 assets.h 而失败，而那是假红。
+# 与 check_sw5_assets.sh 的 S1 同一做法。
+if python3 "$MAIN/tools/assets/pack_assets.py" >"$TMP/pack.log" 2>&1; then
+    ok "素材打包（assets.h 与 assets.pak 是生成物）"
+else
+    bad "素材打包失败，后面的真实构建会找不到 assets.h"
+    sed -n '1,5p' "$TMP/pack.log" | while read -r l; do note "$l"; done
+fi
+
 # 真实的板上构建：应用目录下的 makefile，临时 OBJDIR，日志进 $TMP/build.log
 build_board() {
     make -C "$SW/apps/game/gfx2dGame" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$1" >"$TMP/build.log" 2>&1

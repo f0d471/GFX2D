@@ -44,7 +44,7 @@ sw/
 
 | 程序 | 说明 |
 | --- | --- |
-| `apps/game/gfx2dGame/` | 游戏应用（SW1 起）。当前是最小骨架，判据见下 |
+| `apps/game/gfx2dGame/` | 基础 Demo（SW6，赛题基础要求 3）：场景 A 大量方块随机移动、场景 B 三张整屏图快速切换，每帧一条命令表交给软件执行器，双缓冲呈现。默认编**演示模式**（实时输入），`EXTRA_CFLAGS=-DSW6_JUDGE=1` 编**判据模式**（回放两段入库录像、逐帧打日志）。串起来跑的是 `Main/tools/check/check_sw6_demo.sh`。期望输出见下 |
 | `apps/game/cup3d/` | 纯软件 3D 光栅器在扫描输出的帧缓冲上转一只茶杯。三个用途：用真实负载量软件渲染的像素吞吐（E7 要的数）、让扫描输出跑在会动会遮挡的负载下、对外演示。320×240 光栅，1:1 贴在 640×480 的正中间。期望输出见下 |
 | `apps/test/bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
 | `apps/test/cacheCoherencyTest/` | 实验 E3 的判据程序：用探针主机当外部写入者，一致性判据、注错与注错自检，并量失效指令的代价 |
@@ -103,6 +103,16 @@ PC 的素材包路径由 `mk/host.mk` 的 `ASSETS_PAK` 编进 `bsp/host`（取�
 运行时可以用 `GFX2D_ASSETS_PAK=<文件>` 覆盖——判据脚本用它喂坏包。
 `ASSETS_PAK` 进了编译选项标记文件，换路径会触发重编（否则 `board.o` 会留着上一个路径）。
 
+**录像（SW6）：** 应用在 makefile 里写 `REPLAYS = sw6_a sw6_b`，
+两个 `mk/*.mk` 各有一条「`<应用>/replay/<名字>.g2dr` → `$(OBJDIR)/replay/<名字>.h`」的规则
+（调 `tools/check/replay2c.py`），给**应用**那一层加 `-I$(OBJDIR)/replay`，
+应用 `#include "sw6_a.h"` 取到 `<名字>_bytes` 与 `<名字>_LEN`。
+`.g2dr` 是源数据、入库；转出来的 C 数组是构建产物、随 `build*/` 一起不入库
+（板上没有文件系统，`lib/core/replay.h` 定这个格式就是为了这一步）。
+两个 `mk` 的默认块（`ifeq ($(APP),)` 那一段）也把 `LIBS` 写成 `core gfx` 并补上 `REPLAYS`，
+`make -f mk/host.mk`、`make -f mk/target.mk` 这两条直接调用的路子才编得过。
+所以 gfx2dGame 的构建现在要 `python3`（`replay2c.py` 与素材打包都要它）。
+
 ## 主机侧单元测试与结构判据
 
 ```
@@ -146,52 +156,80 @@ wsl -e bash -c 'cd sw && make -f mk/host.mk gen-golden'
 
 ## gfx2dGame 的期望值
 
-**PC 版**：开一个 640×480 窗口，stdout 63 行，退出码 0：
+SW6 起它是**基础 Demo**（赛题基础要求 3）。默认构建是**演示模式**：开 640×480 窗口、
+实时输入，A／B 两个阶段每 600 帧自动轮换，HUD 右上角显示 SW FPS、N／k、命令数、
+写入像素数与三段耗时（`HW FPS` 留 `--` 给 SW9）。`-DSW6_JUDGE=1` 是**判据模式**：
+不读实时按键，按入库的两段录像各回放两遍，逐帧打日志与入库期望值对账。
+
+判据、日志格式与逐帧契约见
+[`../../Engineering/Todo/sw/SW6-基础Demo.md`](../../Engineering/Todo/sw/SW6-基础Demo.md)；
+跑全部十项判据用 `Main/tools/check/check_sw6_demo.sh`。
 
 ```
-gfx2dGame SW1
-frame 0 crc cf8e2861 cycles 500652
+# 演示：窗口里看画面
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host && ./build_host/gfx2dGame'
+
+# 判据模式全量一遍：约 22 秒、1226 帧，末尾 fail 0 与 done
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host EXTRA_CFLAGS=-DSW6_JUDGE=1 && ./build_host/gfx2dGame'
+
+# 判据模式快速档（每段每遍 120 帧，A 段仍覆盖 N=5000）
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host EXTRA_CFLAGS="-DSW6_JUDGE=1 -DSW6_FRAMES=120" && ./build_host/gfx2dGame'
+
+# 十项判据串起来（录像可重生成 → 编过跑通 → 对期望日志 → 有窗无窗 → 两遍 → HUD → 场景 B
+#                  → 计数 → 四个方程的注错见红 → Sanitizer 与板上目标构建）
+# 不传 RISCV_BIN 时板上目标构建会跳过（工具链不在 PATH 上），跳过不算通过
+wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw6_demo.sh'
+wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> SW6_QUICK=1 bash Main/tools/check/check_sw6_demo.sh'
+```
+
+`logs/` 下这一条目的日志：
+
+| 文件 | 是什么 |
+| --- | --- |
+| `sw6_judge.log` | 判据模式**全量**一遍的期望值：1236 行（`gfx2dGame SW6`、`pak`、三行 `scene`、`eq P`、A 两遍各 246 帧、B 两遍各 367 帧、两行 `eq A`、`fail 0`、`done`） |
+| `sw6_judge_quick.log` | 快速档（`-DSW6_FRAMES=120`）的期望值；它的逐帧行按段、按遍必须是全量档的前缀 |
+| `sw6_board_quick.log` | 板上判据模式快速档的串口原始输出（2026-09-24，产物 34,850 字节、sha256 前 16 位 `0454c3cce0216630`）：`fail 0`，从 `pak` 行起 489 行去掉 `cyc` 后与 `sw6_judge_quick.log` 逐行相同 |
+| `pc_normal.log`、`pc_inject.log`、`board_normal.log`、`board_inject.log` | **SW1 骨架的旧日志**，原地保留：它们是 60 帧图案那个版本的产物，当前二进制不再产生它们，**不要拿它们当期望值**。SW1 的记述在 [sw 第 01 章](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md) |
+
+固定值（`logs/sw6_judge.log` 的头几行与第 0 帧）：
+
+```
+gfx2dGame SW6
+pak 2142784 fc13ee10
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+f 0 A p 1 s - keys 00000000 n 100 k 0 cmd 159 pix 391135 ksk 6296 hud - - off 4 cyc 27 497 176435 crc 6213ca93 scrc 62772be8 hcrc 57c6333b
 ...
-frame 59 crc edf398b3 cycles 272305
-frames 60
-done
 ```
 
-（`cycles` 每台机器、每次运行都不同，这里照实抄的是入库日志 `logs/pc_normal.log` 的首尾两行；
-CRC 那一列才是判据。）
+- `cyc` 三列是 `board_cycles()` 的差值，每台机器、每次运行都不同，**比对前必须去掉**；
+  其余每一列都是确定的。
+- A 段第 106 帧起 `n 5000`；N=5000 时 `cmd` 约 5067（每张命令表上限 32768 条）。
+- `scene i` 是三张离屏图预合成后的参考值；B 段每个 `f` 行的 `scrc` 等于它本帧 `s` 那一张。
+- `scrc` 是**排除 HUD 矩形**（`x=400..639, y=0..159`）后的场景区 CRC，`crc` 是整帧，
+  `hcrc` 是 HUD 矩形本身；三者都逐行喂、跳过行跨间隙，口径见 SW6 2.7 节。
+- 判据模式下 HUD 的实时量（`SW FPS` 与三段耗时）显示 `--`：实测值进画面，
+  同一份输入两次就跑不出相同的整帧 CRC。演示模式显示实测值。
 
-**板上**：gcc 13.4.0（2026-09-19 起）bin 2578 字节（`sha256:27a4157520558dbe…`，`-O2`），60 帧 CRC 与 PC 日志逐帧相同。此前 gcc 8.3.0 时 bin 2442 字节（`sha256:98fb37c9dc9bc060…`，xPack gcc 8.3.0，默认 `-O2`；
-`-Os` 是 2210 字节 `8699eb87f4130ce5…`，注错版 2442 字节 `577cacb50a0b29bd…`），
-串口 62 行，末尾 `frames 60` 与 `done`。板上不上屏（扫描输出属于 display 系列），
-画面以整帧 CRC 的形式输出，**60 个 CRC 必须与 PC 逐帧相同**。
-板上用的是 `Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit`
-（2026-09-19 SoC IP 定型之后这一份 `sha256:4f1c7ec23d99f9ba…`，2,070,156 字节；此前 `d8af4ce13c416834…`）。
-
-**2026-09-21 扫描输出与 SW4 之后，板上产物变成 4210 字节**（`sha256:a8df1ef4b1d5d618…`，`-O2`，
-工具链与优化级别不变）：入库那两份日志对应的产物是 2578 字节；扫描输出把寄存器通路接进
-`bsp/ti60/board.c` 之后是 2810；SW4 补的三个查询加 80，`LIBS = core` 链进来的
-`lib/core/replay.c` 再加 1320（这一笔不引用录像的应用也有，见
-[sw 第 03 章](../../Engineering/TechReports/sw/03-PC平台层与帧节拍.md) 5.4 节的已知代价）。
-**入库的那两份板上日志是 2026-09-19 采的**，当时的比特流里没有扫描输出，
-`board_present` 与 `board_wait_frame` 都是空操作，所以 60 个 CRC 仍然有效、不必重采；
-要重采时按 `displayTest` 那份比特流（2026-09-21 起）走。
-本轮还改了主循环：`board_present` 现在自己等掉一场，原来的 `board_wait_frame()` 已经删掉，
-两个都调会让帧率掉到 30（[sw 第 03 章](../../Engineering/TechReports/sw/03-PC平台层与帧节拍.md) 3.4 节）。CRC 与行数不受影响。
-
-日志四份在 `apps/game/gfx2dGame/logs/`：`pc_normal.log`、`pc_inject.log` 是 PC 的 stdout（期望值），
-`board_normal.log`、`board_inject.log` 是板上串口原始输出。比对只取 `frame N crc X` 这一列：
+**板上**（xPack 的 `riscv-none-elf-gcc` 13.4.0 装在 WSL 里、不在 PATH 上，
+`<RISCV_BIN>` 的取值见 `../doc/开发环境.md` 第 11 节；`board_run.py` 的解释器设置见 `../tools/board/README.md`）：
 
 ```
-diff <(grep -o 'frame [0-9]* crc [0-9a-f]*' logs/pc_normal.log) \
-     <(grep -o 'frame [0-9]* crc [0-9a-f]*' logs/board_normal.log)
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make RISCV_BIN=<RISCV_BIN> OBJDIR=build_board_quick EXTRA_CFLAGS="-DSW6_JUDGE=1 -DSW6_FRAMES=120"'
+<EFINITY>\python311\bin\python.exe tools\board\board_run.py --bin sw\apps\game\gfx2dGame\build_board_quick\gfx2dGame-O2.bin --stop-on done --seconds 2700 --log <串口日志>
+wsl -e python3 Main/tools/check/check_sw6_log.py --board <串口日志> Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log
 ```
 
-注错版（`INJECT=XS32_SHIFT` 把 xorshift32 的第一个移位常数从 13 改成 12）从第 0 帧起就不同：
-正常 `cf8e2861`，注错 `fe77d971`。板上日志开头几行是 Flash 里旧程序在 `reset halt` 之前的输出，
-不是本程序的，比对时按上面的方式过滤。
-
-`cycles` 那一列只有参考意义：PC 上是把性能计数器折算成 100MHz 的周期数，
-不作性能结论（总览约束 5）；板上是 CLINT 的真实周期数，约 3270 万/帧。
+判据模式**不读 `board_keys()`**，所以板上不需要接按键就能跑。程序用 `--bin` 经 JTAG 写进 DDR 运行，
+素材包照样由程序从 Flash 素材分区读，所以 Flash 里要有与 `assets.h` 同一版的包（`pak` 行会核对）；
+不用 `--flash-boot`，因为它跑的是 Flash 应用区里固化的程序（现在是 SW5 的 `assetTest`），不是这次的产物。
+`--board` 从最后一个 `gfx2dGame SW6` 横幅之后的 `pak` 行起比，`board_run.py` 的 `#` 标记行与
+Flash 旧程序在 `reset halt` 之前的输出都跳过。这一步是 SW9 之前唯一一次「RV32 上的软件执行器 +
+素材装载 + 整条组帧路径与 PC 等价」的证据；快速档在板上一次约 16 分钟。
+板上软件执行器每帧执行 0.4~4.4 秒，加上三遍 CRC 与一行串口，一帧 1~5 秒，演示模式一段 600 帧在板上要十分钟以上，
+所以演示模式的 HDMI 画面与软硬件帧率对比留给 SW9（引擎接上之后）。
 
 ## 编译（七个诊断程序）
 

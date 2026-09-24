@@ -24,6 +24,7 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | 软件平台分层与双目标构建（SW1） | **已验收**（2026-09-19）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
 | 命令表构造层与软件执行器（SW3） | **主机侧已验收**（2026-09-21）：`sw/lib/gfx/`（`gfx_abi.h` 数据布局、`check.c` 十步检查、`list.c` 构造层、`exec_sw.c` 执行器、`cases.c` 十一个整帧用例）与判据 `sw/lib/test/`（独立参考实现 `ref_exec`、手写 45 条向量、交换格式重放器）就位。78 项断言在 64 位与 `-m32` 下输出逐字节相同，ASan + UBSan 无报告；工具导出的 159 条向量与手写 45 条在两个实现上逐项一致；六个方程的注错各自只命中用到它的用例；同一份源码用 riscv-none-elf-gcc 13.4.0 零告警编过。整帧 CRC 期望值入库 `sw/lib/test/golden.txt`，E7 与引擎仿真拿它当金标准。**板上未跑**，那是 E7 的账。见 `../Engineering/TechReports/sw/02-命令表构造层与软件执行器.md` |
 | PC 平台层（SW4） | **已归档**（2026-09-21）：`sw/bsp/host/board.c` 的场节拍按扫描输出的既成事实重写（场计数自由运行 + present 等下一个场边界），`board.h` 补 `board_frame_count`/`board_swap_count`/`board_should_quit` 三个服务，缩放用最近邻、无窗跑同一个二进制；`sw/lib/core/replay` 是录像格式的唯一真源，`tools/check/replay2c.py` 在 `.g2dr`、C 数组与录制文本之间转换。判据程序 `sw/apps/test/platformTest` 与 `tools/check/check_sw4_pc.sh` 全过：十一用例 CRC 对 `golden.txt`、600 帧节拍（每帧恰好一场）、掉帧注错、1800 帧回放两遍逐帧相同、有窗与无窗逐行相同、注错构建见红。板上那三个查询也已上板跑过（`platformTest` 板上产物 `fail =0`：十一用例 CRC 与 `golden.txt` 逐行相同、600 帧 `dfield=dswap=600` 且每帧恰一场、`drop` 的 2 减 1、60 帧回放两遍 `diff=0`；板上节拍抖动 1~2 微秒，PC 上约 300 微秒）。只剩关窗退出与 F1~F3 要人动手。见 `../Engineering/TechReports/sw/03-PC平台层与帧节拍.md` |
+| 基础 Demo（SW6，赛题基础要求 3） | **待验收**（2026-09-24）：`sw/apps/game/gfx2dGame` 从 SW1 骨架换成基础 Demo——场景 A 是大量方块随机移动（N=100~5000、Q12.4、四个固定出屏样例、COPY／ALPHA／ADD 各走 FILL 与 BLIT），场景 B 是三张整屏图快速切换（初始化时预合成进 DDR 离屏层，每帧一次整屏 BLIT COPY）；默认演示模式，`-DSW6_JUDGE=1` 走判据模式回放两段入库录像。`tools/check/check_sw6_demo.sh` 十项全过：录像可重生成、判据模式 1226 帧 `fail 0` 且与入库期望日志逐行相同、有窗与无窗逐字节相同、两遍逐帧相同、HUD 的 `hcrc` 与 Python 侧按字库文本独立重画的整块矩形一致、三个 `scene` 参考值与每个 B 帧对上、四个方程各自注错见红、双缓冲不变量的反例见红、`SAN=1` 无报告、两种板上构建零告警。**板上对账已完成**：判据模式快速档（34,850 字节）经 `board_run.py --bin` 跑 480 帧 `fail 0`，从 `pak` 行起 489 行与 PC 期望日志逐行相同，原始串口日志 `sw/apps/game/gfx2dGame/logs/sw6_board_quick.log`。演示模式的 HDMI 画面与软硬件帧率对比归 SW9。见 `../Engineering/TechReports/sw/05-基础Demo.md`，条目 `../Engineering/Todo/sw/SW6-基础Demo.md` |
 | SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 已上板并验收（2026-09-19）：efx_soc 3.4.0 重新生成，开 GPIO1 接 KEY0~3、开用户中断 A/B/C、保留 I2C0 给摄像头、关 `axiA` 与 `io_ddrMasters_0`；工具链换成 gcc 13.4.0。调试通路连续 6 次会话、memTest、APB 探针、`ddrAliasTest`、`ddrBurstProbe`、E3 三件套、`bootSizeTest`（含对照组）与 gfx2dGame 60 帧 CRC 全过；HDMI 八色竖条与 SW0~SW3 按键已确认。见 `../Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md` |
 
 编译占用 XLR 21807（35.87%）、片上 RAM 71 块（27.7%）、DSP 4 个，约束告警 0 条，无负 slack，`core_clk` setup 3.898 / hold 0.026 ns
@@ -139,8 +140,9 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
 - **判据要能注错见红**：每个仿真除了正常用例，必须有把逻辑改错后会 FAIL 的用例，
   否则不算验证过。
 - **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，`axi_mux_guard` 17/17，Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
-  改了 `sw/` 下走新构建的程序（`gfx2dGame` 与以后的应用）还要过 `sw/README.md` 里的两套构建、
-  主机侧单元测试与 `tools/check/check_sw_layers.sh`。
+  改了 `sw/` 下走新构建的程序（`gfx2dGame`、`cup3d`、`assetTest` 等）还要过 `sw/README.md` 里的两套构建、
+  主机侧单元测试与 `tools/check/check_sw_layers.sh`；改了 `gfx2dGame`、`lib/gfx` 的执行器或素材还要过
+  `tools/check/check_sw6_demo.sh`（十项，含四个方程的注错见红与 Sanitizer）。
 - **数字要标明来源**：估算与推测必须写清楚，实测要给命令和结果。
 - **状态与过程分开**：README 与 `doc/` 写当前是什么样，
   开发过程、踩过的坑、为什么这么选写在 `../Engineering/` 下。

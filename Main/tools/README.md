@@ -7,7 +7,7 @@
 | [`board/`](board/README.md) | 上板：烧比特流、加载程序、收串口、读写寄存器、写 Flash 前转格式与合成镜像 | `board_run.py`、`gfx2d_debug.cfg`、`bin2hex.py`、`make_flash_image.py` |
 | [`soc/`](soc/README.md) | 重新生成 Sapphire SoC IP 与软件包 | `ipm_gen_soc.py` |
 | [`assets/`](assets/README.md) | 素材：占位 PNG 生成、按 manifest 打成素材包并生成 `assets.h` | `gen_placeholder.py`、`pack_assets.py` |
-| [`check/`](check/README.md) | 提交前检查与规格校验：路径占位符、软件分层判据、像素舍入穷举、命令语义一致性向量、素材包 | `localize_paths.py`、`check_sw_layers.sh`、`check_round255.c`、`check_cmd_semantics.py`、`check_sw5_assets.sh`、`check_sw5_pak.py` |
+| [`check/`](check/README.md) | 提交前检查与规格校验：路径占位符、软件分层判据、像素舍入穷举、命令语义一致性向量、素材包、基础 Demo 的录像与日志 | `localize_paths.py`、`check_sw_layers.sh`、`check_round255.c`、`check_cmd_semantics.py`、`check_sw5_assets.sh`、`check_sw5_pak.py`、`check_sw6_demo.sh`、`check_sw6_log.py`、`gen_sw6_replay.py` |
 
 ## 用哪个解释器
 
@@ -19,7 +19,8 @@
 | `assets/gen_placeholder.py`、`assets/pack_assets.py` | 同上，但要 Pillow（2026-09-22 复测：python 3.14.4、Pillow 12.2.0） | 要解 PNG；只用标准库 + Pillow，不依赖 numpy |
 | `board/make_flash_image.py` | 同上，只用标准库 | 合成与回环校验，不碰板子 |
 | `check/check_cmd_semantics.py` | 同上，只用标准库 | 生成与校验命令语义的一致性向量，不依赖板子与编译器 |
-| `check/check_sw_layers.sh`、`check/check_sw5_assets.sh`、`check/check_round255.c` | WSL | 要交叉工具链、主机 gcc |
+| `check/check_sw6_log.py`、`check/gen_sw6_replay.py` | 同上，只用标准库 | 判据日志的外部核对（`zlib.crc32` 与 `lib/core/crc32` 同参）；SW6 两段录像的独立生成 |
+| `check/check_sw_layers.sh`、`check/check_sw5_assets.sh`、`check/check_sw6_demo.sh`、`check/check_round255.c` | WSL | 要交叉工具链、主机 gcc；前两个与 `check_sw6_demo.sh` 都要 `python3` |
 
 Efinity 自带的 `python.exe` 在 `python311\bin\` 下而标准库在 `python311\Lib`，Python 推不出 prefix，
 不设 `PYTHONHOME` 时报 `ModuleNotFoundError: No module named 'encodings'`（不是缺标准库）。

@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="870" viewBox="0 0 1240 870"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b    { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bn   { fill:#eff6ff; stroke:#1d4ed8; stroke-width:1.3 }
+      .bg   { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt   { font-size:12.5px; font-weight:600; fill:#0f172a }
+      .t    { font-size:11px; fill:#0f172a }
+      .ts   { font-size:9.5px; fill:#475569 }
+      .tg   { font-size:11px; font-weight:600; fill:#64748b }
+      .flow { stroke:#334155; stroke-width:1.4; fill:none }
+      .init { stroke:#334155; stroke-width:1.4; fill:none; stroke-dasharray:10 4 }
+      .un   { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="870" fill="#ffffff"/>
+  <text x="40" y="36" font-size="18" font-weight="600" fill="#0f172a">gfx2d 基础 Demo 的逐帧通路</text>
+  <text x="40" y="58" font-size="12" fill="#64748b">SW6 结束时的状态，2026-09-24。PC 与板上跑同一份应用与 lib；地址是 DDR3 分区偏移，板上即 CPU 地址。</text>
+
+  <!-- ===== 第一行：输入 ===== -->
+  <rect class="bn" x="48" y="84" width="282" height="80" rx="2"/>
+  <text class="tt" x="60" y="104">replay/sw6_a.g2dr、sw6_b.g2dr</text>
+  <text class="ts" x="60" y="122">构建时经 replay2c.py 转成 C 数组</text>
+  <text class="ts" x="60" y="138">判据模式：按键与种子都取自录像</text>
+  <text class="ts" x="60" y="154">A 段 246 帧、B 段 367 帧</text>
+
+  <rect class="bn" x="350" y="84" width="270" height="80" rx="2"/>
+  <text class="tt" x="362" y="104">sw6_input</text>
+  <text class="ts" x="362" y="122">每帧取一次按键位图，判按下沿</text>
+  <text class="ts" x="362" y="138">场景 A：上下键调 N（100~5000）</text>
+  <text class="ts" x="362" y="154">场景 B：上下键调 k（1~120）</text>
+
+  <rect class="b" x="640" y="84" width="260" height="80" rx="2"/>
+  <text class="tt" x="652" y="104">board_keys()（bsp）</text>
+  <text class="ts" x="652" y="122">演示模式的实时输入</text>
+  <text class="ts" x="652" y="138">PC：SDL 键盘</text>
+  <text class="ts" x="652" y="154">板上：现在恒为 0，映射归 SW9</text>
+
+  <rect class="bn" x="920" y="84" width="272" height="80" rx="2"/>
+  <text class="tt" x="932" y="104">编译期开关（EXTRA_CFLAGS）</text>
+  <text class="ts" x="932" y="122">SW6_JUDGE、SW6_ONLY、SW6_FRAMES、SW6_N</text>
+  <text class="ts" x="932" y="138">注错：EQ_*、SW6_LIVE_HUD、</text>
+  <text class="ts" x="932" y="154">SW6_FB_PER_PASS</text>
+
+  <line class="flow" x1="330" y1="124" x2="348" y2="124" marker-end="url(#a)"/>
+  <line class="flow" x1="640" y1="124" x2="622" y2="124" marker-end="url(#a)"/>
+
+  <!-- sw6_input 分到两个场景 -->
+  <polyline class="flow" points="485,164 485,182"/>
+  <line class="flow" x1="234" y1="182" x2="620" y2="182"/>
+  <line class="flow" x1="234" y1="182" x2="234" y2="198" marker-end="url(#a)"/>
+  <line class="flow" x1="620" y1="182" x2="620" y2="198" marker-end="url(#a)"/>
+
+  <!-- ===== 第二行：组帧 ===== -->
+  <rect class="bn" x="48" y="200" width="372" height="100" rx="2"/>
+  <text class="tt" x="60" y="220">sw6_scene_a：方块随机移动</text>
+  <text class="ts" x="60" y="238">5000 容量方块池，Q12.4 定点，碰边反弹</text>
+  <text class="ts" x="60" y="253">#0~#3 跨四条边的出屏样例，路径避开 HUD</text>
+  <text class="ts" x="60" y="268">COPY／ALPHA／ADD 各走 FILL 与 BLIT</text>
+  <text class="ts" x="60" y="283">每帧：SET_CLIP + 全屏 FILL + N 条</text>
+
+  <rect class="bn" x="440" y="200" width="360" height="100" rx="2"/>
+  <text class="tt" x="452" y="220">sw6_scene_b：三张整屏图切换</text>
+  <text class="ts" x="452" y="238">当前这张显示满 k 帧就换下一张</text>
+  <text class="ts" x="452" y="253">s = (s + 1) mod 3，k=1 时逐帧轮换</text>
+  <text class="ts" x="452" y="268">每帧：SET_CLIP + 整屏 BLIT COPY</text>
+  <text class="ts" x="452" y="283">源是离屏图 OFF_s，不带色键</text>
+
+  <rect class="bn" x="820" y="200" width="372" height="100" rx="2"/>
+  <text class="tt" x="832" y="220">sw6_hud：右上角 240×160</text>
+  <text class="ts" x="832" y="238">x=400..639, y=0..159，先铺一条黑底 FILL</text>
+  <text class="ts" x="832" y="253">九行 8×16 字形逐字 BLIT，色键 0x00000000</text>
+  <text class="ts" x="832" y="268">CMD／PIX 显示上一帧的统计</text>
+  <text class="ts" x="832" y="283">判据模式的实时量显示 --；HW FPS 留给 SW9</text>
+
+  <!-- 三个组帧模块汇到命令表 -->
+  <line class="flow" x1="234" y1="300" x2="234" y2="320"/>
+  <line class="flow" x1="620" y1="300" x2="620" y2="320"/>
+  <line class="flow" x1="1006" y1="300" x2="1006" y2="320"/>
+  <line class="flow" x1="1006" y1="320" x2="174" y2="320"/>
+  <line class="flow" x1="174" y1="320" x2="174" y2="338" marker-end="url(#a)"/>
+  <text class="ts" x="660" y="314">追加命令（gfx_fill／gfx_blit／gfx_set_clip）</text>
+
+  <!-- ===== 第三行：执行与呈现 ===== -->
+  <rect class="b" x="48" y="340" width="252" height="90" rx="2"/>
+  <text class="tt" x="60" y="360">gfx_list（lib/gfx/list.c）</text>
+  <text class="ts" x="60" y="378">命令表 A 0x0040_0000</text>
+  <text class="ts" x="60" y="394">命令表 B 0x0050_0000</text>
+  <text class="ts" x="60" y="410">各 32768 条，按全局帧序号轮换</text>
+
+  <rect class="b" x="330" y="340" width="430" height="90" rx="2"/>
+  <text class="tt" x="342" y="360">exec_sw_run（lib/gfx/exec_sw.c）</text>
+  <text class="ts" x="342" y="378">十步检查 → 四者求交裁剪 → 逐像素混合</text>
+  <text class="ts" x="342" y="394">gfx_mem 窗口：dev_base 0x0100_0000，bytes 0x01DE_0000</text>
+  <text class="ts" x="342" y="410">统计 cmd／pixel_written／key_skip 进日志</text>
+
+  <rect class="b" x="790" y="340" width="200" height="90" rx="2"/>
+  <text class="tt" x="802" y="360">REGION_FB0／FB1</text>
+  <text class="ts" x="802" y="378">0x0200_0000／0x0240_0000</text>
+  <text class="ts" x="802" y="394">640×480 XRGB8888，行跨 4096</text>
+  <text class="ts" x="802" y="410">不画正在扫描的那一面</text>
+
+  <rect class="b" x="1010" y="340" width="182" height="90" rx="2"/>
+  <text class="tt" x="1022" y="360">board_present(back)</text>
+  <text class="ts" x="1022" y="378">等切换完成才返回</text>
+  <text class="ts" x="1022" y="394">板上：扫描输出 → HDMI</text>
+  <text class="ts" x="1022" y="410">PC：SDL 窗口</text>
+
+  <line class="flow" x1="300" y1="385" x2="328" y2="385" marker-end="url(#a)"/>
+  <line class="flow" x1="760" y1="385" x2="788" y2="385" marker-end="url(#a)"/>
+  <line class="flow" x1="990" y1="385" x2="1008" y2="385" marker-end="url(#a)"/>
+
+  <!-- 引擎：尚未接入 -->
+  <rect class="bg" x="48" y="450" width="252" height="44" rx="2"/>
+  <text class="t" x="60" y="468" fill="#64748b">engine（尚无条目）</text>
+  <text class="ts" x="60" y="484">SW9 把同一张命令表交给它</text>
+  <line class="un" x1="174" y1="430" x2="174" y2="448" marker-end="url(#ag)"/>
+  <polyline class="un" points="300,472 870,472 870,432" marker-end="url(#ag)"/>
+
+  <!-- ===== 第四行：初始化一次，与每帧读回 ===== -->
+  <rect class="bn" x="48" y="520" width="252" height="80" rx="2"/>
+  <text class="tt" x="60" y="540">sw6_b_precompose()</text>
+  <text class="ts" x="60" y="558">每张一次提交：SET_CLIP、全屏 FILL、</text>
+  <text class="ts" x="60" y="574">构图 7／20／46 条、END</text>
+  <text class="ts" x="60" y="590">同样经 exec_sw_run 画进离屏图</text>
+
+  <rect class="b" x="330" y="520" width="210" height="80" rx="2"/>
+  <text class="tt" x="342" y="540">REGION_ASSET</text>
+  <text class="ts" x="342" y="558">0x0100_0000，SW5 的素材包</text>
+  <text class="ts" x="342" y="574">assetpak_load() 装入</text>
+  <text class="ts" x="342" y="590">pak 行与 assets.h 对账</text>
+
+  <rect class="bn" x="560" y="520" width="200" height="80" rx="2"/>
+  <text class="tt" x="572" y="540">REGION_OFFSCREEN</text>
+  <text class="ts" x="572" y="558">OFF0~OFF2，0x0280_0000 起</text>
+  <text class="ts" x="572" y="574">每张一个 2 MiB 槽，画完只读</text>
+  <text class="ts" x="572" y="590">scene 行是三张的参考 CRC</text>
+
+  <rect class="bn" x="790" y="520" width="402" height="80" rx="2"/>
+  <text class="tt" x="802" y="540">sw6_report：三个 CRC 与逐帧行</text>
+  <text class="ts" x="802" y="558">crc 整帧、scrc 去掉 HUD 矩形、hcrc 只取 HUD 矩形</text>
+  <text class="ts" x="802" y="574">逐行只取可见段，跳过行跨间隙</text>
+  <text class="ts" x="802" y="590">board_puts：UART 与 stdout 逐字节相同</text>
+
+  <!-- 每帧：素材与离屏图作源 -->
+  <line class="flow" x1="435" y1="520" x2="435" y2="432" marker-end="url(#a)"/>
+  <line class="flow" x1="660" y1="520" x2="660" y2="432" marker-end="url(#a)"/>
+  <text class="ts" x="441" y="512">纹理与字库</text>
+  <text class="ts" x="666" y="512">整屏源</text>
+  <!-- 初始化：素材 → 预合成 → 离屏层 -->
+  <line class="init" x1="330" y1="560" x2="302" y2="560" marker-end="url(#a)"/>
+  <polyline class="init" points="174,600 174,618 660,618 660,602" marker-end="url(#a)"/>
+  <!-- 读后缓冲算 CRC -->
+  <line class="flow" x1="940" y1="430" x2="940" y2="518" marker-end="url(#a)"/>
+  <text class="ts" x="946" y="480">读回后缓冲</text>
+
+  <!-- ===== 第五行：日志与外部核对 ===== -->
+  <rect class="bn" x="48" y="640" width="712" height="100" rx="2"/>
+  <text class="tt" x="60" y="660">check_sw6_log.py 与 check_sw6_demo.sh：日志的外部核对</text>
+  <text class="ts" x="60" y="680">两遍逐行比对、hud 列对上一帧统计、hcrc 按字库文本独立重画、s 对 scene 参考值、off 与 eq</text>
+  <text class="ts" x="60" y="698">十项判据 D1~D10；D2c、D5、D6、D7 各带一个反例注错，D9 四个方程各注错一次</text>
+  <text class="ts" x="60" y="716">--board：板上串口日志从 pak 行起，与快速档期望日志逐行比（去掉 cyc 三列）</text>
+
+  <rect class="bn" x="790" y="640" width="402" height="100" rx="2"/>
+  <text class="tt" x="802" y="660">逐帧日志</text>
+  <text class="ts" x="802" y="680">pak、scene、eq、f 行、fail、done</text>
+  <text class="ts" x="802" y="698">期望：logs/sw6_judge.log、sw6_judge_quick.log</text>
+  <text class="ts" x="802" y="716">板上原始串口：logs/sw6_board_quick.log</text>
+
+  <line class="flow" x1="990" y1="600" x2="990" y2="638" marker-end="url(#a)"/>
+  <line class="flow" x1="790" y1="690" x2="762" y2="690" marker-end="url(#a)"/>
+
+  <!-- ===== 图例 ===== -->
+  <text class="tg" x="48" y="776">图例</text>
+  <rect class="bn" x="48" y="788" width="28" height="16" rx="2"/>
+  <text class="t" x="84" y="801">本章新增：gfx2dGame 应用、离屏层的用法、三个工具</text>
+  <rect class="b" x="48" y="814" width="28" height="16" rx="2"/>
+  <text class="t" x="84" y="827">已有：lib/gfx、板级层与 DDR3 分区</text>
+  <rect class="bg" x="48" y="840" width="28" height="16" rx="2"/>
+  <text class="t" x="84" y="853">尚未接入</text>
+
+  <line class="flow" x1="560" y1="796" x2="610" y2="796" marker-end="url(#a)"/>
+  <text class="t" x="620" y="800">实线：每帧的数据流</text>
+  <line class="init" x1="560" y1="822" x2="610" y2="822" marker-end="url(#a)"/>
+  <text class="t" x="620" y="826">长虚线：初始化时做一次</text>
+  <line class="un" x1="560" y1="848" x2="610" y2="848" marker-end="url(#ag)"/>
+  <text class="t" x="620" y="852">灰虚线：尚未接入</text>
+  <text class="ts" x="860" y="800">框的颜色只表示新增、已有或未接入；线型只表示频度</text>
+</svg>
