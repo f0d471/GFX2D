@@ -4,11 +4,11 @@
 //   u_soc        Sapphire RISC-V SoC（efx_soc 3.4.0 生成，fpga/gfx2d_ti60/ip/soc/soc.v）
 //   u_ddr3       DDR3 软核控制器（厂商加密源码，rtl/vendor/ddr3_controller/）
 //   u_apb_probe  APB 探针寄存器，占位并验证 APB 通路（rtl/bus/apb_probe.v）
-//   u_axi_probe  AXI 探针主机，DDR3 上的第二个主机，实验 E4 用（rtl/bus/axi_probe_master.v）
-//   u_scanout   扫描输出替身，实验 E5 的 2.3 节用（rtl/bus/scanout_stub.v）
-//   u_axi_mux    AXI 多路器，扫描替身、探针主机与 SoC 共用 DDR3 控制器（rtl/vendor/axi_mux/Axi_Mux.v）
+//   u_axi_probe  AXI 探针主机，占用引擎预留的 S1 端口（rtl/bus/axi_probe_master.v）
+//   u_display    从 DDR3 帧缓冲取数并输出像素（rtl/display/display_top.v）
+//   u_axi_mux    AXI 多路器，扫描输出、探针主机与 SoC 共用 DDR3 控制器（rtl/vendor/axi_mux/Axi_Mux.v）
 //   u_mux_guard 仲裁配置与 SoC 防饿死保护，永久模块（rtl/bus/axi_mux_guard.v）
-//   u_hdmi_tx    HDMI 发送，640x480@60 八色竖条（rtl/hdmi/hdmi_tx.v）
+//   u_hdmi_tx    HDMI 编码与发送，640x480@60（rtl/hdmi/hdmi_tx.v）
 //
 // 时钟（全部由 Interface Designer 里的 PLL 产生，见 fpga/gfx2d_ti60/README.md）：
 //   core_clk           100MHz   PLL_TL0 <- clk_25m    SoC、DDR3 控制器 AXI 侧、APB
@@ -16,16 +16,16 @@
 //   hdmi_tx_slow_clk   25.2MHz  PLL_BL0 <- clk_27m    HDMI 像素时钟
 //
 // 连接（实验 E5 的 2.1 节：Axi_Mux 用 X3，端口重分配为 S0 扫描、S1 引擎、S2 SoC）：
-//   scanout_stub（引擎接入前是扫描替身）-> Axi_Mux S0 --+
+//   display_top（真实扫描输出）             -> Axi_Mux S0 --+
 //   axi_probe_master（引擎接入前是引擎替身）-> S1 -------+--> DDR3 控制器的 AXI 从口
 //   SoC io_ddrA（AXI4，128 位）          -> S2 ----------+
 //   仲裁方式与三通道掩码由 u_mux_guard 给出，掩码 = 用户掩码 & SoC 防饿死保护掩码
 //   SoC APB Slave 0（CPU 地址 0xF810_0000，64KB 窗口）
 //     0x1000~0x1FFF -> axi_probe_master 寄存器
-//     0xE000~0xEFFF -> scanout_stub 寄存器（扫描替身的量测）
+//     0xE000~0xEFFF -> display 寄存器（扫描输出的量测）
 //     0xF000~0xFFFF -> axi_mux_guard 寄存器（仲裁配置与保护）
 //     其余          -> apb_probe
-//   HDMI 通路目前与 SoC、DDR3 没有数据交互，画面来自 hdmi_tx 内部的彩条发生器
+//   HDMI 像素可来自 DDR3 帧缓冲或八色彩条，由 display_out 按 SRC 选择。
 //
 // 端口名与 fpga/gfx2d_ti60/gfx2d_ti60.peri.xml 中的信号名一一对应，改一边要同步另一边。
 `include "../vendor/ddr3_controller/ddr3_parameter.vh"
@@ -536,7 +536,7 @@ soc u_soc (
 // APB Slave 0 的地址划分（按 paddr[15:12] 分成四个窗口）
 // ---------------------------------------------------------------------------
 //   0x1000~0x1FFF  axi_probe_master 的寄存器（CPU 地址 0xF810_1000 起）
-//   0xE000~0xEFFF  scanout_stub 的寄存器（实验 E5 的扫描替身量测）
+//   0xE000~0xEFFF  display 的寄存器（真实扫描输出量测）
 //   0xF000~0xFFFF  axi_mux_guard 的寄存器（仲裁配置与 SoC 防饿死保护）
 //   其余           apb_probe，它按完整 16 位译码，未映射地址仍然置 PSLVERROR
 wire        apb_sel_prb = (apb_paddr[15:12] == 4'h1);

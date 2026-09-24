@@ -44,8 +44,7 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 全部期望 PASS，并由 `run.sh` 比对保护开、关两例的统计必须逐项相同（写方向上 guard 没有可观测的作用，
 写方向的等待靠措施一）。全部全链路用例都要求从机的 `wlast_err` 为 0。
 口径、实测值与写方向结论的订正见
-[`../../Engineering/Todo/hw/E5-Axi_Mux优先级与扫描FIFO水位.md`](../../Engineering/Todo/hw/E5-Axi_Mux优先级与扫描FIFO水位.md) 2.2 节
-与 platform 第 06 章。
+[platform 第 06 章](../../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md)。
 
 ## 范围
 

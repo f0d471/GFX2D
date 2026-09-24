@@ -2,7 +2,7 @@
 //
 // 用途：Axi_Mux 的仲裁方式、三通道用户掩码与 SoC（S2）防饿死保护集中在这里，
 // 不再挂在临时的 axi_probe_master 或占位的 apb_probe 上。
-// 实验 E5 的 2.1、2.2 节见 Engineering/Todo/hw/E5-Axi_Mux优先级与扫描FIFO水位.md。
+// 实验 E5 的端口分配与防饿死判据见 Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md。
 //
 // 挂在 SoC 的 APB Slave 0 下，独占窗口 0xF810_F000~0xF810_FFFF（CPU 地址），
 // 顶层按 paddr[15:12]==4'hF 译码，窗口内 12 位偏移：

@@ -12,13 +12,13 @@
 *         随后丢 2 个压力预热快照，收 120 个连续、互不重复的已结束场快照；
 *         报最低水位的最小值、最大值、首次最小值的帧号与两个中位数，
 *         并检查帧完整性、两个累计欠载计数与响应错误。
-*         判据在仓库根目录 `Engineering/Todo/hw/E5-Axi_Mux优先级与扫描FIFO水位.md`
-*         的 2.4 节与第 3 节，权威寄存器表在下面三个 RTL 文件头。
+*         判据归档在仓库根目录 `Engineering/TechReports/platform/08-扫描FIFO的压力矩阵与深度定值.md`
+*         的 3.6 节，权威寄存器表在下面三个 RTL 文件头。
 *
 *         **只在 Ti60 上运行**，不提供 host 构建：它要读 display / guard / axiprobe
 *         三个 APB 窗口的量测寄存器，这些不是跨平台的游戏平台能力。所以寄存器偏移
 *         按三个 RTL 文件头复制最小集到本文件，不改 `board.h`、`board.c` 或 host BSP
-*         （理由见 E5 2.4.2 节）；运行时先用三组 ID/VERSION 拒绝错误比特流。
+*         （理由见上述技术报告 3.2 节）；运行时先用三组 ID/VERSION 拒绝错误比特流。
 *
 *           窗口              模块                        表在
 *           0xF810_E000       display（扫描输出）          rtl/display/display_fetch.v
