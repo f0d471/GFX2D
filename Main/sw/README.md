@@ -44,7 +44,7 @@ sw/
 
 | 程序 | 说明 |
 | --- | --- |
-| `apps/game/gfx2dGame/` | 基础 Demo（SW6，赛题基础要求 3）：场景 A 大量方块随机移动、场景 B 三张整屏图快速切换，每帧一条命令表交给软件执行器，双缓冲呈现。默认编**演示模式**（实时输入），`EXTRA_CFLAGS=-DSW6_JUDGE=1` 编**判据模式**（回放两段入库录像、逐帧打日志）。串起来跑的是 `Main/tools/check/check_sw6_demo.sh`。期望输出见下 |
+| `apps/game/gfx2dGame/` | 基础 Demo（SW6，赛题基础要求 3）：场景 A 大量方块随机移动、场景 B 三张整屏图快速切换，每帧一条命令表交给软件执行器，双缓冲呈现。默认编**演示模式**（实时输入），`EXTRA_CFLAGS=-DSW6_JUDGE=1` 编**判据模式**（回放两段入库录像、逐帧打日志）。串起来跑的是 `Main/tools/check/check_sw6_demo.sh`。期望输出见下另有 SW7 游戏本体的代码逐步放进 `src/game/stg_*`（A 批是实体池 `stg_pool`，还没接进主循环），它们的主机测试在 `test/`，由 `Main/tools/check/check_sw7_game.sh` 编译运行。 |
 | `apps/game/cup3d/` | 纯软件 3D 光栅器在扫描输出的帧缓冲上转一只茶杯。三个用途：用真实负载量软件渲染的像素吞吐（E7 要的数）、让扫描输出跑在会动会遮挡的负载下、对外演示。320×240 光栅，1:1 贴在 640×480 的正中间。期望输出见下 |
 | `apps/test/bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
 | `apps/test/cacheCoherencyTest/` | 实验 E3 的判据程序：用探针主机当外部写入者，一致性判据、注错与注错自检，并量失效指令的代价 |
