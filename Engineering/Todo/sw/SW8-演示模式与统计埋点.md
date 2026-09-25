@@ -197,6 +197,33 @@ ft_max, cyc_logic, cyc_build, cyc_exec, cmd_by_eq[0..5], cmd_other, pixel_by_eq[
 
 ## 4 开发日志
 
+### 4.5 2026-09-26 A 批：普查的实现与判据（数据收尾时并入 TechReport）
+
+落点：`lib/gfx/census.{h,c}`（`gfx_census_state`、`gfx_census`、`gfx_census_reset`、`gfx_census_clear`、
+`gfx_census_run`、两个合计函数）；主机测试 `lib/test/test_census.c`（C1~C3，挂在 `test_main.c` 上）；
+判据脚本 `Main/tools/check/check_sw8_stats.sh` 的 M1、M2 两项管这一件。
+
+裁剪照 `exec_sw.c` 的 `dst_window()` 与 `apply_set_clip()` 另写：四者求交用 `imax`/`imin` 串起来，
+区间统一写成闭区间，与执行器的逐项比较写法不同。
+
+| 组 | 判据 | 实测 |
+| --- | --- | --- |
+| C1 | 十一个整帧用例，普查与执行器对账 | 全对。`set-clip-state` 两张表：条数 7/7、面积 62,400/62,400；其余十个的面积 4,096~307,200 |
+| C2 | 随机合法命令表 300 串（776 张表、11,230 条记录），每串连着提交 | 全对：每串的面积之和 == `pixel_total`，条数之和加 `cmd_other` == `cmd` |
+| C2 | 覆盖 | 表中间的 SET_CLIP 后面接绘制 1,128 次；部分出屏 3,320；零宽高 1,446；目的是 200×150 且矩形越过它 94；前一张表留下的裁剪框被下一张接着用 404；靠 COUNT 耗尽结束的表 379 |
+| C3 | 边界 | END 之后不读；零面积计一条、面积 0；NOP 进 `cmd_other`；BAND 与方程号 6 都返回 -1 且之前的计数保留；SET_CLIP 在设置时截到游戏区；复位回全屏 |
+
+64 位（ASan/UBSan）与 `-m32` 输出逐字节相同，`make -f mk/host.mk test` 全套 255 行 `fail 0`。
+
+注错：
+
+| 注错 | 改了什么 | 预期见红 | 实际 |
+| --- | --- | --- | --- |
+| `CENSUS_NO_SETCLIP` | SET_CLIP 只计数、不改裁剪框 | C1 的 `set-clip-state`、C2 | 两行都 FAIL（`set-clip-state` 面积 924,000 对 62,400），C3 的裁剪框一行也 FAIL |
+| `CENSUS_NO_SURF` | 求交漏掉目的表面宽高 | C2 | C2 FAIL；十一个整帧用例的目的表面正好是 640×480，这一项在那里不起作用，所以 C1 仍全 ok——这也是 C2 要放一个比屏幕小的目的表面的原因 |
+
+板上构建：gfx2dGame 的板上构建零告警，`census.o` 的 `.text` 768 字节。
+
 ### 4.4 2026-09-26 A 批开工前核对：三处定法
 
 做法与 SW7 4.5 节相同：拿 A 批的每条判据反过来问「照本文件写下的口径，这条判据能不能表达出来、会不会写错」。

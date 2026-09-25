@@ -18,7 +18,7 @@ sw/
     host/          PC 实现：SDL2 显示与键盘，DDR 分区用一块内存模拟
   lib/             纯 C，两边都编，不依赖任何平台
     core/          CRC32、xorshift32、轻量格式化输出、Q.8 定点与正弦表（SW7）
-    gfx/           命令表构造层（含批量提交 gfx_blit_run，SW7）、软件执行器、十一个整帧用例（命令 ABI v1）
+    gfx/           命令表构造层（含批量提交 gfx_blit_run，SW7）、软件执行器、十一个整帧用例（命令 ABI v1）、按方程的普查（SW8）
     test/          主机侧单元测试（另含 CRC32 与软件执行器的独立参考实现、两组一致性向量）
     s3l/           第三方：small3dlib（CC0，header-only 的整数 3D 光栅器），见下
   apps/            应用，只写应用，按用途分三类（见下）
@@ -122,7 +122,7 @@ wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host test'    # 或 c
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw_layers.sh'
 ```
 
-`lib/test/` 的判据分四组，都加在 `test` 目标上：
+`lib/test/` 的判据分五组，都加在 `test` 目标上：
 
 - `lib/gfx/` 的三个开关：
 
@@ -156,6 +156,14 @@ wsl -e bash -c 'bash Main/tools/check/check_sw7_game.sh'                # 重生
 - 批量提交那一组（`lib/test/test_blit_run.c`，SW7 2.6 节）不用开关：随机 1000 组，`gfx_blit_run()` 与逐条
   `gfx_blit()` 的缓冲区与计数逐字节相同；另有 200 组在两次调用之间改写表面表。
   注错 `INJECT=BLIT_RUN_W7`、`BLIT_RUN_SXY`、`BLIT_RUN_NO_FALLBACK`，由 `check_sw7_game.sh` 的 G6 跑。
+
+- 普查那一组（`lib/test/test_census.c`，[SW8](../../Engineering/Todo/sw/SW8-演示模式与统计埋点.md) 2.4 节）不用开关：
+  `lib/gfx/census` 按方程数出的条数与面积，在十一个整帧用例与随机合法命令表上与软件执行器的 `cmd`、`pixel_total` 对账。
+  注错 `INJECT=CENSUS_NO_SETCLIP`、`CENSUS_NO_SURF`；SW8 A 批的判据串起来跑的是：
+
+```
+wsl -e bash -c 'bash Main/tools/check/check_sw8_stats.sh'
+```
 
 不给 `VEC` 时只跳过那一组，其余照跑：导出向量是生成物、不入库，不能当默认判据的前置。
 `lib/test/golden.txt` 是十一个整帧用例的 CRC32 期望值，入库，E7 与引擎仿真拿它当金标准；

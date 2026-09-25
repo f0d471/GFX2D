@@ -18,6 +18,7 @@
 #include "ref_crc.h"
 #include "test_assetpak.h"
 #include "test_blit_run.h"
+#include "test_census.h"
 #include "test_fixmath.h"
 #include "test_gfx.h"
 #include "test_replay.h"
@@ -260,6 +261,7 @@ int main(int argc, char **argv)
     g_fail += test_replay_run(replay);
     g_fail += test_fixmath_run();
     g_fail += test_blit_run_run();
+    g_fail += test_census_run();
 
     {
         char     line[48];
