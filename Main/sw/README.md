@@ -17,7 +17,7 @@ sw/
     ti60/          板上实现 + linker/gfx2d.ld
     host/          PC 实现：SDL2 显示与键盘，DDR 分区用一块内存模拟
   lib/             纯 C，两边都编，不依赖任何平台
-    core/          CRC32、xorshift32、轻量格式化输出
+    core/          CRC32、xorshift32、轻量格式化输出、Q.8 定点与正弦表（SW7）
     gfx/           命令表构造层、软件执行器、十一个整帧用例（命令 ABI v1）
     test/          主机侧单元测试（另含 CRC32 与软件执行器的独立参考实现、两组一致性向量）
     s3l/           第三方：small3dlib（CC0，header-only 的整数 3D 光栅器），见下
@@ -122,7 +122,7 @@ wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host test'    # 或 c
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw_layers.sh'
 ```
 
-`lib/test/` 的判据分两组，都加在 `test` 目标上：
+`lib/test/` 的判据分三组，都加在 `test` 目标上：
 
 - `lib/gfx/` 的三个开关：
 
@@ -142,6 +142,16 @@ wsl -e bash -c 'cd sw && make -f mk/host.mk gen-golden'
   `python3 Main/tools/check/replay2c.py`，把入库的 `lib/test/replay_fixture.g2dr`
   转成 C 数组放进 `$(OBJDIR)/test/`，再与直接解析 `.g2dr` 的结果逐帧对账。
   **脚本进判据路径而不是一次性生成器**，这样这条判据测的是转换本身。它需要 `python3`。
+
+- 数值基础那一组（`lib/test/test_fixmath.c`，[SW7](../../Engineering/Todo/sw/SW7-游戏本体.md) 2.1 节）不用开关：
+  拿 libm 的双精度 `sin`、`atan2` 当参考，所以 `test` 目标链 `-lm`；双精度只出现在测试里。
+  正弦表 `lib/core/sin_tab.c` 是 `Main/tools/check/gen_sin_tab.py` 的产物，不手改。
+  四个注错开关各让指定的行见红：
+
+```
+wsl -e bash -c 'cd sw && make -f mk/host.mk test INJECT=FX_IDX_TRUNC'   # FX_VEL_Q4 / FX_ATAN_NOSCALE / FX_ATAN_UNIT
+wsl -e bash -c 'bash Main/tools/check/check_sw7_game.sh'                # 重生成正弦表比对、64/32 比对、四个注错
+```
 
 不给 `VEC` 时只跳过那一组，其余照跑：导出向量是生成物、不入库，不能当默认判据的前置。
 `lib/test/golden.txt` 是十一个整帧用例的 CRC32 期望值，入库，E7 与引擎仿真拿它当金标准；

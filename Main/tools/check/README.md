@@ -14,6 +14,8 @@
 | `check_sw6_demo.sh` | 基础 Demo（SW6）的提交前判据，十项：录像可重生成、判据模式编过并跑通、对期望日志、有窗与无窗、两遍一致、HUD 与字形、场景 B、`off` 与 `eq` 计数、四个方程的注错见红、Sanitizer 与板上目标构建 | 改 `gfx2dGame`、`lib/gfx` 的执行器、SW5 素材或录像时，提交前 |
 | `check_sw6_log.py` | SW6 判据日志的**外部核对**：两遍比对、`hud` 对上一帧统计、`hcrc` 按字库文本独立重画、`s` 与 `scene` 参考值、`off` 与 `eq`；`--board` 把板上串口日志从 `pak` 行起与期望日志对账 | 由 `check_sw6_demo.sh` 调用；板上对账时单独跑 |
 | `gen_sw6_replay.py` | 生成 SW6 的两段确定性录像（`.g2dr`）：A 把 N 从 100 升到 5000 再回到 100，B 把 k 从 30 降到 1 再升到 120；形状与停留段写在脚本里 | 录像要改时；`check_sw6_demo.sh` 每次重跑并逐字节比 |
+| `check_sw7_game.sh` | 游戏本体（SW7）A 批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红 | 改 `lib/core/fixmath`、正弦表或 `mk/host.mk` 的 `test` 目标时，提交前 |
+| `gen_sin_tab.py` | 生成 `sw/lib/core/sin_tab.c`：1024 项加 256 项尾巴的 Q1.14 正弦表，按绝对值四舍五入；`--inject` 改一项给比对当注错 | 表的口径要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
 | `e7_key_probe.c` | 独立枚举受控棋盘纹理的色键命中数，与软件执行器统计对账 | E7 改色键负载或解释命中率时 |
 | `e8_entity_golden.c` | 用同一份实体算法生成九组主机侧期望值到 `entityBench/src/golden.h`：每组 1000 帧的六字段状态 CRC 与 C 组每帧全部 `32×N` 命令字节 CRC，另保留终态摘要 | 改 E8 实体算法、命令格式或帧数时，重生成并随源码同步提交 |
 | `e7_output_check.py` | E7 性能负载的**独立输出复算器**：按 spec 第 01 章的混合方程与 `list.c` 的位域，从初始帧缓冲与纹理重画一帧，逐项核对板上整帧 CRC32 和每个可见像素的 32 位加和；要求两面各九项恰好 18 行、无重复或未知项，且有 `fail 0` 和 `done` | 判定 E7 吞吐数字有效性的硬判据；板上日志格式变了（`<名字> fbN ... crc 0x... pxsum 0x...`）要同步改 `parse_log` |
@@ -251,3 +253,32 @@ B 停 31 帧、下键 29 次降到 k=1、停 30 帧、上键 119 次升到 120�
 它是**独立于 `replay2c.py` 的第二份写法**，只按格式写字节；`check_sw6_demo.sh` 的 D1
 既用它重生成再逐字节比，也用 `replay2c.py --check` 独立解析一遍。
 入库的是 `.g2dr`（源数据），构建时由两个 `mk` 调 `replay2c.py` 转成 C 数组落到 `$(OBJDIR)/replay/`。
+
+## check_sw7_game.sh
+
+```
+wsl -e bash -c 'bash Main/tools/check/check_sw7_game.sh'
+```
+
+判据见 `Engineering/Todo/sw/SW7-游戏本体.md` 第 3 节，口径见 2.1 节与 4.5 节。不要板子与交叉工具链，
+要主机 gcc、`gcc-multilib`、`libsdl2-dev`（`mk/host.mk` 解析时就要 `sdl2-config`）与 `python3`。
+
+| 项 | 内容 |
+| --- | --- |
+| G1 | `gen_sin_tab.py` 重打一份，与入库的 `lib/core/sin_tab.c` 逐字节相同；注错 `--inject` 改一项之后比对必须见红 |
+| G2 | `mk/host.mk` 的 `test` 目标：退出码 0、64 位（ASan/UBSan）与 `-m32` 输出逐字节相同、`fail 0`；stdout 与 stderr 一起收，里面不能有 sanitizer 报告（`test` 目标本身不看 stderr）；数值基础 F 组 21 行全 ok |
+| G3 | `FX_IDX_TRUNC`、`FX_VEL_Q4`、`FX_ATAN_NOSCALE`、`FX_ATAN_UNIT` 各编一次，指定的那一行必须 FAIL |
+
+编译产物落临时目录（`OBJDIR` 指过去），不动 `sw/build_host`。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。
+
+## gen_sin_tab.py
+
+```
+wsl -e python3 Main/tools/check/gen_sin_tab.py              写进 sw/lib/core/sin_tab.c（入库的那份）
+wsl -e python3 Main/tools/check/gen_sin_tab.py --out F      写到别处
+wsl -e python3 Main/tools/check/gen_sin_tab.py --inject --out F   注错：第 1 项最低位取反
+```
+
+只用标准库。`sin_tab[i] = sign(v) × floor(|v| + 0.5)`，`v = 16384 × sin(2πi / 1024)`，
+`i` 从 0 到 1023，再把前 256 项接在后面作尾巴（余弦取 `sin_tab[i + 256]`）。
+不用 `round()`：它是银行家舍入。生成的 `.c` 不写数组长度，与 `fixmath.h` 里带长度的声明对不上时编译报错。

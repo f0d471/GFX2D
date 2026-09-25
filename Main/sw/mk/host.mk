@@ -173,6 +173,9 @@ run: $(TARGET)
 # -m32 需要 gcc-multilib；16 位的 ASan 运行库不一定装，所以 -m32 那份默认不挂
 # sanitizer（SAN32=1 可以强行打开）。
 #
+# 链 -lm：数值基础那一组（lib/test/test_fixmath.c）拿双精度的 sin、atan2 当参考，
+# 双精度只出现在测试里（SW7 2.1 节与 4.5 节第 6 条）。
+#
 # 录像那一组要先跑一次转换脚本：`lib/test/replay_fixture.g2dr` 是入库的输入，
 # 生成的 C 数组落在 $(OBJDIR)/test/ 里、不入库。脚本进判据路径而不是一次性生成器，
 # 这样「C 数组与 .g2dr 解析出同一串按键」这条判据才真的在测转换本身。
@@ -183,11 +186,11 @@ test:
 	python3 $(REPLAY2C) --in $(REPLAY_FIX) --out $(REPLAY_HDR) --name replay_fixture; \
 	echo "== lib/test 64-bit =="; \
 	$(HOST_CC) -std=gnu11 -O$(OPT) -g $(WARN) -fsanitize=address,undefined \
-	    $(TEST_INJECT) -I$(SW)lib -I$(OBJDIR)/test -o $(OBJDIR)/test/libTest64 $(TEST_SRCS); \
+	    $(TEST_INJECT) -I$(SW)lib -I$(OBJDIR)/test -o $(OBJDIR)/test/libTest64 $(TEST_SRCS) -lm; \
 	$(OBJDIR)/test/libTest64 $(TEST_ARGS) > $(OBJDIR)/test/out64.txt; \
 	echo "== lib/test 32-bit =="; \
 	$(HOST_CC) -std=gnu11 -O$(OPT) -g $(WARN) -m32 \
-	    $(TEST_INJECT) -I$(SW)lib -I$(OBJDIR)/test -o $(OBJDIR)/test/libTest32 $(TEST_SRCS); \
+	    $(TEST_INJECT) -I$(SW)lib -I$(OBJDIR)/test -o $(OBJDIR)/test/libTest32 $(TEST_SRCS) -lm; \
 	$(OBJDIR)/test/libTest32 $(TEST_ARGS) > $(OBJDIR)/test/out32.txt; \
 	echo "== 两份输出比对 =="; \
 	if diff -u $(OBJDIR)/test/out64.txt $(OBJDIR)/test/out32.txt; then \
@@ -204,7 +207,7 @@ gen-golden:
 	mkdir -p $(OBJDIR)/test; \
 	python3 $(REPLAY2C) --in $(REPLAY_FIX) --out $(REPLAY_HDR) --name replay_fixture; \
 	$(HOST_CC) -std=gnu11 -O$(OPT) -g $(WARN) -fsanitize=address,undefined \
-	    -I$(SW)lib -I$(OBJDIR)/test -o $(OBJDIR)/test/libTestGen $(TEST_SRCS); \
+	    -I$(SW)lib -I$(OBJDIR)/test -o $(OBJDIR)/test/libTestGen $(TEST_SRCS) -lm; \
 	$(OBJDIR)/test/libTestGen --golden $(GOLDEN) --replay $(REPLAY_FIX) --gen-golden | tail -3
 
 clean:
