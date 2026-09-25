@@ -150,7 +150,8 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   改了 `sw/` 下走新构建的程序（`gfx2dGame`、`cup3d`、`assetTest` 等）还要过 `sw/README.md` 里的两套构建、
   主机侧单元测试与 `tools/check/check_sw_layers.sh`；改了 `gfx2dGame`、`lib/gfx` 的执行器或素材还要过
   `tools/check/check_sw6_demo.sh`（十项，含四个方程的注错见红与 Sanitizer）；改了 `lib/core/fixmath`、正弦表、
-  `gfx2dGame` 的 `src/game/stg_*` 或批量提交还要过 `tools/check/check_sw7_game.sh`。
+  `gfx2dGame` 的 `src/game/stg_*` 或批量提交还要过 `tools/check/check_sw7_game.sh`；改了普查、模拟时钟、
+  帧时间直方图、日志队列或 `board_tx_room()` 还要过 `tools/check/check_sw8_stats.sh`（带 `RISCV_BIN`）。
 - **数字要标明来源**：估算与推测必须写清楚，实测要给命令和结果。
 - **状态与过程分开**：README 与 `doc/` 写当前是什么样，
   开发过程、踩过的坑、为什么这么选写在 `../Engineering/` 下。
