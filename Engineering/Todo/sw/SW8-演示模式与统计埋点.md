@@ -199,6 +199,34 @@ ft_max, cyc_logic, cyc_build, cyc_exec, cmd_by_eq[0..5], cmd_other, pixel_by_eq[
 
 ## 4 开发日志
 
+### 4.8 2026-09-26 A 批在参考机上复跑，合并进 main
+
+A 批的十个提交（`0466acc`~`f99af41`）在参考机（WSL，gcc 15.2，SDL 2.32.10，WSLg）上从一份干净克隆复跑，
+板上构建用 xPack gcc 13.4.0：
+
+| 判据 | 结果 |
+| --- | --- |
+| `make -f mk/host.mk test` | 275 行 `fail 0`，64 位与 `-m32` 逐字节相同 |
+| `check_sw7_game.sh` | `fail 0`，登记值与 SW7 4.6~4.8 节逐项相同 |
+| `check_sw8_stats.sh` | 干净克隆里 M6 FAIL（见下），修正后 `fail 0` |
+| `check_sw_layers.sh`（带 `RISCV_BIN`） | `fail 0` |
+| `check_sw5_assets.sh` | `fail 0`；镜像那一项因为没有 `assetTest` 的板上产物而跳过，本批没有改素材与镜像 |
+| `check_sw6_demo.sh` 全量档（带 `RISCV_BIN`） | `fail 0`，1236 行对期望日志、两种板上构建零告警 |
+| `check_sw4_pc.sh` | 连跑三遍都是 `fail 0`（S1~S8 全过） |
+
+`check_sw4_pc.sh` 这一行补上了 4.7 节第 3 条留下的一项：同一份代码在参考机上三遍全过，
+在云上容器里失败的只有按墙钟量的节拍几项，印证了那里的判断：失败来自容器的调度抖动，与本批改动无关。
+SW7 4.9 节表里 E7、E8 两个探针的前后大小（`execSwTest` 36,090 → 42,218 字节，`entityBench` 69,034 → 74,658 字节）
+在参考机上从 `127c2ff` 与本批各编一次，数字相同。
+
+**`check_sw8_stats.sh` 的 M6 在干净克隆里假红。** 现象：`src/main.c:32:10: fatal error: assets.h: No such file or directory`。
+`gfx2dGame` 包含的 `assets.h` 与素材包都是生成物、不入库，M6 直接做板上构建而没有先打包；
+写脚本的那棵树里早先打过包，所以没暴露。`check_sw_layers.sh` 开头就有同样的打包一步，是 SW6 时踩过的同一个坑。
+修法：M6 在板上构建之前先跑 `pack_assets.py`，打包失败单独报 FAIL。
+复核：干净克隆里 `fail 0`；把打包脚本换成直接退出 3 的注错版，M6 报「素材打包失败」、`fail 1`。
+
+分支按快进合并进 main。
+
 ### 4.7 2026-09-26 A 批：日志队列与 `board_tx_room()` 的实现与判据（数据收尾时并入 TechReport）
 
 落点：`lib/core/logq.{h,c}`（`logq_init/put/take`、`logq_used/free/dropped`）；`bsp/include/board.h` 加

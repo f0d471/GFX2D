@@ -15,7 +15,8 @@
 #                       主机探针 check_sw8_tx.c 链真实的 bsp/host/board.c：不设 GFX2D_TX_BUDGET 时不限；
 #                       设 192 时按场补满、不累加、超额计数，退出时 stderr 的汇总对得上；
 #                       注错 HOST_TX_NO_REFILL 必须让 X3 见红
-#   M6 板上构建         gfx2dGame 的真实板上构建（mk/target.mk）零告警，bsp/ti60 里有 board_tx_room；
+#   M6 板上构建         先打包素材（assets.h 是生成物），再做 gfx2dGame 的真实板上构建（mk/target.mk），
+#                       零告警，bsp/ti60 里有 board_tx_room；
 #                       要 RISCV_BIN=<RISCV_BIN>，找不到交叉工具链时跳过，**跳过不算通过**
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
@@ -173,7 +174,12 @@ fi
 # ---------------------------------------------------------------- M6 板上构建
 echo "== M6 板上构建（bsp/ti60 的 board_tx_room） =="
 if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
-    if make -C "$SW/apps/game/gfx2dGame" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_ti60" \
+    # gfx2dGame 包含生成物 assets.h，素材包与头文件都不入库：干净克隆里不先打包，
+    # 这一次构建会因为找不到 assets.h 而失败，而那是假红（与 check_sw_layers.sh 同一做法）。
+    if ! python3 "$MAIN/tools/assets/pack_assets.py" >"$TMP/pack.log" 2>&1; then
+        bad "M6 素材打包失败，板上构建会找不到 assets.h"
+        sed -n '1,5p' "$TMP/pack.log" | while read -r l; do note "$l"; done
+    elif make -C "$SW/apps/game/gfx2dGame" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_ti60" \
             >"$TMP/b_ti60.log" 2>&1 &&
        ! grep -qiE 'warning|error' "$TMP/b_ti60.log" &&
        "${RISCV_BIN}nm" "$TMP/b_ti60/bsp/ti60/board.o" 2>/dev/null | grep -q ' T board_tx_room$'; then
