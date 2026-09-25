@@ -57,6 +57,15 @@ static uint32_t      s_swaps;       /* 成功 present 过的次数 */
 static int           s_scale;
 static int           s_quit;
 
+/* 串口发送额度的模拟（SW8 2.4 节，board.h 的 board_tx_room）。s_tx_budget 为 0 表示不限。 */
+static uint32_t      s_tx_budget;   /* GFX2D_TX_BUDGET：每场补满到多少字节 */
+static uint32_t      s_tx_room;     /* 本场还剩多少 */
+static uint32_t      s_tx_field;    /* 上一次补额度时的场号 */
+static uint32_t      s_tx_over_n;   /* board_puts 超出额度的次数 */
+static uint32_t      s_tx_over_bytes;
+
+static uint32_t field_index(void);
+
 static void die(const char *what)
 {
     fprintf(stderr, "board: %s: %s\n", what, SDL_GetError());
@@ -89,6 +98,60 @@ static void pump_events(void)
             }
         }
     }
+}
+
+/* --- 串口发送额度（SW8 2.4 节）------------------------------------------- */
+/* 板上 board_puts 忙等发送 FIFO，PC 上 stdout 不会阻塞，所以「日志不阻塞」的判据要在 PC 上
+   先把额度限住才测得出来。**额度按场补，不按墙钟**：场号就是 board_frame_count() 那根时间轴，
+   按墙钟补的话模拟出来的发送量与帧节拍脱钩。补满而不累加：真实的发送 FIFO 容量是固定的。 */
+static void tx_report(void)
+{
+    fprintf(stderr, "board: tx budget %u B/field, over %u times %u bytes\n",
+            (unsigned)s_tx_budget, (unsigned)s_tx_over_n, (unsigned)s_tx_over_bytes);
+}
+
+static void tx_budget_init(void)
+{
+    const char   *env = getenv("GFX2D_TX_BUDGET");
+    char         *end = NULL;
+    unsigned long v;
+
+    s_tx_budget     = 0u;
+    s_tx_over_n     = 0u;
+    s_tx_over_bytes = 0u;
+    if (env == NULL || env[0] == '\0')
+        return;
+
+    v = strtoul(env, &end, 10);
+    if (end == env || *end != '\0' || v == 0ul || v > 65535ul) {
+        fprintf(stderr, "board: GFX2D_TX_BUDGET=%s 不是 1~65535 的整数，按不限处理\n", env);
+        return;
+    }
+    s_tx_budget = (uint32_t)v;
+    s_tx_room   = s_tx_budget;
+    s_tx_field  = field_index();
+    atexit(tx_report);
+}
+
+/* 场号变了就补满。 */
+static void tx_refill(void)
+{
+    uint32_t f = field_index();
+
+    if (f != s_tx_field) {
+        s_tx_field = f;
+#ifndef INJECT_HOST_TX_NO_REFILL
+        s_tx_room  = s_tx_budget;       /* 注错 HOST_TX_NO_REFILL 把这一句去掉 */
+#endif
+    }
+}
+
+uint32_t board_tx_room(void)
+{
+    if (s_tx_budget == 0u)
+        return BOARD_TX_ROOM_UNLIMITED;
+    tx_refill();
+    return s_tx_room;
 }
 
 void board_init(void)
@@ -140,6 +203,8 @@ void board_init(void)
     s_swaps     = 0u;
     s_scale     = 1;
     s_quit      = 0;
+
+    tx_budget_init();
 }
 
 board_mem board_region(board_region_id id)
@@ -224,6 +289,20 @@ void board_puts(const char *s)
 {
     fputs(s, stdout);
     fflush(stdout);         /* 每次输出都落地：串口采集端不会漏行 */
+
+    /* 限了额度时从额度里扣；超出的照样打出来，只计数（board.h 的 board_tx_room）。 */
+    if (s_tx_budget != 0u) {
+        uint32_t n = (uint32_t)strlen(s);
+
+        tx_refill();
+        if (n > s_tx_room) {
+            s_tx_over_n++;
+            s_tx_over_bytes += n - s_tx_room;
+            s_tx_room = 0u;
+        } else {
+            s_tx_room -= n;
+        }
+    }
 }
 
 /* **F1~F3 不在这里**：窗口大小是宿主的事，缩放键在 pump_events 里被吃掉。

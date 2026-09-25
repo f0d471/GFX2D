@@ -3,6 +3,8 @@
 状态：**进行中（A 批）**。2026-09-26 开工，做 A 批的三件：帧时间直方图与模拟时钟（2.2 节）、
 按方程的普查函数（2.4 节）、日志队列与 `board_tx_room()`（2.4 节）。开工前拿判据反向核对本文件，
 补了三处没写或写不对的定法（4.4 节），代码照这些定法写。
+三件的代码与主机判据都已完成，`tools/check/check_sw8_stats.sh` 全过，每个注错都见红（4.5~4.7 节）；
+数据收尾时并入 TechReport。B 批（`N_max` 搜索）未开工。
 前期准备 2026-09-24 完成，spec 复核改了九处（4.1 节）；
 **决策 K1~K3 于 2026-09-25 全部定案**（1.2 节，改动见 4.3 节），没有待定项。
 与 SW7 一起做，共同的开工顺序见 [SW7 2.0 节](SW7-游戏本体.md)：帧时间口径、模拟时钟、普查函数与日志队列在第一批，
@@ -196,6 +198,63 @@ ft_max, cyc_logic, cyc_build, cyc_exec, cmd_by_eq[0..5], cmd_other, pixel_by_eq[
 | 系统键和弦 | 上+下、左+右各按住 7 帧不触发、8 帧触发一次，不松开不再触发；游戏在和弦期间把该轴当作不动 |
 
 ## 4 开发日志
+
+### 4.7 2026-09-26 A 批：日志队列与 `board_tx_room()` 的实现与判据（数据收尾时并入 TechReport）
+
+落点：`lib/core/logq.{h,c}`（`logq_init/put/take`、`logq_used/free/dropped`）；`bsp/include/board.h` 加
+`board_tx_room()` 与 `BOARD_TX_ROOM_UNLIMITED`；`bsp/ti60/board.c` 调 sdk 的 `uart_writeAvailability(BSP_UART_TERMINAL)`；
+`bsp/host/board.c` 加额度模拟（`board_init` 里读 `GFX2D_TX_BUDGET`，`board_puts` 从额度扣，`atexit` 打汇总）。
+主机测试：日志队列在 `lib/test/test_stats.c` 的 Q1~Q4；`board_tx_room()` 的 PC 实现要 SDL，用主机探针
+`Main/tools/check/check_sw8_tx.c`，链真实的 `bsp/host/board.c` 与 `bsp/memmap.c`。
+`check_sw8_stats.sh` 的 M1 加 Q 组行数，M4 管日志队列的两个注错，M5 编探针跑两遍，M6 做板上构建。
+
+Q3 的期望来自一份**线性参考**：一段不回绕的长缓冲加读写两个下标，放得下就整行追加、放不下就计一次丢弃，
+与环形缓冲不是同一段逻辑；每一步都比取出的字节、已用字节数与丢弃行数。
+
+| 组 | 判据 | 实测 |
+| --- | --- | --- |
+| Q1 | 满了整行丢弃并计数 | 64 字节的队列：三行 20 字节进，第四行丢，4 字节正好放下，再 1 字节丢，已用 64、丢弃 2；比容量长的行永远丢；空串不算一行 |
+| Q2 | 回绕 | 16 字节：写 10、取 8，再写 10 跨过末端，取出 `ij0123456789`，队列空 |
+| Q3 | 随机两万步对线性参考 | 全对：进 8,783 行、丢 4,708 行、取出 304,090 字节，读指针回绕 1,187 次 |
+| Q4 | 边界 | 从空队列取与取 0 字节都返回 0，输出仍以 `\0` 结尾 |
+| X1 | PC 不设 `GFX2D_TX_BUDGET` | `board_tx_room()` 返回 `0x7FFFFFFF`，打 100 字节前后不变，退出时不打汇总 |
+| X2 | `GFX2D_TX_BUDGET=192`，同一场里 | 对齐到场起始后 192，打 100 字节剩 92、再 50 剩 42、再 60 超额归零 |
+| X3 | 按场补满、不累加 | 下一场补到 192；再等三场仍是 192 |
+| X4 | 退出汇总 | stderr：`board: tx budget 192 B/field, over 1 times 18 bytes` |
+| M6 | 板上构建 | gfx2dGame 零告警，`bsp/ti60/board.o` 里有 `board_tx_room` |
+
+64 位（ASan/UBSan）与 `-m32` 输出逐字节相同，`make -f mk/host.mk test` 全套 275 行 `fail 0`；
+`RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh` 约 62 秒，`fail 0`。
+
+注错：
+
+| 注错 | 改了什么 | 预期见红 | 实际 |
+| --- | --- | --- | --- |
+| `LOGQ_SPLIT` | 放不下时把放得下的那一截写进去 | Q1、Q3 | Q1 两行与 Q3 FAIL，`fail 3` |
+| `LOGQ_WRAP` | 写入回绕落到下标 1 | Q2、Q3 | Q2 与 Q3 FAIL，`fail 2`；越界写不会发生（下标仍在存储内），所以是判据抓到的，不是 ASan |
+| `HOST_TX_NO_REFILL` | 跨场不补额度 | X3 | X3 FAIL |
+
+几处记录：
+
+1. **X2 要落在同一场里。** 几次调用之间恰好跨过场边界，额度会被补满，X2 就测不准。
+   探针先 `board_wait_frame()` 对齐到场起始，做完再看场号有没有变，变了整组重来（最多三次），并打出试了几次；
+   只试一次时脚本才核超额汇总的次数与字节数。本次都是一次。
+2. **PC 上超出额度的字节照样打出来。** 丢日志会让 PC 上的判据程序看不到自己的输出；
+   额度模拟只为给后面批次的「日志不阻塞」长跑判据一个可量的超额计数。
+3. **回归（改了 `bsp/host` 之后）。** `SW6_QUICK=1 check_sw6_demo.sh`（带 `RISCV_BIN`）十项全过、`fail 0`，
+   板上判据与演示两种构建零告警（47,250 与 44,290 字节）；`check_sw_layers.sh` `fail 0`；
+   `check_sw5_assets.sh` `fail 0`；`check_sw7_game.sh` `fail 0`。
+   **`check_sw4_pc.sh` 在本环境里没有跑出过全绿**：确定性的各项（十一个用例对 `golden.txt`、有窗与无窗逐行相同、
+   两次回放逐帧相同、录制文本往返、最近邻探针）每次都过，失败的只有判据程序 `platformTest` 的节拍一段——
+   600 帧空渲染按墙钟量间隔（P5 不低于 10 毫秒、P6 不超过 25 毫秒）与由此带出的丢场（P1、P2、P4），
+   以及注错那一遍因为同样的节拍失败而 `fail` 不为 0（S8）。这是这台云上容器（firecracker 虚拟机）的调度抖动，
+   与本批改动无关，依据有三条：
+   - 同一个脚本在 `127c2ff` 上也失败（`fail 1`，无窗那一遍的 P5、P6）；
+   - 两个版本的 `platformTest` 交替各跑 5 遍（无窗），基线失败 1 遍、本批失败 3 遍，其中第 2 轮两边同时失败、
+     最长间隔都在 43 毫秒上下，是同一次环境抖动；通过的那几遍两边的间隔都在 10.7~22.6 毫秒之间；
+   - 节拍那一段的 600 帧里只调 `board_wait_frame()` 与 `board_present()`，本批改的 `board_init()`（多读一个环境变量）
+     与 `board_puts()`（多一个判断）都不在那段循环里。
+   按「如实记录、不改脚本去绕」处理，脚本与判据程序不动；在参考机（WSL）上复跑一遍是收尾前要补的一项。
 
 ### 4.6 2026-09-26 A 批：帧时间直方图与模拟时钟的实现与判据（数据收尾时并入 TechReport）
 

@@ -57,6 +57,19 @@ uint32_t   board_cycles(void);
 /* 走 UART（板上）或 stdout（PC），两边逐字节相同。应用里不出现 printf。 */
 void       board_puts(const char *s);
 
+/* 现在还能不阻塞地交给 board_puts() 多少字节（SW8 2.4 节）。
+   板上的 board_puts() 忙等发送 FIFO，115200 波特每帧只发得出约 192 字节，一次写多了会卡住当帧；
+   应用把日志先放进 lib/core/logq，每帧只取这么多字节写出去。
+
+   板上：发送 FIFO 的空位数（UART 状态寄存器的 [23:16]）。
+   PC：默认返回 BOARD_TX_ROOM_UNLIMITED。设了环境变量 GFX2D_TX_BUDGET=N（1~65535）时模拟串口，
+       **按场计、不按墙钟**：board_frame_count() 一变就把额度补满到 N（不累加，FIFO 的容量是固定的），
+       board_puts() 从额度里扣。超出额度的字节照样打出来（PC 上不丢日志），另计超额次数与字节数，
+       进程退出时在 stderr 打一行汇总。 */
+#define BOARD_TX_ROOM_UNLIMITED 0x7FFFFFFFu
+
+uint32_t   board_tx_room(void);
+
 /* --- 输入 --------------------------------------------------------------- */
 /* 返回本帧的按键位图。位分配是两个实现必须一致的约定：板上 KEY0~3 与串口
    （SW9 接），PC 上是 SDL 键盘。本条（SW1）板上恒为 0。 */

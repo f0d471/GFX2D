@@ -14,12 +14,26 @@
 *         注错开关见 lib/core/framehist.h，每个都必须让这里至少一行 FAIL：
 *           FHIST_P99_LOWER -> H2、H5
 *           FHIST_DROP_OVER -> H3
+*
+*         日志队列（lib/core/logq），判据见同一节「日志队列（A 批）」一行：
+*           Q1  满了整行丢弃并计数，比容量还长的行永远丢；空串不算一行
+*           Q2  手算的回绕：跨过存储末端写入，取出的字节顺序不变
+*           Q3  随机两万步（随机行长 1~80、随机取数额度 0~100）对一份**线性**参考：
+*               参考是一段不回绕的长缓冲加读写两个下标，与环形缓冲不是同一段逻辑；
+*               每次取出的字节、已用字节数与丢弃行数都逐步相同
+*           Q4  取 0 个字节、从空队列取：返回 0，输出仍以 '\0' 结尾
+*
+*         注错开关见 lib/core/logq.h：
+*           LOGQ_SPLIT -> Q1、Q3
+*           LOGQ_WRAP  -> Q2、Q3
 ******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "core/framehist.h"
+#include "core/logq.h"
 #include "core/format.h"
 #include "core/xorshift32.h"
 #include "test_stats.h"
@@ -231,16 +245,176 @@ static void h5_random(void)
     ck("H5 10000 random: p50/p99 >= sorted truth, <= max, within one bucket", bad == 0u);
 }
 
+/* --- Q 日志队列 --------------------------------------------------------- */
+
+static void q1_full(void)
+{
+    static char mem[64];
+    logq        q;
+    char        line[128];
+    uint32_t    i;
+    int         r1, r2, r3, r4, r5, r6, r7;
+
+    logq_init(&q, mem, 64u);
+    memset(line, 'a', sizeof line);
+    line[20] = '\0';                            /* 20 字节 */
+    r1 = logq_put(&q, line);
+    r2 = logq_put(&q, line);
+    r3 = logq_put(&q, line);                    /* 60 */
+    r4 = logq_put(&q, line);                    /* 放不下：整行丢 */
+    line[4] = '\0';
+    r5 = logq_put(&q, line);                    /* 4 字节正好放下：64 */
+    line[1] = '\0';
+    r6 = logq_put(&q, line);                    /* 满了：丢 */
+    ck("Q1 3x20 in, 4th dropped, 4-byte fits exactly, then 1 byte dropped: used 64 dropped 2",
+       r1 == 0 && r2 == 0 && r3 == 0 && r4 == -1 && r5 == 0 && r6 == -1
+       && logq_used(&q) == 64u && logq_dropped(&q) == 2u && logq_free(&q) == 0u);
+
+    logq_init(&q, mem, 64u);
+    for (i = 0u; i < 100u; i++)
+        line[i] = 'b';
+    line[100] = '\0';
+    r7 = logq_put(&q, line);
+    ck("Q1 line longer than capacity always dropped, empty string is a no-op",
+       r7 == -1 && logq_dropped(&q) == 1u && logq_used(&q) == 0u
+       && logq_put(&q, "") == 0 && logq_used(&q) == 0u && logq_dropped(&q) == 1u);
+}
+
+static void q2_wrap(void)
+{
+    static char mem[16];
+    logq        q;
+    char        out[32];
+    uint32_t    n1, n2;
+
+    logq_init(&q, mem, 16u);
+    (void)logq_put(&q, "abcdefghij");           /* 0..9 */
+    n1 = logq_take(&q, out, 8u);                /* 取走 abcdefgh，head = 8 */
+    ck("Q2 first take 8: abcdefgh", n1 == 8u && strcmp(out, "abcdefgh") == 0);
+    (void)logq_put(&q, "0123456789");           /* 写在 10..15 与 0..3，跨过末端 */
+    n2 = logq_take(&q, out, 31u);
+    ck("Q2 across the end: ij0123456789, queue empty",
+       n2 == 12u && strcmp(out, "ij0123456789") == 0 && logq_used(&q) == 0u);
+}
+
+#define Q3_CAP      256u
+#define Q3_STEPS    20000u
+#define Q3_REF_MAX  (Q3_STEPS * 82u)
+
+static void q3_random(void)
+{
+    static char mem[Q3_CAP];
+    static char ref[Q3_REF_MAX];                /* 线性参考：只追加，不回绕 */
+    char        line[96], out[128];
+    logq        q;
+    xs32        g;
+    uint32_t    k, rd = 0u, wr = 0u, ref_drop = 0u, bad = 0u;
+    uint32_t    puts_ok = 0u, took = 0u, wraps = 0u, last_head = 0u;
+
+    logq_init(&q, mem, Q3_CAP);
+    xs32_seed(&g, 0x106A0001u);
+
+    for (k = 0u; k < Q3_STEPS; k++) {
+        if (xs32_next(&g) % 3u != 0u) {
+            uint32_t len = 1u + xs32_next(&g) % 80u, i;
+            int      rc;
+
+            for (i = 0u; i + 2u < len; i++)
+                line[i] = (char)('A' + (k + i) % 26u);
+            if (len >= 2u) {
+                line[len - 2u] = '\r';
+                line[len - 1u] = '\n';
+            } else {
+                line[0] = (char)('a' + k % 26u);
+            }
+            line[len] = '\0';
+
+            rc = logq_put(&q, line);
+            if (len <= Q3_CAP - (wr - rd)) {    /* 参考：放得下就整行追加 */
+                memcpy(ref + wr, line, len);
+                wr += len;
+                if (rc != 0)
+                    bad++;
+                puts_ok++;
+            } else {
+                ref_drop++;
+                if (rc != -1)
+                    bad++;
+            }
+        } else {
+            uint32_t budget = xs32_next(&g) % 101u;
+            uint32_t want = (budget < wr - rd) ? budget : wr - rd;
+            uint32_t n = logq_take(&q, out, budget);
+
+            if (n != want || memcmp(out, ref + rd, n) != 0 || out[n] != '\0')
+                bad++;
+            rd += want;
+            took += n;
+            if (q.head < last_head)
+                wraps++;
+            last_head = q.head;
+        }
+        if (logq_used(&q) != wr - rd || logq_dropped(&q) != ref_drop)
+            bad++;
+    }
+    /* 收尾：全部取完，逐字节对 */
+    while (wr - rd > 0u) {
+        uint32_t n = logq_take(&q, out, 100u);
+
+        if (n == 0u || memcmp(out, ref + rd, n) != 0) {
+            bad++;
+            break;
+        }
+        rd += n;
+        took += n;
+    }
+
+    {
+        char     msg[160];
+        core_out o;
+
+        core_out_init(&o, msg, (uint32_t)sizeof msg);
+        core_out_str(&o, "Q3 20000 steps vs linear reference: lines in ");
+        core_out_u32(&o, puts_ok);
+        core_out_str(&o, " dropped ");
+        core_out_u32(&o, ref_drop);
+        core_out_str(&o, " bytes out ");
+        core_out_u32(&o, took);
+        core_out_str(&o, " wraps ");
+        core_out_u32(&o, wraps);
+        ck(msg, bad == 0u && ref_drop > 0u && wraps > 0u);
+    }
+}
+
+static void q4_edges(void)
+{
+    static char mem[8];
+    logq        q;
+    char        out[4];
+
+    logq_init(&q, mem, 8u);
+    out[0] = 'x';
+    ck("Q4 take from empty -> 0, out is \"\"", logq_take(&q, out, 3u) == 0u && out[0] == '\0');
+    (void)logq_put(&q, "hi");
+    out[0] = 'x';
+    ck("Q4 take 0 bytes -> 0, nothing consumed", logq_take(&q, out, 0u) == 0u && out[0] == '\0'
+       && logq_used(&q) == 2u);
+}
+
 uint32_t test_stats_run(void)
 {
     g_fail = 0u;
 
-    say("libTest stats: frame-time histogram\n");
+    say("libTest stats: frame-time histogram, log queue\n");
     h1_bounds();
     h2_known();
     h3_overflow();
     h4_exact();
     h5_random();
+    q1_full();
+    q2_wrap();
+    q3_random();
+    q4_edges();
 
     return g_fail;
 }

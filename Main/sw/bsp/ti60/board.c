@@ -116,6 +116,13 @@ void board_puts(const char *s)
         uart_write(BSP_UART_TERMINAL, *s++);
 }
 
+/* sdk 的 uart_writeAvailability() 读 UART 状态寄存器的 [23:16]，就是发送 FIFO 的空位数；
+   写不超过这么多字节，上面的 uart_write() 就不会在忙等里停下（SW8 2.4 节）。 */
+uint32_t board_tx_room(void)
+{
+    return (uint32_t)uart_writeAvailability(BSP_UART_TERMINAL);
+}
+
 uint32_t board_keys(void)
 {
     /* KEY0~3 已接到 GPIO1 的 [3:0]（SYSTEM_GPIO_1_IO_CTRL，0xF801_6000），低有效，
