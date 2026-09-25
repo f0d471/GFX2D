@@ -71,6 +71,37 @@ int  gfx_blit(gfx_list *l, int src, int sx, int sy, int dst, int dx, int dy,
 int  gfx_set_clip(gfx_list *l, gfx_rect r);
 int  gfx_list_end(gfx_list *l);
 
+/* --- 批量提交（SW7 2.6 节）--------------------------------------------- */
+
+/* 一串 BLIT 共用的部分。字段与 gfx_blit() 的同名参数同型。 */
+typedef struct {
+    int      src;
+    int      dst;
+    int      w, h;
+    int      eq;
+    uint8_t  c;
+    int      key_en;
+    uint32_t key;
+} gfx_blit_tmpl;
+
+/* 逐条输入：目的左上角与源左上角。int32，与 gfx_blit() 的坐标参数同型，
+   所以越出 int16 的坐标与逐条调用一样报 GFX_BUILD_BAD_ARG。 */
+typedef struct {
+    int32_t dx, dy;
+    int32_t sx, sy;
+} gfx_blit_pos;
+
+/* 对 pos[0..n) 依次追加 BLIT，**结果与对每条依次调用 gfx_blit() 逐字节相同**：
+   缓冲区、used、rejected、overflow、first_error、ended 都一样；返回成功追加的条数
+   （即逐条调用时返回 0 的次数）。l 或 l->t 为空时与 gfx_blit() 一样什么也不动，返回 0。
+
+   做法：每次调用开头按模板打包一条记录、跑一次 gfx_cmd_check()，之后每条只填
+   w1、w2 与 w7。模板校验放在调用开头而不是初始化时，因为表面表可能在两次调用之间被改写。
+   **源表面等于目的表面时每条退回完整的 gfx_cmd_check()**：规范条款 §5 的第十步
+   （同一表面上两个矩形不得重叠）依赖每条自己的坐标，模板校验盖不住。 */
+uint32_t gfx_blit_run(gfx_list *l, const gfx_blit_tmpl *t,
+                      const gfx_blit_pos *pos, uint32_t n);
+
 /* --- 软件执行器 --------------------------------------------------------- */
 
 /* 跨提交的状态。SET_CLIP 的框持续到下一条 SET_CLIP 或软复位，

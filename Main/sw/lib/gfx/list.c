@@ -211,6 +211,97 @@ int gfx_blit(gfx_list *l, int src, int sx, int sy, int dst, int dx, int dy,
     return append(l, &rec);
 }
 
+/* 批量提交。等价口径见 gfx.h 的声明与 SW7 2.6 节；这里与 gfx_blit() 共用参数检查、
+   打包与 reject() 的记账，不另写一套。逐条的先后照抄 gfx_blit() 与 append()：
+   参数错（模板或本条坐标）报 BAD_ARG → 表已 END → 表满（唯一加 overflow 的一种）→ 校验码。
+   几种 BAD_ARG 在 gfx_blit() 里谁先谁后不影响结果：记账完全相同。
+
+   注错开关（lib/test/test_blit_run.c 用，见 check_sw7_game.sh）：
+     INJECT_BLIT_RUN_W7           w7 写成 used + 1
+     INJECT_BLIT_RUN_SXY          源坐标的 x 与 y 对调
+     INJECT_BLIT_RUN_NO_FALLBACK  源等于目的时也只用模板的校验结果，不逐条重查 */
+uint32_t gfx_blit_run(gfx_list *l, const gfx_blit_tmpl *t,
+                      const gfx_blit_pos *pos, uint32_t n)
+{
+    gfx_cmd  rec;
+    int      targ_ok, per_item = 0, tcode = GFX_OK;
+    uint32_t i, appended = 0u;
+
+    if (l == 0 || l->t == 0 || t == 0)
+        return 0u;
+    if (pos == 0)
+        return 0u;
+
+    /* 模板里能不能无损编码：不能的话每一条都是 BAD_ARG，与 gfx_blit() 逐条的结果相同 */
+    targ_ok = surf_id_ok(t->src) && surf_id_ok(t->dst) && t->eq >= 0 && t->eq <= 15
+           && size_ok(t->w) && size_ok(t->h) && (t->key_en == 0 || t->key_en == 1);
+
+    zero_cmd(&rec);
+    if (targ_ok) {
+        rec.w[0] = GFX_OP_BLIT
+                 | ((uint32_t)t->eq << 8)
+                 | ((uint32_t)(t->key_en != 0) << 12)
+                 | ((uint32_t)t->src << 16)
+                 | ((uint32_t)t->dst << 20)
+                 | ((uint32_t)t->c << 24);
+        rec.w[3] = pack_pair(t->w, t->h);
+        rec.w[5] = (t->key_en != 0) ? t->key : 0u;
+
+        /* 十步里只有第十步（重叠）看 w1、w2，而它只在源等于目的时才查。
+           其余情况下这一次校验的结果对每一条都成立，w1、w2、w7 取什么都不影响它。 */
+#ifdef INJECT_BLIT_RUN_NO_FALLBACK
+        per_item = 0;
+#else
+        per_item = (t->src == t->dst);
+#endif
+        if (!per_item)
+            tcode = gfx_cmd_check(l->t, &rec);
+    }
+
+    for (i = 0u; i < n; i++) {
+        const gfx_blit_pos *p = &pos[i];
+        int                 code;
+
+        if (!targ_ok || !coord_ok((int)p->sx) || !coord_ok((int)p->sy)
+         || !coord_ok((int)p->dx) || !coord_ok((int)p->dy)) {
+            (void)reject(l, GFX_BUILD_BAD_ARG);
+            continue;
+        }
+        if (l->ended) {
+            (void)reject(l, GFX_BUILD_CLOSED);
+            continue;
+        }
+        if (l->used >= l->cap) {
+            l->overflow++;
+            (void)reject(l, GFX_BUILD_FULL);
+            continue;
+        }
+
+#ifdef INJECT_BLIT_RUN_SXY
+        rec.w[1] = pack_pair((int)p->sy, (int)p->sx);
+#else
+        rec.w[1] = pack_pair((int)p->sx, (int)p->sy);
+#endif
+        rec.w[2] = pack_pair((int)p->dx, (int)p->dy);
+#ifdef INJECT_BLIT_RUN_W7
+        rec.w[7] = l->used + 1u;
+#else
+        rec.w[7] = l->used;
+#endif
+
+        code = per_item ? gfx_cmd_check(l->t, &rec) : tcode;
+        if (code != GFX_OK) {
+            (void)reject(l, code);
+            continue;
+        }
+
+        l->buf[l->used] = rec;
+        l->used++;
+        appended++;
+    }
+    return appended;
+}
+
 int gfx_set_clip(gfx_list *l, gfx_rect r)
 {
     gfx_cmd rec;

@@ -6,13 +6,15 @@
 #   G1 正弦表可重生成   gen_sin_tab.py 重打一份，与入库的 lib/core/sin_tab.c 逐字节相同；
 #                       注错 --inject 改一项，比对必须见红
 #   G2 主机测试         mk/host.mk 的 test 目标：64 位（ASan/UBSan）与 -m32 输出逐字节相同、fail 0，
-#                       stderr 里没有 sanitizer 报告；数值基础（F 组）21 行全 ok
+#                       stderr 里没有 sanitizer 报告；数值基础（F 组）21 行、批量提交（K 组）8 行全 ok
 #   G3 数值基础的注错   FX_IDX_TRUNC / FX_VEL_Q4 / FX_ATAN_NOSCALE / FX_ATAN_UNIT 各编一次，
 #                       指定的那一行必须 FAIL
 #   G4 实体池           apps/game/gfx2dGame/test/ 与 src/game/stg_*.c 按 test 目标的选项直接编：
 #                       64 位挂 ASan/UBSan、-m32 各一份，两份输出逐字节相同、fail 0、无 sanitizer 报告；
 #                       只链 lib/ 与 stg_*.c，不链 bsp
 #   G5 实体池的注错     STG_POOL_STALL / STG_POOL_SWAP 各编一次，指定的那一行必须 FAIL
+#   G6 批量提交的注错   BLIT_RUN_W7 / BLIT_RUN_SXY / BLIT_RUN_NO_FALLBACK 各编一次，指定的那一行必须 FAIL；
+#                       最后一个要让「源等于目的」那一类见红，证明随机输入真的走到了逐条回退
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     bash Main/tools/check/check_sw7_game.sh
@@ -96,6 +98,14 @@ if [ "$nf_ok" -eq 21 ] && [ "$nf_bad" -eq 0 ]; then
 else
     bad "G2f 数值基础应有 21 行 ok，实际 ok $nf_ok 行、FAIL $nf_bad 行"
 fi
+nk_ok=$(grep -cE '^K[0-9] .* ok$' "$out" 2>/dev/null)
+nk_bad=$(grep -cE '^K[0-9] .* FAIL$' "$out" 2>/dev/null)
+if [ "$nk_ok" -eq 8 ] && [ "$nk_bad" -eq 0 ]; then
+    ok "G2k 批量提交 8 行全 ok"
+    grep -E '^K1 (calls|coverage)|^K2 coverage' "$out" | while read -r l; do note "$l"; done
+else
+    bad "G2k 批量提交应有 8 行 ok，实际 ok $nk_ok 行、FAIL $nk_bad 行"
+fi
 
 # ---------------------------------------------------------------- G3 注错
 echo "== G3 数值基础的注错（每个都要让指定的行 FAIL） =="
@@ -172,6 +182,20 @@ expect_stg_red() {   # $1 = INJECT，$2 = 必须 FAIL 的行
 }
 expect_stg_red STG_POOL_STALL '^P2 300 rounds: removed == oob'
 expect_stg_red STG_POOL_SWAP  '^P3 300 rounds: survivors keep'
+
+# ---------------------------------------------------------------- G6 批量提交的注错
+echo "== G6 批量提交的注错（每个都要让指定的行 FAIL） =="
+run_libtest_red() {   # 与 G3 同一个做法，只是换一组行
+    run_libtest "i_$1" "$1"
+    if grep -qE "$2.* FAIL$" "$TMP/i_$1/test/out64.txt" 2>/dev/null; then
+        ok "G6 INJECT=$1 见红：$(grep -m1 -E "$2.* FAIL$" "$TMP/i_$1/test/out64.txt" | cut -c1-72)"
+    else
+        bad "G6 INJECT=$1 没有让「$2」见红"
+    fi
+}
+run_libtest_red BLIT_RUN_W7          '^K1 1000 groups'
+run_libtest_red BLIT_RUN_SXY         '^K1 1000 groups'
+run_libtest_red BLIT_RUN_NO_FALLBACK '^K1 src==dst groups'
 
 printf 'fail %d\ndone\n' "$FAIL"
 [ "$FAIL" -eq 0 ]
