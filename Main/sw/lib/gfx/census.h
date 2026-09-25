@@ -17,9 +17,13 @@
 *         构造层已经校验过、执行者将要执行的表。只为内存安全留一道闸——遇到不认识的
 *         操作码或方程号大于 5 的记录就停下、返回 -1，不拿它去索引计数数组。
 *
+*         同一个文件里还有模拟时钟（SW8 2.2 节）：帧时间由代价模型给出，输入就是普查的结果，
+*         PC 上的 N_max 搜索拿它代替墙钟（SW1-SW9 总览约束 5：PC 的墙钟不作性能结论）。
+*
 *         注错开关（主机测试 lib/test/test_census.c 用，见 check_sw8_stats.sh）：
 *           INJECT_CENSUS_NO_SETCLIP  SET_CLIP 只计数、不改裁剪框
 *           INJECT_CENSUS_NO_SURF     求交漏掉目的表面宽高那一项
+*           INJECT_COST_NO_B          代价漏掉「每条命令」那一项
 ******************************************************************************/
 #ifndef GFX2D_GFX_CENSUS_H
 #define GFX2D_GFX_CENSUS_H
@@ -53,5 +57,22 @@ int      gfx_census_run(gfx_census_state *cs, const gfx_surface_table *t,
 /* 两个合计：与执行器的 cmd、pixel_total 对账用。 */
 uint32_t gfx_census_cmd_total(const gfx_census *c);
 uint32_t gfx_census_pix_total(const gfx_census *c);
+
+/* --- 模拟时钟 ------------------------------------------------------------ */
+
+/* 代价模型：一帧的周期数 = a + b × 命令数 + Σ c[方程] × 该方程的像素数。
+   命令数是 gfx_census_cmd_total()，与执行器的 cmd 同口径（含 NOP 与 SET_CLIP）。 */
+typedef struct {
+    uint32_t a;                         /* 每帧固定 */
+    uint32_t b;                         /* 每条命令 */
+    uint32_t c[GFX_CENSUS_EQ_N];        /* 每个方程每像素 */
+} gfx_cost_model;
+
+/* 64 位累加：b 与每个 c 不超过 2^28、命令数与每方程像素数不超过 2^32 时，
+   八项之和小于 2^63，不会溢出。 */
+uint64_t gfx_cost_cycles(const gfx_cost_model *m, const gfx_census *c);
+
+/* 代价严格大于一场才算掉帧，返回 1；恰好等于一场不算。 */
+int      gfx_cost_drops(uint64_t cost, uint32_t field_cyc);
 
 #endif /* GFX2D_GFX_CENSUS_H */

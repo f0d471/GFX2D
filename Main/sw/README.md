@@ -17,7 +17,7 @@ sw/
     ti60/          板上实现 + linker/gfx2d.ld
     host/          PC 实现：SDL2 显示与键盘，DDR 分区用一块内存模拟
   lib/             纯 C，两边都编，不依赖任何平台
-    core/          CRC32、xorshift32、轻量格式化输出、Q.8 定点与正弦表（SW7）
+    core/          CRC32、xorshift32、轻量格式化输出、Q.8 定点与正弦表（SW7）、帧时间直方图（SW8）
     gfx/           命令表构造层（含批量提交 gfx_blit_run，SW7）、软件执行器、十一个整帧用例（命令 ABI v1）、按方程的普查（SW8）
     test/          主机侧单元测试（另含 CRC32 与软件执行器的独立参考实现、两组一致性向量）
     s3l/           第三方：small3dlib（CC0，header-only 的整数 3D 光栅器），见下
@@ -158,8 +158,11 @@ wsl -e bash -c 'bash Main/tools/check/check_sw7_game.sh'                # 重生
   注错 `INJECT=BLIT_RUN_W7`、`BLIT_RUN_SXY`、`BLIT_RUN_NO_FALLBACK`，由 `check_sw7_game.sh` 的 G6 跑。
 
 - 普查那一组（`lib/test/test_census.c`，[SW8](../../Engineering/Todo/sw/SW8-演示模式与统计埋点.md) 2.4 节）不用开关：
-  `lib/gfx/census` 按方程数出的条数与面积，在十一个整帧用例与随机合法命令表上与软件执行器的 `cmd`、`pixel_total` 对账。
-  注错 `INJECT=CENSUS_NO_SETCLIP`、`CENSUS_NO_SURF`；SW8 A 批的判据串起来跑的是：
+  `lib/gfx/census` 按方程数出的条数与面积，在十一个整帧用例与随机合法命令表上与软件执行器的 `cmd`、`pixel_total` 对账，
+  注错 `INJECT=CENSUS_NO_SETCLIP`、`CENSUS_NO_SURF`。
+  同一文件里还有模拟时钟（`gfx_cost_cycles`，SW8 2.2 节）的手算样例与单调性，注错 `INJECT=COST_NO_B`。
+  帧时间直方图那一组在 `lib/test/test_stats.c`（`lib/core/framehist`，SW8 2.2 节），注错 `INJECT=FHIST_P99_LOWER`、`FHIST_DROP_OVER`。
+  SW8 A 批的判据串起来跑的是：
 
 ```
 wsl -e bash -c 'bash Main/tools/check/check_sw8_stats.sh'

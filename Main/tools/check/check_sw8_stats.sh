@@ -5,8 +5,11 @@
 # 本脚本串起来跑：
 #
 #   M1 主机测试         mk/host.mk 的 test 目标：64 位（ASan/UBSan）与 -m32 输出逐字节相同、fail 0，
-#                       stderr 里没有 sanitizer 报告；普查（C 组）19 行全 ok
+#                       stderr 里没有 sanitizer 报告；普查（C 组）19 行、模拟时钟（S 组）4 行、
+#                       帧时间直方图（H 组）8 行全 ok
 #   M2 普查的注错       CENSUS_NO_SETCLIP / CENSUS_NO_SURF 各编一次，指定的那一行必须 FAIL
+#   M3 直方图与模拟时钟的注错
+#                       FHIST_P99_LOWER / FHIST_DROP_OVER / COST_NO_B 各编一次，指定的那一行必须 FAIL
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     bash Main/tools/check/check_sw8_stats.sh
@@ -81,11 +84,20 @@ else
 fi
 group_all_ok C 19 "普查"
 grep -E '^C1 set-clip-state|^C2 ' "$OUT" | while read -r l; do note "$l"; done
+group_all_ok S 4 "模拟时钟"
+group_all_ok H 8 "帧时间直方图"
+grep -E '^H2 990' "$OUT" | while read -r l; do note "$l"; done
 
 # ---------------------------------------------------------------- M2 普查的注错
 echo "== M2 普查的注错（每个都要让指定的行 FAIL） =="
 expect_red M2 CENSUS_NO_SETCLIP '^C1 set-clip-state'
 expect_red M2 CENSUS_NO_SURF    '^C2 300 sequences'
+
+# ---------------------------------------------------------------- M3 直方图与模拟时钟的注错
+echo "== M3 直方图与模拟时钟的注错（每个都要让指定的行 FAIL） =="
+expect_red M3 FHIST_P99_LOWER '^H2 990x1.0M'
+expect_red M3 FHIST_DROP_OVER '^H3 p99 in last bucket'
+expect_red M3 COST_NO_B       '^S1 hand example'
 
 printf 'fail %d\ndone\n' "$FAIL"
 [ "$FAIL" -eq 0 ]

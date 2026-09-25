@@ -125,3 +125,21 @@ uint32_t gfx_census_pix_total(const gfx_census *c)
         n += c->pix_by_eq[e];
     return n;
 }
+
+uint64_t gfx_cost_cycles(const gfx_cost_model *m, const gfx_census *c)
+{
+    uint64_t cost = m->a;
+    uint32_t e;
+
+#ifndef INJECT_COST_NO_B
+    cost += (uint64_t)m->b * gfx_census_cmd_total(c);
+#endif
+    for (e = 0u; e < GFX_CENSUS_EQ_N; e++)
+        cost += (uint64_t)m->c[e] * c->pix_by_eq[e];
+    return cost;
+}
+
+int gfx_cost_drops(uint64_t cost, uint32_t field_cyc)
+{
+    return cost > (uint64_t)field_cyc;
+}

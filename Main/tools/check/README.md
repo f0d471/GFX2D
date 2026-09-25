@@ -15,7 +15,7 @@
 | `check_sw6_log.py` | SW6 判据日志的**外部核对**：两遍比对、`hud` 对上一帧统计、`hcrc` 按字库文本独立重画、`s` 与 `scene` 参考值、`off` 与 `eq`；`--board` 把板上串口日志从 `pak` 行起与期望日志对账 | 由 `check_sw6_demo.sh` 调用；板上对账时单独跑 |
 | `gen_sw6_replay.py` | 生成 SW6 的两段确定性录像（`.g2dr`）：A 把 N 从 100 升到 5000 再回到 100，B 把 k 从 30 降到 1 再升到 120；形状与停留段写在脚本里 | 录像要改时；`check_sw6_demo.sh` 每次重跑并逐字节比 |
 | `check_sw7_game.sh` | 游戏本体（SW7）A 批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、实体池的主机测试（64/32、不链 bsp）与两个注错见红、批量提交的三个注错见红 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
-| `check_sw8_stats.sh` | 统计埋点（SW8）A 批的提交前判据：主机测试 64/32 比对与 sanitizer、普查与软件执行器对账、各注错见红 | 改 `lib/gfx/census`、`mk/host.mk` 的 `test` 目标时，提交前 |
+| `check_sw8_stats.sh` | 统计埋点（SW8）A 批的提交前判据：主机测试 64/32 比对与 sanitizer、普查与软件执行器对账、模拟时钟与帧时间直方图、各注错见红 | 改 `lib/gfx/census`、`lib/core/framehist`、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `gen_sin_tab.py` | 生成 `sw/lib/core/sin_tab.c`：1024 项加 256 项尾巴的 Q1.14 正弦表，按绝对值四舍五入；`--inject` 改一项给比对当注错 | 表的口径要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
 | `e7_key_probe.c` | 独立枚举受控棋盘纹理的色键命中数，与软件执行器统计对账 | E7 改色键负载或解释命中率时 |
 | `e8_entity_golden.c` | 用同一份实体算法生成九组主机侧期望值到 `entityBench/src/golden.h`：每组 1000 帧的六字段状态 CRC 与 C 组每帧全部 `32×N` 命令字节 CRC，另保留终态摘要 | 改 E8 实体算法、命令格式或帧数时，重生成并随源码同步提交 |
@@ -298,7 +298,8 @@ wsl -e bash -c 'bash Main/tools/check/check_sw8_stats.sh'
 
 | 项 | 内容 |
 | --- | --- |
-| M1 | `mk/host.mk` 的 `test` 目标：退出码 0、64 位（ASan/UBSan）与 `-m32` 输出逐字节相同、`fail 0`；stdout 与 stderr 一起收，里面不能有 sanitizer 报告；普查 C 组 19 行全 ok |
+| M1 | `mk/host.mk` 的 `test` 目标：退出码 0、64 位（ASan/UBSan）与 `-m32` 输出逐字节相同、`fail 0`；stdout 与 stderr 一起收，里面不能有 sanitizer 报告；普查 C 组 19 行、模拟时钟 S 组 4 行、帧时间直方图 H 组 8 行全 ok |
 | M2 | `CENSUS_NO_SETCLIP`、`CENSUS_NO_SURF` 各编一次，指定的那一行必须 FAIL |
+| M3 | `FHIST_P99_LOWER`、`FHIST_DROP_OVER`、`COST_NO_B` 各编一次，指定的那一行必须 FAIL |
 
 编译产物落临时目录，不动 `sw/build_host`。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。

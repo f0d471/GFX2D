@@ -15,9 +15,15 @@
 *
 *         覆盖行把 C2 里几类情况真正出现的次数打出来，每一类都必须大于 0。
 *
+*         同一文件里还有模拟时钟（SW8 2.2 节，第 3 节「模拟时钟（A 批）」一行）：
+*           S1  手算样例
+*           S2  每像素代价加倍时总代价单调不减（有像素时严格增加），随机 1000 组
+*           S3  恰好一场不算掉帧、多一个周期算；64 位乘积不截断
+*
 *         注错开关见 lib/gfx/census.h，每个都必须让这里至少一行 FAIL：
 *           CENSUS_NO_SETCLIP  -> C1 的 set-clip-state、C2
 *           CENSUS_NO_SURF     -> C2（整帧用例的目的表面正好是 640x480，这一项在那里不起作用）
+*           COST_NO_B          -> S1
 ******************************************************************************/
 
 #include <stdio.h>
@@ -404,14 +410,115 @@ static void c3_edges(void)
        && cs.clip.x1 == GFX_SCREEN_W - 1 && cs.clip.y1 == GFX_SCREEN_H - 1);
 }
 
+/* --- S 模拟时钟 --------------------------------------------------------- */
+
+static void s1_hand(void)
+{
+    gfx_cost_model m;
+    gfx_census     c;
+    uint64_t       cost;
+    char           line[128];
+    core_out       o;
+
+    /* 条数：COPY 3、ALPHA 1、无方程 2，共 6；面积：COPY 1000、ALPHA 500。
+       手算：1000 + 50 × 6 + 2 × 1000 + 5 × 500 = 5800 */
+    gfx_census_clear(&c);
+    c.cmd_by_eq[GFX_EQ_COPY]  = 3u;
+    c.cmd_by_eq[GFX_EQ_ALPHA] = 1u;
+    c.cmd_other               = 2u;
+    c.pix_by_eq[GFX_EQ_COPY]  = 1000u;
+    c.pix_by_eq[GFX_EQ_ALPHA] = 500u;
+    m.a = 1000u;
+    m.b = 50u;
+    m.c[0] = 2u; m.c[1] = 5u; m.c[2] = 3u; m.c[3] = 3u; m.c[4] = 4u; m.c[5] = 6u;
+    cost = gfx_cost_cycles(&m, &c);
+
+    core_out_init(&o, line, (uint32_t)sizeof line);
+    core_out_str(&o, "S1 hand example 1000+50*6+2*1000+5*500 expect 5800 got ");
+    core_out_u32(&o, (uint32_t)cost);
+    ck(line, cost == 5800u);
+}
+
+static void s2_monotonic(void)
+{
+    xs32     g;
+    uint32_t k, bad = 0u, strict_bad = 0u;
+
+    xs32_seed(&g, 0x5C0C0001u);
+    for (k = 0u; k < 1000u; k++) {
+        gfx_cost_model m, m2;
+        gfx_census     c;
+        uint32_t       e, which = xs32_next(&g) % (GFX_CENSUS_EQ_N + 1u);
+        uint64_t       c0, c1;
+
+        gfx_census_clear(&c);
+        for (e = 0u; e < GFX_CENSUS_EQ_N; e++) {
+            c.cmd_by_eq[e] = xs32_next(&g) % 3000u;
+            c.pix_by_eq[e] = (xs32_next(&g) % 4u == 0u) ? 0u : xs32_next(&g) % 700000u;
+        }
+        c.cmd_other = xs32_next(&g) % 8u;
+        m.a = xs32_next(&g) % 100000u;
+        m.b = xs32_next(&g) % 400u;
+        for (e = 0u; e < GFX_CENSUS_EQ_N; e++)
+            m.c[e] = 1u + xs32_next(&g) % 200u;
+
+        /* which < 6：只把那一个方程的每像素代价加倍；which == 6：全部加倍 */
+        m2 = m;
+        for (e = 0u; e < GFX_CENSUS_EQ_N; e++)
+            if (which == GFX_CENSUS_EQ_N || which == e)
+                m2.c[e] = 2u * m.c[e];
+
+        c0 = gfx_cost_cycles(&m, &c);
+        c1 = gfx_cost_cycles(&m2, &c);
+        if (c1 < c0)
+            bad++;
+        {
+            uint64_t px = 0u;
+
+            for (e = 0u; e < GFX_CENSUS_EQ_N; e++)
+                if (which == GFX_CENSUS_EQ_N || which == e)
+                    px += c.pix_by_eq[e];
+            if (px > 0u && c1 <= c0)
+                strict_bad++;
+        }
+    }
+    ck("S2 doubling per-pixel cost never lowers total, raises it when pixels > 0 (1000)",
+       bad == 0u && strict_bad == 0u);
+}
+
+static void s3_edges(void)
+{
+    gfx_cost_model m;
+    gfx_census     c;
+    uint32_t       e;
+
+    ck("S3 cost == field is not a drop, field + 1 is",
+       gfx_cost_drops(1666667u, 1666667u) == 0 && gfx_cost_drops(1666668u, 1666667u) == 1
+       && gfx_cost_drops(0u, 1u) == 0);
+
+    /* 4e9 像素 × 2^28 = 1,073,741,824 × 10^9：乘积若在 32 位里算就会截断 */
+    gfx_census_clear(&c);
+    c.pix_by_eq[GFX_EQ_COPY] = 4000000000u;
+    m.a = 7u;
+    m.b = 0u;
+    for (e = 0u; e < GFX_CENSUS_EQ_N; e++)
+        m.c[e] = 0u;
+    m.c[GFX_EQ_COPY] = 268435456u;
+    ck("S3 64-bit product 4e9 * 2^28 + 7 == 1073741824000000007",
+       gfx_cost_cycles(&m, &c) == 1073741824000000007ull);
+}
+
 uint32_t test_census_run(void)
 {
     g_fail = 0u;
 
-    say("libTest census: per-equation census vs exec_sw\n");
+    say("libTest census: per-equation census vs exec_sw, simulated clock\n");
     c1_cases();
     c2_random();
     c3_edges();
+    s1_hand();
+    s2_monotonic();
+    s3_edges();
 
     return g_fail;
 }
