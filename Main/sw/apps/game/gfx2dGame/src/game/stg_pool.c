@@ -373,6 +373,41 @@ void stg_pool_age(stg_pool *p)
     }
 }
 
+/* 粗筛用一次无符号比较判两侧：|d| <= R 等价于 (uint32_t)(d + R) <= 2R（与 stg_pool_collide 同一种写法）。 */
+void stg_pool_danger(const stg_pool *p, const stg_danger_q *q, uint32_t *risk)
+{
+    const stg_ent *ent = p->ent;
+    const uint32_t nb = p->n;
+    const uint32_t nc = (q->n < STG_DANGER_MAX) ? q->n : STG_DANGER_MAX;
+    const int32_t  look = q->look, reach = q->reach, r2 = q->r * q->r;
+    const int32_t  px = q->px, py = q->py;
+    uint32_t       i, j;
+
+    for (i = 0u; i < nb; i++) {
+        const stg_ent *e = &ent[i];
+        int32_t        bx, by;
+
+        if ((e->flags & STG_F_REMOVE) != 0u)
+            continue;
+        bx = fx_px(e->x + look * e->vx);
+        by = fx_px(e->y + look * e->vy);
+#ifdef INJECT_DANGER_LOOP_DIV
+        bx += by / (look | 1);          /* 注错：循环里的一次除法，objdump 那条判据必须看见 */
+#endif
+        if ((uint32_t)(bx - px + reach) > (uint32_t)(2 * reach)
+            || (uint32_t)(by - py + reach) > (uint32_t)(2 * reach))
+            continue;
+        for (j = 0u; j < nc; j++) {
+            const int32_t dx = bx - q->cx[j];
+            const int32_t dy = by - q->cy[j];
+            const int32_t d2 = dx * dx + dy * dy;
+
+            if (d2 < r2)
+                risk[j] += (uint32_t)(r2 - d2);
+        }
+    }
+}
+
 int stg_pool_get(const stg_pool *p, uint32_t i, stg_ent *out)
 {
     if (i >= p->n)

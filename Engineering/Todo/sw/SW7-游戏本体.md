@@ -707,10 +707,28 @@ C 批按下面的定法实现（4.17 节第 13~16 条）：
 | HUD 与游戏判据入口（C 批） | 判据入口（2.6 节 `STG_FIELD=4`）无窗口跑两遍，日志逐字节相同、`fail 0`；每帧追加的拒绝数为 0，普查的各方程条数等于组帧按类记下的条数；注错 `STG_LIVE_HUD`（判据模式照样显示实测值）两遍必须见红；截帧看过标题、杂兵段、每张符卡与 `CLEAR`，写进开发日志；抽出文字绘制之后 SW6 的判据日志逐字节不变（`pak` 行除外）、`check_sw6_demo.sh` 十项全过 |
 | 可玩 | PC 上从开始打到 Boss 结束，全程无崩溃；一段人工通关录像入库，无窗口回放两次的 CRC 序列相同 |
 | 规模 | 场景 S1 的规模（2000 个敌弹）在 PC 上正常显示；统计里的像素数与设计文档 4.5 节的估算并列登记，差异逐项解释 |
-| 实现约束 | 更新循环（`stg_pool_step`）、碰撞（`stg_pool_collide`）与按池发出（`stg_pool_draw`）三个函数里没有除法与取模指令（`div`、`divu`、`rem`、`remu`），不调 `__div*`、`__mod*`、`__udiv*`、`__umod*`，除 `ret` 外没有 `jalr`（没有函数指针调用）：`check_sw7_game.sh` 先打包素材、做板上构建，再 `objdump -d` 查这三个函数；注错在更新循环里加一次除法必须见红。C 批的逐颗循环（`stg_pool_hit_targets`、`stg_pool_cancel`、`stg_pool_age`）同样查，自机弹对敌机与粒子寿命两个循环各带一个注错。离屏弹幕当帧回收；新文件过 `check_sw_layers.sh` |
+| 实现约束 | 更新循环（`stg_pool_step`）、碰撞（`stg_pool_collide`）与按池发出（`stg_pool_draw`）三个函数里没有除法与取模指令（`div`、`divu`、`rem`、`remu`），不调 `__div*`、`__mod*`、`__udiv*`、`__umod*`，除 `ret` 外没有 `jalr`（没有函数指针调用）：`check_sw7_game.sh` 先打包素材、做板上构建，再 `objdump -d` 查这三个函数；注错在更新循环里加一次除法必须见红。C 批的逐颗循环（`stg_pool_hit_targets`、`stg_pool_cancel`、`stg_pool_age`，以及 SW8 自动驾驶的危险度扫描 `stg_pool_danger`）同样查，自机弹对敌机、粒子寿命与危险度扫描三个循环各带一个注错。离屏弹幕当帧回收；新文件过 `check_sw_layers.sh` |
 | SW6 不回退 | 抽出文字绘制之后，`check_sw6_demo.sh` 十项仍全过 |
 
 ## 4 开发日志
+
+### 4.23 2026-09-26 C 批 C7 的实体池一侧：危险度扫描 `stg_pool_danger()`（数据收尾时并入 TechReport）
+
+SW8 2.6 节定了自动驾驶的危险度由实体池一遍扫敌弹池给出、写在 `stg_pool.c`、进 G11 的反汇编检查；这一条只做池的那一侧，
+自动驾驶本身（候选、偏好、接管）在 SW8。
+
+做了什么：
+
+- `stg_pool.{h,c}`：`stg_pool_danger(p, q, risk)`，查询打包成 `stg_danger_q`（外推帧数、自机、粗筛距离、危险半径、至多 9 个候选，
+  全是像素）。逐颗跳过已标记的，外推 `fx_px(x + look·vx)`，两轴都不超过粗筛距离才对每个候选算 `d²`，`d² < r²` 时加 `r² − d²`。
+  粗筛用一次无符号比较判两侧（与 `stg_pool_collide` 同一种写法）。注错 `INJECT_DANGER_LOOP_DIV`。
+- app 测试 P7 两行：手算的几颗（`d = 0` 加 1600、`d = 39` 加 79、离自机恰好 88 像素的不被筛掉、89 的被筛掉、已标记的跳过、外推 12 帧）；
+  随机 300 个池对 64 位、不粗筛的朴素参考逐项相同。
+- `check_sw7_game.sh` 的 G11 查七个循环，加 `DANGER_LOOP_DIV` 一条注错；`tools/check/README.md` 同步。
+
+判据结果（本机）：P7 两行 ok，随机那一行外推之后落在粗筛框里的弹 27,843 颗、正好在框边上（88 或 89 像素）的 1,741 颗，不符 0；
+G4 64/32 逐字节相同、127 行 ok；G11 `stg_pool_danger` 73 条指令，没有除法、取模与间接跳转，`DANGER_LOOP_DIV` 查到 `div`；
+`check_sw7_game.sh` 全套 `fail 0`。`STG_FIELD=1、2、4` 的板上产物 72,974、73,022、73,286 字节。
 
 ### 4.22 2026-09-26 G11 的反汇编判据把立即数的符号注释误判成除法库调用
 

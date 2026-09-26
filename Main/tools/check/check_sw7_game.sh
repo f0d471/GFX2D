@@ -29,8 +29,9 @@
 #                       日志逐字节相同、fail 0、done、六段 840 帧
 #   G11 板上构建与反汇编 先打包素材，再以 STG_FIELD=1、2 做板上构建，零告警；objdump 查逐颗的循环
 #                       stg_pool_step、stg_pool_collide、stg_pool_draw，以及 C 批的 stg_pool_hit_targets、
-#                       stg_pool_cancel、stg_pool_age：没有 div/divu/rem/remu，没有 __div*、__mod* 调用，
-#                       没有 ret 以外的 jalr/jr；注错 STG_LOOP_DIV、PHIT_LOOP_DIV、AGE_LOOP_DIV 各在一个循环里
+#                       stg_pool_cancel、stg_pool_age、stg_pool_danger（SW8 自动驾驶的危险度扫描）：
+#                       没有 div/divu/rem/remu，没有 __div*、__mod* 调用，没有 ret 以外的 jalr/jr；
+#                       注错 STG_LOOP_DIV、PHIT_LOOP_DIV、AGE_LOOP_DIV、DANGER_LOOP_DIV 各在一个循环里
 #                       加一次除法，这条检查必须在那个函数上见红。
 #                       要 RISCV_BIN=<RISCV_BIN>，找不到交叉工具链时跳过，**跳过不算通过**
 #   G12 自机与规则      G4 的输出里自机与规则 R 组 28 行全 ok（移动、射击节奏、受击与无敌、自动炸弹与火花、
@@ -377,7 +378,7 @@ loop_offenders() {
                 m ~ /^(div|divu|rem|remu)$/ || m == "jalr" || m == "jr" ||
                 (m ~ /^(jal|j|call|tail)$/ && $3 ~ /<__(u)?(div|mod)/) { print }'
 }
-LOOPS="stg_pool_step stg_pool_collide stg_pool_draw stg_pool_hit_targets stg_pool_cancel stg_pool_age"
+LOOPS="stg_pool_step stg_pool_collide stg_pool_draw stg_pool_hit_targets stg_pool_cancel stg_pool_age stg_pool_danger"
 if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
     for m in 1 2 4; do
         if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_stg$m" EXTRA_CFLAGS="-DSTG_FIELD=$m" \
@@ -404,7 +405,8 @@ if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
     done
 
     # 注错：在一个循环里加一次除法，上面这条检查必须在那个函数上看得见
-    for pair in STG_LOOP_DIV:stg_pool_step PHIT_LOOP_DIV:stg_pool_hit_targets AGE_LOOP_DIV:stg_pool_age; do
+    for pair in STG_LOOP_DIV:stg_pool_step PHIT_LOOP_DIV:stg_pool_hit_targets AGE_LOOP_DIV:stg_pool_age \
+                DANGER_LOOP_DIV:stg_pool_danger; do
         inj="${pair%%:*}"
         fn="${pair#*:}"
         if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_$inj" EXTRA_CFLAGS="-DSTG_FIELD=2" \

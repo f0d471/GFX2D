@@ -20,6 +20,7 @@
 *
 *         碰撞（SW7 2.4 节）：自机判定点对敌弹见 stg_pool_collide()，自机弹对敌机见 stg_pool_hit_targets()；
 *         炸弹消弹见 stg_pool_cancel()，粒子寿命见 stg_pool_age()（C 批，2.2、2.4 节）；
+*         SW8 自动驾驶的危险度扫描见 stg_pool_danger()（C 批，SW8 2.6 节）；
 *         按池发出（2.6 节）见 stg_pool_draw()。这些逐颗的循环里没有除法与取模、
 *         没有函数指针调用，check_sw7_game.sh 用 objdump 查板上构建。
 *
@@ -35,6 +36,7 @@
 *           INJECT_PHIT_LE         自机弹命中判成 d² <= T²（恰好相切也算命中）
 *           INJECT_PHIT_LOOP_DIV   自机弹对敌机的循环里加一次除法（objdump 反例）
 *           INJECT_AGE_LOOP_DIV    粒子寿命的循环里加一次除法（objdump 反例）
+*           INJECT_DANGER_LOOP_DIV 危险度扫描的循环里加一次除法（objdump 反例）
 ******************************************************************************/
 #ifndef STG_POOL_H
 #define STG_POOL_H
@@ -196,6 +198,28 @@ typedef struct {
    w 或 h 不大于 0 时没有像素，什么也不发，*cursor 直接移到池尾。 */
 uint32_t stg_pool_draw(const stg_pool *p, uint32_t kind, const stg_draw_geom *g,
                        const gfx_rect *clip, uint32_t *cursor, gfx_blit_pos *out, uint32_t cap);
+
+/* --- 自动驾驶的危险度（SW8 2.6 节，C 批） ----------------------------------- */
+
+#define STG_DANGER_MAX      9u
+
+/* 一次查询：自机的位置与若干候选位置，全是像素。 */
+typedef struct {
+    int32_t  look;                  /* 外推帧数 */
+    int32_t  px, py;                /* 自机中心 */
+    int32_t  reach;                 /* 粗筛：外推位置与自机在任一轴上相差超过它就跳过 */
+    int32_t  r;                     /* 危险半径 */
+    uint32_t n;                     /* 候选数，不超过 STG_DANGER_MAX */
+    int32_t  cx[STG_DANGER_MAX];    /* 候选位置 */
+    int32_t  cy[STG_DANGER_MAX];
+} stg_danger_q;
+
+/* 一遍扫池，逐颗（已标记移除的跳过）：外推 look 帧 (x + look·vx, y + look·vy)，取整像素（fx_px）；
+   与 (px, py) 在任一轴上相差超过 reach 就跳过；否则对每个候选算 d²，d² < r² 时 risk[i] 加 r² − d²。
+   没有除法、不用 1/d²、不用浮点。risk 由调用方清零，这里只加。
+   reach 不小于「候选离 (px, py) 的最大轴向距离 + r」时粗筛不漏（自动驾驶取 48 + 40 = 88）。
+   外推位置须在 ±2^23 以内（池里的弹都按出界边界筛过、速度不超过每帧几像素）。 */
+void     stg_pool_danger(const stg_pool *p, const stg_danger_q *q, uint32_t *risk);
 
 uint32_t stg_pool_count(const stg_pool *p);
 uint32_t stg_pool_overflow(const stg_pool *p);

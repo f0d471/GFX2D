@@ -281,7 +281,7 @@ G11 要交叉工具链，找不到时跳过，跳过不算通过。全套在本�
 | G8i | `COLLIDE_LE` 让 X1 的相切那一行见红；`COLLIDE_NO_CULL` 让 X3 见红，且 stderr 里有 UBSan 的平方溢出报告 |
 | G9 | 按池发出与组帧：G4 的输出里 W 组 12 行全 ok（剔除边界、分段扫 = 一次扫 = 独立重数、源坐标（米弹、小圆弹的颜色号、火花的寿命帧）、六段各 300 帧组帧时拒绝为 0 且普查的 ALPHA 条数 = 发出的敌弹数） |
 | G10 | 先打包素材，再以 `EXTRA_CFLAGS=-DSTG_FIELD=2` 编 gfx2dGame 的 PC 版，无窗口（`SDL_VIDEODRIVER=dummy`）跑两遍：去掉 `\r` 之后两遍逐字节相同、`fail 0`、`done`、六段 840 帧、没有 `err` 行 |
-| G11 | `STG_FIELD=1`、`2`、`4` 的板上构建零告警；`objdump -d` 查六个逐颗的循环 `stg_pool_step`、`stg_pool_collide`、`stg_pool_draw`、`stg_pool_hit_targets`、`stg_pool_cancel`、`stg_pool_age`：没有 `div`/`divu`/`rem`/`remu`、没有 `__div*`/`__mod*` 调用、没有 `ret` 以外的 `jalr`/`jr`；注错 `STG_LOOP_DIV`、`PHIT_LOOP_DIV`、`AGE_LOOP_DIV` 各在 `stg_pool_step`、`stg_pool_hit_targets`、`stg_pool_age` 里加一次除法，这条检查必须在那个函数上见红。要 `RISCV_BIN`，找不到时跳过，跳过不算通过 |
+| G11 | `STG_FIELD=1`、`2`、`4` 的板上构建零告警；`objdump -d` 查七个逐颗的循环 `stg_pool_step`、`stg_pool_collide`、`stg_pool_draw`、`stg_pool_hit_targets`、`stg_pool_cancel`、`stg_pool_age`、`stg_pool_danger`（SW8 自动驾驶的危险度扫描）：没有 `div`/`divu`/`rem`/`remu`、没有 `__div*`/`__mod*` 调用、没有 `ret` 以外的 `jalr`/`jr`；注错 `STG_LOOP_DIV`、`PHIT_LOOP_DIV`、`AGE_LOOP_DIV`、`DANGER_LOOP_DIV` 各在 `stg_pool_step`、`stg_pool_hit_targets`、`stg_pool_age`、`stg_pool_danger` 里加一次除法，这条检查必须在那个函数上见红。要 `RISCV_BIN`，找不到时跳过，跳过不算通过 |
 | G12 | 自机与规则：G4 的输出里 R 组 28 行全 ok（移动、射击节奏、受击与无敌、自动炸弹与火花、手动炸弹的按下沿、粒子溢出、回标题与 HI-SCORE、擦弹得分、自机弹对敌机的边界与随机对 64 位朴素参考、粒子寿命与弹种位图） |
 | G12i | `GAME_NO_AUTOBOMB` 让 R4 见红，`GAME_NO_INVINCIBLE` 让 R3 的无敌那一行见红，`PHIT_LE` 让 R9 的相切那一行见红 |
 | G13 | 敌机、Boss 与关卡：G4 的输出里 S 组 21 行全 ok（表、移动事件表与出界、槽位、击毁、整局各段开始帧对 SW7 2.5 节的常量另算、射击时走到 CLEAR 与得分另算、Boss 路径与间隙不受伤、压力形态、旋钮加倍时稳态弹数不减、改档之后到达稳态不超过 `SETTLE_MIN`、游戏里的门控、背景） |

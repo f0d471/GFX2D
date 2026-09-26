@@ -9,6 +9,9 @@
 *           P4  出界边界的四条边（半开区间）与默认边界的取值
 *           P5  标记：标记的实体即使在界内也移除、计为被标记；越界的下标不动；其余标志位保留
 *           P6  画图的目的左上角 (x >> 8) - w/2，负坐标向负无穷取整
+*           P7  危险度扫描（stg_pool_danger，SW8 2.6 节）：手算的几颗（d = 0 与 39、粗筛恰好 88 与 89 像素、
+*               已标记跳过、外推 12 帧）；随机 300 个池（含远处的、已标记的、贴着粗筛边界的）对 64 位、
+*               不粗筛的朴素参考逐项相同
 *
 *         **期望由另一份写法给出**：ref_step() 先逐个判「活不活」写进一张表，再按表收集，
 *         与产品代码「一遍里边判边写」不是同一段逻辑。两者都错成同一个样子才会漏。
@@ -389,6 +392,142 @@ static void p6_draw(void)
        && stg_draw_origin(100 * FX_ONE + 255, 6) == 97);
 }
 
+/* --- P7 危险度扫描 ------------------------------------------------------- */
+
+#define DG_LOOK     12
+#define DG_R        40
+#define DG_SPREAD   48
+#define DG_REACH    (DG_SPREAD + DG_R)
+
+/* 朴素参考：不粗筛，64 位 */
+static void ref_danger(const stg_pool *p, const stg_danger_q *q, uint64_t *risk)
+{
+    uint32_t i, j;
+
+    for (i = 0u; i < p->n; i++) {
+        stg_ent e;
+        int64_t bx, by;
+
+        (void)stg_pool_get(p, i, &e);
+        if ((e.flags & STG_F_REMOVE) != 0u)
+            continue;
+        bx = ((int64_t)e.x + (int64_t)q->look * e.vx) >> 8;
+        by = ((int64_t)e.y + (int64_t)q->look * e.vy) >> 8;
+        for (j = 0u; j < q->n; j++) {
+            const int64_t dx = bx - q->cx[j], dy = by - q->cy[j];
+            const int64_t d2 = dx * dx + dy * dy;
+            const int64_t r2 = (int64_t)q->r * q->r;
+
+            if (d2 < r2)
+                risk[j] += (uint64_t)(r2 - d2);
+        }
+    }
+}
+
+static int32_t rnd(xs32 *r, int32_t lo, int32_t hi)
+{
+    return lo + (int32_t)(xs32_next(r) % (uint32_t)(hi - lo + 1));
+}
+
+static void dg_query(stg_danger_q *q, int32_t px, int32_t py)
+{
+    q->look  = DG_LOOK;
+    q->px    = px;
+    q->py    = py;
+    q->reach = DG_REACH;
+    q->r     = DG_R;
+    q->n     = 0u;
+}
+
+static void p7_danger(void)
+{
+    stg_pool    *p = &s_pools.ebullet;
+    stg_danger_q q;
+    uint32_t     risk[STG_DANGER_MAX];
+    uint64_t     ref[STG_DANGER_MAX];
+    xs32         r;
+    uint32_t     c, i, bad = 0u, near = 0u, edge = 0u;
+    int          ok;
+
+    /* 手算：自机 (200, 300)；候选 0 在自机上、候选 1 在 (260, 300)（只为看粗筛，比实际的散布远）、候选 2 在 (200, 339) */
+    stg_pool_init(p, s_pools.ebullet_mem, STG_CAP_EBULLET);
+    dg_query(&q, 200, 300);
+    q.n = 3u;
+    q.cx[0] = 200; q.cy[0] = 300;
+    q.cx[1] = 260; q.cy[1] = 300;
+    q.cx[2] = 200; q.cy[2] = 339;
+    /* 12 帧后正好到 (200, 300)：候选 0 加 1600，候选 2 在 39 处加 1600 - 1521 = 79 */
+    (void)stg_pool_add(p, 200 * FX_ONE, (300 - 36) * FX_ONE, 0, 3 * FX_ONE, 0u, 0u);
+    /* 停在 (288, 300)：离自机恰好 88，不被粗筛掉；离候选 1 是 28，加 1600 - 784 = 816 */
+    (void)stg_pool_add(p, 288 * FX_ONE, 300 * FX_ONE, 0, 0, 0u, 0u);
+    /* 停在 (289, 300)：离自机 89，被粗筛掉（不筛的话候选 1 会加 759） */
+    (void)stg_pool_add(p, 289 * FX_ONE, 300 * FX_ONE, 0, 0, 0u, 0u);
+    /* 停在 (247, 301)：离候选 1 的 d² = 170，加 1430；同位置再放一颗并标记移除，跳过 */
+    (void)stg_pool_add(p, 247 * FX_ONE, 301 * FX_ONE, 0, 0, 0u, 0u);
+    (void)stg_pool_add(p, 247 * FX_ONE, 301 * FX_ONE, 0, 0, 0u, 0u);
+    stg_pool_mark(p, 4u);
+    for (i = 0u; i < 3u; i++)
+        risk[i] = 0u;
+    stg_pool_danger(p, &q, risk);
+    ok = (risk[0] == 1600u && risk[1] == 816u + 1430u && risk[2] == 79u);
+    ck("P7 danger by hand: d=0 -> 1600, d=39 -> 79, box edge 88 in / 89 out, marked skipped", ok);
+
+    xs32_seed(&r, 0xA070D00Du);
+    for (c = 0u; c < 300u; c++) {
+        const uint32_t n = 1u + xs32_next(&r) % 400u;
+
+        stg_pool_init(p, s_pools.ebullet_mem, STG_CAP_EBULLET);
+        dg_query(&q, rnd(&r, 16, 384), rnd(&r, 16, 464));
+        q.n = STG_DANGER_MAX;
+        for (i = 0u; i < q.n; i++) {
+            q.cx[i] = q.px + rnd(&r, -DG_SPREAD, DG_SPREAD);
+            q.cy[i] = q.py + rnd(&r, -DG_SPREAD, DG_SPREAD);
+            risk[i] = 0u;
+            ref[i]  = 0u;
+        }
+        for (i = 0u; i < n; i++) {
+            /* 一半外推之后落在自机 ±100 像素里，一半在全场；速度 ±6 像素/帧 */
+            const int32_t vx = rnd(&r, -1536, 1536), vy = rnd(&r, -1536, 1536);
+            int32_t       ex, ey, bx, by, ax, ay;
+
+            if (i & 1u) {
+                ex = (q.px + rnd(&r, -100, 100)) * FX_ONE + rnd(&r, 0, 255) - DG_LOOK * vx;
+                ey = (q.py + rnd(&r, -100, 100)) * FX_ONE + rnd(&r, 0, 255) - DG_LOOK * vy;
+            } else {
+                ex = rnd(&r, -10 * FX_ONE, 410 * FX_ONE);
+                ey = rnd(&r, -10 * FX_ONE, 490 * FX_ONE);
+            }
+            (void)stg_pool_add(p, ex, ey, vx, vy, 0u, (uint16_t)(xs32_next(&r) & 0xFu));
+            if ((xs32_next(&r) & 7u) == 0u)
+                stg_pool_mark(p, p->n - 1u);
+            bx = fx_px(ex + DG_LOOK * vx);
+            by = fx_px(ey + DG_LOOK * vy);
+            ax = (bx > q.px) ? bx - q.px : q.px - bx;
+            ay = (by > q.py) ? by - q.py : q.py - by;
+            near += (ax <= DG_REACH && ay <= DG_REACH);
+            edge += (ax == DG_REACH || ay == DG_REACH || ax == DG_REACH + 1 || ay == DG_REACH + 1);
+        }
+        stg_pool_danger(p, &q, risk);
+        ref_danger(p, &q, ref);
+        for (i = 0u; i < q.n; i++)
+            bad += ((uint64_t)risk[i] != ref[i]);
+    }
+    {
+        char     line[160];
+        core_out o;
+
+        core_out_init(&o, line, (uint32_t)sizeof line);
+        core_out_str(&o, "P7 danger vs 64-bit naive reference: 300 pools, ");
+        core_out_u32(&o, near);
+        core_out_str(&o, " bullets inside the box, ");
+        core_out_u32(&o, edge);
+        core_out_str(&o, " on its edge, mismatches ");
+        core_out_u32(&o, bad);
+        ck(line, bad == 0u && edge > 0u);
+    }
+    stg_pool_init(p, s_pools.ebullet_mem, STG_CAP_EBULLET);
+}
+
 uint32_t test_stg_pool_run(void)
 {
     g_fail = 0u;
@@ -400,6 +539,7 @@ uint32_t test_stg_pool_run(void)
     p4_bounds();
     p5_mark();
     p6_draw();
+    p7_danger();
 
     return g_fail;
 }
