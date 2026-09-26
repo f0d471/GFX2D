@@ -41,7 +41,8 @@
 #include "game/stg_field.h"
 #include "game/stg_pattern.h"
 #include "game/stg_press.h"
-#include "game/sw6_cfg.h"
+
+#include "stg_slots.h"
 
 #if STG_FIELD_MODE < 1 || STG_FIELD_MODE > 3
 #error "STG_FIELD 只认 1（演示）、2（判据）与 3（N_max 搜索）"
@@ -126,15 +127,19 @@ static uint32_t field_crc(const uint32_t *fb)
 
 #endif /* STG_DRAWS */
 
+/* 游戏的表面槽（stg_slots.h）。自机取 ships.png 的第 0 格（32x32，左上角 (0, 0)，色键 0）。 */
 static void cfg_init(stg_compose_cfg *c, int dst)
 {
     c->dst                     = dst;
-    c->src_slot[STG_SRC_ATLAS] = SW6_SLOT_ATLAS;
-    c->src_slot[STG_SRC_SMALL] = SW6_SLOT_SOLID8;
-    c->player_slot             = SW6_SLOT_KEY_DEMO;
-    c->player_w                = (int32_t)ASSET_KEY_DEMO_W;
-    c->player_h                = (int32_t)ASSET_KEY_DEMO_H;
-    c->player_key              = ASSET_KEY_DEMO_KEY;
+    c->src_slot[STG_SRC_BUL16] = STG_SLOT_BUL16;
+    c->src_slot[STG_SRC_BUL8]  = STG_SLOT_BUL8;
+    c->src_slot[STG_SRC_RICE]  = STG_SLOT_RICE;
+    c->src_slot[STG_SRC_PSHOT] = STG_SLOT_PSHOT;
+    c->src_slot[STG_SRC_SPARK] = STG_SLOT_SPARK;
+    c->player_slot             = STG_SLOT_SHIPS;
+    c->player_w                = (int32_t)ASSET_SHIPS_CELL_W;
+    c->player_h                = (int32_t)ASSET_SHIPS_CELL_H;
+    c->player_key              = ASSET_SHIPS_KEY;
 }
 
 #if STG_DRAWS
@@ -142,7 +147,7 @@ static void cfg_init(stg_compose_cfg *c, int dst)
 static void frame_run(const stg_main_ctx *ctx, uint32_t frame, frame_out *fo)
 {
     const uint32_t   idx = s_seq & 1u;
-    const int        dst = idx ? SW6_SLOT_FB1 : SW6_SLOT_FB0;
+    const int        dst = idx ? STG_SLOT_FB1 : STG_SLOT_FB0;
     gfx_list         l;
     stg_compose_cfg  cfg;
     gfx_census_state cs;
@@ -253,7 +258,7 @@ static void search_one(const stg_main_ctx *ctx, uint32_t kind, const char *name)
 
     stg_press_begin(&s_field, kind);
     stg_field_set_pressure(&s_field, s_nmax.knob);
-    cfg_init(&cc, SW6_SLOT_FB0);
+    cfg_init(&cc, STG_SLOT_FB0);
     while (s_nmax.status == NMAX_RUNNING && frames < STG_NMAX_FRAME_LIMIT) {
         gfx_list l;
         uint32_t ev;

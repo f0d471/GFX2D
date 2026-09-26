@@ -17,7 +17,8 @@
 *         `logs/sw6_judge.log` 与 `logs/sw6_judge_quick.log`。
 *
 *         -DSTG_FIELD=<n> 时换成 SW7 B 批的弹幕场入口（stg_main.c，SW7 2.6 节）：
-*         启动只做分区窗口、素材包与表面槽三步，不做预合成；SW6 的两种构建不受影响。
+*         启动只做分区窗口、素材包与表面槽三步，不做预合成；表面槽用游戏那一套（stg_slots.h，
+*         SW7 2.7 节）。SW6 的两种构建不受影响。
 ******************************************************************************/
 
 #include <stddef.h>
@@ -44,6 +45,7 @@
 #include "game/sw6_scene_b.h"
 
 #include "stg_main.h"
+#include "stg_slots.h"
 
 /* --- 全局状态（都是静态的，不用 malloc）--------------------------------- */
 
@@ -558,6 +560,62 @@ static int run_demo(void)
 
 #if STG_FIELD_MODE != 0
 
+/* 游戏的表面槽（SW7 2.7 节，stg_slots.h）：0、1 是两张帧缓冲，2~14 是 SW5 字库与 12 张霓虹素材。
+   不登记离屏图：游戏没有预合成。 */
+static int boot_surfaces_stg(void)
+{
+    static const struct {
+        uint32_t entry;
+        int      slot;
+    } pick[STG_SLOT_N_ASSETS] = {
+        { ASSET_BUL16_ENTRY,     STG_SLOT_BUL16 },
+        { ASSET_BUL8_ENTRY,      STG_SLOT_BUL8 },
+        { ASSET_RICE20_ENTRY,    STG_SLOT_RICE },
+        { ASSET_FONT8X16_ENTRY,  STG_SLOT_FONT },
+        { ASSET_PSHOT_ENTRY,     STG_SLOT_PSHOT },
+        { ASSET_SPARK_ENTRY,     STG_SLOT_SPARK },
+        { ASSET_SHIPS_ENTRY,     STG_SLOT_SHIPS },
+        { ASSET_BOSS_ENTRY,      STG_SLOT_BOSS },
+        { ASSET_STARS_ENTRY,     STG_SLOT_STARS },
+        { ASSET_TITLE_ENTRY,     STG_SLOT_TITLE },
+        { ASSET_DIGITS_ENTRY,    STG_SLOT_DIGITS },
+        { ASSET_ICONS_ENTRY,     STG_SLOT_ICONS },
+        { ASSET_FONT_CYAN_ENTRY, STG_SLOT_FONT_CYAN },
+    };
+    const uint32_t asset_dev = g_mem_regions[REGION_ASSET].offset;
+    const uint32_t fb_dev[2] = { g_mem_regions[REGION_FB0].offset,
+                                 g_mem_regions[REGION_FB1].offset };
+    gfx_surface    s;
+    uint32_t       i;
+
+    gfx_surface_reset(&s_tab);
+    for (i = 0u; i < (uint32_t)STG_SLOT_N_ASSETS; i++) {
+        assetpak_entry e;
+
+        if (assetpak_entry_at(&s_pak, pick[i].entry, &e) != ASSETPAK_OK)
+            return -1;
+        s.base        = asset_dev + e.offset;
+        s.width       = e.width;
+        s.height      = e.height;
+        s.stride_log2 = e.stride_log2;
+        s.space       = GFX_SPACE_DDR;
+        s.format      = e.format;
+        if (gfx_surface_set(&s_tab, pick[i].slot, &s) != 0)
+            return -1;
+    }
+    s.width       = (uint16_t)FB_WIDTH;
+    s.height      = (uint16_t)FB_HEIGHT;
+    s.stride_log2 = (uint8_t)FB_STRIDE_LOG2;
+    s.space       = GFX_SPACE_DDR;
+    s.format      = GFX_FMT_XRGB8888;
+    for (i = 0u; i < 2u; i++) {
+        s.base = fb_dev[i];
+        if (gfx_surface_set(&s_tab, (i == 0u) ? STG_SLOT_FB0 : STG_SLOT_FB1, &s) != 0)
+            return -1;
+    }
+    return 0;
+}
+
 static int run_stg(void)
 {
     stg_main_ctx ctx;
@@ -566,7 +624,7 @@ static int run_stg(void)
         sw6_log_end(s_fail + 1u);
         return 1;
     }
-    if (boot_surfaces() != 0) {
+    if (boot_surfaces_stg() != 0) {
         board_puts("surf err 表面登记失败\r\n");
         sw6_log_end(s_fail + 1u);
         return 1;

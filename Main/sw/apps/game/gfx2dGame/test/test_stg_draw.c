@@ -4,9 +4,9 @@
 * @brief  四组，判据见 SW7 第 3 节「组帧（B 批）」一行：
 *           W1  剔除的边界：16x16 的弹，中心在四条边外 7 像素（还有 1 像素可见）发出、外 8 像素不发；
 *               Q.8 的小数向负无穷取整
-*           W2  随机池（三个弹种、部分标记移除、位置越出游戏区）：分段扫（每段 7 条）与一次扫的结果逐条相同，
+*           W2  随机池（16 个弹种号，含未用的 14、15；部分标记移除、位置越出游戏区）：分段扫（每段 7 条）与一次扫的结果逐条相同，
 *               都等于独立重数——逐颗按 64 位算目的矩形、与游戏区求交，不用产品代码的无符号比较
-*           W3  源左上角：RICE16 第 16、23、24、31 帧；SMALL8 恒为 (0, 0)
+*           W3  源左上角：RICE20 第 16、23、24、31 帧（品红那一行）；SMALL8 的颜色号；火花的帧号（列 = 寿命 & 3、行 = 寿命 >> 2）
 *           W4  组帧：六段各跑 300 帧，每帧组一张表：拒绝与表满为 0；前三条是游戏区 SET_CLIP、FILL、自机 BLIT，
 *               末两条是全屏 SET_CLIP 与 END；普查的 ALPHA 条数等于发出的敌弹数；
 *               独立重数的活动元素数等于发出的条数；自机算一个活动元素
@@ -27,11 +27,14 @@
 #include "game/stg_pool.h"
 #include "test_stg_draw.h"
 
-/* 与 gfx2dGame 的 SW6_SLOT_* 相同的槽号（这里不含 sw6_cfg.h，免得 app 测试依赖 SW6 的配置）。 */
+/* 与 gfx2dGame 游戏的表面槽（SW7 2.7 节）相同的槽号（这里不含入口的头文件，app 测试不依赖入口的配置）。 */
 #define SLOT_FB0    0
-#define SLOT_ATLAS  4
-#define SLOT_KEY    8
-#define SLOT_SOLID8 9
+#define SLOT_BUL16  2
+#define SLOT_BUL8   3
+#define SLOT_RICE   4
+#define SLOT_PSHOT  6
+#define SLOT_SPARK  7
+#define SLOT_SHIPS  8
 
 #define LIST_CAP    8192u
 
@@ -164,14 +167,14 @@ static void w2_chunks(void)
         for (i = 0u; i < 3000u; i++) {
             const int32_t  x = (int32_t)(xs32_next(&g) % (440u * 256u)) - 20 * FX_ONE;
             const int32_t  y = (int32_t)(xs32_next(&g) % (520u * 256u)) - 20 * FX_ONE;
-            const uint16_t kd = (uint16_t)(xs32_next(&g) % 4u);    /* 3 是未用弹种 */
+            const uint16_t kd = (uint16_t)(xs32_next(&g) % 16u);   /* 14、15 是未用弹种 */
             const uint16_t sp = (uint16_t)(xs32_next(&g) % 48u);
 
             (void)stg_pool_add(&p, x, y, 0, 0, sp, kd);
             if (xs32_next(&g) % 10u == 0u)
                 stg_pool_mark(&p, i);
         }
-        for (kind = 0u; kind < 4u; kind++) {
+        for (kind = 0u; kind < STG_KIND_N_MAX; kind++) {
             stg_draw_geom gm;
             gfx_rect      clip;
             uint32_t      one, many = 0u, cursor = 0u, j, n_kind = 0u;
@@ -216,7 +219,7 @@ static void w2_chunks(void)
         fputs(line, stdout);
     }
     ck("W2 chunked scan (7 per call) == one scan, record by record", bad_chunk == 0u);
-    ck("W2 drawn count == naive recount (64-bit rect vs field) for kinds 0..3", bad_naive == 0u);
+    ck("W2 drawn count == naive recount (64-bit rect vs field) for kinds 0..15", bad_naive == 0u);
 }
 
 /* --- W3 源左上角 --------------------------------------------------------- */
@@ -227,20 +230,30 @@ static void w3_source(void)
     uint32_t k;
 
     stg_pool_init(&p, s_mem, 4096u);
-    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 16u, STG_KIND_RICE16);
-    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 23u, STG_KIND_RICE16);
-    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 24u, STG_KIND_RICE16);
-    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 31u, STG_KIND_RICE16);
-    k = draw_all(&p, STG_KIND_RICE16, s_a, 4096u);
-    ck("W3 RICE16 frames 16, 23, 24, 31 -> source (0,32) (112,32) (0,48) (112,48)",
-       k == 4u && s_a[0].sx == 0 && s_a[0].sy == 32 && s_a[1].sx == 112 && s_a[1].sy == 32
-       && s_a[2].sx == 0 && s_a[2].sy == 48 && s_a[3].sx == 112 && s_a[3].sy == 48);
+    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 16u, STG_KIND_RICE20 + 1u);
+    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 23u, STG_KIND_RICE20 + 1u);
+    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 24u, STG_KIND_RICE20 + 1u);
+    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 31u, STG_KIND_RICE20 + 1u);
+    k = draw_all(&p, STG_KIND_RICE20 + 1u, s_a, 4096u);
+    ck("W3 RICE20 frames 16, 23, 24, 31 -> source (0,20) (140,20) (160,20) (300,20), dest centre - 10",
+       k == 4u && s_a[0].sx == 0 && s_a[0].sy == 20 && s_a[1].sx == 140 && s_a[1].sy == 20
+       && s_a[2].sx == 160 && s_a[2].sy == 20 && s_a[3].sx == 300 && s_a[3].sy == 20
+       && s_a[0].dx == 90 && s_a[0].dy == 90);
 
     stg_pool_init(&p, s_mem, 4096u);
-    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 0u, STG_KIND_SMALL8);
-    k = draw_all(&p, STG_KIND_SMALL8, s_a, 4096u);
-    ck("W3 SMALL8 source (0,0), dest centre - 4",
-       k == 1u && s_a[0].sx == 0 && s_a[0].sy == 0 && s_a[0].dx == 96 && s_a[0].dy == 96);
+    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 2u, STG_KIND_SMALL8 + 2u);
+    k = draw_all(&p, STG_KIND_SMALL8 + 2u, s_a, 4096u);
+    ck("W3 SMALL8 amber (frame 2) source (16,0), dest centre - 4",
+       k == 1u && s_a[0].sx == 16 && s_a[0].sy == 0 && s_a[0].dx == 96 && s_a[0].dy == 96);
+
+    stg_pool_init(&p, s_mem, 4096u);
+    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 16u, STG_KIND_SPARK);
+    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 7u, STG_KIND_SPARK);
+    (void)stg_pool_add(&p, 100 * FX_ONE, 100 * FX_ONE, 0, 0, 1u, STG_KIND_SPARK);
+    k = draw_all(&p, STG_KIND_SPARK, s_a, 4096u);
+    ck("W3 SPARK life 16, 7, 1 -> source (0,32) (24,8) (8,0)",
+       k == 3u && s_a[0].sx == 0 && s_a[0].sy == 32 && s_a[1].sx == 24 && s_a[1].sy == 8
+       && s_a[2].sx == 8 && s_a[2].sy == 0);
 }
 
 /* --- W4 组帧 ------------------------------------------------------------- */
@@ -268,18 +281,24 @@ static void w4_compose(void)
 
     gfx_surface_reset(&s_tab);
     rc |= surf(SLOT_FB0,    0x02000000u, 640u, 480u, 12u, GFX_FMT_XRGB8888);
-    rc |= surf(SLOT_ATLAS,  0x01000000u, 128u,  96u,  9u, GFX_FMT_ARGB8888_PM);
-    rc |= surf(SLOT_KEY,    0x01100000u,  32u,  32u,  7u, GFX_FMT_XRGB8888);
-    rc |= surf(SLOT_SOLID8, 0x01200000u,   8u,   8u,  5u, GFX_FMT_XRGB8888);
-    ck("W4 surface table (FB, atlas, key, solid8) registers", rc == 0);
+    rc |= surf(SLOT_BUL16,  0x01000000u,  64u,  16u,  8u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_BUL8,   0x01010000u,  32u,   8u,  7u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_RICE,   0x01020000u, 320u,  80u, 11u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_PSHOT,  0x01050000u,   6u,  24u,  5u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_SPARK,  0x01060000u,  32u,  40u,  7u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_SHIPS,  0x01100000u, 128u,  96u,  9u, GFX_FMT_XRGB8888);
+    ck("W4 surface table (FB, bullet atlases, pshot, spark, ships) registers", rc == 0);
 
     cfg.dst                     = SLOT_FB0;
-    cfg.src_slot[STG_SRC_ATLAS] = SLOT_ATLAS;
-    cfg.src_slot[STG_SRC_SMALL] = SLOT_SOLID8;
-    cfg.player_slot             = SLOT_KEY;
+    cfg.src_slot[STG_SRC_BUL16] = SLOT_BUL16;
+    cfg.src_slot[STG_SRC_BUL8]  = SLOT_BUL8;
+    cfg.src_slot[STG_SRC_RICE]  = SLOT_RICE;
+    cfg.src_slot[STG_SRC_PSHOT] = SLOT_PSHOT;
+    cfg.src_slot[STG_SRC_SPARK] = SLOT_SPARK;
+    cfg.player_slot             = SLOT_SHIPS;
     cfg.player_w                = 32;
     cfg.player_h                = 32;
-    cfg.player_key              = 0x00FF00FFu;
+    cfg.player_key              = 0x00000000u;
 
     for (seg = 0u; seg < STG_SEG_N; seg++) {
         (void)stg_pattern_load(&s_field, seg);
@@ -289,7 +308,7 @@ static void w4_compose(void)
             gfx_census_state  cs;
             gfx_census        cc;
             gfx_rect          fr;
-            uint32_t          naive;
+            uint32_t          naive, kd;
 
             stg_field_step(&s_field);
             gfx_list_begin(&l, s_cmds, LIST_CAP, &s_tab);
@@ -314,8 +333,9 @@ static void w4_compose(void)
                 || cc.cmd_by_eq[GFX_EQ_ALPHA] != act.ebullet)
                 bad_census++;
 
-            naive = naive_count(&s_field.pools.ebullet, 0u) + naive_count(&s_field.pools.ebullet, 1u)
-                  + naive_count(&s_field.pools.ebullet, 2u);
+            naive = 0u;
+            for (kd = 0u; kd < STG_KIND_N_MAX; kd++)
+                naive += naive_count(&s_field.pools.ebullet, kd);
             if (naive != act.ebullet)
                 bad_naive++;
             if (act.player != 1u || act.total != act.ebullet + 1u)

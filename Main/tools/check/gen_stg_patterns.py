@@ -171,10 +171,17 @@ class Pool:
 # --- 2.3 节：弹种表、发射记录与五组参数 ----------------------------------
 
 ABS, AIM, SEQ = 0, 1, 2
-ROUND16, SMALL8, RICE16 = 0, 1, 2
+# C 批的弹种表（SW7 2.3 节）：0~3 圆弹、4~7 小圆弹、8~11 米弹，各按颜色号 0~3（青、品红、琥珀、绿）
+ROUND16, SMALL8, RICE20 = 0, 4, 8
+CYAN, MAGENTA, AMBER, GREEN = 0, 1, 2, 3
 
 # 弹种 -> (起始帧, 有无方向帧)。只抄帧号需要的两项，图像与半径不进弹型判据。
-KINDS = {ROUND16: (0, False), SMALL8: (0, False), RICE16: (16, True)}
+# 圆弹与小圆弹的帧号是颜色号；米弹是颜色号 x 16 再加方向。
+KINDS = {}
+for _c in (CYAN, MAGENTA, AMBER, GREEN):
+    KINDS[ROUND16 + _c] = (_c, False)
+    KINDS[SMALL8 + _c] = (_c, False)
+    KINDS[RICE20 + _c] = (_c * 16, True)
 
 
 def sprite_of(kind, a):
@@ -193,19 +200,19 @@ PLAYER = (px(200), px(400))
 
 # 段名、发射记录、发射器起点、宿主 (vx, x_lo, x_hi)。照 SW7 2.3 节「五组参数」的表另抄一份。
 PATTERNS = [
-    ("ring", dict(count=32, dir=ABS, kind=ROUND16, angle0=0, angle_step=2048, spin=0,
+    ("ring", dict(count=32, dir=ABS, kind=ROUND16 + CYAN, angle0=0, angle_step=2048, spin=0,
                   interval=20, repeat=0, speed=384, speed_step=0, rand_x=0, rand_speed=0),
      (px(200), px(160)), (0, 0, 0)),
-    ("spiral", dict(count=3, dir=SEQ, kind=SMALL8, angle0=0, angle_step=21845, spin=1200,
+    ("spiral", dict(count=3, dir=SEQ, kind=SMALL8 + MAGENTA, angle0=0, angle_step=21845, spin=1200,
                     interval=1, repeat=0, speed=512, speed_step=0, rand_x=0, rand_speed=0),
      (px(200), px(200)), (0, 0, 0)),
-    ("aim", dict(count=5, dir=AIM, kind=RICE16, angle0=(-4096) & 0xFFFF, angle_step=2048, spin=0,
+    ("aim", dict(count=5, dir=AIM, kind=RICE20 + AMBER, angle0=(-4096) & 0xFFFF, angle_step=2048, spin=0,
                  interval=15, repeat=0, speed=768, speed_step=0, rand_x=0, rand_speed=0),
      (px(200), px(80)), (768, px(80), px(320))),
-    ("fan", dict(count=7, dir=ABS, kind=RICE16, angle0=16384 - 3000, angle_step=1000, spin=0,
+    ("fan", dict(count=7, dir=ABS, kind=RICE20 + GREEN, angle0=16384 - 3000, angle_step=1000, spin=0,
                  interval=10, repeat=6, speed=640, speed_step=64, rand_x=0, rand_speed=0),
      (px(200), px(120)), (0, 0, 0)),
-    ("rain", dict(count=4, dir=ABS, kind=SMALL8, angle0=16384, angle_step=0, spin=0,
+    ("rain", dict(count=4, dir=ABS, kind=SMALL8 + CYAN, angle0=16384, angle_step=0, spin=0,
                   interval=3, repeat=0, speed=256, speed_step=0, rand_x=190 * ONE, rand_speed=2 * ONE),
      (px(200), px(0)), (0, 0, 0)),
 ]

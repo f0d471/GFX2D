@@ -23,7 +23,7 @@
 #   G8 碰撞             G4 的输出里碰撞 X 组 13 行全 ok（边界、勾股数相切、大坐标差、擦弹一次、受击关掉、
 #                       已标记跳过、随机对 64 位朴素参考、场里的自机狙段）
 #   G8i 碰撞的注错      COLLIDE_LE 让相切那几行见红；COLLIDE_NO_CULL 让 X3 见红，且 UBSan 在 stderr 报平方溢出
-#   G9 组帧的主机判据   G4 的输出里按池发出与组帧 W 组 11 行全 ok（剔除边界、分段扫 = 一次扫 = 独立重数、
+#   G9 组帧的主机判据   G4 的输出里按池发出与组帧 W 组 12 行全 ok（剔除边界、分段扫 = 一次扫 = 独立重数、
 #                       源坐标、六段各 300 帧的组帧：拒绝为 0、普查的 ALPHA 条数 = 发出的敌弹数）
 #   G10 判据模式        gfx2dGame 以 -DSTG_FIELD=2 编 PC 版，无窗口（SDL_VIDEODRIVER=dummy）跑两遍：
 #                       日志逐字节相同、fail 0、done、六段 840 帧
@@ -40,6 +40,8 @@
 #                       整局各段开始帧对 2.5 节常量另算、射击时走到 CLEAR 与得分另算、Boss 路径与间隙不受伤、
 #                       压力形态、旋钮加倍、改档之后到达稳态不超过 SETTLE_MIN、游戏里的门控、背景）
 #   G13i 关卡的注错     CARD_TIMEOUT_GT 让 S5 的各段开始帧见红，GATE_NO_ACC 让 S11 见红
+#   G14 素材可重生成    gen_stg_neon.py 连跑两次，12 张 PNG 逐字节相同；--check 重新生成与入库的逐像素相同；
+#                       注错 --check --inject 改一个像素，比对必须见红
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh
@@ -319,11 +321,11 @@ expect_collide_red COLLIDE_NO_CULL '^X3 differences near field size'     ubsan
 echo "== G9 按池发出与组帧（app 测试的 W 组） =="
 nw_ok=$(grep -cE '^W[0-9] .* ok$' "$TMP/stg64.txt" 2>/dev/null)
 nw_bad=$(grep -cE '^W[0-9] .* FAIL$' "$TMP/stg64.txt" 2>/dev/null)
-if [ "$nw_ok" -eq 11 ] && [ "$nw_bad" -eq 0 ]; then
-    ok "G9 按池发出与组帧 11 行全 ok（64/32 同 G4）"
+if [ "$nw_ok" -eq 12 ] && [ "$nw_bad" -eq 0 ]; then
+    ok "G9 按池发出与组帧 12 行全 ok（64/32 同 G4）"
     grep -E '^W(2|4) totals' "$TMP/stg64.txt" | while read -r l; do note "$l"; done
 else
-    bad "G9 按池发出与组帧应有 11 行 ok，实际 ok $nw_ok 行、FAIL $nw_bad 行"
+    bad "G9 按池发出与组帧应有 12 行 ok，实际 ok $nw_ok 行、FAIL $nw_bad 行"
 fi
 
 # ---------------------------------------------------------------- G10 判据模式
@@ -470,6 +472,33 @@ expect_stage_red() {   # $1 = INJECT，$2 = 必须 FAIL 的行。-m32 构建（�
 }
 expect_stage_red CARD_TIMEOUT_GT '^S5 no shots, hits off: segment starts'
 expect_stage_red GATE_NO_ACC     '^S11 in-game gate'
+
+# ---------------------------------------------------------------- G14 素材
+echo "== G14 霓虹素材可重生成（gen_stg_neon.py） =="
+NEON="$MAIN/tools/assets/gen_stg_neon.py"
+if python3 "$NEON" --out "$TMP/neon1" >"$TMP/neon1.log" 2>&1 &&
+   python3 "$NEON" --out "$TMP/neon2" >"$TMP/neon2.log" 2>&1; then
+    nn=$(ls "$TMP/neon1" | wc -l)
+    if [ "$nn" -eq 12 ] && diff -r "$TMP/neon1" "$TMP/neon2" >/dev/null 2>&1; then
+        ok "G14 连跑两次，$nn 张 PNG 逐字节相同"
+    else
+        bad "G14 连跑两次的产物不同，或张数 $nn 不是 12"
+    fi
+else
+    bad "G14 gen_stg_neon.py 跑不动"
+    head -5 "$TMP/neon1.log" | while read -r l; do note "$l"; done
+fi
+if python3 "$NEON" --check >"$TMP/neon_chk.log" 2>&1; then
+    ok "G14 重新生成与入库的 Main/assets/neon/ 逐像素相同（$(tail -1 "$TMP/neon_chk.log")）"
+else
+    bad "G14 重新生成与入库的不同"
+    head -5 "$TMP/neon_chk.log" | while read -r l; do note "$l"; done
+fi
+if ! python3 "$NEON" --check --inject >"$TMP/neon_inj.log" 2>&1 && grep -q '不同 1 张' "$TMP/neon_inj.log"; then
+    ok "G14i 注错 改一个像素之后比对见红（$(grep -m1 '与重新生成的不同' "$TMP/neon_inj.log" | cut -c1-40)）"
+else
+    bad "G14i 注错 改一个像素之后比对没有见红（这条判据是空转）"
+fi
 
 printf 'fail %d\ndone\n' "$FAIL"
 [ "$FAIL" -eq 0 ]

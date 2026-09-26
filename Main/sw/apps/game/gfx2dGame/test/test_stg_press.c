@@ -24,9 +24,12 @@
 #include "test_stg_press.h"
 
 #define SLOT_FB0    0
-#define SLOT_ATLAS  4
-#define SLOT_KEY    8
-#define SLOT_SOLID8 9
+#define SLOT_BUL16  2
+#define SLOT_BUL8   3
+#define SLOT_RICE   4
+#define SLOT_PSHOT  6
+#define SLOT_SPARK  7
+#define SLOT_SHIPS  8
 #define LIST_CAP    32768u
 #define FRAME_LIMIT 200000u
 
@@ -76,16 +79,22 @@ static int setup(void)
 
     gfx_surface_reset(&s_tab);
     rc |= surf(SLOT_FB0,    0x02000000u, 640u, 480u, 12u, GFX_FMT_XRGB8888);
-    rc |= surf(SLOT_ATLAS,  0x01000000u, 128u,  96u,  9u, GFX_FMT_ARGB8888_PM);
-    rc |= surf(SLOT_KEY,    0x01100000u,  32u,  32u,  7u, GFX_FMT_XRGB8888);
-    rc |= surf(SLOT_SOLID8, 0x01200000u,   8u,   8u,  5u, GFX_FMT_XRGB8888);
+    rc |= surf(SLOT_BUL16,  0x01000000u,  64u,  16u,  8u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_BUL8,   0x01010000u,  32u,   8u,  7u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_RICE,   0x01020000u, 320u,  80u, 11u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_PSHOT,  0x01050000u,   6u,  24u,  5u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_SPARK,  0x01060000u,  32u,  40u,  7u, GFX_FMT_ARGB8888_PM);
+    rc |= surf(SLOT_SHIPS,  0x01100000u, 128u,  96u,  9u, GFX_FMT_XRGB8888);
     s_cfg.dst                     = SLOT_FB0;
-    s_cfg.src_slot[STG_SRC_ATLAS] = SLOT_ATLAS;
-    s_cfg.src_slot[STG_SRC_SMALL] = SLOT_SOLID8;
-    s_cfg.player_slot             = SLOT_KEY;
+    s_cfg.src_slot[STG_SRC_BUL16] = SLOT_BUL16;
+    s_cfg.src_slot[STG_SRC_BUL8]  = SLOT_BUL8;
+    s_cfg.src_slot[STG_SRC_RICE]  = SLOT_RICE;
+    s_cfg.src_slot[STG_SRC_PSHOT] = SLOT_PSHOT;
+    s_cfg.src_slot[STG_SRC_SPARK] = SLOT_SPARK;
+    s_cfg.player_slot             = SLOT_SHIPS;
     s_cfg.player_w                = 32;
     s_cfg.player_h                = 32;
-    s_cfg.player_key              = 0x00FF00FFu;
+    s_cfg.player_key              = 0x00000000u;
     stg_press_clock_b(&s_ck);
     return rc;
 }

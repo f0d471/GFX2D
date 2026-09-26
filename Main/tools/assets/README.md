@@ -6,11 +6,14 @@ SW5 素材流水线（[`../../../Engineering/Todo/sw/SW5-素材流水线.md`](..
 | 文件 | 用途 |
 | --- | --- |
 | `gen_placeholder.py` | 生成占位 PNG（纯色、棋盘、渐变、圆形弹幕、色键图、图集）。图案全部按坐标算出来，没有随机数，同一个 Pillow 版本产出逐字节相同的 PNG |
+| `gen_stg_neon.py` | 生成游戏的霓虹几何素材（SW7 2.7 节）：三种弹各四色、自机弹、火花、自机与两种敌机的线框、Boss、星点、标题、大号数字、图标、青色字库，共 12 张 PNG。图案按坐标算出，不用随机数与字体文件；`--check` 重新生成并与入库的逐像素比，`--check --inject` 改一个像素必须见红 |
 | `pack_assets.py` | 读 `Main/assets/manifest.txt`，把每一项转成目标字节、打成 `assets.pak`，并生成 `assets.h` |
 
 ```
 wsl -e python3 Main/tools/assets/gen_placeholder.py            # 生成占位 PNG（产物入库）
 wsl -e python3 Main/tools/assets/gen_placeholder.py --check    # 只校验现有 PNG 与预期像素一致
+wsl -e python3 Main/tools/assets/gen_stg_neon.py               # 生成游戏素材到 Main/assets/neon/（产物入库）
+wsl -e python3 Main/tools/assets/gen_stg_neon.py --check       # 重新生成，与入库的逐像素比
 wsl -e python3 Main/tools/assets/pack_assets.py                # 打包到 Main/assets/build/
 wsl -e python3 Main/tools/assets/pack_assets.py --max-pak 1048576    # 收紧运行预算（E6 出数后用）
 ```
@@ -21,6 +24,7 @@ wsl -e python3 Main/tools/assets/pack_assets.py --max-pak 1048576    # 收紧运
 Main/assets/
   manifest.txt         素材清单（TSV），显式 ID + 名字 + PNG + alpha_mode + 色键 + 切片
   placeholder/*.png    由 gen_placeholder.py 生成，入库
+  neon/*.png           由 gen_stg_neon.py 生成，入库，并在 LICENSES.md 里逐个登记
   font/ascii8x16.txt   自绘 8×16 点阵 ASCII 字库（95 个字形），打包工具渲染成图集
   LICENSES.md          每个非生成文件的来源与许可（判据脚本会按这条扫）
   build/               生成物：assets.pak、assets.h（.gitignore 已排除 build/）

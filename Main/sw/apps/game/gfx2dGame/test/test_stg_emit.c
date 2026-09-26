@@ -136,22 +136,26 @@ static void e2_timer(void)
 
 static void e3_sprite(void)
 {
-    ck("E3 RICE16 frames: 0->16 2047->16 2048->17 30719->23 30720->24 63487->31 63488->16 65535->16",
-       stg_kind_sprite(STG_KIND_RICE16, 0u) == 16u
-       && stg_kind_sprite(STG_KIND_RICE16, 2047u) == 16u
-       && stg_kind_sprite(STG_KIND_RICE16, 2048u) == 17u
-       && stg_kind_sprite(STG_KIND_RICE16, 30719u) == 23u
-       && stg_kind_sprite(STG_KIND_RICE16, 30720u) == 24u
-       && stg_kind_sprite(STG_KIND_RICE16, 63487u) == 31u
-       && stg_kind_sprite(STG_KIND_RICE16, 63488u) == 16u
-       && stg_kind_sprite(STG_KIND_RICE16, 65535u) == 16u);
-    ck("E3 ROUND16 and SMALL8 have one frame; unused kinds are all zero",
-       stg_kind_sprite(STG_KIND_ROUND16, 12345u) == 0u
-       && stg_kind_sprite(STG_KIND_SMALL8, 40000u) == 0u
-       && stg_kind_tab[3].w == 0u && stg_kind_tab[15].r_hit == 0
-       && stg_kind_tab[STG_KIND_ROUND16].r_hit == 4 * FX_ONE
-       && stg_kind_tab[STG_KIND_SMALL8].r_hit == 2 * FX_ONE
-       && stg_kind_tab[STG_KIND_RICE16].r_hit == 3 * FX_ONE);
+    ck("E3 RICE20 magenta frames: 0->16 2047->16 2048->17 30719->23 30720->24 63487->31 63488->16 65535->16",
+       stg_kind_sprite(STG_KIND_RICE20 + 1u, 0u) == 16u
+       && stg_kind_sprite(STG_KIND_RICE20 + 1u, 2047u) == 16u
+       && stg_kind_sprite(STG_KIND_RICE20 + 1u, 2048u) == 17u
+       && stg_kind_sprite(STG_KIND_RICE20 + 1u, 30719u) == 23u
+       && stg_kind_sprite(STG_KIND_RICE20 + 1u, 30720u) == 24u
+       && stg_kind_sprite(STG_KIND_RICE20 + 1u, 63487u) == 31u
+       && stg_kind_sprite(STG_KIND_RICE20 + 1u, 63488u) == 16u
+       && stg_kind_sprite(STG_KIND_RICE20 + 1u, 65535u) == 16u
+       && stg_kind_sprite(STG_KIND_RICE20 + 3u, 2048u) == 49u);
+    ck("E3 ROUND16/SMALL8 frame = colour; radii 4/2/4/3/0 px; eq ALPHA for enemy bullets, ADD for pshot/spark; 14, 15 unused",
+       stg_kind_sprite(STG_KIND_ROUND16 + 2u, 12345u) == 2u
+       && stg_kind_sprite(STG_KIND_SMALL8 + 3u, 40000u) == 3u
+       && stg_kind_tab[14].w == 0u && stg_kind_tab[15].w == 0u && stg_kind_tab[15].r_hit == 0
+       && stg_kind_tab[STG_KIND_ROUND16 + 3u].r_hit == 4 * FX_ONE && stg_kind_tab[STG_KIND_ROUND16].w == 16u
+       && stg_kind_tab[STG_KIND_SMALL8 + 1u].r_hit == 2 * FX_ONE && stg_kind_tab[STG_KIND_SMALL8].w == 8u
+       && stg_kind_tab[STG_KIND_RICE20 + 2u].r_hit == 4 * FX_ONE && stg_kind_tab[STG_KIND_RICE20].w == 20u
+       && stg_kind_tab[STG_KIND_PSHOT].r_hit == 3 * FX_ONE && stg_kind_tab[STG_KIND_SPARK].r_hit == 0
+       && stg_kind_tab[STG_KIND_RICE20 + 3u].eq == GFX_EQ_ALPHA && stg_kind_tab[STG_KIND_PSHOT].eq == GFX_EQ_ADD
+       && stg_kind_tab[STG_KIND_SPARK].eq == GFX_EQ_ADD);
 }
 
 /* --- E4 换段与挂满 ------------------------------------------------------- */

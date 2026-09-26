@@ -172,7 +172,7 @@ static uint32_t draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg 
         t.dst    = cfg->dst;
         t.w      = (int)ki->w;
         t.h      = (int)ki->h;
-        t.eq     = GFX_EQ_ALPHA;
+        t.eq     = ki->eq;
         t.c      = 0u;
         t.key_en = 0;
         t.key    = 0u;
