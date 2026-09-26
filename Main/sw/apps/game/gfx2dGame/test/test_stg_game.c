@@ -76,12 +76,19 @@ static void info(const char *tag, const uint32_t *v, uint32_t n)
     fputs(line, stdout);
 }
 
+/* R 组只测自机与规则：初始化之后把事件表的游标放到表尾，关卡不出敌、不进 Boss（关卡在 S 组）。 */
+static void game_init(stg_game *g)
+{
+    stg_game_init(g, SEED);
+    g->ev_i = stg_stage_n_events;
+}
+
 /* 初始化并走完 120 帧标题：下一次 stg_game_step 是开局第一帧。 */
 static void to_play(stg_game *g, uint32_t keys)
 {
     uint32_t i;
 
-    stg_game_init(g, SEED);
+    game_init(g);
     for (i = 0u; i < STG_TITLE_FRAMES; i++)
         stg_game_step(g, keys);
 }
@@ -161,7 +168,7 @@ static void r1_move(void)
     okclamp &= (g->f.px == 384 * FX_ONE && g->f.py == 464 * FX_ONE);
     ck("R1 clamp to [16, 384] x [16, 464] px at both corners", okclamp);
 
-    stg_game_init(g, SEED);
+    game_init(g);
     for (i = 0u; i < STG_TITLE_FRAMES; i++)
         stg_game_step(g, STG_KEY_RIGHT);
     oktitle = (g->phase == STG_PH_TITLE && g->f.px == 200 * FX_ONE);
@@ -179,7 +186,7 @@ static void r2_shoot(void)
     uint32_t  i, t, ok_title = 1u, ok_count = 1u, n_max = 0u;
     int       ok_first;
 
-    stg_game_init(g, SEED);
+    game_init(g);
     for (i = 0u; i < STG_TITLE_FRAMES; i++) {
         stg_game_step(g, 0u);
         if (stg_pool_count(&g->f.pools.pbullet) != 0u)

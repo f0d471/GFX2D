@@ -36,6 +36,10 @@
 #   G12 自机与规则      G4 的输出里自机与规则 R 组 28 行全 ok（移动、射击节奏、受击与无敌、自动炸弹与火花、
 #                       手动炸弹的按下沿、粒子溢出、回标题与 HI-SCORE、擦弹得分、自机弹对敌机、粒子寿命与弹种位图）
 #   G12i 规则的注错     GAME_NO_AUTOBOMB 让 R4 见红，GAME_NO_INVINCIBLE 让 R3 见红，PHIT_LE 让 R9 的相切见红
+#   G13 关卡            G4 的输出里敌机、Boss 与关卡 S 组 21 行全 ok（表、移动事件表与出界、槽位、击毁、
+#                       整局各段开始帧对 2.5 节常量另算、射击时走到 CLEAR 与得分另算、Boss 路径与间隙不受伤、
+#                       压力形态、旋钮加倍、改档之后到达稳态不超过 SETTLE_MIN、游戏里的门控、背景）
+#   G13i 关卡的注错     CARD_TIMEOUT_GT 让 S5 的各段开始帧见红，GATE_NO_ACC 让 S11 见红
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh
@@ -439,6 +443,33 @@ expect_rule_red() {   # $1 = INJECT，$2 = 必须 FAIL 的行
 expect_rule_red GAME_NO_AUTOBOMB   '^R4 auto bomb'
 expect_rule_red GAME_NO_INVINCIBLE '^R3 invincible exactly 120'
 expect_rule_red PHIT_LE            '^R9 tangent'
+
+# ---------------------------------------------------------------- G13 关卡
+echo "== G13 敌机、Boss 与关卡（app 测试的 S 组） =="
+ns_ok=$(grep -cE '^S[0-9]+ .* ok$' "$TMP/stg64.txt" 2>/dev/null)
+ns_bad=$(grep -cE '^S[0-9]+ .* FAIL$' "$TMP/stg64.txt" 2>/dev/null)
+if [ "$ns_ok" -eq 21 ] && [ "$ns_bad" -eq 0 ]; then
+    ok "G13 敌机、Boss 与关卡 21 行全 ok（64/32 同 G4）"
+    grep -E '^S(5 starts|6 starts|6 darts|9 steady|10 settle max|11 frame)' "$TMP/stg64.txt" | while read -r l; do note "$l"; done
+else
+    bad "G13 敌机、Boss 与关卡应有 21 行 ok，实际 ok $ns_ok 行、FAIL $ns_bad 行"
+fi
+
+echo "== G13i 关卡的注错 =="
+expect_stage_red() {   # $1 = INJECT，$2 = 必须 FAIL 的行。-m32 构建（不挂 sanitizer，整局跑得快）
+    if build_stg "stage_$1" 32 "-DINJECT_$1"; then
+        "$TMP/stage_$1" >"$TMP/stage_$1.txt" 2>&1
+        if grep -qE "$2.* FAIL$" "$TMP/stage_$1.txt"; then
+            ok "G13i INJECT=$1 见红：$(grep -m1 -E "$2.* FAIL$" "$TMP/stage_$1.txt" | cut -c1-80)"
+        else
+            bad "G13i INJECT=$1 没有让「$2」见红"
+        fi
+    else
+        bad "G13i INJECT=$1 编不过"
+    fi
+}
+expect_stage_red CARD_TIMEOUT_GT '^S5 no shots, hits off: segment starts'
+expect_stage_red GATE_NO_ACC     '^S11 in-game gate'
 
 printf 'fail %d\ndone\n' "$FAIL"
 [ "$FAIL" -eq 0 ]

@@ -80,6 +80,10 @@ int      stg_emitter_init(stg_emitter *em, const stg_emit_rec *rec, int32_t x, i
    返回这一帧试图发射的弹数（没到点或已发完为 0）。 */
 uint32_t stg_emitter_tick(stg_emitter *em, stg_pool *pool, const stg_emit_ctx *ctx);
 
+/* 不看计时与 repeat，马上齐射一次（终符的门控用，SW7 2.5 节）：弹种换成 kind（只取低 4 位），
+   其余照 stg_emitter_tick 的规则；已齐射次数加一，倒数计数不动。返回这次的发数。 */
+uint32_t stg_emitter_fire(stg_emitter *em, stg_pool *pool, const stg_emit_ctx *ctx, uint32_t kind);
+
 /* repeat 次已经发完返回 1。repeat 为 0 的永远返回 0。 */
 int      stg_emitter_done(const stg_emitter *em);
 
