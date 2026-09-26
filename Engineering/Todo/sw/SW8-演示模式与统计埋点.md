@@ -381,6 +381,24 @@ C 批按下面的定法实现（4.12 节第 7、8 条）：
 
 ## 4 开发日志
 
+### 4.16 2026-09-26 C 批在干净克隆里复跑（数据收尾时并入 TechReport）
+
+从远端克隆工作分支（`f8c7540`），先 `pack_assets.py`，再顺序跑：`check_sw_layers.sh`、`localize_paths.py --check`、
+`check_sw5_assets.sh`（`fail 0`；镜像那一项因为没有 `assetTest` 的板上产物跳过，跳过不算通过）、`check_sw6_demo.sh` 全量档与快速档、
+`check_sw7_game.sh`、`check_sw8_stats.sh`，全部 `fail 0`，连同下面的 `check_sw4_pc.sh` 共 2524 秒。
+SW8 的数字与工作目录里的逐项相同：M9 2448/2429、6576/6419，M12 2002/1744、5321/4688，M14 601 行、`lines_dropped` 0、
+`over 0 times 0 bytes`，M16 5291 帧，M16i 从第 335 帧起不同。
+
+`check_sw4_pc.sh` 按墙钟量的节拍几项（P1~P6）在这台云上容器里时过时不过，与 C 批无关：
+
+| 构建 | 三次的结果 |
+| --- | --- |
+| 工作分支 `f8c7540` | S8 注错那一次运行 `fail` 不为 0（单独重跑注错版，P1~P6 全过、`fail =0`）；全过；P1、P2、P4、P6 见红 |
+| C 批开工前的 main `1b59d82` | P5 见红；无窗运行退出码不为 0；P1、P2、P4、P6 见红 |
+
+C 批对 `bsp/host/board.c` 的改动只在设了 `GFX2D_UNPACED=1` 时起作用，`check_sw4_pc.sh` 不设它，按场等待的代码与原来相同；
+CRC、golden、有窗与无窗、录像那几项（S0~S3、S5~S7）每次都过。这一项要在参考机上复跑。
+
 ### 4.15 2026-09-26 C 批 C7：自动驾驶（数据收尾时并入 TechReport）
 
 做了什么：
