@@ -14,7 +14,7 @@
 | `check_sw6_demo.sh` | 基础 Demo（SW6）的提交前判据，十项：录像可重生成、判据模式编过并跑通、对期望日志、有窗与无窗、两遍一致、HUD 与字形、场景 B、`off` 与 `eq` 计数、四个方程的注错见红、Sanitizer 与板上目标构建 | 改 `gfx2dGame`、`lib/gfx` 的执行器、SW5 素材或录像时，提交前 |
 | `check_sw6_log.py` | SW6 判据日志的**外部核对**：两遍比对、`hud` 对上一帧统计、`hcrc` 按字库文本独立重画、`s` 与 `scene` 参考值、`off` 与 `eq`；`--board` 把板上串口日志从 `pak` 行起与期望日志对账 | 由 `check_sw6_demo.sh` 调用；板上对账时单独跑 |
 | `gen_sw6_replay.py` | 生成 SW6 的两段确定性录像（`.g2dr`）：A 把 N 从 100 升到 5000 再回到 100，B 把 k 从 30 降到 1 再升到 120；形状与停留段写在脚本里 | 录像要改时；`check_sw6_demo.sh` 每次重跑并逐字节比 |
-| `check_sw7_game.sh` | 游戏本体（SW7）A、B 两批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
+| `check_sw7_game.sh` | 游戏本体（SW7）A、B 两批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红、碰撞的两个注错见红 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_stats.sh` | 统计埋点（SW8）A 批的提交前判据：主机测试 64/32 比对与 sanitizer、普查与软件执行器对账、模拟时钟、帧时间直方图、日志队列、`board_tx_room()` 的 PC 实现与板上构建、各注错见红 | 改 `lib/gfx/census`、`lib/core/framehist`、`lib/core/logq`、`board_tx_room()`、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_tx.c` | `board_tx_room()` 的 PC 实现的主机探针：链真实的 `sw/bsp/host/board.c`，不设 `GFX2D_TX_BUDGET` 时不限，设 192 时按场补满、不累加、超额计数；`-DINJECT_HOST_TX_NO_REFILL` 见红 | 由 `check_sw8_stats.sh` 的 M5 编译运行；改 `bsp/host` 的串口模拟时 |
 | `gen_sin_tab.py` | 生成 `sw/lib/core/sin_tab.c`：1024 项加 256 项尾巴的 Q1.14 正弦表，按绝对值四舍五入；`--inject` 改一项给比对当注错 | 表的口径要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
@@ -276,6 +276,8 @@ wsl -e bash -c 'bash Main/tools/check/check_sw7_game.sh'
 | G6 | `BLIT_RUN_W7`、`BLIT_RUN_SXY`、`BLIT_RUN_NO_FALLBACK` 各编一次，指定的那一行必须 FAIL；最后一个要让「源等于目的」那一行见红，证明随机输入真的走到了逐条回退 |
 | G7 | 弹型：`gen_stg_patterns.py` 重打期望文件，与入库的 `test/stg_patterns.txt` 逐字节相同；G4 的两份产物各跑 `pat` 打轨迹，64/32 逐字节相同，再用 `--compare` 与期望文件先比参数行、再逐帧比、末行比溢出计数 |
 | G7i | `EMIT_SEQ_NOACC`、`EMIT_AIM_SWAP`、`EMIT_RAIN_ORDER` 各编一次，比对必须在指定的段（spiral、aim、rain）第一个报出不一致，并指出第一颗不同的弹 |
+| G8 | 碰撞：G4 的输出里 X 组 13 行全 ok（边界、勾股数相切、大坐标差、擦弹一次、受击关掉、已标记跳过、随机对 64 位朴素参考、场里的自机狙段） |
+| G8i | `COLLIDE_LE` 让 X1 的相切那一行见红；`COLLIDE_NO_CULL` 让 X3 见红，且 stderr 里有 UBSan 的平方溢出报告 |
 
 编译产物落临时目录（`OBJDIR` 指过去），不动 `sw/build_host`。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。
 

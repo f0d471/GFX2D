@@ -12,7 +12,9 @@
 *           ③ 碰撞：自机判定点对敌弹（2.4 节）；
 *           ④ 组帧与活动元素计数（2.6 节，stg_field_compose）。
 *         第 k 帧的状态指第 k 帧第 ③ 步之后的池。stg_field_advance 做 ①②，
-*         stg_field_step 做一整帧；弹型判据只跑 ①②。
+*         stg_field_collide 做 ③，stg_field_step 是两者相加；弹型判据只跑 ①②。
+*
+*         给 SW8 的受击钩子（2.8 节）：stg_field_set_hits(f, 0) 关掉受击，碰撞照做、擦弹照算。
 *
 *         替身宿主（B 批没有敌机）：位置每帧加 vx，移动后 x 落在 [x_lo, x_hi) 之外就把 vx 取反。
 ******************************************************************************/
@@ -54,6 +56,7 @@ typedef struct {
     int32_t         r_kind[STG_KIND_N_MAX]; /* 按弹种的判定半径，Q.8 */
     int             hit_enabled;            /* 受击开关（SW8 的压力钩子关掉它） */
     uint32_t        hits, grazes;           /* 累计 */
+    stg_hit_stats   frame_hit;              /* 最近一帧的命中与擦弹 */
     stg_step_stats  last;                   /* 最近一遍敌弹池的移除计数 */
 } stg_field;
 
@@ -68,7 +71,13 @@ int  stg_field_add_emitter(stg_field *f, const stg_emit_rec *rec, int32_t x, int
 /* ①②：池更新、发射与宿主移动。 */
 void stg_field_advance(stg_field *f);
 
-/* 一整帧（①②③）。碰撞在 B 批的第二件落地，之前只有 ①②。 */
+/* ③：自机判定点对敌弹（2.4 节），计数累加进 hits、grazes，本帧的写进 frame_hit。 */
+void stg_field_collide(stg_field *f);
+
+/* ①②③。 */
 void stg_field_step(stg_field *f);
+
+/* 受击钩子：0 关掉受击（不计命中、不打标记，擦弹照算），非 0 打开。 */
+void stg_field_set_hits(stg_field *f, int on);
 
 #endif /* GFX2D_STG_FIELD_H */

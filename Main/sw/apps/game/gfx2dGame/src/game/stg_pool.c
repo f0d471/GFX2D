@@ -155,6 +155,57 @@ void stg_pool_step(stg_pool *p, const stg_bounds *b, stg_step_stats *st)
 
 #endif /* INJECT_STG_POOL_SWAP */
 
+/* 粗筛用一次无符号比较代替两次有符号比较：|d| < T 等价于 0 <= d + T - 1 < 2T - 1。
+   d + T - 1 不溢出的前提是 |d| < 2^30，调用方保证坐标差在 ±2^18 以内。
+
+   平方与比较都在 int32 里：通过粗筛之后 |dx|、|dy| < T <= 64 像素 = 2^14，d² < 2^29。 */
+void stg_pool_collide(stg_pool *p, const int32_t *r_kind, const stg_probe *pr,
+                      stg_hit_stats *st)
+{
+    stg_ent       *ent = p->ent;
+    const uint32_t n = p->n;
+    const int32_t  px = pr->px, py = pr->py;
+    const int32_t  r_hit = pr->r_hit, r_graze = pr->r_graze;
+    const int      hit_en = pr->hit_enabled;
+    uint32_t       i, hits = 0u, grazes = 0u;
+
+    for (i = 0u; i < n; i++) {
+        stg_ent  *e = &ent[i];
+        uint32_t  flags = e->flags;
+        int32_t   rb, t, dx, dy, d2, rh;
+
+        if ((flags & STG_F_REMOVE) != 0u)
+            continue;
+        rb = r_kind[flags & STG_F_KIND_MASK];
+        t  = r_graze + rb;
+        dx = e->x - px;
+        dy = e->y - py;
+#ifndef INJECT_COLLIDE_NO_CULL
+        if ((uint32_t)(dx + t - 1) >= (uint32_t)(2 * t - 1)
+            || (uint32_t)(dy + t - 1) >= (uint32_t)(2 * t - 1))
+            continue;
+#endif
+        d2 = dx * dx + dy * dy;
+        rh = r_hit + rb;
+#ifdef INJECT_COLLIDE_LE
+        if (hit_en && d2 <= rh * rh) {      /* 注错：恰好相切也算命中 */
+#else
+        if (hit_en && d2 < rh * rh) {
+#endif
+            hits++;
+            e->flags = (uint16_t)(flags | STG_F_REMOVE);
+            continue;
+        }
+        if ((flags & STG_F_GRAZED) == 0u && d2 < t * t) {
+            grazes++;
+            e->flags = (uint16_t)(flags | STG_F_GRAZED);
+        }
+    }
+
+    st->hits   = hits;
+    st->grazes = grazes;
+}
+
 void stg_pool_mark(stg_pool *p, uint32_t i)
 {
     if (i < p->n)

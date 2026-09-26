@@ -21,6 +21,8 @@ void stg_field_init(stg_field *f, uint32_t seed)
     f->hit_enabled = 1;
     f->hits        = 0u;
     f->grazes      = 0u;
+    f->frame_hit.hits   = 0u;
+    f->frame_hit.grazes = 0u;
     f->last.oob    = 0u;
     f->last.marked = 0u;
 }
@@ -78,7 +80,27 @@ void stg_field_advance(stg_field *f)
     }
 }
 
+void stg_field_collide(stg_field *f)
+{
+    stg_probe pr;
+
+    pr.px          = f->px;
+    pr.py          = f->py;
+    pr.r_hit       = f->r_player;
+    pr.r_graze     = f->r_graze;
+    pr.hit_enabled = f->hit_enabled;
+    stg_pool_collide(&f->pools.ebullet, f->r_kind, &pr, &f->frame_hit);
+    f->hits   += f->frame_hit.hits;
+    f->grazes += f->frame_hit.grazes;
+}
+
 void stg_field_step(stg_field *f)
 {
     stg_field_advance(f);
+    stg_field_collide(f);
+}
+
+void stg_field_set_hits(stg_field *f, int on)
+{
+    f->hit_enabled = (on != 0);
 }

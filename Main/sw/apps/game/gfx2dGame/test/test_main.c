@@ -21,6 +21,7 @@
 
 #include "core/crc32.h"
 #include "core/format.h"
+#include "test_stg_collide.h"
 #include "test_stg_emit.h"
 #include "test_stg_pool.h"
 
@@ -48,6 +49,8 @@ int main(int argc, char **argv)
     fail += test_stg_pool_run();
     fputs("stgTest emit\n", stdout);
     fail += test_stg_emit_run();
+    fputs("stgTest collide\n", stdout);
+    fail += test_stg_collide_run();
 
     core_out_init(&o, line, (uint32_t)sizeof line);
     core_out_str(&o, "fail ");

@@ -20,6 +20,9 @@
 #                       （stgTest pat），64/32 逐字节相同，再与期望文件先比参数行、再逐帧比、末行比溢出计数
 #   G7i 弹型的注错      EMIT_SEQ_NOACC / EMIT_AIM_SWAP / EMIT_RAIN_ORDER 各编一次，
 #                       比对必须在指定的那一段（spiral / aim / rain）报出第一个不同帧与第一颗不同的弹
+#   G8 碰撞             G4 的输出里碰撞 X 组 13 行全 ok（边界、勾股数相切、大坐标差、擦弹一次、受击关掉、
+#                       已标记跳过、随机对 64 位朴素参考、场里的自机狙段）
+#   G8i 碰撞的注错      COLLIDE_LE 让相切那几行见红；COLLIDE_NO_CULL 让 X3 见红，且 UBSan 在 stderr 报平方溢出
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     bash Main/tools/check/check_sw7_game.sh
@@ -264,6 +267,35 @@ expect_pat_red() {   # $1 = INJECT，$2 = 必须第一个报出不一致的段�
 expect_pat_red EMIT_SEQ_NOACC  spiral
 expect_pat_red EMIT_AIM_SWAP   aim
 expect_pat_red EMIT_RAIN_ORDER rain
+
+# ---------------------------------------------------------------- G8 碰撞
+echo "== G8 碰撞（自机判定点对敌弹） =="
+nx_ok=$(grep -cE '^X[0-9] .* ok$' "$TMP/stg64.txt" 2>/dev/null)
+nx_bad=$(grep -cE '^X[0-9] .* FAIL$' "$TMP/stg64.txt" 2>/dev/null)
+if [ "$nx_ok" -eq 13 ] && [ "$nx_bad" -eq 0 ]; then
+    ok "G8 碰撞 13 行全 ok（64/32 同 G4）"
+    grep -E '^X(7 totals|8 aim 240)' "$TMP/stg64.txt" | while read -r l; do note "$l"; done
+else
+    bad "G8 碰撞应有 13 行 ok，实际 ok $nx_ok 行、FAIL $nx_bad 行"
+fi
+
+echo "== G8i 碰撞的注错 =="
+expect_collide_red() {   # $1 = INJECT，$2 = 必须 FAIL 的行，$3 = 非空时 stderr 里还必须有 UBSan 的 runtime error
+    if build_stg "col_$1" 64 "-DINJECT_$1"; then
+        "$TMP/col_$1" >"$TMP/col_$1.txt" 2>"$TMP/col_$1.err"
+        if grep -qE "$2.* FAIL$" "$TMP/col_$1.txt" &&
+           { [ -z "$3" ] || grep -q 'runtime error' "$TMP/col_$1.err"; }; then
+            ok "G8i INJECT=$1 见红：$(grep -m1 -E "$2.* FAIL$" "$TMP/col_$1.txt" | cut -c1-80)"
+            [ -n "$3" ] && note "$(grep -m1 'runtime error' "$TMP/col_$1.err" | sed 's/.*runtime error/runtime error/')"
+        else
+            bad "G8i INJECT=$1 没有让「$2」见红${3:+，或 stderr 里没有 UBSan 报告}"
+        fi
+    else
+        bad "G8i INJECT=$1 编不过"
+    fi
+}
+expect_collide_red COLLIDE_LE      '^X1 distance == r_p \+ r_b \(1536\)' ""
+expect_collide_red COLLIDE_NO_CULL '^X3 differences near field size'     ubsan
 
 printf 'fail %d\ndone\n' "$FAIL"
 [ "$FAIL" -eq 0 ]

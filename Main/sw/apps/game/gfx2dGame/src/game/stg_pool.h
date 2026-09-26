@@ -18,9 +18,13 @@
 *         没有文件级的可变状态：池的描述与存储都在调用方给的结构体里（SW7 2.8 节）。
 *         更新循环只做加法与比较，不调函数指针、没有除法（设计文档 4.4 节的实现约束）。
 *
+*         碰撞（SW7 2.4 节，B 批只有自机判定点对敌弹）见 stg_pool_collide()。
+*
 *         注错开关（主机测试 apps/game/gfx2dGame/test/ 用，见 check_sw7_game.sh）：
 *           INJECT_STG_POOL_STALL  移除之后下一个存活实体写进去了，写指针却停一步
 *           INJECT_STG_POOL_SWAP   移除改成与末尾交换（不稳定）
+*           INJECT_COLLIDE_LE      命中判成 d² <= (r_p + r_b)²（恰好相切也算命中）
+*           INJECT_COLLIDE_NO_CULL 去掉粗筛，坐标差大时平方溢出
 ******************************************************************************/
 #ifndef STG_POOL_H
 #define STG_POOL_H
@@ -110,6 +114,33 @@ void     stg_pool_step(stg_pool *p, const stg_bounds *b, stg_step_stats *st);
 
 /* 给第 i 个实体打「已标记移除」，下一遍移除。i 越界时什么也不做。 */
 void     stg_pool_mark(stg_pool *p, uint32_t i);
+
+/* --- 碰撞：自机判定点对敌弹（SW7 2.4 节） --------------------------------- */
+
+/* 自机探针。坐标与半径都是 Q.8。 */
+typedef struct {
+    int32_t px, py;         /* 自机中心 */
+    int32_t r_hit;          /* 自机判定半径 */
+    int32_t r_graze;        /* 擦弹半径 */
+    int     hit_enabled;    /* 受击开关：0 时不计命中、不打标记，擦弹照算 */
+} stg_probe;
+
+typedef struct {
+    uint32_t hits;
+    uint32_t grazes;
+} stg_hit_stats;
+
+/* 逐颗（2.4 节 B 批定法）：
+     1. 已标记移除的跳过；
+     2. 粗筛阈值 T = r_graze + r_kind[弹种]，|dx| >= T 或 |dy| >= T 就跳过；
+     3. d² = dx² + dy²；受击开关开着且 d² < (r_hit + r_b)² 为命中：命中数加一、打移除标记，不再算擦弹；
+     4. 否则还没擦过且 d² < T² 为擦弹：擦弹数加一、打擦弹位。
+   r_kind 是 16 项的判定半径表（Q.8），下标是 flags[3:0]。坐标差须在 ±2^18 以内
+   （池里的弹都按出界边界筛过，发射器与自机在游戏区内），平方只在通过粗筛之后做。
+   r_hit 不得大于 r_graze：粗筛的阈值按擦弹半径取，判定半径更大时粗筛会漏掉命中。
+   st 写本次的两个计数（覆盖，不累加）。 */
+void     stg_pool_collide(stg_pool *p, const int32_t *r_kind, const stg_probe *pr,
+                          stg_hit_stats *st);
 
 uint32_t stg_pool_count(const stg_pool *p);
 uint32_t stg_pool_overflow(const stg_pool *p);
