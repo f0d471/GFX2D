@@ -159,7 +159,7 @@ echo "== D2b 演示模式（默认构建）编过并冒烟 =="
 # 判据模式换掉了默认构建，所以这一条放在 D4 之后：D5~D8 只用已经采集好的 run.txt。
 # 演示模式是 `#else` 那一半，`-DSW6_FRAMES` 的编译期分支只在它里面求值——
 # 第一版 `SW6_FRAMES_MAX` 带 `(uint32_t)` 转型，`#if` 不认，演示模式加这个开关编不过。
-if ! make -C "$APP" -s PLATFORM=host EXTRA_CFLAGS="-DSW6_STAGE_FRAMES=60 -DSW6_FRAMES=200" \
+if ! make -C "$APP" -s PLATFORM=host EXTRA_CFLAGS="-DGFX2D_START_MODE=1 -DSW6_STAGE_FRAMES=60 -DSW6_FRAMES=200" \
         >"$TMP/build_demo.log" 2>&1; then
     bad "D2b 演示模式编不过"
     tail_lines 6 <"$TMP/build_demo.log" | while read -r l; do note "$l"; done

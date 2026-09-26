@@ -1,5 +1,5 @@
 /******************************************************************************
-* @file main.c: gfx2dGame —— SW6 基础 Demo
+* @file main.c: gfx2dGame —— 模式框架（SW8）、SW6 基础 Demo 与 SW7 的入口
 *
 * @brief  赛题基础要求 3 的基础 Demo（spec：Engineering/Todo/sw/SW6-基础Demo.md）。
 *         同一份应用每帧更新场景、生成命令表、交给 `lib/gfx` 的软件执行器、呈现后缓冲，
@@ -8,10 +8,17 @@
 *           B 三张整屏图快速切换：初始化时预合成进 DDR 离屏层，每帧一次整屏 BLIT COPY，
 *             瓶颈在访存带宽。
 *
-*         两个入口（编译期开关，板上没有 argv，见 spec 2.5）：
-*           不给开关       演示模式：实时输入，A／B 每 SW6_STAGE_FRAMES 帧轮换；
+*         入口（编译期开关，板上没有 argv，见 spec 2.5）：
+*           不给开关       模式框架（SW8 2.1 节）：1 基础 Demo（SW6 的演示，实时输入，A／B 每 SW6_STAGE_FRAMES 场轮换）、
+*                          2 游戏、3 压力测试（stg_modes.c）；上电进 -DGFX2D_START_MODE=<1|2|3>（缺省 2）。
+*                          数字键 1~3 直接选模式，Tab 切后端变量；板上用和弦（上 + 下按住 8 帧切下一个模式，
+*                          左 + 右切后端，stg_chord）。切换在触发那一帧结束之后生效：离开时游戏状态整体重置，
+*                          进入时 exec_sw_reset 复位裁剪框、按新模式重登记表面表；新模式的第一帧之后打一行
+*                            mode <m> enter frame <帧号> crc <整帧 CRC32> pool <四个池的存活数> clip <裁剪框>
+*                          -DGFX2D_FRAMES=N 限总帧数（不给时沿用 -DSW6_FRAMES）；-DGFX2D_SWITCH_JUDGE=1 用合成的
+*                          按键脚本来回切 150 次（切换判据，check_sw8_stats.sh）。
 *           -DSW6_JUDGE=1  判据模式：不读实时按键，按入库的两段录像各回放两遍，
-*                          先打 pak／scene／eq P，再逐帧打 f 行，最后 fail／done。
+*                          先打 pak／scene／eq P，再逐帧打 f 行，最后 fail／done。不走模式框架。
 *
 *         判据与检查脚本见 spec 第 3 节与 2.6 节；期望日志入库
 *         `logs/sw6_judge.log` 与 `logs/sw6_judge_quick.log`。
@@ -44,7 +51,10 @@
 #include "game/sw6_scene_a.h"
 #include "game/sw6_scene_b.h"
 
+#include "game/stg_chord.h"
+
 #include "stg_main.h"
+#include "stg_modes.h"
 #include "stg_slots.h"
 
 /* --- 全局状态（都是静态的，不用 malloc）--------------------------------- */
@@ -290,6 +300,66 @@ static int boot(void)
     return 0;
 }
 
+#if !SW6_MODE_JUDGE || STG_FIELD_MODE != 0
+
+/* 游戏的表面槽（SW7 2.7 节，stg_slots.h）：0、1 是两张帧缓冲，2~14 是 SW5 字库与 12 张霓虹素材。
+   不登记离屏图：游戏没有预合成。 */
+static int boot_surfaces_stg(void)
+{
+    static const struct {
+        uint32_t entry;
+        int      slot;
+    } pick[STG_SLOT_N_ASSETS] = {
+        { ASSET_BUL16_ENTRY,     STG_SLOT_BUL16 },
+        { ASSET_BUL8_ENTRY,      STG_SLOT_BUL8 },
+        { ASSET_RICE20_ENTRY,    STG_SLOT_RICE },
+        { ASSET_FONT8X16_ENTRY,  STG_SLOT_FONT },
+        { ASSET_PSHOT_ENTRY,     STG_SLOT_PSHOT },
+        { ASSET_SPARK_ENTRY,     STG_SLOT_SPARK },
+        { ASSET_SHIPS_ENTRY,     STG_SLOT_SHIPS },
+        { ASSET_BOSS_ENTRY,      STG_SLOT_BOSS },
+        { ASSET_STARS_ENTRY,     STG_SLOT_STARS },
+        { ASSET_TITLE_ENTRY,     STG_SLOT_TITLE },
+        { ASSET_DIGITS_ENTRY,    STG_SLOT_DIGITS },
+        { ASSET_ICONS_ENTRY,     STG_SLOT_ICONS },
+        { ASSET_FONT_CYAN_ENTRY, STG_SLOT_FONT_CYAN },
+    };
+    const uint32_t asset_dev = g_mem_regions[REGION_ASSET].offset;
+    const uint32_t fb_dev[2] = { g_mem_regions[REGION_FB0].offset,
+                                 g_mem_regions[REGION_FB1].offset };
+    gfx_surface    s;
+    uint32_t       i;
+
+    gfx_surface_reset(&s_tab);
+    for (i = 0u; i < (uint32_t)STG_SLOT_N_ASSETS; i++) {
+        assetpak_entry e;
+
+        if (assetpak_entry_at(&s_pak, pick[i].entry, &e) != ASSETPAK_OK)
+            return -1;
+        s.base        = asset_dev + e.offset;
+        s.width       = e.width;
+        s.height      = e.height;
+        s.stride_log2 = e.stride_log2;
+        s.space       = GFX_SPACE_DDR;
+        s.format      = e.format;
+        if (gfx_surface_set(&s_tab, pick[i].slot, &s) != 0)
+            return -1;
+    }
+    s.width       = (uint16_t)FB_WIDTH;
+    s.height      = (uint16_t)FB_HEIGHT;
+    s.stride_log2 = (uint8_t)FB_STRIDE_LOG2;
+    s.space       = GFX_SPACE_DDR;
+    s.format      = GFX_FMT_XRGB8888;
+    for (i = 0u; i < 2u; i++) {
+        s.base = fb_dev[i];
+        if (gfx_surface_set(&s_tab, (i == 0u) ? STG_SLOT_FB0 : STG_SLOT_FB1, &s) != 0)
+            return -1;
+    }
+    return 0;
+}
+
+#endif /* 模式框架或弹幕场入口 */
+
 /* --- 一段（一个阶段的一遍）的开始 ---------------------------------------- */
 
 static void stage_begin(uint32_t stage, uint32_t seed, uint32_t n0)
@@ -520,38 +590,293 @@ static int run_judge(void)
 
 #else   /* !SW6_MODE_JUDGE */
 
-static int run_demo(void)
-{
-    sw6_input in;
-    uint32_t  stage       = 0u;
-    uint32_t  pass_frame  = 0u;
-    uint32_t  stage_frame = 0u;
-    uint32_t  total       = 0u;
+/* --- 模式框架（SW8 2.1 节，默认构建）------------------------------------- */
 
-    sw6_input_live(&in, SW6_SEED_DEMO);
-    stage_begin(0u, SW6_SEED_DEMO, SW6_N_START);
+/* 上电进哪个模式（2026-09-26 定案）：缺省 2（游戏） */
+#ifndef GFX2D_START_MODE
+#define GFX2D_START_MODE    2
+#endif
+#if GFX2D_START_MODE < 1 || GFX2D_START_MODE > 3
+#error "GFX2D_START_MODE 只认 1、2、3"
+#endif
+
+/* 总帧数上限：-DGFX2D_FRAMES=N，不给时沿用 -DSW6_FRAMES（D2b 靠它结束），都不给时不限。
+   与 SW6_FRAMES_MAX 同一个理由不带 (uint32_t)。 */
+#ifdef GFX2D_FRAMES
+#define GFX2D_FRAMES_MAX    GFX2D_FRAMES
+#else
+#define GFX2D_FRAMES_MAX    SW6_FRAMES_MAX
+#endif
+
+/* 切换判据：合成的按键脚本代替实时按键（2.1 节「切换判据怎么驱动」） */
+#ifndef GFX2D_SWITCH_JUDGE
+#define GFX2D_SWITCH_JUDGE  0
+#endif
+#define SWJ_SWITCHES        150u    /* 1->2->3->1 来回 50 次 */
+
+/* 模式 3 的两遍搜索结束之后就退出（检查脚本用；平时停在结果那一档继续跑） */
+#ifndef GFX2D_PRESS_EXIT
+#define GFX2D_PRESS_EXIT    0
+#endif
+#define SWJ_DWELL           5u      /* 每次切进来之后先停几帧不按键 */
+#define SWJ_DWELL_PRESS     60u     /* 模式 3 多停：旋钮 N0 = 64 时门控约 47 帧才攒够一次 24 发的齐射，
+                                       停到池里有弹再切走，「切换时漏清池」才看得出来 */
+
+static stg_chord    s_chord;
+static uint32_t     s_mode;             /* 当前模式 1~3 */
+static uint32_t     s_mode_frames;      /* 进入当前模式以来的帧数 */
+static uint32_t     s_backend;          /* 0 sw、1 hw（PC 上没有硬件，仍走软件执行器） */
+static gfx_rect     s_enter_clip;       /* 进入时复位之后的裁剪框（进入行里打） */
+static sw6_input    s_m1_in;            /* 模式 1：由框架喂的输入 */
+static uint32_t     s_m1_stage;
+static uint32_t     s_m1_frame;         /* 模式 1：本段的帧号 */
+static uint32_t     s_m1_field0;        /* 模式 1：本段开始时的场号（轮换按场数） */
+static uint32_t     s_mfps_cyc0, s_mfps_swaps0, s_mfps, s_mfps_valid;   /* 模式 2、3 的 SW FPS 窗口 */
+static uint32_t     s_swj_n;            /* 切换判据：已经切了几次 */
+
+static stg_main_ctx mode_ctx(void)
+{
+    stg_main_ctx c;
+
+    c.tab     = &s_tab;
+    c.mem     = &s_mem;
+    c.es      = &s_es;
+    c.err     = &s_err;
+    c.cmds[0] = s_cmds[0];
+    c.cmds[1] = s_cmds[1];
+    c.cap[0]  = s_cmd_cap[0];
+    c.cap[1]  = s_cmd_cap[1];
+    return c;
+}
+
+static void mode_enter(uint32_t m)
+{
+    exec_sw_reset(&s_es);
+    s_enter_clip  = s_es.clip;
+    s_mode        = m;
+    s_mode_frames = 0u;
+    s_mfps_cyc0    = board_cycles();
+    s_mfps_swaps0  = board_swap_count();
+    s_mfps         = 0u;
+    s_mfps_valid   = 0u;
+    if (m == 1u) {
+        if (boot_surfaces() != 0) {
+            board_puts("surf err 表面登记失败\r\n");
+            s_fail++;
+        }
+        sw6_input_fed(&s_m1_in, SW6_SEED_DEMO);
+        s_m1_stage  = 0u;
+        s_m1_frame  = 0u;
+        s_m1_field0 = board_frame_count();
+        stage_begin(0u, SW6_SEED_DEMO, SW6_N_START);
+    } else {
+        if (boot_surfaces_stg() != 0) {
+            board_puts("surf err 表面登记失败\r\n");
+            s_fail++;
+        }
+        if (m == 2u)
+            stg_mode_game_enter();
+        else
+            stg_mode_press_enter();
+    }
+}
+
+/* 离开旧模式：游戏状态整体重置（池与计数清零）。模式 1 的状态在下次进入时由 stage_begin 复位。 */
+static void mode_leave(uint32_t m)
+{
+    if (m != 1u)
+        stg_modes_reset();
+}
+
+/* 模式 2、3 的 SW FPS：累计满一秒（BOARD_HZ 个周期）结算一次最近一秒的呈现次数。 */
+static void fps_tick(void)
+{
+    const uint32_t now = board_cycles();
+
+    if (now - s_mfps_cyc0 >= (uint32_t)BOARD_HZ) {
+        const uint32_t sw = board_swap_count();
+
+        s_mfps        = sw - s_mfps_swaps0;
+        s_mfps_swaps0 = sw;
+        s_mfps_cyc0   = now;
+        s_mfps_valid  = 1u;
+    }
+}
+
+/* 当前模式的一帧；返回刚呈现的那一面的整帧 CRC。 */
+static uint32_t mode_frame(uint32_t keys)
+{
+    if (s_mode == 1u) {
+        /* 场景 A、B 按场数轮换（SW6_STAGE_FRAMES 在框架里当场数用） */
+        if (board_frame_count() - s_m1_field0 >= (uint32_t)SW6_STAGE_FRAMES) {
+            s_m1_stage ^= 1u;
+            s_m1_frame  = 0u;
+            s_m1_field0 = board_frame_count();
+            stage_begin(s_m1_stage, SW6_SEED_DEMO, SW6_N_START);
+        }
+        sw6_input_feed(&s_m1_in, keys);
+        frame_run(s_m1_stage, 1u, s_m1_frame, &s_m1_in);
+        s_m1_frame++;
+    } else {
+        const stg_main_ctx ctx = mode_ctx();
+        const int          dst = (s_seq & 1u) ? STG_SLOT_FB1 : STG_SLOT_FB0;
+        stg_hud_live       live;
+        stg_mode_out       o;
+
+        if (dst == s_shown) {
+            say2("fb err frame/dst=", s_mode_frames, (uint32_t)dst);
+            s_fail++;
+        }
+        live.sw_fps       = s_mfps;
+        live.sw_fps_valid = (int)s_mfps_valid;
+        live.hw_fps       = 0u;
+        live.hw_fps_valid = 0;
+        live.seg_text     = 0;
+        if (s_mode == 2u)
+            stg_mode_game_frame(&ctx, dst, keys, &live, &o);
+        else
+            stg_mode_press_frame(&ctx, dst, &live, &o);
+        s_shown = dst;
+        s_seq++;
+        fps_tick();
+    }
+    return stg_modes_frame_crc(board_fb(s_shown));
+}
+
+static void say_enter(uint32_t frame, uint32_t crc)
+{
+    char     buf[160];
+    core_out o;
+    uint32_t pool[4], i;
+
+    stg_modes_pools(pool);
+    core_out_init(&o, buf, (uint32_t)sizeof buf);
+    core_out_str(&o, "mode ");
+    core_out_u32(&o, s_mode);
+    core_out_str(&o, " enter frame ");
+    core_out_u32(&o, frame);
+    core_out_str(&o, " crc ");
+    core_out_hex32(&o, crc);
+    core_out_str(&o, " pool");
+    for (i = 0u; i < 4u; i++) {
+        core_out_ch(&o, ' ');
+        core_out_u32(&o, pool[i]);
+    }
+    core_out_str(&o, " clip ");
+    core_out_u32(&o, (uint32_t)s_enter_clip.x0);
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, (uint32_t)s_enter_clip.y0);
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, (uint32_t)s_enter_clip.x1);
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, (uint32_t)s_enter_clip.y1);
+    core_out_str(&o, "\r\n");
+    board_puts(buf);
+}
+
+/* 本帧的按键：实时按键，或切换判据的合成脚本（done 置 1 表示脚本走完）。 */
+static uint32_t frame_keys(int *done)
+{
+#if GFX2D_SWITCH_JUDGE
+    const uint32_t target = s_mode % 3u + 1u;
+    const uint32_t mkey[4] = { 0u, BOARD_KEY_MODE1, BOARD_KEY_MODE2, BOARD_KEY_MODE3 };
+
+    if (s_mode_frames < ((s_mode == 3u) ? SWJ_DWELL_PRESS : SWJ_DWELL))
+        return 0u;
+    if (s_swj_n >= SWJ_SWITCHES) {
+        *done = 1;
+        return 0u;
+    }
+    /* 偶数次用数字键（按一帧），奇数次用上 + 下的和弦（按住 8 帧） */
+    if ((s_swj_n & 1u) == 0u)
+        return mkey[target];
+    return BOARD_KEY_UP | BOARD_KEY_DOWN;
+#else
+    (void)done;
+    return board_keys();
+#endif
+}
+
+static int run_modes(void)
+{
+    uint32_t total = 0u, prev = 0u;
+    int      done = 0, entered;
+
+    stg_chord_init(&s_chord);
+    s_backend = 0u;
+    s_swj_n   = 0u;
+    mode_enter((uint32_t)GFX2D_START_MODE);
+    entered = 1;
 
     for (;;) {
+        uint32_t keys, pressed, ev, next, crc;
+        char     buf[64];
+        core_out o;
+
         if (board_should_quit())
             break;
-#if SW6_FRAMES_MAX != 0
-        if (total >= (uint32_t)SW6_FRAMES_MAX)
+#if GFX2D_FRAMES_MAX != 0
+        if (total >= (uint32_t)GFX2D_FRAMES_MAX)
             break;
 #endif
-        if (stage_frame >= SW6_STAGE_FRAMES) {
-            stage ^= 1u;
-            stage_frame = 0u;
-            pass_frame  = 0u;
-            stage_begin(stage, SW6_SEED_DEMO, SW6_N_START);
+        keys = frame_keys(&done);
+        if (done)
+            break;
+        pressed = keys & ~prev;
+        prev    = keys;
+
+        /* 系统键：数字键与 Tab 取按下沿，和弦由 stg_chord 按帧计 */
+        ev   = stg_chord_step(&s_chord, keys, BOARD_KEY_UP, BOARD_KEY_DOWN, BOARD_KEY_LEFT, BOARD_KEY_RIGHT);
+        next = s_mode;
+        if (pressed & BOARD_KEY_MODE1)
+            next = 1u;
+        if (pressed & BOARD_KEY_MODE2)
+            next = 2u;
+        if (pressed & BOARD_KEY_MODE3)
+            next = 3u;
+        if (ev & STG_CHORD_NEXT_MODE)
+            next = s_mode % 3u + 1u;
+        if ((pressed & BOARD_KEY_SWAP) || (ev & STG_CHORD_SWAP)) {
+            s_backend ^= 1u;
+            core_out_init(&o, buf, (uint32_t)sizeof buf);
+            core_out_str(&o, s_backend ? "backend hw frame " : "backend sw frame ");
+            core_out_u32(&o, total);
+            core_out_str(&o, "\r\n");
+            board_puts(buf);
         }
-        frame_run(stage, 1u, pass_frame, &in);
-        pass_frame++;
-        stage_frame++;
+
+        /* 这一帧仍属当前模式：和弦期间的按键照常交给它 */
+        crc = mode_frame(keys);
+        if (entered) {
+            say_enter(total, crc);
+            entered = 0;
+        }
         total++;
+        s_mode_frames++;
+        if (GFX2D_PRESS_EXIT && s_mode == 3u && stg_modes_press_done())
+            break;
+
+        /* 切换在触发那一帧结束之后生效 */
+        if (next != s_mode) {
+            mode_leave(s_mode);
+            mode_enter(next);
+            entered = 1;
+            s_swj_n++;
+        }
     }
 
-    sw6_log_end(s_fail);
-    return (s_fail == 0u) ? 0 : 1;
+    if (GFX2D_SWITCH_JUDGE) {
+        char     buf[48];
+        core_out o;
+
+        core_out_init(&o, buf, (uint32_t)sizeof buf);
+        core_out_str(&o, "switch done ");
+        core_out_u32(&o, s_swj_n);
+        core_out_str(&o, "\r\n");
+        board_puts(buf);
+    }
+    sw6_log_end(s_fail + stg_modes_fail());
+    return (s_fail + stg_modes_fail() == 0u) ? 0 : 1;
 }
 
 #endif  /* SW6_MODE_JUDGE */
@@ -559,62 +884,6 @@ static int run_demo(void)
 /* --- 弹幕场入口（SW7 2.6 节）--------------------------------------------- */
 
 #if STG_FIELD_MODE != 0
-
-/* 游戏的表面槽（SW7 2.7 节，stg_slots.h）：0、1 是两张帧缓冲，2~14 是 SW5 字库与 12 张霓虹素材。
-   不登记离屏图：游戏没有预合成。 */
-static int boot_surfaces_stg(void)
-{
-    static const struct {
-        uint32_t entry;
-        int      slot;
-    } pick[STG_SLOT_N_ASSETS] = {
-        { ASSET_BUL16_ENTRY,     STG_SLOT_BUL16 },
-        { ASSET_BUL8_ENTRY,      STG_SLOT_BUL8 },
-        { ASSET_RICE20_ENTRY,    STG_SLOT_RICE },
-        { ASSET_FONT8X16_ENTRY,  STG_SLOT_FONT },
-        { ASSET_PSHOT_ENTRY,     STG_SLOT_PSHOT },
-        { ASSET_SPARK_ENTRY,     STG_SLOT_SPARK },
-        { ASSET_SHIPS_ENTRY,     STG_SLOT_SHIPS },
-        { ASSET_BOSS_ENTRY,      STG_SLOT_BOSS },
-        { ASSET_STARS_ENTRY,     STG_SLOT_STARS },
-        { ASSET_TITLE_ENTRY,     STG_SLOT_TITLE },
-        { ASSET_DIGITS_ENTRY,    STG_SLOT_DIGITS },
-        { ASSET_ICONS_ENTRY,     STG_SLOT_ICONS },
-        { ASSET_FONT_CYAN_ENTRY, STG_SLOT_FONT_CYAN },
-    };
-    const uint32_t asset_dev = g_mem_regions[REGION_ASSET].offset;
-    const uint32_t fb_dev[2] = { g_mem_regions[REGION_FB0].offset,
-                                 g_mem_regions[REGION_FB1].offset };
-    gfx_surface    s;
-    uint32_t       i;
-
-    gfx_surface_reset(&s_tab);
-    for (i = 0u; i < (uint32_t)STG_SLOT_N_ASSETS; i++) {
-        assetpak_entry e;
-
-        if (assetpak_entry_at(&s_pak, pick[i].entry, &e) != ASSETPAK_OK)
-            return -1;
-        s.base        = asset_dev + e.offset;
-        s.width       = e.width;
-        s.height      = e.height;
-        s.stride_log2 = e.stride_log2;
-        s.space       = GFX_SPACE_DDR;
-        s.format      = e.format;
-        if (gfx_surface_set(&s_tab, pick[i].slot, &s) != 0)
-            return -1;
-    }
-    s.width       = (uint16_t)FB_WIDTH;
-    s.height      = (uint16_t)FB_HEIGHT;
-    s.stride_log2 = (uint8_t)FB_STRIDE_LOG2;
-    s.space       = GFX_SPACE_DDR;
-    s.format      = GFX_FMT_XRGB8888;
-    for (i = 0u; i < 2u; i++) {
-        s.base = fb_dev[i];
-        if (gfx_surface_set(&s_tab, (i == 0u) ? STG_SLOT_FB0 : STG_SLOT_FB1, &s) != 0)
-            return -1;
-    }
-    return 0;
-}
 
 static int run_stg(void)
 {
@@ -653,8 +922,10 @@ int main(void)
     crc32_init();
 #if STG_FIELD_MODE != 0
     board_puts("gfx2dGame STG\r\n");
-#else
+#elif SW6_MODE_JUDGE
     board_puts("gfx2dGame SW6\r\n");
+#else
+    board_puts("gfx2dGame MODES\r\n");
 #endif
 
     cmdA = board_region(REGION_CMDLIST_A);
@@ -677,6 +948,6 @@ int main(void)
 #if SW6_MODE_JUDGE
     return run_judge();
 #else
-    return run_demo();
+    return run_modes();
 #endif
 }

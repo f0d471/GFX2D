@@ -20,6 +20,21 @@ void stg_press_clock_b(stg_press_clock *c)
     c->model.c[GFX_EQ_ALPHA] = 2u;
 }
 
+uint32_t stg_press_cost(const stg_press_clock *ck, const gfx_census *c, uint64_t *cost)
+{
+    uint64_t left;
+    uint32_t e = 1u;
+
+    *cost = gfx_cost_cycles(&ck->model, c);
+    /* e = max(1, ceil(cost / F))：代价严格大于 e 场就再加一场 */
+    left = *cost;
+    while (left > ck->field_cyc) {
+        left -= ck->field_cyc;
+        e++;
+    }
+    return e;
+}
+
 void stg_press_begin(stg_field *f, uint32_t kind)
 {
     stg_field_init(f, STG_PRESS_SEED);
@@ -33,8 +48,6 @@ void stg_press_frame(stg_field *f, gfx_list *l, const stg_compose_cfg *cfg,
 {
     gfx_census_state cs;
     gfx_census       c;
-    uint64_t         left;
-    uint32_t         e = 1u;
 
     o->bad = 0u;
     stg_field_step(f);
@@ -46,14 +59,6 @@ void stg_press_frame(stg_field *f, gfx_list *l, const stg_compose_cfg *cfg,
     if (gfx_census_run(&cs, l->t, l->buf, l->used, &c) != 0)
         o->bad++;
 
-    o->cost = gfx_cost_cycles(&ck->model, &c);
+    o->e = stg_press_cost(ck, &c, &o->cost);
     o->frame_cyc = (o->cost > 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)o->cost;
-
-    /* e = max(1, ceil(cost / F))：代价严格大于 e 场就再加一场 */
-    left = o->cost;
-    while (left > ck->field_cyc) {
-        left -= ck->field_cyc;
-        e++;
-    }
-    o->e = e;
 }

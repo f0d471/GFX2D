@@ -68,10 +68,11 @@ typedef struct {
 
 /* HUD 的实时量。valid 为 0 时显示 --（判据模式、第一个完整的一秒之前、PC 上的 HW FPS）。 */
 typedef struct {
-    uint32_t sw_fps;
-    int      sw_fps_valid;
-    uint32_t hw_fps;
-    int      hw_fps_valid;
+    uint32_t    sw_fps;
+    int         sw_fps_valid;
+    uint32_t    hw_fps;
+    int         hw_fps_valid;
+    const char *seg_text;       /* 不为 NULL 时代替段名那一行（SW8 模式 3 显示搜索的档与结果） */
 } stg_hud_live;
 
 /* 一帧的计数：活动元素按类，另按方程记成功追加的 FILL 与 BLIT。 */

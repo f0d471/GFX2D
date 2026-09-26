@@ -57,6 +57,7 @@
 #include "game/stg_press.h"
 #include "game/stg_script.h"
 
+#include "stg_modes.h"
 #include "stg_slots.h"
 
 #if STG_FIELD_MODE < 1 || STG_FIELD_MODE > 4
@@ -157,20 +158,16 @@ static uint32_t field_crc(const uint32_t *fb)
 
 #endif /* STG_DRAWS */
 
-/* 游戏的表面槽（stg_slots.h）。自机取 ships.png 的第 0 格（32x32，左上角 (0, 0)，色键 0）。 */
+#if STG_USES_FIELD
+/* 游戏的表面槽（stg_slots.h，与模式框架共用 stg_modes_draw_cfg）。自机取 ships.png 的第 0 格。 */
 static void cfg_init(stg_compose_cfg *c, int dst)
 {
-    c->dst                     = dst;
-    c->src_slot[STG_SRC_BUL16] = STG_SLOT_BUL16;
-    c->src_slot[STG_SRC_BUL8]  = STG_SLOT_BUL8;
-    c->src_slot[STG_SRC_RICE]  = STG_SLOT_RICE;
-    c->src_slot[STG_SRC_PSHOT] = STG_SLOT_PSHOT;
-    c->src_slot[STG_SRC_SPARK] = STG_SLOT_SPARK;
-    c->player_slot             = STG_SLOT_SHIPS;
-    c->player_w                = (int32_t)ASSET_SHIPS_CELL_W;
-    c->player_h                = (int32_t)ASSET_SHIPS_CELL_H;
-    c->player_key              = ASSET_SHIPS_KEY;
+    stg_draw_cfg d;
+
+    stg_modes_draw_cfg(&d, dst);
+    *c = d.pool;
 }
+#endif
 
 #if STG_DRAWS
 
@@ -268,42 +265,6 @@ typedef struct {
     uint32_t        crc;
 } game_out;
 
-static void draw_cfg_init(stg_draw_cfg *c, int dst)
-{
-    cfg_init(&c->pool, dst);
-    c->ships_slot          = STG_SLOT_SHIPS;
-    c->boss_slot           = STG_SLOT_BOSS;
-    c->stars_slot          = STG_SLOT_STARS;
-    c->title_slot          = STG_SLOT_TITLE;
-    c->digits_slot         = STG_SLOT_DIGITS;
-    c->icons_slot          = STG_SLOT_ICONS;
-    c->font.slot           = STG_SLOT_FONT;
-    c->font.cell_w         = ASSET_FONT8X16_CELL_W;
-    c->font.cell_h         = ASSET_FONT8X16_CELL_H;
-    c->font.cols           = ASSET_FONT8X16_COLS;
-    c->font.first          = 0x20u;
-    c->font.cells          = ASSET_FONT8X16_CELLS;
-    c->font.key            = 0x00000000u;
-    c->font_cyan           = c->font;
-    c->font_cyan.slot      = STG_SLOT_FONT_CYAN;
-    c->font_cyan.cols      = ASSET_FONT_CYAN_COLS;
-    c->font_cyan.cells     = ASSET_FONT_CYAN_CELLS;
-    c->font_cyan.key       = ASSET_FONT_CYAN_KEY;
-}
-
-/* 整帧 640x480 的 CRC32，逐行取 2560 字节。 */
-static uint32_t frame_crc(const uint32_t *fb)
-{
-    const uint8_t *p0 = (const uint8_t *)fb;
-    crc32_ctx      c;
-    uint32_t       y;
-
-    crc32_begin(&c);
-    for (y = 0u; y < (uint32_t)FB_HEIGHT; y++)
-        crc32_update(&c, p0 + (size_t)y * FB_STRIDE_BYTES, (uint32_t)FB_WIDTH * 4u);
-    return crc32_end(&c);
-}
-
 /* HUD 的实时量。判据入口一律显示 --；注错 STG_LIVE_HUD 显示实测的 SW FPS（最近一秒的呈现次数）。 */
 static void live_hud(stg_hud_live *h)
 {
@@ -331,6 +292,7 @@ static void live_hud(stg_hud_live *h)
 #endif
     h->hw_fps       = 0u;
     h->hw_fps_valid = 0;
+    h->seg_text     = 0;
 }
 
 static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, game_out *go)
@@ -353,7 +315,7 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
     stg_game_step(&s_game, keys);
 
     gfx_list_begin(&l, ctx->cmds[idx], ctx->cap[idx], ctx->tab);
-    draw_cfg_init(&cfg, dst);
+    stg_modes_draw_cfg(&cfg, dst);
     live_hud(&live);
     if (stg_game_compose(&s_game, &l, &cfg, &live, &go->st) != 0)
         say_err("compose", frame, 0u);
@@ -379,7 +341,7 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
     rc = exec_sw_run(ctx->es, ctx->tab, ctx->mem, l.buf, l.used, l.used, &xs, ctx->err);
     if (rc != GFX_OK)
         say_err("exec", frame, (uint32_t)rc);
-    go->crc = frame_crc(board_fb(dst));
+    go->crc = stg_modes_frame_crc(board_fb(dst));
 
     board_present(dst);
     s_shown = dst;

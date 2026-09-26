@@ -178,7 +178,7 @@ static void v1_text(const stg_draw_cfg *c)
 
 static int compose_check(const stg_draw_cfg *c, stg_frame_stats *st, uint32_t *used)
 {
-    static const stg_hud_live live = { 0u, 0, 0u, 0 };
+    static const stg_hud_live live = { 0u, 0, 0u, 0, 0 };
     gfx_list         l;
     gfx_census_state cs;
     gfx_census       cc;

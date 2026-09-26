@@ -228,7 +228,7 @@ static void draw_hud(dctx *d, const stg_game *g, const stg_hud_live *live)
     text(d, lab, HUD_TX, 240, "GRAZE");
     value(d, HUD_VX, 240, g->graze, 1, 0u);
     fill(d, HUD_TX, 266, 613, 266, STG_HUD_RULE, GFX_EQ_COPY, 0u);
-    text(d, &d->cfg->font, HUD_TX, 280, stg_game_seg_name(g->seg));
+    text(d, &d->cfg->font, HUD_TX, 280, (live->seg_text != 0) ? live->seg_text : stg_game_seg_name(g->seg));
     text(d, lab, HUD_TX, 312, "N (ACTIVE SPRITES)");
     big_number(d, HUD_TX, 332, d->st->act.total);
     text(d, lab, HUD_TX, 378, "BULLET");

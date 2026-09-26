@@ -37,6 +37,10 @@ typedef struct {
 /* B 批的模型。 */
 void stg_press_clock_b(stg_press_clock *c);
 
+/* 一帧的普查按模型算代价，返回 e = max(1, ceil(代价 / F))；代价写进 *cost。
+   SW8 模式 3 在终符上搜索时也用它（整帧的普查，含 HUD）。 */
+uint32_t stg_press_cost(const stg_press_clock *ck, const gfx_census *c, uint64_t *cost);
+
 /* 压力测试的场：空场（种子 STG_PRESS_SEED）、关掉受击、负载弹种 kind、旋钮 0。
    调用方随后把 nmax 的第一档设进 stg_field_set_pressure()。 */
 void stg_press_begin(stg_field *f, uint32_t kind);

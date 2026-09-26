@@ -189,18 +189,30 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh'
 
 ## gfx2dGame 的期望值
 
-SW6 起它是**基础 Demo**（赛题基础要求 3）。默认构建是**演示模式**：开 640×480 窗口、
-实时输入，A／B 两个阶段每 600 帧自动轮换，HUD 右上角显示 SW FPS、N／k、命令数、
-写入像素数与三段耗时（`HW FPS` 留 `--` 给 SW9）。`-DSW6_JUDGE=1` 是**判据模式**：
-不读实时按键，按入库的两段录像各回放两遍，逐帧打日志与入库期望值对账。
+SW6 起它是**基础 Demo**（赛题基础要求 3），SW8 C 批起默认构建是**模式框架**（启动横幅 `gfx2dGame MODES`）：
+三个模式 1 基础 Demo（SW6 的演示：实时输入，A／B 两个阶段每 600 场自动轮换，HUD 右上角显示 SW FPS、N／k、命令数、
+写入像素数与三段耗时，`HW FPS` 留 `--` 给 SW9）、2 游戏（SW7）、3 压力测试（终符上的 `N_max` 搜索，模拟时钟）。
+上电进 `-DGFX2D_START_MODE=<1|2|3>`（缺省 2）。PC 上数字键 1~3 直接选模式、Tab 切后端变量；板上用和弦：
+上 + 下按住 8 帧切下一个模式，左 + 右按住 8 帧切后端，松开之后才会再触发。每次进入一个模式，第一帧之后打一行
+`mode <m> enter frame <帧号> crc <整帧 CRC32> pool <四个池> clip <裁剪框>`。
+`-DSW6_JUDGE=1` 是**判据模式**：不走模式框架，不读实时按键，按入库的两段录像各回放两遍，逐帧打日志与入库期望值对账。
 
 判据、日志格式与逐帧契约见
 [`../../Engineering/Todo/sw/SW6-基础Demo.md`](../../Engineering/Todo/sw/SW6-基础Demo.md)；
 跑全部十项判据用 `Main/tools/check/check_sw6_demo.sh`。
 
 ```
-# 演示：窗口里看画面
+# 模式框架：窗口里玩游戏（方向键、左 Shift 低速、空格炸弹），1/2/3 切模式
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host && ./build_host/gfx2dGame'
+
+# 上电直接进 SW6 的演示（模式 1）
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_m1 EXTRA_CFLAGS=-DGFX2D_START_MODE=1 && ./build_host_m1/gfx2dGame'
+
+# 模式 3 两遍搜索跑完就退出（模拟时钟，无窗口不等场；本机约 6 分半）
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_m3 EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_EXIT=1" && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_m3/gfx2dGame'
+
+# 切换判据：合成按键来回切 150 次，每行 mode ... enter 与冷启动的第一帧比（check_sw8_stats.sh 的 M10）
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_swj EXTRA_CFLAGS=-DGFX2D_SWITCH_JUDGE=1 && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_swj/gfx2dGame'
 
 # 判据模式全量一遍：约 22 秒、1226 帧，末尾 fail 0 与 done
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host EXTRA_CFLAGS=-DSW6_JUDGE=1 && ./build_host/gfx2dGame'

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check_sw8_stats.sh —— 演示模式与统计埋点（SW8）A、B 两批的提交前判据
+# check_sw8_stats.sh —— 演示模式与统计埋点（SW8）A、B、C 三批的提交前判据
 #
 # 判据见 Engineering/Todo/sw/SW8-演示模式与统计埋点.md 第 3 节的「A 批」「B 批」几行，
 # 口径见 2.2、2.3、2.4 节与 4.4、4.9 节。
@@ -27,6 +27,13 @@
 #   M9 STG_FIELD=3 的 PC 驱动
 #                       先打包素材，编 gfx2dGame 的 PC 版，无窗口跑：两行 nmax cfg、两行 nmax result OK、
 #                       fail 0、done；两行 nmax result 与 M8 的 app 测试打出来的逐字相同
+#   M10 模式切换        默认构建（模式框架）以 GFX2D_START_MODE=1、2、3 冷启动各跑一帧取进入行的整帧 CRC；
+#                       -DGFX2D_SWITCH_JUDGE=1 的合成按键来回切 150 次：151 行进入行的 CRC 与同模式的冷启动相同，
+#                       模式 1、2 进来时四个池都是 0，裁剪框复位，switch done 150、fail 0
+#   M10i 切换的注错     INJECT=MODE_KEEP_POOL（重置游戏状态时漏清敌弹池），进入行必须有不符的
+#   M11 系统键和弦      M8 的 app 测试输出里 H 组 5 行全 ok；注错 CHORD_RETRIGGER 必须让 H1 的「不再触发」见红
+#   M12 模式 3          默认构建以 GFX2D_START_MODE=3、GFX2D_PRESS_EXIT=1 无窗口跑终符上的两遍搜索（模拟时钟）：
+#                       两行 nmax cfg（SETTLE_MIN=300）、两行 nmax result OK、nmax done、fail 0。本机约 6 分半
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh
@@ -278,6 +285,103 @@ elif make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_stg3" EXTRA_CFLAGS="-DSTG_FI
 else
     bad "M9 STG_FIELD=3 的 PC 版编不过"
     tail -5 "$TMP/h_stg3.log" | while read -r l; do note "$l"; done
+fi
+
+# ---------------------------------------------------------------- M10 模式切换
+echo "== M10 模式切换（默认构建的模式框架，合成按键来回切 150 次） =="
+# 冷启动：GFX2D_START_MODE=1、2、3 各跑一帧，取进入行的整帧 CRC
+cold_ok=1
+for m in 1 2 3; do
+    if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/cold$m" \
+            EXTRA_CFLAGS="-DGFX2D_START_MODE=$m -DGFX2D_FRAMES=1" >"$TMP/cold$m.build.log" 2>&1; then
+        SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/cold$m/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/cold$m.log"
+        eval "cold_crc_$m=\"$(awk '/^mode /{print $7; exit}' "$TMP/cold$m.log")\""
+    else
+        cold_ok=0
+    fi
+done
+# $1 = 日志：每一行进入行的 CRC 与同模式的冷启动相同，模式 1、2 进来时四个池都是 0，裁剪框复位；打出不符的行数
+switch_bad() {
+    awk -v c1="$cold_crc_1" -v c2="$cold_crc_2" -v c3="$cold_crc_3" '
+        /^mode / { want = ($2 == 1) ? c1 : ($2 == 2) ? c2 : c3
+                   bad = ($7 != want) || ($14 != 0 || $15 != 0 || $16 != 639 || $17 != 479)
+                   if ($2 != 3) bad = bad || ($9 != 0 || $10 != 0 || $11 != 0 || $12 != 0)
+                   n += bad }
+        END { print n + 0 }' "$1"
+}
+if [ "$cold_ok" -eq 1 ] && [ -n "$cold_crc_1" ] && [ -n "$cold_crc_2" ] && [ -n "$cold_crc_3" ] &&
+   make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/swj" EXTRA_CFLAGS="-DGFX2D_SWITCH_JUDGE=1" \
+        >"$TMP/swj.build.log" 2>&1; then
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/swj/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/swj.log"
+    nent=$(grep -c '^mode ' "$TMP/swj.log")
+    nbad=$(switch_bad "$TMP/swj.log")
+    if grep -q '^switch done 150$' "$TMP/swj.log" && [ "$nent" -eq 151 ] && [ "$nbad" -eq 0 ] &&
+       grep -q '^fail 0$' "$TMP/swj.log" && ! grep -q '^err ' "$TMP/swj.log"; then
+        ok "M10 切 150 次、151 次进入：每次的第一帧与冷启动相同，模式 1、2 进来时池为 0，裁剪框复位，fail 0"
+        note "冷启动 CRC 模式 1 $cold_crc_1、模式 2 $cold_crc_2、模式 3 $cold_crc_3"
+        note "进入次数 模式 1 $(grep -c '^mode 1 ' "$TMP/swj.log")、模式 2 $(grep -c '^mode 2 ' "$TMP/swj.log")、模式 3 $(grep -c '^mode 3 ' "$TMP/swj.log")"
+    else
+        bad "M10 进入 $nent 次、不符 $nbad 次，或没有 switch done 150 / fail 0"
+        grep -E '^err|^fail|^switch' "$TMP/swj.log" | head -4 | while read -r l; do note "$l"; done
+    fi
+else
+    bad "M10 冷启动或切换判据的 PC 版编不过"
+fi
+
+echo "== M10i 模式切换的注错（重置时漏清敌弹池） =="
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/swji" EXTRA_CFLAGS="-DGFX2D_SWITCH_JUDGE=1" \
+        INJECT=MODE_KEEP_POOL >"$TMP/swji.build.log" 2>&1; then
+    bin="$(ls "$TMP"/swji/gfx2dGame* 2>/dev/null | head -1)"
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$bin" 2>/dev/null | tr -d '\r' >"$TMP/swji.log"
+    nbad=$(switch_bad "$TMP/swji.log")
+    if [ "$nbad" -gt 0 ]; then
+        ok "M10i INJECT=MODE_KEEP_POOL 见红：$nbad 次进入与冷启动不符，第一处 $(awk -v c1="$cold_crc_1" '/^mode 1 / && ($9 != 0) {print "模式 1 进来时敌弹池 " $9; exit}' "$TMP/swji.log")"
+    else
+        bad "M10i INJECT=MODE_KEEP_POOL 没有见红（切换判据看不见漏清，这条判据是空转）"
+    fi
+else
+    bad "M10i INJECT=MODE_KEEP_POOL 编不过"
+fi
+
+# ---------------------------------------------------------------- M11 和弦
+echo "== M11 系统键和弦（app 测试的 H 组） =="
+nh_ok=$(grep -cE '^H[0-9] .* ok$' "$TMP/app64.txt" 2>/dev/null)
+nh_bad=$(grep -cE '^H[0-9] .* FAIL$' "$TMP/app64.txt" 2>/dev/null)
+if [ "$nh_ok" -eq 5 ] && [ "$nh_bad" -eq 0 ]; then
+    ok "M11 和弦 5 行全 ok（7 帧不触发、8 帧触发一次、不松开不再触发；64/32 同 M8）"
+else
+    bad "M11 和弦应有 5 行 ok，实际 ok $nh_ok 行、FAIL $nh_bad 行"
+fi
+if "$HOST_CC" $FLAGS -m32 -DINJECT_CHORD_RETRIGGER -I"$SW/lib" -I"$APP/src" -o "$TMP/chord_inj" \
+        "$APP"/test/*.c "$APP"/src/game/stg_*.c "$SW"/lib/core/*.c "$SW"/lib/gfx/*.c -lm \
+        >"$TMP/chord_inj.build.log" 2>&1; then
+    "$TMP/chord_inj" >"$TMP/chord_inj.txt" 2>&1
+    if grep -qE '^H1 held 200 more frames: no retrigger FAIL$' "$TMP/chord_inj.txt"; then
+        ok "M11i INJECT=CHORD_RETRIGGER 见红：H1 held 200 more frames: no retrigger FAIL"
+    else
+        bad "M11i INJECT=CHORD_RETRIGGER 没有让 H1 的「不再触发」见红"
+    fi
+else
+    bad "M11i INJECT=CHORD_RETRIGGER 编不过"
+fi
+
+# ---------------------------------------------------------------- M12 模式 3 在终符上搜索
+echo "== M12 模式 3 在终符上搜索（默认构建，GFX2D_START_MODE=3，模拟时钟，无窗口） =="
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/m3" EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_EXIT=1" \
+        >"$TMP/m3.build.log" 2>&1; then
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/m3/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/m3.log"
+    ncfg=$(grep -c '^nmax cfg .*SETTLE_MIN=300 ' "$TMP/m3.log")
+    nres=$(grep -c '^nmax result OK ' "$TMP/m3.log")
+    if [ "$ncfg" -eq 2 ] && [ "$nres" -eq 2 ] && grep -q '^nmax done$' "$TMP/m3.log" &&
+       grep -q '^fail 0$' "$TMP/m3.log" && ! grep -q '^err ' "$TMP/m3.log"; then
+        ok "M12 两遍搜索都 OK（SETTLE_MIN=300）、fail 0（$(grep -c '^nmax probe' "$TMP/m3.log") 行轨迹）"
+        grep -E '^nmax (load|result)' "$TMP/m3.log" | while read -r l; do note "$l"; done
+    else
+        bad "M12 cfg 行（SETTLE_MIN=300）$ncfg、OK 结果 $nres，或没有 nmax done / fail 0"
+        grep -E '^nmax result|^err|^fail' "$TMP/m3.log" | head -5 | while read -r l; do note "$l"; done
+    fi
+else
+    bad "M12 GFX2D_START_MODE=3 的 PC 版编不过"
 fi
 
 printf 'fail %d\ndone\n' "$FAIL"
