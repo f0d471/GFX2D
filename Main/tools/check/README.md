@@ -15,7 +15,7 @@
 | `check_sw6_log.py` | SW6 判据日志的**外部核对**：两遍比对、`hud` 对上一帧统计、`hcrc` 按字库文本独立重画、`s` 与 `scene` 参考值、`off` 与 `eq`；`--board` 把板上串口日志从 `pak` 行起与期望日志对账 | 由 `check_sw6_demo.sh` 调用；板上对账时单独跑 |
 | `gen_sw6_replay.py` | 生成 SW6 的两段确定性录像（`.g2dr`）：A 把 N 从 100 升到 5000 再回到 100，B 把 k 从 30 降到 1 再升到 120；形状与停留段写在脚本里 | 录像要改时；`check_sw6_demo.sh` 每次重跑并逐字节比 |
 | `check_sw7_game.sh` | 游戏本体（SW7）A、B、C 三批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红、碰撞的两个注错见红、组帧、弹幕场判据模式两遍一致、板上构建与六个逐颗循环的反汇编（含三个注错）、自机与规则（R 组）及三个注错见红、敌机 Boss 与关卡（S 组）及两个注错见红、霓虹素材可重生成（含注错）、游戏的判据入口两遍一致与 HUD 的注错 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
-| `check_sw8_stats.sh` | 演示模式与统计埋点（SW8）A、B、C 三批的提交前判据：主机测试 64/32 比对与 sanitizer、普查与软件执行器对账、模拟时钟、帧时间直方图、日志队列、`board_tx_room()` 的 PC 实现与板上构建、`N_max` 状态机的综合负载判据、搜索跑在弹幕场上（app 测试）与 `STG_FIELD=3` 的 PC 驱动、模式框架的切换判据、系统键和弦、模式 3 在终符上搜索、各注错见红 | 改 `lib/gfx/census`、`lib/core/framehist`、`lib/core/logq`、`lib/core/nmax`、`board_tx_room()`、`src/game/stg_press`、`mk/host.mk` 的 `test` 目标时，提交前 |
+| `check_sw8_stats.sh` | 演示模式与统计埋点（SW8）A、B、C 三批的提交前判据：主机测试 64/32 比对与 sanitizer、普查与软件执行器对账、模拟时钟、帧时间直方图、日志队列、`board_tx_room()` 的 PC 实现与板上构建、`N_max` 状态机的综合负载判据、搜索跑在弹幕场上（app 测试）与 `STG_FIELD=3` 的 PC 驱动、模式框架的切换判据、系统键和弦、模式 3 在终符上搜索、统计 CSV 对账与日志不阻塞长跑、各注错见红 | 改 `lib/gfx/census`、`lib/core/framehist`、`lib/core/logq`、`lib/core/nmax`、`board_tx_room()`、`src/game/stg_press`、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_tx.c` | `board_tx_room()` 的 PC 实现的主机探针：链真实的 `sw/bsp/host/board.c`，不设 `GFX2D_TX_BUDGET` 时不限，设 192 时按场补满、不累加、超额计数；`-DINJECT_HOST_TX_NO_REFILL` 见红 | 由 `check_sw8_stats.sh` 的 M5 编译运行；改 `bsp/host` 的串口模拟时 |
 | `gen_sin_tab.py` | 生成 `sw/lib/core/sin_tab.c`：1024 项加 256 项尾巴的 Q1.14 正弦表，按绝对值四舍五入；`--inject` 改一项给比对当注错 | 表的口径要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
 | `gen_stg_patterns.py` | SW7 弹型判据的**独立实现**：照 spec 另写正弦表、atan2、`xorshift32`、发射器与池，生成五种弹型加合并段各 120 帧的期望文件 `sw/apps/game/gfx2dGame/test/stg_patterns.txt`；`--compare` 与 C 的轨迹先比参数行再逐帧比，不一致时两边各 dump 第一个不同帧、指出第一颗不同的弹 | 弹型参数或 2.1、2.3 节的规则要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
@@ -325,7 +325,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh'
 
 判据见 `Engineering/Todo/sw/SW8-演示模式与统计埋点.md` 第 3 节，口径见 2.1~2.4 节与 4.4、4.9、4.12、4.13 节。
 要主机 gcc、`gcc-multilib`、`libsdl2-dev`、`python3` 与 Pillow（M9 先打包素材）；M6 要交叉工具链，找不到时跳过，跳过不算通过。
-M12 在本机约 6 分半，全套约 9 分钟。
+M12 在本机约 6 分半、M14 约 10 分钟，全套约 20 分钟；`SW8_SKIP_LONG=1` 跳过 M14（跳过不算通过）。
 
 | 项 | 内容 |
 | --- | --- |
@@ -342,5 +342,8 @@ M12 在本机约 6 分半，全套约 9 分钟。
 | M10i | `INJECT=MODE_KEEP_POOL`（重置游戏状态时漏清敌弹池）：进入行必须有与冷启动不符的 |
 | M11 | 系统键和弦：M8 的 app 测试输出里 H 组 5 行全 ok；注错 `CHORD_RETRIGGER` 必须让 H1 的「不再触发」见红 |
 | M12 | 模式 3 在终符上搜索：默认构建以 `GFX2D_START_MODE=3`、`GFX2D_PRESS_EXIT=1` 无窗口跑两遍搜索（模拟时钟）：两行 `nmax cfg`（`SETTLE_MIN=300`）、两行 `nmax result OK`、`nmax done`、`fail 0`；本机约 6 分半 |
+| M13 | 统计 CSV 对账：默认构建以 `GFX2D_START_MODE=1、2、3` 各跑 600 帧（无窗口、`GFX2D_UNPACED=1`），脚本自己解析 `csv,` 行：表头逐字相同、每行 30 列、`t` 从 0 连续、`cmd_eq` 之和加 `cmd_other` 等于 `cmd`、`pix_eq` 之和等于 `pixel`、没有被别的日志夹断的行；`csvsum` 的 `rows` 等于行数、`lines_dropped` 0；三个模式都出过行，应用 `fail 0` |
+| M13i | `INJECT=CSV_DROP_EQ`（打印时漏掉方程 1 那两列）：脚本的解析必须见红（应用按内部值自查，看不见这一处） |
+| M14 | 日志不阻塞长跑：默认构建以 `GFX2D_START_MODE=2`、`GFX2D_FRAMES=36000` 编，`GFX2D_TX_BUDGET=192`、无窗口、按 60 Hz 节拍跑约 10 分钟：`lines_dropped` 0、`fail 0`、stderr 的超额汇总 `over 0 times 0 bytes`。`SW8_SKIP_LONG=1` 跳过，跳过不算通过 |
 
 编译产物落临时目录，不动 `sw/build_host`。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。

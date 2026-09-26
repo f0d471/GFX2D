@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 
+#include "core/logq.h"
 #include "gfx/gfx.h"
 
 #include "game/stg_draw.h"
@@ -39,6 +40,11 @@
 typedef struct {
     uint32_t        crc;        /* 整帧 640x480 的 CRC32 */
     stg_frame_stats st;         /* 组帧的计数 */
+    uint32_t        list_idx;   /* 这一帧用的是哪一张命令表（0、1） */
+    uint32_t        used;       /* 命令表的条数 */
+    exec_sw_stats   xs;         /* 执行器的统计 */
+    uint32_t        cyc_logic, cyc_build, cyc_exec;     /* 推进、组帧、执行三段的周期数 */
+    uint32_t        t_present;  /* 发出呈现请求前一刻的 board_cycles()：帧时间的终点（SW8 2.2 节，不含等场） */
 } stg_mode_out;
 
 /* 游戏的组帧配置：表面槽照 stg_slots.h，字库几何照 assets.h。STG_FIELD 入口也用它。 */
@@ -58,6 +64,12 @@ uint32_t stg_modes_fail(void);
 
 /* 模式 3 的两遍搜索都结束了返回 1（-DGFX2D_PRESS_EXIT=1 时框架据此结束，给检查脚本用）。 */
 int      stg_modes_press_done(void);
+
+/* 敌弹池的溢出计数（统计埋点的 overflow 列取它的增量）。 */
+uint32_t stg_modes_overflow(void);
+
+/* 日志行（nmax 的几种行、err 行）写进哪里：q 为 NULL 时直接 board_puts。 */
+void     stg_modes_set_log(logq *q);
 
 void     stg_mode_game_enter(void);
 void     stg_mode_game_frame(const stg_main_ctx *ctx, int dst, uint32_t keys,

@@ -39,6 +39,7 @@ static stg_press_clock s_clock;
 static uint32_t        s_press_stage;
 static uint32_t        s_press_nmax[2];     /* 两遍的结果（N_max），HUD 用 */
 static char            s_press_text[32];    /* HUD 段名那一行 */
+static logq           *s_log;               /* 日志队列；NULL 时直接 board_puts */
 
 /* --- 公共 ---------------------------------------------------------------- */
 
@@ -115,10 +116,28 @@ int stg_modes_press_done(void)
     return s_press_stage == PRESS_DONE;
 }
 
+void stg_modes_set_log(logq *q)
+{
+    s_log = q;
+}
+
+uint32_t stg_modes_overflow(void)
+{
+    return stg_pool_overflow(&s_game.f.pools.ebullet);
+}
+
 static void say_line(const char *s)
 {
-    board_puts(s);
-    board_puts("\r\n");
+    char     buf[256];
+    core_out o;
+
+    core_out_init(&o, buf, (uint32_t)sizeof buf);
+    core_out_str(&o, s);
+    core_out_str(&o, "\r\n");
+    if (s_log != NULL)
+        (void)logq_put(s_log, buf);
+    else
+        board_puts(buf);
 }
 
 static void say_err(const char *what, uint32_t v)
@@ -147,6 +166,7 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     exec_sw_stats    xs;
     uint32_t         e;
     int              rc;
+    uint32_t         t0 = board_cycles();
 
     gfx_list_begin(&l, ctx->cmds[idx], ctx->cap[idx], ctx->tab);
     stg_modes_draw_cfg(&cfg, dst);
@@ -164,12 +184,19 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
             say_err("census eq", e);
     if (census != NULL)
         *census = cc;
+    o->cyc_build = board_cycles() - t0;             /* 组帧含普查自查 */
 
     exec_sw_stats_clear(&xs);
+    t0 = board_cycles();
     rc = exec_sw_run(ctx->es, ctx->tab, ctx->mem, l.buf, l.used, l.used, &xs, ctx->err);
+    o->cyc_exec = board_cycles() - t0;
     if (rc != GFX_OK)
         say_err("exec", (uint32_t)rc);
-    o->crc = stg_modes_frame_crc(board_fb(dst));
+    o->list_idx = idx;
+    o->used     = l.used;
+    o->xs       = xs;
+    o->crc       = stg_modes_frame_crc(board_fb(dst));
+    o->t_present = board_cycles();
     board_present(dst);
 }
 
@@ -183,7 +210,10 @@ void stg_mode_game_enter(void)
 void stg_mode_game_frame(const stg_main_ctx *ctx, int dst, uint32_t keys,
                          const stg_hud_live *live, stg_mode_out *o)
 {
+    const uint32_t t0 = board_cycles();
+
     stg_game_step(&s_game, keys);
+    o->cyc_logic = board_cycles() - t0;
     draw_frame(ctx, dst, live, o, NULL);
 }
 
@@ -213,7 +243,7 @@ static void press_begin(uint32_t stage)
     char     buf[240];
 
     s_press_stage = stage;
-    board_puts((stage == PRESS_16) ? "nmax load 16x16\r\n" : "nmax load 8x8\r\n");
+    say_line((stage == PRESS_16) ? "nmax load 16x16" : "nmax load 8x8");
     stg_game_press_begin(&s_game, (stage == PRESS_16) ? STG_KIND_ROUND16 : STG_KIND_SMALL8);
     nmax_cfg_default(&cfg);
     cfg.settle_min = STG_MODES_SETTLE_MIN;
@@ -245,6 +275,7 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
     char         buf[240];
 
     stg_game_step(&s_game, 0u);
+    o->cyc_logic = board_cycles() - t0;
     press_text();
     h.seg_text = s_press_text;
     draw_frame(ctx, dst, &h, o, &cc);
@@ -281,7 +312,7 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
             /* 两遍都搜完：停在 8x8 结果那一档继续跑 */
             s_press_stage = PRESS_DONE;
             stg_game_set_knob(&s_game, s_nmax.res_knob);
-            board_puts("nmax done\r\n");
+            say_line("nmax done");
         }
     }
 }

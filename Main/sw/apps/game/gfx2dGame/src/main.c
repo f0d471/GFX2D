@@ -17,6 +17,9 @@
 *                            mode <m> enter frame <帧号> crc <整帧 CRC32> pool <四个池的存活数> clip <裁剪框>
 *                          -DGFX2D_FRAMES=N 限总帧数（不给时沿用 -DSW6_FRAMES）；-DGFX2D_SWITCH_JUDGE=1 用合成的
 *                          按键脚本来回切 150 次（切换判据，check_sw8_stats.sh）。
+*                          每 60 场一行统计 CSV（gfx2d_stats.c，SW8 2.4 节）；CSV 与框架自己的行都进日志队列，
+*                          每帧只取出 board_tx_room() 那么多字节。模式 1 里 SW6 的逐帧日志照旧直接打，
+*                          队列在模式 1 的每帧开头先取空（不让半行被夹断）。
 *           -DSW6_JUDGE=1  判据模式：不读实时按键，按入库的两段录像各回放两遍，
 *                          先打 pak／scene／eq P，再逐帧打 f 行，最后 fail／done。不走模式框架。
 *
@@ -53,6 +56,7 @@
 
 #include "game/stg_chord.h"
 
+#include "gfx2d_stats.h"
 #include "stg_main.h"
 #include "stg_modes.h"
 #include "stg_slots.h"
@@ -77,6 +81,12 @@ static uint32_t s_prev_pix;
 static uint32_t s_last_in;
 static uint32_t s_last_bld;
 static uint32_t s_last_exe;
+
+/* 上一帧的命令表与执行器统计：模式框架的统计埋点抽样用（SW8 2.4 节），SW6 自己不看它们 */
+static uint32_t      s_last_list;
+static uint32_t      s_last_used;
+static exec_sw_stats s_last_xs;
+static uint32_t      s_last_tp;         /* 发出呈现请求前一刻的 board_cycles()（帧时间的终点，SW8 2.2 节） */
 
 /* 上一次交给 board_present 的那一面（-1 表示还没呈现过）。present 等切换完成才返回，
    所以它就是正在扫描的那一面：本帧的目的面必须是另一面，否则板上会撕裂。 */
@@ -519,11 +529,15 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
     s_last_in    = d_in;
     s_last_bld   = d_bld;
     s_last_exe   = d_exe;
+    s_last_list  = list_idx;
+    s_last_used  = l.used;
+    s_last_xs    = st;
     s_prev_cmd   = st.cmd;
     s_prev_pix   = st.pixel_written;
     s_prev_valid = 1;
 
     /* --- 呈现：它自己等掉一场 --- */
+    s_last_tp = board_cycles();
     board_present(dst);
     s_shown = dst;
     s_seq++;
@@ -634,6 +648,58 @@ static uint32_t     s_m1_field0;        /* 模式 1：本段开始时的场号�
 static uint32_t     s_mfps_cyc0, s_mfps_swaps0, s_mfps, s_mfps_valid;   /* 模式 2、3 的 SW FPS 窗口 */
 static uint32_t     s_swj_n;            /* 切换判据：已经切了几次 */
 
+/* 统计埋点与日志队列（SW8 2.4 节）：框架自己的行都进队列，每帧只取出 board_tx_room() 那么多字节 */
+#define LOGQ_BYTES          8192u
+#define LOG_TAKE_MAX        256u
+static logq         s_logq;
+static char         s_logq_mem[LOGQ_BYTES];
+static char         s_log_out[LOG_TAKE_MAX + 1u];
+static stats_state  s_stats;
+static stg_mode_out s_mout;             /* 模式 2、3 最近一帧的输出（抽样用） */
+
+static void log_line(const char *s)
+{
+    (void)logq_put(&s_logq, s);
+}
+
+/* 每帧：取出不超过 board_tx_room() 的字节交给 board_puts（SW8 2.4 节「日志不能阻塞」）。 */
+static void log_pump(void)
+{
+    const uint32_t room = board_tx_room();
+    uint32_t       n = (room < LOG_TAKE_MAX) ? room : LOG_TAKE_MAX;
+
+    if (n == 0u || logq_used(&s_logq) == 0u)
+        return;
+    n = logq_take(&s_logq, s_log_out, n);
+    if (n > room) {
+        s_fail++;           /* 自查：取出的不超过空位（按构造恒成立，留这一道闸给以后改取法的人） */
+        board_puts("err log over room\r\n");
+    }
+    board_puts(s_log_out);
+}
+
+/* 模式 1：SW6 的逐帧日志照旧直接打（会阻塞，SW8 2.4 节），所以队列在模式 1 的每帧开头先取空，
+   不让上一帧按空位取出的半行被 SW6 的行夹断。 */
+static void log_drain(void)
+{
+    while (logq_used(&s_logq) != 0u) {
+        (void)logq_take(&s_logq, s_log_out, LOG_TAKE_MAX);
+        board_puts(s_log_out);
+    }
+}
+
+/* 运行结束：把队列里剩下的全取出来，空位不够就等下一场。 */
+static void log_flush(void)
+{
+    while (logq_used(&s_logq) != 0u) {
+        if (board_tx_room() == 0u)
+            board_wait_frame();
+        log_pump();
+        if (board_should_quit())
+            break;
+    }
+}
+
 static stg_main_ctx mode_ctx(void)
 {
     stg_main_ctx c;
@@ -721,7 +787,6 @@ static uint32_t mode_frame(uint32_t keys)
         const stg_main_ctx ctx = mode_ctx();
         const int          dst = (s_seq & 1u) ? STG_SLOT_FB1 : STG_SLOT_FB0;
         stg_hud_live       live;
-        stg_mode_out       o;
 
         if (dst == s_shown) {
             say2("fb err frame/dst=", s_mode_frames, (uint32_t)dst);
@@ -733,9 +798,9 @@ static uint32_t mode_frame(uint32_t keys)
         live.hw_fps_valid = 0;
         live.seg_text     = 0;
         if (s_mode == 2u)
-            stg_mode_game_frame(&ctx, dst, keys, &live, &o);
+            stg_mode_game_frame(&ctx, dst, keys, &live, &s_mout);
         else
-            stg_mode_press_frame(&ctx, dst, &live, &o);
+            stg_mode_press_frame(&ctx, dst, &live, &s_mout);
         s_shown = dst;
         s_seq++;
         fps_tick();
@@ -771,7 +836,7 @@ static void say_enter(uint32_t frame, uint32_t crc)
     core_out_ch(&o, ' ');
     core_out_u32(&o, (uint32_t)s_enter_clip.y1);
     core_out_str(&o, "\r\n");
-    board_puts(buf);
+    log_line(buf);
 }
 
 /* 本帧的按键：实时按键，或切换判据的合成脚本（done 置 1 表示脚本走完）。 */
@@ -797,19 +862,51 @@ static uint32_t frame_keys(int *done)
 #endif
 }
 
+/* 这一秒的抽样帧：普查刚执行完的那张命令表，连同执行器统计与三段周期数。 */
+static void sample_frame(void)
+{
+    stats_sample smp;
+    uint32_t     idx, used;
+
+    if (s_mode == 1u) {
+        idx            = s_last_list;
+        used           = s_last_used;
+        smp.xs         = s_last_xs;
+        smp.n_active   = (s_m1_stage == 0u) ? s_a.n : 0u;
+        smp.n_bullet   = 0u;
+        smp.cyc_logic  = s_last_in;
+        smp.cyc_build  = s_last_bld;
+        smp.cyc_exec   = s_last_exe;
+    } else {
+        idx            = s_mout.list_idx;
+        used           = s_mout.used;
+        smp.xs         = s_mout.xs;
+        smp.n_active   = s_mout.st.act.total;
+        smp.n_bullet   = s_mout.st.act.ebullet;
+        smp.cyc_logic  = s_mout.cyc_logic;
+        smp.cyc_build  = s_mout.cyc_build;
+        smp.cyc_exec   = s_mout.cyc_exec;
+    }
+    smp.cyc_auto = 0u;
+    stats_sample_list(&s_stats, &s_tab, s_cmds[idx], used, &smp);
+}
+
 static int run_modes(void)
 {
-    uint32_t total = 0u, prev = 0u;
+    uint32_t total = 0u, prev = 0u, fail;
     int      done = 0, entered;
 
+    logq_init(&s_logq, s_logq_mem, LOGQ_BYTES);
+    stg_modes_set_log(&s_logq);
     stg_chord_init(&s_chord);
     s_backend = 0u;
     s_swj_n   = 0u;
     mode_enter((uint32_t)GFX2D_START_MODE);
+    stats_init(&s_stats, &s_logq, s_mode, s_backend, stg_modes_overflow());
     entered = 1;
 
     for (;;) {
-        uint32_t keys, pressed, ev, next, crc;
+        uint32_t keys, pressed, ev, next, crc, t0, ft;
         char     buf[64];
         core_out o;
 
@@ -822,6 +919,9 @@ static int run_modes(void)
         keys = frame_keys(&done);
         if (done)
             break;
+        if (s_mode == 1u)
+            log_drain();
+        t0      = board_cycles();
         pressed = keys & ~prev;
         prev    = keys;
 
@@ -842,24 +942,31 @@ static int run_modes(void)
             core_out_str(&o, s_backend ? "backend hw frame " : "backend sw frame ");
             core_out_u32(&o, total);
             core_out_str(&o, "\r\n");
-            board_puts(buf);
+            log_line(buf);
+            stats_window(&s_stats, s_mode, s_backend, stg_modes_overflow());
         }
 
         /* 这一帧仍属当前模式：和弦期间的按键照常交给它 */
         crc = mode_frame(keys);
+        ft  = ((s_mode == 1u) ? s_last_tp : s_mout.t_present) - t0;    /* 到发出呈现请求为止，不含等场与下面的抽样普查 */
         if (entered) {
             say_enter(total, crc);
             entered = 0;
         }
+        if (stats_want_sample(&s_stats))
+            sample_frame();
+        stats_frame(&s_stats, ft, stg_modes_overflow());
+        log_pump();
         total++;
         s_mode_frames++;
         if (GFX2D_PRESS_EXIT && s_mode == 3u && stg_modes_press_done())
             break;
 
-        /* 切换在触发那一帧结束之后生效 */
+        /* 切换在触发那一帧结束之后生效；统计的这一秒窗口从新模式的第一帧重新计 */
         if (next != s_mode) {
             mode_leave(s_mode);
             mode_enter(next);
+            stats_window(&s_stats, s_mode, s_backend, stg_modes_overflow());
             entered = 1;
             s_swj_n++;
         }
@@ -873,10 +980,15 @@ static int run_modes(void)
         core_out_str(&o, "switch done ");
         core_out_u32(&o, s_swj_n);
         core_out_str(&o, "\r\n");
-        board_puts(buf);
+        log_line(buf);
     }
-    sw6_log_end(s_fail + stg_modes_fail());
-    return (s_fail + stg_modes_fail() == 0u) ? 0 : 1;
+    stats_end(&s_stats);
+    log_flush();
+    /* 最后两行等下一场、额度补满之后再打（PC 上 GFX2D_TX_BUDGET 模拟串口时不超额） */
+    board_wait_frame();
+    fail = s_fail + stg_modes_fail() + s_stats.fail;
+    sw6_log_end(fail);
+    return (fail == 0u) ? 0 : 1;
 }
 
 #endif  /* SW6_MODE_JUDGE */

@@ -34,6 +34,13 @@
 #   M11 系统键和弦      M8 的 app 测试输出里 H 组 5 行全 ok；注错 CHORD_RETRIGGER 必须让 H1 的「不再触发」见红
 #   M12 模式 3          默认构建以 GFX2D_START_MODE=3、GFX2D_PRESS_EXIT=1 无窗口跑终符上的两遍搜索（模拟时钟）：
 #                       两行 nmax cfg（SETTLE_MIN=300）、两行 nmax result OK、nmax done、fail 0。本机约 6 分半
+#   M13 统计 CSV 对账   默认构建以 GFX2D_START_MODE=1、2、3 各跑 600 帧（无窗口、不等场）：脚本自己解析 csv 行再核一遍——
+#                       表头逐字相同、每行 30 列、t 从 0 连续、cmd_eq 之和加 cmd_other 等于 cmd、pix_eq 之和等于 pixel，
+#                       没有被别的日志夹断的行；csvsum 的 rows 等于 csv 行数、lines_dropped 0；三个模式都出过行，应用 fail 0
+#   M13i CSV 的注错     INJECT=CSV_DROP_EQ（打印时漏掉方程 1 那两列），脚本的解析必须见红（应用按内部值自查，看不见）
+#   M14 日志不阻塞长跑  默认构建以 GFX2D_START_MODE=2、GFX2D_FRAMES=36000 编，GFX2D_TX_BUDGET=192、无窗口、
+#                       按真实 60 Hz 节拍跑（约 10 分钟）：csvsum 的 lines_dropped 0、fail 0、没有 err 行，
+#                       bsp 退出时的超额汇总是 over 0 times 0 bytes。SW8_SKIP_LONG=1 跳过，**跳过不算通过**
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh
@@ -382,6 +389,126 @@ if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/m3" EXTRA_CFLAGS="-DGFX2D_START_
     fi
 else
     bad "M12 GFX2D_START_MODE=3 的 PC 版编不过"
+fi
+
+# ---------------------------------------------------------------- M13 统计 CSV 对账
+# $1 = 日志。打一行：rows <行数> bad <不符行数> broken <夹断行数> head <表头行数> sum <汇总行对得上 1/0>
+#                   dropped <lines_dropped> modes <出过行的模式> first <第一处不符>
+csv_parse() {
+    python3 - "$1" <<'PY'
+import sys
+HEAD = ("csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,"
+        "cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,"
+        "cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5")
+cols = HEAD.split(",")
+nh = rows = bad = broken = 0
+modes = set()
+sums = []
+first = ""
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    line = line.rstrip("\n")
+    if "csv" in line and not line.startswith("csv"):
+        broken += 1
+    if line.startswith("csvh,"):
+        nh += 1
+        if line != HEAD:
+            bad += 1
+            first = first or "表头不符"
+    elif line.startswith("csv,"):
+        f = line.split(",")
+        ok = len(f) == len(cols) and all(x.isdigit() for i, x in enumerate(f) if i not in (0, 2, 3))
+        if ok:
+            r = dict(zip(cols[1:], f[1:]))
+            v = {k: int(x) for k, x in r.items() if k not in ("mode", "exec")}
+            eq = [v["cmd_eq%d" % e] for e in range(6)]
+            px = [v["pix_eq%d" % e] for e in range(6)]
+            ok = (v["t"] == rows and r["mode"] in ("demo", "game", "press") and r["exec"] in ("sw", "hw")
+                  and sum(eq) + v["cmd_other"] == v["cmd"] and sum(px) == v["pixel"])
+            if not ok and not first:
+                first = "t %d cmd %d/%d pix %d/%d" % (v["t"], sum(eq) + v["cmd_other"], v["cmd"], sum(px), v["pixel"])
+            modes.add(r["mode"])
+        elif not first:
+            first = "列数或数字不对：" + line[:60]
+        bad += not ok
+        rows += 1
+    elif line.startswith("csvsum,"):
+        sums.append(line.split(","))
+ok_sum = len(sums) == 1 and len(sums[0]) == 8 and all(x.isdigit() for x in sums[0][1:]) and int(sums[0][6]) == rows
+dropped = int(sums[0][7]) if ok_sum else -1
+print("rows %d bad %d broken %d head %d sum %d dropped %d modes %s first %s" % (
+    rows, bad, broken, nh, 1 if ok_sum else 0, dropped, "+".join(sorted(modes)) or "-", first or "-"))
+PY
+}
+# $1 = csv_parse 的输出里某个键
+csv_get() { awk -v k="$1" '{ for (i = 1; i < NF; i++) if ($i == k) { print $(i + 1); exit } }'; }
+
+echo "== M13 统计 CSV 对账（默认构建，三个模式各 600 帧，脚本解析 csv 行） =="
+m13_modes=""
+m13_bad=0
+for m in 1 2 3; do
+    if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/csv$m" \
+            EXTRA_CFLAGS="-DGFX2D_START_MODE=$m -DGFX2D_FRAMES=600" >"$TMP/csv$m.build.log" 2>&1; then
+        SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/csv$m/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/csv$m.log"
+        res=$(csv_parse "$TMP/csv$m.log")
+        note "模式 $m：$res"
+        rows=$(echo "$res" | csv_get rows)
+        if [ "${rows:-0}" -gt 0 ] && [ "$(echo "$res" | csv_get bad)" = 0 ] &&
+           [ "$(echo "$res" | csv_get broken)" = 0 ] && [ "$(echo "$res" | csv_get head)" = 1 ] &&
+           [ "$(echo "$res" | csv_get sum)" = 1 ] && [ "$(echo "$res" | csv_get dropped)" = 0 ] &&
+           grep -q '^fail 0$' "$TMP/csv$m.log" && ! grep -q '^err ' "$TMP/csv$m.log"; then
+            m13_modes="$m13_modes$(echo "$res" | csv_get modes) "
+        else
+            m13_bad=$((m13_bad + 1))
+        fi
+    else
+        note "模式 $m 的 PC 版编不过"
+        m13_bad=$((m13_bad + 1))
+    fi
+done
+if [ "$m13_bad" -eq 0 ] && [ "$m13_modes" = "demo game press " ]; then
+    ok "M13 三个模式都出过行，每行按方程的两组列之和对得上 cmd 与 pixel，没有夹断的行，lines_dropped 0，fail 0"
+else
+    bad "M13 有 $m13_bad 个模式的 CSV 对不上，或出过行的模式不是三个（$m13_modes）"
+fi
+
+echo "== M13i CSV 的注错（打印时漏掉方程 1 那两列） =="
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/csvi" INJECT=CSV_DROP_EQ \
+        EXTRA_CFLAGS="-DGFX2D_START_MODE=1 -DGFX2D_FRAMES=300" >"$TMP/csvi.build.log" 2>&1; then
+    bin="$(ls "$TMP"/csvi/gfx2dGame* 2>/dev/null | head -1)"
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$bin" 2>/dev/null | tr -d '\r' >"$TMP/csvi.log"
+    res=$(csv_parse "$TMP/csvi.log")
+    nb=$(echo "$res" | csv_get bad)
+    if [ "${nb:-0}" -gt 0 ]; then
+        ok "M13i INJECT=CSV_DROP_EQ 见红：脚本解析出 $nb 行不符，第一处 $(echo "$res" | sed 's/.* first //')"
+    else
+        bad "M13i INJECT=CSV_DROP_EQ 没有见红（脚本的解析看不见漏列，这条判据是空转）"
+    fi
+else
+    bad "M13i INJECT=CSV_DROP_EQ 编不过"
+fi
+
+# ---------------------------------------------------------------- M14 日志不阻塞长跑
+echo "== M14 日志不阻塞长跑（模式 2、36000 帧、GFX2D_TX_BUDGET=192、按 60 Hz 节拍，约 10 分钟） =="
+if [ "${SW8_SKIP_LONG:-0}" = 1 ]; then
+    note "M14 跳过：SW8_SKIP_LONG=1（跳过不算通过）"
+elif make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/long" \
+        EXTRA_CFLAGS="-DGFX2D_START_MODE=2 -DGFX2D_FRAMES=36000" >"$TMP/long.build.log" 2>&1; then
+    SDL_VIDEODRIVER=dummy GFX2D_TX_BUDGET=192 "$TMP/long/gfx2dGame" 2>"$TMP/long.err" | tr -d '\r' >"$TMP/long.log"
+    res=$(csv_parse "$TMP/long.log")
+    over=$(grep -E '^board: tx budget ' "$TMP/long.err" | tail -1)
+    if [ "$(echo "$res" | csv_get sum)" = 1 ] && [ "$(echo "$res" | csv_get dropped)" = 0 ] &&
+       [ "$(echo "$res" | csv_get bad)" = 0 ] && [ "$(echo "$res" | csv_get broken)" = 0 ] &&
+       grep -q '^fail 0$' "$TMP/long.log" && ! grep -q '^err ' "$TMP/long.log" &&
+       echo "$over" | grep -q 'over 0 times 0 bytes$'; then
+        ok "M14 lines_dropped 0、fail 0、bsp 超额汇总 over 0 times 0 bytes"
+    else
+        bad "M14 长跑不过：$res；$over"
+        grep -E '^err|^fail|^csvsum' "$TMP/long.log" | head -4 | while read -r l; do note "$l"; done
+    fi
+    note "$res"
+    note "$(grep '^csvsum' "$TMP/long.log")；$over"
+else
+    bad "M14 长跑的 PC 版编不过"
 fi
 
 printf 'fail %d\ndone\n' "$FAIL"
