@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# check_sw8_stats.sh —— 演示模式与统计埋点（SW8）A 批的提交前判据
+# check_sw8_stats.sh —— 演示模式与统计埋点（SW8）A、B 两批的提交前判据
 #
-# 判据见 Engineering/Todo/sw/SW8-演示模式与统计埋点.md 第 3 节的「A 批」几行，口径见 2.2、2.4 节与 4.4 节。
+# 判据见 Engineering/Todo/sw/SW8-演示模式与统计埋点.md 第 3 节的「A 批」「B 批」几行，
+# 口径见 2.2、2.3、2.4 节与 4.4、4.9 节。
 # 本脚本串起来跑：
 #
 #   M1 主机测试         mk/host.mk 的 test 目标：64 位（ASan/UBSan）与 -m32 输出逐字节相同、fail 0，
 #                       stderr 里没有 sanitizer 报告；普查（C 组）19 行、模拟时钟（S 组）4 行、
-#                       帧时间直方图（H 组）8 行全 ok
+#                       帧时间直方图（H 组）8 行、日志队列（Q 组）7 行、N_max 状态机（N 组）10 行全 ok
 #   M2 普查的注错       CENSUS_NO_SETCLIP / CENSUS_NO_SURF 各编一次，指定的那一行必须 FAIL
 #   M3 直方图与模拟时钟的注错
 #                       FHIST_P99_LOWER / FHIST_DROP_OVER / COST_NO_B 各编一次，指定的那一行必须 FAIL
@@ -16,8 +17,16 @@
 #                       设 192 时按场补满、不累加、超额计数，退出时 stderr 的汇总对得上；
 #                       注错 HOST_TX_NO_REFILL 必须让 X3 见红
 #   M6 板上构建         先打包素材（assets.h 是生成物），再做 gfx2dGame 的真实板上构建（mk/target.mk），
-#                       零告警，bsp/ti60 里有 board_tx_room；
+#                       零告警，bsp/ti60 里有 board_tx_room；再做 -DSTG_FIELD=3（N_max 搜索入口）的板上构建，零告警；
 #                       要 RISCV_BIN=<RISCV_BIN>，找不到交叉工具链时跳过，**跳过不算通过**
+#   M7 N_max 状态机的注错
+#                       NMAX_BISECT_SIDE / NMAX_NO_STEPBACK / NMAX_NO_SETTLE 各编一次，指定的那一行必须 FAIL
+#   M8 搜索跑在弹幕场上 gfx2dGame 的 app 测试（apps/game/gfx2dGame/test，选项同 test 目标，不链 bsp）
+#                       64 位挂 ASan/UBSan、-m32 各一份，输出逐字节相同、fail 0；Y 组 9 行全 ok
+#                       （负载稳态、两种负载各搜一遍 OK、结果那一档零掉帧、加 STEP_MIN 有掉帧）
+#   M9 STG_FIELD=3 的 PC 驱动
+#                       先打包素材，编 gfx2dGame 的 PC 版，无窗口跑：两行 nmax cfg、两行 nmax result OK、
+#                       fail 0、done；两行 nmax result 与 M8 的 app 测试打出来的逐字相同
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh
@@ -32,6 +41,7 @@ SW="$MAIN/sw"
 HOST_CC="${HOST_CC:-gcc}"
 RISCV_BIN="${RISCV_BIN:-riscv-none-elf-}"
 TX_C="$MAIN/tools/check/check_sw8_tx.c"
+APP="$SW/apps/game/gfx2dGame"
 
 TMP="$(mktemp -d)"
 FAIL=0
@@ -100,6 +110,8 @@ group_all_ok H 8 "帧时间直方图"
 grep -E '^H2 990' "$OUT" | while read -r l; do note "$l"; done
 group_all_ok Q 7 "日志队列"
 grep -E '^Q3 ' "$OUT" | while read -r l; do note "$l"; done
+group_all_ok N 10 "N_max 状态机"
+grep -E '^N1 A=|^N4 A=' "$OUT" | while read -r l; do note "$l"; done
 
 # ---------------------------------------------------------------- M2 普查的注错
 echo "== M2 普查的注错（每个都要让指定的行 FAIL） =="
@@ -190,6 +202,82 @@ if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
     fi
 else
     note "M6 跳过：RISCV_BIN=$RISCV_BIN 找不到交叉编译器（跳过不算通过）"
+fi
+if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
+    if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_stg3" EXTRA_CFLAGS="-DSTG_FIELD=3" \
+            >"$TMP/b_stg3.log" 2>&1 && [ -f "$TMP/b_stg3/gfx2dGame-O2.bin" ] &&
+       ! grep -qiE 'warning|error' "$TMP/b_stg3.log"; then
+        ok "M6b STG_FIELD=3 板上构建零告警（bin $(stat -c %s "$TMP/b_stg3/gfx2dGame-O2.bin") 字节）"
+    else
+        bad "M6b STG_FIELD=3 板上构建失败或有告警"
+        grep -iE 'warning|error' "$TMP/b_stg3.log" | head -5 | while read -r l; do note "$l"; done
+    fi
+fi
+
+# ---------------------------------------------------------------- M7 N_max 状态机的注错
+echo "== M7 N_max 状态机的注错（每个都要让指定的行 FAIL） =="
+expect_red M7 NMAX_BISECT_SIDE '^N1 six models'
+expect_red M7 NMAX_NO_STEPBACK '^N4 one spike'
+expect_red M7 NMAX_NO_SETTLE   '^N1 six models'
+
+# ---------------------------------------------------------------- M8 搜索跑在弹幕场上
+echo "== M8 搜索跑在弹幕场上（gfx2dGame 的 app 测试，64 位 ASan/UBSan 与 -m32） =="
+# 选项从 mk/host.mk 取，与 check_sw7_game.sh 的 G4 同一做法
+FLAGS="$(make -C "$SW" -s --no-print-directory -f mk/host.mk OBJDIR="$TMP/flags" \
+         --eval 'sw8_print_flags: ; @echo -std=gnu11 -O$(OPT) -g $(WARN)' sw8_print_flags 2>/dev/null)"
+build_app() {   # $1 = 产物名，$2 = 64|32
+    local extra="-m32"
+    [ "$2" = "64" ] && extra="-fsanitize=address,undefined"
+    # shellcheck disable=SC2086
+    "$HOST_CC" $FLAGS $extra -I"$SW/lib" -I"$APP/src" -o "$TMP/$1" \
+        "$APP"/test/*.c "$APP"/src/game/stg_*.c "$SW"/lib/core/*.c "$SW"/lib/gfx/*.c -lm \
+        >"$TMP/$1.build.log" 2>&1
+}
+if [ -n "$FLAGS" ] && build_app app64 64 && build_app app32 32; then
+    "$TMP/app64" >"$TMP/app64.txt" 2>"$TMP/app64.err"; r64=$?
+    "$TMP/app32" >"$TMP/app32.txt" 2>&1; r32=$?
+    ny_ok=$(grep -cE '^Y[0-9] .* ok$' "$TMP/app64.txt")
+    ny_bad=$(grep -cE '^Y[0-9] .* FAIL$' "$TMP/app64.txt")
+    if [ "$r64" -eq 0 ] && [ "$r32" -eq 0 ] && cmp -s "$TMP/app64.txt" "$TMP/app32.txt" &&
+       grep -q '^fail 0$' "$TMP/app64.txt" && [ "$ny_ok" -eq 9 ] && [ "$ny_bad" -eq 0 ]; then
+        ok "M8 app 测试 64/32 逐字节相同、fail 0；Y 组 9 行全 ok"
+        grep -E '^Y (16x16|8x8) (search|verify)' "$TMP/app64.txt" | while read -r l; do note "$l"; done
+    else
+        bad "M8 退出码 64:$r64 32:$r32、64/32 不同、没有 fail 0，或 Y 组 ok $ny_ok 行、FAIL $ny_bad 行"
+        grep -E 'FAIL' "$TMP/app64.txt" | head -5 | while read -r l; do note "$l"; done
+    fi
+    if grep -qE 'runtime error|AddressSanitizer|LeakSanitizer' "$TMP/app64.err"; then
+        bad "M8s app 测试有 sanitizer 报告"
+        head -3 "$TMP/app64.err" | while read -r l; do note "$l"; done
+    fi
+else
+    bad "M8 app 测试编不过（或取不到 mk/host.mk 的选项）"
+    tail -5 "$TMP"/app*.build.log 2>/dev/null | while read -r l; do note "$l"; done
+fi
+
+# ---------------------------------------------------------------- M9 STG_FIELD=3 的 PC 驱动
+echo "== M9 STG_FIELD=3 的 PC 驱动（模拟时钟，无窗口） =="
+if ! python3 "$MAIN/tools/assets/pack_assets.py" >"$TMP/pack9.log" 2>&1; then
+    bad "M9 素材打包失败"
+elif make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_stg3" EXTRA_CFLAGS="-DSTG_FIELD=3" \
+        >"$TMP/h_stg3.log" 2>&1 && [ -x "$TMP/h_stg3/gfx2dGame" ]; then
+    # board_puts 的行尾是 \r\n，比之前去掉 \r
+    SDL_VIDEODRIVER=dummy "$TMP/h_stg3/gfx2dGame" 2>"$TMP/stg3.err" | tr -d '\r' >"$TMP/stg3.log"
+    r=${PIPESTATUS[0]}
+    ncfg=$(grep -c '^nmax cfg ' "$TMP/stg3.log")
+    nres=$(grep -c '^nmax result OK ' "$TMP/stg3.log")
+    if [ "$r" -eq 0 ] && [ "$ncfg" -eq 2 ] && [ "$nres" -eq 2 ] &&
+       grep -q '^fail 0$' "$TMP/stg3.log" && grep -q '^done$' "$TMP/stg3.log" &&
+       [ "$(grep '^nmax result' "$TMP/stg3.log")" = "$(grep '^nmax result' "$TMP/app64.txt" 2>/dev/null)" ]; then
+        ok "M9 两遍搜索都 OK、fail 0，结果行与 app 测试逐字相同（$(grep -c '^nmax probe' "$TMP/stg3.log") 行轨迹）"
+        grep -E '^nmax (load|result)' "$TMP/stg3.log" | while read -r l; do note "$l"; done
+    else
+        bad "M9 退出码 $r、cfg 行 $ncfg、OK 结果 $nres，或没有 fail 0，或结果行与 app 测试不同"
+        grep -E '^nmax result|^err|^fail' "$TMP/stg3.log" | head -5 | while read -r l; do note "$l"; done
+    fi
+else
+    bad "M9 STG_FIELD=3 的 PC 版编不过"
+    tail -5 "$TMP/h_stg3.log" | while read -r l; do note "$l"; done
 fi
 
 printf 'fail %d\ndone\n' "$FAIL"

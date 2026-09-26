@@ -19,6 +19,9 @@ void stg_field_init(stg_field *f, uint32_t seed)
     f->r_graze     = STG_PLAYER_R_GRAZE;
     stg_kind_radii(f->r_kind);
     f->hit_enabled = 1;
+    f->press_knob  = 0u;
+    f->press_acc   = 0u;
+    f->press_kind  = STG_KIND_ROUND16;
     f->hits        = 0u;
     f->grazes      = 0u;
     f->frame_hit.hits   = 0u;
@@ -78,6 +81,20 @@ void stg_field_advance(stg_field *f)
         (void)stg_emitter_tick(&f->em[i], &f->pools.ebullet, &ctx);
         host_move(&f->em[i], &f->host[i]);
     }
+
+    /* ② 之末：压力负载，排在所有发射器之后 */
+    if (f->press_knob != 0u) {
+        const uint16_t kind = (uint16_t)(f->press_kind & STG_F_KIND_MASK);
+
+        f->press_acc += f->press_knob;
+        while (f->press_acc >= STG_PRESS_LIFE) {
+            const int32_t x = (STG_PRESS_X_LO_PX + (int32_t)(xs32_next(&f->rng) % STG_PRESS_X_SPAN)) * FX_ONE;
+
+            (void)stg_pool_add(&f->pools.ebullet, x, STG_PRESS_Y0, 0, STG_PRESS_VY,
+                               stg_kind_sprite(kind, 16384u), kind);
+            f->press_acc -= STG_PRESS_LIFE;
+        }
+    }
 }
 
 void stg_field_collide(stg_field *f)
@@ -103,6 +120,16 @@ void stg_field_step(stg_field *f)
 void stg_field_set_hits(stg_field *f, int on)
 {
     f->hit_enabled = (on != 0);
+}
+
+void stg_field_set_pressure(stg_field *f, uint32_t knob)
+{
+    f->press_knob = knob;
+}
+
+void stg_field_press_kind(stg_field *f, uint32_t kind)
+{
+    f->press_kind = kind & STG_F_KIND_MASK;
 }
 
 void stg_rect_field(gfx_rect *r)

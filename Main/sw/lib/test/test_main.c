@@ -21,6 +21,7 @@
 #include "test_census.h"
 #include "test_fixmath.h"
 #include "test_gfx.h"
+#include "test_nmax.h"
 #include "test_replay.h"
 #include "test_stats.h"
 
@@ -264,6 +265,7 @@ int main(int argc, char **argv)
     g_fail += test_blit_run_run();
     g_fail += test_census_run();
     g_fail += test_stats_run();
+    g_fail += test_nmax_run();
 
     {
         char     line[48];

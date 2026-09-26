@@ -15,6 +15,11 @@
 *           f <帧号> <段号> pool <敌弹> <自机弹> <敌机> <粒子> act <活动元素> hit <本段累计命中> graze <本段累计擦弹> crc <游戏区 CRC32>
 *         帧号从 0 起全程连续；每段开头重新装场，命中与擦弹从 0 数起。
 *         游戏区 CRC 只取左边 400x480：右边 HUD 的区域 B 批不画，板上那片 DDR 的初值不确定。
+*
+*         N_max 搜索（STG_FIELD=3，SW8 2.3 节）：无窗口、不执行命令表、不呈现，每帧只做场推进、组帧、
+*         普查与模拟时钟（stg_press），把 e、活动元素数与帧代价喂给 lib/core/nmax；16x16 与 8x8 两种负载
+*         各搜一遍，打 nmax cfg、逐档 nmax probe 与 nmax result。结果不是 OK 记一次 fail。
+*         板上跑它也只是模拟时钟下验证流程；板上真实周期的驱动在 SW9。
 ******************************************************************************/
 
 #include "stg_main.h"
@@ -31,12 +36,15 @@
 
 #include "assets.h"
 
+#include "core/nmax.h"
+
 #include "game/stg_field.h"
 #include "game/stg_pattern.h"
+#include "game/stg_press.h"
 #include "game/sw6_cfg.h"
 
-#if STG_FIELD_MODE < 1 || STG_FIELD_MODE > 2
-#error "STG_FIELD 只认 1（演示）与 2（判据）"
+#if STG_FIELD_MODE < 1 || STG_FIELD_MODE > 3
+#error "STG_FIELD 只认 1（演示）、2（判据）与 3（N_max 搜索）"
 #endif
 
 #define STG_DEMO_SEG_FRAMES     300u
@@ -54,15 +62,21 @@
 /* --- 状态（都是静态的，不用 malloc）--------------------------------------- */
 
 static stg_field s_field;           /* 场的全部状态，约 380 KB */
+static uint32_t  s_fail;
+
+/* 画面模式（1、2）才用的：执行、呈现与游戏区 CRC。N_max 搜索（3）不执行也不呈现。 */
+#define STG_DRAWS   (STG_FIELD_MODE != 3)
+
+#if STG_DRAWS
 static uint32_t  s_seq;             /* 全局帧序号：选命令表与帧缓冲 */
 static int       s_shown = -1;      /* 正在显示的那一面 */
-static uint32_t  s_fail;
 
 typedef struct {
     stg_active act;
     uint32_t   crc;
     uint32_t   cyc_step, cyc_bld, cyc_exe;
 } frame_out;
+#endif
 
 static void say_err(const char *what, uint32_t frame, uint32_t v)
 {
@@ -80,6 +94,8 @@ static void say_err(const char *what, uint32_t frame, uint32_t v)
     board_puts(buf);
     s_fail++;
 }
+
+#if STG_DRAWS
 
 static void say_seg(uint32_t seg)
 {
@@ -108,6 +124,8 @@ static uint32_t field_crc(const uint32_t *fb)
     return crc32_end(&c);
 }
 
+#endif /* STG_DRAWS */
+
 static void cfg_init(stg_compose_cfg *c, int dst)
 {
     c->dst                     = dst;
@@ -118,6 +136,8 @@ static void cfg_init(stg_compose_cfg *c, int dst)
     c->player_h                = (int32_t)ASSET_KEY_DEMO_H;
     c->player_key              = ASSET_KEY_DEMO_KEY;
 }
+
+#if STG_DRAWS
 
 static void frame_run(const stg_main_ctx *ctx, uint32_t frame, frame_out *fo)
 {
@@ -181,6 +201,8 @@ static void seg_begin(uint32_t seg)
     say_seg(seg);
 }
 
+#endif /* STG_DRAWS */
+
 static void say_end(void)
 {
     char     buf[48];
@@ -193,7 +215,77 @@ static void say_end(void)
     board_puts(buf);
 }
 
-#if STG_FIELD_MODE == 2
+#if STG_FIELD_MODE == 3
+
+/* --- N_max 搜索（模拟时钟）------------------------------------------------ */
+
+#define STG_NMAX_FRAME_LIMIT 200000u    /* 保险：B 批的一遍约 7000~8000 帧 */
+
+static nmax_state s_nmax;
+
+static void say_line(const char *s)
+{
+    board_puts(s);
+    board_puts("\r\n");
+}
+
+static void search_one(const stg_main_ctx *ctx, uint32_t kind, const char *name)
+{
+    nmax_cfg        cfg;
+    stg_press_clock ck;
+    stg_compose_cfg cc;
+    stg_press_out   o;
+    uint32_t        frames = 0u;
+    char            buf[240];
+
+    board_puts("nmax load ");
+    board_puts(name);
+    board_puts("\r\n");
+
+    stg_press_clock_b(&ck);
+    nmax_cfg_default(&cfg);
+    if (nmax_init(&s_nmax, &cfg, ck.field_cyc) != 0) {
+        say_err("nmax cfg", 0u, 0u);
+        return;
+    }
+    (void)nmax_format_cfg(&s_nmax, buf, (uint32_t)sizeof buf);
+    say_line(buf);
+
+    stg_press_begin(&s_field, kind);
+    stg_field_set_pressure(&s_field, s_nmax.knob);
+    cfg_init(&cc, SW6_SLOT_FB0);
+    while (s_nmax.status == NMAX_RUNNING && frames < STG_NMAX_FRAME_LIMIT) {
+        gfx_list l;
+        uint32_t ev;
+
+        gfx_list_begin(&l, ctx->cmds[0], ctx->cap[0], ctx->tab);
+        stg_press_frame(&s_field, &l, &cc, &ck, &o);
+        if (o.bad != 0u)
+            say_err("press frame", frames, o.bad);
+        ev = nmax_feed(&s_nmax, o.e, o.act.total, o.frame_cyc);
+        frames++;
+        if (ev & NMAX_EV_PROBE) {
+            (void)nmax_format_probe(&s_nmax.last, buf, (uint32_t)sizeof buf);
+            say_line(buf);
+        }
+        if (ev & NMAX_EV_KNOB)
+            stg_field_set_pressure(&s_field, s_nmax.knob);
+    }
+    (void)nmax_format_result(&s_nmax, buf, (uint32_t)sizeof buf);
+    say_line(buf);
+    if (s_nmax.status != NMAX_OK)
+        say_err("nmax status", frames, s_nmax.status);
+}
+
+static int run(const stg_main_ctx *ctx)
+{
+    search_one(ctx, STG_KIND_ROUND16, "16x16");
+    search_one(ctx, STG_KIND_SMALL8, "8x8");
+    say_end();
+    return (s_fail == 0u) ? 0 : 1;
+}
+
+#elif STG_FIELD_MODE == 2
 
 /* --- 判据模式 ------------------------------------------------------------ */
 
@@ -306,8 +398,10 @@ static int run(const stg_main_ctx *ctx)
 int stg_main(const stg_main_ctx *ctx, uint32_t fail0)
 {
     s_fail  = fail0;
+#if STG_DRAWS
     s_seq   = 0u;
     s_shown = -1;
+#endif
     exec_sw_reset(ctx->es);
     return run(ctx);
 }

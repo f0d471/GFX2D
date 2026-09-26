@@ -25,6 +25,7 @@
 #include "test_stg_draw.h"
 #include "test_stg_emit.h"
 #include "test_stg_pool.h"
+#include "test_stg_press.h"
 
 int main(int argc, char **argv)
 {
@@ -54,6 +55,8 @@ int main(int argc, char **argv)
     fail += test_stg_collide_run();
     fputs("stgTest draw\n", stdout);
     fail += test_stg_draw_run();
+    fputs("stgTest press\n", stdout);
+    fail += test_stg_press_run();
 
     core_out_init(&o, line, (uint32_t)sizeof line);
     core_out_str(&o, "fail ");

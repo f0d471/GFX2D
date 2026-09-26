@@ -14,7 +14,12 @@
 *         第 k 帧的状态指第 k 帧第 ③ 步之后的池。stg_field_advance 做 ①②，
 *         stg_field_collide 做 ③，stg_field_step 是两者相加；弹型判据只跑 ①②。
 *
-*         给 SW8 的受击钩子（2.8 节）：stg_field_set_hits(f, 0) 关掉受击，碰撞照做、擦弹照算。
+*         给 SW8 的两个钩子（2.8 节）：
+*           受击  stg_field_set_hits(f, 0) 关掉受击，碰撞照做、擦弹照算；
+*           密度  stg_field_set_pressure(f, K) 驱动定寿命下落负载（SW8 2.3 节「旋钮到负载」）：
+*                 每帧在所有发射器之后，Bresenham 累加器 acc += K，每满 L 发一颗，任意连续 L 帧恰好 K 颗；
+*                 每颗在游戏区上沿外 10 像素出生、x = 8 + next % 385 像素（场的 xorshift32），
+*                 竖直向下 4 像素/帧，恰好活 L = 125 帧后出界回收。稳态下池里恰好 K 颗。
 *
 *         组帧（2.6 节 B 批，占位图）：SET_CLIP 游戏区 400x480 -> 深色 FILL 铺满游戏区 ->
 *         静止自机（COPY 加色键）-> 敌弹（按弹种编号的顺序，每个弹种分段调 gfx_blit_run，ALPHA）->
@@ -48,6 +53,13 @@
 #define STG_BG_ARGB         0x0002040Au
 #define STG_DRAW_CHUNK      128u
 
+/* 定寿命下落负载（SW8 2.3 节）。寿命 L = (480 + 2 × 10) 像素 / 4 像素每帧 = 125 帧。 */
+#define STG_PRESS_LIFE      125u
+#define STG_PRESS_VY        (4 * FX_ONE)
+#define STG_PRESS_Y0        (-STG_MARGIN_PX * FX_ONE)
+#define STG_PRESS_X_LO_PX   8
+#define STG_PRESS_X_SPAN    385u
+
 /* 替身宿主的运动。vx 为 0 时不动。 */
 typedef struct {
     int32_t vx;             /* Q.8/帧 */
@@ -65,6 +77,9 @@ typedef struct {
     int32_t         r_player, r_graze;      /* 自机判定半径与擦弹半径，Q.8 */
     int32_t         r_kind[STG_KIND_N_MAX]; /* 按弹种的判定半径，Q.8 */
     int             hit_enabled;            /* 受击开关（SW8 的压力钩子关掉它） */
+    uint32_t        press_knob;             /* 密度钩子：旋钮（颗），0 为不发 */
+    uint32_t        press_acc;              /* Bresenham 累加器 */
+    uint32_t        press_kind;             /* 负载弹的弹种 */
     uint32_t        hits, grazes;           /* 累计 */
     stg_hit_stats   frame_hit;              /* 最近一帧的命中与擦弹 */
     stg_step_stats  last;                   /* 最近一遍敌弹池的移除计数 */
@@ -108,6 +123,12 @@ void stg_field_step(stg_field *f);
 
 /* 受击钩子：0 关掉受击（不计命中、不打标记，擦弹照算），非 0 打开。 */
 void stg_field_set_hits(stg_field *f, int on);
+
+/* 密度钩子：旋钮 K（颗）。累加器不清零，改档之后 L 帧内到达新的稳态。 */
+void stg_field_set_pressure(stg_field *f, uint32_t knob);
+
+/* 负载弹的弹种（K2：16x16 圆弹是主数字，8x8 小圆弹作对照）。 */
+void stg_field_press_kind(stg_field *f, uint32_t kind);
 
 /* ④：把这一帧追加进 l（含两条 SET_CLIP 与 END），活动元素写进 act。
    追加被拒的条数照构造层的口径记在 l->rejected、l->overflow 里，这里不另计；
