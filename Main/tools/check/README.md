@@ -14,7 +14,7 @@
 | `check_sw6_demo.sh` | 基础 Demo（SW6）的提交前判据，十项：录像可重生成、判据模式编过并跑通、对期望日志、有窗与无窗、两遍一致、HUD 与字形、场景 B、`off` 与 `eq` 计数、四个方程的注错见红、Sanitizer 与板上目标构建 | 改 `gfx2dGame`、`lib/gfx` 的执行器、SW5 素材或录像时，提交前 |
 | `check_sw6_log.py` | SW6 判据日志的**外部核对**：两遍比对、`hud` 对上一帧统计、`hcrc` 按字库文本独立重画、`s` 与 `scene` 参考值、`off` 与 `eq`；`--board` 把板上串口日志从 `pak` 行起与期望日志对账 | 由 `check_sw6_demo.sh` 调用；板上对账时单独跑 |
 | `gen_sw6_replay.py` | 生成 SW6 的两段确定性录像（`.g2dr`）：A 把 N 从 100 升到 5000 再回到 100，B 把 k 从 30 降到 1 再升到 120；形状与停留段写在脚本里 | 录像要改时；`check_sw6_demo.sh` 每次重跑并逐字节比 |
-| `check_sw7_game.sh` | 游戏本体（SW7）A、B 两批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红、碰撞的两个注错见红 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
+| `check_sw7_game.sh` | 游戏本体（SW7）A、B 两批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红、碰撞的两个注错见红、组帧、弹幕场判据模式两遍一致、板上构建与三个循环的反汇编（含注错） | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_stats.sh` | 统计埋点（SW8）A 批的提交前判据：主机测试 64/32 比对与 sanitizer、普查与软件执行器对账、模拟时钟、帧时间直方图、日志队列、`board_tx_room()` 的 PC 实现与板上构建、各注错见红 | 改 `lib/gfx/census`、`lib/core/framehist`、`lib/core/logq`、`board_tx_room()`、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_tx.c` | `board_tx_room()` 的 PC 实现的主机探针：链真实的 `sw/bsp/host/board.c`，不设 `GFX2D_TX_BUDGET` 时不限，设 192 时按场补满、不累加、超额计数；`-DINJECT_HOST_TX_NO_REFILL` 见红 | 由 `check_sw8_stats.sh` 的 M5 编译运行；改 `bsp/host` 的串口模拟时 |
 | `gen_sin_tab.py` | 生成 `sw/lib/core/sin_tab.c`：1024 项加 256 项尾巴的 Q1.14 正弦表，按绝对值四舍五入；`--inject` 改一项给比对当注错 | 表的口径要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
@@ -260,11 +260,12 @@ B 停 31 帧、下键 29 次降到 k=1、停 30 帧、上键 119 次升到 120�
 ## check_sw7_game.sh
 
 ```
-wsl -e bash -c 'bash Main/tools/check/check_sw7_game.sh'
+wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh'
 ```
 
-判据见 `Engineering/Todo/sw/SW7-游戏本体.md` 第 3 节，口径见 2.1 节与 4.5 节。不要板子与交叉工具链，
-要主机 gcc、`gcc-multilib`、`libsdl2-dev`（`mk/host.mk` 解析时就要 `sdl2-config`）与 `python3`。
+判据见 `Engineering/Todo/sw/SW7-游戏本体.md` 第 3 节，口径见 2.1~2.6 节与 4.5、4.11 节。不要板子；
+要主机 gcc、`gcc-multilib`、`libsdl2-dev`（`mk/host.mk` 解析时就要 `sdl2-config`）、`python3` 与 Pillow（G10 先打包素材）；
+G11 要交叉工具链，找不到时跳过，跳过不算通过。全套在本机约四分钟。
 
 | 项 | 内容 |
 | --- | --- |
@@ -278,6 +279,9 @@ wsl -e bash -c 'bash Main/tools/check/check_sw7_game.sh'
 | G7i | `EMIT_SEQ_NOACC`、`EMIT_AIM_SWAP`、`EMIT_RAIN_ORDER` 各编一次，比对必须在指定的段（spiral、aim、rain）第一个报出不一致，并指出第一颗不同的弹 |
 | G8 | 碰撞：G4 的输出里 X 组 13 行全 ok（边界、勾股数相切、大坐标差、擦弹一次、受击关掉、已标记跳过、随机对 64 位朴素参考、场里的自机狙段） |
 | G8i | `COLLIDE_LE` 让 X1 的相切那一行见红；`COLLIDE_NO_CULL` 让 X3 见红，且 stderr 里有 UBSan 的平方溢出报告 |
+| G9 | 按池发出与组帧：G4 的输出里 W 组 11 行全 ok（剔除边界、分段扫 = 一次扫 = 独立重数、源坐标、六段各 300 帧组帧时拒绝为 0 且普查的 ALPHA 条数 = 发出的敌弹数） |
+| G10 | 先打包素材，再以 `EXTRA_CFLAGS=-DSTG_FIELD=2` 编 gfx2dGame 的 PC 版，无窗口（`SDL_VIDEODRIVER=dummy`）跑两遍：去掉 `\r` 之后两遍逐字节相同、`fail 0`、`done`、六段 840 帧、没有 `err` 行 |
+| G11 | `STG_FIELD=1`、`2` 的板上构建零告警；`objdump -d` 查 `stg_pool_step`、`stg_pool_collide`、`stg_pool_draw`：没有 `div`/`divu`/`rem`/`remu`、没有 `__div*`/`__mod*` 调用、没有 `ret` 以外的 `jalr`/`jr`；注错 `INJECT=STG_LOOP_DIV` 在更新循环里加一次除法，这条检查必须见红。要 `RISCV_BIN`，找不到时跳过，跳过不算通过 |
 
 编译产物落临时目录（`OBJDIR` 指过去），不动 `sw/build_host`。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。
 

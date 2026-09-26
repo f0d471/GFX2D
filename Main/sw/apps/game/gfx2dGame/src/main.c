@@ -15,6 +15,9 @@
 *
 *         判据与检查脚本见 spec 第 3 节与 2.6 节；期望日志入库
 *         `logs/sw6_judge.log` 与 `logs/sw6_judge_quick.log`。
+*
+*         -DSTG_FIELD=<n> 时换成 SW7 B 批的弹幕场入口（stg_main.c，SW7 2.6 节）：
+*         启动只做分区窗口、素材包与表面槽三步，不做预合成；SW6 的两种构建不受影响。
 ******************************************************************************/
 
 #include <stddef.h>
@@ -39,6 +42,8 @@
 #include "game/sw6_report.h"
 #include "game/sw6_scene_a.h"
 #include "game/sw6_scene_b.h"
+
+#include "stg_main.h"
 
 /* --- 全局状态（都是静态的，不用 malloc）--------------------------------- */
 
@@ -549,6 +554,37 @@ static int run_demo(void)
 
 #endif  /* SW6_MODE_JUDGE */
 
+/* --- 弹幕场入口（SW7 2.6 节）--------------------------------------------- */
+
+#if STG_FIELD_MODE != 0
+
+static int run_stg(void)
+{
+    stg_main_ctx ctx;
+
+    if (boot_mem() != 0 || boot_asset() != 0) {
+        sw6_log_end(s_fail + 1u);
+        return 1;
+    }
+    if (boot_surfaces() != 0) {
+        board_puts("surf err 表面登记失败\r\n");
+        sw6_log_end(s_fail + 1u);
+        return 1;
+    }
+
+    ctx.tab     = &s_tab;
+    ctx.mem     = &s_mem;
+    ctx.es      = &s_es;
+    ctx.err     = &s_err;
+    ctx.cmds[0] = s_cmds[0];
+    ctx.cmds[1] = s_cmds[1];
+    ctx.cap[0]  = s_cmd_cap[0];
+    ctx.cap[1]  = s_cmd_cap[1];
+    return stg_main(&ctx, s_fail);
+}
+
+#endif /* STG_FIELD_MODE != 0 */
+
 /* --- 入口 ---------------------------------------------------------------- */
 
 int main(void)
@@ -557,7 +593,11 @@ int main(void)
 
     board_init();
     crc32_init();
+#if STG_FIELD_MODE != 0
+    board_puts("gfx2dGame STG\r\n");
+#else
     board_puts("gfx2dGame SW6\r\n");
+#endif
 
     cmdA = board_region(REGION_CMDLIST_A);
     cmdB = board_region(REGION_CMDLIST_B);
@@ -565,6 +605,11 @@ int main(void)
     s_cmd_cap[0] = cmdA.size / (uint32_t)sizeof(gfx_cmd);
     s_cmds[1]    = (gfx_cmd *)cmdB.ptr;
     s_cmd_cap[1] = cmdB.size / (uint32_t)sizeof(gfx_cmd);
+
+#if STG_FIELD_MODE != 0
+    /* 下面 SW6 的启动与主循环不走；留在原处，SW6 的静态函数仍被引用，不触发未用告警 */
+    return run_stg();
+#endif
 
     if (boot() != 0) {
         sw6_log_end(s_fail + 1u);

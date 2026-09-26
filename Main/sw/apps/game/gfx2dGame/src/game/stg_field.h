@@ -16,6 +16,11 @@
 *
 *         给 SW8 的受击钩子（2.8 节）：stg_field_set_hits(f, 0) 关掉受击，碰撞照做、擦弹照算。
 *
+*         组帧（2.6 节 B 批，占位图）：SET_CLIP 游戏区 400x480 -> 深色 FILL 铺满游戏区 ->
+*         静止自机（COPY 加色键）-> 敌弹（按弹种编号的顺序，每个弹种分段调 gfx_blit_run，ALPHA）->
+*         SET_CLIP 全屏 -> END。表面槽由调用方在 stg_compose_cfg 里给，本文件不认识槽号。
+*         活动元素就是发出去的 Sprite 命令条数（至少一个像素落在裁剪框内），按池分开计，背景 FILL 不算。
+*
 *         替身宿主（B 批没有敌机）：位置每帧加 vx，移动后 x 落在 [x_lo, x_hi) 之外就把 vx 取反。
 ******************************************************************************/
 #ifndef GFX2D_STG_FIELD_H
@@ -25,6 +30,7 @@
 
 #include "core/fixmath.h"
 #include "core/xorshift32.h"
+#include "gfx/gfx.h"
 
 #include "stg_emit.h"
 #include "stg_kind.h"
@@ -37,6 +43,10 @@
 #define STG_PLAYER_Y        (400 * FX_ONE)
 #define STG_PLAYER_R_HIT    (2 * FX_ONE)
 #define STG_PLAYER_R_GRAZE  (16 * FX_ONE)
+
+/* 组帧时的背景色（G2 的底色 #02040A）与分段缓冲的条数（16 字节一条，2 KB）。 */
+#define STG_BG_ARGB         0x0002040Au
+#define STG_DRAW_CHUNK      128u
 
 /* 替身宿主的运动。vx 为 0 时不动。 */
 typedef struct {
@@ -60,6 +70,25 @@ typedef struct {
     stg_step_stats  last;                   /* 最近一遍敌弹池的移除计数 */
 } stg_field;
 
+/* 组帧的表面槽与自机图。 */
+typedef struct {
+    int      dst;                       /* 目的：本帧要画的那张帧缓冲 */
+    int      src_slot[STG_SRC_N];       /* 弹种表里的源图编号 -> 表面槽 */
+    int      player_slot;
+    int32_t  player_w, player_h;
+    uint32_t player_key;                /* 色键 */
+} stg_compose_cfg;
+
+/* 一帧发出的活动元素（2.6 节），按池分开。B 批只有敌弹与自机。 */
+typedef struct {
+    uint32_t ebullet;
+    uint32_t pbullet;
+    uint32_t enemy;
+    uint32_t particle;
+    uint32_t player;
+    uint32_t total;
+} stg_active;
+
 /* 空场：池清空、默认出界边界、自机在 (200, 400)、受击打开、随机数按 seed。 */
 void stg_field_init(stg_field *f, uint32_t seed);
 
@@ -79,5 +108,15 @@ void stg_field_step(stg_field *f);
 
 /* 受击钩子：0 关掉受击（不计命中、不打标记，擦弹照算），非 0 打开。 */
 void stg_field_set_hits(stg_field *f, int on);
+
+/* ④：把这一帧追加进 l（含两条 SET_CLIP 与 END），活动元素写进 act。
+   追加被拒的条数照构造层的口径记在 l->rejected、l->overflow 里，这里不另计；
+   被拒的不算活动元素。返回 0；l 已经 END 或没绑表面表时返回 -1、act 清零。 */
+int  stg_field_compose(const stg_field *f, gfx_list *l, const stg_compose_cfg *cfg,
+                       stg_active *act);
+
+/* 游戏区（400x480）与全屏（640x480）两个裁剪框，闭区间。 */
+void stg_rect_field(gfx_rect *r);
+void stg_rect_screen(gfx_rect *r);
 
 #endif /* GFX2D_STG_FIELD_H */

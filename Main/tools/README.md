@@ -22,7 +22,7 @@
 | `check/check_sw6_log.py`、`check/gen_sw6_replay.py` | 同上，只用标准库 | 判据日志的外部核对（`zlib.crc32` 与 `lib/core/crc32` 同参）；SW6 两段录像的独立生成 |
 | `check/gen_sin_tab.py` | 同上，只用标准库 | 生成 SW7 的 1280 项 Q1.14 正弦表 `sw/lib/core/sin_tab.c` |
 | `check/gen_stg_patterns.py` | 同上，只用标准库 | SW7 弹型判据的独立实现：生成五种弹型的期望文件，并与 C 的轨迹逐帧比对 |
-| `check/check_sw_layers.sh`、`check/check_sw5_assets.sh`、`check/check_sw6_demo.sh`、`check/check_sw7_game.sh`、`check/check_sw8_stats.sh`、`check/check_sw8_tx.c`、`check/check_round255.c` | WSL | 要交叉工具链、主机 gcc；前两个与 `check_sw6_demo.sh`、`check_sw7_game.sh`、`check_sw8_stats.sh` 都要 `python3`；`check_sw7_game.sh`、`check_sw8_stats.sh` 要 `gcc-multilib` 与 `libsdl2-dev`，`check_sw8_tx.c` 要 `libsdl2-dev`（由 `check_sw8_stats.sh` 编译） |
+| `check/check_sw_layers.sh`、`check/check_sw5_assets.sh`、`check/check_sw6_demo.sh`、`check/check_sw7_game.sh`、`check/check_sw8_stats.sh`、`check/check_sw8_tx.c`、`check/check_round255.c` | WSL | 要交叉工具链、主机 gcc；前两个与 `check_sw6_demo.sh`、`check_sw7_game.sh`、`check_sw8_stats.sh` 都要 `python3`（`check_sw7_game.sh` 打包素材还要 Pillow）；`check_sw7_game.sh`、`check_sw8_stats.sh` 要 `gcc-multilib` 与 `libsdl2-dev`，`check_sw8_tx.c` 要 `libsdl2-dev`（由 `check_sw8_stats.sh` 编译） |
 
 Efinity 自带的 `python.exe` 在 `python311\bin\` 下而标准库在 `python311\Lib`，Python 推不出 prefix，
 不设 `PYTHONHOME` 时报 `ModuleNotFoundError: No module named 'encodings'`（不是缺标准库）。

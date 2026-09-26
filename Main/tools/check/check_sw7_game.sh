@@ -23,12 +23,20 @@
 #   G8 碰撞             G4 的输出里碰撞 X 组 13 行全 ok（边界、勾股数相切、大坐标差、擦弹一次、受击关掉、
 #                       已标记跳过、随机对 64 位朴素参考、场里的自机狙段）
 #   G8i 碰撞的注错      COLLIDE_LE 让相切那几行见红；COLLIDE_NO_CULL 让 X3 见红，且 UBSan 在 stderr 报平方溢出
+#   G9 组帧的主机判据   G4 的输出里按池发出与组帧 W 组 11 行全 ok（剔除边界、分段扫 = 一次扫 = 独立重数、
+#                       源坐标、六段各 300 帧的组帧：拒绝为 0、普查的 ALPHA 条数 = 发出的敌弹数）
+#   G10 判据模式        gfx2dGame 以 -DSTG_FIELD=2 编 PC 版，无窗口（SDL_VIDEODRIVER=dummy）跑两遍：
+#                       日志逐字节相同、fail 0、done、六段 840 帧
+#   G11 板上构建与反汇编 先打包素材，再以 STG_FIELD=1、2 做板上构建，零告警；objdump 查 stg_pool_step、
+#                       stg_pool_collide、stg_pool_draw 三个函数：没有 div/divu/rem/remu，没有 __div*、__mod* 调用，
+#                       没有 ret 以外的 jalr/jr；注错 STG_LOOP_DIV 在更新循环里加一次除法，这条检查必须见红。
+#                       要 RISCV_BIN=<RISCV_BIN>，找不到交叉工具链时跳过，**跳过不算通过**
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
-#     bash Main/tools/check/check_sw7_game.sh
+#     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh
 #
-# 需要 gcc、gcc-multilib（-m32）、libsdl2-dev（mk/host.mk 解析时就要 sdl2-config）与 python3。
-# 不需要板子与交叉工具链；板上构建的零告警由 check_sw_layers.sh 与 gfx2dGame 的板上构建覆盖。
+# 需要 gcc、gcc-multilib（-m32）、libsdl2-dev（mk/host.mk 解析时就要 sdl2-config）、python3 与 Pillow（打包素材）；
+# G11 要交叉工具链。不需要板子。
 # 全部通过时末尾是 fail 0 与 done，退出码 0。
 
 set -u
@@ -39,6 +47,7 @@ GEN="$MAIN/tools/check/gen_sin_tab.py"
 SIN_TAB="$SW/lib/core/sin_tab.c"
 APP="$SW/apps/game/gfx2dGame"
 HOST_CC="${HOST_CC:-gcc}"
+RISCV_BIN="${RISCV_BIN:-riscv-none-elf-}"
 
 TMP="$(mktemp -d)"
 FAIL=0
@@ -296,6 +305,103 @@ expect_collide_red() {   # $1 = INJECT，$2 = 必须 FAIL 的行，$3 = 非空�
 }
 expect_collide_red COLLIDE_LE      '^X1 distance == r_p \+ r_b \(1536\)' ""
 expect_collide_red COLLIDE_NO_CULL '^X3 differences near field size'     ubsan
+
+# ---------------------------------------------------------------- G9 组帧（主机）
+echo "== G9 按池发出与组帧（app 测试的 W 组） =="
+nw_ok=$(grep -cE '^W[0-9] .* ok$' "$TMP/stg64.txt" 2>/dev/null)
+nw_bad=$(grep -cE '^W[0-9] .* FAIL$' "$TMP/stg64.txt" 2>/dev/null)
+if [ "$nw_ok" -eq 11 ] && [ "$nw_bad" -eq 0 ]; then
+    ok "G9 按池发出与组帧 11 行全 ok（64/32 同 G4）"
+    grep -E '^W(2|4) totals' "$TMP/stg64.txt" | while read -r l; do note "$l"; done
+else
+    bad "G9 按池发出与组帧应有 11 行 ok，实际 ok $nw_ok 行、FAIL $nw_bad 行"
+fi
+
+# ---------------------------------------------------------------- G10 判据模式
+echo "== G10 弹幕场的判据模式（PC，无窗口两遍） =="
+# gfx2dGame 包含生成物 assets.h，干净克隆里要先打包（SW8 4.8 节的教训）
+if ! python3 "$MAIN/tools/assets/pack_assets.py" >"$TMP/pack.log" 2>&1; then
+    bad "G10 素材打包失败"
+    sed -n '1,5p' "$TMP/pack.log" | while read -r l; do note "$l"; done
+elif make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_stg2" EXTRA_CFLAGS="-DSTG_FIELD=2" \
+        >"$TMP/h_stg2.log" 2>&1 && [ -x "$TMP/h_stg2/gfx2dGame" ]; then
+    # board_puts 的行尾是 \r\n（与板上串口一致），比之前去掉 \r
+    SDL_VIDEODRIVER=dummy "$TMP/h_stg2/gfx2dGame" 2>"$TMP/stg_j1.err" | tr -d '\r' >"$TMP/stg_j1.log"
+    r1=${PIPESTATUS[0]}
+    SDL_VIDEODRIVER=dummy "$TMP/h_stg2/gfx2dGame" 2>"$TMP/stg_j2.err" | tr -d '\r' >"$TMP/stg_j2.log"
+    r2=${PIPESTATUS[0]}
+    nf=$(grep -c '^f ' "$TMP/stg_j1.log")
+    nseg=$(grep -c '^seg ' "$TMP/stg_j1.log")
+    if [ "$r1" -eq 0 ] && [ "$r2" -eq 0 ] && cmp -s "$TMP/stg_j1.log" "$TMP/stg_j2.log" &&
+       [ "$(head -1 "$TMP/stg_j1.log")" = "gfx2dGame STG" ] &&
+       grep -q '^fail 0$' "$TMP/stg_j1.log" && grep -q '^done$' "$TMP/stg_j1.log" &&
+       [ "$nf" -eq 840 ] && [ "$nseg" -eq 6 ] && ! grep -q '^err ' "$TMP/stg_j1.log"; then
+        ok "G10 两遍日志逐字节相同、fail 0、done（$nseg 段、$nf 帧，$(wc -l <"$TMP/stg_j1.log") 行）"
+        grep -E '^f (119|359|839) ' "$TMP/stg_j1.log" | while read -r l; do note "$l"; done
+    else
+        bad "G10 退出码 $r1/$r2、两遍不同、没有 fail 0，或帧数 $nf、段数 $nseg 不对"
+        grep -E '^err |^fail' "$TMP/stg_j1.log" | head -5 | while read -r l; do note "$l"; done
+    fi
+else
+    bad "G10 STG_FIELD=2 的 PC 版编不过"
+    tail -5 "$TMP/h_stg2.log" | while read -r l; do note "$l"; done
+fi
+
+# ---------------------------------------------------------------- G11 板上构建与反汇编
+echo "== G11 板上构建（STG_FIELD=1、2）与三个循环的反汇编 =="
+# $1 = elf，$2 = 函数名：打出这个函数的反汇编（不带机器码），找不到时为空
+fn_body() {
+    "${RISCV_BIN}objdump" -d --no-show-raw-insn "$1" 2>/dev/null |
+        awk -v f="<$2>:" '$2 == f { p = 1; next } p && NF == 0 { exit } p { print }'
+}
+# 从函数体里挑出违规的指令：除法与取模、除法库调用、ret 以外的间接跳转
+loop_offenders() {
+    awk -F'\t' '{ m = $2; sub(/[ \t]+$/, "", m) }
+                m ~ /^(div|divu|rem|remu)$/ || m == "jalr" || m == "jr" || $0 ~ /<__(u)?(div|mod)/ { print }'
+}
+LOOPS="stg_pool_step stg_pool_collide stg_pool_draw"
+if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
+    for m in 1 2; do
+        if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_stg$m" EXTRA_CFLAGS="-DSTG_FIELD=$m" \
+                >"$TMP/b_stg$m.log" 2>&1 && [ -f "$TMP/b_stg$m/gfx2dGame-O2.bin" ] &&
+           ! grep -qiE 'warning|error' "$TMP/b_stg$m.log"; then
+            ok "G11 STG_FIELD=$m 板上构建零告警（bin $(stat -c %s "$TMP/b_stg$m/gfx2dGame-O2.bin") 字节）"
+        else
+            bad "G11 STG_FIELD=$m 板上构建失败或有告警"
+            grep -iE 'warning|error' "$TMP/b_stg$m.log" | head -5 | while read -r l; do note "$l"; done
+        fi
+    done
+
+    elf="$TMP/b_stg2/gfx2dGame-O2.elf"
+    for fn in $LOOPS; do
+        body="$(fn_body "$elf" "$fn")"
+        n=$(printf '%s\n' "$body" | grep -c .)
+        offend="$(printf '%s\n' "$body" | loop_offenders)"
+        if [ "$n" -gt 0 ] && [ -z "$offend" ]; then
+            ok "G11 $fn：$n 条指令，没有除法、取模与间接跳转"
+        else
+            bad "G11 $fn：没找到函数体（$n 条），或有违规指令"
+            printf '%s\n' "$offend" | head -3 | while read -r l; do note "$l"; done
+        fi
+    done
+
+    # 注错：更新循环里加一次除法，上面这条检查必须看得见
+    if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_div" EXTRA_CFLAGS="-DSTG_FIELD=2" \
+            INJECT=STG_LOOP_DIV >"$TMP/b_div.log" 2>&1; then
+        elf_div="$(ls "$TMP"/b_div/*.elf 2>/dev/null | head -1)"
+        offend="$(fn_body "$elf_div" stg_pool_step | loop_offenders)"
+        if [ -n "$offend" ]; then
+            ok "G11i INJECT=STG_LOOP_DIV 见红：stg_pool_step 里查到 $(printf '%s\n' "$offend" | head -1 | awk -F'\t' '{print $2}' | tr -d ' ')"
+        else
+            bad "G11i INJECT=STG_LOOP_DIV 没有见红（反汇编检查看不见除法，这条判据是空转）"
+        fi
+    else
+        bad "G11i INJECT=STG_LOOP_DIV 的板上构建失败"
+        tail -3 "$TMP/b_div.log" | while read -r l; do note "$l"; done
+    fi
+else
+    note "G11 跳过：RISCV_BIN=$RISCV_BIN 找不到交叉编译器（跳过不算通过）"
+fi
 
 printf 'fail %d\ndone\n' "$FAIL"
 [ "$FAIL" -eq 0 ]

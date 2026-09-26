@@ -44,7 +44,7 @@ sw/
 
 | 程序 | 说明 |
 | --- | --- |
-| `apps/game/gfx2dGame/` | 基础 Demo（SW6，赛题基础要求 3）：场景 A 大量方块随机移动、场景 B 三张整屏图快速切换，每帧一条命令表交给软件执行器，双缓冲呈现。默认编**演示模式**（实时输入），`EXTRA_CFLAGS=-DSW6_JUDGE=1` 编**判据模式**（回放两段入库录像、逐帧打日志）。串起来跑的是 `Main/tools/check/check_sw6_demo.sh`。期望输出见下。另有 SW7 游戏本体的代码逐步放进 `src/game/stg_*`（A 批是实体池 `stg_pool`；B 批加了弹种表 `stg_kind`、发射器 `stg_emit`、五种弹型 `stg_pattern` 与弹幕场 `stg_field`），它们的主机测试在 `test/`，由 `Main/tools/check/check_sw7_game.sh` 编译运行；弹型判据的期望文件 `test/stg_patterns.txt` 由 `Main/tools/check/gen_stg_patterns.py` 生成。 |
+| `apps/game/gfx2dGame/` | 基础 Demo（SW6，赛题基础要求 3）：场景 A 大量方块随机移动、场景 B 三张整屏图快速切换，每帧一条命令表交给软件执行器，双缓冲呈现。默认编**演示模式**（实时输入），`EXTRA_CFLAGS=-DSW6_JUDGE=1` 编**判据模式**（回放两段入库录像、逐帧打日志）。串起来跑的是 `Main/tools/check/check_sw6_demo.sh`。期望输出见下。另有 SW7 游戏本体的代码逐步放进 `src/game/stg_*`（A 批是实体池 `stg_pool`；B 批加了弹种表 `stg_kind`、发射器 `stg_emit`、五种弹型 `stg_pattern` 与弹幕场 `stg_field`），它们的主机测试在 `test/`，由 `Main/tools/check/check_sw7_game.sh` 编译运行；弹型判据的期望文件 `test/stg_patterns.txt` 由 `Main/tools/check/gen_stg_patterns.py` 生成。`EXTRA_CFLAGS=-DSTG_FIELD=<n>` 换成弹幕场的入口（1 演示、2 判据），见下「弹幕场入口」。 |
 | `apps/game/cup3d/` | 纯软件 3D 光栅器在扫描输出的帧缓冲上转一只茶杯。三个用途：用真实负载量软件渲染的像素吞吐（E7 要的数）、让扫描输出跑在会动会遮挡的负载下、对外演示。320×240 光栅，1:1 贴在 640×480 的正中间。期望输出见下 |
 | `apps/test/bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
 | `apps/test/cacheCoherencyTest/` | 实验 E3 的判据程序：用探针主机当外部写入者，一致性判据、注错与注错自检，并量失效指令的代价 |
@@ -261,6 +261,34 @@ Flash 旧程序在 `reset halt` 之前的输出都跳过。这一步是 SW9 之�
 素材装载 + 整条组帧路径与 PC 等价」的证据；快速档在板上一次约 16 分钟。
 板上软件执行器每帧执行 0.4~4.4 秒，加上三遍 CRC 与一行串口，一帧 1~5 秒，演示模式一段 600 帧在板上要十分钟以上，
 所以演示模式的 HDMI 画面与软硬件帧率对比留给 SW9（引擎接上之后）。
+
+### 弹幕场入口（SW7 B 批）
+
+`EXTRA_CFLAGS=-DSTG_FIELD=<n>` 编出 SW7 B 批的弹幕场（五种弹型、静止自机、占位图），
+启动横幅换成 `gfx2dGame STG`；不给这个开关时仍是上面的 SW6，行为与日志不变。口径见
+[`SW7-游戏本体.md`](../../Engineering/Todo/sw/SW7-游戏本体.md) 2.3、2.6 节。
+
+| n | 是什么 |
+| --: | --- |
+| 1 | 演示：圆环、螺旋、自机狙、扇形、随机雨各 300 帧轮流，再是五个一起的合并段 600 帧，循环；每 60 帧一行 `d`（活动元素数与三段周期数） |
+| 2 | 判据：不读按键，五段各 120 帧、合并段 240 帧，每段一行 `seg`、每帧一行 `f`（帧号、段号、四个池的存活数、活动元素数、本段累计的命中与擦弹、游戏区 400×480 的 CRC），末尾 `fail`、`done`；每帧自查追加的拒绝数为 0、普查的 ALPHA 条数等于发出的敌弹数 |
+
+```
+# 演示：窗口里看五种弹型轮流（绿色方块是静止的自机）
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_stg EXTRA_CFLAGS=-DSTG_FIELD=1 && ./build_host_stg/gfx2dGame'
+
+# 判据：约 14 秒、840 帧，末尾 fail 0 与 done；无窗口时加 SDL_VIDEODRIVER=dummy
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_stg2 EXTRA_CFLAGS=-DSTG_FIELD=2 && SDL_VIDEODRIVER=dummy ./build_host_stg2/gfx2dGame'
+
+# 没有显示器时截帧看画面：第 0、300、839 次呈现各写一张 PPM
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && SDL_VIDEODRIVER=dummy GFX2D_SNAPSHOT=0,300,839 GFX2D_SNAPSHOT_DIR=/tmp ./build_host_stg2/gfx2dGame'
+```
+
+- 判据模式的日志两遍逐字节相同；`check_sw7_game.sh` 的 G10 跑两遍比对。
+- `GFX2D_SNAPSHOT=<k,k,...>` 只在 PC 的 `bsp/host` 里有：到第 k 次成功的 `board_present()`（从 0 起）时，
+  把要呈现的那一面写成 `snap_<k>.ppm`（640×480，P6），目录由 `GFX2D_SNAPSHOT_DIR` 给，缺省当前目录；
+  stderr 里打一行 `board: snapshot k -> 路径`。不改 `board.h`，也不改应用的输出，任何应用都能用。
+- 板上构建与 SW6 相同，另加 `EXTRA_CFLAGS=-DSTG_FIELD=2`；`-DSTG_FRAMES=N` 限总帧数。
 
 ## 编译（七个诊断程序）
 

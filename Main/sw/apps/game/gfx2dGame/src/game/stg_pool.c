@@ -74,7 +74,12 @@ void stg_pool_step(stg_pool *p, const stg_bounds *b, stg_step_stats *st)
         uint16_t       flags = s->flags;
         uint16_t       sprite = s->sprite;
         int32_t        vx = s->vx, vy = s->vy;
+#ifdef INJECT_STG_LOOP_DIV
+        /* 注错：更新循环里的一次除法，objdump 那条判据必须看见它 */
+        int32_t        x = s->x + vx / (int32_t)(sprite | 1u), y = s->y + vy;
+#else
         int32_t        x = s->x + vx, y = s->y + vy;
+#endif
         stg_ent       *d;
 
         if ((flags & STG_F_REMOVE) != 0u) {
@@ -204,6 +209,54 @@ void stg_pool_collide(stg_pool *p, const int32_t *r_kind, const stg_probe *pr,
 
     st->hits   = hits;
     st->grazes = grazes;
+}
+
+/* 相交判断也用无符号比较：dx 落在 [x0 - w + 1, x1] 里当且仅当
+   (uint32)(dx - (x0 - w + 1)) <= (uint32)(x1 - (x0 - w + 1))。前提是裁剪框非空、坐标不越出 ±2^30。
+   w/2 写成 w >> 1（w 非负时相同），循环外算一次。 */
+uint32_t stg_pool_draw(const stg_pool *p, uint32_t kind, const stg_draw_geom *g,
+                       const gfx_rect *clip, uint32_t *cursor, gfx_blit_pos *out, uint32_t cap)
+{
+    const stg_ent  *ent = p->ent;
+    const uint32_t  n = p->n;
+    const int32_t   w = g->w, h = g->h;
+    const int32_t   hw = w >> 1, hh = h >> 1;
+    const uint32_t  cols_log2 = g->cols_log2;
+    const uint32_t  col_mask = (1u << cols_log2) - 1u;
+    const int32_t   x_lo = clip->x0 - w + 1, y_lo = clip->y0 - h + 1;
+    const uint32_t  x_span = (uint32_t)(clip->x1 - x_lo), y_span = (uint32_t)(clip->y1 - y_lo);
+    const uint32_t  want = kind & STG_F_KIND_MASK;
+    uint32_t        i = *cursor, k = 0u;
+
+    /* 尺寸为 0 的弹种（弹种表里未用的项）没有像素，什么也不发；否则上面的区间会退化成错的 */
+    if (w <= 0 || h <= 0) {
+        *cursor = n;
+        return 0u;
+    }
+
+    for (; i < n && k < cap; i++) {
+        const stg_ent *e = &ent[i];
+        uint32_t       s;
+        int32_t        dx, dy;
+
+        /* 已标记移除的，移除位让它不等于任何弹种号 */
+        if (((uint32_t)e->flags & (STG_F_REMOVE | STG_F_KIND_MASK)) != want)
+            continue;
+        dx = (e->x >> FX_SHIFT) - hw;
+        if ((uint32_t)(dx - x_lo) > x_span)
+            continue;
+        dy = (e->y >> FX_SHIFT) - hh;
+        if ((uint32_t)(dy - y_lo) > y_span)
+            continue;
+        s = e->sprite;
+        out[k].dx = dx;
+        out[k].dy = dy;
+        out[k].sx = (int32_t)(s & col_mask) * w;
+        out[k].sy = (int32_t)(s >> cols_log2) * h;
+        k++;
+    }
+    *cursor = i;
+    return k;
 }
 
 void stg_pool_mark(stg_pool *p, uint32_t i)

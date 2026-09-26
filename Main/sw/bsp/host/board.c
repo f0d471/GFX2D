@@ -21,6 +21,12 @@
 *
 *         无窗口模式不改这里的代码：把 SDL_VIDEODRIVER 置成 dummy 再跑同一个
 *         二进制即可（sw 第 03 章 3.2 节的 D3、3.5 节）。这样有窗与无窗确实是同一条执行路径。
+*
+*         **截帧**（只在 PC 上有，SW7 2.6 节）：没有显示器时用它看画面。
+*           GFX2D_SNAPSHOT=<k,k,...>  呈现序号（第几次成功的 board_present()，从 0 起），最多 64 个
+*           GFX2D_SNAPSHOT_DIR=<目录>  写到哪里，缺省当前目录
+*         到了就把要呈现的那一面的 640x480 写成 PPM（P6，文件名 snap_<k>.ppm，k 补到 5 位），
+*         在 stderr 打一行 `board: snapshot k -> 路径`。不设时什么也不做，不改 board.h，也不改应用的输出。
 ******************************************************************************/
 
 #define SDL_MAIN_HANDLED        1
@@ -63,6 +69,12 @@ static uint32_t      s_tx_room;     /* 本场还剩多少 */
 static uint32_t      s_tx_field;    /* 上一次补额度时的场号 */
 static uint32_t      s_tx_over_n;   /* board_puts 超出额度的次数 */
 static uint32_t      s_tx_over_bytes;
+
+/* 截帧（见文件头）。s_snap_n 为 0 表示不截。 */
+#define SNAP_MAX            64u
+static uint32_t      s_snap[SNAP_MAX];
+static uint32_t      s_snap_n;
+static const char   *s_snap_dir;
 
 static uint32_t field_index(void);
 
@@ -154,6 +166,67 @@ uint32_t board_tx_room(void)
     return s_tx_room;
 }
 
+static void snap_init(void)
+{
+    const char *env = getenv("GFX2D_SNAPSHOT");
+    const char *p   = env;
+
+    s_snap_n   = 0u;
+    s_snap_dir = getenv("GFX2D_SNAPSHOT_DIR");
+    if (s_snap_dir == NULL || s_snap_dir[0] == '\0')
+        s_snap_dir = ".";
+    if (env == NULL)
+        return;
+
+    while (*p != '\0' && s_snap_n < SNAP_MAX) {
+        char         *end = NULL;
+        unsigned long v = strtoul(p, &end, 10);
+
+        if (end == p) {
+            fprintf(stderr, "board: GFX2D_SNAPSHOT=%s 里有不是数字的项，后面的不截\n", env);
+            break;
+        }
+        s_snap[s_snap_n++] = (uint32_t)v;
+        p = end;
+        if (*p == ',')
+            p++;
+    }
+}
+
+/* 呈现序号 idx 在表里就把 fb 写成 PPM。帧缓冲是 XRGB8888（0x00RRGGBB，小端存放）。 */
+static void snap_maybe(const uint32_t *fb, uint32_t idx)
+{
+    char     path[512];
+    FILE    *fp;
+    uint32_t i, x, y;
+
+    for (i = 0u; i < s_snap_n; i++) {
+        if (s_snap[i] == idx)
+            break;
+    }
+    if (i == s_snap_n)
+        return;
+
+    snprintf(path, sizeof path, "%s/snap_%05u.ppm", s_snap_dir, (unsigned)idx);
+    fp = fopen(path, "wb");
+    if (fp == NULL) {
+        fprintf(stderr, "board: snapshot %u 写不了 %s\n", (unsigned)idx, path);
+        return;
+    }
+    fprintf(fp, "P6\n%u %u\n255\n", (unsigned)FB_WIDTH, (unsigned)FB_HEIGHT);
+    for (y = 0u; y < FB_HEIGHT; y++) {
+        for (x = 0u; x < FB_WIDTH; x++) {
+            const uint32_t v = fb[y * FB_ROW_PIXELS + x];
+
+            fputc((int)((v >> 16) & 0xFFu), fp);
+            fputc((int)((v >> 8) & 0xFFu), fp);
+            fputc((int)(v & 0xFFu), fp);
+        }
+    }
+    fclose(fp);
+    fprintf(stderr, "board: snapshot %u -> %s\n", (unsigned)idx, path);
+}
+
 void board_init(void)
 {
     s_ddr = (uint8_t *)calloc(1u, (size_t)DDR_SIM_BYTES);
@@ -205,6 +278,7 @@ void board_init(void)
     s_quit      = 0;
 
     tx_budget_init();
+    snap_init();
 }
 
 board_mem board_region(board_region_id id)
@@ -388,6 +462,8 @@ void board_present(int index)
         return;
 
     fb = board_fb(index);
+    if (fb != NULL && s_snap_n != 0u)
+        snap_maybe(fb, s_swaps);
     if (fb != NULL) {
         SDL_UpdateTexture(s_tex, NULL, fb, (int)FB_STRIDE_BYTES);
         SDL_RenderClear(s_ren);

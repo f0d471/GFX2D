@@ -18,13 +18,16 @@
 *         没有文件级的可变状态：池的描述与存储都在调用方给的结构体里（SW7 2.8 节）。
 *         更新循环只做加法与比较，不调函数指针、没有除法（设计文档 4.4 节的实现约束）。
 *
-*         碰撞（SW7 2.4 节，B 批只有自机判定点对敌弹）见 stg_pool_collide()。
+*         碰撞（SW7 2.4 节，B 批只有自机判定点对敌弹）见 stg_pool_collide()；
+*         按池发出（2.6 节）见 stg_pool_draw()。更新、碰撞、按池发出三个循环里没有除法与取模、
+*         没有函数指针调用，check_sw7_game.sh 用 objdump 查板上构建。
 *
 *         注错开关（主机测试 apps/game/gfx2dGame/test/ 用，见 check_sw7_game.sh）：
 *           INJECT_STG_POOL_STALL  移除之后下一个存活实体写进去了，写指针却停一步
 *           INJECT_STG_POOL_SWAP   移除改成与末尾交换（不稳定）
 *           INJECT_COLLIDE_LE      命中判成 d² <= (r_p + r_b)²（恰好相切也算命中）
 *           INJECT_COLLIDE_NO_CULL 去掉粗筛，坐标差大时平方溢出
+*           INJECT_STG_LOOP_DIV    更新循环里加一次除法（只给 objdump 那条判据当反例，结果不对）
 ******************************************************************************/
 #ifndef STG_POOL_H
 #define STG_POOL_H
@@ -32,6 +35,7 @@
 #include <stdint.h>
 
 #include "core/fixmath.h"
+#include "gfx/gfx.h"
 
 /* 容量。**存储上限，不是 60 FPS 下的 N_max**（SW7 2.2 节）。 */
 #define STG_CAP_EBULLET     16384u
@@ -141,6 +145,24 @@ typedef struct {
    st 写本次的两个计数（覆盖，不累加）。 */
 void     stg_pool_collide(stg_pool *p, const int32_t *r_kind, const stg_probe *pr,
                           stg_hit_stats *st);
+
+/* --- 按池发出（SW7 2.6 节） ------------------------------------------------ */
+
+/* 一个弹种的画图几何：图宽高（像素）与源图每行 2^cols_log2 格。 */
+typedef struct {
+    int32_t  w, h;
+    uint32_t cols_log2;
+} stg_draw_geom;
+
+/* 从 *cursor 起扫池，把「弹种为 kind、没有标记移除、目的矩形与 clip 相交」的实体依次写进 out[0..cap)：
+     目的左上角  (x >> 8) - w/2，(y >> 8) - h/2（2.2 节）
+     源左上角    (sprite & (2^cols_log2 - 1)) * w，(sprite >> cols_log2) * h（2.3 节）
+   写满 cap 条或扫到池尾就停，返回写了几条；*cursor 移到下一个没扫过的下标，扫完时等于存活数。
+   调用方反复调用直到 *cursor == 存活数，每次把写出来的交给 gfx_blit_run()，缓冲只要 cap 条。
+   clip 是闭区间（gfx_rect），与执行器的裁剪同口径；只判相交，不裁。
+   w 或 h 不大于 0 时没有像素，什么也不发，*cursor 直接移到池尾。 */
+uint32_t stg_pool_draw(const stg_pool *p, uint32_t kind, const stg_draw_geom *g,
+                       const gfx_rect *clip, uint32_t *cursor, gfx_blit_pos *out, uint32_t cap);
 
 uint32_t stg_pool_count(const stg_pool *p);
 uint32_t stg_pool_overflow(const stg_pool *p);

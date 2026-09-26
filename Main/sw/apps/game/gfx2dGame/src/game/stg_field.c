@@ -104,3 +104,97 @@ void stg_field_set_hits(stg_field *f, int on)
 {
     f->hit_enabled = (on != 0);
 }
+
+void stg_rect_field(gfx_rect *r)
+{
+    r->x0 = 0;
+    r->y0 = 0;
+    r->x1 = STG_FIELD_W - 1;
+    r->y1 = STG_FIELD_H - 1;
+}
+
+void stg_rect_screen(gfx_rect *r)
+{
+    r->x0 = 0;
+    r->y0 = 0;
+    r->x1 = 640 - 1;
+    r->y1 = 480 - 1;
+}
+
+/* 一个池按弹种编号的顺序发出：每个用到的弹种一个模板，分段扫、分段交给 gfx_blit_run()。
+   返回成功追加的条数。 */
+static uint32_t draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cfg,
+                          const gfx_rect *clip)
+{
+    gfx_blit_pos pos[STG_DRAW_CHUNK];
+    uint32_t     kind, done = 0u;
+
+    for (kind = 0u; kind < STG_KIND_N_MAX; kind++) {
+        const stg_kind_info *ki = &stg_kind_tab[kind];
+        stg_draw_geom        g;
+        gfx_blit_tmpl        t;
+        uint32_t             cursor = 0u;
+
+        if (ki->w == 0u)
+            continue;
+        g.w         = (int32_t)ki->w;
+        g.h         = (int32_t)ki->h;
+        g.cols_log2 = ki->cols_log2;
+        t.src    = cfg->src_slot[ki->src < STG_SRC_N ? ki->src : 0u];
+        t.dst    = cfg->dst;
+        t.w      = (int)ki->w;
+        t.h      = (int)ki->h;
+        t.eq     = GFX_EQ_ALPHA;
+        t.c      = 0u;
+        t.key_en = 0;
+        t.key    = 0u;
+
+        while (cursor < stg_pool_count(p)) {
+            uint32_t k = stg_pool_draw(p, kind, &g, clip, &cursor, pos, STG_DRAW_CHUNK);
+
+            if (k != 0u)
+                done += gfx_blit_run(l, &t, pos, k);
+        }
+    }
+    return done;
+}
+
+int stg_field_compose(const stg_field *f, gfx_list *l, const stg_compose_cfg *cfg,
+                      stg_active *act)
+{
+    gfx_rect field, screen;
+    int32_t  pdx, pdy;
+
+    act->ebullet  = 0u;
+    act->pbullet  = 0u;
+    act->enemy    = 0u;
+    act->particle = 0u;
+    act->player   = 0u;
+    act->total    = 0u;
+    if (l == 0 || l->t == 0 || l->ended)
+        return -1;
+
+    stg_rect_field(&field);
+    stg_rect_screen(&screen);
+
+    (void)gfx_set_clip(l, field);
+    (void)gfx_fill(l, cfg->dst, field, STG_BG_ARGB, GFX_EQ_COPY, 0u);
+
+    /* 自机：目的矩形与裁剪框相交才发出 */
+    pdx = stg_draw_origin(f->px, cfg->player_w);
+    pdy = stg_draw_origin(f->py, cfg->player_h);
+    if (pdx <= field.x1 && pdx + cfg->player_w - 1 >= field.x0
+        && pdy <= field.y1 && pdy + cfg->player_h - 1 >= field.y0
+        && gfx_blit(l, cfg->player_slot, 0, 0, cfg->dst, (int)pdx, (int)pdy,
+                    (int)cfg->player_w, (int)cfg->player_h, GFX_EQ_COPY, 0u, 1,
+                    cfg->player_key) == 0)
+        act->player = 1u;
+
+    act->ebullet = draw_pool(&f->pools.ebullet, l, cfg, &field);
+
+    (void)gfx_set_clip(l, screen);
+    (void)gfx_list_end(l);
+
+    act->total = act->ebullet + act->pbullet + act->enemy + act->particle + act->player;
+    return 0;
+}
