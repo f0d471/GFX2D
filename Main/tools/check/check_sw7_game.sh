@@ -42,6 +42,10 @@
 #   G13i 关卡的注错     CARD_TIMEOUT_GT 让 S5 的各段开始帧见红，GATE_NO_ACC 让 S11 见红
 #   G14 素材可重生成    gen_stg_neon.py 连跑两次，12 张 PNG 逐字节相同；--check 重新生成与入库的逐像素相同；
 #                       注错 --check --inject 改一个像素，比对必须见红
+#   G15 游戏判据入口    G4 的输出里组帧与共用文字绘制 V 组 5 行全 ok；gfx2dGame 以 -DSTG_FIELD=4 编 PC 版，
+#                       无窗口、GFX2D_UNPACED=1 跑两遍：日志逐字节相同、fail 0、done、没有 err 行，
+#                       九行 seg（READY、STAGE、BOSS、四张符卡、CLEAR、回到 READY）
+#   G15i HUD 的注错     INJECT=STG_LIVE_HUD（判据入口照样显示实测的 SW FPS）以 -DSTG_FRAMES=1200 跑两遍，日志必须不同
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh
@@ -359,7 +363,7 @@ else
 fi
 
 # ---------------------------------------------------------------- G11 板上构建与反汇编
-echo "== G11 板上构建（STG_FIELD=1、2）与逐颗循环的反汇编 =="
+echo "== G11 板上构建（STG_FIELD=1、2、4）与逐颗循环的反汇编 =="
 # $1 = elf，$2 = 函数名：打出这个函数的反汇编（不带机器码），找不到时为空
 fn_body() {
     "${RISCV_BIN}objdump" -d --no-show-raw-insn "$1" 2>/dev/null |
@@ -372,7 +376,7 @@ loop_offenders() {
 }
 LOOPS="stg_pool_step stg_pool_collide stg_pool_draw stg_pool_hit_targets stg_pool_cancel stg_pool_age"
 if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
-    for m in 1 2; do
+    for m in 1 2 4; do
         if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_stg$m" EXTRA_CFLAGS="-DSTG_FIELD=$m" \
                 >"$TMP/b_stg$m.log" 2>&1 && [ -f "$TMP/b_stg$m/gfx2dGame-O2.bin" ] &&
            ! grep -qiE 'warning|error' "$TMP/b_stg$m.log"; then
@@ -498,6 +502,56 @@ if ! python3 "$NEON" --check --inject >"$TMP/neon_inj.log" 2>&1 && grep -q '不�
     ok "G14i 注错 改一个像素之后比对见红（$(grep -m1 '与重新生成的不同' "$TMP/neon_inj.log" | cut -c1-40)）"
 else
     bad "G14i 注错 改一个像素之后比对没有见红（这条判据是空转）"
+fi
+
+# ---------------------------------------------------------------- G15 游戏判据入口
+echo "== G15 组帧与游戏的判据入口（STG_FIELD=4，PC，无窗口两遍） =="
+nv_ok=$(grep -cE '^V[0-9]+ .* ok$' "$TMP/stg64.txt" 2>/dev/null)
+nv_bad=$(grep -cE '^V[0-9]+ .* FAIL$' "$TMP/stg64.txt" 2>/dev/null)
+if [ "$nv_ok" -eq 5 ] && [ "$nv_bad" -eq 0 ]; then
+    ok "G15v 组帧与共用文字绘制 V 组 5 行全 ok（64/32 同 G4）"
+else
+    bad "G15v V 组应有 5 行 ok，实际 ok $nv_ok 行、FAIL $nv_bad 行"
+fi
+# 素材包在 G10 之前已经打过
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_stg4" EXTRA_CFLAGS="-DSTG_FIELD=4" \
+        >"$TMP/h_stg4.log" 2>&1 && [ -x "$TMP/h_stg4/gfx2dGame" ]; then
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/h_stg4/gfx2dGame" 2>"$TMP/g4_1.err" | tr -d '\r' >"$TMP/g4_1.log"
+    r1=${PIPESTATUS[0]}
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/h_stg4/gfx2dGame" 2>"$TMP/g4_2.err" | tr -d '\r' >"$TMP/g4_2.log"
+    r2=${PIPESTATUS[0]}
+    ng=$(grep -c '^g ' "$TMP/g4_1.log")
+    segs="$(grep '^seg ' "$TMP/g4_1.log" | cut -d' ' -f3- | tr '\n' '|')"
+    want='READY|STAGE|BOSS|SPELL 1 RING+AIM|SPELL 2 SPIRAL|SPELL 3 FAN+RAIN|FINAL OVERLOAD|CLEAR|READY|'
+    if [ "$r1" -eq 0 ] && [ "$r2" -eq 0 ] && cmp -s "$TMP/g4_1.log" "$TMP/g4_2.log" &&
+       [ "$(head -1 "$TMP/g4_1.log")" = "gfx2dGame STG" ] &&
+       grep -q '^fail 0$' "$TMP/g4_1.log" && grep -q '^done$' "$TMP/g4_1.log" &&
+       ! grep -q '^err ' "$TMP/g4_1.log" && [ "$segs" = "$want" ]; then
+        ok "G15 两遍日志逐字节相同、fail 0、done、九行 seg 齐全（$ng 帧，$(wc -l <"$TMP/g4_1.log") 行）"
+        note "$(grep '^seg ' "$TMP/g4_1.log" | awk '{printf "%s%s", (NR > 1 ? "  " : ""), $2}')"
+        tail -3 "$TMP/g4_1.log" | head -1 | while read -r l; do note "$l"; done
+    else
+        bad "G15 退出码 $r1/$r2、两遍不同、没有 fail 0、有 err 行，或段不齐（$segs）"
+        grep -E '^err |^fail' "$TMP/g4_1.log" | head -5 | while read -r l; do note "$l"; done
+    fi
+else
+    bad "G15 STG_FIELD=4 的 PC 版编不过"
+    tail -5 "$TMP/h_stg4.log" | while read -r l; do note "$l"; done
+fi
+
+echo "== G15i HUD 的注错（判据入口照样显示实测值） =="
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_stg4i" EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_FRAMES=1200" \
+        INJECT=STG_LIVE_HUD >"$TMP/h_stg4i.log" 2>&1; then
+    bin4i="$(ls "$TMP"/h_stg4i/gfx2dGame* 2>/dev/null | head -1)"
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$bin4i" 2>/dev/null | tr -d '\r' >"$TMP/g4i_1.log"
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$bin4i" 2>/dev/null | tr -d '\r' >"$TMP/g4i_2.log"
+    if [ -s "$TMP/g4i_1.log" ] && ! cmp -s "$TMP/g4i_1.log" "$TMP/g4i_2.log"; then
+        ok "G15i INJECT=STG_LIVE_HUD 见红：两遍日志从第 $(cmp "$TMP/g4i_1.log" "$TMP/g4i_2.log" | awk '{print $NF}') 行起不同"
+    else
+        bad "G15i INJECT=STG_LIVE_HUD 两遍日志相同（实时量没进画面，这条判据是空转）"
+    fi
+else
+    bad "G15i INJECT=STG_LIVE_HUD 编不过"
 fi
 
 printf 'fail %d\ndone\n' "$FAIL"

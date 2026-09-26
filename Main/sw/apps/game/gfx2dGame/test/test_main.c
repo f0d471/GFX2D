@@ -28,6 +28,7 @@
 #include "test_stg_pool.h"
 #include "test_stg_press.h"
 #include "test_stg_stage.h"
+#include "test_stg_view.h"
 
 int main(int argc, char **argv)
 {
@@ -63,6 +64,8 @@ int main(int argc, char **argv)
     fail += test_stg_game_run();
     fputs("stgTest stage\n", stdout);
     fail += test_stg_stage_run();
+    fputs("stgTest view\n", stdout);
+    fail += test_stg_view_run();
 
     core_out_init(&o, line, (uint32_t)sizeof line);
     core_out_str(&o, "fail ");

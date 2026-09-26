@@ -136,6 +136,12 @@ void stg_field_press_kind(stg_field *f, uint32_t kind);
 int  stg_field_compose(const stg_field *f, gfx_list *l, const stg_compose_cfg *cfg,
                        stg_active *act);
 
+/* 一个池按弹种编号的顺序发出（组帧的公共部分，游戏的组帧也用它）：只遍历池里有的弹种，
+   每个弹种一个模板（源图查 cfg->src_slot、方程查弹种表），分段扫、分段交给 gfx_blit_run()。
+   返回成功追加的条数；by_eq 不为 NULL 时按方程把成功的条数加进去。 */
+uint32_t stg_draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cfg,
+                       const gfx_rect *clip, uint32_t *by_eq);
+
 /* 游戏区（400x480）与全屏（640x480）两个裁剪框，闭区间。 */
 void stg_rect_field(gfx_rect *r);
 void stg_rect_screen(gfx_rect *r);

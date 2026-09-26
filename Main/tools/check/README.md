@@ -14,7 +14,7 @@
 | `check_sw6_demo.sh` | 基础 Demo（SW6）的提交前判据，十项：录像可重生成、判据模式编过并跑通、对期望日志、有窗与无窗、两遍一致、HUD 与字形、场景 B、`off` 与 `eq` 计数、四个方程的注错见红、Sanitizer 与板上目标构建 | 改 `gfx2dGame`、`lib/gfx` 的执行器、SW5 素材或录像时，提交前 |
 | `check_sw6_log.py` | SW6 判据日志的**外部核对**：两遍比对、`hud` 对上一帧统计、`hcrc` 按字库文本独立重画、`s` 与 `scene` 参考值、`off` 与 `eq`；`--board` 把板上串口日志从 `pak` 行起与期望日志对账 | 由 `check_sw6_demo.sh` 调用；板上对账时单独跑 |
 | `gen_sw6_replay.py` | 生成 SW6 的两段确定性录像（`.g2dr`）：A 把 N 从 100 升到 5000 再回到 100，B 把 k 从 30 降到 1 再升到 120；形状与停留段写在脚本里 | 录像要改时；`check_sw6_demo.sh` 每次重跑并逐字节比 |
-| `check_sw7_game.sh` | 游戏本体（SW7）A、B、C 三批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红、碰撞的两个注错见红、组帧、弹幕场判据模式两遍一致、板上构建与六个逐颗循环的反汇编（含三个注错）、自机与规则（R 组）及三个注错见红、敌机 Boss 与关卡（S 组）及两个注错见红、霓虹素材可重生成（含注错） | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
+| `check_sw7_game.sh` | 游戏本体（SW7）A、B、C 三批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红、碰撞的两个注错见红、组帧、弹幕场判据模式两遍一致、板上构建与六个逐颗循环的反汇编（含三个注错）、自机与规则（R 组）及三个注错见红、敌机 Boss 与关卡（S 组）及两个注错见红、霓虹素材可重生成（含注错）、游戏的判据入口两遍一致与 HUD 的注错 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_stats.sh` | 统计埋点（SW8）A、B 两批的提交前判据：主机测试 64/32 比对与 sanitizer、普查与软件执行器对账、模拟时钟、帧时间直方图、日志队列、`board_tx_room()` 的 PC 实现与板上构建、`N_max` 状态机的综合负载判据、搜索跑在弹幕场上（app 测试）与 `STG_FIELD=3` 的 PC 驱动、各注错见红 | 改 `lib/gfx/census`、`lib/core/framehist`、`lib/core/logq`、`lib/core/nmax`、`board_tx_room()`、`src/game/stg_press`、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_tx.c` | `board_tx_room()` 的 PC 实现的主机探针：链真实的 `sw/bsp/host/board.c`，不设 `GFX2D_TX_BUDGET` 时不限，设 192 时按场补满、不累加、超额计数；`-DINJECT_HOST_TX_NO_REFILL` 见红 | 由 `check_sw8_stats.sh` 的 M5 编译运行；改 `bsp/host` 的串口模拟时 |
 | `gen_sin_tab.py` | 生成 `sw/lib/core/sin_tab.c`：1024 项加 256 项尾巴的 Q1.14 正弦表，按绝对值四舍五入；`--inject` 改一项给比对当注错 | 表的口径要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
@@ -281,12 +281,14 @@ G11 要交叉工具链，找不到时跳过，跳过不算通过。全套在本�
 | G8i | `COLLIDE_LE` 让 X1 的相切那一行见红；`COLLIDE_NO_CULL` 让 X3 见红，且 stderr 里有 UBSan 的平方溢出报告 |
 | G9 | 按池发出与组帧：G4 的输出里 W 组 12 行全 ok（剔除边界、分段扫 = 一次扫 = 独立重数、源坐标（米弹、小圆弹的颜色号、火花的寿命帧）、六段各 300 帧组帧时拒绝为 0 且普查的 ALPHA 条数 = 发出的敌弹数） |
 | G10 | 先打包素材，再以 `EXTRA_CFLAGS=-DSTG_FIELD=2` 编 gfx2dGame 的 PC 版，无窗口（`SDL_VIDEODRIVER=dummy`）跑两遍：去掉 `\r` 之后两遍逐字节相同、`fail 0`、`done`、六段 840 帧、没有 `err` 行 |
-| G11 | `STG_FIELD=1`、`2` 的板上构建零告警；`objdump -d` 查六个逐颗的循环 `stg_pool_step`、`stg_pool_collide`、`stg_pool_draw`、`stg_pool_hit_targets`、`stg_pool_cancel`、`stg_pool_age`：没有 `div`/`divu`/`rem`/`remu`、没有 `__div*`/`__mod*` 调用、没有 `ret` 以外的 `jalr`/`jr`；注错 `STG_LOOP_DIV`、`PHIT_LOOP_DIV`、`AGE_LOOP_DIV` 各在 `stg_pool_step`、`stg_pool_hit_targets`、`stg_pool_age` 里加一次除法，这条检查必须在那个函数上见红。要 `RISCV_BIN`，找不到时跳过，跳过不算通过 |
+| G11 | `STG_FIELD=1`、`2`、`4` 的板上构建零告警；`objdump -d` 查六个逐颗的循环 `stg_pool_step`、`stg_pool_collide`、`stg_pool_draw`、`stg_pool_hit_targets`、`stg_pool_cancel`、`stg_pool_age`：没有 `div`/`divu`/`rem`/`remu`、没有 `__div*`/`__mod*` 调用、没有 `ret` 以外的 `jalr`/`jr`；注错 `STG_LOOP_DIV`、`PHIT_LOOP_DIV`、`AGE_LOOP_DIV` 各在 `stg_pool_step`、`stg_pool_hit_targets`、`stg_pool_age` 里加一次除法，这条检查必须在那个函数上见红。要 `RISCV_BIN`，找不到时跳过，跳过不算通过 |
 | G12 | 自机与规则：G4 的输出里 R 组 28 行全 ok（移动、射击节奏、受击与无敌、自动炸弹与火花、手动炸弹的按下沿、粒子溢出、回标题与 HI-SCORE、擦弹得分、自机弹对敌机的边界与随机对 64 位朴素参考、粒子寿命与弹种位图） |
 | G12i | `GAME_NO_AUTOBOMB` 让 R4 见红，`GAME_NO_INVINCIBLE` 让 R3 的无敌那一行见红，`PHIT_LE` 让 R9 的相切那一行见红 |
 | G13 | 敌机、Boss 与关卡：G4 的输出里 S 组 21 行全 ok（表、移动事件表与出界、槽位、击毁、整局各段开始帧对 SW7 2.5 节的常量另算、射击时走到 CLEAR 与得分另算、Boss 路径与间隙不受伤、压力形态、旋钮加倍时稳态弹数不减、改档之后到达稳态不超过 `SETTLE_MIN`、游戏里的门控、背景） |
 | G13i | `CARD_TIMEOUT_GT` 让 S5 的各段开始帧见红，`GATE_NO_ACC` 让 S11 见红（`-m32` 构建，整局跑得快） |
 | G14 | 霓虹素材：`Main/tools/assets/gen_stg_neon.py` 连跑两次，12 张 PNG 逐字节相同；`--check` 重新生成与入库的 `Main/assets/neon/` 逐像素相同（比像素不比 PNG 字节：压缩流随 Pillow 与 zlib 的版本变）；注错 `--check --inject` 改一个像素必须见红 |
+| G15 | 游戏的组帧与判据入口：G4 的输出里 V 组 5 行全 ok（共用文字绘制与逐字 `gfx_blit` 逐字节相同、3000 帧组帧的普查对账）；`-DSTG_FIELD=4` 的 PC 版无窗口、`GFX2D_UNPACED=1` 跑两遍，日志逐字节相同、`fail 0`、没有 `err` 行、九行 `seg` 齐全（READY、STAGE、BOSS、四张符卡、CLEAR、回到 READY） |
+| G15i | `INJECT=STG_LIVE_HUD` 以 `-DSTG_FRAMES=1200` 跑两遍，日志必须不同（实时量进了画面，整帧 CRC 就不可复现） |
 
 编译产物落临时目录（`OBJDIR` 指过去），不动 `sw/build_host`。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。
 

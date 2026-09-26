@@ -12,6 +12,7 @@
 
 #include "core/format.h"
 
+#include "stg_text.h"
 #include "sw6_hud.h"
 #include "sw6_report.h"
 
@@ -39,28 +40,16 @@ static void fmt(char *buf, uint32_t cap, const char *tag, uint32_t v, int has)
         core_out_str(&o, "--");
 }
 
-/* 逐字 BLIT。字符都在 0x20~0x7E 之内，落不进第 96 格（空的黑格）。 */
+/* 逐字 BLIT（共用的 stg_text_draw，SW7 2.6 节）。字符都在 0x20~0x7E 之内，落不进第 96 格（空的黑格）。 */
 static void draw_text(gfx_list *l, int dst, uint32_t line, const char *s)
 {
-    const int y = (int)(SW6_HUD_Y + line * SW6_FONT_CELL_H);
-    int       x = (int)SW6_HUD_X;
-    uint32_t  i;
+    static const stg_font font = {
+        SW6_SLOT_FONT, SW6_FONT_CELL_W, SW6_FONT_CELL_H, SW6_FONT_COLS,
+        SW6_FONT_FIRST, ASSET_FONT8X16_CELLS, SW6_FONT_KEY,
+    };
 
-    for (i = 0u; s[i] != '\0'; i++) {
-        const uint32_t gi = (uint32_t)(uint8_t)s[i] - SW6_FONT_FIRST;
-
-        if (gi < ASSET_FONT8X16_CELLS) {
-            const int rc = gfx_blit(l, SW6_SLOT_FONT,
-                                    (int)((gi % SW6_FONT_COLS) * SW6_FONT_CELL_W),
-                                    (int)((gi / SW6_FONT_COLS) * SW6_FONT_CELL_H),
-                                    dst, x, y,
-                                    (int)SW6_FONT_CELL_W, (int)SW6_FONT_CELL_H,
-                                    GFX_EQ_COPY, 0u, 1, SW6_FONT_KEY);
-            if (rc != 0)
-                s_hud_bad++;
-        }
-        x += (int)SW6_FONT_CELL_W;
-    }
+    s_hud_bad += stg_text_draw(l, &font, dst, (int)SW6_HUD_X,
+                               (int)(SW6_HUD_Y + line * SW6_FONT_CELL_H), s, NULL);
 }
 
 void sw6_hud_build(gfx_list *l, int dst, const sw6_hud_in *in,

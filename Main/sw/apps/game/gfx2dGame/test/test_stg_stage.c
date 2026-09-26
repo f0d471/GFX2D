@@ -264,7 +264,7 @@ static void s4_kill(void)
 /* --- S5、S6、S7 整局 --------------------------------------------------------- */
 
 typedef struct {
-    uint32_t start[STG_SEG_N + 1u];     /* 最后一项：回到标题 */
+    uint32_t start[STG_GSEG_N + 1u];     /* 最后一项：回到标题 */
     uint32_t frames;
     uint32_t score, graze, kills[STG_ETYPE_N], bonus;
     uint32_t n_kill_cards, spawn_frames_ok, spawn_n, spawn_overflow, max_alive, max_ebullet;
@@ -275,12 +275,12 @@ typedef struct {
 static void run_round(uint32_t shoot, run_res *r)
 {
     stg_game *g = &s_g;
-    uint32_t  k, i, prev_seg = STG_SEG_TITLE, ev_next = 0u;
+    uint32_t  k, i, prev_seg = STG_GSEG_TITLE, ev_next = 0u;
     uint32_t  card_start = 0u, snap_score = 0u, snap_graze = 0u, snap_k[STG_ETYPE_N] = { 0u, 0u };
     uint32_t  prev_on = STG_BOSS_OFF, snap_over = 0u;
     int32_t   prev_hp = 0;
 
-    for (i = 0u; i <= STG_SEG_N; i++)
+    for (i = 0u; i <= STG_GSEG_N; i++)
         r->start[i] = 0xFFFFFFFFu;
     r->start[0] = 0u;
     r->bonus = 0u;
@@ -319,8 +319,8 @@ static void run_round(uint32_t shoot, run_res *r)
 
         /* 符卡奖励：按结束之前那一段的符卡序号另算 */
         if ((g->ev & STG_EV_CARD_KILL) != 0u) {
-            r->bonus += 10000u * (prev_seg - STG_SEG_SPELL1 + 1u);
-            if (prev_seg == STG_SEG_SPELL1 + 3u)
+            r->bonus += 10000u * (prev_seg - STG_GSEG_SPELL1 + 1u);
+            if (prev_seg == STG_GSEG_SPELL1 + 3u)
                 r->bonus += 50000u;
             r->n_kill_cards++;
         }
@@ -353,8 +353,8 @@ static void run_round(uint32_t shoot, run_res *r)
         prev_on = b->on;
 
         if ((g->ev & STG_EV_SEG) != 0u) {
-            if (g->seg == STG_SEG_TITLE) {
-                r->start[STG_SEG_N] = k;
+            if (g->seg == STG_GSEG_TITLE) {
+                r->start[STG_GSEG_N] = k;
                 break;
             }
             if (r->start[g->seg] == 0xFFFFFFFFu)
@@ -378,28 +378,28 @@ static void run_round(uint32_t shoot, run_res *r)
 static void s5_s7_round(void)
 {
     run_res  r;
-    uint32_t want[STG_SEG_N + 1u], i, n_spawn = 0u;
+    uint32_t want[STG_GSEG_N + 1u], i, n_spawn = 0u;
     int      ok = 1;
 
     for (i = 0u; i < stg_stage_n_events; i++)
         n_spawn += (stg_stage_events[i].type == STG_EVT_SPAWN) ? 1u : 0u;
 
     /* 2.5 节的常量另算 */
-    want[STG_SEG_TITLE]       = 0u;
-    want[STG_SEG_STAGE]       = C_TITLE;
-    want[STG_SEG_BOSS]        = C_TITLE + C_BOSS_T;
-    want[STG_SEG_SPELL1]      = want[STG_SEG_BOSS] + C_ENTER;
-    want[STG_SEG_SPELL1 + 1u] = want[STG_SEG_SPELL1] + c_timeout[0];
-    want[STG_SEG_SPELL1 + 2u] = want[STG_SEG_SPELL1 + 1u] + C_GAP + c_timeout[1];
-    want[STG_SEG_SPELL1 + 3u] = want[STG_SEG_SPELL1 + 2u] + C_GAP + c_timeout[2];
-    want[STG_SEG_CLEAR]       = want[STG_SEG_SPELL1 + 3u] + C_GAP + c_timeout[3];
-    want[STG_SEG_N]           = want[STG_SEG_CLEAR] + C_CLEAR;
+    want[STG_GSEG_TITLE]       = 0u;
+    want[STG_GSEG_STAGE]       = C_TITLE;
+    want[STG_GSEG_BOSS]        = C_TITLE + C_BOSS_T;
+    want[STG_GSEG_SPELL1]      = want[STG_GSEG_BOSS] + C_ENTER;
+    want[STG_GSEG_SPELL1 + 1u] = want[STG_GSEG_SPELL1] + c_timeout[0];
+    want[STG_GSEG_SPELL1 + 2u] = want[STG_GSEG_SPELL1 + 1u] + C_GAP + c_timeout[1];
+    want[STG_GSEG_SPELL1 + 3u] = want[STG_GSEG_SPELL1 + 2u] + C_GAP + c_timeout[2];
+    want[STG_GSEG_CLEAR]       = want[STG_GSEG_SPELL1 + 3u] + C_GAP + c_timeout[3];
+    want[STG_GSEG_N]           = want[STG_GSEG_CLEAR] + C_CLEAR;
 
     run_round(0u, &r);
-    for (i = 0u; i <= STG_SEG_N; i++)
+    for (i = 0u; i <= STG_GSEG_N; i++)
         ok &= (r.start[i] == want[i]);
     ck("S5 no shots, hits off: segment starts == independent (title, stage, boss, 4 cards, clear, title)", ok);
-    info("S5 starts", r.start, STG_SEG_N + 1u);
+    info("S5 starts", r.start, STG_GSEG_N + 1u);
     {
         uint32_t v[2];
 
@@ -415,11 +415,11 @@ static void s5_s7_round(void)
        r.kills[0] == 0u && r.kills[1] == 0u && r.n_kill_cards == 0u && r.score == 10u * r.graze);
 
     run_round(1u, &r);
-    ok = (r.start[STG_SEG_CLEAR] != 0xFFFFFFFFu && r.start[STG_SEG_N] == r.start[STG_SEG_CLEAR] + C_CLEAR);
-    for (i = 1u; i < STG_SEG_N; i++)
+    ok = (r.start[STG_GSEG_CLEAR] != 0xFFFFFFFFu && r.start[STG_GSEG_N] == r.start[STG_GSEG_CLEAR] + C_CLEAR);
+    for (i = 1u; i < STG_GSEG_N; i++)
         ok &= (r.start[i] != 0xFFFFFFFFu && r.start[i] > r.start[i - 1u]);
     ck("S6 shooting, hits off: reaches CLEAR and back to title, segments in order", ok);
-    info("S6 starts", r.start, STG_SEG_N + 1u);
+    info("S6 starts", r.start, STG_GSEG_N + 1u);
     ck("S6 score == 10 x graze + 100 x DART + 300 x CROSS + card bonus (independent)",
        r.score == 10u * r.graze + 100u * r.kills[0] + 300u * r.kills[1] + r.bonus
        && s_g.hiscore == r.score && s_g.score == 0u);
@@ -462,13 +462,13 @@ static void s8_press(void)
         const uint32_t kind = (k == 0u) ? 0u : 4u;
 
         stg_game_press_begin(g, kind);
-        ok &= (g->phase == STG_PH_PLAY && g->seg == STG_SEG_SPELL1 + 3u && g->boss.on == STG_BOSS_CARD
+        ok &= (g->phase == STG_PH_PLAY && g->seg == STG_GSEG_SPELL1 + 3u && g->boss.on == STG_BOSS_CARD
                && g->boss.card == 3u && g->hits_on == 0u && g->shoot_on == 0u);
         stg_game_set_knob(g, 1600u);
         for (i = 0u; i < 3000u; i++) {
             stg_game_step(g, xs32_next(&rng) & 0x3Fu);
             ok &= (g->boss.x == 200 * FX_ONE && g->boss.y == 100 * FX_ONE && g->boss.hp == 600
-                   && g->boss.on == STG_BOSS_CARD && g->seg == STG_SEG_SPELL1 + 3u
+                   && g->boss.on == STG_BOSS_CARD && g->seg == STG_GSEG_SPELL1 + 3u
                    && g->f.px == 200 * FX_ONE && g->f.py == 400 * FX_ONE
                    && stg_pool_count(&g->f.pools.pbullet) == 0u && g->lives == 3u && g->bombs == 3u);
         }

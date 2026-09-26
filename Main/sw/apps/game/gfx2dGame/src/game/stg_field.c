@@ -148,10 +148,8 @@ void stg_rect_screen(gfx_rect *r)
     r->y1 = 480 - 1;
 }
 
-/* 一个池按弹种编号的顺序发出：每个用到的弹种一个模板，分段扫、分段交给 gfx_blit_run()。
-   返回成功追加的条数。 */
-static uint32_t draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cfg,
-                          const gfx_rect *clip)
+uint32_t stg_draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cfg,
+                       const gfx_rect *clip, uint32_t *by_eq)
 {
     gfx_blit_pos pos[STG_DRAW_CHUNK];
     uint32_t     kind, done = 0u;
@@ -180,8 +178,13 @@ static uint32_t draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg 
         while (cursor < stg_pool_count(p)) {
             uint32_t k = stg_pool_draw(p, kind, &g, clip, &cursor, pos, STG_DRAW_CHUNK);
 
-            if (k != 0u)
-                done += gfx_blit_run(l, &t, pos, k);
+            if (k != 0u) {
+                const uint32_t ok = gfx_blit_run(l, &t, pos, k);
+
+                done += ok;
+                if (by_eq != 0)
+                    by_eq[ki->eq] += ok;
+            }
         }
     }
     return done;
@@ -218,7 +221,7 @@ int stg_field_compose(const stg_field *f, gfx_list *l, const stg_compose_cfg *cf
                     cfg->player_key) == 0)
         act->player = 1u;
 
-    act->ebullet = draw_pool(&f->pools.ebullet, l, cfg, &field);
+    act->ebullet = stg_draw_pool(&f->pools.ebullet, l, cfg, &field, 0);
 
     (void)gfx_set_clip(l, screen);
     (void)gfx_list_end(l);

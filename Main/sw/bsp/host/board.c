@@ -27,6 +27,11 @@
 *           GFX2D_SNAPSHOT_DIR=<目录>  写到哪里，缺省当前目录
 *         到了就把要呈现的那一面的 640x480 写成 PPM（P6，文件名 snap_<k>.ppm，k 补到 5 位），
 *         在 stderr 打一行 `board: snapshot k -> 路径`。不设时什么也不做，不改 board.h，也不改应用的输出。
+*
+*         **不等场**（只在 PC 上有，SW7 2.6 节「游戏的判据入口」）：
+*           GFX2D_UNPACED=1  board_present() 照常上传纹理、计切换次数、截帧，只是不等下一个场起始就返回；
+*                            board_wait_frame() 也不等。判据入口一局约一万帧，按 60 Hz 等场要三分钟，用它跑得快。
+*         场号仍按墙钟自由运行，所以不等场时「场数增量」没有意义；应用不知道这回事，判据入口本来就不看它。
 ******************************************************************************/
 
 #define SDL_MAIN_HANDLED        1
@@ -74,6 +79,9 @@ static uint32_t      s_tx_over_bytes;
 #define SNAP_MAX            64u
 static uint32_t      s_snap[SNAP_MAX];
 static uint32_t      s_snap_n;
+
+/* GFX2D_UNPACED=1：呈现不等场（见文件头）。 */
+static int           s_unpaced;
 static const char   *s_snap_dir;
 
 static uint32_t field_index(void);
@@ -279,6 +287,13 @@ void board_init(void)
 
     tx_budget_init();
     snap_init();
+    {
+        const char *env = getenv("GFX2D_UNPACED");
+
+        s_unpaced = (env != NULL && strcmp(env, "1") == 0);
+        if (s_unpaced)
+            fprintf(stderr, "board: GFX2D_UNPACED=1，呈现不等场\n");
+    }
 }
 
 board_mem board_region(board_region_id id)
@@ -477,8 +492,10 @@ void board_present(int index)
     if (s_quit)
         return;
 
-    f0 = field_index();
-    wait_next_field(f0);
+    if (!s_unpaced) {
+        f0 = field_index();
+        wait_next_field(f0);
+    }
     s_swaps++;
 }
 
@@ -486,7 +503,7 @@ void board_wait_frame(void)
 {
     uint32_t f0;
 
-    if (s_quit)
+    if (s_quit || s_unpaced)
         return;
 
     f0 = field_index();

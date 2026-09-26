@@ -16,6 +16,18 @@
 *         帧号从 0 起全程连续；每段开头重新装场，命中与擦弹从 0 数起。
 *         游戏区 CRC 只取左边 400x480：右边 HUD 的区域 B 批不画，板上那片 DDR 的初值不确定。
 *
+*         游戏的判据入口（STG_FIELD=4，SW7 2.6 节「游戏的判据入口」）：无窗口、不读实时按键，输入是固定的按键脚本
+*         （stg_script），受击默认关掉（-DSTG_JUDGE_HITS=1 打开），跑完一局（回到标题）或到 -DSTG_FRAMES=N 为止。
+*         组帧是游戏的整帧（stg_game_compose，含 HUD），执行后取整帧 640x480 的 CRC。每段开始打一行
+*           seg <帧号> <段名>
+*         逐帧一行：
+*           g <帧号> <阶段> <段号> pool <敌弹> <自机弹> <粒子> act <敌弹> <自机弹> <敌机> <粒子> <自机>
+*             life <残机> bomb <炸弹> score <得分> graze <擦弹> crc <整帧 CRC32>
+*         每帧自查（不符记 fail、打 err）：追加的拒绝数与表满数为 0；普查从命令表另数的各方程条数等于组帧记下的，
+*         且 ADD = 自机弹 + 粒子、ALPHA = 敌弹 + Boss + 标题图、CONST = 闪白。HUD 的实时量一律 --；
+*         注错 INJECT_STG_LIVE_HUD 让它显示实测的 SW FPS，两遍的日志必须因此不同。
+*         PC 上跑它时设 GFX2D_UNPACED=1（bsp/host），呈现不等场。
+*
 *         N_max 搜索（STG_FIELD=3，SW8 2.3 节）：无窗口、不执行命令表、不呈现，每帧只做场推进、组帧、
 *         普查与模拟时钟（stg_press），把 e、活动元素数与帧代价喂给 lib/core/nmax；16x16 与 8x8 两种负载
 *         各搜一遍，打 nmax cfg、逐档 nmax probe 与 nmax result。结果不是 OK 记一次 fail。
@@ -38,15 +50,24 @@
 
 #include "core/nmax.h"
 
+#include "game/stg_draw.h"
 #include "game/stg_field.h"
+#include "game/stg_game.h"
 #include "game/stg_pattern.h"
 #include "game/stg_press.h"
+#include "game/stg_script.h"
 
 #include "stg_slots.h"
 
-#if STG_FIELD_MODE < 1 || STG_FIELD_MODE > 3
-#error "STG_FIELD 只认 1（演示）、2（判据）与 3（N_max 搜索）"
+#if STG_FIELD_MODE < 1 || STG_FIELD_MODE > 4
+#error "STG_FIELD 只认 1（演示）、2（判据）、3（N_max 搜索）与 4（游戏的判据入口）"
 #endif
+
+/* 游戏的按键位与 board.h 同值（SW7 2.4 节）：src/game/ 不含 board.h，在入口这里卡住 */
+_Static_assert(STG_KEY_UP == BOARD_KEY_UP && STG_KEY_DOWN == BOARD_KEY_DOWN
+               && STG_KEY_LEFT == BOARD_KEY_LEFT && STG_KEY_RIGHT == BOARD_KEY_RIGHT
+               && STG_KEY_BOMB == BOARD_KEY_BOMB && STG_KEY_SLOW == BOARD_KEY_SLOW,
+               "游戏的按键位 STG_KEY_* 必须与 board.h 的 BOARD_KEY_* 同值");
 
 #define STG_DEMO_SEG_FRAMES     300u
 #define STG_DEMO_MIX_FRAMES     600u
@@ -62,16 +83,25 @@
 
 /* --- 状态（都是静态的，不用 malloc）--------------------------------------- */
 
-static stg_field s_field;           /* 场的全部状态，约 380 KB */
 static uint32_t  s_fail;
 
-/* 画面模式（1、2）才用的：执行、呈现与游戏区 CRC。N_max 搜索（3）不执行也不呈现。 */
-#define STG_DRAWS   (STG_FIELD_MODE != 3)
+/* 弹幕场（1、2、3）才用的：场的状态。游戏的判据入口（4）用游戏的状态结构体。 */
+#define STG_USES_FIELD  (STG_FIELD_MODE != 4)
+/* 画面模式（1、2、4）才用的：执行与呈现。N_max 搜索（3）不执行也不呈现。 */
+#define STG_PRESENTS    (STG_FIELD_MODE != 3)
+/* 弹幕场的画面模式（1、2）才用的：一段一段装场、游戏区 CRC。 */
+#define STG_DRAWS       (STG_FIELD_MODE == 1 || STG_FIELD_MODE == 2)
 
-#if STG_DRAWS
+#if STG_USES_FIELD
+static stg_field s_field;           /* 场的全部状态，约 380 KB */
+#endif
+
+#if STG_PRESENTS
 static uint32_t  s_seq;             /* 全局帧序号：选命令表与帧缓冲 */
 static int       s_shown = -1;      /* 正在显示的那一面 */
+#endif
 
+#if STG_DRAWS
 typedef struct {
     stg_active act;
     uint32_t   crc;
@@ -220,7 +250,226 @@ static void say_end(void)
     board_puts(buf);
 }
 
-#if STG_FIELD_MODE == 3
+#if STG_FIELD_MODE == 4
+
+/* --- 游戏的判据入口（SW7 2.6 节「游戏的判据入口」）--------------------------- */
+
+#ifndef STG_JUDGE_HITS
+#define STG_JUDGE_HITS  0           /* 受击默认关掉：脚本不躲弹，打开时一局很快结束 */
+#endif
+
+#define STG_GAME_FRAME_LIMIT 20000u /* 保险：一局最多 10184 帧（2.5 节） */
+
+static stg_game   s_game;           /* 游戏的全部状态，约 390 KB */
+static stg_script s_script;
+
+typedef struct {
+    stg_frame_stats st;
+    uint32_t        crc;
+} game_out;
+
+static void draw_cfg_init(stg_draw_cfg *c, int dst)
+{
+    cfg_init(&c->pool, dst);
+    c->ships_slot          = STG_SLOT_SHIPS;
+    c->boss_slot           = STG_SLOT_BOSS;
+    c->stars_slot          = STG_SLOT_STARS;
+    c->title_slot          = STG_SLOT_TITLE;
+    c->digits_slot         = STG_SLOT_DIGITS;
+    c->icons_slot          = STG_SLOT_ICONS;
+    c->font.slot           = STG_SLOT_FONT;
+    c->font.cell_w         = ASSET_FONT8X16_CELL_W;
+    c->font.cell_h         = ASSET_FONT8X16_CELL_H;
+    c->font.cols           = ASSET_FONT8X16_COLS;
+    c->font.first          = 0x20u;
+    c->font.cells          = ASSET_FONT8X16_CELLS;
+    c->font.key            = 0x00000000u;
+    c->font_cyan           = c->font;
+    c->font_cyan.slot      = STG_SLOT_FONT_CYAN;
+    c->font_cyan.cols      = ASSET_FONT_CYAN_COLS;
+    c->font_cyan.cells     = ASSET_FONT_CYAN_CELLS;
+    c->font_cyan.key       = ASSET_FONT_CYAN_KEY;
+}
+
+/* 整帧 640x480 的 CRC32，逐行取 2560 字节。 */
+static uint32_t frame_crc(const uint32_t *fb)
+{
+    const uint8_t *p0 = (const uint8_t *)fb;
+    crc32_ctx      c;
+    uint32_t       y;
+
+    crc32_begin(&c);
+    for (y = 0u; y < (uint32_t)FB_HEIGHT; y++)
+        crc32_update(&c, p0 + (size_t)y * FB_STRIDE_BYTES, (uint32_t)FB_WIDTH * 4u);
+    return crc32_end(&c);
+}
+
+/* HUD 的实时量。判据入口一律显示 --；注错 STG_LIVE_HUD 显示实测的 SW FPS（最近一秒的呈现次数）。 */
+static void live_hud(stg_hud_live *h)
+{
+#ifdef INJECT_STG_LIVE_HUD
+    static uint32_t t0, n, fps;
+    static int      valid, started;
+    const uint32_t  now = board_cycles();
+
+    if (!started) {
+        t0      = now;
+        started = 1;
+    }
+    n++;
+    if (now - t0 >= 100000000u) {
+        fps   = n;
+        n     = 0u;
+        t0    = now;
+        valid = 1;
+    }
+    h->sw_fps       = fps;
+    h->sw_fps_valid = valid;
+#else
+    h->sw_fps       = 0u;
+    h->sw_fps_valid = 0;
+#endif
+    h->hw_fps       = 0u;
+    h->hw_fps_valid = 0;
+}
+
+static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, game_out *go)
+{
+    const uint32_t   idx = s_seq & 1u;
+    const int        dst = idx ? STG_SLOT_FB1 : STG_SLOT_FB0;
+    gfx_list         l;
+    stg_draw_cfg     cfg;
+    stg_hud_live     live;
+    gfx_census_state cs;
+    gfx_census       cc;
+    exec_sw_stats    xs;
+    const stg_active *a = &go->st.act;
+    uint32_t         e;
+    int              rc;
+
+    if (dst == s_shown)
+        say_err("fb", frame, (uint32_t)dst);
+
+    stg_game_step(&s_game, keys);
+
+    gfx_list_begin(&l, ctx->cmds[idx], ctx->cap[idx], ctx->tab);
+    draw_cfg_init(&cfg, dst);
+    live_hud(&live);
+    if (stg_game_compose(&s_game, &l, &cfg, &live, &go->st) != 0)
+        say_err("compose", frame, 0u);
+    if (l.rejected != 0u || l.overflow != 0u || go->st.rejected != 0u)
+        say_err("list rejected/overflow", frame, l.rejected + l.overflow + go->st.rejected);
+
+    /* 普查从命令表另数一遍：每个方程的条数等于组帧记下的，且按类对得上 */
+    gfx_census_reset(&cs);
+    gfx_census_clear(&cc);
+    if (gfx_census_run(&cs, ctx->tab, l.buf, l.used, &cc) != 0)
+        say_err("census", frame, 0u);
+    for (e = 0u; e <= GFX_EQ_MAX; e++)
+        if (cc.cmd_by_eq[e] != go->st.by_eq[e])
+            say_err("census eq", frame, e);
+    if (go->st.by_eq[GFX_EQ_ADD] != a->pbullet + a->particle)
+        say_err("class add", frame, go->st.by_eq[GFX_EQ_ADD]);
+    if (go->st.by_eq[GFX_EQ_ALPHA] != a->ebullet + go->st.boss + go->st.title)
+        say_err("class alpha", frame, go->st.by_eq[GFX_EQ_ALPHA]);
+    if (go->st.by_eq[GFX_EQ_CONST] != go->st.flash)
+        say_err("class const", frame, go->st.by_eq[GFX_EQ_CONST]);
+
+    exec_sw_stats_clear(&xs);
+    rc = exec_sw_run(ctx->es, ctx->tab, ctx->mem, l.buf, l.used, l.used, &xs, ctx->err);
+    if (rc != GFX_OK)
+        say_err("exec", frame, (uint32_t)rc);
+    go->crc = frame_crc(board_fb(dst));
+
+    board_present(dst);
+    s_shown = dst;
+    s_seq++;
+}
+
+static void say_game_seg(uint32_t frame, uint32_t seg)
+{
+    char     buf[64];
+    core_out o;
+
+    core_out_init(&o, buf, (uint32_t)sizeof buf);
+    core_out_str(&o, "seg ");
+    core_out_u32(&o, frame);
+    core_out_ch(&o, ' ');
+    core_out_str(&o, stg_game_seg_name(seg));
+    core_out_str(&o, "\r\n");
+    board_puts(buf);
+}
+
+static void say_game(uint32_t frame, const game_out *go)
+{
+    const stg_game   *g = &s_game;
+    const stg_active *a = &go->st.act;
+    char              buf[240];
+    core_out          o;
+
+    core_out_init(&o, buf, (uint32_t)sizeof buf);
+    core_out_str(&o, "g ");
+    core_out_u32(&o, frame);
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, g->phase);
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, g->seg);
+    core_out_str(&o, " pool ");
+    core_out_u32(&o, stg_pool_count(&g->f.pools.ebullet));
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, stg_pool_count(&g->f.pools.pbullet));
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, stg_pool_count(&g->f.pools.particle));
+    core_out_str(&o, " act ");
+    core_out_u32(&o, a->ebullet);
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, a->pbullet);
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, a->enemy);
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, a->particle);
+    core_out_ch(&o, ' ');
+    core_out_u32(&o, a->player);
+    core_out_str(&o, " life ");
+    core_out_u32(&o, g->lives);
+    core_out_str(&o, " bomb ");
+    core_out_u32(&o, g->bombs);
+    core_out_str(&o, " score ");
+    core_out_u32(&o, g->score);
+    core_out_str(&o, " graze ");
+    core_out_u32(&o, g->graze);
+    core_out_str(&o, " crc ");
+    core_out_hex32(&o, go->crc);
+    core_out_str(&o, "\r\n");
+    board_puts(buf);
+}
+
+static int run(const stg_main_ctx *ctx)
+{
+    uint32_t frame;
+    game_out go;
+
+    stg_game_init(&s_game, STG_GAME_SEED);
+    stg_game_set_hits(&s_game, STG_JUDGE_HITS);
+    stg_script_init(&s_script);
+    say_game_seg(0u, s_game.seg);
+    for (frame = 0u; frame < STG_GAME_FRAME_LIMIT; frame++) {
+        game_frame(ctx, frame, stg_script_keys(&s_script, frame), &go);
+        if ((s_game.ev & STG_EV_SEG) != 0u)
+            say_game_seg(frame, s_game.seg);
+        say_game(frame, &go);
+        if ((s_game.ev & STG_EV_SEG) != 0u && s_game.seg == STG_GSEG_TITLE)
+            break;                                  /* 一局跑完，回到标题 */
+#if STG_FRAMES_MAX != 0
+        if (frame + 1u >= (uint32_t)STG_FRAMES_MAX)
+            break;
+#endif
+    }
+    say_end();
+    return (s_fail == 0u) ? 0 : 1;
+}
+
+#elif STG_FIELD_MODE == 3
 
 /* --- N_max 搜索（模拟时钟）------------------------------------------------ */
 
@@ -403,7 +652,7 @@ static int run(const stg_main_ctx *ctx)
 int stg_main(const stg_main_ctx *ctx, uint32_t fail0)
 {
     s_fail  = fail0;
-#if STG_DRAWS
+#if STG_PRESENTS
     s_seq   = 0u;
     s_shown = -1;
 #endif

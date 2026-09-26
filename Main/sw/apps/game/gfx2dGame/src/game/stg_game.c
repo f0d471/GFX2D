@@ -51,7 +51,7 @@ static void round_reset(stg_game *g)
     g->cancelled  = 0u;
     for (i = 0u; i < STG_ETYPE_N; i++)
         g->kills[i] = 0u;
-    set_seg(g, STG_SEG_TITLE);
+    set_seg(g, STG_GSEG_TITLE);
 }
 
 void stg_game_init(stg_game *g, uint32_t seed)
@@ -83,15 +83,15 @@ void stg_game_set_knob(stg_game *g, uint32_t knob)
 
 const char *stg_game_seg_name(uint32_t seg)
 {
-    if (seg == STG_SEG_TITLE)
+    if (seg == STG_GSEG_TITLE)
         return "READY";
-    if (seg == STG_SEG_STAGE)
+    if (seg == STG_GSEG_STAGE)
         return "STAGE";
-    if (seg == STG_SEG_BOSS)
+    if (seg == STG_GSEG_BOSS)
         return "BOSS";
-    if (seg >= STG_SEG_SPELL1 && seg < STG_SEG_SPELL1 + STG_CARD_N)
-        return stg_cards[seg - STG_SEG_SPELL1].name;
-    if (seg == STG_SEG_CLEAR)
+    if (seg >= STG_GSEG_SPELL1 && seg < STG_GSEG_SPELL1 + STG_CARD_N)
+        return stg_cards[seg - STG_GSEG_SPELL1].name;
+    if (seg == STG_GSEG_CLEAR)
         return "CLEAR";
     return "?";
 }
@@ -161,7 +161,7 @@ static void boss_begin(stg_game *g)
     b->a    = 0u;
     b->hp   = 0;
     b->n_em = 0u;
-    set_seg(g, STG_SEG_BOSS);
+    set_seg(g, STG_GSEG_BOSS);
 }
 
 /* 发射器的位置：锚点是 Boss 时为 Boss 中心加偏移，绝对时就是表里的位置。 */
@@ -200,7 +200,7 @@ static void card_begin(stg_game *g)
     b->gate_fired = 0u;
     b->gate_k     = 0u;
     if (b->card == 0u)
-        set_seg(g, STG_SEG_SPELL1);
+        set_seg(g, STG_GSEG_SPELL1);
 }
 
 /* 符卡结束：消弹；血量耗尽时奖励 10000 x 序号，最后一张再加 50000；进下一张的间隙或 CLEAR。 */
@@ -223,11 +223,11 @@ static void card_end(stg_game *g, int by_hp)
         b->on      = STG_BOSS_OFF;
         g->phase   = STG_PH_CLEAR;
         g->phase_t = 0u;
-        set_seg(g, STG_SEG_CLEAR);
+        set_seg(g, STG_GSEG_CLEAR);
     } else {
         b->card++;
         b->on = STG_BOSS_GAP;
-        set_seg(g, STG_SEG_SPELL1 + b->card);
+        set_seg(g, STG_GSEG_SPELL1 + b->card);
     }
 }
 
@@ -413,7 +413,7 @@ void stg_game_step(stg_game *g, uint32_t keys)
         g->phase   = STG_PH_PLAY;
         g->phase_t = 0u;
         g->ev     |= STG_EV_START;
-        set_seg(g, STG_SEG_STAGE);
+        set_seg(g, STG_GSEG_STAGE);
     } else if (g->phase == STG_PH_CLEAR && g->phase_t >= STG_CLEAR_FRAMES) {
         round_reset(g);
     }
@@ -512,6 +512,6 @@ void stg_game_press_begin(stg_game *g, uint32_t kind)
     b->y    = STG_BOSS_HOME_Y;
     b->a    = 0u;
     card_begin(g);
-    set_seg(g, STG_SEG_SPELL1 + b->card);
+    set_seg(g, STG_GSEG_SPELL1 + b->card);
     g->ev = 0u;
 }

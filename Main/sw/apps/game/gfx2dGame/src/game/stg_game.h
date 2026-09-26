@@ -69,12 +69,12 @@
 #define STG_PH_CLEAR        2u
 
 /* 段号（HUD 的段名、判据日志的 seg 行）。 */
-#define STG_SEG_TITLE       0u
-#define STG_SEG_STAGE       1u
-#define STG_SEG_BOSS        2u          /* Boss 进场 */
-#define STG_SEG_SPELL1      3u          /* 3~6：四张符卡 */
-#define STG_SEG_CLEAR       7u
-#define STG_SEG_N           8u
+#define STG_GSEG_TITLE      0u
+#define STG_GSEG_STAGE      1u
+#define STG_GSEG_BOSS       2u          /* Boss 进场 */
+#define STG_GSEG_SPELL1     3u          /* 3~6：四张符卡 */
+#define STG_GSEG_CLEAR      7u
+#define STG_GSEG_N          8u
 
 /* Boss 的状态。 */
 #define STG_BOSS_OFF        0u
@@ -155,7 +155,7 @@ typedef struct {
     uint32_t    frame;          /* 进入游戏模式以来走过的帧数 */
     uint32_t    phase;          /* STG_PH_* */
     uint32_t    phase_t;        /* 本阶段已经走过的帧数（第 7 步末尾加一）；开局之后就是事件表的帧号 */
-    uint32_t    seg;            /* STG_SEG_* */
+    uint32_t    seg;            /* STG_GSEG_* */
     uint32_t    ev_i;           /* 事件表的下一条 */
     uint32_t    keys_prev;      /* 上一帧的按键位图（取炸弹键的按下沿） */
     uint32_t    slow;           /* 本帧低速（显示判定点） */
