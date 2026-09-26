@@ -369,10 +369,13 @@ fn_body() {
     "${RISCV_BIN}objdump" -d --no-show-raw-insn "$1" 2>/dev/null |
         awk -v f="<$2>:" '$2 == f { p = 1; next } p && NF == 0 { exit } p { print }'
 }
-# 从函数体里挑出违规的指令：除法与取模、除法库调用、ret 以外的间接跳转
+# 从函数体里挑出违规的指令：除法与取模、除法库调用、ret 以外的间接跳转。
+# 库调用只看跳转与调用指令的目标：objdump 会给立即数也配上最近的符号（如 `addi s0,s0,-1 # ffff <__udivdi3+0xab>`），
+# 那只是注释，不是调用；整行匹配会把它误判成违规，也会让注错那条判据「见红」得名不副实。
 loop_offenders() {
     awk -F'\t' '{ m = $2; sub(/[ \t]+$/, "", m) }
-                m ~ /^(div|divu|rem|remu)$/ || m == "jalr" || m == "jr" || $0 ~ /<__(u)?(div|mod)/ { print }'
+                m ~ /^(div|divu|rem|remu)$/ || m == "jalr" || m == "jr" ||
+                (m ~ /^(jal|j|call|tail)$/ && $3 ~ /<__(u)?(div|mod)/) { print }'
 }
 LOOPS="stg_pool_step stg_pool_collide stg_pool_draw stg_pool_hit_targets stg_pool_cancel stg_pool_age"
 if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
