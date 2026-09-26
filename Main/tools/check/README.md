@@ -14,10 +14,11 @@
 | `check_sw6_demo.sh` | 基础 Demo（SW6）的提交前判据，十项：录像可重生成、判据模式编过并跑通、对期望日志、有窗与无窗、两遍一致、HUD 与字形、场景 B、`off` 与 `eq` 计数、四个方程的注错见红、Sanitizer 与板上目标构建 | 改 `gfx2dGame`、`lib/gfx` 的执行器、SW5 素材或录像时，提交前 |
 | `check_sw6_log.py` | SW6 判据日志的**外部核对**：两遍比对、`hud` 对上一帧统计、`hcrc` 按字库文本独立重画、`s` 与 `scene` 参考值、`off` 与 `eq`；`--board` 把板上串口日志从 `pak` 行起与期望日志对账 | 由 `check_sw6_demo.sh` 调用；板上对账时单独跑 |
 | `gen_sw6_replay.py` | 生成 SW6 的两段确定性录像（`.g2dr`）：A 把 N 从 100 升到 5000 再回到 100，B 把 k 从 30 降到 1 再升到 120；形状与停留段写在脚本里 | 录像要改时；`check_sw6_demo.sh` 每次重跑并逐字节比 |
-| `check_sw7_game.sh` | 游戏本体（SW7）A 批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、实体池的主机测试（64/32、不链 bsp）与两个注错见红、批量提交的三个注错见红 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
+| `check_sw7_game.sh` | 游戏本体（SW7）A、B 两批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_stats.sh` | 统计埋点（SW8）A 批的提交前判据：主机测试 64/32 比对与 sanitizer、普查与软件执行器对账、模拟时钟、帧时间直方图、日志队列、`board_tx_room()` 的 PC 实现与板上构建、各注错见红 | 改 `lib/gfx/census`、`lib/core/framehist`、`lib/core/logq`、`board_tx_room()`、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_tx.c` | `board_tx_room()` 的 PC 实现的主机探针：链真实的 `sw/bsp/host/board.c`，不设 `GFX2D_TX_BUDGET` 时不限，设 192 时按场补满、不累加、超额计数；`-DINJECT_HOST_TX_NO_REFILL` 见红 | 由 `check_sw8_stats.sh` 的 M5 编译运行；改 `bsp/host` 的串口模拟时 |
 | `gen_sin_tab.py` | 生成 `sw/lib/core/sin_tab.c`：1024 项加 256 项尾巴的 Q1.14 正弦表，按绝对值四舍五入；`--inject` 改一项给比对当注错 | 表的口径要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
+| `gen_stg_patterns.py` | SW7 弹型判据的**独立实现**：照 spec 另写正弦表、atan2、`xorshift32`、发射器与池，生成五种弹型加合并段各 120 帧的期望文件 `sw/apps/game/gfx2dGame/test/stg_patterns.txt`；`--compare` 与 C 的轨迹先比参数行再逐帧比，不一致时两边各 dump 第一个不同帧、指出第一颗不同的弹 | 弹型参数或 2.1、2.3 节的规则要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
 | `e7_key_probe.c` | 独立枚举受控棋盘纹理的色键命中数，与软件执行器统计对账 | E7 改色键负载或解释命中率时 |
 | `e8_entity_golden.c` | 用同一份实体算法生成九组主机侧期望值到 `entityBench/src/golden.h`：每组 1000 帧的六字段状态 CRC 与 C 组每帧全部 `32×N` 命令字节 CRC，另保留终态摘要 | 改 E8 实体算法、命令格式或帧数时，重生成并随源码同步提交 |
 | `e7_output_check.py` | E7 性能负载的**独立输出复算器**：按 spec 第 01 章的混合方程与 `list.c` 的位域，从初始帧缓冲与纹理重画一帧，逐项核对板上整帧 CRC32 和每个可见像素的 32 位加和；要求两面各九项恰好 18 行、无重复或未知项，且有 `fail 0` 和 `done` | 判定 E7 吞吐数字有效性的硬判据；板上日志格式变了（`<名字> fbN ... crc 0x... pxsum 0x...`）要同步改 `parse_log` |
@@ -270,9 +271,11 @@ wsl -e bash -c 'bash Main/tools/check/check_sw7_game.sh'
 | G1 | `gen_sin_tab.py` 重打一份，与入库的 `lib/core/sin_tab.c` 逐字节相同；注错 `--inject` 改一项之后比对必须见红 |
 | G2 | `mk/host.mk` 的 `test` 目标：退出码 0、64 位（ASan/UBSan）与 `-m32` 输出逐字节相同、`fail 0`；stdout 与 stderr 一起收，里面不能有 sanitizer 报告（`test` 目标本身不看 stderr）；数值基础 F 组 21 行、批量提交 K 组 8 行全 ok |
 | G3 | `FX_IDX_TRUNC`、`FX_VEL_Q4`、`FX_ATAN_NOSCALE`、`FX_ATAN_UNIT` 各编一次，指定的那一行必须 FAIL |
-| G4 | 实体池：`apps/game/gfx2dGame/test/*.c`、`src/game/stg_*.c`、`lib/core`、`lib/gfx` 按 `test` 目标的选项直接编（选项用 `make --eval` 从 `mk/host.mk` 取），64 位挂 ASan/UBSan、`-m32` 各一份，两份输出逐字节相同、`fail 0`、无 sanitizer 报告；不链 bsp |
+| G4 | 游戏代码的 app 测试：`apps/game/gfx2dGame/test/*.c`、`src/game/stg_*.c`、`lib/core`、`lib/gfx` 按 `test` 目标的选项直接编（选项用 `make --eval` 从 `mk/host.mk` 取），64 位挂 ASan/UBSan、`-m32` 各一份，两份输出逐字节相同、`fail 0`、无 sanitizer 报告；不链 bsp |
 | G5 | `STG_POOL_STALL`、`STG_POOL_SWAP` 各编一次，指定的那一行必须 FAIL |
 | G6 | `BLIT_RUN_W7`、`BLIT_RUN_SXY`、`BLIT_RUN_NO_FALLBACK` 各编一次，指定的那一行必须 FAIL；最后一个要让「源等于目的」那一行见红，证明随机输入真的走到了逐条回退 |
+| G7 | 弹型：`gen_stg_patterns.py` 重打期望文件，与入库的 `test/stg_patterns.txt` 逐字节相同；G4 的两份产物各跑 `pat` 打轨迹，64/32 逐字节相同，再用 `--compare` 与期望文件先比参数行、再逐帧比、末行比溢出计数 |
+| G7i | `EMIT_SEQ_NOACC`、`EMIT_AIM_SWAP`、`EMIT_RAIN_ORDER` 各编一次，比对必须在指定的段（spiral、aim、rain）第一个报出不一致，并指出第一颗不同的弹 |
 
 编译产物落临时目录（`OBJDIR` 指过去），不动 `sw/build_host`。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。
 
@@ -287,6 +290,19 @@ wsl -e python3 Main/tools/check/gen_sin_tab.py --inject --out F   注错：第 1
 只用标准库。`sin_tab[i] = sign(v) × floor(|v| + 0.5)`，`v = 16384 × sin(2πi / 1024)`，
 `i` 从 0 到 1023，再把前 256 项接在后面作尾巴（余弦取 `sin_tab[i + 256]`）。
 不用 `round()`：它是银行家舍入。生成的 `.c` 不写数组长度，与 `fixmath.h` 里带长度的声明对不上时编译报错。
+
+## gen_stg_patterns.py
+
+```
+wsl -e python3 Main/tools/check/gen_stg_patterns.py                  写进 sw/apps/game/gfx2dGame/test/stg_patterns.txt（入库的那份）
+wsl -e python3 Main/tools/check/gen_stg_patterns.py --out F          写到别处
+wsl -e python3 Main/tools/check/gen_stg_patterns.py --dump SEG FRAME   某段某帧之后的全部敌弹
+wsl -e python3 Main/tools/check/gen_stg_patterns.py --compare C_TRACE [--expect F] [--c-bin stgTest]
+```
+
+只用标准库，只照 `Engineering/Todo/sw/SW7-游戏本体.md` 2.1~2.3 节写，不读 C 的源码与生成物。
+C 的轨迹由 app 测试 `stgTest pat` 打出（格式写在 `test/test_stg_emit.c` 的文件头），`stgTest dump SEG FRAME` 打某一帧的全部敌弹。
+`--compare` 一致时末行 `compare ok`、退出码 0；不一致时退出码 1，给了 `--c-bin` 就两边各 dump 第一个不同帧、打出第一颗不同的弹。
 
 ## check_sw8_stats.sh
 

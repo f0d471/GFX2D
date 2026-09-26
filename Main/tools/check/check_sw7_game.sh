@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check_sw7_game.sh —— 游戏本体（SW7）A 批的提交前判据
+# check_sw7_game.sh —— 游戏本体（SW7）A、B 两批的提交前判据
 #
 # 判据见 Engineering/Todo/sw/SW7-游戏本体.md 第 3 节，口径见 2.1 节与 4.5 节。本脚本串起来跑：
 #
@@ -15,6 +15,11 @@
 #   G5 实体池的注错     STG_POOL_STALL / STG_POOL_SWAP 各编一次，指定的那一行必须 FAIL
 #   G6 批量提交的注错   BLIT_RUN_W7 / BLIT_RUN_SXY / BLIT_RUN_NO_FALLBACK 各编一次，指定的那一行必须 FAIL；
 #                       最后一个要让「源等于目的」那一类见红，证明随机输入真的走到了逐条回退
+#   G7 弹型             gen_stg_patterns.py（Python 独立实现）重打期望文件，与入库的
+#                       apps/game/gfx2dGame/test/stg_patterns.txt 逐字节相同；G4 的两份产物各打一遍轨迹
+#                       （stgTest pat），64/32 逐字节相同，再与期望文件先比参数行、再逐帧比、末行比溢出计数
+#   G7i 弹型的注错      EMIT_SEQ_NOACC / EMIT_AIM_SWAP / EMIT_RAIN_ORDER 各编一次，
+#                       比对必须在指定的那一段（spiral / aim / rain）报出第一个不同帧与第一颗不同的弹
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     bash Main/tools/check/check_sw7_game.sh
@@ -41,6 +46,9 @@ trap cleanup EXIT
 ok()   { printf '%s ok\n'   "$1"; }
 bad()  { printf '%s FAIL\n' "$1"; FAIL=$((FAIL + 1)); }
 note() { printf '    %s\n'   "$1"; }
+
+PAT_GEN="$MAIN/tools/check/gen_stg_patterns.py"
+PAT_EXP="$APP/test/stg_patterns.txt"
 
 # 跑一次 mk/host.mk 的 test 目标。$1 = 产物目录名，$2 = INJECT（可空）。
 # stdout 与 stderr 一起进日志：sanitizer 的报告打在 stderr，test 目标本身不看它。
@@ -123,7 +131,7 @@ expect_red FX_ATAN_NOSCALE '^F5 atan2 Q\.8 random'
 expect_red FX_ATAN_UNIT    '^F4 atan2 \[-512'
 
 # ---------------------------------------------------------------- G4 实体池
-echo "== G4 实体池（64 位 ASan/UBSan 与 -m32，不链 bsp） =="
+echo "== G4 app 测试：实体池与发射器（64 位 ASan/UBSan 与 -m32，不链 bsp） =="
 # 选项从 mk/host.mk 里取，不在这里另写一份：判据与被测构建必须用同一组参数
 # （TechReports sw 第 01 章 4.6 节）。OBJDIR 指到临时目录，解析 host.mk 时的标记文件不落进仓库。
 FLAGS="$(make -C "$SW" -s --no-print-directory -f mk/host.mk OBJDIR="$TMP/flags" \
@@ -149,20 +157,20 @@ if build_stg stg64 64 "" && build_stg stg32 32 ""; then
     "$TMP/stg32" >"$TMP/stg32.txt" 2>"$TMP/stg32.err"; rc32=$?
     if [ "$rc64" -eq 0 ] && [ "$rc32" -eq 0 ] && grep -q '^fail 0$' "$TMP/stg64.txt" &&
        grep -q '^done$' "$TMP/stg64.txt" && cmp -s "$TMP/stg64.txt" "$TMP/stg32.txt"; then
-        ok "G4 实体池 64/32 逐字节相同、fail 0、done（$(grep -cE ' ok$' "$TMP/stg64.txt") 行 ok）"
+        ok "G4 app 测试 64/32 逐字节相同、fail 0、done（$(grep -cE ' ok$' "$TMP/stg64.txt") 行 ok）"
         grep -E '^P2 totals' "$TMP/stg64.txt" | while read -r l; do note "$l"; done
     else
-        bad "G4 实体池退出码 64:$rc64 32:$rc32，或没有 fail 0，或 64/32 输出不同"
+        bad "G4 app 测试退出码 64:$rc64 32:$rc32，或没有 fail 0，或 64/32 输出不同"
         grep -E 'FAIL|^fail' "$TMP/stg64.txt" | head -5 | while read -r l; do note "$l"; done
     fi
     if grep -qE 'runtime error|AddressSanitizer|LeakSanitizer' "$TMP/stg64.err"; then
-        bad "G4s 实体池有 sanitizer 报告"
+        bad "G4s app 测试有 sanitizer 报告"
         head -3 "$TMP/stg64.err" | while read -r l; do note "$l"; done
     else
-        ok "G4s 实体池没有 sanitizer 报告"
+        ok "G4s app 测试没有 sanitizer 报告"
     fi
 else
-    bad "G4 实体池编不过"
+    bad "G4 app 测试编不过"
     tail -5 "$TMP"/stg*.build.log | while read -r l; do note "$l"; done
 fi
 
@@ -196,6 +204,66 @@ run_libtest_red() {   # 与 G3 同一个做法，只是换一组行
 run_libtest_red BLIT_RUN_W7          '^K1 1000 groups'
 run_libtest_red BLIT_RUN_SXY         '^K1 1000 groups'
 run_libtest_red BLIT_RUN_NO_FALLBACK '^K1 src==dst groups'
+
+# ---------------------------------------------------------------- G7 弹型
+echo "== G7 弹型（期望文件由 Python 独立实现生成） =="
+if python3 "$PAT_GEN" --out "$TMP/stg_patterns.txt" >"$TMP/patgen.log" 2>&1; then
+    if cmp -s "$TMP/stg_patterns.txt" "$PAT_EXP"; then
+        ok "G7 重新生成的期望文件与入库的逐字节相同（$(wc -l <"$PAT_EXP") 行）"
+    else
+        bad "G7 重新生成的期望文件与入库的不同"
+        diff "$TMP/stg_patterns.txt" "$PAT_EXP" | head -6 | while read -r l; do note "$l"; done
+    fi
+else
+    bad "G7 gen_stg_patterns.py 跑不动"
+    head -5 "$TMP/patgen.log" | while read -r l; do note "$l"; done
+fi
+
+if [ -x "$TMP/stg64" ] && [ -x "$TMP/stg32" ]; then
+    "$TMP/stg64" pat >"$TMP/pat64.txt" 2>"$TMP/pat64.err"
+    "$TMP/stg32" pat >"$TMP/pat32.txt" 2>&1
+    if cmp -s "$TMP/pat64.txt" "$TMP/pat32.txt"; then
+        ok "G7m 轨迹 64/32 逐字节相同（$(wc -l <"$TMP/pat64.txt") 行）"
+    else
+        bad "G7m 轨迹 64/32 不同"
+    fi
+    if grep -qE 'runtime error|AddressSanitizer|LeakSanitizer' "$TMP/pat64.err"; then
+        bad "G7s 轨迹有 sanitizer 报告"
+        head -3 "$TMP/pat64.err" | while read -r l; do note "$l"; done
+    fi
+    if python3 "$PAT_GEN" --compare "$TMP/pat64.txt" --expect "$PAT_EXP" --c-bin "$TMP/stg64" \
+           >"$TMP/patcmp.txt" 2>&1; then
+        ok "G7c C 的轨迹与期望文件逐行一致：参数行、六段各 120 帧、溢出计数"
+        awk '/^seg /{s=$3} /^f 119 /{printf "    %-6s 第 119 帧存活 %s\n", s, $3}' "$PAT_EXP"
+    else
+        bad "G7c C 的轨迹与期望文件不一致"
+        head -30 "$TMP/patcmp.txt" | while read -r l; do note "$l"; done
+    fi
+else
+    bad "G7c 没有 G4 的产物，轨迹没跑"
+fi
+
+echo "== G7i 弹型的注错（比对必须在指定的段见红） =="
+expect_pat_red() {   # $1 = INJECT，$2 = 必须第一个报出不一致的段名
+    if build_stg "pat_$1" 64 "-DINJECT_$1"; then
+        "$TMP/pat_$1" pat >"$TMP/pat_$1.txt" 2>&1
+        if ! python3 "$PAT_GEN" --compare "$TMP/pat_$1.txt" --expect "$PAT_EXP" --c-bin "$TMP/pat_$1" \
+               >"$TMP/pat_$1.cmp" 2>&1 &&
+           [ "$(grep -m1 -oE '^seg [0-9] [a-z]+' "$TMP/pat_$1.cmp")" = "$(grep -m1 -oE "^seg [0-9] $2" "$PAT_EXP")" ] &&
+           grep -q '第一颗不同的弹' "$TMP/pat_$1.cmp"; then
+            ok "G7i INJECT=$1 见红：$(grep -m1 -E '^seg [0-9] ' "$TMP/pat_$1.cmp")"
+            grep -m1 -A2 '第一颗不同的弹' "$TMP/pat_$1.cmp" | while read -r l; do note "$l"; done
+        else
+            bad "G7i INJECT=$1 没有在 $2 段见红"
+            head -4 "$TMP/pat_$1.cmp" | while read -r l; do note "$l"; done
+        fi
+    else
+        bad "G7i INJECT=$1 编不过"
+    fi
+}
+expect_pat_red EMIT_SEQ_NOACC  spiral
+expect_pat_red EMIT_AIM_SWAP   aim
+expect_pat_red EMIT_RAIN_ORDER rain
 
 printf 'fail %d\ndone\n' "$FAIL"
 [ "$FAIL" -eq 0 ]
