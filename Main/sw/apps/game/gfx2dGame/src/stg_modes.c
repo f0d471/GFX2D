@@ -18,6 +18,7 @@
 
 #include "assets.h"
 
+#include "game/stg_auto.h"
 #include "game/stg_game.h"
 #include "game/stg_kind.h"
 #include "game/stg_press.h"
@@ -28,6 +29,7 @@
 
 static stg_game   s_game;           /* 模式 2、3 共用的游戏状态，约 390 KB */
 static uint32_t   s_fail;
+static uint32_t   s_idle;           /* 模式 2：连续无按键的帧数（自动驾驶接管用） */
 
 /* 模式 3 的搜索 */
 #define PRESS_16    0u              /* 先搜 16x16 圆弹 */
@@ -205,13 +207,21 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
 void stg_mode_game_enter(void)
 {
     stg_modes_reset();
+    s_idle = 0u;
 }
 
 void stg_mode_game_frame(const stg_main_ctx *ctx, int dst, uint32_t keys,
                          const stg_hud_live *live, stg_mode_out *o)
 {
-    const uint32_t t0 = board_cycles();
+    uint32_t t0 = board_cycles();
 
+    /* 自动驾驶：连续 600 帧无按键就接管，任何按键立即交还（SW8 2.6 节）；开销单独计 */
+    o->auto_on = (uint32_t)stg_auto_take(&s_idle, keys);
+    if (o->auto_on)
+        keys = stg_auto_keys(&s_game, NULL);
+    o->cyc_auto = board_cycles() - t0;
+
+    t0 = board_cycles();
     stg_game_step(&s_game, keys);
     o->cyc_logic = board_cycles() - t0;
     draw_frame(ctx, dst, live, o, NULL);
@@ -274,6 +284,8 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
     const uint32_t t0 = board_cycles();
     char         buf[240];
 
+    o->cyc_auto = 0u;
+    o->auto_on  = 0u;
     stg_game_step(&s_game, 0u);
     o->cyc_logic = board_cycles() - t0;
     press_text();

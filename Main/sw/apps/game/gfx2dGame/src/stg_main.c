@@ -18,6 +18,8 @@
 *
 *         游戏的判据入口（STG_FIELD=4，SW7 2.6 节「游戏的判据入口」）：无窗口、不读实时按键，输入是固定的按键脚本
 *         （stg_script），受击默认关掉（-DSTG_JUDGE_HITS=1 打开），跑完一局（回到标题）或到 -DSTG_FRAMES=N 为止。
+*         -DSTG_JUDGE_AUTO=1 时输入换成自动驾驶（stg_auto，从第 0 帧起）、受击打开（SW8 2.6 节），
+*         末尾多一行 auto frames <帧数> cyc_avg <每帧平均周期数> cyc_max <最大周期数>（PC 上只作登记）。
 *         组帧是游戏的整帧（stg_game_compose，含 HUD），执行后取整帧 640x480 的 CRC。每段开始打一行
 *           seg <帧号> <段名>
 *         逐帧一行：
@@ -55,6 +57,7 @@
 #include "game/stg_game.h"
 #include "game/stg_pattern.h"
 #include "game/stg_press.h"
+#include "game/stg_auto.h"
 #include "game/stg_script.h"
 
 #include "stg_modes.h"
@@ -251,14 +254,22 @@ static void say_end(void)
 
 /* --- 游戏的判据入口（SW7 2.6 节「游戏的判据入口」）--------------------------- */
 
+#ifndef STG_JUDGE_AUTO
+#define STG_JUDGE_AUTO  0           /* 1：输入换成自动驾驶（SW8 2.6 节） */
+#endif
+
 #ifndef STG_JUDGE_HITS
-#define STG_JUDGE_HITS  0           /* 受击默认关掉：脚本不躲弹，打开时一局很快结束 */
+#define STG_JUDGE_HITS  STG_JUDGE_AUTO  /* 受击默认关掉（脚本不躲弹，打开时一局很快结束）；自动驾驶时打开 */
 #endif
 
 #define STG_GAME_FRAME_LIMIT 20000u /* 保险：一局最多 10184 帧（2.5 节） */
 
 static stg_game   s_game;           /* 游戏的全部状态，约 390 KB */
+#if STG_JUDGE_AUTO
+static uint32_t   s_auto_sum, s_auto_max;   /* 自动驾驶的开销：累计与最大（周期） */
+#else
 static stg_script s_script;
+#endif
 
 typedef struct {
     stg_frame_stats st;
@@ -406,6 +417,42 @@ static void say_game(uint32_t frame, const game_out *go)
     board_puts(buf);
 }
 
+/* 这一帧的输入：按键脚本，或自动驾驶（开销另计）。 */
+static uint32_t judge_keys(uint32_t frame)
+{
+#if STG_JUDGE_AUTO
+    const uint32_t t0 = board_cycles();
+    const uint32_t k  = stg_auto_keys(&s_game, NULL);
+    const uint32_t c  = board_cycles() - t0;
+
+    (void)frame;
+    s_auto_sum = (s_auto_sum + c < s_auto_sum) ? 0xFFFFFFFFu : s_auto_sum + c;
+    if (c > s_auto_max)
+        s_auto_max = c;
+    return k;
+#else
+    return stg_script_keys(&s_script, frame);
+#endif
+}
+
+#if STG_JUDGE_AUTO
+static void say_auto(uint32_t frames)
+{
+    char     buf[96];
+    core_out o;
+
+    core_out_init(&o, buf, (uint32_t)sizeof buf);
+    core_out_str(&o, "auto frames ");
+    core_out_u32(&o, frames);
+    core_out_str(&o, " cyc_avg ");
+    core_out_u32(&o, (frames != 0u) ? s_auto_sum / frames : 0u);
+    core_out_str(&o, " cyc_max ");
+    core_out_u32(&o, s_auto_max);
+    core_out_str(&o, "\r\n");
+    board_puts(buf);
+}
+#endif
+
 static int run(const stg_main_ctx *ctx)
 {
     uint32_t frame;
@@ -413,10 +460,12 @@ static int run(const stg_main_ctx *ctx)
 
     stg_game_init(&s_game, STG_GAME_SEED);
     stg_game_set_hits(&s_game, STG_JUDGE_HITS);
+#if !STG_JUDGE_AUTO
     stg_script_init(&s_script);
+#endif
     say_game_seg(0u, s_game.seg);
     for (frame = 0u; frame < STG_GAME_FRAME_LIMIT; frame++) {
-        game_frame(ctx, frame, stg_script_keys(&s_script, frame), &go);
+        game_frame(ctx, frame, judge_keys(frame), &go);
         if ((s_game.ev & STG_EV_SEG) != 0u)
             say_game_seg(frame, s_game.seg);
         say_game(frame, &go);
@@ -427,6 +476,9 @@ static int run(const stg_main_ctx *ctx)
             break;
 #endif
     }
+#if STG_JUDGE_AUTO
+    say_auto((frame < STG_GAME_FRAME_LIMIT) ? frame + 1u : frame);
+#endif
     say_end();
     return (s_fail == 0u) ? 0 : 1;
 }

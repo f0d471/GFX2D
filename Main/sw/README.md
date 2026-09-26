@@ -193,7 +193,8 @@ SW6 起它是**基础 Demo**（赛题基础要求 3），SW8 C 批起默认构�
 三个模式 1 基础 Demo（SW6 的演示：实时输入，A／B 两个阶段每 600 场自动轮换，HUD 右上角显示 SW FPS、N／k、命令数、
 写入像素数与三段耗时，`HW FPS` 留 `--` 给 SW9）、2 游戏（SW7）、3 压力测试（终符上的 `N_max` 搜索，模拟时钟）。
 上电进 `-DGFX2D_START_MODE=<1|2|3>`（缺省 2）。PC 上数字键 1~3 直接选模式、Tab 切后端变量；板上用和弦：
-上 + 下按住 8 帧切下一个模式，左 + 右按住 8 帧切后端，松开之后才会再触发。每次进入一个模式，第一帧之后打一行
+上 + 下按住 8 帧切下一个模式，左 + 右按住 8 帧切后端，松开之后才会再触发。模式 2 里连续 600 帧无按键时自动驾驶接管，
+任何按键立即交还。每次进入一个模式，第一帧之后打一行
 `mode <m> enter frame <帧号> crc <整帧 CRC32> pool <四个池> clip <裁剪框>`。
 每 60 场打一行统计 CSV（`csvh,` 表头、`csv,` 每秒一行、结束时 `csvsum,` 汇总，列见 SW8 2.4 节）；
 这些行与框架自己的行先进日志队列，每帧只取出 `board_tx_room()` 那么多字节（模式 1 里 SW6 的逐帧日志照旧直接打）。
@@ -218,6 +219,9 @@ wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_hos
 
 # 日志不阻塞长跑：模式 2、36000 帧、每场 192 字节的串口额度，按 60 Hz 节拍约 10 分钟（check_sw8_stats.sh 的 M14）
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_long EXTRA_CFLAGS="-DGFX2D_START_MODE=2 -DGFX2D_FRAMES=36000" && SDL_VIDEODRIVER=dummy GFX2D_TX_BUDGET=192 ./build_host_long/gfx2dGame | grep ^csv'
+
+# 自动驾驶打一局（游戏的判据入口，受击打开）：逐帧 g 行、每段 seg 行，末尾 auto 行与 fail 0（check_sw8_stats.sh 的 M16）
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_auto EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_AUTO=1" && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_auto/gfx2dGame | grep -E "^(seg|auto|fail)"'
 
 # 判据模式全量一遍：约 22 秒、1226 帧，末尾 fail 0 与 done
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host EXTRA_CFLAGS=-DSW6_JUDGE=1 && ./build_host/gfx2dGame'

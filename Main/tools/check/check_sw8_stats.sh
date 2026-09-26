@@ -39,8 +39,15 @@
 #                       没有被别的日志夹断的行；csvsum 的 rows 等于 csv 行数、lines_dropped 0；三个模式都出过行，应用 fail 0
 #   M13i CSV 的注错     INJECT=CSV_DROP_EQ（打印时漏掉方程 1 那两列），脚本的解析必须见红（应用按内部值自查，看不见）
 #   M14 日志不阻塞长跑  默认构建以 GFX2D_START_MODE=2、GFX2D_FRAMES=36000 编，GFX2D_TX_BUDGET=192、无窗口、
-#                       按真实 60 Hz 节拍跑（约 10 分钟）：csvsum 的 lines_dropped 0、fail 0、没有 err 行，
+#                       按真实 60 Hz 节拍跑（约 10 分钟，600 帧之后自动驾驶接管）：csvsum 的 lines_dropped 0、fail 0、没有 err 行，
 #                       bsp 退出时的超额汇总是 over 0 times 0 bytes。SW8_SKIP_LONG=1 跳过，**跳过不算通过**
+#   M15 自动驾驶的 app 测试
+#                       M8 的 app 测试输出里 A 组 8 行全 ok（接管与交还、偏好与平局、躲弹、打一局两遍相同；
+#                       危险度扫描对朴素参考在 SW7 的 P7）；注错 AUTO_ORDER（候选顺序倒过来）必须让 A2 的平局那一行见红
+#   M16 自动驾驶打一局  gfx2dGame 以 -DSTG_FIELD=4 -DSTG_JUDGE_AUTO=1 编 PC 版（输入换成自动驾驶、受击打开），
+#                       无窗口、GFX2D_UNPACED=1 跑两遍：seg 与 g 行逐字节相同（CRC 序列可复现）、fail 0、done、没有 err 行；
+#                       打出活到哪一段与每帧平均开销（PC 上的周期数只作登记）
+#   M16i 自动驾驶的注错 INJECT=AUTO_ORDER 编同一个入口：g 行的 CRC 序列必须与 M16 不同
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh
@@ -509,6 +516,70 @@ elif make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/long" \
     note "$(grep '^csvsum' "$TMP/long.log")；$over"
 else
     bad "M14 长跑的 PC 版编不过"
+fi
+
+# ---------------------------------------------------------------- M15 自动驾驶的 app 测试
+echo "== M15 自动驾驶（app 测试的 A 组） =="
+na_ok=$(grep -cE '^A[0-9] .* ok$' "$TMP/app64.txt" 2>/dev/null)
+na_bad=$(grep -cE '^A[0-9] .* FAIL$' "$TMP/app64.txt" 2>/dev/null)
+if [ "$na_ok" -eq 8 ] && [ "$na_bad" -eq 0 ]; then
+    ok "M15 A 组 8 行全 ok（64/32 同 M8）"
+    grep -E '^A4 ' "$TMP/app64.txt" | while read -r l; do note "$l"; done
+else
+    bad "M15 A 组应有 8 行 ok，实际 ok $na_ok 行、FAIL $na_bad 行"
+fi
+if "$HOST_CC" $FLAGS -m32 -DINJECT_AUTO_ORDER -I"$SW/lib" -I"$APP/src" -o "$TMP/auto_inj" \
+        "$APP"/test/*.c "$APP"/src/game/stg_*.c "$SW"/lib/core/*.c "$SW"/lib/gfx/*.c -lm \
+        >"$TMP/auto_inj.build.log" 2>&1; then
+    "$TMP/auto_inj" >"$TMP/auto_inj.txt" 2>&1
+    if grep -qE '^A2 tie among .* FAIL$' "$TMP/auto_inj.txt"; then
+        ok "M15i INJECT=AUTO_ORDER 见红：$(grep -E '^A2 tie among ' "$TMP/auto_inj.txt")"
+    else
+        bad "M15i INJECT=AUTO_ORDER 没有让 A2 的平局那一行见红"
+    fi
+else
+    bad "M15i INJECT=AUTO_ORDER 编不过"
+fi
+
+# ---------------------------------------------------------------- M16 自动驾驶打一局
+echo "== M16 自动驾驶打一局（STG_FIELD=4、STG_JUDGE_AUTO=1，无窗口两遍） =="
+auto_seq() { grep -E '^(seg|g) ' "$1"; }
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/auto" EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_AUTO=1" \
+        >"$TMP/auto.build.log" 2>&1; then
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/auto/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/auto1.log"
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/auto/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/auto2.log"
+    auto_seq "$TMP/auto1.log" >"$TMP/auto1.seq"
+    auto_seq "$TMP/auto2.log" >"$TMP/auto2.seq"
+    ng=$(grep -c '^g ' "$TMP/auto1.seq")
+    if [ "$ng" -gt 0 ] && cmp -s "$TMP/auto1.seq" "$TMP/auto2.seq" &&
+       grep -q '^fail 0$' "$TMP/auto1.log" && grep -q '^done$' "$TMP/auto1.log" &&
+       grep -q '^auto frames ' "$TMP/auto1.log" && ! grep -q '^err ' "$TMP/auto1.log"; then
+        ok "M16 两遍的 seg 与 g 行逐字节相同（$ng 帧）、fail 0、done"
+        grep -E '^seg ' "$TMP/auto1.log" | tr '\n' ';' | sed 's/;$//' | while read -r l; do note "段：$l"; done
+        note "$(grep '^auto frames ' "$TMP/auto1.log")（PC 上的周期数只作登记）"
+        note "最后一帧：$(grep '^g ' "$TMP/auto1.log" | tail -1)"
+    else
+        bad "M16 帧数 $ng、两遍不同、没有 fail 0 / done / auto 行，或有 err 行"
+        grep -E '^err|^fail' "$TMP/auto1.log" | head -4 | while read -r l; do note "$l"; done
+    fi
+else
+    bad "M16 STG_FIELD=4 STG_JUDGE_AUTO=1 的 PC 版编不过"
+fi
+
+echo "== M16i 自动驾驶的注错（候选顺序倒过来） =="
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/autoi" INJECT=AUTO_ORDER \
+        EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_AUTO=1" >"$TMP/autoi.build.log" 2>&1; then
+    bin="$(ls "$TMP"/autoi/gfx2dGame* 2>/dev/null | head -1)"
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$bin" 2>/dev/null | tr -d '\r' >"$TMP/autoi.log"
+    auto_seq "$TMP/autoi.log" >"$TMP/autoi.seq"
+    if [ -s "$TMP/auto1.seq" ] && ! cmp -s "$TMP/auto1.seq" "$TMP/autoi.seq"; then
+        first=$(diff "$TMP/auto1.seq" "$TMP/autoi.seq" | grep -m1 '^[<>] g ' | awk '{print $3}')
+        ok "M16i INJECT=AUTO_ORDER 见红：CRC 序列变了，第一处不同在第 ${first:-?} 帧"
+    else
+        bad "M16i INJECT=AUTO_ORDER 没有让 CRC 序列变（平局的取法看不见，这条判据是空转）"
+    fi
+else
+    bad "M16i INJECT=AUTO_ORDER 编不过"
 fi
 
 printf 'fail %d\ndone\n' "$FAIL"

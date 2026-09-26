@@ -887,7 +887,7 @@ static void sample_frame(void)
         smp.cyc_build  = s_mout.cyc_build;
         smp.cyc_exec   = s_mout.cyc_exec;
     }
-    smp.cyc_auto = 0u;
+    smp.cyc_auto = (s_mode == 2u) ? s_mout.cyc_auto : 0u;
     stats_sample_list(&s_stats, &s_tab, s_cmds[idx], used, &smp);
 }
 

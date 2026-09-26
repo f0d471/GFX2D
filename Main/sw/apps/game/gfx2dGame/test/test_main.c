@@ -21,6 +21,7 @@
 
 #include "core/crc32.h"
 #include "core/format.h"
+#include "test_stg_auto.h"
 #include "test_stg_chord.h"
 #include "test_stg_collide.h"
 #include "test_stg_draw.h"
@@ -69,6 +70,8 @@ int main(int argc, char **argv)
     fail += test_stg_view_run();
     fputs("stgTest chord\n", stdout);
     fail += test_stg_chord_run();
+    fputs("stgTest auto\n", stdout);
+    fail += test_stg_auto_run();
 
     core_out_init(&o, line, (uint32_t)sizeof line);
     core_out_str(&o, "fail ");

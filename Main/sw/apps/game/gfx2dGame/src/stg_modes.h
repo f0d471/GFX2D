@@ -5,7 +5,8 @@
 *         离开模式 2、3 与进入它们时都整体重置（池清空、HI-SCORE 清零），所以切进来之后的第一帧
 *         与冷启动直接进这个模式的第一帧相同。
 *
-*           模式 2  游戏：按键交给 stg_game_step，整帧组帧（含 HUD）、执行、呈现。
+*           模式 2  游戏：按键交给 stg_game_step，整帧组帧（含 HUD）、执行、呈现。连续 600 帧无按键时
+*                   自动驾驶接管（stg_auto，SW8 2.6 节），任何按键立即交还；进入模式 2 时计数清零。
 *           模式 3  压力测试：stg_game_press_begin 把游戏放进终符的压力形态，lib/core/nmax 的旋钮就是
 *                   终符门控的 K；16x16 圆弹（弹种 0）搜一遍、8x8 小圆弹（弹种 4）搜一遍，各打 nmax cfg、
 *                   逐档 nmax probe 与 nmax result；搜完停在 8x8 结果那一档继续跑。SETTLE_MIN 取 300 帧
@@ -45,6 +46,8 @@ typedef struct {
     exec_sw_stats   xs;         /* 执行器的统计 */
     uint32_t        cyc_logic, cyc_build, cyc_exec;     /* 推进、组帧、执行三段的周期数 */
     uint32_t        t_present;  /* 发出呈现请求前一刻的 board_cycles()：帧时间的终点（SW8 2.2 节，不含等场） */
+    uint32_t        cyc_auto;   /* 自动驾驶（接管判断与选方向）的周期数；模式 3 为 0 */
+    uint32_t        auto_on;    /* 这一帧由自动驾驶给按键 */
 } stg_mode_out;
 
 /* 游戏的组帧配置：表面槽照 stg_slots.h，字库几何照 assets.h。STG_FIELD 入口也用它。 */
