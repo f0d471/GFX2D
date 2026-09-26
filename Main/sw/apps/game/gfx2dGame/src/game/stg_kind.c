@@ -16,6 +16,9 @@ const stg_kind_info stg_kind_tab[STG_KIND_N_MAX] = {
     [STG_KIND_ROUND16] = { STG_SRC_ATLAS, 3u, 0u,        0u, 16u, 16u,  0u, 0u, 4 * FX_ONE },
     [STG_KIND_SMALL8]  = { STG_SRC_SMALL, 0u, 0u,        0u,  8u,  8u,  0u, 0u, 2 * FX_ONE },
     [STG_KIND_RICE16]  = { STG_SRC_ATLAS, 3u, STG_DIRS,  0u, 16u, 16u, 16u, 0u, 3 * FX_ONE },
+    /* 自机弹与火花：C 批的素材（2.7 节）到了之前尺寸为 0、不画，只给判定半径 */
+    [STG_KIND_PSHOT]   = { STG_SRC_ATLAS, 0u, 0u,        0u,  0u,  0u,  0u, 0u, 3 * FX_ONE },
+    [STG_KIND_SPARK]   = { STG_SRC_ATLAS, 0u, 0u,        0u,  0u,  0u,  0u, 0u, 0 },
 };
 
 uint16_t stg_kind_sprite(uint32_t kind, uint16_t angle)

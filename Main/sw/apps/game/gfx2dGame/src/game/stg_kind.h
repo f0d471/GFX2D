@@ -23,7 +23,9 @@
 #define STG_KIND_ROUND16    0u          /* 16x16 圆弹，TILE_ATLAS 第 0 帧 */
 #define STG_KIND_SMALL8     1u          /* 8x8 小圆弹，SOLID8 */
 #define STG_KIND_RICE16     2u          /* 16x16 米弹，TILE_ATLAS 第 16~31 帧，16 个方向 */
-#define STG_KIND_USED       3u          /* 用到的弹种：0 .. STG_KIND_USED-1 */
+#define STG_KIND_USED       3u          /* 用到的敌弹弹种：0 .. STG_KIND_USED-1 */
+#define STG_KIND_PSHOT      12u         /* 自机弹（C 批，SW7 2.3 节的弹种表），判定半径 3 像素 */
+#define STG_KIND_SPARK      13u         /* 火花（C 批），不碰 */
 
 /* 源图的抽象编号。入口把它们映射成表面槽。 */
 #define STG_SRC_ATLAS       0u          /* TILE_ATLAS：128x96，8 列 16x16 */

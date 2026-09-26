@@ -13,6 +13,7 @@ void stg_pool_init(stg_pool *p, stg_ent *storage, uint32_t cap)
     p->cap      = (storage == 0) ? 0u : cap;
     p->n        = 0u;
     p->overflow = 0u;
+    p->kinds    = 0u;
 }
 
 void stg_pools_init(stg_pools *s)
@@ -48,6 +49,7 @@ int stg_pool_add(stg_pool *p, int32_t x, int32_t y, int32_t vx, int32_t vy,
     e->sprite = sprite;
     e->flags  = (uint16_t)(flags & (uint16_t)~STG_F_REMOVE);
     p->n++;
+    p->kinds |= 1u << (flags & STG_F_KIND_MASK);
     return 0;
 }
 
@@ -63,7 +65,7 @@ void stg_pool_step(stg_pool *p, const stg_bounds *b, stg_step_stats *st)
 {
     stg_ent  *ent = p->ent;
     uint32_t  n = p->n, r, w = 0u;
-    uint32_t  oob = 0u, marked = 0u;
+    uint32_t  oob = 0u, marked = 0u, kinds = 0u;
     int32_t   x_lo = b->x_lo, x_hi = b->x_hi, y_lo = b->y_lo, y_hi = b->y_hi;
 #ifdef INJECT_STG_POOL_STALL
     int       stall = 0;
@@ -103,6 +105,7 @@ void stg_pool_step(stg_pool *p, const stg_bounds *b, stg_step_stats *st)
         d->vy     = vy;
         d->sprite = sprite;
         d->flags  = flags;
+        kinds |= 1u << (flags & STG_F_KIND_MASK);
 #ifdef INJECT_STG_POOL_STALL
         /* 注错：移除之后的第一个存活实体写进去了，写指针却停一步，下一个会把它盖掉 */
         if (stall) {
@@ -114,6 +117,7 @@ void stg_pool_step(stg_pool *p, const stg_bounds *b, stg_step_stats *st)
     }
 
     p->n = w;
+    p->kinds = kinds;
     if (st != 0) {
         st->oob    = oob;
         st->marked = marked;
@@ -152,6 +156,7 @@ void stg_pool_step(stg_pool *p, const stg_bounds *b, stg_step_stats *st)
     }
 
     p->n = n;
+    p->kinds = 0xFFFFu;
     if (st != 0) {
         st->oob    = oob;
         st->marked = marked;
@@ -273,6 +278,99 @@ uint32_t stg_pool_count(const stg_pool *p)
 uint32_t stg_pool_overflow(const stg_pool *p)
 {
     return p->overflow;
+}
+
+uint32_t stg_pool_kinds(const stg_pool *p)
+{
+    return p->kinds;
+}
+
+/* 与 stg_pool_collide 同一套粗筛写法：|d| < T 等价于 0 <= d + T - 1 < 2T - 1。 */
+uint32_t stg_pool_hit_targets(stg_pool *p, const int32_t *r_kind, const stg_target *tg,
+                              uint32_t n, uint32_t *hits)
+{
+    stg_ent       *ent = p->ent;
+    const uint32_t nb = p->n;
+    uint32_t       i, t, got = 0u;
+
+    for (i = 0u; i < nb; i++) {
+        stg_ent       *e = &ent[i];
+        const uint32_t flags = e->flags;
+        const int32_t  rb = r_kind[flags & STG_F_KIND_MASK];
+        const int32_t  bx = e->x, by = e->y;
+
+        if ((flags & STG_F_REMOVE) != 0u)
+            continue;
+        for (t = 0u; t < n; t++) {
+            const int32_t tt = rb + tg[t].r;
+            int32_t       dx, dy;
+
+            if (tg[t].alive == 0)
+                continue;
+            dx = bx - tg[t].x;
+            dy = by - tg[t].y;
+#ifdef INJECT_PHIT_LOOP_DIV
+            dx += dy / (tt | 1);        /* 注错：循环里的一次除法，objdump 那条判据必须看见 */
+#endif
+            if ((uint32_t)(dx + tt - 1) >= (uint32_t)(2 * tt - 1)
+                || (uint32_t)(dy + tt - 1) >= (uint32_t)(2 * tt - 1))
+                continue;
+#ifdef INJECT_PHIT_LE
+            if (dx * dx + dy * dy <= tt * tt) {     /* 注错：恰好相切也算命中 */
+#else
+            if (dx * dx + dy * dy < tt * tt) {
+#endif
+                hits[t]++;
+                got++;
+                e->flags = (uint16_t)(flags | STG_F_REMOVE);
+                break;
+            }
+        }
+    }
+    return got;
+}
+
+uint32_t stg_pool_cancel(stg_pool *p, stg_pool *sparks, int32_t svx, int32_t svy,
+                         uint16_t life, uint16_t spark_kind)
+{
+    stg_ent       *ent = p->ent;
+    const uint32_t n = p->n;
+    uint32_t       i, k = 0u;
+
+    for (i = 0u; i < n; i++) {
+        stg_ent       *e = &ent[i];
+        const uint32_t flags = e->flags;
+
+        if ((flags & (STG_F_REMOVE | STG_F_NOCANCEL)) != 0u)
+            continue;
+        e->flags = (uint16_t)(flags | STG_F_REMOVE);
+        k++;
+        (void)stg_pool_add(sparks, e->x, e->y, svx, svy, life, spark_kind);
+    }
+    return k;
+}
+
+void stg_pool_age(stg_pool *p)
+{
+    stg_ent       *ent = p->ent;
+    const uint32_t n = p->n;
+    uint32_t       i;
+
+    for (i = 0u; i < n; i++) {
+        stg_ent       *e = &ent[i];
+        const uint32_t flags = e->flags;
+        uint32_t       life = e->sprite;
+
+        if ((flags & STG_F_REMOVE) != 0u)
+            continue;
+#ifdef INJECT_AGE_LOOP_DIV
+        life = life / ((flags & 7u) | 1u);  /* 注错：循环里的一次除法，objdump 那条判据必须看见 */
+#endif
+        life = (life != 0u) ? life - 1u : 0u;
+        e->sprite = (uint16_t)life;
+        if (life == 0u)
+            e->flags = (uint16_t)(flags | STG_F_REMOVE);
+    }
 }
 
 int stg_pool_get(const stg_pool *p, uint32_t i, stg_ent *out)

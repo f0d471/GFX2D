@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check_sw7_game.sh —— 游戏本体（SW7）A、B 两批的提交前判据
+# check_sw7_game.sh —— 游戏本体（SW7）A、B、C 三批的提交前判据
 #
 # 判据见 Engineering/Todo/sw/SW7-游戏本体.md 第 3 节，口径见 2.1 节与 4.5 节。本脚本串起来跑：
 #
@@ -27,10 +27,15 @@
 #                       源坐标、六段各 300 帧的组帧：拒绝为 0、普查的 ALPHA 条数 = 发出的敌弹数）
 #   G10 判据模式        gfx2dGame 以 -DSTG_FIELD=2 编 PC 版，无窗口（SDL_VIDEODRIVER=dummy）跑两遍：
 #                       日志逐字节相同、fail 0、done、六段 840 帧
-#   G11 板上构建与反汇编 先打包素材，再以 STG_FIELD=1、2 做板上构建，零告警；objdump 查 stg_pool_step、
-#                       stg_pool_collide、stg_pool_draw 三个函数：没有 div/divu/rem/remu，没有 __div*、__mod* 调用，
-#                       没有 ret 以外的 jalr/jr；注错 STG_LOOP_DIV 在更新循环里加一次除法，这条检查必须见红。
+#   G11 板上构建与反汇编 先打包素材，再以 STG_FIELD=1、2 做板上构建，零告警；objdump 查逐颗的循环
+#                       stg_pool_step、stg_pool_collide、stg_pool_draw，以及 C 批的 stg_pool_hit_targets、
+#                       stg_pool_cancel、stg_pool_age：没有 div/divu/rem/remu，没有 __div*、__mod* 调用，
+#                       没有 ret 以外的 jalr/jr；注错 STG_LOOP_DIV、PHIT_LOOP_DIV、AGE_LOOP_DIV 各在一个循环里
+#                       加一次除法，这条检查必须在那个函数上见红。
 #                       要 RISCV_BIN=<RISCV_BIN>，找不到交叉工具链时跳过，**跳过不算通过**
+#   G12 自机与规则      G4 的输出里自机与规则 R 组 28 行全 ok（移动、射击节奏、受击与无敌、自动炸弹与火花、
+#                       手动炸弹的按下沿、粒子溢出、回标题与 HI-SCORE、擦弹得分、自机弹对敌机、粒子寿命与弹种位图）
+#   G12i 规则的注错     GAME_NO_AUTOBOMB 让 R4 见红，GAME_NO_INVINCIBLE 让 R3 见红，PHIT_LE 让 R9 的相切见红
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh
@@ -348,7 +353,7 @@ else
 fi
 
 # ---------------------------------------------------------------- G11 板上构建与反汇编
-echo "== G11 板上构建（STG_FIELD=1、2）与三个循环的反汇编 =="
+echo "== G11 板上构建（STG_FIELD=1、2）与逐颗循环的反汇编 =="
 # $1 = elf，$2 = 函数名：打出这个函数的反汇编（不带机器码），找不到时为空
 fn_body() {
     "${RISCV_BIN}objdump" -d --no-show-raw-insn "$1" 2>/dev/null |
@@ -359,7 +364,7 @@ loop_offenders() {
     awk -F'\t' '{ m = $2; sub(/[ \t]+$/, "", m) }
                 m ~ /^(div|divu|rem|remu)$/ || m == "jalr" || m == "jr" || $0 ~ /<__(u)?(div|mod)/ { print }'
 }
-LOOPS="stg_pool_step stg_pool_collide stg_pool_draw"
+LOOPS="stg_pool_step stg_pool_collide stg_pool_draw stg_pool_hit_targets stg_pool_cancel stg_pool_age"
 if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
     for m in 1 2; do
         if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_stg$m" EXTRA_CFLAGS="-DSTG_FIELD=$m" \
@@ -385,23 +390,55 @@ if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
         fi
     done
 
-    # 注错：更新循环里加一次除法，上面这条检查必须看得见
-    if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_div" EXTRA_CFLAGS="-DSTG_FIELD=2" \
-            INJECT=STG_LOOP_DIV >"$TMP/b_div.log" 2>&1; then
-        elf_div="$(ls "$TMP"/b_div/*.elf 2>/dev/null | head -1)"
-        offend="$(fn_body "$elf_div" stg_pool_step | loop_offenders)"
-        if [ -n "$offend" ]; then
-            ok "G11i INJECT=STG_LOOP_DIV 见红：stg_pool_step 里查到 $(printf '%s\n' "$offend" | head -1 | awk -F'\t' '{print $2}' | tr -d ' ')"
+    # 注错：在一个循环里加一次除法，上面这条检查必须在那个函数上看得见
+    for pair in STG_LOOP_DIV:stg_pool_step PHIT_LOOP_DIV:stg_pool_hit_targets AGE_LOOP_DIV:stg_pool_age; do
+        inj="${pair%%:*}"
+        fn="${pair#*:}"
+        if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_$inj" EXTRA_CFLAGS="-DSTG_FIELD=2" \
+                INJECT="$inj" >"$TMP/b_$inj.log" 2>&1; then
+            elf_div="$(ls "$TMP/b_$inj"/*.elf 2>/dev/null | head -1)"
+            offend="$(fn_body "$elf_div" "$fn" | loop_offenders)"
+            if [ -n "$offend" ]; then
+                ok "G11i INJECT=$inj 见红：$fn 里查到 $(printf '%s\n' "$offend" | head -1 | awk -F'\t' '{print $2}' | tr -d ' ')"
+            else
+                bad "G11i INJECT=$inj 没有见红（反汇编检查看不见除法，这条判据是空转）"
+            fi
         else
-            bad "G11i INJECT=STG_LOOP_DIV 没有见红（反汇编检查看不见除法，这条判据是空转）"
+            bad "G11i INJECT=$inj 的板上构建失败"
+            tail -3 "$TMP/b_$inj.log" | while read -r l; do note "$l"; done
         fi
-    else
-        bad "G11i INJECT=STG_LOOP_DIV 的板上构建失败"
-        tail -3 "$TMP/b_div.log" | while read -r l; do note "$l"; done
-    fi
+    done
 else
     note "G11 跳过：RISCV_BIN=$RISCV_BIN 找不到交叉编译器（跳过不算通过）"
 fi
+
+# ---------------------------------------------------------------- G12 自机与规则
+echo "== G12 自机与规则（app 测试的 R 组） =="
+nr_ok=$(grep -cE '^R[0-9]+ .* ok$' "$TMP/stg64.txt" 2>/dev/null)
+nr_bad=$(grep -cE '^R[0-9]+ .* FAIL$' "$TMP/stg64.txt" 2>/dev/null)
+if [ "$nr_ok" -eq 28 ] && [ "$nr_bad" -eq 0 ]; then
+    ok "G12 自机与规则 28 行全 ok（64/32 同 G4）"
+    grep -E '^R(2 steady|3 gap|6 cancelled|8 bullets|9 totals)' "$TMP/stg64.txt" | while read -r l; do note "$l"; done
+else
+    bad "G12 自机与规则应有 28 行 ok，实际 ok $nr_ok 行、FAIL $nr_bad 行"
+fi
+
+echo "== G12i 规则的注错 =="
+expect_rule_red() {   # $1 = INJECT，$2 = 必须 FAIL 的行
+    if build_stg "rule_$1" 64 "-DINJECT_$1"; then
+        "$TMP/rule_$1" >"$TMP/rule_$1.txt" 2>&1
+        if grep -qE "$2.* FAIL$" "$TMP/rule_$1.txt"; then
+            ok "G12i INJECT=$1 见红：$(grep -m1 -E "$2.* FAIL$" "$TMP/rule_$1.txt" | cut -c1-80)"
+        else
+            bad "G12i INJECT=$1 没有让「$2」见红"
+        fi
+    else
+        bad "G12i INJECT=$1 编不过"
+    fi
+}
+expect_rule_red GAME_NO_AUTOBOMB   '^R4 auto bomb'
+expect_rule_red GAME_NO_INVINCIBLE '^R3 invincible exactly 120'
+expect_rule_red PHIT_LE            '^R9 tangent'
 
 printf 'fail %d\ndone\n' "$FAIL"
 [ "$FAIL" -eq 0 ]

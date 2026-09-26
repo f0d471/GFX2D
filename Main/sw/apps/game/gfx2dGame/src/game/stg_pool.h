@@ -18,9 +18,13 @@
 *         没有文件级的可变状态：池的描述与存储都在调用方给的结构体里（SW7 2.8 节）。
 *         更新循环只做加法与比较，不调函数指针、没有除法（设计文档 4.4 节的实现约束）。
 *
-*         碰撞（SW7 2.4 节，B 批只有自机判定点对敌弹）见 stg_pool_collide()；
-*         按池发出（2.6 节）见 stg_pool_draw()。更新、碰撞、按池发出三个循环里没有除法与取模、
+*         碰撞（SW7 2.4 节）：自机判定点对敌弹见 stg_pool_collide()，自机弹对敌机见 stg_pool_hit_targets()；
+*         炸弹消弹见 stg_pool_cancel()，粒子寿命见 stg_pool_age()（C 批，2.2、2.4 节）；
+*         按池发出（2.6 节）见 stg_pool_draw()。这些逐颗的循环里没有除法与取模、
 *         没有函数指针调用，check_sw7_game.sh 用 objdump 查板上构建。
+*
+*         每个池记一个弹种位图 kinds（C 批，2.2 节）：一遍更新时把存活实体的弹种或进去，追加时也或进去；
+*         组帧只遍历位图里有的弹种。
 *
 *         注错开关（主机测试 apps/game/gfx2dGame/test/ 用，见 check_sw7_game.sh）：
 *           INJECT_STG_POOL_STALL  移除之后下一个存活实体写进去了，写指针却停一步
@@ -28,6 +32,9 @@
 *           INJECT_COLLIDE_LE      命中判成 d² <= (r_p + r_b)²（恰好相切也算命中）
 *           INJECT_COLLIDE_NO_CULL 去掉粗筛，坐标差大时平方溢出
 *           INJECT_STG_LOOP_DIV    更新循环里加一次除法（只给 objdump 那条判据当反例，结果不对）
+*           INJECT_PHIT_LE         自机弹命中判成 d² <= T²（恰好相切也算命中）
+*           INJECT_PHIT_LOOP_DIV   自机弹对敌机的循环里加一次除法（objdump 反例）
+*           INJECT_AGE_LOOP_DIV    粒子寿命的循环里加一次除法（objdump 反例）
 ******************************************************************************/
 #ifndef STG_POOL_H
 #define STG_POOL_H
@@ -75,6 +82,7 @@ typedef struct {
     uint32_t  cap;
     uint32_t  n;            /* 存活数：ent[0..n) */
     uint32_t  overflow;     /* 池满被拒的发射次数，累计 */
+    uint32_t  kinds;        /* 弹种位图：第 k 位为 1 表示池里可能有弹种 k（只多不少） */
 } stg_pool;
 
 /* 一遍更新里移除了多少：出界的与被标记的分开数。 */
@@ -146,6 +154,31 @@ typedef struct {
 void     stg_pool_collide(stg_pool *p, const int32_t *r_kind, const stg_probe *pr,
                           stg_hit_stats *st);
 
+/* --- 碰撞：自机弹对敌机（SW7 2.4 节，C 批） --------------------------------- */
+
+/* 目标圆。坐标与半径都是 Q.8。 */
+typedef struct {
+    int32_t x, y;           /* 中心 */
+    int32_t r;              /* 判定半径 */
+    int32_t alive;          /* 0：不参与（空槽、符卡间隙里的 Boss） */
+} stg_target;
+
+/* 逐颗自机弹（已标记移除的跳过），按目标顺序找第一个命中的目标：
+     粗筛阈值 T = r_kind[弹种] + r_t，|dx| >= T 或 |dy| >= T 跳过；d² < T² 为命中（严格小于）；
+     命中：hits[t] 加一，这颗弹打移除标记，不再看后面的目标（一颗弹只打一个目标）。
+   hits 由调用方清零，这里只加。返回本次命中的弹数。坐标差须在 ±2^18 以内，T 小于 64 像素。 */
+uint32_t stg_pool_hit_targets(stg_pool *p, const int32_t *r_kind, const stg_target *tg,
+                              uint32_t n, uint32_t *hits);
+
+/* 炸弹消弹：给所有没标记移除、可消除（flags[5] 为 0）的实体打移除标记，
+   并在 sparks 池里原位各生成一个火花（速度 (svx, svy)、帧号 = 寿命 life、弹种 spark_kind）；
+   sparks 满了就不生成，那一次计进 sparks 的溢出计数。返回消掉的个数。 */
+uint32_t stg_pool_cancel(stg_pool *p, stg_pool *sparks, int32_t svx, int32_t svy,
+                         uint16_t life, uint16_t spark_kind);
+
+/* 粒子寿命：帧号当剩余寿命，每遍减一，减到 0 打移除标记（下一遍压缩时移除）；已标记的跳过。 */
+void     stg_pool_age(stg_pool *p);
+
 /* --- 按池发出（SW7 2.6 节） ------------------------------------------------ */
 
 /* 一个弹种的画图几何：图宽高（像素）与源图每行 2^cols_log2 格。 */
@@ -166,6 +199,7 @@ uint32_t stg_pool_draw(const stg_pool *p, uint32_t kind, const stg_draw_geom *g,
 
 uint32_t stg_pool_count(const stg_pool *p);
 uint32_t stg_pool_overflow(const stg_pool *p);
+uint32_t stg_pool_kinds(const stg_pool *p);
 
 /* 取第 i 个实体的副本。成功返回 0，i 越界返回 -1（out 不动）。 */
 int      stg_pool_get(const stg_pool *p, uint32_t i, stg_ent *out);

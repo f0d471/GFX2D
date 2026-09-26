@@ -162,7 +162,8 @@ static uint32_t draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg 
         gfx_blit_tmpl        t;
         uint32_t             cursor = 0u;
 
-        if (ki->w == 0u)
+        /* 只遍历池里有的弹种（2.2 节 C 批的弹种位图），尺寸为 0 的不画 */
+        if ((stg_pool_kinds(p) & (1u << kind)) == 0u || ki->w == 0u)
             continue;
         g.w         = (int32_t)ki->w;
         g.h         = (int32_t)ki->h;
