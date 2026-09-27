@@ -242,7 +242,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> SW6_QUICK=1 bash Main/tools/check/check_sw
 | --- | --- |
 | `sw6_judge.log` | 判据模式**全量**一遍的期望值：1236 行（`gfx2dGame SW6`、`pak`、三行 `scene`、`eq P`、A 两遍各 246 帧、B 两遍各 367 帧、两行 `eq A`、`fail 0`、`done`） |
 | `sw6_judge_quick.log` | 快速档（`-DSW6_FRAMES=120`）的期望值；它的逐帧行按段、按遍必须是全量档的前缀 |
-| `sw6_board_quick.log` | 板上判据模式快速档的串口原始输出（2026-09-24，产物 34,850 字节、sha256 前 16 位 `0454c3cce0216630`）：`fail 0`，从 `pak` 行起 489 行去掉 `cyc` 后与 `sw6_judge_quick.log` 逐行相同。它对应加游戏素材之前的旧包 `pak 2142784 fc13ee10` 与自绘的旧字库；2026-09-26 素材包加进 SW7 的 12 张图、2026-09-27 字库换成 Spleen 8x16 之后，它与期望日志除 `pak` 行外，逐帧的 `cmd`（少数几帧）、`pix`、`ksk`、`hud`、`crc`、`hcrc` 也不同，要重新上板对账 |
+| `sw6_board_quick.log` | 板上判据模式快速档的串口原始输出（2026-09-28，产物 77,158 字节、sha256 前 16 位 `cb5af521cc1d6a34`，素材由程序从 Flash 读 `pak 2840320 b370ba0a`）：`fail 0`，从 `pak` 行起 489 行去掉 `cyc` 后与 `sw6_judge_quick.log` 逐行相同 |
 | `pc_normal.log`、`pc_inject.log`、`board_normal.log`、`board_inject.log` | **SW1 骨架的旧日志**，原地保留：它们是 60 帧图案那个版本的产物，当前二进制不再产生它们，**不要拿它们当期望值**。SW1 的记述在 [sw 第 01 章](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md) |
 
 固定值（`logs/sw6_judge.log` 的头几行与第 0 帧）：
