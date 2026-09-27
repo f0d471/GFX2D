@@ -28,7 +28,7 @@ ifeq ($(APP),)
   APP        := gfx2dGame
   APP_SRCDIR := $(SW)apps/game/gfx2dGame
   LIBS       := core gfx
-  REPLAYS    := sw6_a sw6_b
+  REPLAYS    := sw6_a sw6_b stg_clear
   APP_SRCS   := $(patsubst $(APP_SRCDIR)/%,%,$(wildcard $(APP_SRCDIR)/src/*.c $(APP_SRCDIR)/src/game/*.c))
 endif
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check_sw7_game.sh —— 游戏本体（SW7）A、B、C 三批的提交前判据
+# check_sw7_game.sh —— 游戏本体（SW7）A~D 四批的提交前判据
 #
 # 判据见 Engineering/Todo/sw/SW7-游戏本体.md 第 3 节，口径见 2.1 节与 4.5 节。本脚本串起来跑：
 #
@@ -49,6 +49,16 @@
 #                       无窗口、GFX2D_UNPACED=1 跑两遍：日志逐字节相同、fail 0、done、没有 err 行，
 #                       九行 seg（READY、STAGE、BOSS、四张符卡、CLEAR、回到 READY）
 #   G15i HUD 的注错     INJECT=STG_LIVE_HUD（判据入口照样显示实测的 SW FPS）以 -DSTG_FRAMES=1200 跑两遍，日志必须不同
+#   G16 可玩            工具辅助的通关录像 apps/game/gfx2dGame/replay/stg_clear.g2dr（D 批）：
+#                       a 搜索器 gen_stg_clear.c（-Werror）按录像从头跑一遍：走到 CLEAR、残机没用完、帧恰好用完；
+#                       b 搜索器重新搜一遍，产物与入库的录像逐字节相同（约 5 分钟；SW7_SKIP_SEARCH=1 跳过，**跳过不算通过**）；
+#                       c gfx2dGame 以 -DSTG_FIELD=4 -DSTG_JUDGE_REPLAY=1 编 PC 版，无窗口、不等场回放两遍：
+#                         整份日志逐字节相同、fail 0，seg/clear/end 三种行与搜索器的摘要逐行相同
+#   G16i 回放的注错     INJECT=REPLAY_KEY（第 200~203 帧的按键换成别的方向）：逐帧日志必须恰好从第 200 帧起不同，
+#                       摘要也必须与搜索器不同
+#   G17 规模            默认构建以 GFX2D_START_MODE=3、GFX2D_PRESS_KNOB=1744（16x16、旋钮固定，场景 S1 的规模）、
+#                       GFX2D_FRAMES=1200 编，无窗口按 60 Hz 跑 20 秒：第 10 秒以后每秒抽样帧的敌弹不少于 1900、
+#                       溢出 0、fail 0，第 900 帧截出 640x480 的图；方程像素的均值作登记
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh
@@ -570,6 +580,131 @@ if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_stg4i" EXTRA_CFLAGS="-DSTG_FIE
     fi
 else
     bad "G15i INJECT=STG_LIVE_HUD 编不过"
+fi
+
+# ---------------------------------------------------------------- G16 可玩
+echo "== G16 可玩：工具辅助通关录像（搜索器重生成与复核、判据入口回放两遍、与搜索器的摘要逐行比） =="
+CLEAR_REC="$APP/replay/stg_clear.g2dr"
+GSC_BIN="$TMP/gen_stg_clear"
+summ() { grep -E '^(seg|clear|end) ' "$1"; }
+if "$HOST_CC" -O2 -std=gnu11 -Wall -Wextra -Werror -I"$SW/lib" -I"$APP/src" -o "$GSC_BIN" \
+        "$MAIN/tools/check/gen_stg_clear.c" "$APP"/src/game/stg_*.c "$SW"/lib/core/*.c "$SW"/lib/gfx/*.c -lm \
+        >"$TMP/gsc_build.log" 2>&1; then
+    "$GSC_BIN" --verify "$CLEAR_REC" >"$TMP/gsc_verify.txt" 2>&1
+    rv=$?
+    if [ "$rv" -eq 0 ] && grep -q '^fail 0$' "$TMP/gsc_verify.txt" && grep -q '^clear ' "$TMP/gsc_verify.txt" &&
+       grep -q '^end .* over 0$' "$TMP/gsc_verify.txt"; then
+        ok "G16a 入库的录像从头按键跑一遍：走到 CLEAR、残机没用完、帧恰好用完（$(stat -c %s "$CLEAR_REC") 字节）"
+        note "$(grep '^clear ' "$TMP/gsc_verify.txt")"
+        note "$(grep '^end ' "$TMP/gsc_verify.txt")"
+    else
+        bad "G16a 入库的录像复核不过（退出码 $rv）"
+        grep -E '^err|^fail' "$TMP/gsc_verify.txt" | head -4 | while read -r l; do note "$l"; done
+    fi
+    if [ "${SW7_SKIP_SEARCH:-0}" = 1 ]; then
+        note "G16b 跳过：SW7_SKIP_SEARCH=1（搜索器重生成约 5 分钟；跳过不算通过）"
+    else
+        t0=$(date +%s)
+        "$GSC_BIN" --out "$TMP/stg_clear_re.g2dr" >"$TMP/gsc_out.txt" 2>&1
+        ro=$?
+        if [ "$ro" -eq 0 ] && cmp -s "$TMP/stg_clear_re.g2dr" "$CLEAR_REC"; then
+            ok "G16b 搜索器重新搜出的录像与入库的逐字节相同（$(( $(date +%s) - t0 )) 秒）"
+            note "$(grep '^search ' "$TMP/gsc_out.txt")"
+        else
+            bad "G16b 搜索器重生成失败（退出码 $ro）或与入库的录像不同"
+            grep -E '^err|^fail|^end' "$TMP/gsc_out.txt" | head -4 | while read -r l; do note "$l"; done
+        fi
+    fi
+else
+    bad "G16 gen_stg_clear.c 编不过（-Werror）"
+    tail -5 "$TMP/gsc_build.log" | while read -r l; do note "$l"; done
+fi
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_rep" EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_REPLAY=1" \
+        >"$TMP/h_rep.log" 2>&1 && [ -x "$TMP/h_rep/gfx2dGame" ]; then
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/h_rep/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/rep_1.log"
+    r1=${PIPESTATUS[0]}
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/h_rep/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/rep_2.log"
+    r2=${PIPESTATUS[0]}
+    summ "$TMP/rep_1.log" >"$TMP/rep_1.sum"
+    summ "$TMP/gsc_verify.txt" >"$TMP/gsc_verify.sum" 2>/dev/null
+    if [ "$r1" -eq 0 ] && [ "$r2" -eq 0 ] && cmp -s "$TMP/rep_1.log" "$TMP/rep_2.log" &&
+       grep -q '^fail 0$' "$TMP/rep_1.log" && ! grep -q '^err ' "$TMP/rep_1.log" &&
+       [ -s "$TMP/gsc_verify.sum" ] && cmp -s "$TMP/rep_1.sum" "$TMP/gsc_verify.sum"; then
+        ok "G16c 判据入口回放两遍整份日志逐字节相同（$(grep -c '^g ' "$TMP/rep_1.log") 帧）、fail 0，seg/clear/end 与搜索器逐行相同"
+        note "最后一帧：$(grep '^g ' "$TMP/rep_1.log" | tail -1)"
+    else
+        bad "G16c 退出码 $r1/$r2、两遍不同、有 err 行，或摘要与搜索器不同"
+        diff "$TMP/gsc_verify.sum" "$TMP/rep_1.sum" 2>&1 | head -4 | while read -r l; do note "$l"; done
+        grep -E '^err|^fail' "$TMP/rep_1.log" | head -4 | while read -r l; do note "$l"; done
+    fi
+else
+    bad "G16c STG_FIELD=4 STG_JUDGE_REPLAY=1 的 PC 版编不过"
+    tail -5 "$TMP/h_rep.log" | while read -r l; do note "$l"; done
+fi
+
+echo "== G16i 回放的注错（第 200~203 帧的按键换成别的方向） =="
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_repi" INJECT=REPLAY_KEY \
+        EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_REPLAY=1" >"$TMP/h_repi.log" 2>&1; then
+    bin="$(ls "$TMP"/h_repi/gfx2dGame* 2>/dev/null | head -1)"
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$bin" 2>/dev/null | tr -d '\r' >"$TMP/rep_i.log"
+    first=$(diff <(grep '^g ' "$TMP/rep_1.log") <(grep '^g ' "$TMP/rep_i.log") | grep -m1 '^[<>] g ' | awk '{print $3}')
+    summ "$TMP/rep_i.log" >"$TMP/rep_i.sum"
+    if [ "$first" = 200 ] && ! cmp -s "$TMP/rep_i.sum" "$TMP/gsc_verify.sum"; then
+        ok "G16i INJECT=REPLAY_KEY 见红：逐帧日志从第 200 帧起不同，摘要也与搜索器不同"
+        note "$(grep '^end ' "$TMP/rep_i.log")"
+    else
+        bad "G16i INJECT=REPLAY_KEY 第一处不同在第 ${first:-?} 帧（应为 200），或摘要没变"
+    fi
+else
+    bad "G16i INJECT=REPLAY_KEY 编不过"
+fi
+
+# ---------------------------------------------------------------- G17 规模
+echo "== G17 规模：场景 S1（模式 3、16x16、旋钮固定 1744）在 PC 上按 60 Hz 跑 20 秒并截帧 =="
+S1_KNOB=1744
+if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_s1" \
+        EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_KNOB=$S1_KNOB -DGFX2D_FRAMES=1200" \
+        >"$TMP/h_s1.log" 2>&1 && [ -x "$TMP/h_s1/gfx2dGame" ]; then
+    mkdir -p "$TMP/s1snap"
+    SDL_VIDEODRIVER=dummy GFX2D_SNAPSHOT=900 GFX2D_SNAPSHOT_DIR="$TMP/s1snap" "$TMP/h_s1/gfx2dGame" \
+        2>/dev/null | tr -d '\r' >"$TMP/s1.log"
+    rs=${PIPESTATUS[0]}
+    s1=$(python3 - "$TMP/s1.log" <<'PY'
+import sys
+cols = None
+rows = []
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    line = line.rstrip("\n")
+    if line.startswith("csvh,"):
+        cols = line.split(",")[1:]
+    elif line.startswith("csv,") and cols:
+        rows.append(dict(zip(cols, line.split(",")[1:])))
+rows = [r for r in rows if r["mode"] == "press"][10:]      # 前 10 秒负载还在爬升
+if not rows:
+    print("rows 0 minb 0 ovf 1 px -")
+else:
+    minb = min(int(r["n_bullet"]) for r in rows)
+    ovf = sum(int(r["overflow"]) for r in rows)
+    px = [sum(int(r["pix_eq%d" % e]) for r in rows) // len(rows) for e in range(6)]
+    print("rows %d minb %d ovf %d px %s" % (len(rows), minb, ovf, "/".join(str(v) for v in px)))
+PY
+)
+    minb=$(echo "$s1" | awk '{print $4}')
+    ovf=$(echo "$s1" | awk '{print $6}')
+    snap="$TMP/s1snap/snap_00900.ppm"
+    if [ "$rs" -eq 0 ] && grep -q "^press fixed knob $S1_KNOB kind 16x16$" "$TMP/s1.log" &&
+       grep -q '^fail 0$' "$TMP/s1.log" && ! grep -q '^err ' "$TMP/s1.log" &&
+       [ "${minb:-0}" -ge 1900 ] && [ "${ovf:-1}" -eq 0 ] &&
+       [ -f "$snap" ] && [ "$(head -c 15 "$snap" | tr '\n' ' ')" = "P6 640 480 255 " ]; then
+        ok "G17 S1 规模：第 10 秒以后每秒抽样帧的敌弹不少于 $minb、溢出 0、fail 0，第 900 帧截出 640x480 的图"
+        note "抽样帧平均的方程像素（COPY/ALPHA/ADD/CONST/MUL/ALPHA_ST）：$(echo "$s1" | awk '{print $NF}')"
+    else
+        bad "G17 退出码 $rs、敌弹最少 ${minb:-?}（应不少于 1900）、溢出 ${ovf:-?}、fail 或截帧不对"
+        grep -E '^err|^fail' "$TMP/s1.log" | head -4 | while read -r l; do note "$l"; done
+    fi
+else
+    bad "G17 GFX2D_PRESS_KNOB=$S1_KNOB 的 PC 版编不过"
+    tail -5 "$TMP/h_s1.log" | while read -r l; do note "$l"; done
 fi
 
 printf 'fail %d\ndone\n' "$FAIL"

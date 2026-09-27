@@ -20,6 +20,15 @@
 *         （stg_script），受击默认关掉（-DSTG_JUDGE_HITS=1 打开），跑完一局（回到标题）或到 -DSTG_FRAMES=N 为止。
 *         -DSTG_JUDGE_AUTO=1 时输入换成自动驾驶（stg_auto，从第 0 帧起）、受击打开（SW8 2.6 节），
 *         末尾多一行 auto frames <帧数> cyc_avg <每帧平均周期数> cyc_max <最大周期数>（PC 上只作登记）。
+*         -DSTG_JUDGE_REPLAY=1 时输入换成入库的通关录像 replay/stg_clear.g2dr（工具辅助，
+*         Main/tools/check/gen_stg_clear.c 搜出来的，SW7 第 3 节「可玩」）、受击打开，第 k 帧用录像的第 k 个按键位图；
+*         进入 CLEAR 那一帧之后多一行
+*           clear <帧号> score <得分> graze <擦弹> lives <残机> bombs <炸弹>
+*         末尾多一行
+*           end frames <总帧数> hits <中弹次数> over <0|1>
+*         与 gen_stg_clear --verify 的摘要同格式。录像打不开、种子不是游戏的、没走到 CLEAR、残机用完、
+*         回到标题时录像的帧没用完或不够用，都记 fail。注错 INJECT_REPLAY_KEY 把第 200~203 帧的按键换成别的方向，
+*         逐帧日志必须从第 200 帧起与正常回放不同。
 *         组帧是游戏的整帧（stg_game_compose，含 HUD），执行后取整帧 640x480 的 CRC。每段开始打一行
 *           seg <帧号> <段名>
 *         逐帧一行：
@@ -62,6 +71,11 @@
 
 #include "stg_modes.h"
 #include "stg_slots.h"
+
+#if STG_FIELD_MODE == 4 && defined(STG_JUDGE_REPLAY) && STG_JUDGE_REPLAY
+#include "core/replay.h"
+#include "stg_clear.h"      /* 生成物：$(OBJDIR)/replay/stg_clear.h（replay/stg_clear.g2dr） */
+#endif
 
 #if STG_FIELD_MODE < 1 || STG_FIELD_MODE > 4
 #error "STG_FIELD 只认 1（演示）、2（判据）、3（N_max 搜索）与 4（游戏的判据入口）"
@@ -258,8 +272,17 @@ static void say_end(void)
 #define STG_JUDGE_AUTO  0           /* 1：输入换成自动驾驶（SW8 2.6 节） */
 #endif
 
+#ifndef STG_JUDGE_REPLAY
+#define STG_JUDGE_REPLAY 0          /* 1：输入换成入库的通关录像（SW7 第 3 节「可玩」） */
+#endif
+
+#if STG_JUDGE_AUTO && STG_JUDGE_REPLAY
+#error "STG_JUDGE_AUTO 与 STG_JUDGE_REPLAY 只能选一个"
+#endif
+
 #ifndef STG_JUDGE_HITS
-#define STG_JUDGE_HITS  STG_JUDGE_AUTO  /* 受击默认关掉（脚本不躲弹，打开时一局很快结束）；自动驾驶时打开 */
+/* 受击默认关掉（脚本不躲弹，打开时一局很快结束）；自动驾驶与录像回放时打开 */
+#define STG_JUDGE_HITS  (STG_JUDGE_AUTO || STG_JUDGE_REPLAY)
 #endif
 
 #define STG_GAME_FRAME_LIMIT 20000u /* 保险：一局最多 10184 帧（2.5 节） */
@@ -267,6 +290,9 @@ static void say_end(void)
 static stg_game   s_game;           /* 游戏的全部状态，约 390 KB */
 #if STG_JUDGE_AUTO
 static uint32_t   s_auto_sum, s_auto_max;   /* 自动驾驶的开销：累计与最大（周期） */
+#elif STG_JUDGE_REPLAY
+static replay_view s_rv;            /* 通关录像 */
+static uint32_t    s_rv_short;      /* 录像的帧不够用了 */
 #else
 static stg_script s_script;
 #endif
@@ -417,7 +443,7 @@ static void say_game(uint32_t frame, const game_out *go)
     board_puts(buf);
 }
 
-/* 这一帧的输入：按键脚本，或自动驾驶（开销另计）。 */
+/* 这一帧的输入：按键脚本，或自动驾驶（开销另计），或通关录像。 */
 static uint32_t judge_keys(uint32_t frame)
 {
 #if STG_JUDGE_AUTO
@@ -429,6 +455,16 @@ static uint32_t judge_keys(uint32_t frame)
     s_auto_sum = (s_auto_sum + c < s_auto_sum) ? 0xFFFFFFFFu : s_auto_sum + c;
     if (c > s_auto_max)
         s_auto_max = c;
+    return k;
+#elif STG_JUDGE_REPLAY
+    uint32_t k = 0u;
+
+    if (replay_key_at(&s_rv, frame, &k) != 0)
+        s_rv_short = 1u;            /* 录像用完了还没回到标题：按键给 0，结束时记 fail */
+#ifdef INJECT_REPLAY_KEY
+    if (frame >= 200u && frame < 204u)      /* 注错：杂兵段里一块（4 帧）的按键换成别的方向 */
+        k = (k == STG_KEY_LEFT) ? STG_KEY_RIGHT : STG_KEY_LEFT;
+#endif
     return k;
 #else
     return stg_script_keys(&s_script, frame);
@@ -453,14 +489,63 @@ static void say_auto(uint32_t frames)
 }
 #endif
 
+#if STG_JUDGE_REPLAY
+/* 进入 CLEAR 那一帧之后的状态（与 gen_stg_clear 的摘要同格式）。 */
+static void say_clear(uint32_t frame)
+{
+    char     buf[128];
+    core_out o;
+
+    core_out_init(&o, buf, (uint32_t)sizeof buf);
+    core_out_str(&o, "clear ");
+    core_out_u32(&o, frame);
+    core_out_str(&o, " score ");
+    core_out_u32(&o, s_game.score);
+    core_out_str(&o, " graze ");
+    core_out_u32(&o, s_game.graze);
+    core_out_str(&o, " lives ");
+    core_out_u32(&o, s_game.lives);
+    core_out_str(&o, " bombs ");
+    core_out_u32(&o, s_game.bombs);
+    core_out_str(&o, "\r\n");
+    board_puts(buf);
+}
+
+static void say_replay_end(uint32_t frames, uint32_t hits, uint32_t over)
+{
+    char     buf[80];
+    core_out o;
+
+    core_out_init(&o, buf, (uint32_t)sizeof buf);
+    core_out_str(&o, "end frames ");
+    core_out_u32(&o, frames);
+    core_out_str(&o, " hits ");
+    core_out_u32(&o, hits);
+    core_out_str(&o, " over ");
+    core_out_u32(&o, over);
+    core_out_str(&o, "\r\n");
+    board_puts(buf);
+}
+#endif
+
 static int run(const stg_main_ctx *ctx)
 {
     uint32_t frame;
     game_out go;
+#if STG_JUDGE_REPLAY
+    uint32_t hits = 0u, over = 0u, clear = 0u;
+
+    if (replay_open(stg_clear_bytes, STG_CLEAR_LEN, &s_rv) != 0 || s_rv.seed != STG_GAME_SEED) {
+        say_err("replay open", 0u, s_rv.seed);
+        say_end();
+        return 1;
+    }
+    s_rv_short = 0u;
+#endif
 
     stg_game_init(&s_game, STG_GAME_SEED);
     stg_game_set_hits(&s_game, STG_JUDGE_HITS);
-#if !STG_JUDGE_AUTO
+#if !STG_JUDGE_AUTO && !STG_JUDGE_REPLAY
     stg_script_init(&s_script);
 #endif
     say_game_seg(0u, s_game.seg);
@@ -469,6 +554,16 @@ static int run(const stg_main_ctx *ctx)
         if ((s_game.ev & STG_EV_SEG) != 0u)
             say_game_seg(frame, s_game.seg);
         say_game(frame, &go);
+#if STG_JUDGE_REPLAY
+        if ((s_game.ev & STG_EV_HIT) != 0u)
+            hits++;
+        if ((s_game.ev & STG_EV_OVER) != 0u)
+            over = 1u;
+        if ((s_game.ev & STG_EV_SEG) != 0u && s_game.seg == STG_GSEG_CLEAR) {
+            clear = 1u;
+            say_clear(frame);
+        }
+#endif
         if ((s_game.ev & STG_EV_SEG) != 0u && s_game.seg == STG_GSEG_TITLE)
             break;                                  /* 一局跑完，回到标题 */
 #if STG_FRAMES_MAX != 0
@@ -478,6 +573,15 @@ static int run(const stg_main_ctx *ctx)
     }
 #if STG_JUDGE_AUTO
     say_auto((frame < STG_GAME_FRAME_LIMIT) ? frame + 1u : frame);
+#endif
+#if STG_JUDGE_REPLAY
+    if (frame < STG_GAME_FRAME_LIMIT)
+        frame++;                                    /* 总帧数：含回到标题的那一帧 */
+    say_replay_end(frame, hits, over);
+    if (!clear || over)
+        say_err("replay no clear", frame, over);
+    if (s_rv_short || frame != s_rv.frames)
+        say_err("replay frames", frame, s_rv.frames);
 #endif
     say_end();
     return (s_fail == 0u) ? 0 : 1;

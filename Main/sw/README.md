@@ -223,8 +223,13 @@ wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_hos
 # 自动驾驶打一局（游戏的判据入口，受击打开）：逐帧 g 行、每段 seg 行，末尾 auto 行与 fail 0（check_sw8_stats.sh 的 M16）
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_auto EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_AUTO=1" && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_auto/gfx2dGame | grep -E "^(seg|auto|fail)"'
 
+# 回放工具辅助的通关录像 replay/stg_clear.g2dr（游戏的判据入口，受击打开）：9208 帧打到 CLEAR，
+# 末尾 clear、end 两行与 Main/tools/check/gen_stg_clear.c --verify 的摘要同格式（check_sw7_game.sh 的 G16）
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_rep EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_REPLAY=1" && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_rep/gfx2dGame | grep -E "^(seg|clear|end|fail)"'
+
 # S1 规模：模式 3 不搜索、16x16、旋钮固定 1744（约 2040 颗敌弹），窗口里看；统计 CSV 照打（check_sw7_game.sh 的 G17）
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_s1 EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_KNOB=1744" && ./build_host_s1/gfx2dGame'
+
 # 判据模式全量一遍：约 22 秒、1226 帧，末尾 fail 0 与 done
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host EXTRA_CFLAGS=-DSW6_JUDGE=1 && ./build_host/gfx2dGame'
 

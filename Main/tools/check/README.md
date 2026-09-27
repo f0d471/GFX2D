@@ -14,9 +14,10 @@
 | `check_sw6_demo.sh` | 基础 Demo（SW6）的提交前判据，十项：录像可重生成、判据模式编过并跑通、对期望日志、有窗与无窗、两遍一致、HUD 与字形、场景 B、`off` 与 `eq` 计数、四个方程的注错见红、Sanitizer 与板上目标构建 | 改 `gfx2dGame`、`lib/gfx` 的执行器、SW5 素材或录像时，提交前 |
 | `check_sw6_log.py` | SW6 判据日志的**外部核对**：两遍比对、`hud` 对上一帧统计、`hcrc` 按字库文本独立重画、`s` 与 `scene` 参考值、`off` 与 `eq`；`--board` 把板上串口日志从 `pak` 行起与期望日志对账 | 由 `check_sw6_demo.sh` 调用；板上对账时单独跑 |
 | `gen_sw6_replay.py` | 生成 SW6 的两段确定性录像（`.g2dr`）：A 把 N 从 100 升到 5000 再回到 100，B 把 k 从 30 降到 1 再升到 120；形状与停留段写在脚本里 | 录像要改时；`check_sw6_demo.sh` 每次重跑并逐字节比 |
-| `check_sw7_game.sh` | 游戏本体（SW7）A、B、C 三批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红、碰撞的两个注错见红、组帧、弹幕场判据模式两遍一致、板上构建与六个逐颗循环的反汇编（含三个注错）、自机与规则（R 组）及三个注错见红、敌机 Boss 与关卡（S 组）及两个注错见红、霓虹素材可重生成（含注错）、游戏的判据入口两遍一致与 HUD 的注错 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
+| `check_sw7_game.sh` | 游戏本体（SW7）A~D 四批的提交前判据：正弦表重生成比对、主机测试 64/32 比对与 sanitizer、数值基础的四个注错见红、游戏代码的 app 测试（64/32、不链 bsp）与实体池的两个注错见红、批量提交的三个注错见红、弹型期望文件的重生成与逐帧比对及三个注错见红、碰撞的两个注错见红、组帧、弹幕场判据模式两遍一致、板上构建与六个逐颗循环的反汇编（含三个注错）、自机与规则（R 组）及三个注错见红、敌机 Boss 与关卡（S 组）及两个注错见红、霓虹素材可重生成（含注错）、游戏的判据入口两遍一致与 HUD 的注错、工具辅助通关录像的重生成与回放（含注错）、S1 规模 | 改 `lib/core/fixmath`、正弦表、`src/game/stg_*`、`lib/gfx/list.c` 的批量提交、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_stats.sh` | 演示模式与统计埋点（SW8）A~D 四批的提交前判据：主机测试 64/32 比对与 sanitizer、普查与软件执行器对账、模拟时钟、帧时间直方图、日志队列、`board_tx_room()` 的 PC 实现与板上构建、`N_max` 状态机的综合负载判据、搜索跑在弹幕场上（app 测试）与 `STG_FIELD=3` 的 PC 驱动、模式框架的切换判据、系统键和弦、模式 3 在终符上搜索、统计 CSV 对账与日志不阻塞长跑、自动驾驶、样例日志对账与出图（含注错）、各注错见红 | 改 `lib/gfx/census`、`lib/core/framehist`、`lib/core/logq`、`lib/core/nmax`、`board_tx_room()`、`src/game/stg_press`、`src/game/stg_auto`、`src/game/stg_chord`、模式框架（`src/main.c`、`src/stg_modes`、`src/gfx2d_stats`）、`mk/host.mk` 的 `test` 目标时，提交前 |
 | `check_sw8_tx.c` | `board_tx_room()` 的 PC 实现的主机探针：链真实的 `sw/bsp/host/board.c`，不设 `GFX2D_TX_BUDGET` 时不限，设 192 时按场补满、不累加、超额计数；`-DINJECT_HOST_TX_NO_REFILL` 见红 | 由 `check_sw8_stats.sh` 的 M5 编译运行；改 `bsp/host` 的串口模拟时 |
+| `gen_stg_clear.c` | SW7「可玩」的工具辅助通关录像的**搜索器**：只链 `lib/` 与 `src/game/stg_*.c`，逐帧跑游戏逻辑，每 4 帧试 18 种按法、推演 64 帧择优，走不下去时回退、实在躲不开时允许由炸弹或残机抵掉的中弹；`--out` 搜索并写 `.g2dr`，`--verify` 按录像从头跑一遍打摘要 | 游戏逻辑、关卡或规则改了、入库的录像回放不再通关时重新搜；`check_sw7_game.sh` 的 G16 每次编译（`-Werror`）、复核并重搜比对 |
 | `gen_sin_tab.py` | 生成 `sw/lib/core/sin_tab.c`：1024 项加 256 项尾巴的 Q1.14 正弦表，按绝对值四舍五入；`--inject` 改一项给比对当注错 | 表的口径要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
 | `gen_stg_patterns.py` | SW7 弹型判据的**独立实现**：照 spec 另写正弦表、atan2、`xorshift32`、发射器与池，生成五种弹型加合并段各 120 帧的期望文件 `sw/apps/game/gfx2dGame/test/stg_patterns.txt`；`--compare` 与 C 的轨迹先比参数行再逐帧比，不一致时两边各 dump 第一个不同帧、指出第一颗不同的弹 | 弹型参数或 2.1、2.3 节的规则要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
 | `e7_key_probe.c` | 独立枚举受控棋盘纹理的色键命中数，与软件执行器统计对账 | E7 改色键负载或解释命中率时 |
@@ -266,7 +267,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh'
 
 判据见 `Engineering/Todo/sw/SW7-游戏本体.md` 第 3 节，口径见 2.1~2.6 节与 4.5、4.11、4.17 节。不要板子；
 要主机 gcc、`gcc-multilib`、`libsdl2-dev`（`mk/host.mk` 解析时就要 `sdl2-config`）、`python3` 与 Pillow（G10 先打包素材）；
-G11 要交叉工具链，找不到时跳过，跳过不算通过。全套在本机约四分钟。
+G11 要交叉工具链，找不到时跳过，跳过不算通过。全套在本机约十几分钟，其中 G16 的重新搜索约 5 分钟（`SW7_SKIP_SEARCH=1` 跳过，跳过不算通过）。
 
 | 项 | 内容 |
 | --- | --- |
@@ -291,6 +292,9 @@ G11 要交叉工具链，找不到时跳过，跳过不算通过。全套在本�
 | G14f | 字库：`Main/tools/assets/gen_font_txt.py --check` 由入库的 `Main/assets/font/spleen-8x16.bdf` 重新生成字库文本，与入库的 `ascii8x16.txt` 逐字节相同；注错 `--check --inject` 改一个像素必须见红 |
 | G15 | 游戏的组帧与判据入口：G4 的输出里 V 组 5 行全 ok（共用文字绘制与逐字 `gfx_blit` 逐字节相同、3000 帧组帧的普查对账）；`-DSTG_FIELD=4` 的 PC 版无窗口、`GFX2D_UNPACED=1` 跑两遍，日志逐字节相同、`fail 0`、没有 `err` 行、九行 `seg` 齐全（READY、STAGE、BOSS、四张符卡、CLEAR、回到 READY） |
 | G15i | `INJECT=STG_LIVE_HUD` 以 `-DSTG_FRAMES=1200` 跑两遍，日志必须不同（实时量进了画面，整帧 CRC 就不可复现） |
+| G16 | 工具辅助的通关录像 `apps/game/gfx2dGame/replay/stg_clear.g2dr`：a 搜索器 `gen_stg_clear.c` 以 `-Werror` 编过，按录像从头跑一遍走到 `CLEAR`、残机没用完、帧恰好用完；b 搜索器重新搜一遍，产物与入库的逐字节相同（约 5 分钟，`SW7_SKIP_SEARCH=1` 跳过，跳过不算通过）；c 以 `EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_REPLAY=1"` 编 PC 版，无窗口、`GFX2D_UNPACED=1` 回放两遍：整份日志逐字节相同、`fail 0`，`seg`、`clear`、`end` 三种行与搜索器的摘要逐行相同 |
+| G16i | `INJECT=REPLAY_KEY`（第 200~203 帧的按键换成别的方向）：逐帧日志必须恰好从第 200 帧起不同，摘要也必须与搜索器不同 |
+| G17 | S1 规模：默认构建以 `GFX2D_START_MODE=3`、`GFX2D_PRESS_KNOB=1744`、`GFX2D_FRAMES=1200` 编，无窗口按 60 Hz 跑 20 秒（`GFX2D_SNAPSHOT=900` 截帧）：第 10 秒以后每秒的抽样帧敌弹不少于 1900、溢出 0、`fail 0`、截出 640×480 的图；方程像素的均值作登记 |
 
 编译产物落临时目录（`OBJDIR` 指过去），不动 `sw/build_host`。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。
 
@@ -318,6 +322,27 @@ wsl -e python3 Main/tools/check/gen_stg_patterns.py --compare C_TRACE [--expect 
 只用标准库，只照 `Engineering/Todo/sw/SW7-游戏本体.md` 2.1~2.3 节写，不读 C 的源码与生成物。
 C 的轨迹由 app 测试 `stgTest pat` 打出（格式写在 `test/test_stg_emit.c` 的文件头），`stgTest dump SEG FRAME` 打某一帧的全部敌弹。
 `--compare` 一致时末行 `compare ok`、退出码 0；不一致时退出码 1，给了 `--c-bin` 就两边各 dump 第一个不同帧、打出第一颗不同的弹。
+
+## gen_stg_clear.c
+
+```
+A=Main/sw/apps/game/gfx2dGame
+gcc -O2 -std=gnu11 -Wall -Wextra -Werror -IMain/sw/lib -I$A/src -o gen_stg_clear \
+    Main/tools/check/gen_stg_clear.c $A/src/game/stg_*.c Main/sw/lib/core/*.c Main/sw/lib/gfx/*.c -lm
+./gen_stg_clear --out $A/replay/stg_clear.g2dr      重新搜索并写入库的那份（约 5 分钟）
+./gen_stg_clear --verify $A/replay/stg_clear.g2dr   按录像从头跑一遍，打摘要
+```
+
+只链 `lib/` 与游戏代码，不链 bsp、不组帧，一帧游戏逻辑在 PC 上约 1 微秒，所以每一步都在真实的模拟上试。
+搜索规则写在文件头：每 4 帧一块、18 个候选（九个方向各分高低速）、块末推演 64 帧择优；走不下去时退 d 块并禁用那一块的按键，
+同一个前沿上 d 按 1、1、2、2……加倍；同一个前沿失败满 14 次就允许这一块中弹（由炸弹或残机抵掉，不能导致残机用完）。
+全是整数与固定顺序，同一份游戏代码两次搜出同一串按键，所以入库的录像可以由 G16 重新搜出来逐字节比。
+
+`stg_game` 里四个池的 `ent` 指向同一个结构体里的存储，存档与推演都经 `snap_copy`（拷完把指针改回副本自己的存储）；
+直接 `memcpy` 的话推演改的是当前状态的池。`--out` 搜完会按录像从头重跑一遍打摘要，拷贝有漏的话摘要就对不上。
+
+摘要（`seg`、`clear`、`end` 三种行）与 gfx2dGame 回放入口（`-DSTG_FIELD=4 -DSTG_JUDGE_REPLAY=1`）同格式；
+末尾 `fail 0` 的条件是走到 `CLEAR`、回到标题、残机没用完、录像的帧恰好用完。
 
 ## check_sw8_stats.sh
 
