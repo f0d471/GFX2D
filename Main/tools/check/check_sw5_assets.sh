@@ -205,7 +205,10 @@ elif kind == "dir":                      # 第 0 项 stride_log2 改成 1 -> bad
 elif kind == "overlap":                  # 第 1 项起点改成第 0 项的 -> overlap
     struct.pack_into("<I", b, 32 + 32 + 4, struct.unpack_from("<I", b, 32 + 4)[0])
 elif kind == "bounds":                   # 第 0 项起点顶到包外 -> out_of_bounds
-    struct.pack_into("<I", b, 32 + 4, 0x00100000)
+    # 起点取头里的总长向上对齐到 64 字节：对齐、不落进头与目录两项仍然成立，
+    # 只剩「越过包末端」这一项，与包有多大无关
+    total = struct.unpack_from("<I", b, 16)[0]
+    struct.pack_into("<I", b, 32 + 4, (total + 63) & ~63)
 elif kind == "trunc":                    # 文件截短到 100 字节 -> bad_total
     b = b[:100]
 elif kind == "bigtotal":                 # 头里写 6 MiB 总长，文件只有 32 字节 -> bad_total

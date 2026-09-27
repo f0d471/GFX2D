@@ -568,8 +568,8 @@ wsl -e bash -c 'cd sw/apps/test/assetTest && make PLATFORM=target RISCV_BIN=<RIS
 
 一次跑完，末尾 `fail 0` 与 `done`、退出码 0。期望输出（入库日志
 `logs/pc_normal.log`，板上是 `logs/board_normal.log`，两者**判据行与 24 行字符画应逐行相同**。
-`pc_normal.log` 于 2026-09-27 按 20 项素材包与 Spleen 字库重录；`board_normal.log` 还是 8 项素材包与自绘字库时录的，
-`pak` 两行、`entry` 行、`exec` 的像素数与 `frame crc` 都停在旧包，要重新上板复核）：
+`pc_normal.log` 于 2026-09-27 按 20 项素材包与 Spleen 字库重录，`board_normal.log` 于 2026-09-28 在同一个包下重新上板录下，
+去掉 `board_run.py` 的标记行之后两者 76 行逐行相同）：
 
 | 行 | 期望 |
 | --- | --- |
@@ -586,8 +586,8 @@ wsl -e bash -c 'cd sw/apps/test/assetTest && make PLATFORM=target RISCV_BIN=<RIS
 | `win crc=` | `223df92a`（图集那 4 个半透明格子所在的 64×64 窗口） |
 | `thumb 64x24` | 24 行 64 列的字符画，由帧缓冲采样得到，留档的那张「可目视核对」的图 |
 
-板上产物 `build/assetTest-O2.bin`，2026-09-23 复核后是 25,770 字节
-（sha256 前 16 位 `397a8827203610f7`）。
+板上产物 `build/assetTest-O2.bin`，2026-09-28 是 41,258 字节
+（sha256 前 16 位 `0e306b6cb089a9ca`；板上构建把 `lib/` 全部链进来，SW7、SW8 往 `lib/` 加的代码让它比 2026-09-23 的 25,770 字节大）。
 板上跑要先把镜像写进 Flash（`tools/board/make_flash_image.py` + `ftdi_pgm`），
 再用 `tools/board/board_run.py --flash-boot` 采集——`--bin` 会走 JTAG 把程序直接写进 DDR，
 把要验的 Flash 启动路径绕过去。破坏素材包里一项数据再烧进 Flash，板上必须报

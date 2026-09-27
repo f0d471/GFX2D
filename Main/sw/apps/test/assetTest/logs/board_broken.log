@@ -1,4 +1,4 @@
-# COM11 @ 115200 8N1, opened 02:15:36
+# COM11 @ 115200 8N1, opened 04:42:11
 
 # --- 程序已加载，以下才是它的输出 ---
 assetTest SW5
@@ -6,4 +6,4 @@ pak err 14 entry_crc id=1
 fail 1
 done
 
-# closed 02:15:43, 56 bytes
+# closed 04:42:19, 56 bytes
