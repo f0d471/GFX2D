@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | [Report/](Report/) | 技术报告 | 未开始 |
 | [Slides/](Slides/) | 项目讲解幻灯片 | 第三版（2026-09-20）：PPTX 与 PDF 版 |
-| [Assert/](Assert/) | 报告与幻灯片用到的图片、图片源码、实拍与第三方图 | 已有 21 张自绘结构图与数据图（`figures/`，源码在 `figures/src/`）和 9 个第三方图文件（`third-party/`，出处台账见其 README） |
+| [Assert/](Assert/) | 报告与幻灯片用到的图片、图片源码、实拍与第三方图 | 已有 24 张自绘结构图与数据图（`figures/`，源码在 `figures/src/`）和 9 个第三方图文件（`third-party/`，出处台账见其 README） |
 
 ## 数字从哪里取
 

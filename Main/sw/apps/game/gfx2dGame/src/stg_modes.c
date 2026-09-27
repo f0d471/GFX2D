@@ -35,6 +35,7 @@ static uint32_t   s_idle;           /* 模式 2：连续无按键的帧数（自
 #define PRESS_16    0u              /* 先搜 16x16 圆弹 */
 #define PRESS_8     1u              /* 再搜 8x8 小圆弹 */
 #define PRESS_DONE  2u              /* 两遍都搜完，停在 8x8 的结果那一档 */
+#define PRESS_FIXED 3u              /* -DGFX2D_PRESS_KNOB=<K>：不搜索，16x16、旋钮固定为 K */
 
 static nmax_state      s_nmax;
 static stg_press_clock s_clock;
@@ -235,7 +236,10 @@ static void press_text(void)
 
     core_out_init(&o, s_press_text, (uint32_t)sizeof s_press_text);
     core_out_str(&o, GFX2D_PRESS_CLOCK ? "REAL " : "SIM ");
-    if (s_press_stage == PRESS_DONE) {
+    if (s_press_stage == PRESS_FIXED) {
+        core_out_str(&o, "K ");
+        core_out_u32(&o, (uint32_t)GFX2D_PRESS_KNOB);
+    } else if (s_press_stage == PRESS_DONE) {
         core_out_str(&o, "NMAX ");
         core_out_u32(&o, s_press_nmax[0]);
         core_out_ch(&o, '/');
@@ -270,7 +274,23 @@ void stg_mode_press_enter(void)
     stg_press_clock_b(&s_clock);
     s_press_nmax[0] = 0u;
     s_press_nmax[1] = 0u;
+#if GFX2D_PRESS_KNOB != 0
+    {
+        char     buf[64];
+        core_out o;
+
+        s_press_stage = PRESS_FIXED;
+        stg_game_press_begin(&s_game, STG_KIND_ROUND16);
+        stg_game_set_knob(&s_game, (uint32_t)GFX2D_PRESS_KNOB);
+        core_out_init(&o, buf, (uint32_t)sizeof buf);
+        core_out_str(&o, "press fixed knob ");
+        core_out_u32(&o, (uint32_t)GFX2D_PRESS_KNOB);
+        core_out_str(&o, " kind 16x16");
+        say_line(buf);
+    }
+#else
     press_begin(PRESS_16);
+#endif
 }
 
 void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *live,
@@ -308,7 +328,7 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
     (void)f0;
     (void)t0;
 #endif
-    if (s_press_stage == PRESS_DONE)
+    if (s_press_stage == PRESS_DONE || s_press_stage == PRESS_FIXED)
         return;
 
     ev = nmax_feed(&s_nmax, e, o->st.act.total, cyc);

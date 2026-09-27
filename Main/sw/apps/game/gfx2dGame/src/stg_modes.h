@@ -14,6 +14,10 @@
 *                   时钟：-DGFX2D_PRESS_CLOCK=0（缺省）用模拟时钟，e 与帧时间由本帧整帧的普查按 B 批的代价模型算；
 *                   =1 用真实的场数增量与 board_cycles()，给 SW9 上板用。HUD 的段名那一行显示搜索的档或结果，标 SIM 或 REAL。
 *                   模拟时钟下 HUD 的 SW FPS 一律 --：代价含 HUD，实测值的位数随墙钟变会让 N_max 随机器变。
+*                   -DGFX2D_PRESS_KNOB=<K>（K 不为 0）时不搜索：16x16 圆弹、旋钮固定为 K 一直跑，进入时打一行
+*                     press fixed knob <K> kind 16x16
+*                   HUD 段名那一行显示 SIM K <K>（或 REAL K <K>）。给场景 S1 规模的统计与截帧用（SW7 第 3 节「规模」、
+*                   SW8 第 3 节「第一版统计」）；缺省 0，照常搜索。
 *
 *         每个模式一帧：推进、组帧、普查自查、执行、整帧 CRC、呈现（dst 由框架按全局帧序号给）。
 *         表面槽用游戏那一套（stg_slots.h），进入时由框架登记。
@@ -35,6 +39,10 @@
 
 #ifndef GFX2D_PRESS_CLOCK
 #define GFX2D_PRESS_CLOCK   0
+#endif
+
+#ifndef GFX2D_PRESS_KNOB
+#define GFX2D_PRESS_KNOB    0           /* 非 0：模式 3 不搜索，旋钮固定为它 */
 #endif
 
 #define STG_MODES_SETTLE_MIN    300u    /* 终符的 SETTLE_MIN（SW8 2.3 节） */

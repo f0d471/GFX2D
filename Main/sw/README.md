@@ -223,6 +223,8 @@ wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_hos
 # 自动驾驶打一局（游戏的判据入口，受击打开）：逐帧 g 行、每段 seg 行，末尾 auto 行与 fail 0（check_sw8_stats.sh 的 M16）
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_auto EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_AUTO=1" && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_auto/gfx2dGame | grep -E "^(seg|auto|fail)"'
 
+# S1 规模：模式 3 不搜索、16x16、旋钮固定 1744（约 2040 颗敌弹），窗口里看；统计 CSV 照打（check_sw7_game.sh 的 G17）
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_s1 EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_KNOB=1744" && ./build_host_s1/gfx2dGame'
 # 判据模式全量一遍：约 22 秒、1226 帧，末尾 fail 0 与 done
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host EXTRA_CFLAGS=-DSW6_JUDGE=1 && ./build_host/gfx2dGame'
 
@@ -243,6 +245,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> SW6_QUICK=1 bash Main/tools/check/check_sw
 | `sw6_judge.log` | 判据模式**全量**一遍的期望值：1236 行（`gfx2dGame SW6`、`pak`、三行 `scene`、`eq P`、A 两遍各 246 帧、B 两遍各 367 帧、两行 `eq A`、`fail 0`、`done`） |
 | `sw6_judge_quick.log` | 快速档（`-DSW6_FRAMES=120`）的期望值；它的逐帧行按段、按遍必须是全量档的前缀 |
 | `sw6_board_quick.log` | 板上判据模式快速档的串口原始输出（2026-09-28，产物 77,158 字节、sha256 前 16 位 `cb5af521cc1d6a34`，素材由程序从 Flash 读 `pak 2840320 b370ba0a`）：`fail 0`，从 `pak` 行起 489 行去掉 `cyc` 后与 `sw6_judge_quick.log` 逐行相同 |
+| `sw8_stats_demo.log`、`sw8_stats_game.log`、`sw8_stats_s1.log`、`sw8_stats_press.log` | SW8 第一版统计与出图的四份样例（PC、无窗口、按 60 Hz 节拍）：模式 1 的 1300 帧、模式 2 无人操作 5400 帧、S1 规模（`GFX2D_PRESS_KNOB=1744`）1800 帧、模式 3 两遍搜索；`Main/tools/stats/plot_stats.py` 由它们画出 `Deliverables/Assert/figures/sw8_*.png`，录制开关见 SW8 开发日志 4.18 节。CSV 里的帧时间与周期数是 PC 的墙钟，只验证流程 |
 | `pc_normal.log`、`pc_inject.log`、`board_normal.log`、`board_inject.log` | **SW1 骨架的旧日志**，原地保留：它们是 60 帧图案那个版本的产物，当前二进制不再产生它们，**不要拿它们当期望值**。SW1 的记述在 [sw 第 01 章](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md) |
 
 固定值（`logs/sw6_judge.log` 的头几行与第 0 帧）：

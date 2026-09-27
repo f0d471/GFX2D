@@ -8,8 +8,8 @@
 
 | 已有内容 | 数量 | 说明 |
 | --- | --- | --- |
-| `figures/*.png` | 21 张 | 幻灯片用图，每张 1760×880（2 倍像素导出） |
-| `figures/src/*.html` | 21 个 | 对应图的源码；`_fig.css` 是公共样式，`_fig.js` 提供连线 `L()` 与时序波形 `wave()` |
+| `figures/*.png` | 24 张 | 幻灯片用图，每张 1760×880（2 倍像素导出） |
+| `figures/src/*.html` | 24 个 | 对应图的源码；`_fig.css` 是公共样式，`_fig.js` 提供连线 `L()` 与时序波形 `wave()`。`sw8_*.html` 三个是 `Main/tools/stats/plot_stats.py` 按日志生成的，改图改脚本或日志后重新生成，不手改 |
 | `figures/src/render.sh` | 1 个 | 用 Edge 无头模式导出：`bash render.sh [名字 ...]`，不带参数导出全部；导出后检查 png 修改时间，Edge 出错时不报错只留旧图 |
 | `third-party/` | 9 个文件 | 出处台账见 `third-party/README.md` |
 
@@ -51,3 +51,9 @@
 ## 引用的数字
 
 图里出现的数字同样要登记出处，规则见 [`../README.md`](../README.md)「数字从哪里取」。
+
+| 图 | 数字 | 出处 |
+| --- | --- | --- |
+| `sw8_pixel_share` | 各场景每帧像素与按方程的占比（S1 规模 872,384 像素、COPY 38.8%、ALPHA 61.2%；估算一行 682,704） | 实测：`Main/sw/apps/game/gfx2dGame/logs/sw8_stats_*.log`（PC），[TechReports sw 第 07 章](../../Engineering/TechReports/sw/07-演示模式与统计埋点.md) 3.12 节；估算一行来自设计文档 4.5 节，图上标「估算」 |
+| `sw8_frame_time` | 每秒 `ft_max` 的分布（以场为单位） | 同上四份日志；**PC 的墙钟，只验证流程**，报告与幻灯片引用时要写明，板上的图由 SW9 用同一脚本重出 |
+| `sw8_nmax_search` | 两遍搜索的逐档旋钮与结果（16×16 `N_max` 2002、旋钮 1744；8×8 `N_max` 5321、旋钮 4688） | `sw8_stats_press.log`；第 07 章 3.8 节。**模拟时钟下的流程验证值，不是板上的 `N_max`** |

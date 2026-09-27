@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="860" viewBox="0 0 1240 860"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b    { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bn   { fill:#eff6ff; stroke:#1d4ed8; stroke-width:1.3 }
+      .bg   { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt   { font-size:12.5px; font-weight:600; fill:#0f172a }
+      .t    { font-size:11px; fill:#0f172a }
+      .ts   { font-size:9.5px; fill:#475569 }
+      .tg   { font-size:11px; font-weight:600; fill:#64748b }
+      .tgs  { font-size:9.5px; fill:#94a3b8 }
+      .flow { stroke:#334155; stroke-width:1.4; fill:none }
+      .gen  { stroke:#334155; stroke-width:1.4; fill:none; stroke-dasharray:10 4 }
+      .un   { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="860" fill="#ffffff"/>
+  <text x="40" y="36" font-size="18" font-weight="600" fill="#0f172a">gfx2dGame 的模式框架与统计通路</text>
+  <text x="40" y="58" font-size="12" fill="#64748b">SW8 结束时的状态，2026-09-28。默认构建就是模式框架；PC 与板上同一份代码，时钟由编译开关 GFX2D_PRESS_CLOCK 选。</text>
+
+  <!-- ===== 第一行：输入与和弦 ===== -->
+  <rect class="b" x="48" y="84" width="250" height="80" rx="2"/>
+  <text class="tt" x="60" y="104">board_keys()（bsp）</text>
+  <text class="ts" x="60" y="122">PC：方向、Shift、空格、1~3、Tab</text>
+  <text class="ts" x="60" y="138">板上：KEY0~3 当四个方向（SW9）</text>
+  <text class="ts" x="60" y="154">切换判据：合成按键脚本</text>
+
+  <rect class="bn" x="318" y="84" width="300" height="80" rx="2"/>
+  <text class="tt" x="330" y="104">系统键（src/main.c、stg_chord）</text>
+  <text class="ts" x="330" y="122">数字键、Tab 取按下沿</text>
+  <text class="ts" x="330" y="138">上 + 下按住 8 帧：下一个模式；左 + 右：切后端</text>
+  <text class="ts" x="330" y="154">按帧计；触发之后两键都松开才再武装</text>
+  <line class="flow" x1="298" y1="124" x2="316" y2="124" marker-end="url(#a)"/>
+
+  <rect class="bn" x="638" y="84" width="554" height="80" rx="2"/>
+  <text class="tt" x="650" y="104">run_modes()：切换在触发那一帧结束之后生效</text>
+  <text class="ts" x="650" y="122">离开：游戏状态整体重置；进入：exec_sw_reset、重登记表面表、统计与直方图清零</text>
+  <text class="ts" x="650" y="138">进入之后第一帧打 mode &lt;m&gt; enter frame … crc … pool … clip …</text>
+  <text class="ts" x="650" y="154">冷启动 CRC 570938b6 / 97d09cae / 82da5016；来回切 150 次逐一相同</text>
+  <line class="flow" x1="618" y1="124" x2="636" y2="124" marker-end="url(#a)"/>
+
+  <line class="flow" x1="915" y1="164" x2="915" y2="180"/>
+  <line class="flow" x1="200" y1="180" x2="1040" y2="180"/>
+  <line class="flow" x1="200" y1="180" x2="200" y2="198" marker-end="url(#a)"/>
+  <line class="flow" x1="620" y1="180" x2="620" y2="198" marker-end="url(#a)"/>
+  <line class="flow" x1="1040" y1="180" x2="1040" y2="198" marker-end="url(#a)"/>
+
+  <!-- ===== 第二行：三个模式 ===== -->
+  <rect class="b" x="48" y="200" width="330" height="116" rx="2"/>
+  <text class="tt" x="60" y="220">模式 1 基础 Demo（SW6，第 05 章）</text>
+  <text class="ts" x="60" y="238">场景 A 方块随机移动、场景 B 整屏图切换</text>
+  <text class="ts" x="60" y="254">按场数自动轮换（SW6_STAGE_FRAMES）</text>
+  <text class="ts" x="60" y="270">HUD 保留 SW6 演示的右上角两行</text>
+  <text class="ts" x="60" y="286">SW6 的逐帧日志照旧直接打（会阻塞）</text>
+  <text class="ts" x="60" y="302">所以队列在每帧开头先取空</text>
+
+  <rect class="bn" x="398" y="200" width="444" height="116" rx="2"/>
+  <text class="tt" x="410" y="220">模式 2 游戏（stg_modes.c，第 06 章）</text>
+  <text class="ts" x="410" y="238">stg_game_step → stg_game_compose → 普查自查 → 执行 → CRC → 呈现</text>
+  <text class="ts" x="410" y="254">自动驾驶 stg_auto：连续 600 帧无按键接管，任何按键立即交还</text>
+  <text class="ts" x="410" y="270">九个候选外推 12 帧；stg_pool_danger 一遍扫敌弹池（d² &lt; 40²）</text>
+  <text class="ts" x="410" y="286">加偏好（离 Boss 正下方的曼哈顿距离 × 2），平局按固定顺序</text>
+  <text class="ts" x="410" y="302">开销进 CSV 的 cyc_auto；一局 5291 帧，活到第 3 张符卡</text>
+
+  <rect class="bn" x="862" y="200" width="330" height="116" rx="2"/>
+  <text class="tt" x="874" y="220">模式 3 压力测试（stg_modes.c）</text>
+  <text class="ts" x="874" y="238">stg_game_press_begin：终符的压力形态</text>
+  <text class="ts" x="874" y="254">旋钮 = 终符令牌门控的 K（每 125 帧的弹数）</text>
+  <text class="ts" x="874" y="270">16×16、8×8 各搜一遍（SETTLE_MIN = 300）</text>
+  <text class="ts" x="874" y="286">GFX2D_PRESS_KNOB=K：不搜索、旋钮固定（S1）</text>
+  <text class="ts" x="874" y="302">结果 2002 / 1744、5321 / 4688（模拟时钟）</text>
+
+  <!-- ===== 第三行：普查、代价、nmax ===== -->
+  <rect class="b" x="48" y="346" width="330" height="96" rx="2"/>
+  <text class="tt" x="60" y="366">每帧的命令表</text>
+  <text class="ts" x="60" y="384">exec_sw_run 执行（或硬件引擎，SW9）</text>
+  <text class="ts" x="60" y="400">帧时间：从读完按键到发出呈现请求前一刻</text>
+  <text class="ts" x="60" y="416">不含等场；进帧时间直方图（framehist）</text>
+  <text class="ts" x="60" y="432">256 桶覆盖 0~2 场，99 分位报桶上界</text>
+  <line class="flow" x1="213" y1="316" x2="213" y2="344" marker-end="url(#a)"/>
+  <line class="flow" x1="620" y1="316" x2="620" y2="330"/>
+  <line class="flow" x1="213" y1="330" x2="620" y2="330"/>
+
+  <rect class="bn" x="398" y="346" width="444" height="96" rx="2"/>
+  <text class="tt" x="410" y="366">gfx_census（lib/gfx/census，普查）</text>
+  <text class="ts" x="410" y="384">按六个方程加「无方程」数条数与裁剪后的面积，只求交、不碰像素</text>
+  <text class="ts" x="410" y="400">裁剪框跨提交持续（gfx_census_state 与 exec_sw_state 一一对应）</text>
+  <text class="ts" x="410" y="416">对账：面积之和 == pixel_total；条数之和 + cmd_other == cmd</text>
+  <text class="ts" x="410" y="432">与后端无关：软件与硬件跑同一张表</text>
+  <line class="flow" x1="378" y1="394" x2="396" y2="394" marker-end="url(#a)"/>
+
+  <rect class="bn" x="862" y="346" width="330" height="96" rx="2"/>
+  <text class="tt" x="874" y="366">模拟时钟（GFX2D_PRESS_CLOCK=0）</text>
+  <text class="ts" x="874" y="384">代价 = a + b × 命令数 + Σ c[方程] × 像素</text>
+  <text class="ts" x="874" y="400">e = max(1, ceil(代价 / F))，掉帧 = e − 1</text>
+  <text class="ts" x="874" y="416">HUD 的 SW FPS 一律 --（否则结果随墙钟变）</text>
+  <text class="ts" x="874" y="432">=1 时用真实场数增量与 board_cycles()</text>
+  <line class="flow" x1="842" y1="394" x2="860" y2="394" marker-end="url(#a)"/>
+  <line class="flow" x1="1027" y1="316" x2="1027" y2="344" marker-end="url(#a)"/>
+
+  <rect class="bn" x="862" y="472" width="330" height="150" rx="2"/>
+  <text class="tt" x="874" y="492">lib/core/nmax（纯函数状态机）</text>
+  <text class="ts" x="874" y="510">输入：每帧的 e、活动元素数、帧时间</text>
+  <text class="ts" x="874" y="526">倍增 → 二分到 STEP_MIN = 16 → 确认 60 秒</text>
+  <text class="ts" x="874" y="542">每档先等涨潮：SETTLE_MIN、两半均值、幅度</text>
+  <text class="ts" x="874" y="558">超时 SETTLE_MAX = 600 场照样测（软件后端）</text>
+  <text class="ts" x="874" y="574">OK / CAPPED / BELOW_N0 / RETRY_EXHAUSTED</text>
+  <text class="ts" x="874" y="590">事件：新的一档 → stg_game_set_knob</text>
+  <text class="ts" x="874" y="606">日志：nmax cfg、nmax probe、nmax result</text>
+  <line class="flow" x1="1027" y1="442" x2="1027" y2="470" marker-end="url(#a)"/>
+  <polyline class="flow" points="1192,547 1210,547 1210,258 1194,258" marker-end="url(#a)"/>
+
+  <!-- ===== 第四行：统计 CSV 与日志队列 ===== -->
+  <rect class="bn" x="48" y="472" width="560" height="150" rx="2"/>
+  <text class="tt" x="60" y="492">统计 CSV（src/gfx2d_stats.c）：每 60 场一行</text>
+  <text class="t" x="60" y="512">csv,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,</text>
+  <text class="t" x="60" y="528">ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0..5,cmd_other,pix_eq0..5</text>
+  <text class="ts" x="60" y="548">计数类的列取这一秒的第一帧（抽样帧）的普查与执行器统计，普查不进帧时间</text>
+  <text class="ts" x="60" y="564">fps = 呈现次数，drop = 场数增量 − 呈现次数；ft_max = 这一秒的最大帧时间</text>
+  <text class="ts" x="60" y="580">应用每行自查一次；检查脚本另外解析再核一遍（两层都要）</text>
+  <text class="ts" x="60" y="596">结束时一行 csvsum：总帧、总场、掉帧、ft_max、ft_p99、行数、丢行</text>
+  <text class="ts" x="60" y="612">自查不符打 err csv 并记 fail</text>
+  <polyline class="flow" points="620,442 620,456 328,456 328,470" marker-end="url(#a)"/>
+
+  <rect class="bn" x="628" y="472" width="214" height="150" rx="2"/>
+  <text class="tt" x="640" y="492">日志队列（lib/core/logq）</text>
+  <text class="ts" x="640" y="510">8192 字节环形缓冲</text>
+  <text class="ts" x="640" y="526">整行进或整行丢，丢行单独计</text>
+  <text class="ts" x="640" y="542">每帧只取 board_tx_room()</text>
+  <text class="ts" x="640" y="558">那么多字节（至多 256）</text>
+  <text class="ts" x="640" y="574">板上：UART 发送 FIFO 空位</text>
+  <text class="ts" x="640" y="590">PC：GFX2D_TX_BUDGET 按场补满</text>
+  <text class="ts" x="640" y="606">长跑 36000 帧丢行 0</text>
+  <line class="flow" x1="608" y1="547" x2="626" y2="547" marker-end="url(#a)"/>
+  <line class="flow" x1="862" y1="590" x2="844" y2="590" marker-end="url(#a)"/>
+
+  <line class="flow" x1="735" y1="622" x2="735" y2="650" marker-end="url(#a)"/>
+
+  <!-- ===== 第五行：日志、出图、第一版统计 ===== -->
+  <rect class="b" x="628" y="652" width="214" height="80" rx="2"/>
+  <text class="tt" x="640" y="672">board_puts → 串口 / 标准输出</text>
+  <text class="ts" x="640" y="690">PC：sw8_stats_*.log 四份样例</text>
+  <text class="ts" x="640" y="706">板上：board_run.py 的串口日志</text>
+  <text class="ts" x="640" y="722">（SW9）</text>
+
+  <rect class="bn" x="862" y="652" width="330" height="80" rx="2"/>
+  <text class="tt" x="874" y="672">Main/tools/stats/plot_stats.py</text>
+  <text class="ts" x="874" y="690">标准库，读 csv 与 nmax 行，出 HTML+SVG 图源</text>
+  <text class="ts" x="874" y="706">render.sh（Edge 无头）导出 1760×880 PNG</text>
+  <text class="ts" x="874" y="722">像素占比、帧时间分布、搜索轨迹</text>
+  <line class="flow" x1="842" y1="692" x2="860" y2="692" marker-end="url(#a)"/>
+
+  <rect class="bn" x="48" y="652" width="560" height="80" rx="2"/>
+  <text class="tt" x="60" y="672">第一版统计：S1 规模（模式 3、16×16、旋钮 1744）</text>
+  <text class="ts" x="60" y="690">实测每帧 872,384 像素：COPY 38.8%、ALPHA 61.2%；命令 2,248 条</text>
+  <text class="ts" x="60" y="706">设计文档 4.5 节估算 682,704：COPY 49.6%、ALPHA 42.2%、ADD 8.2%</text>
+  <text class="ts" x="60" y="722">差额主要来自弹的尺寸：估算 12×12，实测 16×16（K2 定案）</text>
+  <line class="flow" x1="628" y1="692" x2="610" y2="692" marker-end="url(#a)"/>
+
+  <rect class="bg" x="48" y="752" width="560" height="52" rx="2"/>
+  <text class="tg" x="60" y="772">板上的真实数字（SW9）</text>
+  <text class="tgs" x="60" y="790">GFX2D_PRESS_CLOCK=1 的搜索、软件与硬件两个后端的帧率与 N_max、PERF_* 计数器并入 CSV</text>
+
+  <!-- ===== 图例 ===== -->
+  <rect class="bn" x="862" y="752" width="22" height="14" rx="2"/>
+  <text class="ts" x="892" y="763">本章（SW8）新做的</text>
+  <rect class="b" x="862" y="776" width="22" height="14" rx="2"/>
+  <text class="ts" x="892" y="787">已有的（前几章）</text>
+  <rect class="bg" x="1022" y="752" width="22" height="14" rx="2"/>
+  <text class="ts" x="1052" y="763">还没有做</text>
+  <line class="flow" x1="1022" y1="783" x2="1044" y2="783" marker-end="url(#a)"/>
+  <text class="ts" x="1052" y="787">数据流</text>
+</svg>

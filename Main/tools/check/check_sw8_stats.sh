@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check_sw8_stats.sh —— 演示模式与统计埋点（SW8）A、B、C 三批的提交前判据
+# check_sw8_stats.sh —— 演示模式与统计埋点（SW8）A~D 四批的提交前判据
 #
 # 判据见 Engineering/Todo/sw/SW8-演示模式与统计埋点.md 第 3 节的「A 批」「B 批」几行，
 # 口径见 2.2、2.3、2.4 节与 4.4、4.9 节。
@@ -50,6 +50,10 @@
 #                       无窗口、GFX2D_UNPACED=1 跑两遍：seg 与 g 行逐字节相同（CRC 序列可复现）、fail 0、done、没有 err 行；
 #                       打出活到哪一段与每帧平均开销（PC 上的周期数只作登记）
 #   M16i 自动驾驶的注错 INJECT=AUTO_ORDER 编同一个入口：g 行的 CRC 序列必须与 M16 不同
+#   M17 出图与第一版统计 D 批：入库的四份样例日志 apps/game/gfx2dGame/logs/sw8_stats_{demo,game,s1,press}.log
+#                       逐行对账（同 M13 的解析）；Main/tools/stats/plot_stats.py 按固定参数出三张图，
+#                       三份图源与 Deliverables/Assert/figures/src/sw8_*.html 逐字节相同（入库的图就是这几份日志画的）
+#   M17i 出图的注错     不给搜索日志时必须报 missing 1、退出码非 0、不出搜索轨迹图
 #
 # 用法（WSL 或 Linux，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh
@@ -591,6 +595,53 @@ if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/autoi" INJECT=AUTO_ORDER \
     fi
 else
     bad "M16i INJECT=AUTO_ORDER 编不过"
+fi
+
+# ---------------------------------------------------------------- M17 出图与第一版统计
+echo "== M17 出图：入库的四份样例日志对账，plot_stats.py 出三张图并与入库的图源逐字节相同 =="
+SLOGS="$APP/logs"
+PLOT="$MAIN/tools/stats/plot_stats.py"
+FIG_SRC="$MAIN/../Deliverables/Assert/figures/src"
+m17_bad=0
+for n in demo game s1 press; do
+    res=$(csv_parse "$SLOGS/sw8_stats_$n.log")
+    if [ "$(echo "$res" | csv_get rows)" -gt 0 ] 2>/dev/null && [ "$(echo "$res" | csv_get bad)" = 0 ] &&
+       [ "$(echo "$res" | csv_get broken)" = 0 ] && [ "$(echo "$res" | csv_get head)" = 1 ] &&
+       [ "$(echo "$res" | csv_get sum)" = 1 ] && [ "$(echo "$res" | csv_get dropped)" = 0 ] &&
+       grep -q '^fail 0$' "$SLOGS/sw8_stats_$n.log" && ! grep -q '^err ' "$SLOGS/sw8_stats_$n.log"; then
+        note "sw8_stats_$n.log：$res"
+    else
+        note "sw8_stats_$n.log 不对：$res"
+        m17_bad=$((m17_bad + 1))
+    fi
+done
+if [ "$m17_bad" -eq 0 ]; then
+    ok "M17a 四份样例日志的 csv 行逐行对账（方程条数与像素之和）、汇总行齐全、fail 0"
+else
+    bad "M17a $m17_bad 份样例日志对账不过"
+fi
+python3 "$PLOT" --out "$TMP/fig" --ref-s1 --nmax "$SLOGS/sw8_stats_press.log" \
+    "$SLOGS/sw8_stats_demo.log=基础 Demo" "$SLOGS/sw8_stats_game.log=游戏（自动驾驶）" \
+    "$SLOGS/sw8_stats_s1.log=S1 规模（模式 3，旋钮 1744）@10" >"$TMP/plot.txt" 2>&1
+rp=$?
+same=0
+for f in pixel_share frame_time nmax_search; do
+    cmp -s "$TMP/fig/sw8_$f.html" "$FIG_SRC/sw8_$f.html" && same=$((same + 1))
+done
+if [ "$rp" -eq 0 ] && grep -q '^figures 3 missing 0$' "$TMP/plot.txt" && [ "$same" -eq 3 ]; then
+    ok "M17 plot_stats.py 出了三张图，三份图源与 Deliverables/Assert/figures/src 里入库的逐字节相同"
+    grep -E '^(pixel_share|nmax) ' "$TMP/plot.txt" | while read -r l; do note "$l"; done
+else
+    bad "M17 退出码 $rp、图没出齐，或与入库的图源不同（相同 $same 份）"
+    tail -3 "$TMP/plot.txt" | while read -r l; do note "$l"; done
+fi
+echo "== M17i 出图的注错（不给搜索日志） =="
+python3 "$PLOT" --out "$TMP/figi" "$SLOGS/sw8_stats_demo.log=基础 Demo" >"$TMP/ploti.txt" 2>&1
+ri=$?
+if [ "$ri" -ne 0 ] && grep -q '^figures 2 missing 1$' "$TMP/ploti.txt" && [ ! -f "$TMP/figi/sw8_nmax_search.html" ]; then
+    ok "M17i 缺搜索日志时报 missing 1、退出码 $ri、不出搜索轨迹图"
+else
+    bad "M17i 缺搜索日志时没有报出来（退出码 $ri），缺数据会被当成出齐了"
 fi
 
 printf 'fail %d\ndone\n' "$FAIL"
