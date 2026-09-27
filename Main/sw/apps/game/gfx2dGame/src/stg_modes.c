@@ -290,6 +290,12 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
     o->cyc_logic = board_cycles() - t0;
     press_text();
     h.seg_text = s_press_text;
+#if !GFX2D_PRESS_CLOCK
+    /* 模拟时钟的代价按本帧整帧的普查算，HUD 也在里面。SW FPS 一栏若显示按墙钟量的实测值，
+       它的位数会改变命令数与像素数，进而改变模拟的掉帧判定：同一份代码在不同机器上搜出不同的 N_max。
+       所以模拟时钟下这一栏一律 --（SW6 判据模式的做法，SW8 2.3 节）。 */
+    h.sw_fps_valid = 0;
+#endif
     draw_frame(ctx, dst, &h, o, &cc);
 
     /* 模拟时钟：本帧整帧的普查按 B 批的模型算代价；真实时钟：场数增量与周期数 */
@@ -297,7 +303,7 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
     cyc = (cost > 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)cost;
 #if GFX2D_PRESS_CLOCK
     e   = board_frame_count() - f0;
-    cyc = board_cycles() - t0;
+    cyc = o->t_present - t0;        /* 帧时间到发出呈现请求为止，不含等场（2.2 节） */
 #else
     (void)f0;
     (void)t0;

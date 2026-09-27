@@ -33,7 +33,9 @@
 #   M10i 切换的注错     INJECT=MODE_KEEP_POOL（重置游戏状态时漏清敌弹池），进入行必须有不符的
 #   M11 系统键和弦      M8 的 app 测试输出里 H 组 5 行全 ok；注错 CHORD_RETRIGGER 必须让 H1 的「不再触发」见红
 #   M12 模式 3          默认构建以 GFX2D_START_MODE=3、GFX2D_PRESS_EXIT=1 无窗口跑终符上的两遍搜索（模拟时钟）：
-#                       两行 nmax cfg（SETTLE_MIN=300）、两行 nmax result OK、nmax done、fail 0。本机约 6 分半
+#                       两行 nmax cfg（SETTLE_MIN=300）、两行 nmax result OK、nmax done、fail 0。
+#                       同一产物同时跑两个进程，两份日志的 nmax 行逐字节相同（模拟时钟下结果不随墙钟变；
+#                       csv 行里是真实周期数，本来就不同）。本机约 7 分钟
 #   M13 统计 CSV 对账   默认构建以 GFX2D_START_MODE=1、2、3 各跑 600 帧（无窗口、不等场）：脚本自己解析 csv 行再核一遍——
 #                       表头逐字相同、每行 30 列、t 从 0 连续、cmd_eq 之和加 cmd_other 等于 cmd、pix_eq 之和等于 pixel，
 #                       没有被别的日志夹断的行；csvsum 的 rows 等于 csv 行数、lines_dropped 0；三个模式都出过行，应用 fail 0
@@ -383,12 +385,21 @@ fi
 echo "== M12 模式 3 在终符上搜索（默认构建，GFX2D_START_MODE=3，模拟时钟，无窗口） =="
 if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/m3" EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_EXIT=1" \
         >"$TMP/m3.build.log" 2>&1; then
+    # 两个进程同时跑：墙钟下的实测帧率各不相同，模拟时钟的结果若受它影响，两份日志就会分叉
+    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/m3/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/m3b.log" &
+    m3b_pid=$!
     SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/m3/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/m3.log"
+    wait "$m3b_pid"
     ncfg=$(grep -c '^nmax cfg .*SETTLE_MIN=300 ' "$TMP/m3.log")
     nres=$(grep -c '^nmax result OK ' "$TMP/m3.log")
-    if [ "$ncfg" -eq 2 ] && [ "$nres" -eq 2 ] && grep -q '^nmax done$' "$TMP/m3.log" &&
+    grep '^nmax' "$TMP/m3.log" >"$TMP/m3.nmax"
+    grep '^nmax' "$TMP/m3b.log" >"$TMP/m3b.nmax"
+    if ! cmp -s "$TMP/m3.nmax" "$TMP/m3b.nmax"; then
+        bad "M12 同时跑的两个进程 nmax 行不同（模拟时钟的结果随墙钟变了）"
+        diff "$TMP/m3.nmax" "$TMP/m3b.nmax" | head -4 | while read -r l; do note "$l"; done
+    elif [ "$ncfg" -eq 2 ] && [ "$nres" -eq 2 ] && grep -q '^nmax done$' "$TMP/m3.log" &&
        grep -q '^fail 0$' "$TMP/m3.log" && ! grep -q '^err ' "$TMP/m3.log"; then
-        ok "M12 两遍搜索都 OK（SETTLE_MIN=300）、fail 0（$(grep -c '^nmax probe' "$TMP/m3.log") 行轨迹）"
+        ok "M12 两遍搜索都 OK（SETTLE_MIN=300）、fail 0（$(grep -c '^nmax probe' "$TMP/m3.log") 行轨迹），两个进程的 nmax 行逐字节相同"
         grep -E '^nmax (load|result)' "$TMP/m3.log" | while read -r l; do note "$l"; done
     else
         bad "M12 cfg 行（SETTLE_MIN=300）$ncfg、OK 结果 $nres，或没有 nmax done / fail 0"

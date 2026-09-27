@@ -325,7 +325,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh'
 
 判据见 `Engineering/Todo/sw/SW8-演示模式与统计埋点.md` 第 3 节，口径见 2.1~2.4 节与 4.4、4.9、4.12、4.13 节。
 要主机 gcc、`gcc-multilib`、`libsdl2-dev`、`python3` 与 Pillow（M9 先打包素材）；M6 要交叉工具链，找不到时跳过，跳过不算通过。
-M12 在本机约 6 分半、M14 约 10 分钟，全套约 20 多分钟；`SW8_SKIP_LONG=1` 跳过 M14（跳过不算通过）。
+M12 在本机约 7 分钟、M14 约 10 分钟，全套约 20 多分钟；`SW8_SKIP_LONG=1` 跳过 M14（跳过不算通过）。
 
 | 项 | 内容 |
 | --- | --- |
@@ -341,7 +341,7 @@ M12 在本机约 6 分半、M14 约 10 分钟，全套约 20 多分钟；`SW8_SK
 | M10 | 模式切换：默认构建以 `GFX2D_START_MODE=1、2、3`、`GFX2D_FRAMES=1` 冷启动各跑一帧取进入行的整帧 CRC；`-DGFX2D_SWITCH_JUDGE=1` 的合成按键来回切 150 次（无窗口、`GFX2D_UNPACED=1`）：151 行进入行的 CRC 与同模式的冷启动相同，模式 1、2 进来时四个池都是 0，裁剪框复位，`switch done 150`、`fail 0` |
 | M10i | `INJECT=MODE_KEEP_POOL`（重置游戏状态时漏清敌弹池）：进入行必须有与冷启动不符的 |
 | M11 | 系统键和弦：M8 的 app 测试输出里 H 组 5 行全 ok；注错 `CHORD_RETRIGGER` 必须让 H1 的「不再触发」见红 |
-| M12 | 模式 3 在终符上搜索：默认构建以 `GFX2D_START_MODE=3`、`GFX2D_PRESS_EXIT=1` 无窗口跑两遍搜索（模拟时钟）：两行 `nmax cfg`（`SETTLE_MIN=300`）、两行 `nmax result OK`、`nmax done`、`fail 0`；本机约 6 分半 |
+| M12 | 模式 3 在终符上搜索：默认构建以 `GFX2D_START_MODE=3`、`GFX2D_PRESS_EXIT=1` 无窗口跑两遍搜索（模拟时钟）：两行 `nmax cfg`（`SETTLE_MIN=300`）、两行 `nmax result OK`、`nmax done`、`fail 0`；同一产物同时跑两个进程，两份日志的 `nmax` 行逐字节相同（`csv` 行是真实周期数，本来就不同）；本机约 7 分钟 |
 | M13 | 统计 CSV 对账：默认构建以 `GFX2D_START_MODE=1、2、3` 各跑 600 帧（无窗口、`GFX2D_UNPACED=1`），脚本自己解析 `csv,` 行：表头逐字相同、每行 30 列、`t` 从 0 连续、`cmd_eq` 之和加 `cmd_other` 等于 `cmd`、`pix_eq` 之和等于 `pixel`、没有被别的日志夹断的行；`csvsum` 的 `rows` 等于行数、`lines_dropped` 0；三个模式都出过行，应用 `fail 0` |
 | M13i | `INJECT=CSV_DROP_EQ`（打印时漏掉方程 1 那两列）：脚本的解析必须见红（应用按内部值自查，看不见这一处） |
 | M14 | 日志不阻塞长跑：默认构建以 `GFX2D_START_MODE=2`、`GFX2D_FRAMES=36000` 编，`GFX2D_TX_BUDGET=192`、无窗口、按 60 Hz 节拍跑约 10 分钟（600 帧之后自动驾驶接管）：`lines_dropped` 0、`fail 0`、stderr 的超额汇总 `over 0 times 0 bytes`。`SW8_SKIP_LONG=1` 跳过，跳过不算通过 |
