@@ -174,7 +174,7 @@ int main(int argc, char **argv)
     fprintf(fp, " *       -o /tmp/e8_entity_golden && /tmp/e8_entity_golden \\\n");
     fprintf(fp, " *       --out Main/sw/apps/probe/entityBench/src/golden.h\n");
     fprintf(fp, " *\n");
-    fprintf(fp, " * 判据与口径见 Engineering/Todo/hw/E8-CPU每弹幕开销与缓存大小.md 第 3 节。\n");
+    fprintf(fp, " * 判据与口径见 Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md 第六节。\n");
     fprintf(fp, " */\n");
     fprintf(fp, "#ifndef EB_GOLDEN_H\n#define EB_GOLDEN_H\n\n#include <stdint.h>\n\n");
     fprintf(fp, "#define EB_G_FRAMES %uu\n", frames);

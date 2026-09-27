@@ -6,7 +6,7 @@
 #   make                      板上，产物 build/entityBench-O2.bin
 #   make OPT=s                可选对照档
 #
-# 判据与口径见 ../../../../Engineering/Todo/hw/E8-CPU每弹幕开销与缓存大小.md 第 3 节。
+# 判据与口径见 Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md 第六节。
 
 APP      = entityBench
 APP_SRCS = $(wildcard src/*.c)

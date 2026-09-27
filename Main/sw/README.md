@@ -52,10 +52,10 @@ sw/
 | `apps/test/displayTest/` | 扫描输出的板上判据，也是 `board_present`/`board_wait_frame` 的验证程序：IDENT、PATTERN（画定位图案上屏，这一段看屏幕）、FILL（整屏填充计时）、ANIM（120 帧移动方块，打帧率）、STATS（120 场快照）。走 SW1 的分层构建，产物 `build/displayTest-O2.bin`。期望输出见下 |
 | `apps/test/platformTest/` | PC 平台层（SW4）的判据程序：十一个整帧用例、600 帧帧节拍、掉帧注错、实时输入与关窗退出、录制的往返与两次回放。**一段要人动手**（按 F1~F3、点关闭按钮），其余自己判并打印 `fail N`。默认编 PC 版（`make` 即 `PLATFORM=host`）；串起来跑的是 `Main/tools/check/check_sw4_pc.sh`。期望输出见下 |
 | `apps/test/assetTest/` | 素材流水线（SW5）的判据程序：经板级读入口把素材包装进 DDR 素材区、完整校验、与生成的 `assets.h` 对账、挑条目登记表面，再用软件执行器画一整帧并打印整帧 CRC 与一张 64×24 字符画。PC 与板上跑同一份源码、同一份包，整帧 CRC 必须相同；默认编 PC 版（`make`），板上是 `make PLATFORM=target RISCV_BIN=<RISCV_BIN>`。串起来跑的是 `Main/tools/check/check_sw5_assets.sh`。期望输出见下 |
-| `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象。E8 复核把 `rd8_fresh` 从单次异标签读改为按地址失效（SDK 指令覆盖所有可能路）；原 4KB 日志只证明旧版，新源码待 4KB/16KB 上板回归 |
-| `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验（E5 的 SHARE/TRI/INJECT 阶段）。E8 复核把只适用单路的读后驱逐改为按地址失效，改后待 4KB/16KB 上板回归 |
-| `apps/probe/execSwTest/` | E7 板上软件执行器探针。`VERIFY` 对 SW3 十一个整帧 CRC，`THR` 按方程及 FB0/FB1 分列（单项 11 轮、累计 >100 万像素），`S1` 是精确 S1 整表（2003 条、693,504 像素），`OVH` 测 NOP 固定开销。当前 `build/execSwTest-O2.bin` **36,090 字节**、SHA256 `81f859988862e66489884b19302743ec38983539d75a1ec0a49f5a45c9cf632d`，gcc 13.4.0、`-O2`；4KB 主线日志 `logs/board_review_4k_fixed_20260925.log` 为 `fail 0`，18 项整帧 CRC32 与逐像素加和经 `tools/check/e7_output_check.py` 独立复算全对，精确 S1 约 805 ms。旧注错判据把 CRC 变化误写成等于 `golden ^ 1`，修正后六方程加一次自检的七个构建尚待上板复验；构建时须同时给 `-DE7_VERIFY_ONLY` 与 `-DE7_INJECT_EQ=<GFX_EQ_*>` |
-| `apps/probe/entityBench/` | E8 实体更新与合法命令记录微基准，缓存三档使用同一份产物。九组：A（AoS 纯更新）、B（SoA 纯更新）、C（SoA 更新并提交，N=1000/2000/5000/10000）、D（SoA 纯更新，N=2000/5000/10000）。当前 `build/entityBench-O2.bin` **69,034 字节**、SHA256 `b0f2bbc5100b24702b750cca803ce5c94c34c8f81aee68372317f35381184e29`，gcc 13.4.0、`-O2`；计时外再运行 1000 帧，对每帧实体六字段及 C 组全部 `32×N` 命令字节与主机期望摘要校验。新产物 4KB、16KB 各九组全为 `state_bad 0 cmd_bad 0`、`fail 0`；日志 `logs/board_framecheck_{4k,16k}_20260925.log`。旧版终态摘要产物的 8KB 结果只作历史对照，新版 8KB 尚未复测 |
+| `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象。E8 复核把 `rd8_fresh` 从单次异标签读改为按地址失效（SDK 指令覆盖所有可能路）；2026-09-27 修改版已在 4KB/16KB 各完整运行一次，均 `fail 0`/`done` |
+| `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验（E5 的 SHARE/TRI/INJECT 阶段）。E8 复核把只适用单路的读后驱逐改为按地址失效，2026-09-27 修改版已在 4KB/16KB 各完整运行一次，均 `fail 0`/`done` |
+| `apps/probe/execSwTest/` | E7 固定软件基线已于 2026-09-27 收尾。生产版 36,090 字节、SHA256 `81f859988862e66489884b19302743ec38983539d75a1ec0a49f5a45c9cf632d`，精确 S1 约 805 ms；生产数字仅对应该固定产物。本次 VERIFY_ONLY 的 ALPHA 正常判分与错配自检均为 26,370 字节，分别 `fail 0` 与 `fail 8`，原始 CRC 独立核对通过。开关已实装，注错收尾不会执行 THR/S1/OVH。全部历史记录、构建哈希和维护边界见 [platform 第 09 章](../../Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md) |
+| `apps/probe/entityBench/` | E8 实体更新与合法命令记录微基准，**2026-09-27 已收尾**，本次 4KB/16KB 使用同一份产物。九组：A（AoS 纯更新）、B（SoA 纯更新）、C（SoA 更新并提交，N=1000/2000/5000/10000）、D（SoA 纯更新，N=2000/5000/10000）。当前 `build/entityBench-O2.bin` **69,034 字节**、SHA256 `b0f2bbc5100b24702b750cca803ce5c94c34c8f81aee68372317f35381184e29`，gcc 13.4.0、`-O2`；计时外再运行 1000 帧，对每帧实体六字段及 C 组全部 `32×N` 命令字节与主机期望摘要校验。新产物 4KB、16KB 各九组全为 `state_bad 0 cmd_bad 0`、`fail 0`；历史日志 `logs/board_framecheck_{4k,16k}_20260925.log`，本次每档一次的日志 `logs/closeout_20260927_{4k,16k}.log`，新旧同产物最大变化 <0.08%。旧版 8KB 仅作历史对照，不补新版矩阵；候选采用与维护见 platform 第 10 章第六节 |
 | `apps/probe/displayFifoProbe/` | 实验 E5 2.4 节：真实扫描 FIFO 的压力矩阵与深度定值。`idle` / 满负载 `read` / 满负载 `write` 三组各收 120 场连续快照，报最低水位的最小值、最大值、首次最小值帧号与两个中位数。**target-only**（只在 Ti60 上跑，不提供 host 构建），产物 `build/displayFifoProbe-O2.bin`。期望输出见下 |
 | `apps/probe/cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
 | `apps/probe/cacheMinTest/` | 实验 E3 早期的最小实验，只作现象可复现保留，不作为结论证据 |
@@ -366,13 +366,17 @@ gcc 13.4.0 编译结果（2026-09-19）：bin 302,026 字节，数据块起于 `
 
 ## ddrAliasTest 的期望值
 
-gcc 13.4.0 编译，bin 2562 字节（`sha256:9d179bece4f1ff31…`，gcc 8.3.0 时 2418 字节），2026-09-19 上板输出与下面一致。串口逐行打印 `LOW k=0..27`、`LOW k=-1`、`HIGH k=28..31`、`CACHE_NOEVICT`、`CACHE_EVICT`，全部为 `ok`，最后一行之前是 `base 0x0c800000 fail 0`。其中 `CACHE_NOEVICT` 读到 `11`（缓存里的旧值）是预期现象，不计入 `fail`。实验设计与原始输出见 `../../Engineering/TechReports/platform/02-DDR地址译码与AXI-ID实测.md`。
+2026-09-27 按地址失效版为 **2538 字节**，SHA256 `63db2b19dc6c4a3ae8d118a4994645ed8594e54c38ed7b45ae9b1a4e6b00d573`，4KB/16KB 均 `fail 0`/`done`；原始日志为 `apps/probe/ddrAliasTest/logs/closeout_20260927_{4k,16k}.log`。新机制与回归见 [platform 第 10 章](../../Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md) 5.9。
+
+以下为旧版期望记录：gcc 13.4.0 编译，bin 2562 字节（`sha256:9d179bece4f1ff31…`，gcc 8.3.0 时 2418 字节），2026-09-19 上板输出与下面一致。串口逐行打印 `LOW k=0..27`、`LOW k=-1`、`HIGH k=28..31`、`CACHE_NOEVICT`、`CACHE_EVICT`，全部为 `ok`，最后一行之前是 `base 0x0c800000 fail 0`。其中 `CACHE_NOEVICT` 读到 `11`（缓存里的旧值）是预期现象，不计入 `fail`。实验设计与原始输出见 `../../Engineering/TechReports/platform/02-DDR地址译码与AXI-ID实测.md`。
 
 ## ddrBurstProbe 的期望值
 
 需要带 `axi_probe_master`、`axi_mux_guard`（VERSION 2）与扫描输出 `display` 的比特流
 （2026-09-21 起；2026-09-19~20 那批数据用的是 `scanout_stub` 替身，同一个 APB 窗口）。
-gcc 13.4.0 编译，当前有界轮询版 bin 6730 字节（sha256 前 16 位 `2b2a06117bb68e38`；
+2026-09-27 按地址失效版为 **6722 字节**，SHA256 `46b492e865551b6327c00f727c903f587abcf9490cb31b42265ecfbc93461b61`，4KB/16KB 均 `fail 0`/`done`，SHARE/TRI/INJECT 阶段全部通过。日志为 `apps/probe/ddrBurstProbe/logs/closeout_20260927_{4k,16k}.log`。
+
+旧版 gcc 13.4.0 编译的有界轮询版 bin 6730 字节（sha256 前 16 位 `2b2a06117bb68e38`；
 适配 display 的初版是 6602 字节 `65797eb605112cdf`，更早是 `b31871c65b8e3fea`），`resume` 后约 3 秒输出完毕。
 串口末尾为 `fail 0` 与 `done`，除下列各处外每行为 `ok`。
 2026-09-21 两轮的原始输出在 `apps/probe/ddrBurstProbe/logs/e5_display_run_{1,2}.log`（3535 字节），
@@ -628,7 +632,7 @@ done
 （四段逐次运行有千分之几的抖动，光栅那一段 900 帧那次是 4,025,887。）
 
 这组数是软件渲染的第一份真实负载数据，比 `displayTest` 的纯填充更有参考价值，
-E7 的条目里引了它。**瓶颈在光栅不在访存**：着色只占 0.5%，清屏加上屏合起来也只有 17%。
+E7 的归档报告里引了它。**瓶颈在光栅不在访存**：着色只占 0.5%，清屏加上屏合起来也只有 17%。
 要提速先动光栅（背面剔除、缩小覆盖面积、减少过绘），而不是先动分辨率。
 
 计时全部用 64 位累加，每帧取一次区间再累加，不拿首尾两个读数相减：

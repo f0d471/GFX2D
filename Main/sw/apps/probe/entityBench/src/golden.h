@@ -6,7 +6,7 @@
  *       -o /tmp/e8_entity_golden && /tmp/e8_entity_golden \
  *       --out Main/sw/apps/probe/entityBench/src/golden.h
  *
- * 判据与口径见 Engineering/Todo/hw/E8-CPU每弹幕开销与缓存大小.md 第 3 节。
+ * 判据与口径见 Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md 第六节。
  */
 #ifndef EB_GOLDEN_H
 #define EB_GOLDEN_H

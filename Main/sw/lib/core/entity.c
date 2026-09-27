@@ -3,7 +3,7 @@
 *
 * @brief  两种布局的一帧更新、补入与命令记录打包，外加计时外的摘要。
 *         口径与来由见 core/entity.h 的文件头与
-*         Engineering/Todo/hw/E8-CPU每弹幕开销与缓存大小.md 2.1、2.2 节。
+*         Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md 3.1、3.2 节。
 *
 *         摘要放在**独立的编译单元**里（本文件）：编译器看不到更新循环与摘要
 *         在同一个 TU 里，不能因为「没人读这些字段」而删掉写入。-flto 会

@@ -1,0 +1,10 @@
+board_inj_ALPHA.log: verify=11 changed=3 judge_fail=0 done=yes scope=raw-verify-evidence OK
+board_inj_ADD.log: verify=11 changed=5 judge_fail=0 done=yes scope=raw-verify-evidence OK
+board_inj_CONST.log: verify=11 changed=6 judge_fail=0 done=yes scope=raw-verify-evidence OK
+board_inj_MUL.log: verify=11 changed=7 judge_fail=0 done=yes scope=raw-verify-evidence OK
+board_inj_ALPHA_STRAIGHT.log: verify=11 changed=4 judge_fail=0 done=yes scope=raw-verify-evidence OK
+board_inj_COPY.log: verify=11 changed=0,1,2,5,8,9,10 judge_fail=0 done=yes scope=raw-verify-evidence OK
+board_inj_self.log: verify=11 changed=3 judge_fail=8 done=no scope=raw-verify-evidence OK
+closeout_20260927_alpha.log: verify=11 changed=3 judge_fail=0 done=yes scope=complete-verify-only OK
+closeout_20260927_self.log: verify=11 changed=3 judge_fail=8 done=yes scope=complete-verify-only OK
+E7 injection evidence PASS

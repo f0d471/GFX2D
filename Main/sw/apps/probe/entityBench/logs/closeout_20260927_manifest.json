@@ -1,0 +1,116 @@
+[
+  {
+    "action": "program",
+    "config": "4k",
+    "sha256": "5198db644338720d6fe53fc9ff59d4f6f86c0ddc3da5100c55a857b9d644b144",
+    "success": true
+  },
+  {
+    "action": "run",
+    "app": "execSwTest",
+    "config": "4k",
+    "tag": "alpha",
+    "size": 26370,
+    "sha256": "2ed2a156248dc02929e04089a985e4470cb7d75a03e97479570b4fa549449191",
+    "log": "Main/sw/apps/probe/execSwTest/logs/closeout_20260927_alpha.log",
+    "expected_fail": 0,
+    "observed_fail": 0,
+    "success": true
+  },
+  {
+    "action": "run",
+    "app": "execSwTest",
+    "config": "4k",
+    "tag": "self",
+    "size": 26370,
+    "sha256": "3ac65323248c6aee2151d8e9f8dca6025db590fee5151cb609ef9be8a9a1c5c4",
+    "log": "Main/sw/apps/probe/execSwTest/logs/closeout_20260927_self.log",
+    "expected_fail": 8,
+    "observed_fail": 8,
+    "success": true
+  },
+  {
+    "action": "run",
+    "app": "ddrAliasTest",
+    "config": "4k",
+    "tag": "4k",
+    "size": 2538,
+    "sha256": "63db2b19dc6c4a3ae8d118a4994645ed8594e54c38ed7b45ae9b1a4e6b00d573",
+    "log": "Main/sw/apps/probe/ddrAliasTest/logs/closeout_20260927_4k.log",
+    "expected_fail": 0,
+    "observed_fail": 0,
+    "success": true
+  },
+  {
+    "action": "run",
+    "app": "ddrBurstProbe",
+    "config": "4k",
+    "tag": "4k",
+    "size": 6722,
+    "sha256": "46b492e865551b6327c00f727c903f587abcf9490cb31b42265ecfbc93461b61",
+    "log": "Main/sw/apps/probe/ddrBurstProbe/logs/closeout_20260927_4k.log",
+    "expected_fail": 0,
+    "observed_fail": 0,
+    "success": true
+  },
+  {
+    "action": "run",
+    "app": "entityBench",
+    "config": "4k",
+    "tag": "4k",
+    "size": 69034,
+    "sha256": "b0f2bbc5100b24702b750cca803ce5c94c34c8f81aee68372317f35381184e29",
+    "log": "Main/sw/apps/probe/entityBench/logs/closeout_20260927_4k.log",
+    "expected_fail": 0,
+    "observed_fail": 0,
+    "success": true
+  },
+  {
+    "action": "program",
+    "config": "16k",
+    "sha256": "7d4cd463c3a62ca61f58e6db4eda53bc90f6940920d5c3239bcafe75dad2e6d4",
+    "success": true
+  },
+  {
+    "action": "run",
+    "app": "ddrAliasTest",
+    "config": "16k",
+    "tag": "16k",
+    "size": 2538,
+    "sha256": "63db2b19dc6c4a3ae8d118a4994645ed8594e54c38ed7b45ae9b1a4e6b00d573",
+    "log": "Main/sw/apps/probe/ddrAliasTest/logs/closeout_20260927_16k.log",
+    "expected_fail": 0,
+    "observed_fail": 0,
+    "success": true
+  },
+  {
+    "action": "run",
+    "app": "ddrBurstProbe",
+    "config": "16k",
+    "tag": "16k",
+    "size": 6722,
+    "sha256": "46b492e865551b6327c00f727c903f587abcf9490cb31b42265ecfbc93461b61",
+    "log": "Main/sw/apps/probe/ddrBurstProbe/logs/closeout_20260927_16k.log",
+    "expected_fail": 0,
+    "observed_fail": 0,
+    "success": true
+  },
+  {
+    "action": "run",
+    "app": "entityBench",
+    "config": "16k",
+    "tag": "16k",
+    "size": 69034,
+    "sha256": "b0f2bbc5100b24702b750cca803ce5c94c34c8f81aee68372317f35381184e29",
+    "log": "Main/sw/apps/probe/entityBench/logs/closeout_20260927_16k.log",
+    "expected_fail": 0,
+    "observed_fail": 0,
+    "success": true
+  },
+  {
+    "action": "program",
+    "config": "4k",
+    "sha256": "5198db644338720d6fe53fc9ff59d4f6f86c0ddc3da5100c55a857b9d644b144",
+    "success": true
+  }
+]

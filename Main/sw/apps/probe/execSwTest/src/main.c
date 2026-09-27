@@ -18,9 +18,9 @@
 *         4. OVH。纯 NOP 的命令表：量命令表遍历与记录校验的固定开销，
 *            与逐像素开销分开，S1 整表预算里要用它。
 *
-*         本版**不含**（留给正式开发）：逐方程注错见红、`-Os` 与四像素展开对照、
-*         折帧预算、每项负载的产物 SHA256 登记。
-*         口径、判据与切分见 `Engineering/Todo/hw/E7-软件执行器像素吞吐.md`。
+*         2026-09-27 已完成注错判分收尾；E7_VERIFY_ONLY 跳过吞吐段。
+*         生产吞吐、折帧预算与产物身份已归档；`-Os` 与四像素展开保留为可选优化。
+*         口径、判据与切分见 `Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md`。
 *
 *         计时口径：`board_cycles()` 是 CLINT 低 32 位、1 tick = 10ns、42.9 秒回绕
 *         （bsp/include/board.h）。本程序每轮独立取两次读数相减（都在 42.9 秒内）。
@@ -49,6 +49,11 @@
 #define TEX_KEY_OFF     (OFF_BYTES - 0x00100000u)   /* 离屏层 +7MB：512x512 带色键 */
 
 #define CMD_BYTES       0x20000u
+
+/* 注错收尾只跑 VERIFY，生产构建保留完整吞吐测量。 */
+#ifndef E7_VERIFY_ONLY
+#define E7_VERIFY_ONLY 0
+#endif
 
 /* 色键字：与 SW3 的 cases.c 取同一个值，便于与 golden 对照。 */
 #define KEY_COLOR       0x00123456u
@@ -1051,16 +1056,18 @@ int main(void)
 
     run_verify();
 
-    /* VERIFY 的 gfx_case_build 会把色键纹理改写成 SW3 的 64x64 纹理，
-       性能段必须重新铺受控输入，否则量到的是别人留下的数据。 */
-    seed_tex(s_tex_src, SRC_W, SRC_H, SRC_SL, GFX_FMT_ARGB8888_PM, 0);
-    seed_tex(s_tex_st, SRC_W, SRC_H, SRC_SL, GFX_FMT_ARGB8888_ST, 0);
-    seed_tex(s_tex_key, KEY_W, KEY_H, KEY_SL, GFX_FMT_XRGB8888, 1);
-    seed_cmp_tex();
-    run_loads();
-    run_s1(0u);
-    run_s1(1u);
-    run_ovh();
+    if (!E7_VERIFY_ONLY) {
+        /* VERIFY 的 gfx_case_build 会把色键纹理改写成 SW3 的 64x64 纹理，
+           性能段必须重新铺受控输入，否则量到的是别人留下的数据。 */
+        seed_tex(s_tex_src, SRC_W, SRC_H, SRC_SL, GFX_FMT_ARGB8888_PM, 0);
+        seed_tex(s_tex_st, SRC_W, SRC_H, SRC_SL, GFX_FMT_ARGB8888_ST, 0);
+        seed_tex(s_tex_key, KEY_W, KEY_H, KEY_SL, GFX_FMT_XRGB8888, 1);
+        seed_cmp_tex();
+        run_loads();
+        run_s1(0u);
+        run_s1(1u);
+        run_ovh();
+    }
 
     out_begin();
     core_out_str(&s_out, "fail ");

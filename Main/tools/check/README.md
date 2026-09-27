@@ -21,6 +21,7 @@
 | `gen_stg_patterns.py` | SW7 弹型判据的**独立实现**：照 spec 另写正弦表、atan2、`xorshift32`、发射器与池，生成五种弹型加合并段各 120 帧的期望文件 `sw/apps/game/gfx2dGame/test/stg_patterns.txt`；`--compare` 与 C 的轨迹先比参数行再逐帧比，不一致时两边各 dump 第一个不同帧、指出第一颗不同的弹 | 弹型参数或 2.1、2.3 节的规则要改时；`check_sw7_game.sh` 每次重跑并逐字节比 |
 | `e7_key_probe.c` | 独立枚举受控棋盘纹理的色键命中数，与软件执行器统计对账 | E7 改色键负载或解释命中率时 |
 | `e8_entity_golden.c` | 用同一份实体算法生成九组主机侧期望值到 `entityBench/src/golden.h`：每组 1000 帧的六字段状态 CRC 与 C 组每帧全部 `32×N` 命令字节 CRC，另保留终态摘要 | 改 E8 实体算法、命令格式或帧数时，重生成并随源码同步提交 |
+| `e7_injection_check.py` | 从原始整帧 CRC 重判六个方程注错和错配自检；可追加两份 VERIFY_ONLY 板上日志，要求判分、结束标记和运行范围都一致 | E7 判分修复收尾；旧日志重判不等于修正版已上板 |
 | `e7_output_check.py` | E7 性能负载的**独立输出复算器**：按 spec 第 01 章的混合方程与 `list.c` 的位域，从初始帧缓冲与纹理重画一帧，逐项核对板上整帧 CRC32 和每个可见像素的 32 位加和；要求两面各九项恰好 18 行、无重复或未知项，且有 `fail 0` 和 `done` | 判定 E7 吞吐数字有效性的硬判据；板上日志格式变了（`<名字> fbN ... crc 0x... pxsum 0x...`）要同步改 `parse_log` |
 | `e8_entity_abi.c` | 独立调用 `gfx_blit`，对 64 个图集索引及双记录 w7 标签逐字节检查 E8 命令打包符合 BLIT ABI，另查 8 个 x/y 出屏边界及 AoS/SoA 一致性 | 改 E8 命令生成、图集映射或 gfx ABI 时 |
 

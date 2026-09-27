@@ -6,7 +6,7 @@
 *         这是 E8 判据成立的前提——「板上与主机侧逐字段对账」只有在两边真的
 *         跑同一个循环时才说明问题。
 *
-*         一个弹幕的字段与口径见 Engineering/Todo/hw/E8-CPU每弹幕开销与缓存大小.md 2.1 节：
+*         一个弹幕的字段与口径见 Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md 3.1 节：
 *
 *           x, y     int32，Q12.4 定点（1 像素 = 16）
 *           vx, vy   int32，Q12.4 定点

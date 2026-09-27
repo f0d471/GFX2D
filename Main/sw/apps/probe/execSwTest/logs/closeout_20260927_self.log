@@ -1,0 +1,23 @@
+# COM11 @ 115200 8N1, opened 22:03:39
+
+# --- 程序已加载，以下才是它的输出 ---
+
+execSwTest E7 前期研究版
+BOARD_HZ 100000000 cmd_cap 4096
+SEED key[1][1] 0x000a1603 key_crc 0x52eb5029 fb0_crc 0x6ab1aca3 keybase 0x02f00000
+VERIFY 十一个整帧用例 vs golden.txt
+0 fill-screen crc 0x9cd34cb7 same FAIL
+1 blit-copy crc 0xbc9be6ff same FAIL
+2 blit-key crc 0x084d6bb2 same FAIL
+3 blit-alpha-pm crc 0x3479c65e CHANGED FAIL
+4 blit-alpha-straight crc 0x5b4feb8d same ok
+5 blit-add crc 0xcfcef0ee same FAIL
+6 fill-const crc 0xf50e8644 same ok
+7 blit-mul crc 0x46667f89 same ok
+8 blit-clip-partial crc 0x0fd9dcaf same FAIL
+9 set-clip-state crc 0xa07324ee same FAIL
+10 copy-argb-high-byte crc 0x8843eb2f same FAIL
+fail 8
+done
+
+# closed 22:03:46, 661 bytes

@@ -1,0 +1,29 @@
+# COM11 @ 115200 8N1, opened 22:12:55
+
+# --- 程序已加载，以下才是它的输出 ---
+
+entityBench E8 前期研究版
+BOARD_HZ 100000000 frames 1000 cases 9
+CAL cyc/pair-call 20 cyc/empty-loop-x100 2 cyc/x-modsum-x100 6034
+A-upd-aos n 1000 cyc_k 34761 us/frame 347 c/ent/frame 34.76 fmin 32760 fmax 49171 resp 1720 crc 0x04cf54b4
+VERIFY-FRAMES A-upd-aos frames 1000 state_bad 0 cmd_bad 0 ok
+B-upd-soa n 1000 cyc_k 40333 us/frame 403 c/ent/frame 40.33 fmin 39456 fmax 59058 resp 1720 crc 0x04cf54b4
+VERIFY-FRAMES B-upd-soa frames 1000 state_bad 0 cmd_bad 0 ok
+C-submit-soa n 1000 cyc_k 104332 us/frame 1043 c/ent/frame 104.33 fmin 102138 fmax 119911 resp 1720 cmd 1000 crc 0x04cf54b4/0xf0b3c4bf
+VERIFY-FRAMES C-submit-soa frames 1000 state_bad 0 cmd_bad 0 ok
+C-n2000-soa n 2000 cyc_k 233777 us/frame 2337 c/ent/frame 116.88 fmin 229540 fmax 236916 resp 3427 cmd 2000 crc 0xfe5bf0c7/0x2149fc49
+VERIFY-FRAMES C-n2000-soa frames 1000 state_bad 0 cmd_bad 0 ok
+C-n5000-soa n 5000 cyc_k 596958 us/frame 5969 c/ent/frame 119.39 fmin 590453 fmax 605166 resp 8587 cmd 5000 crc 0x2f3c0725/0x61bda89a
+VERIFY-FRAMES C-n5000-soa frames 1000 state_bad 0 cmd_bad 0 ok
+C-n10000-soa n 10000 cyc_k 1184184 us/frame 11841 c/ent/frame 118.41 fmin 1176788 fmax 1195411 resp 17187 cmd 10000 crc 0x062e4654/0xc74b78bb
+VERIFY-FRAMES C-n10000-soa frames 1000 state_bad 0 cmd_bad 0 ok
+D-n2000-soa n 2000 cyc_k 110512 us/frame 1105 c/ent/frame 55.25 fmin 105870 fmax 117107 resp 3427 crc 0xfe5bf0c7
+VERIFY-FRAMES D-n2000-soa frames 1000 state_bad 0 cmd_bad 0 ok
+D-n5000-soa n 5000 cyc_k 291883 us/frame 2918 c/ent/frame 58.37 fmin 284152 fmax 300705 resp 8587 crc 0x2f3c0725
+VERIFY-FRAMES D-n5000-soa frames 1000 state_bad 0 cmd_bad 0 ok
+D-n10000-soa n 10000 cyc_k 585358 us/frame 5853 c/ent/frame 58.53 fmin 569513 fmax 598311 resp 17187 crc 0x062e4654
+VERIFY-FRAMES D-n10000-soa frames 1000 state_bad 0 cmd_bad 0 ok
+fail 0
+done
+
+# closed 22:18:41, 1840 bytes

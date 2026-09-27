@@ -6,7 +6,9 @@
 #   make                                   板上生产基线，产物 build/execSwTest-O2.bin
 #   make OPT=s                             可选对照档（测了才报告）
 #
-# 逐方程注错见红（判据 3）。一次上板验一个方程，七个构建：
+# 初始六方程注错的原始 CRC 已留档；2026-09-27 收尾只上板 ALPHA 与错配自检。
+# 修改具体方程时才按影响补验，不因普通软件更新重做全部注错。
+# 单个方程与错配自检的构建方式：
 #
 #   make OBJDIR=build_inj_copy INJECT=EQ_COPY \
 #        EXTRA_CFLAGS="-DE7_VERIFY_ONLY -DE7_INJECT_EQ=0"
@@ -18,7 +20,8 @@
 # 两者必须指向同一个方程，否则全部用例都判「不该变却变了」。
 # 注错构建只跑 VERIFY 段（`-DE7_VERIFY_ONLY`），性能数字不引用它。
 #
-# 判据与口径见 ../../../../Engineering/Todo/hw/E7-软件执行器像素吞吐.md 第 3 节；
+# 判据与口径见 Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md 第六节；
+# 旧注错 CRC 重判见 Main/tools/check/e7_injection_check.py；
 # 整帧 CRC 的独立复算见 tools/check/e7_output_check.py。
 
 APP      = execSwTest
