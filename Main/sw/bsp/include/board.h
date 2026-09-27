@@ -14,7 +14,7 @@
 *         素材按编号查找是 `lib/core` 解析素材包，录像一段按键缓冲是
 *         `lib/core` 处理，文件读写才归 `bsp/host`。
 *
-*         接口的取舍见 Engineering/Todo/sw/SW1-软件平台分层与双目标构建.md 2.2 节。
+*         接口的取舍见 Engineering/TechReports/sw/01-软件平台分层与双目标构建.md 3.3 节。
 ******************************************************************************/
 #ifndef GFX2D_BOARD_H
 #define GFX2D_BOARD_H
@@ -148,7 +148,7 @@ int        board_should_quit(void);
 
    本函数只管搬运，**不解析**：素材包的结构与校验规则在 lib/core/assetpak 里，
    由 assetpak_load() 调用它。这样 bsp 不依赖 lib、lib 不依赖 bsp，
-   仍然只有应用把两者接起来（SW1 2.1 节的分层）。 */
+   仍然只有应用把两者接起来（sw 第 01 章 3.2 节的分层）。 */
 int board_asset_read(uint32_t offset, void *dst, uint32_t bytes);
 
 /* --- 缓存 --------------------------------------------------------------- */
