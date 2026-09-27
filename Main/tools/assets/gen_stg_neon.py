@@ -4,8 +4,8 @@
 
 主题照 G2 定案与决策页效果图：底色 #02040A，四种弹色青 #35F2FF、品红 #FF4FD8、琥珀 #FFB23E、绿 #8DFF6A，
 自机 #A8FBFF，火花 #FFC45A，HUD 标签的青色 #4FD8F2。光晕是径向渐变、弹芯是白心加色环，线框是折线。
-图案全部按坐标算出来：没有随机数，不读字体文件（「万弹」两个字按笔画画成线段，HUD 的青色字库照
-Main/assets/font/ascii8x16.txt 渲染），同一份脚本在同一个 Python 上给出同样的像素。
+图案全部按坐标算出来：没有随机数，不读字体文件（标题的 MYRIAD 按笔画画成线段，HUD 的青色字库与
+大号数字照 Main/assets/font/ascii8x16.txt 渲染），同一份脚本在同一个 Python 上给出同样的像素。
 
 产物（都写进 Main/assets/neon/，入库）：
 
@@ -17,7 +17,7 @@ Main/assets/font/ascii8x16.txt 渲染），同一份脚本在同一个 Python �
     ships.png      128x96  32x32 线框：自机 1 帧、DART 4 帧、CROSS 4 帧  XRGB，色键 0
     boss.png       192x288 96x96：品红六边形与青色六芒星，6 帧转过 60 度  预乘，ALPHA
     stars.png      8x2     2x2 星点 4 种                               XRGB，色键 0
-    title.png      240x90  MYRIAD 加「万弹」                            预乘，ALPHA
+    title.png      240x90  MYRIAD，垂直居中                             预乘，ALPHA
     digits.png     256x32  16x32 大号数字 0~9 与 '-'，由字库放大一倍    XRGB，色键 0
     icons.png      64x16   16x16：自机图标、炸弹菱形、判定点            XRGB，色键 0
     font_cyan.png  128x96  青色 8x16 字库                              XRGB，色键 0
@@ -250,18 +250,6 @@ LETTERS = {
     "D": [[(0, 0), (0, 6), (3, 6), (4, 5), (4, 1), (3, 0), (0, 0)]],
 }
 
-# 「万弹」的笔画：28 x 28 的格子，照楷书的笔顺取直线段
-HANZI = [
-    # 万：横、撇（先竖后撇）、横折钩
-    [[(1, 3), (27, 3)], [(10, 3), (10, 14), (2, 27)], [(10, 13), (25, 13), (25, 24), (20, 27)]],
-    # 弹：弓（横折、横、竖折、竖折钩），单（两点、日字框、中竖、底横）
-    [[(1, 3), (9, 3), (9, 9), (2, 9), (2, 15), (10, 15), (10, 26), (6, 27)],
-     [(13, 1), (15, 4)], [(25, 1), (23, 4)],
-     [(13, 6), (27, 6), (27, 16), (13, 16), (13, 6)], [(13, 11), (27, 11)],
-     [(20, 6), (20, 27)], [(12, 21), (28, 21)]],
-]
-
-
 def neon_strokes(d, strokes, color, core):
     """霓虹线：宽 5 的淡光晕、宽 3 的色线、宽 1 的白心（核心色）。"""
     for s in strokes:
@@ -273,22 +261,18 @@ def neon_strokes(d, strokes, color, core):
 
 
 def title():
-    """240x90：MYRIAD 六个字母（每个 28x36，间距 8）在上，「万弹」两个字（各 28x28）在下居中。"""
+    """240x90：MYRIAD 六个字母（每个 28x36，间距 8），水平、垂直都居中。
+
+    画布保持 240x90（游戏区中央与 HUD 顶部的位置都按这个尺寸排），只画 MYRIAD（2026-09-27 定案：去掉中文副标题）。"""
     im = Image.new("RGBA", (240, 90), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    x0, y0 = 16, 8
+    x0, y0 = 16, (90 - 36) // 2
     strokes = []
     for n, ch in enumerate("MYRIAD"):
         lx = x0 + n * 36
         for s in LETTERS[ch]:
             strokes.append([(lx + 7 * gx, y0 + 6 * gy) for (gx, gy) in s])
     neon_strokes(d, strokes, CYAN, (0xE0, 0xFF, 0xFF))
-    strokes = []
-    for n, ch in enumerate(HANZI):
-        hx, hy = 120 - 34 + n * 40, 54
-        for s in ch:
-            strokes.append([(hx + gx, hy + gy) for (gx, gy) in s])
-    neon_strokes(d, strokes, MAGENTA, (0xFF, 0xD8, 0xF4))
     return im
 
 

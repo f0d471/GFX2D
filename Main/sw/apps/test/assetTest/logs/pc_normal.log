@@ -1,6 +1,6 @@
 assetTest SW5
-pak bytes/entries=2142784 8
-pak crc=fc13ee10
+pak bytes/entries=2840320 20
+pak crc=b370ba0a
 chk P1 版本与 assets.h 一致 ok
 chk P2 整包 CRC 与 assets.h 一致 ok
 chk P3 总长与条目数与 assets.h 一致 ok
@@ -15,11 +15,23 @@ chk E8 SOLID8 是最小的 8x8 表面 ok
 entry 0 id=1 fmt=0 640x480 sl=12 len=1966080 crc=d3c25f90
 entry 1 id=2 fmt=0 128x128 sl=9 len=65536 crc=80797e72
 entry 2 id=3 fmt=1 128x96 sl=9 len=49152 crc=c686f36d
-entry 3 id=4 fmt=0 128x96 sl=9 len=49152 crc=cee03718
+entry 3 id=4 fmt=0 128x96 sl=9 len=49152 crc=618e4bf4
 entry 4 id=5 fmt=1 32x32 sl=7 len=4096 crc=637664fe
 entry 5 id=6 fmt=2 32x32 sl=7 len=4096 crc=346a5853
 entry 6 id=7 fmt=0 32x32 sl=7 len=4096 crc=6c21dbcc
 entry 7 id=8 fmt=0 8x8 sl=5 len=256 crc=bedce8b1
+entry 8 id=9 fmt=1 64x16 sl=8 len=4096 crc=dbb90956
+entry 9 id=10 fmt=1 32x8 sl=7 len=1024 crc=2971f651
+entry 10 id=11 fmt=1 320x80 sl=11 len=163840 crc=2d4e83e4
+entry 11 id=12 fmt=1 6x24 sl=5 len=768 crc=37268376
+entry 12 id=13 fmt=1 32x40 sl=7 len=5120 crc=ac4ac04e
+entry 13 id=14 fmt=0 128x96 sl=9 len=49152 crc=ea2f6def
+entry 14 id=15 fmt=1 192x288 sl=10 len=294912 crc=89badeed
+entry 15 id=16 fmt=0 8x2 sl=5 len=64 crc=407eb0d8
+entry 16 id=17 fmt=1 240x90 sl=10 len=92160 crc=195de8a1
+entry 17 id=18 fmt=0 256x32 sl=10 len=32768 crc=79ebcb3c
+entry 18 id=19 fmt=0 64x16 sl=8 len=4096 crc=cdf7a258
+entry 19 id=20 fmt=0 128x96 sl=9 len=49152 crc=e6e90965
 chk M1 相邻分区指针与分区表偏移一致 ok
 mem window bytes/base=18743296 16777216
 chk S1 BG_GRAD ok
@@ -32,8 +44,8 @@ chk S7 FB0 登记成功 ok
 chk C1 全部命令都被构造层接受 ok
 list used/cap=48 32768
 chk X1 命令表执行无错 ok
-exec cmd/pixel=48 710506
-frame crc=e530fc2c
+exec cmd/pixel=48 710824
+frame crc=351937af
 win crc=223df92a
 thumb 64x24
  .                                                              

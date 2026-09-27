@@ -288,6 +288,7 @@ G11 要交叉工具链，找不到时跳过，跳过不算通过。全套在本�
 | G13 | 敌机、Boss 与关卡：G4 的输出里 S 组 21 行全 ok（表、移动事件表与出界、槽位、击毁、整局各段开始帧对 SW7 2.5 节的常量另算、射击时走到 CLEAR 与得分另算、Boss 路径与间隙不受伤、压力形态、旋钮加倍时稳态弹数不减、改档之后到达稳态不超过 `SETTLE_MIN`、游戏里的门控、背景） |
 | G13i | `CARD_TIMEOUT_GT` 让 S5 的各段开始帧见红，`GATE_NO_ACC` 让 S11 见红（`-m32` 构建，整局跑得快） |
 | G14 | 霓虹素材：`Main/tools/assets/gen_stg_neon.py` 连跑两次，12 张 PNG 逐字节相同；`--check` 重新生成与入库的 `Main/assets/neon/` 逐像素相同（比像素不比 PNG 字节：压缩流随 Pillow 与 zlib 的版本变）；注错 `--check --inject` 改一个像素必须见红 |
+| G14f | 字库：`Main/tools/assets/gen_font_txt.py --check` 由入库的 `Main/assets/font/spleen-8x16.bdf` 重新生成字库文本，与入库的 `ascii8x16.txt` 逐字节相同；注错 `--check --inject` 改一个像素必须见红 |
 | G15 | 游戏的组帧与判据入口：G4 的输出里 V 组 5 行全 ok（共用文字绘制与逐字 `gfx_blit` 逐字节相同、3000 帧组帧的普查对账）；`-DSTG_FIELD=4` 的 PC 版无窗口、`GFX2D_UNPACED=1` 跑两遍，日志逐字节相同、`fail 0`、没有 `err` 行、九行 `seg` 齐全（READY、STAGE、BOSS、四张符卡、CLEAR、回到 READY） |
 | G15i | `INJECT=STG_LIVE_HUD` 以 `-DSTG_FRAMES=1200` 跑两遍，日志必须不同（实时量进了画面，整帧 CRC 就不可复现） |
 

@@ -43,6 +43,8 @@
 #   G13i 关卡的注错     CARD_TIMEOUT_GT 让 S5 的各段开始帧见红，GATE_NO_ACC 让 S11 见红
 #   G14 素材可重生成    gen_stg_neon.py 连跑两次，12 张 PNG 逐字节相同；--check 重新生成与入库的逐像素相同；
 #                       注错 --check --inject 改一个像素，比对必须见红
+#   G14f 字库可重生成   gen_font_txt.py --check：由入库的 spleen-8x16.bdf 重新生成的字库文本与入库的
+#                       Main/assets/font/ascii8x16.txt 逐字节相同；注错 --check --inject 改一个像素必须见红
 #   G15 游戏判据入口    G4 的输出里组帧与共用文字绘制 V 组 5 行全 ok；gfx2dGame 以 -DSTG_FIELD=4 编 PC 版，
 #                       无窗口、GFX2D_UNPACED=1 跑两遍：日志逐字节相同、fail 0、done、没有 err 行，
 #                       九行 seg（READY、STAGE、BOSS、四张符卡、CLEAR、回到 READY）
@@ -507,6 +509,17 @@ if ! python3 "$NEON" --check --inject >"$TMP/neon_inj.log" 2>&1 && grep -q '不�
     ok "G14i 注错 改一个像素之后比对见红（$(grep -m1 '与重新生成的不同' "$TMP/neon_inj.log" | cut -c1-40)）"
 else
     bad "G14i 注错 改一个像素之后比对没有见红（这条判据是空转）"
+fi
+FONTGEN="$MAIN/tools/assets/gen_font_txt.py"
+if python3 "$FONTGEN" --check >"$TMP/font_chk.log" 2>&1; then
+    ok "G14f 字库文本由入库的 BDF 重新生成，与入库的逐字节相同"
+else
+    bad "G14f 字库文本与由 BDF 重新生成的不同（$(tail -1 "$TMP/font_chk.log")）"
+fi
+if ! python3 "$FONTGEN" --check --inject >"$TMP/font_inj.log" 2>&1 && grep -q '不同' "$TMP/font_inj.log"; then
+    ok "G14fi 注错 改一个像素之后比对见红（$(tail -1 "$TMP/font_inj.log")）"
+else
+    bad "G14fi 注错 改一个像素之后比对没有见红（这条判据是空转）"
 fi
 
 # ---------------------------------------------------------------- G15 游戏判据入口

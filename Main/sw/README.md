@@ -242,19 +242,19 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> SW6_QUICK=1 bash Main/tools/check/check_sw
 | --- | --- |
 | `sw6_judge.log` | 判据模式**全量**一遍的期望值：1236 行（`gfx2dGame SW6`、`pak`、三行 `scene`、`eq P`、A 两遍各 246 帧、B 两遍各 367 帧、两行 `eq A`、`fail 0`、`done`） |
 | `sw6_judge_quick.log` | 快速档（`-DSW6_FRAMES=120`）的期望值；它的逐帧行按段、按遍必须是全量档的前缀 |
-| `sw6_board_quick.log` | 板上判据模式快速档的串口原始输出（2026-09-24，产物 34,850 字节、sha256 前 16 位 `0454c3cce0216630`）：`fail 0`，从 `pak` 行起 489 行去掉 `cyc` 后与 `sw6_judge_quick.log` 逐行相同。它对应加游戏素材之前的旧包 `pak 2142784 fc13ee10`；2026-09-26 素材包加进 SW7 的 12 张图之后，它与期望日志只差 `pak` 这一行，要重新上板对账 |
+| `sw6_board_quick.log` | 板上判据模式快速档的串口原始输出（2026-09-24，产物 34,850 字节、sha256 前 16 位 `0454c3cce0216630`）：`fail 0`，从 `pak` 行起 489 行去掉 `cyc` 后与 `sw6_judge_quick.log` 逐行相同。它对应加游戏素材之前的旧包 `pak 2142784 fc13ee10` 与自绘的旧字库；2026-09-26 素材包加进 SW7 的 12 张图、2026-09-27 字库换成 Spleen 8x16 之后，它与期望日志除 `pak` 行外，逐帧的 `cmd`（少数几帧）、`pix`、`ksk`、`hud`、`crc`、`hcrc` 也不同，要重新上板对账 |
 | `pc_normal.log`、`pc_inject.log`、`board_normal.log`、`board_inject.log` | **SW1 骨架的旧日志**，原地保留：它们是 60 帧图案那个版本的产物，当前二进制不再产生它们，**不要拿它们当期望值**。SW1 的记述在 [sw 第 01 章](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md) |
 
 固定值（`logs/sw6_judge.log` 的头几行与第 0 帧）：
 
 ```
 gfx2dGame SW6
-pak 2840320 b5b915cc
+pak 2840320 b370ba0a
 scene 0 scrc d90fb7b2
 scene 1 scrc 70fd3e3d
 scene 2 scrc 0211c146
 eq P 53 18 0 2
-f 0 A p 1 s - keys 00000000 n 100 k 0 cmd 159 pix 391135 ksk 6296 hud - - off 4 cyc 27 497 176435 crc 6213ca93 scrc 62772be8 hcrc 57c6333b
+f 0 A p 1 s - keys 00000000 n 100 k 0 cmd 159 pix 391496 ksk 5935 hud - - off 4 cyc 27 497 176435 crc 8295c1f0 scrc 62772be8 hcrc ecc28265
 ...
 ```
 
@@ -567,21 +567,22 @@ wsl -e bash -c 'cd sw/apps/test/assetTest && make PLATFORM=target RISCV_BIN=<RIS
 ```
 
 一次跑完，末尾 `fail 0` 与 `done`、退出码 0。期望输出（入库日志
-`logs/pc_normal.log`，板上是 `logs/board_normal.log`，两者**判据行与 24 行字符画逐行相同**；
-这两份日志是 8 项素材包时录的，`pak` 两行与 `entry` 行停在旧包，其余判据行与字符画不随素材包变）：
+`logs/pc_normal.log`，板上是 `logs/board_normal.log`，两者**判据行与 24 行字符画应逐行相同**。
+`pc_normal.log` 于 2026-09-27 按 20 项素材包与 Spleen 字库重录；`board_normal.log` 还是 8 项素材包与自绘字库时录的，
+`pak` 两行、`entry` 行、`exec` 的像素数与 `frame crc` 都停在旧包，要重新上板复核）：
 
 | 行 | 期望 |
 | --- | --- |
 | `pak bytes/entries=` | `2840320 20`（当前 20 项素材包：SW5 的 8 项加 SW7 的 12 项；重打素材后跟着变） |
-| `pak crc=` | `b5b915cc` |
+| `pak crc=` | `b370ba0a` |
 | `chk P1~P3` | 版本、整包 CRC、总长与条目数与生成的 `assets.h` 三项一致 |
 | `chk E1~E8` | 八项素材的几何与 `assets.h` 一致；`BULLET_PM`/`BULLET_ST` 分别是预乘/直通；`KEY_DEMO` 带色键且键字相符；`SOLID8` 是 8×8 |
 | `entry 0..19` | 逐项 `id/fmt/宽高/sl/len/crc`，**与 `check_sw5_pak.py` 的独立实现逐行相同** |
 | `chk M1` | 相邻分区指针之差等于分区表偏移之差（`gfx_mem` 的窗口才成立） |
 | `chk S1~S7` | 六个素材条目与帧缓冲各自 `gfx_surface_set()` 成功——**按需要挑，不是按 ID 全登** |
 | `chk C1` | 48 条命令全被构造层接受；`list used/cap= 48 32768` |
-| `chk X1` | 软件执行器无错；`exec cmd/pixel= 48 710506` |
-| `frame crc=` | `e530fc2c`（**PC 与板上必须相同**，这是跨平台判据） |
+| `chk X1` | 软件执行器无错；`exec cmd/pixel= 48 710824` |
+| `frame crc=` | `351937af`（**PC 与板上必须相同**，这是跨平台判据） |
 | `win crc=` | `223df92a`（图集那 4 个半透明格子所在的 64×64 窗口） |
 | `thumb 64x24` | 24 行 64 列的字符画，由帧缓冲采样得到，留档的那张「可目视核对」的图 |
 
