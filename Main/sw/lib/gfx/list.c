@@ -211,7 +211,7 @@ int gfx_blit(gfx_list *l, int src, int sx, int sy, int dst, int dx, int dy,
     return append(l, &rec);
 }
 
-/* 批量提交。等价口径见 gfx.h 的声明与 SW7 2.6 节；这里与 gfx_blit() 共用参数检查、
+/* 批量提交。等价口径见 gfx.h 的声明与 sw 第 06 章 3.6 节；这里与 gfx_blit() 共用参数检查、
    打包与 reject() 的记账，不另写一套。逐条的先后照抄 gfx_blit() 与 append()：
    参数错（模板或本条坐标）报 BAD_ARG → 表已 END → 表满（唯一加 overflow 的一种）→ 校验码。
    几种 BAD_ARG 在 gfx_blit() 里谁先谁后不影响结果：记账完全相同。

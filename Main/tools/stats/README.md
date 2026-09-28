@@ -1,6 +1,6 @@
 # stats：统计日志出图
 
-SW8 统计埋点（[`../../../Engineering/Todo/sw/SW8-演示模式与统计埋点.md`](../../../Engineering/Todo/sw/SW8-演示模式与统计埋点.md) 2.4 节）
+SW8 统计埋点（[`../../../Engineering/TechReports/sw/07-演示模式与统计埋点.md`](../../../Engineering/TechReports/sw/07-演示模式与统计埋点.md) 3.9、3.11 节）
 的出图工具。输入是 `gfx2dGame` 模式框架打出来的日志，输出是报告与幻灯片用的图的源码。
 
 | 文件 | 用途 |
@@ -40,7 +40,7 @@ wsl -e python3 Main/tools/stats/plot_stats.py --out Deliverables/Assert/figures/
     "$L/sw8_stats_s1.log=S1 规模（模式 3，旋钮 1744）@10"
 ```
 
-四份样例日志怎么录的（构建开关、帧数）见 SW8 开发日志 4.18 节。PC 日志里的帧时间是墙钟，只验证流程；
+四份样例日志怎么录的（构建开关、帧数）见 sw 第 07 章 3.11 节。PC 日志里的帧时间是墙钟，只验证流程；
 板上的数字由 SW9 用同一个脚本出图。
 
 ## 画法约定

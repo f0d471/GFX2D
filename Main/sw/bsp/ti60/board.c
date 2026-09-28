@@ -79,7 +79,7 @@ uint32_t board_cycles(void)
     return (uint32_t)clint_getTimeLow(BSP_CLINT);   /* 1 tick = 10ns */
 }
 
-/* --- 素材分区（SW5 2.3 节）----------------------------------------------- */
+/* --- 素材分区（sw 第 04 章 3.8 节）----------------------------------------------- */
 /* 每次读都自己初始化一遍 SPI 与 Flash，不假设 bootloader 跑完之后
    外设还保持着它留下的状态。驱动的调用顺序与 bootloaderConfig.h 一致。 */
 static void asset_spi_begin(void)
@@ -117,7 +117,7 @@ void board_puts(const char *s)
 }
 
 /* sdk 的 uart_writeAvailability() 读 UART 状态寄存器的 [23:16]，就是发送 FIFO 的空位数；
-   写不超过这么多字节，上面的 uart_write() 就不会在忙等里停下（SW8 2.4 节）。 */
+   写不超过这么多字节，上面的 uart_write() 就不会在忙等里停下（sw 第 07 章 3.3 节）。 */
 uint32_t board_tx_room(void)
 {
     return (uint32_t)uart_writeAvailability(BSP_UART_TERMINAL);

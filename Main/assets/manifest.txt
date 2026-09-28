@@ -20,7 +20,7 @@ surf	5	BULLET_PM	premult	placeholder/bullet.png	32x32	-	-	sprite
 surf	6	BULLET_ST	straight	placeholder/bullet.png	32x32	-	-	sprite
 surf	7	KEY_DEMO	xrgb	placeholder/key_demo.png	32x32	-	0x00FF00FF	sprite
 surf	8	SOLID8	xrgb	placeholder/solid8.png	8x8	-	-	sprite
-# SW7 C 批：游戏的霓虹几何素材（Main/tools/assets/gen_stg_neon.py 生成，SW7 2.7 节）；表面槽见 SW7 2.7 节的表
+# SW7 C 批：游戏的霓虹几何素材（Main/tools/assets/gen_stg_neon.py 生成，sw 第 06 章 3.12 节）；表面槽见 sw/apps/game/gfx2dGame/src/stg_slots.h
 atlas	9	BUL16	premult	neon/bul16.png	64x16	16x16	-	sprite
 atlas	10	BUL8	premult	neon/bul8.png	32x8	8x8	-	sprite
 atlas	11	RICE20	premult	neon/rice20.png	320x80	20x20	-	sprite

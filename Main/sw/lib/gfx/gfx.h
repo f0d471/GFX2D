@@ -10,7 +10,7 @@
 *         规则不会在两边漂移。构造时早检不替代执行时重查，
 *         因为表面表可能在两次调用之间被改写。
 *
-*         判据与口径见 Engineering/Todo/sw/SW3-命令表构造层与软件执行器.md 第 3 节。
+*         判据与口径见 Engineering/TechReports/sw/02-命令表构造层与软件执行器.md 第五节。
 ******************************************************************************/
 #ifndef GFX2D_GFX_H
 #define GFX2D_GFX_H
@@ -71,7 +71,7 @@ int  gfx_blit(gfx_list *l, int src, int sx, int sy, int dst, int dx, int dy,
 int  gfx_set_clip(gfx_list *l, gfx_rect r);
 int  gfx_list_end(gfx_list *l);
 
-/* --- 批量提交（SW7 2.6 节）--------------------------------------------- */
+/* --- 批量提交（sw 第 06 章 3.6 节）--------------------------------------------- */
 
 /* 一串 BLIT 共用的部分。字段与 gfx_blit() 的同名参数同型。 */
 typedef struct {

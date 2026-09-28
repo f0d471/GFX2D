@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """check_sw6_log.py —— SW6 判据日志的外部核对
 
-判据与日志格式的权威是 Engineering/Todo/sw/SW6-基础Demo.md 第 3 节与 2.7 节。
+判据与日志格式的权威是 Engineering/TechReports/sw/05-基础Demo.md 3.11、3.12 节。
 本脚本只做**日志侧**的判据，不碰应用内部：spec 第 01 章 4.1、4.7 两节那条教训是
 「判据要能从外面核对，不能由被测程序自己判自己」。
 
@@ -20,7 +20,7 @@
     --board BOARD EXPECT    板上串口日志从 pak 行起与期望日志逐行比（去掉 cyc 三列），
                             用于第 3 节「板上对账」
 
-只用标准库（zlib.crc32 与 lib/core/crc32 同参，SW5 4.10 节对过账）。
+只用标准库（zlib.crc32 与 lib/core/crc32 同参，sw 第 04 章 3.6 节）。
 """
 
 import argparse

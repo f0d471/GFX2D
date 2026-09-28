@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check_sw7_game.sh —— 游戏本体（SW7）A~D 四批的提交前判据
 #
-# 判据见 Engineering/Todo/sw/SW7-游戏本体.md 第 3 节，口径见 2.1 节与 4.5 节。本脚本串起来跑：
+# 判据与口径见 Engineering/TechReports/sw/06-游戏本体.md 第三节与第五节。本脚本串起来跑：
 #
 #   G1 正弦表可重生成   gen_sin_tab.py 重打一份，与入库的 lib/core/sin_tab.c 逐字节相同；
 #                       注错 --inject 改一项，比对必须见红
@@ -48,7 +48,8 @@
 #   G15 游戏判据入口    G4 的输出里组帧与共用文字绘制 V 组 5 行全 ok；gfx2dGame 以 -DSTG_FIELD=4 编 PC 版，
 #                       无窗口、GFX2D_UNPACED=1 跑两遍：日志逐字节相同、fail 0、done、没有 err 行，
 #                       九行 seg（READY、STAGE、BOSS、四张符卡、CLEAR、回到 READY）
-#   G15i HUD 的注错     INJECT=STG_LIVE_HUD（判据入口照样显示实测的 SW FPS）以 -DSTG_FRAMES=1200 跑两遍，日志必须不同
+#   G15i HUD 的注错     INJECT=STG_LIVE_HUD（判据入口照样显示实测的 SW FPS）以 -DSTG_FRAMES=1200 跑一遍，
+#                       g 行与 G15 正常那一遍的前 1200 帧比：第 0 帧相同，之后必须从某一帧起不同
 #   G16 可玩            工具辅助的通关录像 apps/game/gfx2dGame/replay/stg_clear.g2dr（D 批）：
 #                       a 搜索器 gen_stg_clear.c（-Werror）按录像从头跑一遍：走到 CLEAR、残机没用完、帧恰好用完；
 #                       b 搜索器重新搜一遍，产物与入库的录像逐字节相同（约 5 分钟；SW7_SKIP_SEARCH=1 跳过，**跳过不算通过**）；
@@ -347,7 +348,7 @@ fi
 
 # ---------------------------------------------------------------- G10 判据模式
 echo "== G10 弹幕场的判据模式（PC，无窗口两遍） =="
-# gfx2dGame 包含生成物 assets.h，干净克隆里要先打包（SW8 4.8 节的教训）
+# gfx2dGame 包含生成物 assets.h，干净克隆里要先打包（sw 第 07 章 4.1 节的教训）
 if ! python3 "$MAIN/tools/assets/pack_assets.py" >"$TMP/pack.log" 2>&1; then
     bad "G10 素材打包失败"
     sed -n '1,5p' "$TMP/pack.log" | while read -r l; do note "$l"; done
@@ -572,11 +573,16 @@ if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/h_stg4i" EXTRA_CFLAGS="-DSTG_FIE
         INJECT=STG_LIVE_HUD >"$TMP/h_stg4i.log" 2>&1; then
     bin4i="$(ls "$TMP"/h_stg4i/gfx2dGame* 2>/dev/null | head -1)"
     SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$bin4i" 2>/dev/null | tr -d '\r' >"$TMP/g4i_1.log"
-    SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$bin4i" 2>/dev/null | tr -d '\r' >"$TMP/g4i_2.log"
-    if [ -s "$TMP/g4i_1.log" ] && ! cmp -s "$TMP/g4i_1.log" "$TMP/g4i_2.log"; then
-        ok "G15i INJECT=STG_LIVE_HUD 见红：两遍日志从第 $(cmp "$TMP/g4i_1.log" "$TMP/g4i_2.log" | awk '{print $NF}') 行起不同"
+    # 与正常判据入口（G15 的第一遍）逐帧比 g 行。两次注错运行互比要靠墙钟碰巧不同，机器安静时每一秒的边界
+    # 会落在同一帧上、两遍完全一样；这里比的是「HUD 显示实测值」与「HUD 显示 --」，第一个完整的一秒之后必然不同。
+    grep '^g ' "$TMP/g4_1.log" 2>/dev/null | head -1200 >"$TMP/g4n.g"
+    grep '^g ' "$TMP/g4i_1.log" >"$TMP/g4i.g"
+    first=$(diff "$TMP/g4n.g" "$TMP/g4i.g" | grep -m1 '^> g ' | awk '{print $3}')
+    ni=$(wc -l <"$TMP/g4i.g")
+    if [ "$ni" -eq 1200 ] && [ -n "$first" ] && [ "$first" -gt 0 ]; then
+        ok "G15i INJECT=STG_LIVE_HUD 见红：与正常判据入口的前 1200 帧比，整帧 CRC 从第 $first 帧起不同（第一个完整的一秒之前两边都是 --）"
     else
-        bad "G15i INJECT=STG_LIVE_HUD 两遍日志相同（实时量没进画面，这条判据是空转）"
+        bad "G15i INJECT=STG_LIVE_HUD 与正常判据入口的前 1200 帧没有在第 0 帧之后分开（帧数 $ni、第一处不同 ${first:-无}）：实时量没进画面，或 1200 帧不到一秒就跑完"
     fi
 else
     bad "G15i INJECT=STG_LIVE_HUD 编不过"

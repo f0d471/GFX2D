@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check_sw5_assets.sh —— 素材流水线（SW5）的提交前判据
 #
-# 判据见 Engineering/Todo/sw/SW5-素材流水线.md 第 3 节。本脚本把这些串起来跑：
+# 判据见 Engineering/TechReports/sw/04-素材流水线.md 3.12 节。本脚本把这些串起来跑：
 #
 #   S1 打包确定性      同一个 manifest 打两次，assets.pak 与 assets.h 逐字节相同
 #   S2 独立实现对账     check_sw5_pak.py 自己解包、自己从 PNG/字库重算像素字节，
@@ -18,7 +18,7 @@
 #     bash Main/tools/check/check_sw5_assets.sh
 #
 # 不需要板子与交叉工具链。板上那一条（Flash 启动 → 读出版本/长度/整包 CRC → 画出已知图块）
-# 需在板上单独执行，见 SW5 第 3 节「板上装载」。
+# 需在板上单独执行，见 sw 第 04 章 3.13 节。
 
 set -u
 

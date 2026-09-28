@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check_sw8_stats.sh —— 演示模式与统计埋点（SW8）A~D 四批的提交前判据
 #
-# 判据见 Engineering/Todo/sw/SW8-演示模式与统计埋点.md 第 3 节的「A 批」「B 批」几行，
+# 判据见 Engineering/TechReports/sw/07-演示模式与统计埋点.md 第三节与第五节，
 # 口径见 2.2、2.3、2.4 节与 4.4、4.9 节。
 # 本脚本串起来跑：
 #

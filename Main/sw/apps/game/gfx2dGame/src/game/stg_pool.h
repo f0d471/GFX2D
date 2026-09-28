@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file stg_pool.h: 实体池 —— 敌弹、自机弹、敌机、粒子
 *
-* @brief  SW7 2.2 节。四个池用同一种 20 字节实体，布局先用 AoS；
+* @brief  sw 第 06 章 3.5 节。四个池用同一种 20 字节实体，布局先用 AoS；
 *         实体的字段只在 stg_pool.c 里读写，外面经函数取值，以后换 SoA 只改那一个文件。
 *
 *         **回收是 Existential Processing**（Fabian《Data-Oriented Design》）：
@@ -9,18 +9,18 @@
 *         读指针从 0 走到 n，写指针只在实体存活时前进；碰撞与炸弹只打「已标记移除」，
 *         下一遍压缩时移除。存活实体的相对顺序不变（绘制顺序稳定），没有空闲链表。
 *
-*         口径（SW7 2.2 节与 4.5 节第 3 条）：
+*         口径（sw 第 06 章 3.5 节）：
 *           - x, y 是实体**中心**，Q.8；vx, vy 每帧加一次。
 *           - 画图时目的左上角取 (x >> 8) - w/2，见 stg_draw_origin()。
 *           - 出界：中心落在游戏区四周外扩 STG_MARGIN_PX 之外，半开区间，见 stg_bounds_field()。
 *           - 池满时拒绝，溢出计数加一（进 SW8 的 CSV）。
 *
-*         没有文件级的可变状态：池的描述与存储都在调用方给的结构体里（SW7 2.8 节）。
+*         没有文件级的可变状态：池的描述与存储都在调用方给的结构体里（sw 第 06 章 3.5 节）。
 *         更新循环只做加法与比较，不调函数指针、没有除法（设计文档 4.4 节的实现约束）。
 *
-*         碰撞（SW7 2.4 节）：自机判定点对敌弹见 stg_pool_collide()，自机弹对敌机见 stg_pool_hit_targets()；
+*         碰撞（sw 第 06 章 3.8、3.10 节）：自机判定点对敌弹见 stg_pool_collide()，自机弹对敌机见 stg_pool_hit_targets()；
 *         炸弹消弹见 stg_pool_cancel()，粒子寿命见 stg_pool_age()（C 批，2.2、2.4 节）；
-*         SW8 自动驾驶的危险度扫描见 stg_pool_danger()（C 批，SW8 2.6 节）；
+*         SW8 自动驾驶的危险度扫描见 stg_pool_danger()（C 批，sw 第 07 章 3.10 节）；
 *         按池发出（2.6 节）见 stg_pool_draw()。这些逐颗的循环里没有除法与取模、
 *         没有函数指针调用，check_sw7_game.sh 用 objdump 查板上构建。
 *
@@ -46,7 +46,7 @@
 #include "core/fixmath.h"
 #include "gfx/gfx.h"
 
-/* 容量。**存储上限，不是 60 FPS 下的 N_max**（SW7 2.2 节）。 */
+/* 容量。**存储上限，不是 60 FPS 下的 N_max**（sw 第 06 章 3.5 节）。 */
 #define STG_CAP_EBULLET     16384u
 #define STG_CAP_PBULLET     256u
 #define STG_CAP_ENEMY       64u
@@ -58,7 +58,7 @@
 #define STG_F_NOCANCEL      0x0020u     /* [5]   不可消除（炸弹不消它） */
 #define STG_F_REMOVE        0x8000u     /* [15]  已标记移除，下一遍压缩时移除 */
 
-/* 游戏区与出界外扩。外扩取最大弹图的半宽：米弹 20x20，10 像素（SW7 2.7 节）。 */
+/* 游戏区与出界外扩。外扩取最大弹图的半宽：米弹 20x20，10 像素（sw 第 06 章 3.5 节）。 */
 #define STG_FIELD_W         400
 #define STG_FIELD_H         480
 #define STG_MARGIN_PX       10
@@ -129,7 +129,7 @@ void     stg_pool_step(stg_pool *p, const stg_bounds *b, stg_step_stats *st);
 /* 给第 i 个实体打「已标记移除」，下一遍移除。i 越界时什么也不做。 */
 void     stg_pool_mark(stg_pool *p, uint32_t i);
 
-/* --- 碰撞：自机判定点对敌弹（SW7 2.4 节） --------------------------------- */
+/* --- 碰撞：自机判定点对敌弹（sw 第 06 章 3.8 节） --------------------------------- */
 
 /* 自机探针。坐标与半径都是 Q.8。 */
 typedef struct {
@@ -156,7 +156,7 @@ typedef struct {
 void     stg_pool_collide(stg_pool *p, const int32_t *r_kind, const stg_probe *pr,
                           stg_hit_stats *st);
 
-/* --- 碰撞：自机弹对敌机（SW7 2.4 节，C 批） --------------------------------- */
+/* --- 碰撞：自机弹对敌机（sw 第 06 章 3.10 节，C 批） --------------------------------- */
 
 /* 目标圆。坐标与半径都是 Q.8。 */
 typedef struct {
@@ -181,7 +181,7 @@ uint32_t stg_pool_cancel(stg_pool *p, stg_pool *sparks, int32_t svx, int32_t svy
 /* 粒子寿命：帧号当剩余寿命，每遍减一，减到 0 打移除标记（下一遍压缩时移除）；已标记的跳过。 */
 void     stg_pool_age(stg_pool *p);
 
-/* --- 按池发出（SW7 2.6 节） ------------------------------------------------ */
+/* --- 按池发出（sw 第 06 章 3.9 节） ------------------------------------------------ */
 
 /* 一个弹种的画图几何：图宽高（像素）与源图每行 2^cols_log2 格。 */
 typedef struct {
@@ -199,7 +199,7 @@ typedef struct {
 uint32_t stg_pool_draw(const stg_pool *p, uint32_t kind, const stg_draw_geom *g,
                        const gfx_rect *clip, uint32_t *cursor, gfx_blit_pos *out, uint32_t cap);
 
-/* --- 自动驾驶的危险度（SW8 2.6 节，C 批） ----------------------------------- */
+/* --- 自动驾驶的危险度（sw 第 07 章 3.10 节，C 批） ----------------------------------- */
 
 #define STG_DANGER_MAX      9u
 

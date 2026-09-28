@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file nmax.h: N_max 搜索的状态机
 *
-* @brief  SW8 2.3 节（口径与 4.9 节的五处定法）。纯状态机：每帧喂一次
+* @brief  sw 第 07 章 3.5 节。纯状态机：每帧喂一次
 *         「这一帧经过了几场 e（不小于 1）、活动元素数、帧时间」，吐出事件；
 *         不认识弹幕场、不碰板子，所以同一份代码在 PC 的模拟时钟与板上的真实周期下都能跑。
 *
@@ -107,7 +107,7 @@ typedef struct {
     uint32_t       settle_timeouts;     /* 涨潮超时的档数 */
 } nmax_state;
 
-/* B 批的取值（SW8 2.3 节）：N0 64、STEP_MIN 16、T_PROBE 120 场、T_CONFIRM 3600 场、
+/* B 批的取值（sw 第 07 章 3.5 节）：N0 64、STEP_MIN 16、T_PROBE 120 场、T_CONFIRM 3600 场、
    SETTLE_MIN 125 帧（定寿命负载的寿命）、SETTLE_FRAMES 30、SETTLE_ABS 2、SETTLE_MAX 600 场、
    CONFIRM_RETRY 3、KNOB_MAX 16000。 */
 void        nmax_cfg_default(nmax_cfg *c);

@@ -174,7 +174,7 @@ run: $(TARGET)
 # sanitizer（SAN32=1 可以强行打开）。
 #
 # 链 -lm：数值基础那一组（lib/test/test_fixmath.c）拿双精度的 sin、atan2 当参考，
-# 双精度只出现在测试里（SW7 2.1 节与 4.5 节第 6 条）。
+# 双精度只出现在测试里（sw 第 06 章 3.4 节）。
 #
 # 录像那一组要先跑一次转换脚本：`lib/test/replay_fixture.g2dr` 是入库的输入，
 # 生成的 C 数组落在 $(OBJDIR)/test/ 里、不入库。脚本进判据路径而不是一次性生成器，

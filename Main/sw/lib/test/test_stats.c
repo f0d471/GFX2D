@@ -1,7 +1,7 @@
 /******************************************************************************
-* @file test_stats.c: 统计基础件（SW8 2.2、2.4 节）的主机侧测试
+* @file test_stats.c: 统计基础件（sw 第 07 章 3.3、3.4 节）的主机侧测试
 *
-* @brief  帧时间直方图（lib/core/framehist），判据见 Engineering/Todo/sw/SW8-演示模式与统计埋点.md
+* @brief  帧时间直方图（lib/core/framehist），判据见 Engineering/TechReports/sw/07-演示模式与统计埋点.md
 *         第 3 节「帧时间直方图（A 批）」一行：
 *           H1  桶的边界：与「满足 t·128 >= b·F 的最小 t」二分查找的结果逐个相同（不用 ceil 公式）；
 *               桶边界两侧各一例；不小于 2 场的样本进最后一个桶

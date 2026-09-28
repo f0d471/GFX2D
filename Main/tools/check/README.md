@@ -155,7 +155,7 @@ PC 平台层（[sw 第 03 章](../../../Engineering/TechReports/sw/03-PC平台�
 wsl -e bash -c 'bash Main/tools/check/check_sw5_assets.sh'
 ```
 
-素材流水线的结构判据，九项，见 [`SW5-素材流水线.md`](../../../Engineering/Todo/sw/SW5-素材流水线.md) 第 3 节：
+素材流水线的结构判据，九项，见 [sw 第 04 章](../../../Engineering/TechReports/sw/04-素材流水线.md) 3.12 节：
 
 | 项 | 内容 |
 | --- | --- |
@@ -173,7 +173,7 @@ wsl -e bash -c 'bash Main/tools/check/check_sw5_assets.sh'
 报的是板级读错误 `board_read`（`-2`）。解析器自己的 `bad_total` 由主机侧单测
 （`sw/lib/test/test_assetpak.c` 的 B09/B26）与第 5g 条覆盖。不需要板子与交叉工具链；
 板上那一条（Flash 启动 → 读出长度与整包 CRC → 画出已知图块 → 破坏一项后拒绝并报 ID）
-需在板上单独执行，见 SW5 第 3 节。
+需在板上单独执行，见 sw 第 04 章 3.13 节。
 
 ## check_sw5_pak.py
 
@@ -194,7 +194,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw6_demo.sh'
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> SW6_QUICK=1 bash Main/tools/check/check_sw6_demo.sh'      每段每遍只跑 120 帧
 ```
 
-基础 Demo（[SW6](../../../Engineering/Todo/sw/SW6-基础Demo.md)）的十项结构判据。开头先跑
+基础 Demo（[sw 第 05 章](../../../Engineering/TechReports/sw/05-基础Demo.md)）的十项结构判据。开头先跑
 `assets/pack_assets.py`（`assets.h` 与 `assets.pak` 是生成物、不入库）。默认构建是**演示模式**，
 所以每一项都用 `EXTRA_CFLAGS=-DSW6_JUDGE=1` 构建判据模式；`SW6_QUICK=1` 时另加
 `-DSW6_FRAMES=120` 并把期望日志换成 `logs/sw6_judge_quick.log`。
@@ -214,7 +214,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> SW6_QUICK=1 bash Main/tools/check/check_sw
 
 全量一次约 2 分 40 秒，`SW6_QUICK=1` 约 2 分 10 秒（2026-09-24 实测，带 `RISCV_BIN`，含 D2c 与两种板上构建；
 D2 与 D4 在全量档各跑 1226 帧，约 22 秒一遍；D5、D9、D10 两档都用快速档的帧数）。
-**本脚本不上板**：板上对账按 SW6 第 3 节「板上对账」用 `tools/board/board_run.py --bin`
+**本脚本不上板**：板上对账按 sw 第 05 章 3.13 节用 `tools/board/board_run.py --bin`
 单独跑判据模式快速档，再用 `check_sw6_log.py --board <串口日志> logs/sw6_judge_quick.log`
 对账，原始串口日志入库 `logs/sw6_board_quick.log`。
 
@@ -239,8 +239,8 @@ wsl -e python3 Main/tools/check/check_sw6_log.py --board <串口日志> <期望>
 （行里不出现字符本身，按空白切分即可），`hcrc` 那条按 `Main/assets/font/ascii8x16.txt`
 与本行的 `n`／`k`／`hud` 字段独立重画整块 HUD 矩形再算 CRC——C 侧与 Python 侧各算一遍，
 两边都对才说明 HUD 的路径（字形、位置、数字、`--`、纯黑底）没写歪。
-字库解析照 `pack_assets.py` 的规则：`#` 后跟空白才是注释，`########` 是合法像素行（SW5 4.21 第 1 条踩过）。
-只用标准库（`zlib.crc32` 与 `lib/core/crc32` 同参，SW5 4.10 节对过账）。
+字库解析照 `pack_assets.py` 的规则：`#` 后跟空白才是注释，`########` 是合法像素行（sw 第 04 章 4.13 节踩过）。
+只用标准库（`zlib.crc32` 与 `lib/core/crc32` 同参，sw 第 04 章 3.6 节）。
 
 ## gen_sw6_replay.py
 
@@ -250,7 +250,7 @@ wsl -e python3 Main/tools/check/gen_sw6_replay.py --out <目录>
 wsl -e python3 Main/tools/check/gen_sw6_replay.py --to-text  打成录制文本（给人看）
 ```
 
-SW6 两段确定性录像的生成器，形状是 spec 定死的（SW6 2.5 节与 4.11 第 8 条）：
+SW6 两段确定性录像的生成器，形状是 spec 定死的（sw 第 05 章 3.10 节）：
 A 停 10 帧、上键 49 次升到 N=5000、停 30 帧、下键 49 次回到 100、停 10 帧，共 246 帧；
 B 停 31 帧、下键 29 次降到 k=1、停 30 帧、上键 119 次升到 120、停 10 帧，共 367 帧。
 每步「按 1 帧、松 1 帧」，应用按按下沿判，两帧一步。
@@ -265,7 +265,7 @@ B 停 31 帧、下键 29 次降到 k=1、停 30 帧、上键 119 次升到 120�
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh'
 ```
 
-判据见 `Engineering/Todo/sw/SW7-游戏本体.md` 第 3 节，口径见 2.1~2.6 节与 4.5、4.11、4.17 节。不要板子；
+判据与口径见 `Engineering/TechReports/sw/06-游戏本体.md` 第三节与第五节。不要板子；
 要主机 gcc、`gcc-multilib`、`libsdl2-dev`（`mk/host.mk` 解析时就要 `sdl2-config`）、`python3` 与 Pillow（G10 先打包素材）；
 G11 要交叉工具链，找不到时跳过，跳过不算通过。全套在本机约十几分钟，其中 G16 的重新搜索约 5 分钟（`SW7_SKIP_SEARCH=1` 跳过，跳过不算通过）。
 
@@ -286,12 +286,12 @@ G11 要交叉工具链，找不到时跳过，跳过不算通过。全套在本�
 | G11 | `STG_FIELD=1`、`2`、`4` 的板上构建零告警；`objdump -d` 查七个逐颗的循环 `stg_pool_step`、`stg_pool_collide`、`stg_pool_draw`、`stg_pool_hit_targets`、`stg_pool_cancel`、`stg_pool_age`、`stg_pool_danger`（SW8 自动驾驶的危险度扫描）：没有 `div`/`divu`/`rem`/`remu`、没有 `__div*`/`__mod*` 调用、没有 `ret` 以外的 `jalr`/`jr`；注错 `STG_LOOP_DIV`、`PHIT_LOOP_DIV`、`AGE_LOOP_DIV`、`DANGER_LOOP_DIV` 各在 `stg_pool_step`、`stg_pool_hit_targets`、`stg_pool_age`、`stg_pool_danger` 里加一次除法，这条检查必须在那个函数上见红。要 `RISCV_BIN`，找不到时跳过，跳过不算通过 |
 | G12 | 自机与规则：G4 的输出里 R 组 28 行全 ok（移动、射击节奏、受击与无敌、自动炸弹与火花、手动炸弹的按下沿、粒子溢出、回标题与 HI-SCORE、擦弹得分、自机弹对敌机的边界与随机对 64 位朴素参考、粒子寿命与弹种位图） |
 | G12i | `GAME_NO_AUTOBOMB` 让 R4 见红，`GAME_NO_INVINCIBLE` 让 R3 的无敌那一行见红，`PHIT_LE` 让 R9 的相切那一行见红 |
-| G13 | 敌机、Boss 与关卡：G4 的输出里 S 组 21 行全 ok（表、移动事件表与出界、槽位、击毁、整局各段开始帧对 SW7 2.5 节的常量另算、射击时走到 CLEAR 与得分另算、Boss 路径与间隙不受伤、压力形态、旋钮加倍时稳态弹数不减、改档之后到达稳态不超过 `SETTLE_MIN`、游戏里的门控、背景） |
+| G13 | 敌机、Boss 与关卡：G4 的输出里 S 组 21 行全 ok（表、移动事件表与出界、槽位、击毁、整局各段开始帧对 sw 第 06 章 3.11 节的常量另算、射击时走到 CLEAR 与得分另算、Boss 路径与间隙不受伤、压力形态、旋钮加倍时稳态弹数不减、改档之后到达稳态不超过 `SETTLE_MIN`、游戏里的门控、背景） |
 | G13i | `CARD_TIMEOUT_GT` 让 S5 的各段开始帧见红，`GATE_NO_ACC` 让 S11 见红（`-m32` 构建，整局跑得快） |
 | G14 | 霓虹素材：`Main/tools/assets/gen_stg_neon.py` 连跑两次，12 张 PNG 逐字节相同；`--check` 重新生成与入库的 `Main/assets/neon/` 逐像素相同（比像素不比 PNG 字节：压缩流随 Pillow 与 zlib 的版本变）；注错 `--check --inject` 改一个像素必须见红 |
 | G14f | 字库：`Main/tools/assets/gen_font_txt.py --check` 由入库的 `Main/assets/font/spleen-8x16.bdf` 重新生成字库文本，与入库的 `ascii8x16.txt` 逐字节相同；注错 `--check --inject` 改一个像素必须见红 |
 | G15 | 游戏的组帧与判据入口：G4 的输出里 V 组 5 行全 ok（共用文字绘制与逐字 `gfx_blit` 逐字节相同、3000 帧组帧的普查对账）；`-DSTG_FIELD=4` 的 PC 版无窗口、`GFX2D_UNPACED=1` 跑两遍，日志逐字节相同、`fail 0`、没有 `err` 行、九行 `seg` 齐全（READY、STAGE、BOSS、四张符卡、CLEAR、回到 READY） |
-| G15i | `INJECT=STG_LIVE_HUD` 以 `-DSTG_FRAMES=1200` 跑两遍，日志必须不同（实时量进了画面，整帧 CRC 就不可复现） |
+| G15i | `INJECT=STG_LIVE_HUD` 以 `-DSTG_FRAMES=1200` 跑一遍，`g` 行与 G15 正常那一遍的前 1200 帧比：第 0 帧相同，第一个完整的一秒之后必须不同（实时量进了画面，整帧 CRC 就随墙钟变）。原来是注错版自己跑两遍互比，机器安静时两遍可能恰好一样而假红，2026-09-28 改 |
 | G16 | 工具辅助的通关录像 `apps/game/gfx2dGame/replay/stg_clear.g2dr`：a 搜索器 `gen_stg_clear.c` 以 `-Werror` 编过，按录像从头跑一遍走到 `CLEAR`、残机没用完、帧恰好用完；b 搜索器重新搜一遍，产物与入库的逐字节相同（约 5 分钟，`SW7_SKIP_SEARCH=1` 跳过，跳过不算通过）；c 以 `EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_REPLAY=1"` 编 PC 版，无窗口、`GFX2D_UNPACED=1` 回放两遍：整份日志逐字节相同、`fail 0`，`seg`、`clear`、`end` 三种行与搜索器的摘要逐行相同 |
 | G16i | `INJECT=REPLAY_KEY`（第 200~203 帧的按键换成别的方向）：逐帧日志必须恰好从第 200 帧起不同，摘要也必须与搜索器不同 |
 | G17 | S1 规模：默认构建以 `GFX2D_START_MODE=3`、`GFX2D_PRESS_KNOB=1744`、`GFX2D_FRAMES=1200` 编，无窗口按 60 Hz 跑 20 秒（`GFX2D_SNAPSHOT=900` 截帧）：第 10 秒以后每秒的抽样帧敌弹不少于 1900、溢出 0、`fail 0`、截出 640×480 的图；方程像素的均值作登记 |
@@ -319,7 +319,7 @@ wsl -e python3 Main/tools/check/gen_stg_patterns.py --dump SEG FRAME   某段某
 wsl -e python3 Main/tools/check/gen_stg_patterns.py --compare C_TRACE [--expect F] [--c-bin stgTest]
 ```
 
-只用标准库，只照 `Engineering/Todo/sw/SW7-游戏本体.md` 2.1~2.3 节写，不读 C 的源码与生成物。
+只用标准库，只照 `Engineering/TechReports/sw/06-游戏本体.md` 3.4、3.5、3.7 节写，不读 C 的源码与生成物。
 C 的轨迹由 app 测试 `stgTest pat` 打出（格式写在 `test/test_stg_emit.c` 的文件头），`stgTest dump SEG FRAME` 打某一帧的全部敌弹。
 `--compare` 一致时末行 `compare ok`、退出码 0；不一致时退出码 1，给了 `--c-bin` 就两边各 dump 第一个不同帧、打出第一颗不同的弹。
 
@@ -350,7 +350,7 @@ gcc -O2 -std=gnu11 -Wall -Wextra -Werror -IMain/sw/lib -I$A/src -o gen_stg_clear
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh'
 ```
 
-判据见 `Engineering/Todo/sw/SW8-演示模式与统计埋点.md` 第 3 节，口径见 2.1~2.4 节与 4.4、4.9、4.12、4.13 节。
+判据与口径见 `Engineering/TechReports/sw/07-演示模式与统计埋点.md` 第三节与第五节。
 要主机 gcc、`gcc-multilib`、`libsdl2-dev`、`python3` 与 Pillow（M9 先打包素材）；M6 要交叉工具链，找不到时跳过，跳过不算通过。
 M12 在本机约 7 分钟、M14 约 10 分钟，全套约 20 多分钟；`SW8_SKIP_LONG=1` 跳过 M14（跳过不算通过）。
 

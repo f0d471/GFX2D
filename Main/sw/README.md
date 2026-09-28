@@ -143,7 +143,7 @@ wsl -e bash -c 'cd sw && make -f mk/host.mk gen-golden'
   转成 C 数组放进 `$(OBJDIR)/test/`，再与直接解析 `.g2dr` 的结果逐帧对账。
   **脚本进判据路径而不是一次性生成器**，这样这条判据测的是转换本身。它需要 `python3`。
 
-- 数值基础那一组（`lib/test/test_fixmath.c`，[SW7](../../Engineering/Todo/sw/SW7-游戏本体.md) 2.1 节）不用开关：
+- 数值基础那一组（`lib/test/test_fixmath.c`，[sw 第 06 章](../../Engineering/TechReports/sw/06-游戏本体.md) 3.4 节）不用开关：
   拿 libm 的双精度 `sin`、`atan2` 当参考，所以 `test` 目标链 `-lm`；双精度只出现在测试里。
   正弦表 `lib/core/sin_tab.c` 是 `Main/tools/check/gen_sin_tab.py` 的产物，不手改。
   四个注错开关各让指定的行见红：
@@ -153,20 +153,20 @@ wsl -e bash -c 'cd sw && make -f mk/host.mk test INJECT=FX_IDX_TRUNC'   # FX_VEL
 wsl -e bash -c 'bash Main/tools/check/check_sw7_game.sh'                # 重生成正弦表比对、64/32 比对、四个注错
 ```
 
-- 批量提交那一组（`lib/test/test_blit_run.c`，SW7 2.6 节）不用开关：随机 1000 组，`gfx_blit_run()` 与逐条
+- 批量提交那一组（`lib/test/test_blit_run.c`，sw 第 06 章 3.6 节）不用开关：随机 1000 组，`gfx_blit_run()` 与逐条
   `gfx_blit()` 的缓冲区与计数逐字节相同；另有 200 组在两次调用之间改写表面表。
   注错 `INJECT=BLIT_RUN_W7`、`BLIT_RUN_SXY`、`BLIT_RUN_NO_FALLBACK`，由 `check_sw7_game.sh` 的 G6 跑。
 
-- 普查那一组（`lib/test/test_census.c`，[SW8](../../Engineering/Todo/sw/SW8-演示模式与统计埋点.md) 2.4 节）不用开关：
+- 普查那一组（`lib/test/test_census.c`，[sw 第 07 章](../../Engineering/TechReports/sw/07-演示模式与统计埋点.md) 3.2 节）不用开关：
   `lib/gfx/census` 按方程数出的条数与面积，在十一个整帧用例与随机合法命令表上与软件执行器的 `cmd`、`pixel_total` 对账，
   注错 `INJECT=CENSUS_NO_SETCLIP`、`CENSUS_NO_SURF`。
-  同一文件里还有模拟时钟（`gfx_cost_cycles`，SW8 2.2 节）的手算样例与单调性，注错 `INJECT=COST_NO_B`。
-  帧时间直方图那一组在 `lib/test/test_stats.c`（`lib/core/framehist`，SW8 2.2 节），注错 `INJECT=FHIST_P99_LOWER`、`FHIST_DROP_OVER`；
-  同一文件里还有日志队列（`lib/core/logq`，SW8 2.4 节）对一份线性参考的随机比对，注错 `INJECT=LOGQ_SPLIT`、`LOGQ_WRAP`。
-  `board.h` 的 `board_tx_room()`（SW8 2.4 节）PC 实现要 SDL，进不了 `lib/test`，由主机探针
+  同一文件里还有模拟时钟（`gfx_cost_cycles`，sw 第 07 章 3.4 节）的手算样例与单调性，注错 `INJECT=COST_NO_B`。
+  帧时间直方图那一组在 `lib/test/test_stats.c`（`lib/core/framehist`，sw 第 07 章 3.4 节），注错 `INJECT=FHIST_P99_LOWER`、`FHIST_DROP_OVER`；
+  同一文件里还有日志队列（`lib/core/logq`，sw 第 07 章 3.3 节）对一份线性参考的随机比对，注错 `INJECT=LOGQ_SPLIT`、`LOGQ_WRAP`。
+  `board.h` 的 `board_tx_room()`（sw 第 07 章 3.3 节）PC 实现要 SDL，进不了 `lib/test`，由主机探针
   `Main/tools/check/check_sw8_tx.c` 链真实的 `bsp/host/board.c` 测：PC 上默认不限，
   设 `GFX2D_TX_BUDGET=N` 时按场补满额度、`board_puts()` 从额度扣，退出时在 stderr 打超额汇总。
-  `N_max` 搜索的状态机（`lib/core/nmax`，SW8 2.3 节）在 `lib/test/test_nmax.c`：综合负载下对解析解、单调、下界、上限、
+  `N_max` 搜索的状态机（`lib/core/nmax`，sw 第 07 章 3.5 节）在 `lib/test/test_nmax.c`：综合负载下对解析解、单调、下界、上限、
   涨潮超时、确认期尖峰与重试用完，注错 `INJECT=NMAX_BISECT_SIDE`、`NMAX_NO_STEPBACK`、`NMAX_NO_SETTLE`。
   SW8 的判据串起来跑的是（`RISCV_BIN` 给了才做板上构建那一项，跳过不算通过）：
 
@@ -196,12 +196,12 @@ SW6 起它是**基础 Demo**（赛题基础要求 3），SW8 C 批起默认构�
 上 + 下按住 8 帧切下一个模式，左 + 右按住 8 帧切后端，松开之后才会再触发。模式 2 里连续 600 帧无按键时自动驾驶接管，
 任何按键立即交还。每次进入一个模式，第一帧之后打一行
 `mode <m> enter frame <帧号> crc <整帧 CRC32> pool <四个池> clip <裁剪框>`。
-每 60 场打一行统计 CSV（`csvh,` 表头、`csv,` 每秒一行、结束时 `csvsum,` 汇总，列见 SW8 2.4 节）；
+每 60 场打一行统计 CSV（`csvh,` 表头、`csv,` 每秒一行、结束时 `csvsum,` 汇总，列见 sw 第 07 章 3.9 节）；
 这些行与框架自己的行先进日志队列，每帧只取出 `board_tx_room()` 那么多字节（模式 1 里 SW6 的逐帧日志照旧直接打）。
 `-DSW6_JUDGE=1` 是**判据模式**：不走模式框架，不读实时按键，按入库的两段录像各回放两遍，逐帧打日志与入库期望值对账。
 
 判据、日志格式与逐帧契约见
-[`../../Engineering/Todo/sw/SW6-基础Demo.md`](../../Engineering/Todo/sw/SW6-基础Demo.md)；
+[`../../Engineering/TechReports/sw/05-基础Demo.md`](../../Engineering/TechReports/sw/05-基础Demo.md)；
 跑全部十项判据用 `Main/tools/check/check_sw6_demo.sh`。
 
 ```
@@ -250,7 +250,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> SW6_QUICK=1 bash Main/tools/check/check_sw
 | `sw6_judge.log` | 判据模式**全量**一遍的期望值：1236 行（`gfx2dGame SW6`、`pak`、三行 `scene`、`eq P`、A 两遍各 246 帧、B 两遍各 367 帧、两行 `eq A`、`fail 0`、`done`） |
 | `sw6_judge_quick.log` | 快速档（`-DSW6_FRAMES=120`）的期望值；它的逐帧行按段、按遍必须是全量档的前缀 |
 | `sw6_board_quick.log` | 板上判据模式快速档的串口原始输出（2026-09-28，产物 77,158 字节、sha256 前 16 位 `cb5af521cc1d6a34`，素材由程序从 Flash 读 `pak 2840320 b370ba0a`）：`fail 0`，从 `pak` 行起 489 行去掉 `cyc` 后与 `sw6_judge_quick.log` 逐行相同 |
-| `sw8_stats_demo.log`、`sw8_stats_game.log`、`sw8_stats_s1.log`、`sw8_stats_press.log` | SW8 第一版统计与出图的四份样例（PC、无窗口、按 60 Hz 节拍）：模式 1 的 1300 帧、模式 2 无人操作 5400 帧、S1 规模（`GFX2D_PRESS_KNOB=1744`）1800 帧、模式 3 两遍搜索；`Main/tools/stats/plot_stats.py` 由它们画出 `Deliverables/Assert/figures/sw8_*.png`，录制开关见 SW8 开发日志 4.18 节。CSV 里的帧时间与周期数是 PC 的墙钟，只验证流程 |
+| `sw8_stats_demo.log`、`sw8_stats_game.log`、`sw8_stats_s1.log`、`sw8_stats_press.log` | SW8 第一版统计与出图的四份样例（PC、无窗口、按 60 Hz 节拍）：模式 1 的 1300 帧、模式 2 无人操作 5400 帧、S1 规模（`GFX2D_PRESS_KNOB=1744`）1800 帧、模式 3 两遍搜索；`Main/tools/stats/plot_stats.py` 由它们画出 `Deliverables/Assert/figures/sw8_*.png`，录制开关见 sw 第 07 章 3.11 节。CSV 里的帧时间与周期数是 PC 的墙钟，只验证流程 |
 | `pc_normal.log`、`pc_inject.log`、`board_normal.log`、`board_inject.log` | **SW1 骨架的旧日志**，原地保留：它们是 60 帧图案那个版本的产物，当前二进制不再产生它们，**不要拿它们当期望值**。SW1 的记述在 [sw 第 01 章](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md) |
 
 固定值（`logs/sw6_judge.log` 的头几行与第 0 帧）：
@@ -271,7 +271,7 @@ f 0 A p 1 s - keys 00000000 n 100 k 0 cmd 159 pix 391496 ksk 5935 hud - - off 4 
 - A 段第 106 帧起 `n 5000`；N=5000 时 `cmd` 约 5067（每张命令表上限 32768 条）。
 - `scene i` 是三张离屏图预合成后的参考值；B 段每个 `f` 行的 `scrc` 等于它本帧 `s` 那一张。
 - `scrc` 是**排除 HUD 矩形**（`x=400..639, y=0..159`）后的场景区 CRC，`crc` 是整帧，
-  `hcrc` 是 HUD 矩形本身；三者都逐行喂、跳过行跨间隙，口径见 SW6 2.7 节。
+  `hcrc` 是 HUD 矩形本身；三者都逐行喂、跳过行跨间隙，口径见 sw 第 05 章 3.11 节。
 - 判据模式下 HUD 的实时量（`SW FPS` 与三段耗时）显示 `--`：实测值进画面，
   同一份输入两次就跑不出相同的整帧 CRC。演示模式显示实测值。
 
@@ -297,14 +297,14 @@ Flash 旧程序在 `reset halt` 之前的输出都跳过。这一步是 SW9 之�
 
 `EXTRA_CFLAGS=-DSTG_FIELD=<n>` 编出 SW7 B 批的弹幕场（五种弹型、静止自机；C 批起用游戏的霓虹素材与表面槽）或游戏的判据入口，
 启动横幅换成 `gfx2dGame STG`；不给这个开关时仍是上面的 SW6，行为与日志不变。口径见
-[`SW7-游戏本体.md`](../../Engineering/Todo/sw/SW7-游戏本体.md) 2.3、2.6 节。
+[sw 第 06 章](../../Engineering/TechReports/sw/06-游戏本体.md) 3.7、3.9 节。
 
 | n | 是什么 |
 | --: | --- |
 | 1 | 演示：圆环、螺旋、自机狙、扇形、随机雨各 300 帧轮流，再是五个一起的合并段 600 帧，循环；每 60 帧一行 `d`（活动元素数与三段周期数） |
 | 2 | 判据：不读按键，五段各 120 帧、合并段 240 帧，每段一行 `seg`、每帧一行 `f`（帧号、段号、四个池的存活数、活动元素数、本段累计的命中与擦弹、游戏区 400×480 的 CRC），末尾 `fail`、`done`；每帧自查追加的拒绝数为 0、普查的 ALPHA 条数等于发出的敌弹数 |
-| 3 | `N_max` 搜索（SW8 2.3 节）：无窗口、不执行命令表、不呈现，只做普查与模拟时钟，16×16 与 8×8 两种负载各搜一遍，打 `nmax cfg`、逐档 `nmax probe` 与 `nmax result`；结果不是 `OK` 记一次 fail。PC 上约 1.5 秒 |
-| 4 | 游戏的判据入口（SW7 2.6 节）：输入是固定的按键脚本（`src/game/stg_script.c`），受击默认关掉（`-DSTG_JUDGE_HITS=1` 打开），跑完一局回到标题为止（约 10,185 帧）。每段一行 `seg <帧号> <段名>`，每帧一行 `g`（阶段、段号、三个池的存活数、五类活动元素、残机、炸弹、得分、擦弹、整帧 640×480 的 CRC），末尾 `fail`、`done`；每帧自查追加的拒绝数为 0、普查的各方程条数等于组帧记下的。HUD 的实时量一律 `--` |
+| 3 | `N_max` 搜索（sw 第 07 章 3.6 节）：无窗口、不执行命令表、不呈现，只做普查与模拟时钟，16×16 与 8×8 两种负载各搜一遍，打 `nmax cfg`、逐档 `nmax probe` 与 `nmax result`；结果不是 `OK` 记一次 fail。PC 上约 1.5 秒 |
+| 4 | 游戏的判据入口（sw 第 06 章 3.13 节）：输入是固定的按键脚本（`src/game/stg_script.c`），受击默认关掉（`-DSTG_JUDGE_HITS=1` 打开），跑完一局回到标题为止（约 10,185 帧）。每段一行 `seg <帧号> <段名>`，每帧一行 `g`（阶段、段号、三个池的存活数、五类活动元素、残机、炸弹、得分、擦弹、整帧 640×480 的 CRC），末尾 `fail`、`done`；每帧自查追加的拒绝数为 0、普查的各方程条数等于组帧记下的。HUD 的实时量一律 `--` |
 
 ```
 # 演示：窗口里看五种弹型轮流（绿色方块是静止的自机）
@@ -332,7 +332,7 @@ wsl -e bash -c 'cd sw/apps/game/gfx2dGame && SDL_VIDEODRIVER=dummy GFX2D_UNPACED
   stderr 里打一行 `board: snapshot k -> 路径`。不改 `board.h`，也不改应用的输出，任何应用都能用。
 - `GFX2D_UNPACED=1` 也只在 PC 的 `bsp/host` 里有：`board_present()` 照常上传、计数、截帧，但不等下一个场起始；
   `board_wait_frame()` 也不等。场号仍按墙钟走，所以不等场时场数增量没有意义；只给判据入口这类不看帧率的运行用。
-- `STG_FIELD=3` 的期望输出（2026-09-26，B 批的常量与模拟时钟模型，见 SW8 2.3 节）：
+- `STG_FIELD=3` 的期望输出（2026-09-26，B 批的常量与模拟时钟模型，见 sw 第 07 章 3.6 节）：
 
   ```
   nmax result OK n_max 2429 knob 2448 ft_max 1659652 ft_p99 1659652 probes 15 timeouts 0

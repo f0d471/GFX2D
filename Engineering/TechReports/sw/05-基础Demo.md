@@ -425,7 +425,7 @@ PC 上 `board_present()` 是把缓冲拷成纹理，看不出任何现象。快�
 **第一现场**（实现那一轮的检查脚本输出）：
 
 ```
-没有 riscv-none-elf-gcc，跳过板上目标构建（板上对账见 SW6 第 3 节，验收时补）
+没有 riscv-none-elf-gcc，跳过板上目标构建（板上对账见 3.13 节，验收时补）
 装上 xPack riscv-none-elf-gcc 13.4.0 后：RISCV_BIN=riscv-none-elf- bash ...
 ```
 

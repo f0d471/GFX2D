@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """gen_sw6_replay.py —— 生成 SW6 基础 Demo 的两段确定性录像
 
-按键序列的形状是 spec 定死的（Engineering/Todo/sw/SW6-基础Demo.md 2.5 节与 4.11 第 8 条）：
+按键序列的形状是 spec 定死的（Engineering/TechReports/sw/05-基础Demo.md 3.10 节）：
 
     A   停 10 帧；上键 49 次（每次按 1 帧、松 1 帧）把 N 从 100 升到 5000；
         在 5000 停 30 帧；下键 49 次回到 100；停 10 帧。共 246 帧。

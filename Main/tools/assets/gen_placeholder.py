@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""生成占位素材 PNG（SW5 2.5 节）。
+"""生成占位素材 PNG（sw 第 04 章 3.9 节）。
 
 占位素材由脚本生成，不涉及第三方许可；产物入库，打包就不必先跑本脚本。
 所有图案都是确定性的：同一个版本的 Pillow 与同一份脚本产出逐字节相同的 PNG，
@@ -9,7 +9,7 @@
     python3 Main/tools/assets/gen_placeholder.py            # 生成到 Main/assets/placeholder/
     python3 Main/tools/assets/gen_placeholder.py --check    # 只校验现有 PNG 与预期像素一致
 
-判据与用法见 Engineering/Todo/sw/SW5-素材流水线.md 2.5 节。
+判据与用法见 Engineering/TechReports/sw/04-素材流水线.md 3.9 节。
 """
 
 import argparse
@@ -40,7 +40,7 @@ def bg_checker(w=128, h=128, cell=16):
     """16 像素棋盘的可平铺小块（128×128），纯不透明，由应用重复 BLIT 铺满屏幕。
 
     首版素材方案只要一张 640×480 整图（1.875 MiB），棋盘做成小块，
-    否则两张整图就吃掉 4 MiB 分区的 96%（SW5 4.6 节的容量实算）。
+    否则两张整图就吃掉 4 MiB 分区的 96%（sw 第 04 章 3.4 节的容量实算）。
     """
     im = Image.new("RGB", (w, h))
     px = im.load()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""gen_stg_neon.py —— 生成游戏的霓虹几何素材 PNG（SW7 2.7 节）
+"""gen_stg_neon.py —— 生成游戏的霓虹几何素材 PNG（sw 第 06 章 3.12 节）
 
 主题照 G2 定案与决策页效果图：底色 #02040A，四种弹色青 #35F2FF、品红 #FF4FD8、琥珀 #FFB23E、绿 #8DFF6A，
 自机 #A8FBFF，火花 #FFC45A，HUD 标签的青色 #4FD8F2。光晕是径向渐变、弹芯是白心加色环，线框是折线。
@@ -52,7 +52,7 @@ CYAN = (0x35, 0xF2, 0xFF)
 MAGENTA = (0xFF, 0x4F, 0xD8)
 AMBER = (0xFF, 0xB2, 0x3E)
 GREEN = (0x8D, 0xFF, 0x6A)
-BULLET_COLORS = (CYAN, MAGENTA, AMBER, GREEN)       # 颜色号 0~3（SW7 2.3 节）
+BULLET_COLORS = (CYAN, MAGENTA, AMBER, GREEN)       # 颜色号 0~3（sw 第 06 章 3.7 节）
 PLAYER = (0xA8, 0xFB, 0xFF)
 SPARK = (0xFF, 0xC4, 0x5A)
 LABEL = (0x4F, 0xD8, 0xF2)
@@ -195,7 +195,7 @@ def ships():
 def boss():
     """96x96 一格，2 列 x 3 行共 6 帧：品红六边形（半径 44）顺转、青色六芒星（半径 30）逆转，每帧 10 度；
     六重对称，6 帧转过 60 度首尾相接。先画宽的淡线当光晕，再画细的亮线；中心一个白心品红光点。
-    帧数是按素材包的总长定的（SW7 4.20 节）：12 帧时包总长超过 SW5 坏包判据 S5f 的构造所能覆盖的上限。"""
+    帧数是按素材包的总长定的（sw 第 06 章 4.7 节）：12 帧时包总长超过 SW5 坏包判据 S5f 的构造所能覆盖的上限。"""
     cell = 96
     im = Image.new("RGBA", (cell * 2, cell * 3), (0, 0, 0, 0))
     px = im.load()

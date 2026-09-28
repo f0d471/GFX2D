@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""把比特流、程序与素材包合成一个 Flash 镜像（SW5 2.4 节）。
+"""把比特流、程序与素材包合成一个 Flash 镜像（sw 第 04 章 3.10 节）。
 
     python3 Main/tools/board/make_flash_image.py --app <程序.bin>
     python3 Main/tools/board/make_flash_image.py --app <程序.bin> --full

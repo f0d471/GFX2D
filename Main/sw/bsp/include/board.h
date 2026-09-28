@@ -57,7 +57,7 @@ uint32_t   board_cycles(void);
 /* 走 UART（板上）或 stdout（PC），两边逐字节相同。应用里不出现 printf。 */
 void       board_puts(const char *s);
 
-/* 现在还能不阻塞地交给 board_puts() 多少字节（SW8 2.4 节）。
+/* 现在还能不阻塞地交给 board_puts() 多少字节（sw 第 07 章 3.3 节）。
    板上的 board_puts() 忙等发送 FIFO，115200 波特每帧只发得出约 192 字节，一次写多了会卡住当帧；
    应用把日志先放进 lib/core/logq，每帧只取这么多字节写出去。
 

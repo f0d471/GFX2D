@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file stg_modes.c: 模式框架里的模式 2（游戏）与模式 3（压力测试）
 *
-* @brief  口径见 stg_modes.h 与 SW8 2.1、2.3 节。游戏状态、搜索状态机与本文件的计数都是静态的，
+* @brief  口径见 stg_modes.h 与 sw 第 07 章 3.7、3.8 节。游戏状态、搜索状态机与本文件的计数都是静态的，
 *         不用 malloc；游戏状态每次离开、进入都整体重置。
 ******************************************************************************/
 
@@ -216,7 +216,7 @@ void stg_mode_game_frame(const stg_main_ctx *ctx, int dst, uint32_t keys,
 {
     uint32_t t0 = board_cycles();
 
-    /* 自动驾驶：连续 600 帧无按键就接管，任何按键立即交还（SW8 2.6 节）；开销单独计 */
+    /* 自动驾驶：连续 600 帧无按键就接管，任何按键立即交还（sw 第 07 章 3.10 节）；开销单独计 */
     o->auto_on = (uint32_t)stg_auto_take(&s_idle, keys);
     if (o->auto_on)
         keys = stg_auto_keys(&s_game, NULL);
@@ -313,7 +313,7 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
 #if !GFX2D_PRESS_CLOCK
     /* 模拟时钟的代价按本帧整帧的普查算，HUD 也在里面。SW FPS 一栏若显示按墙钟量的实测值，
        它的位数会改变命令数与像素数，进而改变模拟的掉帧判定：同一份代码在不同机器上搜出不同的 N_max。
-       所以模拟时钟下这一栏一律 --（SW6 判据模式的做法，SW8 2.3 节）。 */
+       所以模拟时钟下这一栏一律 --（SW6 判据模式的做法，sw 第 07 章 4.8 节）。 */
     h.sw_fps_valid = 0;
 #endif
     draw_frame(ctx, dst, &h, o, &cc);

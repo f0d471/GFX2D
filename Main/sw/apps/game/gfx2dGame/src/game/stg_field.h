@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file stg_field.h: 弹幕场 —— 状态结构体与一帧的顺序
 *
-* @brief  SW7 2.3、2.4、2.6、2.8 节的 B 批部分。场的全部状态在一个结构体里
+* @brief  sw 第 06 章 3.7~3.9 节的 B 批部分。场的全部状态在一个结构体里
 *         （四个池、发射器与替身宿主、随机数、自机探针、计数），没有模块级的可变全局；
 *         换段、切模式时整体重新初始化。
 *
@@ -16,7 +16,7 @@
 *
 *         给 SW8 的两个钩子（2.8 节）：
 *           受击  stg_field_set_hits(f, 0) 关掉受击，碰撞照做、擦弹照算；
-*           密度  stg_field_set_pressure(f, K) 驱动定寿命下落负载（SW8 2.3 节「旋钮到负载」）：
+*           密度  stg_field_set_pressure(f, K) 驱动定寿命下落负载（sw 第 07 章 3.6 节）：
 *                 每帧在所有发射器之后，Bresenham 累加器 acc += K，每满 L 发一颗，任意连续 L 帧恰好 K 颗；
 *                 每颗在游戏区上沿外 10 像素出生、x = 8 + next % 385 像素（场的 xorshift32），
 *                 竖直向下 4 像素/帧，恰好活 L = 125 帧后出界回收。稳态下池里恰好 K 颗。
@@ -43,7 +43,7 @@
 
 #define STG_FIELD_EMIT_MAX  8u
 
-/* 自机（B 批静止）。尺寸常量见 SW7 2.4 节。 */
+/* 自机（B 批静止）。尺寸常量见 sw 第 06 章 3.8 节。 */
 #define STG_PLAYER_X        (200 * FX_ONE)
 #define STG_PLAYER_Y        (400 * FX_ONE)
 #define STG_PLAYER_R_HIT    (2 * FX_ONE)
@@ -53,7 +53,7 @@
 #define STG_BG_ARGB         0x0002040Au
 #define STG_DRAW_CHUNK      128u
 
-/* 定寿命下落负载（SW8 2.3 节）。寿命 L = (480 + 2 × 10) 像素 / 4 像素每帧 = 125 帧。 */
+/* 定寿命下落负载（sw 第 07 章 3.6 节）。寿命 L = (480 + 2 × 10) 像素 / 4 像素每帧 = 125 帧。 */
 #define STG_PRESS_LIFE      125u
 #define STG_PRESS_VY        (4 * FX_ONE)
 #define STG_PRESS_Y0        (-STG_MARGIN_PX * FX_ONE)

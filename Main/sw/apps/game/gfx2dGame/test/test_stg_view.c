@@ -1,7 +1,7 @@
 /******************************************************************************
-* @file test_stg_view.c: 游戏的组帧、HUD 与共用文字绘制（SW7 2.6 节 C 批）的主机侧测试
+* @file test_stg_view.c: 游戏的组帧、HUD 与共用文字绘制（sw 第 06 章 3.13 节，C 批）的主机侧测试
 *
-* @brief  V 组，判据见 SW7 第 3 节「HUD 与游戏判据入口」一行（判据入口在 PC 上逐帧自查同样几件；
+* @brief  V 组，判据见 sw 第 06 章 3.13 节（判据入口在 PC 上逐帧自查同样几件；
 *         这里在 64 位 ASan/UBSan 与 -m32 下再跑一遍，不链 bsp）：
 *           V1  stg_text_draw 与逐字调 gfx_blit（抽出之前 sw6_hud.c 的写法）生成的命令表逐字节相同，
 *               含格数之外的字符（跳过、x 照样前进）
@@ -24,7 +24,7 @@
 #include "game/stg_script.h"
 #include "test_stg_view.h"
 
-/* 游戏的表面槽（SW7 2.7 节），与入口的 stg_slots.h 同值 */
+/* 游戏的表面槽（sw 第 06 章 3.12 节），与入口的 stg_slots.h 同值 */
 #define SLOT_FB0        0
 #define SLOT_BUL16      2
 #define SLOT_BUL8       3

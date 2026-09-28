@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file gfx2d_stats.h: 模式框架的统计埋点（每秒一行 CSV）
 *
-* @brief  SW8 2.4 节 C 批的列口径。三种行都带前缀，与其它日志行分得开：
+* @brief  sw 第 07 章 3.9 节的列口径。三种行都带前缀，与其它日志行分得开：
 *           csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,
 *                cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0..cmd_eq5,cmd_other,pix_eq0..pix_eq5
 *           csv,<每 60 场一行>

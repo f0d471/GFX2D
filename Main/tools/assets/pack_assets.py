@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""把 Main/assets/ 下的 PNG 与点阵字库打成素材包，并生成 assets.h（SW5 2.1、2.2 节）。
+"""把 Main/assets/ 下的 PNG 与点阵字库打成素材包，并生成 assets.h（sw 第 04 章 3.6、3.7 节）。
 
     python3 Main/tools/assets/pack_assets.py
     python3 Main/tools/assets/pack_assets.py --max-pak 1048576     收紧运行预算（E6 出数后用）
     python3 Main/tools/assets/pack_assets.py --assets <目录> --out <目录>
 
 输入  <assets>/manifest.txt（TSV，字段见该文件头）
-输出  <out>/assets.pak   包格式的权威是 Engineering/Todo/sw/SW5-素材流水线.md 2.2 节
+输出  <out>/assets.pak   包格式的权威是 Engineering/TechReports/sw/04-素材流水线.md 3.6 节
       <out>/assets.h     稳定编号、包版本与 CRC、宽高/行跨/格式、图集网格
 
 两条不能变的性质：
@@ -17,7 +17,7 @@
 2. **相同输入逐字节产出相同的包与头文件**：条目顺序就是 manifest 顺序，没有随机数、
    没有时间戳、没有绝对路径进产物。
 
-判据见 Engineering/Todo/sw/SW5-素材流水线.md 第 3 节，串联执行见
+判据见 Engineering/TechReports/sw/04-素材流水线.md 3.12 节，串联执行见
 Main/tools/check/check_sw5_assets.sh。
 """
 
@@ -381,7 +381,7 @@ def build_header(items, total, pack_crc, max_pak):
     a = L.append
     a("/* 由 Main/tools/assets/pack_assets.py 从 manifest.txt 生成，不要手改。")
     a(" *")
-    a(" * 包格式的权威是 Engineering/Todo/sw/SW5-素材流水线.md 2.2 节；")
+    a(" * 包格式的权威是 Engineering/TechReports/sw/04-素材流水线.md 3.6 节；")
     a(" * ENTRY 是包内条目序号（assetpak_entry_at 用），ID 是 manifest 里写明的不变编号")
     a(" * （assetpak_find 用）。包 ID 不是表面槽号：gfx_surface_table 只有 16 槽，")
     a(" * 应用按当前画面需要选择要登记哪几条，不能按 ID 一次全登。 */")

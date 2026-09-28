@@ -40,7 +40,7 @@ static void fmt(char *buf, uint32_t cap, const char *tag, uint32_t v, int has)
         core_out_str(&o, "--");
 }
 
-/* 逐字 BLIT（共用的 stg_text_draw，SW7 2.6 节）。字符都在 0x20~0x7E 之内，落不进第 96 格（空的黑格）。 */
+/* 逐字 BLIT（共用的 stg_text_draw，sw 第 06 章 3.13 节）。字符都在 0x20~0x7E 之内，落不进第 96 格（空的黑格）。 */
 static void draw_text(gfx_list *l, int dst, uint32_t line, const char *s)
 {
     static const stg_font font = {

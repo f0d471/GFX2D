@@ -1,11 +1,11 @@
 /******************************************************************************
-* @file stg_main.c: 弹幕场的画面入口（SW7 2.6 节「入口」）
+* @file stg_main.c: 弹幕场的画面入口（sw 第 06 章 3.9、3.13 节）
 *
 * @brief  只在 -DSTG_FIELD=<n> 时有内容；默认构建与 SW6 的两种构建里这个文件是空的。
 *
-*         一帧：场推进一帧（发射、碰撞，SW7 2.3 节的 ①②③）-> 组帧 -> 普查自查 ->
+*         一帧：场推进一帧（发射、碰撞，sw 第 06 章 3.7 节一帧顺序的 ①②③）-> 组帧 -> 普查自查 ->
 *         软件执行器 -> 游戏区 CRC -> 呈现。双缓冲按全局帧序号 s_seq 的奇偶选面，
-*         不按段内帧号（SW6 4.23 节的教训）。
+*         不按段内帧号（sw 第 05 章 4.9 节的教训）。
 *
 *         判据模式（STG_FIELD=2）每帧自查三件，不符就记一次 fail 并打一行 err：
 *           - 追加的拒绝数与表满数为 0（gfx_blit_run 与其余追加）；
@@ -16,12 +16,12 @@
 *         帧号从 0 起全程连续；每段开头重新装场，命中与擦弹从 0 数起。
 *         游戏区 CRC 只取左边 400x480：右边 HUD 的区域 B 批不画，板上那片 DDR 的初值不确定。
 *
-*         游戏的判据入口（STG_FIELD=4，SW7 2.6 节「游戏的判据入口」）：无窗口、不读实时按键，输入是固定的按键脚本
+*         游戏的判据入口（STG_FIELD=4，sw 第 06 章 3.13 节）：无窗口、不读实时按键，输入是固定的按键脚本
 *         （stg_script），受击默认关掉（-DSTG_JUDGE_HITS=1 打开），跑完一局（回到标题）或到 -DSTG_FRAMES=N 为止。
-*         -DSTG_JUDGE_AUTO=1 时输入换成自动驾驶（stg_auto，从第 0 帧起）、受击打开（SW8 2.6 节），
+*         -DSTG_JUDGE_AUTO=1 时输入换成自动驾驶（stg_auto，从第 0 帧起）、受击打开（sw 第 07 章 3.10 节），
 *         末尾多一行 auto frames <帧数> cyc_avg <每帧平均周期数> cyc_max <最大周期数>（PC 上只作登记）。
 *         -DSTG_JUDGE_REPLAY=1 时输入换成入库的通关录像 replay/stg_clear.g2dr（工具辅助，
-*         Main/tools/check/gen_stg_clear.c 搜出来的，SW7 第 3 节「可玩」）、受击打开，第 k 帧用录像的第 k 个按键位图；
+*         Main/tools/check/gen_stg_clear.c 搜出来的，sw 第 06 章 3.14 节）、受击打开，第 k 帧用录像的第 k 个按键位图；
 *         进入 CLEAR 那一帧之后多一行
 *           clear <帧号> score <得分> graze <擦弹> lives <残机> bombs <炸弹>
 *         末尾多一行
@@ -39,7 +39,7 @@
 *         注错 INJECT_STG_LIVE_HUD 让它显示实测的 SW FPS，两遍的日志必须因此不同。
 *         PC 上跑它时设 GFX2D_UNPACED=1（bsp/host），呈现不等场。
 *
-*         N_max 搜索（STG_FIELD=3，SW8 2.3 节）：无窗口、不执行命令表、不呈现，每帧只做场推进、组帧、
+*         N_max 搜索（STG_FIELD=3，sw 第 07 章 3.6 节）：无窗口、不执行命令表、不呈现，每帧只做场推进、组帧、
 *         普查与模拟时钟（stg_press），把 e、活动元素数与帧代价喂给 lib/core/nmax；16x16 与 8x8 两种负载
 *         各搜一遍，打 nmax cfg、逐档 nmax probe 与 nmax result。结果不是 OK 记一次 fail。
 *         板上跑它也只是模拟时钟下验证流程；板上真实周期的驱动在 SW9。
@@ -81,7 +81,7 @@
 #error "STG_FIELD 只认 1（演示）、2（判据）、3（N_max 搜索）与 4（游戏的判据入口）"
 #endif
 
-/* 游戏的按键位与 board.h 同值（SW7 2.4 节）：src/game/ 不含 board.h，在入口这里卡住 */
+/* 游戏的按键位与 board.h 同值（sw 第 06 章 3.10 节）：src/game/ 不含 board.h，在入口这里卡住 */
 _Static_assert(STG_KEY_UP == BOARD_KEY_UP && STG_KEY_DOWN == BOARD_KEY_DOWN
                && STG_KEY_LEFT == BOARD_KEY_LEFT && STG_KEY_RIGHT == BOARD_KEY_RIGHT
                && STG_KEY_BOMB == BOARD_KEY_BOMB && STG_KEY_SLOW == BOARD_KEY_SLOW,
@@ -266,14 +266,14 @@ static void say_end(void)
 
 #if STG_FIELD_MODE == 4
 
-/* --- 游戏的判据入口（SW7 2.6 节「游戏的判据入口」）--------------------------- */
+/* --- 游戏的判据入口（sw 第 06 章 3.13 节）--------------------------- */
 
 #ifndef STG_JUDGE_AUTO
-#define STG_JUDGE_AUTO  0           /* 1：输入换成自动驾驶（SW8 2.6 节） */
+#define STG_JUDGE_AUTO  0           /* 1：输入换成自动驾驶（sw 第 07 章 3.10 节） */
 #endif
 
 #ifndef STG_JUDGE_REPLAY
-#define STG_JUDGE_REPLAY 0          /* 1：输入换成入库的通关录像（SW7 第 3 节「可玩」） */
+#define STG_JUDGE_REPLAY 0          /* 1：输入换成入库的通关录像（sw 第 06 章 3.14 节） */
 #endif
 
 #if STG_JUDGE_AUTO && STG_JUDGE_REPLAY

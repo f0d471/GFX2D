@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check_sw6_demo.sh —— 基础 Demo（SW6）的提交前判据
 #
-# 判据与检查脚本的约定见 Engineering/Todo/sw/SW6-基础Demo.md 第 3 节与 2.6 节。
+# 判据与检查脚本的约定见 Engineering/TechReports/sw/05-基础Demo.md 3.12 节。
 # 日志侧的外部核对（两遍比对、hud 与上一帧统计、hcrc 按字库文本独立重画、s 与 scene
 # 参考值、off 与 eq）由 tools/check/check_sw6_log.py 做，本脚本负责串起来：
 #
@@ -27,7 +27,7 @@
 # 需要 SDL2 与 python3；D10 的板上目标要 RISCV_BIN=<RISCV_BIN>（doc/开发环境.md 第 11 节）。
 # 不上板：板上对账（判据模式快速档）用 tools/board/board_run.py 单独跑，
 # 串口日志用 `check_sw6_log.py --board <串口日志> logs/sw6_judge_quick.log` 对账，
-# 原始串口日志入库，见 SW6 第 3 节「板上对账」。
+# 原始串口日志入库，见 sw 第 05 章 3.13 节。
 
 set -u
 
