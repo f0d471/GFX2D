@@ -20,6 +20,16 @@
 // 协议检查：写数据的 WLAST 与 AWLEN 对不上时打印 MODEL: wlast mismatch，并把 wlast_err 加一。
 // 测试台必须把 wlast_err 非零判为失败：E5 复核时一个主机替身的 WLAST 错了一拍，
 // 这条报警打印了几十次却没有任何用例失败，W 错位后整条写通路死锁，被误读成「CPU 被饿死」。
+//
+// ---------------------------------------------------------------------------
+// 2026-09-30 引擎 P1 · B2 补四样（D13）。全部是新增参数，默认值保持上面这些行为：
+//   MEM_WORDS  存储字数，默认 4096（64 KiB）保持原有；整帧用例的设备内存 4 MiB 时取 262144
+//   STRB_EN    0（默认）按整字写，与原来完全一样；1 按 wstrb 逐字节写
+//   ERR_LO/ERR_HI  落在这个字节区间的突发回 SLVERR（默认 0xFFFF_FFFF/0 永不命中）
+//   TIMED      0（默认）随机反压；1 定时模式，用 RD_LAT/RD_BUB/WR_BUB/B_LAT
+//              （前期研究校准值 23/12/6/1，见 B2 条目第 4 节第 10 问）
+// wstrb 是一个新增的输入端口，用 STRB_EN 门控：默认不读它，
+// 所以三个既有测试台不接这个端口也保持原行为。
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -29,7 +39,17 @@ module axi_ram_model #(
     parameter integer STALL   = 3,
     parameter integer ADDR_STALL_MAX = 0,
     parameter integer RD_QUEUE = 1,
-    parameter integer WR_QUEUE = 1
+    parameter integer WR_QUEUE = 1,
+    // ---- B2 前期研究新增，默认值保持原有行为 ----
+    parameter integer MEM_WORDS = 4096,
+    parameter integer STRB_EN   = 0,
+    parameter [31:0]  ERR_LO   = 32'hFFFF_FFFF,
+    parameter [31:0]  ERR_HI   = 32'h0000_0000,
+    parameter integer TIMED     = 0,
+    parameter integer RD_LAT    = 23,
+    parameter integer RD_BUB    = 12,
+    parameter integer WR_BUB    = 6,
+    parameter integer B_LAT     = 1
 )(
     input  wire         clk,
     input  wire         rst_n,
@@ -39,6 +59,7 @@ module axi_ram_model #(
     input  wire         awvalid,
     output reg          awready,
     input  wire [127:0] wdata,
+    input  wire [15:0]  wstrb,
     input  wire         wlast,
     input  wire         wvalid,
     output reg          wready,
@@ -60,19 +81,27 @@ module axi_ram_model #(
     input  wire         hold_ar
 );
 
-reg [127:0] mem [0:4095];
+reg [127:0] mem [0:MEM_WORDS-1];
 integer seed_r = SEED;
 
 function stall;
     input dummy;
     begin
-        stall = (($random(seed_r) & 7) < STALL);
+        stall = (TIMED == 0) && (($random(seed_r) & 7) < STALL);
+    end
+endfunction
+
+// 按地址区间回 SLVERR：默认 ERR_LO/ERR_HI 使这个函数恒为 0
+function in_err;
+    input [31:0] a;
+    begin
+        in_err = (a >= ERR_LO) && (a <= ERR_HI);
     end
 endfunction
 
 integer i;
 initial begin
-    for (i = 0; i < 4096; i = i + 1)
+    for (i = 0; i < MEM_WORDS; i = i + 1)
         mem[i] = 128'h0;
 end
 
@@ -97,6 +126,7 @@ wire [4:0] wq_used  = wq_tail - wq_head;
 wire       wq_empty = (wq_head == wq_tail);
 
 integer wlast_err = 0;
+integer wbub = 0, bwait = 0, k;
 
 always @(posedge clk) begin
     if (!rst_n) begin
@@ -108,6 +138,8 @@ always @(posedge clk) begin
         aw_stall_cnt <= 16'd0;
         wq_head <= 5'd0;
         wq_tail <= 5'd0;
+        wbub    <= 0;
+        bwait   <= 0;
     end else begin
         if (awvalid && awready)     aw_stall_cnt <= 16'd0;
         else if (!awready)          aw_stall_cnt <= aw_stall_cnt + 16'd1;
@@ -118,7 +150,7 @@ always @(posedge clk) begin
             if (hold_aw || !(wq_used < WR_QUEUE))
                 awready <= 1'b0;
             else
-                awready <= aw_force_ready ? 1'b1 : !stall(0);
+                awready <= aw_force_ready ? 1'b1 : ((TIMED != 0) ? 1'b1 : !stall(0));
             if (awvalid && awready) begin
                 wq_addr[wq_tail[3:0]] <= awaddr;
                 wq_len [wq_tail[3:0]] <= awlen;
@@ -133,31 +165,55 @@ always @(posedge clk) begin
                     wa      <= wq_addr[wq_head[3:0]];
                     wlen    <= wq_len [wq_head[3:0]];
                     wcnt    <= 8'd0;
-                    werr    <= (wq_len[wq_head[3:0]] > MAX_LEN);
+                    werr    <= (wq_len[wq_head[3:0]] > MAX_LEN) || in_err(wq_addr[wq_head[3:0]]);
                     wq_head <= wq_head + 5'd1;
                     wst     <= W_DATA;
+                    wbub    <= 0;
+                    // 定时模式：进写数据态的第一拍就收，与校准用的从机相同；默认模式不动
+                    if (TIMED != 0) wready <= 1'b1;
                 end
             end else begin
-                awready <= hold_aw ? 1'b0 : (aw_force_ready ? 1'b1 : !stall(0));
+                awready <= hold_aw ? 1'b0 : (aw_force_ready ? 1'b1 : ((TIMED != 0) ? 1'b1 : !stall(0)));
                 if (awvalid && awready) begin
                     awready <= 1'b0;
                     wa      <= awaddr;
                     wlen    <= awlen;
                     wcnt    <= 8'd0;
-                    werr    <= (awlen > MAX_LEN);
+                    werr    <= (awlen > MAX_LEN) || in_err(awaddr);
                     wst     <= W_DATA;
+                    wbub    <= 0;
+                    if (TIMED != 0) wready <= 1'b1;
                 end
             end
         end
         W_DATA: begin
-            wready <= !stall(0);
+            // 定时模式：每 WR_BUB 拍插一个空拍；默认 TIMED=0 走原来那一支
+            // 空拍只插在「收满 WR_BUB 拍」那次握手之后的一拍；主机那一拍不举 valid 也不能卡住：
+            // 按「已收拍数是 WR_BUB 的倍数」判的话，没有握手时拍数不变，wready 会一直是 0
+            if (TIMED != 0) begin
+                if (wvalid && wready) begin
+                    wbub   <= wbub + 1;
+                    wready <= !((WR_BUB > 0) && (((wbub + 1) % WR_BUB) == 0));
+                end else begin
+                    wready <= 1'b1;
+                end
+            end else begin
+                wready <= !stall(0);
+            end
             if (wvalid && wready) begin
-                if (!werr)
-                    mem[(wa >> 4) % 4096] <= wdata
+                if (!werr) begin
+                    if (STRB_EN != 0) begin
+                        for (k = 0; k < 16; k = k + 1)
+                            if (wstrb[k])
+                                mem[(wa >> 4) % MEM_WORDS][k*8 +: 8] <= wdata[k*8 +: 8];
+                    end else begin
+                        mem[(wa >> 4) % MEM_WORDS] <= wdata
 `ifdef INJECT_FLIP
                         ^ ((wa == 32'h0000_0100) ? 128'h1 : 128'h0)
 `endif
                         ;
+                    end
+                end
                 wa   <= wa + 32'd16;
                 wcnt <= wcnt + 8'd1;
                 if (wlast != (wcnt == wlen)) begin
@@ -167,12 +223,21 @@ always @(posedge clk) begin
                 if (wlast) begin
                     wready <= 1'b0;
                     wst    <= W_RESP;
+                    bwait  <= B_LAT;
                 end
             end
         end
         W_RESP: begin
 `ifndef INJECT_HANG
-            if (!bvalid && !stall(0)) begin
+            if (TIMED != 0) begin
+                if (!bvalid) begin
+                    if (bwait > 0) bwait <= bwait - 1;
+                    else begin
+                        bvalid <= 1'b1;
+                        bresp  <= werr ? 2'b10 : 2'b00;
+                    end
+                end
+            end else if (!bvalid && !stall(0)) begin
                 bvalid <= 1'b1;
                 bresp  <= werr ? 2'b10 : 2'b00;
             end
@@ -204,6 +269,7 @@ reg [31:0] ra;
 reg [7:0]  rlen, rcnt;
 reg        rerr;
 reg [15:0] ar_stall_cnt;
+integer rwait = 0, rbub = 0;
 
 wire ar_force_ready = (ADDR_STALL_MAX != 0) && (ar_stall_cnt >= ADDR_STALL_MAX);
 wire addr_open = q_room && ((RD_QUEUE > 1) || (!srv && q_empty));
@@ -222,6 +288,8 @@ always @(posedge clk) begin
         rlen    <= 8'd0;
         rcnt    <= 8'd0;
         rerr    <= 1'b0;
+        rwait   <= 0;
+        rbub    <= 0;
     end else begin
         // 地址通道连续反压计数（ADDR_STALL_MAX 用它给出上界）
         if (arvalid && arready)     ar_stall_cnt <= 16'd0;
@@ -232,7 +300,7 @@ always @(posedge clk) begin
         if (hold_ar || !addr_open)
             arready <= 1'b0;
         else
-            arready <= ar_force_ready ? 1'b1 : !stall(0);
+            arready <= ar_force_ready ? 1'b1 : ((TIMED != 0) ? 1'b1 : !stall(0));
 
         // 入队
         if (arvalid && arready) begin
@@ -247,8 +315,12 @@ always @(posedge clk) begin
             ra   <= q_addr[q_head[3:0]];
             rlen <= q_len [q_head[3:0]];
             rcnt <= 8'd0;
-            rerr <= (q_len[q_head[3:0]] > MAX_LEN);
+            rerr <= (q_len[q_head[3:0]] > MAX_LEN) || in_err(q_addr[q_head[3:0]]);
             q_head <= q_head + 5'd1;
+            // 地址握手之后入队、下一拍才出队，已经过去一拍，所以少等一拍：
+            // 首拍离地址握手正好 RD_LAT 拍，与前期研究校准用的从机逐拍相同
+            rwait  <= (RD_LAT > 0) ? RD_LAT - 1 : 0;
+            rbub   <= 0;
         end
 
         // 数据流
@@ -257,9 +329,15 @@ always @(posedge clk) begin
                 if (rvalid && rlast) begin
                     rvalid <= 1'b0;
                     srv    <= 1'b0;
+                end else if (TIMED != 0 && rwait > 0) begin
+                    rwait  <= rwait - 1;
+                    rvalid <= 1'b0;
+                end else if (TIMED != 0 && RD_BUB > 0 && rcnt != 0 && ((rcnt % RD_BUB) == 0) && (rbub != rcnt)) begin
+                    rbub   <= rcnt;
+                    rvalid <= 1'b0;
                 end else if (!stall(0)) begin
                     rvalid <= 1'b1;
-                    rdata  <= rerr ? 128'h0 : mem[(ra >> 4) % 4096];
+                    rdata  <= rerr ? 128'h0 : mem[(ra >> 4) % MEM_WORDS];
                     rresp  <= rerr ? 2'b10 : 2'b00;
                     rlast  <= (rcnt == rlen);
                     ra     <= ra + 32'd16;

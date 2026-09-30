@@ -37,12 +37,14 @@
 | 文件 | 说明 |
 | --- | --- |
 | `engine_blend.v` | B1：单通道混合核。源/目的/`a`/`c` 各 8 位与方程号 3 位进去，8 位出来，固定延迟 `L = 3`（D24）。六个方程都写成 `x = base × 255 + m1 × m2`，每通道一个推断出来的 `EFX_DSP48`；`base × 255` 用移位相减。**还没列进工程源文件列表**：12 个实例由 B4 的 `engine_pix.v` 例化，那时两个文件一起加进 `fpga/gfx2d_ti60/gfx2d_ti60.xml`，接入之后才进网表 |
+| `engine_mover.v` | B2：搬运层（AXI 事务层）。引擎唯一的 AXI 主机，接 `Axi_Mux` 的 S1。里面是 `vendor/verilog-axi/` 的两个核（参数见 D3）、读侧仲裁（命令取数优先，D8）、每方向一笔在途的门控（D3 规矩 2、D12）、W 通道带内掩码（D16）、复位排空（D17、D29；一次请求只完成一次，请求举着期间不收新提交）与超时（D19、D30）。读方向的「完成」是**状态脉冲已捕获且读流 `tlast` 已握手**（D32：读核的状态可以早于末拍握手 1~55 拍，只看状态会让上下文错位）。整块挂搬运层复位（顶层接 `~ddr_rstn`）。**还没列进工程源文件列表**，B5 的 `engine_top.v` 例化它时再一起加进去 |
 
-`engine_blend` 有一个 `parameter integer INJECT`，是仿真注错口：0 是正式配置，综合时是常量、
-对应分支会被优化掉。位定义见文件头，用它的地方只有 `sim/engine/blend/run.sh`。
+两个文件各有一个 `parameter integer INJECT`，是仿真注错口：0 是正式配置，综合时是常量、
+对应分支会被优化掉。位定义见各自文件头，用它的地方只有 `sim/engine/blend/run.sh` 与 `sim/engine/mover/run.sh`。
 
-设计依据、定案 D24~D28、穷举与综合的实测数据见
-[`../../Engineering/TechReports/engine/01-计算核心.md`](../../Engineering/TechReports/engine/01-计算核心.md)。
+设计依据、定案与实测数据见
+[`../../Engineering/TechReports/engine/01-计算核心.md`](../../Engineering/TechReports/engine/01-计算核心.md)（B1，D9、D24~D28）与
+[`../../Engineering/TechReports/engine/02-AXI事务层.md`](../../Engineering/TechReports/engine/02-AXI事务层.md)（B2，D3、D12、D16、D17、D19、D29~D32）。
 
 ## top/
 
@@ -92,6 +94,7 @@ I2C0（`0xF801_7000`）预留给摄像头，读口接 1、写口悬空；`axiA` 
 | --- | --- | --- |
 | `ddr3_controller/` | 易灵思 DDR3 软核控制器。顶层 `ddr3_top.v`，参数 `ddr3_parameter.vh`，其余为 PHY、bank 管理、AXI 从口 | 在工程源文件列表中。多数文件是加密 RTL，开源仿真工具读不了 |
 | `axi_mux/` | 第三方明文 AXI 多路器（2~8 主机进、1 出，128 位），来自官方工程，官方设计里没有例化过它 | 在工程源文件列表中，例化为 `u_axi_mux`；S0 已由扫描替身换成真实 `display`，S1 接 `axi_probe_master`、S2 接 SoC。除第 43 行的宏以外未改动。没有 BRESP 端口，顶层把控制器的 bresp 并接给各主机；`EFX_SRL8` 的输出取反、地址反向，仿真必须用厂商模型 |
+| `verilog-axi/` | 第三方明文 AXI DMA 核：`axi_dma_rd.v`（读）、`axi_dma_wr.v`（写），来自 [alexforencich/verilog-axi](https://github.com/alexforencich/verilog-axi) 归档前最后一个提交 `516bd5dadc3365b7f9e225d2af8fe0b8d804fe53`（2025-02-27），MIT 许可。三个文件都与上游逐字节相同（git blob 与上游提交里的相同） | **不在工程源文件列表中**（还没有模块例化它）：B5 的 `engine_top.v` 例化 `engine_mover.v` 时一起加进去。`LICENSE` 是上游的 `COPYING`，只是换了个更好找的名字，内容一字不改。`engine_mover.v` 用参数把它们配到本工程的位宽与突发上限，源码本身一字不改（D3），只在本文件登记 |
 
 两处要注意的：
 

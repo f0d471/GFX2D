@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .bx { fill:#eef2f7; stroke:#64748b; stroke-width:1.2 }
+      .br { fill:#e0f2fe; stroke:#0369a1; stroke-width:1.2 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .tg { font-size:9.5px; fill:#94a3b8 }
+      .bmb { stroke:#334155; stroke-width:1.7; fill:none }
+      .un  { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="860" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">AXI 事务层：引擎唯一的 AXI 主机怎么搬数据</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">B2 定下的一层。四周的调用方除 Axi_Mux 外都尚未实现；两侧的箭头是层间契约 I2、I3、I4、I7。</text>
+
+  <!-- 图例 -->
+  <rect x="960" y="80" width="280" height="86" class="bi"/>
+  <text x="976" y="100" class="t" font-weight="600">图例</text>
+  <line x1="976" y1="120" x2="1028" y2="120" class="bmb" marker-end="url(#a)"/>
+  <text x="1038" y="124" class="ts">已实现</text>
+  <line x1="976" y1="142" x2="1028" y2="142" class="un" marker-end="url(#ag)"/>
+  <text x="1038" y="146" class="ts">尚未实现</text>
+
+  <!-- 模块边界 -->
+  <rect x="300" y="150" width="610" height="490" class="b"/>
+  <text x="316" y="174" class="tt">engine_mover　rtl/engine/engine_mover.v（B2，已实现）</text>
+
+  <!-- 行 A -->
+  <rect x="320" y="186" width="270" height="86" class="bx"/>
+  <text x="334" y="208" class="t" font-weight="600">读侧仲裁</text>
+  <text x="334" y="228" class="ts">命令取数优先于像素读</text>
+  <text x="334" y="244" class="ts">在描述符口组合仲裁，一笔在途</text>
+  <text x="334" y="260" class="ts">D8、D32</text>
+
+  <rect x="620" y="186" width="270" height="86" class="br"/>
+  <text x="634" y="208" class="t" font-weight="600">上下文寄存器</text>
+  <text x="634" y="228" class="ts">目标缓冲号、命令索引、来源</text>
+  <text x="634" y="244" class="ts">写侧另存「是否本命令最后一行」</text>
+  <text x="634" y="260" class="ts">D31</text>
+
+  <!-- 行 B -->
+  <rect x="320" y="292" width="270" height="86" class="bx"/>
+  <text x="334" y="314" class="t" font-weight="600">u_rd　axi_dma_rd</text>
+  <text x="334" y="334" class="ts">128 位、突发上限 192 拍</text>
+  <text x="334" y="350" class="ts">32 深输出 FIFO，厂商源码不改</text>
+  <text x="334" y="366" class="ts">D3</text>
+
+  <rect x="620" y="292" width="270" height="86" class="bx"/>
+  <text x="634" y="314" class="t" font-weight="600">排空状态机与超时</text>
+  <text x="634" y="334" class="ts">排空：读吃到 tlast、写补哑拍</text>
+  <text x="634" y="350" class="ts">超时只报告不放弃，门限 T 由控制层给</text>
+  <text x="634" y="366" class="ts">D17、D19、D29、D30</text>
+
+  <!-- 行 C -->
+  <rect x="320" y="398" width="270" height="86" class="bx"/>
+  <text x="334" y="420" class="t" font-weight="600">u_wr　axi_dma_wr</text>
+  <text x="334" y="440" class="ts">AW 要等写流首拍</text>
+  <text x="334" y="456" class="ts">32 深输出 FIFO 与状态 FIFO</text>
+  <text x="334" y="472" class="ts">D3</text>
+
+  <rect x="620" y="398" width="270" height="86" class="bx"/>
+  <text x="634" y="420" class="t" font-weight="600">W 通道带内掩码</text>
+  <text x="634" y="440" class="ts">像素 X 字节最高位 = 1 则不写</text>
+  <text x="634" y="456" class="ts">清该像素的 4 位 wstrb 与 X 字节</text>
+  <text x="634" y="472" class="ts">D16</text>
+
+  <!-- 行 D：读流分发 -->
+  <rect x="320" y="504" width="570" height="86" class="bx"/>
+  <text x="334" y="526" class="t" font-weight="600">读流分发与排空二选一</text>
+  <text x="334" y="546" class="ts">按上下文寄存器的来源位选：命令取数走命令缓冲、像素读走行缓冲并带缓冲号</text>
+  <text x="334" y="562" class="ts">排空期由本层自己把读流吃掉（s_axis_read_data_tready 恒 1、数据丢弃），不往消费者送</text>
+  <text x="334" y="578" class="ts">在途门控：读方向要「状态脉冲已捕获且读流 tlast 已握手」，写方向只看状态（D3 规矩 2、D32）</text>
+
+  <!-- 模块底部接口摘要 -->
+  <rect x="320" y="602" width="570" height="26" class="bi"/>
+  <text x="334" y="620" class="ts">clk：core_clk 100 MHz　　rst：~ddr_rstn（只在上电与 PLL 失锁时复位）</text>
+
+  <!-- 左：调用方 -->
+  <rect x="40" y="186" width="230" height="86" class="bg"/>
+  <text x="56" y="208" class="tt">B3 几何层</text>
+  <text x="56" y="228" class="tg">尚未实现</text>
+  <text x="56" y="248" class="ts">读描述符：地址 16 字节对齐、</text>
+  <text x="56" y="264" class="ts">拍数、目标缓冲号、命令索引</text>
+
+  <line x1="274" y1="229" x2="314" y2="229" class="un" marker-end="url(#ag)"/>
+  <text x="254" y="220" class="ts">I2</text>
+
+  <!-- 下方：控制层与计算阵列 -->
+  <rect x="40" y="700" width="230" height="86" class="bg"/>
+  <text x="56" y="722" class="tt">B5 控制层</text>
+  <text x="56" y="742" class="tg">尚未实现</text>
+  <text x="56" y="762" class="ts">排空请求（电平）、门限 T、</text>
+  <text x="56" y="778" class="ts">状态里的错误与命令索引</text>
+
+  <rect x="300" y="700" width="230" height="86" class="bg"/>
+  <text x="316" y="722" class="tt">B4 计算阵列</text>
+  <text x="316" y="742" class="tg">尚未实现</text>
+  <text x="316" y="762" class="ts">收读流（恒 ready）、送写流</text>
+  <text x="316" y="778" class="ts">每拍 128 位 = 4 像素</text>
+
+  <line x1="160" y1="696" x2="160" y2="636" class="un" marker-end="url(#ag)"/>
+  <line x1="160" y1="636" x2="330" y2="636" class="un"/>
+  <text x="168" y="628" class="ts">I7</text>
+
+  <line x1="410" y1="696" x2="410" y2="596" class="un" marker-end="url(#ag)"/>
+  <text x="418" y="668" class="ts">I3 / I4</text>
+
+  <!-- 右：总线与从机 -->
+  <rect x="960" y="186" width="280" height="86" class="bi"/>
+  <text x="976" y="208" class="t" font-weight="600">Axi_Mux（X3，S1）</text>
+  <text x="976" y="228" class="ts">仓内第三方源码，优先级仲裁</text>
+  <text x="976" y="244" class="ts">没有 BRESP 端口，写响应直通</text>
+  <text x="976" y="260" class="ts">S0 扫描输出、S2 SoC</text>
+
+  <rect x="960" y="346" width="280" height="86" class="bi"/>
+  <text x="976" y="368" class="t" font-weight="600">DDR3 控制器与颗粒</text>
+  <text x="976" y="388" class="ts">厂商加密 RTL，256 MB</text>
+  <text x="976" y="404" class="ts">AXI 侧地址 28 位、数据 128 位、ID 4 位</text>
+
+  <rect x="960" y="506" width="280" height="86" class="bg"/>
+  <text x="976" y="528" class="t" font-weight="600">S0 扫描输出 / S2 SoC</text>
+  <text x="976" y="548" class="tg">已实现，本图只用来说明三端口</text>
+  <text x="976" y="568" class="ts">S1 上的在途契约与它们相邻</text>
+
+  <line x1="914" y1="229" x2="954" y2="229" class="bmb" marker-end="url(#a)"/>
+  <text x="886" y="220" class="ts">AXI4</text>
+
+  <line x1="1100" y1="276" x2="1100" y2="340" class="bmb" marker-end="url(#a)"/>
+  <text x="1108" y="312" class="ts">读写各一笔在途</text>
+
+  <line x1="1100" y1="436" x2="1100" y2="500" class="un" marker-end="url(#ag)"/>
+
+  <!-- 底部说明 -->
+  <rect x="580" y="700" width="660" height="118" class="bi"/>
+  <text x="596" y="722" class="t" font-weight="600">三条约束（B3、B4 要守住）</text>
+  <text x="596" y="746" class="ts">1　几何层保证每个描述符按 16 字节对齐、不跨 4KB、不超过 192 拍，核内永不拆分</text>
+  <text x="596" y="766" class="ts">2　写流的最后一拍必须给 tlast；缺了核会进 STATE_DROP_DATA，把下一行的写流丢掉</text>
+  <text x="596" y="786" class="ts">3　写描述符握手到写流首拍之间没有总线握手，这一段由 B3 的发出时机与 B4 的像素延迟决定</text>
+  <text x="596" y="806" class="ts">　　（写核的 awvalid 要等 s_axis_write_data_tvalid），不能长过超时门限 T</text>
+</svg>
