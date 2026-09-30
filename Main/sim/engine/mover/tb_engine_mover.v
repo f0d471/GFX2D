@@ -13,7 +13,7 @@
 //   CASE_ERR      读回 SLVERR 与写响应 SLVERR 各一例，状态里的错误与命令索引正确
 //   CASE_TIMEOUT  从机按住超过门限：报超时、不放弃；放开后照常完成，数据属于原来那一笔
 //
-// 判据全文见 B2 条目第 3 节；注错位见 engine_mover.v 文件头。
+// 判据全文见 engine 第 02 章 3.11 节；注错位见 engine_mover.v 文件头。
 `timescale 1ns/1ps
 `default_nettype none
 
