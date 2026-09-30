@@ -51,9 +51,20 @@
  *    结论是「中间量不能模截断，但 17 位或 16 位饱和都可以」。
  *    这一条也是「两个实现共用同一个错误，互相证明不了什么」的实例：
  *    正式工具与复核程序当时都把 +128 加了两次，两边的错数一模一样。
+ * ## 可选：导出抽样金标准给仿真对账（2026-09-29 新增）
+ *
+ *     ./check_round255 --golden <文件>
+ *
+ * 按下面的抽样规则生成 1024 条向量（前 96 条是边界组合，其余每个字段各取一次
+ * 线性同余的最高 8 位），每行一个 43 位十六进制字：
+ *     {eq[2:0], src[7:0], dst[7:0], a[7:0], c[7:0], out[7:0]}
+ * 其中 out 用的是本文件同一条快速式（`mix_V`），与仿真测试台里用精确商现算的期望值互相独立。
+ * 引擎 B1 的混合核（`rtl/engine/engine_blend.v`）拿它做抽样对账，见 `sim/engine/blend/`。
+ * 不带 `--golden` 时输出与本文件以前逐字节相同。
  */
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 static int fail = 0;
 
@@ -94,8 +105,78 @@ static void expect_u64(const char *what, uint64_t got, uint64_t want)
     }
 }
 
-int main(void)
+/* ---------- 抽样金标准（--golden）：给仿真对账用 ---------- */
+#define GOLDEN_N 1024
+
+/* 按方程把两项乘出来，再用本文件的 mix_V（快速式 + 饱和）出结果。
+   变量名与注释里的方程表一致：src 在 ALPHA 行是已经预乘过的 src_pm。 */
+static uint32_t golden_out(int eq, int src, int dst, int a, int c)
 {
+    uint32_t t1, t2;
+    switch (eq) {
+    case 0:  t1 = (uint32_t)src * 255u;                        t2 = 0;                              break;
+    case 1:  t1 = (uint32_t)src * 255u;                        t2 = (uint32_t)dst * (uint32_t)(255 - a); break;
+    case 2:  t1 = (uint32_t)src * 255u;                        t2 = (uint32_t)dst * 255u;           break;
+    case 3:  t1 = (uint32_t)src * (uint32_t)c;                 t2 = (uint32_t)dst * (uint32_t)(255 - c); break;
+    case 4:  t1 = (uint32_t)src * (uint32_t)dst;               t2 = 0;                              break;
+    default: t1 = (uint32_t)src * (uint32_t)a;                 t2 = (uint32_t)dst * (uint32_t)(255 - a); break;
+    }
+    return mix_V(t1, t2);
+}
+
+/* 线性同余每步取最高 8 位。低位的周期很短（第 k 位周期 2^(k+1)），
+   几个字段也不能从同一个 32 位数里切，否则位段重叠、互相关联，
+   第一版就因此让 c 的最高位恒为 0（c 只取到 0~127）、方程号 0 与 1 各多一倍。 */
+static uint32_t lcg_byte(uint32_t *s)
+{
+    *s = *s * 1664525u + 1013904223u;
+    return *s >> 24;
+}
+
+static int write_golden(const char *path)
+{
+    /* 前 96 条是每个方程的边界组合，其余用固定种子的线性同余补齐，每个字段各取一次 */
+    static const int edge[16][4] = {
+        {   0,   0,   0,   0 }, { 255, 255, 255, 255 }, {   0, 255, 255,   0 }, { 255,   0,   0, 255 },
+        {   1, 128,   1,   1 }, { 128,   1, 255, 128 }, { 254, 255, 128, 254 }, { 255, 254,   0, 127 },
+        { 128, 128, 128, 128 }, {   2, 253, 127,   3 }, { 253,   2,   3, 127 }, {  64, 192,  64, 192 },
+        { 192,  64, 192,  64 }, {   0,   1,   0, 255 }, { 255, 254, 254, 255 }, { 127, 128, 128, 127 }
+    };
+    FILE *f = fopen(path, "w");
+    if (!f) { perror(path); return 1; }
+
+    uint32_t s = 0x20260929u;
+    for (int i = 0; i < GOLDEN_N; i++) {
+        int eq, src, dst, a, c;
+        if (i < 96) {
+            eq = i % 6;
+            src = edge[i / 6][0]; dst = edge[i / 6][1];
+            a   = edge[i / 6][2]; c   = edge[i / 6][3];
+        } else {
+            eq  = (int)(lcg_byte(&s) % 6u);
+            src = (int)lcg_byte(&s);
+            dst = (int)lcg_byte(&s);
+            a   = (int)lcg_byte(&s);
+            c   = (int)lcg_byte(&s);
+        }
+        uint32_t o = golden_out(eq, src, dst, a, c);
+        uint64_t w = ((uint64_t)eq << 40) | ((uint64_t)src << 32) | ((uint64_t)dst << 24) |
+                     ((uint64_t)a << 16) | ((uint64_t)c << 8) | (uint64_t)o;
+        fprintf(f, "%011llx\n", (unsigned long long)w);
+    }
+    fclose(f);
+    printf("golden: %d 条抽样写入 %s（位域 {eq,src,dst,a,c,out}）\n", GOLDEN_N, path);
+    return 0;
+}
+
+int main(int argc, char **argv)
+{
+    if (argc == 3 && strcmp(argv[1], "--golden") == 0)
+        return write_golden(argv[2]);
+    if (argc != 1) {
+        fprintf(stderr, "用法: %s [--golden <文件>]\n", argv[0]);
+        return 2;
+    }
     /* ---------- (a) 快速式在两个取值域上是否等于精确商 ---------- */
     printf("(a) 快速式 vs half-up 精确商\n");
     {

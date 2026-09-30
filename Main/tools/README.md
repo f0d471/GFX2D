@@ -7,7 +7,7 @@
 | [`board/`](board/README.md) | 上板：烧比特流、加载程序、收串口、读写寄存器、写 Flash 前转格式与合成镜像 | `board_run.py`、`gfx2d_debug.cfg`、`bin2hex.py`、`make_flash_image.py` |
 | [`soc/`](soc/README.md) | 重新生成 Sapphire SoC IP 与软件包 | `ipm_gen_soc.py` |
 | [`assets/`](assets/README.md) | 素材：占位 PNG 生成、游戏的霓虹几何素材生成、按 manifest 打成素材包并生成 `assets.h`、上游点阵字体转成字库文本 | `gen_placeholder.py`、`gen_stg_neon.py`、`gen_font_txt.py`、`pack_assets.py` |
-| [`check/`](check/README.md) | 提交前检查与规格校验：路径占位符、软件分层判据、像素舍入穷举、命令语义一致性向量、素材包、基础 Demo 的录像与日志、游戏本体的数值基础、实体池与弹型、通关录像的搜索、统计埋点的基础件与出图 | `localize_paths.py`、`check_sw_layers.sh`、`check_round255.c`、`check_cmd_semantics.py`、`check_sw5_assets.sh`、`check_sw5_pak.py`、`check_sw6_demo.sh`、`check_sw6_log.py`、`gen_sw6_replay.py`、`check_sw7_game.sh`、`gen_sin_tab.py`、`gen_stg_patterns.py`、`gen_stg_clear.c`、`check_sw8_stats.sh`、`check_sw8_tx.c` |
+| [`check/`](check/README.md) | 提交前检查与规格校验：路径占位符、软件分层判据、像素舍入穷举、混合方程代入表、命令语义一致性向量、素材包、基础 Demo 的录像与日志、游戏本体的数值基础、实体池与弹型、通关录像的搜索、统计埋点的基础件与出图 | `localize_paths.py`、`check_sw_layers.sh`、`check_round255.c`、`check_subst.c`、`check_cmd_semantics.py`、`check_sw5_assets.sh`、`check_sw5_pak.py`、`check_sw6_demo.sh`、`check_sw6_log.py`、`gen_sw6_replay.py`、`check_sw7_game.sh`、`gen_sin_tab.py`、`gen_stg_patterns.py`、`gen_stg_clear.c`、`check_sw8_stats.sh`、`check_sw8_tx.c` |
 | [`stats/`](stats/README.md) | 统计日志出图：把模式框架的 CSV 与 `N_max` 搜索日志画成报告与幻灯片用的图的源码 | `plot_stats.py` |
 
 ## 用哪个解释器
@@ -24,7 +24,7 @@
 | `check/gen_sin_tab.py` | 同上，只用标准库 | 生成 SW7 的 1280 项 Q1.14 正弦表 `sw/lib/core/sin_tab.c` |
 | `check/gen_stg_patterns.py` | 同上，只用标准库 | SW7 弹型判据的独立实现：生成五种弹型的期望文件，并与 C 的轨迹逐帧比对 |
 | `stats/plot_stats.py` | 同上，只用标准库 | 读统计日志、出 HTML+SVG 的图源；导出 PNG 用 `Deliverables/Assert/figures/src/render.sh`（Windows 的 Edge） |
-| `check/check_sw_layers.sh`、`check/check_sw5_assets.sh`、`check/check_sw6_demo.sh`、`check/check_sw7_game.sh`、`check/check_sw8_stats.sh`、`check/check_sw8_tx.c`、`check/gen_stg_clear.c`、`check/check_round255.c` | WSL | 要交叉工具链、主机 gcc；前两个与 `check_sw6_demo.sh`、`check_sw7_game.sh`、`check_sw8_stats.sh` 都要 `python3`（`check_sw7_game.sh` 打包素材还要 Pillow）；`check_sw7_game.sh`、`check_sw8_stats.sh` 要 `gcc-multilib` 与 `libsdl2-dev`，`check_sw8_tx.c` 要 `libsdl2-dev`（由 `check_sw8_stats.sh` 编译） |
+| `check/check_sw_layers.sh`、`check/check_sw5_assets.sh`、`check/check_sw6_demo.sh`、`check/check_sw7_game.sh`、`check/check_sw8_stats.sh`、`check/check_sw8_tx.c`、`check/gen_stg_clear.c`、`check/check_round255.c`、`check/check_subst.c` | WSL | 要交叉工具链、主机 gcc；前两个与 `check_sw6_demo.sh`、`check_sw7_game.sh`、`check_sw8_stats.sh` 都要 `python3`（`check_sw7_game.sh` 打包素材还要 Pillow）；`check_sw7_game.sh`、`check_sw8_stats.sh` 要 `gcc-multilib` 与 `libsdl2-dev`，`check_sw8_tx.c` 要 `libsdl2-dev`（由 `check_sw8_stats.sh` 编译） |
 
 Efinity 自带的 `python.exe` 在 `python311\bin\` 下而标准库在 `python311\Lib`，Python 推不出 prefix，
 不设 `PYTHONHOME` 时报 `ModuleNotFoundError: No module named 'encodings'`（不是缺标准库）。

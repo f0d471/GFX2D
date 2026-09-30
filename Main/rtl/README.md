@@ -12,6 +12,7 @@
 | `bus/` | 挂在 SoC 总线上的从设备 | 本项目 | 可改 |
 | `hdmi/` | HDMI 发送通路 | 封装为本项目编写，编码器取自官方例程 | 封装可改，官方文件不改 |
 | `display/` | 扫描输出（display） | 本项目 | 可改 |
+| `engine/` | 渲染引擎（引擎 P1） | 本项目 | 可改 |
 | `vendor/` | 厂商与第三方代码 | 见下 | 原则上不改，改了要在本文件登记 |
 
 ## display/
@@ -27,6 +28,21 @@
 综合时它是常量、对应分支会被优化掉。位定义见两个文件的端口说明，用它的地方只有 `sim/display/run.sh`。
 设计依据、寄存器表、判据与实测数据见
 [`../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md`](../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md)。
+
+## engine/
+
+引擎 P1 按层分六批（B1~B6），层间接口契约见
+[`../../Engineering/Todo/hw/引擎P1总览.md`](../../Engineering/Todo/hw/引擎P1总览.md) 2.4 节。
+
+| 文件 | 说明 |
+| --- | --- |
+| `engine_blend.v` | B1：单通道混合核。源/目的/`a`/`c` 各 8 位与方程号 3 位进去，8 位出来，固定延迟 `L = 3`（D24）。六个方程都写成 `x = base × 255 + m1 × m2`，每通道一个推断出来的 `EFX_DSP48`；`base × 255` 用移位相减。**还没列进工程源文件列表**：12 个实例由 B4 的 `engine_pix.v` 例化，那时两个文件一起加进 `fpga/gfx2d_ti60/gfx2d_ti60.xml`，接入之后才进网表 |
+
+`engine_blend` 有一个 `parameter integer INJECT`，是仿真注错口：0 是正式配置，综合时是常量、
+对应分支会被优化掉。位定义见文件头，用它的地方只有 `sim/engine/blend/run.sh`。
+
+设计依据、定案 D24~D28、穷举与综合的实测数据见
+[`../../Engineering/TechReports/engine/01-计算核心.md`](../../Engineering/TechReports/engine/01-计算核心.md)。
 
 ## top/
 

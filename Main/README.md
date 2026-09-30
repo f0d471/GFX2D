@@ -21,7 +21,7 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | DDR3 帧缓冲与双缓冲 | 已由 display 工作点接入并上板验收，CPU 软件绘制可写后缓冲并在场边界切换 |
 | 软件执行器像素吞吐（E7） | **已收尾（2026-09-27）**：4KB 固定生产基线精确 S1 整表约 80.46 M 周期（805 ms），18 项输出独立复算全对；旧六方程注错 CRC 已重判，本次两个 VERIFY_ONLY 构建分别 `fail 0`、`fail 8`，均完整结束。默认生产 BIN 与原基线逐位相同。记录与按影响复测的边界见 [platform 第 09 章](../Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md) |
 | CPU 每弹幕开销（E8） | **已收尾（2026-09-27）**：两份修改版 DDR 探针在 4KB/16KB 各一次均 `fail 0`/`done`；同一份 69,034 字节程序在两档各一次九组、每组 1000 帧，逐帧状态与命令摘要均 0 错。N=2000 更新加提交 3.510→2.338 ms（−33.4%），同产物新旧读数最大变化 <0.08%。主线已恢复 4KB/1 路，16KB/4 路继续作为候选，采用条件与按影响复测边界见 [platform 第 10 章](../Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md)；真实游戏验证归 SW9 |
-| 2D 渲染引擎 | 尚未接入；Axi_Mux 的 S1 暂由 `axi_probe_master` 占用，引擎接入后须遵守 E5 的在途契约并复测扫描 FIFO。E7 精确 S1 整表的软件执行约 **805 ms/帧**；E8 的 4KB、N=2000 合成更新加命令写入微基准约 **3.51 ms/帧**。二者并非真实游戏的整帧分段；硬件模式瓶颈与 P4 取舍须由 SW9 同表实测 |
+| 2D 渲染引擎 | 尚未接入；Axi_Mux 的 S1 暂由 `axi_probe_master` 占用，引擎接入后须遵守 E5 的在途契约并复测扫描 FIFO。E7 精确 S1 整表的软件执行约 **805 ms/帧**；E8 的 4KB、N=2000 合成更新加命令写入微基准约 **3.51 ms/帧**。二者并非真实游戏的整帧分段；硬件模式瓶颈与 P4 取舍须由 SW9 同表实测。引擎 P1 的第一层（B1 计算核心 `rtl/engine/engine_blend.v`）已于 2026-09-30 完成并单独验证（穷举、停顿、注错、单独综合、板上 128 条抽样），待验收，见 `../Engineering/TechReports/engine/01-计算核心.md`；它还没列进工程源文件列表，要等 B4 例化时一起加，**还没进网表** |
 | Axi_Mux 三端口仲裁、防饿死与扫描 FIFO 水位（E5） | **已整体验收（2026-09-24）**：S0 接真实扫描输出、S1 由探针主机占用并预留给引擎、S2 接 SoC；`axi_mux_guard` VERSION 2 负责仲裁配置与 CPU 地址等待保护。引擎读、写方向各最多一笔在途，写方向不能依赖 guard 兜底。2.4 在 `idle/read/write` 三组各连续采 120 场，五个有效完整会话均 `fail 0`，最低水位 347/331/327 拍、欠载 0，维持 512 拍 FIFO；一次 `no_frame` 已定位为快照跨域握手缺陷并修复，新比特流上三次完整启动复测均通过。真实引擎接入后仍须在最重命令表下复测。过程与数据见 `../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md`、`../Engineering/TechReports/platform/08-扫描FIFO的压力矩阵与深度定值.md` |
 | 软件平台分层与双目标构建（SW1） | **已归档**（2026-09-19 验收，2026-09-28 删除条目）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
 | 命令表构造层与软件执行器（SW3） | **主机侧已验收**（2026-09-21）：`sw/lib/gfx/`（`gfx_abi.h` 数据布局、`check.c` 十步检查、`list.c` 构造层、`exec_sw.c` 执行器、`cases.c` 十一个整帧用例）与判据 `sw/lib/test/`（独立参考实现 `ref_exec`、手写 45 条向量、交换格式重放器）就位。78 项断言在 64 位与 `-m32` 下输出逐字节相同，ASan + UBSan 无报告；工具导出的 159 条向量与手写 45 条在两个实现上逐项一致；六个方程的注错各自只命中用到它的用例；同一份源码用 riscv-none-elf-gcc 13.4.0 零告警编过。整帧 CRC 期望值入库 `sw/lib/test/golden.txt`，E7 与引擎仿真拿它当金标准。**SW3 验收时未单独上板**；之后 SW6 已用同一执行器在板上逐帧对账，E7 已完成分方程吞吐测量并归档。见 `../Engineering/TechReports/sw/02-命令表构造层与软件执行器.md` |
@@ -146,7 +146,8 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   提交前跑一次 `--restore` 与 `--check`。
 - **判据要能注错见红**：每个仿真除了正常用例，必须有把逻辑改错后会 FAIL 的用例，
   否则不算验证过。
-- **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，`axi_mux_guard` 17/17，Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
+- **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，`axi_mux_guard` 17/17，
+  `engine/blend` 9/9（含 50462976 个向量的全定义域穷举，整套约 7 分钟），Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
   改了 `sw/` 下走新构建的程序（`gfx2dGame`、`cup3d`、`assetTest` 等）还要过 `sw/README.md` 里的两套构建、
   主机侧单元测试与 `tools/check/check_sw_layers.sh`；改了 `gfx2dGame`、`lib/gfx` 的执行器或素材还要过
   `tools/check/check_sw6_demo.sh`（十项，含四个方程的注错见红与 Sanitizer）；改了 `lib/core/fixmath`、正弦表、
