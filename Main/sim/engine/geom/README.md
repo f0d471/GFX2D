@@ -3,7 +3,7 @@
 引擎 P1 **B3（几何层）** 的仿真目录。里面有两样东西：入库实现的**单元仿真**，
 与 B3 前期研究的**探针**（研究做完了，保留为回归）。
 
-B3 已于 2026-10-01 验收，Todo 条目已删除；研究、定案、实现与全部数据在 [`../../../Engineering/TechReports/engine/03-几何层.md`](../../../Engineering/TechReports/engine/03-几何层.md)。
+研究、定案、实现与全部数据在 [`../../../Engineering/TechReports/engine/03-几何层.md`](../../../Engineering/TechReports/engine/03-几何层.md)。
 
 ## 单元仿真（B3 的交付物）
 
