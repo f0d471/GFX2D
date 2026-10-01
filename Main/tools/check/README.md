@@ -7,6 +7,8 @@
 | `check_round255.c` | 逐像素规格（设计文档 3.5 节）的穷举校验：舍入、中间量位宽、舍入顺序、预乘量化误差 | 改像素规格时；v1 不实现 tint，后续 profile 启用时再加对应穷举 |
 | `check_subst.c` | 引擎 P1 B1 的六方程**代入表**校验：`x = base×255 + m1×m2` 与 `src×Fs + dst×Fd` 的逐位等价、位宽与符号、16 位模截断注错，另有替代代入（两个乘数都压进 8 位）的等价性 | 改混合方程、代入方式或引擎的位宽时，提交前 |
 | `check_cmd_semantics.py` | 命令语义规格（设计文档 3.4 节、spec 第 02 章）的结构校验与 159 条一致性向量（ABI 1），带六项注错自检 | 改命令 ABI 或错误模型时，提交前 |
+| `geom_model.py` | 引擎 P1 B3（几何层）的**独立模型**：五者求交、逐行迭代、16 字节对齐的读写描述符、D7 读写避让、每行边带；`--selftest` `--directed` 自检，`--vectors` `--cases` 吃两组真实输入并与软件执行器逐像素对照，`--dump-records` 导 $readmemh 记录 | B3 开工前的研究已用它；B3 的单元仿真与它逐条比对；改裁剪规则、地址公式或 D7 时重跑 |
+| `geom_cases_dump.c` / `geom_cases_dump.sh` | 把十一个整帧用例的表面表与命令表导成几何模型能吃的记录（**链接 `sw/lib/gfx` 的 `cases.c` 与 `list.c`**，不照抄命令表） | 用例的命令表改了、或几何模型要重跑整帧用例时 |
 | `replay2c.py` | 录像（`.g2dr`）与 C 数组、录制文本之间的转换；`--check` / `--selftest` 做结构校验与文本往返 | 改录像格式时；`mk/host.mk test` 与 `check_sw4_pc.sh` 会调它 |
 | `check_sw4_scale.c` | PC 平台层「缩放用最近邻」的主机侧探针：把 8×8 棋盘放大 80 倍再读回边界像素 | 改缩放或像素格式时 |
 | `check_sw4_pc.sh` | PC 平台层（SW4）的提交前判据：整帧用例对 `golden.txt`、有窗与无窗逐行互比、注错构建、录像文本回灌、缩放探针 | 改 `sw/bsp/` 或 PC 侧构建时，提交前 |
@@ -127,6 +129,44 @@ wsl -e python3 Main/tools/check/check_cmd_semantics.py --emit F         把向�
 
 结论、缺口与原始输出见 `Engineering/TechReports/spec/02-命令语义.md` 第三至第五节，
 向量集的文本格式见同章规范条款 §7.2。
+
+## geom_model.py
+
+```
+wsl -e python3 Main/tools/check/geom_model.py --selftest                      模型自己的 23 项单元检查
+wsl -e python3 Main/tools/check/geom_model.py --directed                      34 条几何定向用例
+wsl -e python3 Main/tools/check/check_cmd_semantics.py --emit /tmp/v.txt --no-selftest
+wsl -e python3 Main/tools/check/geom_model.py --vectors /tmp/v.txt            159 条一致性向量
+wsl -e bash -c 'bash Main/tools/check/geom_cases_dump.sh /tmp/c.txt'
+wsl -e python3 Main/tools/check/geom_model.py --cases /tmp/c.txt              十一个整帧用例
+wsl -e python3 Main/tools/check/geom_model.py --dump-records /tmp/v.txt build/v.hex   RTL 测试台的期望值与 I1 激励
+wsl -e python3 Main/tools/check/geom_model.py --dump-directed build/directed.hex       定向用例的同一种记录
+```
+
+只用标准库，不依赖 RTL、板子与编译器。它是**几何层的第二份实现**：按 spec 第 01 章 3.6 节
+与第 02 章规范条款 §2、§4 的规则，从命令算出五者求交的矩形、逐行的读源/读目的/写描述符
+（16 字节对齐的覆盖区间、不跨 4KB、不超过 192 拍）、D7 的读写避让，以及每行的边带
+（像素数、写拍数、源与目的的**行首地址拍内相位** `lead = (row & 15) >> 2`）。
+`--directed` 的 34 条覆盖真实输入没有的边角：基址不按 4KB 对齐、基址只按 4 字节对齐、
+行跨 4KB（FILL 一条，BLIT 的源与目的都拆、只有源拆各一条）、源基址只按 8 字节对齐、源与目的相位 4×4、
+宽度对 4 取余 4 种、源矩形越出源表面、六个方程的读目的开关、零面积。每组输入跑完都断言规矩 1 与 D7 违例为 0、每行的掩码有效像素数等于 `npx`。
+
+**命令表的走法与参考实现同口径**（`run_vector()`，对齐 `check_cmd_semantics.py` 的 `run_lists()`）：
+SET_CLIP 的左上角取 `w1`；裁剪框跨命令表继承，不随表复位；向量出错时截在出错那一条之前，之后的记录与表不到几何层。
+`--vectors`/`--cases` 另做两项外部对照，防止模型只和自己一致：每条 FILL/BLIT 按软件执行器的写法
+（四者求交的窗口里逐像素判源越界，裁剪框在对照里独立重放）逐行比，并打印执行器口径的 `pixel_total` 与 `src_oob`；
+向量带参考实现的末态裁剪框（`clip=`）时，模型走完之后的框必须与它相同。
+
+**记录格式**（`REC_CMD`/`REC_SB`/`REC_RD`/`REC_WR` 四张表写在脚本里，是模型与 RTL 测试台之间的唯一真源）：
+每行一条记录，第一列是类型字 `0`（命令头，33 个字：I1 的全部字段 + 期望的矩形、行数、flags）/
+`1`（写描述符）/`2`（读描述符，含目标行缓冲号）/`3`（边带）/`F`（结束），其余全是 32 位十六进制；
+`//` 开头是注释（每个向量、每张命令表开头各一行），`$readmemh` 直接读。
+**记录的先后就是 RTL 的发射顺序**（每行：边带 → 读源 → 读目的 → 写目的），
+测试台据此逐条比。只导出几何层真正见到的命令；`cidx` 是表内下标。
+`--dump-directed` 与它同格式，只是输入换成 34 条定向用例。
+
+研究的过程、算式与全部数据见 `Engineering/TechReports/engine/03-几何层.md`；
+入库实现、单元仿真与逐拍测试台在 `Main/rtl/engine/engine_geom.v` 与 `Main/sim/engine/geom/`。
 
 ## replay2c.py
 

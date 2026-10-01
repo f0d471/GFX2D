@@ -21,6 +21,7 @@
 | --- | --- | --- |
 | 01 | [计算核心](01-计算核心.md) | B1。六个方程代入成同一条数据通路（`x = base×255 + m1×m2`）、位宽与符号、Ti60 的 DSP 块与推断规则、四种流水切法与固定延迟 `L = 3`、定案 D9 与 D24~D28、借鉴来源、`rtl/engine/engine_blend.v`、全定义域穷举、停顿与五个注错、板上 128 条抽样、单独综合的资源与时序。配图 `fig/01-计算核心.svg` |
 | 02 | [AXI 事务层](02-AXI事务层.md) | B2。两个 verilog-axi 核的来源、参数与三条要命的行为、整机里的规模与 `ENABLE_UNALIGNED` 取 0 的代价、复位排空（只能做在两个核的流接口上）、超时只报告不放弃与门限 `T` 的板上依据、按 valid 判的在途门控与读核状态脉冲早于末拍 1~55 拍的时序、上下文寄存器、读侧仲裁、W 通道带内掩码、校准到 E4 板上数的事务模型与每颗弹幕 1092~1124 周期、定案 D3/D12/D16/D17/D19 与 D29~D32、借鉴来源（MTX、iDMA）与上游测试的覆盖、七行判据、`rtl/engine/engine_mover.v`、四类仿真用例与五个注错、从机补四样与回归（含定时模式的三处修正）、单独综合的资源与时序、板上重复一次门限测量。配图 `fig/02-AXI事务层.svg` |
+| 03 | [几何层](03-几何层.md) | B3。**前期研究**：产出速率（探针 5.06~6.06 拍/行，对照搬运层 15.0/34.3/68.3/126.0）、五者求交与描述符的算式与位宽（含 **I5 的 `lead` 是行首地址拍内相位、不是 x 对 4 的余数**这处订正）、三份开源实现（iDMA 的 mid-end 与编译期 4KB 钳位、ORGFX 的两级裁剪、Amiga blitter 的首末字掩码）、独立模型 `tools/check/geom_model.py`（自检 23 项、定向 34 条、两组真实输入 2064 行 / 3498 个描述符，含与软件执行器的逐像素对照）。**实现**：`rtl/engine/engine_geom.v`（每行 4 拍，实测 4.68~6.22 拍/行；`row_free[1:0]` 每一行都查）、`sim/engine/geom/` 的单元仿真（三组输入 1020+338+5224 条记录逐字段比 0 处不符、握手监视器与 B4 行缓冲替身、五个注错见红、`+STALL`/`+RFSTALL` 两个握手用例、十种变异全部见红）、单独综合（裁剪框接变量后 2154 XLR、setup +0.572 / hold +0.091 ns）、定案 D33~D41、九行判据、七个研究问题、七个实现问题与六个验收时查出的问题。配图 `fig/03-几何层.svg`、`fig/03-一行描述符与边带.svg` |
 
 ## 判据与工具
 
@@ -32,6 +33,13 @@
 | `Main/sim/engine/mover/run.sh` | B2 的仿真：协议与上下文、复位与排空、错误、超时，五个注错，另加从机定时模式的回归（`tb_slave_timed.v`） |
 | `Main/rtl/vendor/verilog-axi/` | B2 用的两个第三方 DMA 核与许可（MIT，源码一字不改） |
 | `Main/sim/axi_probe/axi_ram_model.v` | 四个仿真共用的从机，B2 按 D13 补了 4 MiB、`wstrb`、按区间回 `SLVERR`、定时模式四样 |
+| `Main/tools/check/geom_model.py` | B3 几何层的**独立模型**：求交、行迭代、描述符、边带、判据、定向用例、两组记录的导出（期望值 + I1 激励） |
+| `Main/tools/check/geom_cases_dump.c` / `.sh` | 把十一个整帧用例导成几何模型能吃的记录（链接 `sw/lib/gfx`） |
+| `Main/rtl/engine/engine_geom.v` | B3 的几何层，接口是层间契约 I1、I2、I5，另加 `row_free[1:0]` 与 `cmd_done` |
+| `Main/sim/engine/geom/run.sh` | B3 的仿真：现算期望值 → 研究探针 → 单元仿真（三组输入）→ 两个握手用例 → 五个注错 |
+| `Main/sim/engine/geom/tb_engine_geom.v` | B3 的单元仿真测试台：逐字段比对、规矩 1、D7、完成脉冲、反压、握手监视器、B4 行缓冲替身 |
+| `Main/sim/engine/geom/probe_geom.v`、`tb_probe_geom.v` | B3 前期研究的研究探针与逐拍测试台，保留为回归 |
+| `Main/sim/engine/geom/syn/` | 两个单独综合工程：研究探针与入库实现各一份 |
 | `Main/tools/check/check_subst.c` | 六个方程的代入表与逐位等价穷举（全定义域 50462976 组），另有 16 位截断注错与替代代入的等价性 |
 | `Main/tools/check/check_round255.c` | 规格侧的舍入校验；`--golden <文件>` 可选模式导出 1024 条抽样金标准给仿真对账 |
 
@@ -47,4 +55,11 @@ B2 于 2026-09-30 验收，Todo 条目已删除：仿真 15/15、从机回归三
 `engine_mover.v` 与 `rtl/vendor/verilog-axi/` 同样**尚未进网表**，B5 的 `engine_top.v` 例化时一起加。
 单独综合的 RAM（16 块）与第 02 章 3.1 节的整机数对上，写核的 XLR 差 590，去向写在第 02 章第六节。
 
-B3~B6 未开工。
+B3 的**实现与单元仿真于 2026-10-01 完成，待验收**，在 [第 03 章](03-几何层.md)：
+`rtl/engine/engine_geom.v`、`sim/engine/geom/` 的单元仿真（三组输入 1020+338+5224 条
+期望记录逐字段比 0 处不符、五个注错见红、`+STALL`/`+RFSTALL` 两个握手用例）、
+单独综合（裁剪框接变量，2154 XLR、251 FF、0 块 RAM、0 个 DSP，setup +0.572 / hold +0.091 ns）、
+定案 D33~D41、两幅配图。**`engine_geom.v` 同样还没进网表**，B5 例化时一起加。
+两处待与邻居确认：D38（零面积命令的完成脉冲）与 B5、D41（`rd_buf` 与 `row_free[1:0]`）与 B4。
+
+B4~B6 未开工。

@@ -10,6 +10,12 @@ work_syn/
 work_pnr/
 work_pt/
 work_dbg/
+# 一个目录下有多个 Efinity 工程时（sim/engine/geom/syn/ 有探针与入库实现两个），
+# 工作目录带工程名后缀，例如 work_syn_geom / work_pnr_geom。
+work_syn_*/
+work_pnr_*/
+work_pt_*/
+work_dbg_*/
 *.vdb
 *.map.v
 

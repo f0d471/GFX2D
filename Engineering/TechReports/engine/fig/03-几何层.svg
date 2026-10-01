@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="880" viewBox="0 0 1280 880"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .bx { fill:#eef2f7; stroke:#64748b; stroke-width:1.2 }
+      .br { fill:#e0f2fe; stroke:#0369a1; stroke-width:1.2 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .tg { font-size:9.5px; fill:#94a3b8 }
+      .bmb { stroke:#334155; stroke-width:1.7; fill:none }
+      .un  { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="880" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">几何层：一条命令怎么变成逐行的描述符与边带</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">B3 定下的一层。它不碰像素，只碰坐标与地址；两侧的箭头是层间契约 I1、I2、I5，下方的 row_free 是本层与 B4 之间的行缓冲握手（每一半一位）。</text>
+
+  <!-- 图例 -->
+  <rect x="960" y="80" width="280" height="86" class="bi"/>
+  <text x="976" y="100" class="t" font-weight="600">图例</text>
+  <line x1="976" y1="120" x2="1028" y2="120" class="bmb" marker-end="url(#a)"/>
+  <text x="1038" y="124" class="ts">已实现</text>
+  <line x1="976" y1="142" x2="1028" y2="142" class="un" marker-end="url(#ag)"/>
+  <text x="1038" y="146" class="ts">尚未实现</text>
+
+  <!-- 模块边界 -->
+  <rect x="300" y="150" width="610" height="490" class="b"/>
+  <text x="316" y="174" class="tt">engine_geom　rtl/engine/engine_geom.v（B3，已实现）</text>
+
+  <!-- 行 A -->
+  <rect x="320" y="186" width="270" height="86" class="bx"/>
+  <text x="334" y="208" class="t" font-weight="600">五者求交</text>
+  <text x="334" y="228" class="ts">目的矩形、游戏区、裁剪框、目的表面、源表面</text>
+  <text x="334" y="244" class="ts">32 位有符号的 max/min 两条归约链</text>
+  <text x="334" y="260" class="ts">空宽高先判；D34</text>
+
+  <rect x="620" y="186" width="270" height="86" class="br"/>
+  <text x="634" y="208" class="t" font-weight="600">行迭代与描述符拆段</text>
+  <text x="634" y="228" class="ts">多拍顺序：每行 4 拍（实测 4.68~6.22）</text>
+  <text x="634" y="244" class="ts">16 字节对齐的覆盖区间，向外取整</text>
+  <text x="634" y="260" class="ts">不跨 4KB、不超过 192 拍；D33、D35</text>
+
+  <!-- 行 B -->
+  <rect x="320" y="292" width="270" height="86" class="bx"/>
+  <text x="334" y="314" class="t" font-weight="600">D7 读写避让</text>
+  <text x="334" y="334" class="ts">读源 ⟺ 操作是 BLIT</text>
+  <text x="334" y="350" class="ts">读目的 ⟺ 方程不是 COPY</text>
+  <text x="334" y="366" class="ts">省下的读不改变逐像素结果；D37</text>
+
+  <rect x="620" y="292" width="270" height="86" class="bx"/>
+  <text x="634" y="314" class="t" font-weight="600">I5 每行边带</text>
+  <text x="634" y="334" class="ts">npx、beats、lead_dst、lead_src</text>
+  <text x="634" y="350" class="ts">方程、色键、w4、c、源格式</text>
+  <text x="634" y="366" class="ts">先于本行的读描述符发出；D36</text>
+
+  <!-- 行 C -->
+  <rect x="320" y="398" width="570" height="86" class="bx"/>
+  <text x="334" y="420" class="t" font-weight="600">三个方向各自握手，一笔描述符占一拍</text>
+  <text x="334" y="440" class="ts">每行的顺序固定：边带 → 读源 → 读目的 → 写目的</text>
+  <text x="334" y="456" class="ts">rd_buf = {源/目的, 行号最低位}：源、目的各一块行缓冲，各放两行乒乓</text>
+  <text x="334" y="472" class="ts">写描述符与读描述符同序、wr_ready 一高就走；每行开始前查 row_free[h]</text>
+
+  <!-- 行 D -->
+  <rect x="320" y="504" width="570" height="86" class="bx"/>
+  <text x="334" y="526" class="t" font-weight="600">命令完成</text>
+  <text x="334" y="546" class="ts">非空命令：最后一个写描述符的 wr_last_row——只打在最后一行的最后一段上</text>
+  <text x="334" y="562" class="ts">零面积命令：不发任何描述符，回一拍 cmd_done（带命令索引）</text>
+  <text x="334" y="578" class="ts">busy 落下来之后控制层才发下一条；D38</text>
+
+  <!-- 模块底部接口摘要 -->
+  <rect x="320" y="602" width="570" height="26" class="bi"/>
+  <text x="334" y="620" class="ts">clk：core_clk 100 MHz　　rst：控制层复位　　row_free[1:0]：行缓冲每半一位（电平）</text>
+
+  <!-- 左：控制层 -->
+  <rect x="40" y="186" width="230" height="86" class="bg"/>
+  <text x="56" y="208" class="tt">B5 控制层</text>
+  <text x="56" y="228" class="tg">尚未实现</text>
+  <text x="56" y="248" class="ts">I1：一条过了十步检查的命令</text>
+  <text x="56" y="264" class="ts">全部字段 + 当前裁剪框 + 命令索引</text>
+
+  <line x1="274" y1="229" x2="314" y2="229" class="un" marker-end="url(#ag)"/>
+  <text x="254" y="220" class="ts">I1</text>
+
+  <!-- 右：搬运层 -->
+  <rect x="960" y="186" width="280" height="86" class="b"/>
+  <text x="976" y="208" class="t" font-weight="600">B2 搬运层</text>
+  <text x="976" y="228" class="ts">已实现（B2，engine_mover）</text>
+  <text x="976" y="244" class="ts">读、写两个方向各一笔在途</text>
+  <text x="976" y="260" class="ts">每个描述符恰好一个突发</text>
+
+  <line x1="914" y1="229" x2="954" y2="229" class="bmb" marker-end="url(#a)"/>
+  <text x="920" y="220" class="ts">I2</text>
+
+  <!-- 下：计算阵列与行缓冲握手 -->
+  <rect x="40" y="700" width="230" height="86" class="bg"/>
+  <text x="56" y="722" class="tt">B4 计算阵列</text>
+  <text x="56" y="742" class="tg">尚未实现</text>
+  <text x="56" y="762" class="ts">收 I5 边带：npx、beats、lead</text>
+  <text x="56" y="778" class="ts">按 lead 与 npx 算首末拍的「不写」</text>
+
+  <line x1="155" y1="696" x2="155" y2="660" class="un"/>
+  <line x1="155" y1="660" x2="316" y2="660" class="un" marker-end="url(#ag)"/>
+  <text x="164" y="652" class="ts">I5</text>
+
+  <rect x="300" y="700" width="230" height="86" class="bg"/>
+  <text x="316" y="722" class="tt">B4 的行缓冲</text>
+  <text x="316" y="742" class="tg">尚未实现</text>
+  <text x="316" y="762" class="ts">row_free[h]：源、目的两块的第 h 半</text>
+  <text x="316" y="778" class="ts">都空着，才开用这一半的行</text>
+
+  <line x1="415" y1="696" x2="415" y2="636" class="un" marker-end="url(#ag)"/>
+  <text x="424" y="676" class="ts">row_free[1:0]</text>
+
+  <!-- 底部说明 -->
+  <rect x="580" y="700" width="660" height="146" class="bi"/>
+  <text x="596" y="722" class="t" font-weight="600">三个数（出处见第 03 章第三、五节）</text>
+  <text x="596" y="746" class="ts">1　产出速率：每行 4 拍。16×16 FILL COPY 5.06 拍/行、整屏 FILL 5.00，搬</text>
+  <text x="596" y="762" class="ts">　 运层同一情形 15.0 / 126.0 拍/行，余量 2.96 倍起，不做逐行流水</text>
+  <text x="596" y="782" class="ts">2　一行最多两段、最多 161 拍：640 像素 = 2560 字节，取整后最多 2576，</text>
+  <text x="596" y="798" class="ts">　 小于 4096 也小于 192×16，所以 192 拍的上限在 P1 里永不触发</text>
+  <text x="596" y="818" class="ts">3　单独综合：2154 XLR（LUT4 1228、加法器 675）、251 个 FF、0 块 RAM、0 个</text>
+  <text x="596" y="834" class="ts">　 DSP；clk 100 MHz 下 setup slack +0.572 ns、hold +0.091 ns（裁剪框接变量）</text>
+</svg>
