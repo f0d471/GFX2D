@@ -691,7 +691,7 @@ def surf_table(slots):
 # ---------------------------------------------------------------- 定向用例
 
 def directed_cases():
-    """B3 条目 2.4 节第 1 条的定向用例：真实输入没有覆盖到的几何边界。
+    """B3 仿真清单第 1 条的定向用例（engine 第 03 章 3.4 节）：真实输入没有覆盖到的几何边界。
 
     返回 [(名字, 说明, 表面表, 命令, 期望检查点)]。
     """
@@ -984,7 +984,7 @@ def run_vectors(path, verbose):
 def run_directed(verbose):
     bad = []
     total = 0
-    print("定向用例（B3 条目 2.4 节第 1 条）：")
+    print("定向用例（engine 第 03 章 3.4 节）：")
     for name, desc, t, cmd in directed_cases():
         clip = [0, 0, SCREEN_W - 1, SCREEN_H - 1]
         p = plan_command(t, cmd, clip)

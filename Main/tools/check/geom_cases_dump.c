@@ -10,7 +10,7 @@
 *         sw/lib/gfx 的 cases.c、list.c、check.c 与 sw/lib/core/format.c）：
 *             bash tools/check/geom_cases_dump.sh [输出文件]
 *
-*         与 B3 条目 2.2 节第 4 项对应；B4 的逐像素期望值导出用另一个更全的小程序。
+*         与 B3 研究清单第 4 项（engine 第 03 章 3.4 节）对应；B4 的逐像素期望值导出用另一个更全的小程序。
 ******************************************************************************/
 
 #include <stdio.h>

@@ -2,8 +2,8 @@
 # 引擎 P1 B3（几何层）的仿真
 #
 # 两步：
-#   1 研究探针 probe_geom.v（B3 条目 2.2 节第 1、5 项，保留为回归）
-#   2 入库实现 rtl/engine/engine_geom.v 的单元仿真（条目 2.4 节）
+#   1 研究探针 probe_geom.v（B3 研究清单第 1、5 项，engine 第 03 章 3.1、3.5 节，保留为回归）
+#   2 入库实现 rtl/engine/engine_geom.v 的单元仿真（engine 第 03 章 3.7 节）
 #
 # 期望值一律由独立模型 tools/check/geom_model.py 现算，测试台只做「驱动 + 比对」：
 #   三组输入：定向用例 34 条、159 条向量里几何层见到的命令、十一整帧用例的全部命令。
@@ -77,7 +77,7 @@ run_case() {
     esac
 }
 
-echo "单元仿真 engine_geom（条目 2.4 节第 1~3 条）："
+echo "单元仿真 engine_geom（第 03 章 3.7 节）："
 build_one geom 0 || { echo "  RESULT: COMPILE-ERROR (see $BUILD/geom.compile.log)"; exit 1; }
 run_case geom_directed geom "$BUILD/directed.hex" PASS
 run_case geom_vectors  geom "$BUILD/vectors.hex"  PASS
