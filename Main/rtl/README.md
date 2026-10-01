@@ -36,15 +36,19 @@
 
 | 文件 | 说明 |
 | --- | --- |
-| `engine_blend.v` | B1：单通道混合核。源/目的/`a`/`c` 各 8 位与方程号 3 位进去，8 位出来，固定延迟 `L = 3`（D24）。六个方程都写成 `x = base × 255 + m1 × m2`，每通道一个推断出来的 `EFX_DSP48`；`base × 255` 用移位相减。**还没列进工程源文件列表**：12 个实例由 B4 的 `engine_pix.v` 例化，那时两个文件一起加进 `fpga/gfx2d_ti60/gfx2d_ti60.xml`，接入之后才进网表 |
+| `engine_blend.v` | B1：单通道混合核。源/目的/`a`/`c` 各 8 位与方程号 3 位进去，8 位出来，固定延迟 `L = 3`（D24）。六个方程都写成 `x = base × 255 + m1 × m2`，每通道一个推断出来的 `EFX_DSP48`；`base × 255` 用移位相减。B4 的 `engine_pix.v` 例化 12 个实例，两个文件均已列进工程源文件列表；顶层接入后才进整机网表 |
 | `engine_mover.v` | B2：搬运层（AXI 事务层）。引擎唯一的 AXI 主机，接 `Axi_Mux` 的 S1。里面是 `vendor/verilog-axi/` 的两个核（参数见 D3）、读侧仲裁（命令取数优先，D8）、每方向一笔在途的门控（D3 规矩 2、D12）、W 通道带内掩码（D16）、复位排空（D17、D29；一次请求只完成一次，请求举着期间不收新提交）与超时（D19、D30）。读方向的「完成」是**状态脉冲已捕获且读流 `tlast` 已握手**（D32：读核的状态可以早于末拍握手 1~55 拍，只看状态会让上下文错位）。整块挂搬运层复位（顶层接 `~ddr_rstn`）。**还没列进工程源文件列表**，B5 的 `engine_top.v` 例化它时再一起加进去 |
+| `engine_geom.v` | B3：几何层。接一条过了十步检查的 FILL 或 BLIT（I1），五者求交、逐行迭代（每行 4 拍）、按 16 字节对齐的覆盖区间发读源、读目的、写目的的描述符（不跨 4KB、不超过 192 拍，I2），每行先发一条边带（I5）；`rd_buf = {源/目的, 行号最低位}`，每一行开始之前查 `row_free[行号最低位]`（D41）；零面积命令回一拍 `cmd_done`（D38）。**还没列进工程源文件列表**，B5 例化时一起加 |
+| `engine_pix.v` | B4：计算阵列与片上缓存。源 512×128、目的 512×96（X 字节不存）两块行缓冲，各放两行乒乓；两拍窗口的像素旋转、首末拍掩码与色键（比原始存储字），在 X 字节最高位打「不写」标记；12 个 `engine_blend` 的四像素通路，FILL 的 a 一律取 `w4[31:24]`（规范条款 §4.2）；七拍流水挂一个时钟使能 `en = ws_tready \|\| !ws_tvalid`，写核停时整条停。I3 读流恒 ready，I4 写流没有 `tlast`（D48），`row_free[1:0]` 在该半写流末拍被写核收走之后拉高（D45）。已列进工程源文件列表，尚未被顶层例化 |
 
-两个文件各有一个 `parameter integer INJECT`，是仿真注错口：0 是正式配置，综合时是常量、
-对应分支会被优化掉。位定义见各自文件头，用它的地方只有 `sim/engine/blend/run.sh` 与 `sim/engine/mover/run.sh`。
+四个文件各有一个 `parameter integer INJECT`，是仿真注错口：0 是正式配置，综合时是常量、
+对应分支会被优化掉。位定义见各自文件头，用它的地方只有 `sim/engine/` 下各自目录的 `run.sh`（B4 是 `run_formal.sh`）。
 
 设计依据、定案与实测数据见
-[`../../Engineering/TechReports/engine/01-计算核心.md`](../../Engineering/TechReports/engine/01-计算核心.md)（B1，D9、D24~D28）与
-[`../../Engineering/TechReports/engine/02-AXI事务层.md`](../../Engineering/TechReports/engine/02-AXI事务层.md)（B2，D3、D12、D16、D17、D19、D29~D32）。
+[`../../Engineering/TechReports/engine/01-计算核心.md`](../../Engineering/TechReports/engine/01-计算核心.md)（B1，D9、D24~D28）、
+[`../../Engineering/TechReports/engine/02-AXI事务层.md`](../../Engineering/TechReports/engine/02-AXI事务层.md)（B2，D3、D12、D16、D17、D19、D29~D32）、
+[`../../Engineering/TechReports/engine/03-几何层.md`](../../Engineering/TechReports/engine/03-几何层.md)（B3，D33~D41）与
+[`../../Engineering/TechReports/engine/04-计算阵列与片上缓存.md`](../../Engineering/TechReports/engine/04-计算阵列与片上缓存.md)（B4，D15、D23、D42~D49）。
 
 ## top/
 

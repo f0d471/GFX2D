@@ -11,6 +11,7 @@
 | 路径 | 内容 |
 | --- | --- |
 | `gfx2d_ti60/gfx2d_ti60.xml` | 工程文件：源文件列表、综合与布局布线选项、比特流选项、约束文件路径 |
+| `../rtl/engine/engine_blend.v`、`../rtl/engine/engine_pix.v` | B4 已加入源文件列表；当前顶层尚未例化，资源与时序以 `sim/engine/pix/syn` 独立综合为准 |
 | `gfx2d_ti60/gfx2d_ti60.peri.xml` | 接口设计：管脚分配、IO 电压、PLL、LVDS TX、硬 JTAG |
 | `gfx2d_ti60/sdc/gfx2d_ti60.sdc` | 时序约束 |
 | `gfx2d_ti60/ip/soc/` | Sapphire SoC IP 的生成结果（`settings.json` 是配置，`soc.v` 是网表） |

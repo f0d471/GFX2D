@@ -58,7 +58,7 @@ CPU 更不做——让 CPU 去搬，一个字要花掉取指、译码、访存�
 - **文档**：把过程、数据与解释留下来。
 
 判据里还有一条与其他批相同的硬要求：**注错必须见红**。
-本层的五个注错各自打在一处机制上（读门控、写门控、带内掩码、排空、排空请求的「一次只完成一次」），
+本层的六个注错各自打在一处机制上（读门控、写门控、带内掩码、排空、排空请求的「一次只完成一次」、写流的 `tlast`），
 每一个都要红在它对应的判据上，不能是「随便什么错」。
 
 ## 三、每一步做了什么
@@ -162,7 +162,8 @@ Efinity 2026.1 的 map、interface、pnr、pgm 四步都 PASS，没有 error：
 哑拍的最后一拍必须带 `tlast`。核在突发拍数用完而流上还没见到 `tlast` 时进
 `STATE_DROP_DATA`（`axi_dma_wr.v:682-685`），一路丢流上的数据直到 `tlast`；
 这期间写状态照常回来、门控放行下一个描述符，而核还没收完，**下一行的写流会被丢掉**。
-这条约束对正常写流同样成立：B4 必须在每个写描述符的最后一拍给出 `tlast`。
+这条约束对正常写流同样成立。原先的分工是计算阵列（B4）给 `tlast`；B4 前期研究发现一行跨 4KB 拆成两个写描述符时，
+段界只在 I2 的写描述符上、I5 的边带只有两段之和，计算阵列算不出段 1 的末拍。所以改由本层打（D48，B4 定的，2026-10-01）：本层本来就为排空记着在途写描述符的总拍数与已送拍数，正常写流与排空哑拍用同一个式子 `tlast = (wr_beats_left == 1)`，写流接口上不再有 `tlast`。`wr_beats_total` 在写描述符握手那一拍装入，写核在 `STATE_START` 里至少停一拍才收流的第一拍，所以第一拍到来时剩余拍数已经是新描述符的。
 
 反过来，流提前给 `tlast` 时核自己补尾：`STATE_FINISH_BURST`（`axi_dma_wr.v:701-732`）以 `wstrb = 0`、`wdata = 0`
 把这一笔剩下的拍发完。所以排空其实只要一拍带 `tlast`、全打「不写」标记的哑拍，两个 12 位拍数寄存器可以省掉。
@@ -406,7 +407,7 @@ B6 按真实引擎复测时一起核对（第六节）。
 
 3.1~3.8 节的研究收成下面几条定案。D3、D12、D16、D17、D19 是拆批之前（2026-09-26）定的方向，归本批，原文列在这里；
 D13 原文在[总览](../../Todo/hw/引擎P1总览.md) 2.3 节，本批做它的从机一半；D29~D32 是本批新定的，编号接在 B1 的 D24~D28 之后。
-D15 的数据在 3.1 节，定案归 B4。
+D15 的数据在 3.1 节，定案归 B4。D48（写流的 `tlast` 由本层按描述符拍数打）也是 B4 定的、改在本层，做法在 3.2 节末，定案原文在 [B4 条目](../../Todo/hw/引擎P1-B4-计算阵列与片上缓存.md) 2.1 节。
 
 | 编号 | 定案 | 依据 |
 | --- | --- | --- |
@@ -481,7 +482,7 @@ CI 真正跑的只有 `tb/axi_dma_rd/test_axi_dma_rd.py` 与 `tb/axi_dma_wr/test
 上面全部是读源码得到的。初稿把从机写成仓库里的 `tb/axi.py`，那是老的 MyHDL 模型，只给被排除的 `tb/test_*.py` 用，
 复核时改正，结论不变。
 
-### 3.11 判据与仿真：四类用例、五个注错与从机定时模式
+### 3.11 判据与仿真：四类用例、六个注错与从机定时模式
 
 新目录 `sim/engine/mover/`。被测是 `engine_mover` 整块，经仓内 `Axi_Mux`（X3，S1）
 接补齐四样的 `sim/axi_probe/axi_ram_model.v`；测试台扮演几何层（发读写描述符）、
@@ -513,15 +514,16 @@ CI 真正跑的只有 `tb/axi_dma_rd/test_axi_dma_rd.py` 与 `tb/axi_dma_wr/test
 | `err` | 像素读回、写响应各一例 `SLVERR`，状态里的错误与命令索引正确 |
 | `timeout` | 从机按住超过门限：报超时且方向对；放开之后照常完成、数据属于原来那一笔；只报一次 |
 
-五个注错分别打在五处机制上，各自的 FAIL 由脚本核对是不是红在对应的判据上：
+六个注错分别打在六处机制上，各自的 FAIL 由脚本核对是不是红在对应的判据上（第六个是 2026-10-01 D48 之后补的）：
 
 | 注错 | 改了什么 | 结果 |
 | --- | --- | --- |
 | `inject_nogate_rd` | 去掉读方向的在途门控 | FAIL：像素读流读到命令取数区的数据，总线侧也有违例周期 |
 | `inject_nogate_wr` | 去掉写方向的在途门控 | FAIL：上一笔写还没结束就接受了下一个写描述符 |
 | `inject_mask` | 带内掩码旁路，`wstrb` 与 X 字节直通 | FAIL：38 处目的区比对不符，被标记的像素连 X 字节一起写进去了 |
-| `inject_nodrain` | 排空期不帮忙收读流、也不补哑拍 | FAIL：85 处错误，两个方向都停在忙态，排空完成等不到 |
+| `inject_nodrain` | 排空期不帮忙收读流、也不补哑拍 | FAIL：两个方向都停在忙态，排空完成等不到，最后由看门狗收尾（D48 之前是报 85 处错误后结束：测试台按自己的拍数在中途送过一个 `tlast`，写核提前收尾；现在 `tlast` 只在描述符真的送满时出现，写核一直等） |
 | `inject_drain_level` | 排空按电平重进，且只在排空态里挡提交 | FAIL：请求举着时 `drain_done` 打了 2 次，退出排空那一拍接受了新的读描述符 |
+| `inject_no_tlast` | 正常写流不打 `tlast`（只有排空哑拍打），即 D48 之前「靠计算阵列给、它没给」 | FAIL：第一笔写的拍数用完时流上没有 `tlast`，写核进 `STATE_DROP_DATA` 一直等，后面的写描述符一个也收不进去；`normal` 发 4 笔写，这里只有第一笔上了总线（`aw=1`），看门狗收尾 |
 
 最后单独跑一次从机定时模式（`tb_slave_timed.v`，不经过被测）：连续写 16 拍、`WR_BUB=6` 只有 2 拍空拍；
 主机在第 6 拍握手之后停一拍，写通道照常写完；第一个 R 握手在 AR 握手之后第 `RD_LAT+2` 拍。
@@ -918,8 +920,9 @@ axi_dma_rd.v ... differ: char 3, line 1
 
 ### 仿真
 
-`sim/engine/mover/run.sh` 十五项全部符合预期：四个正常用例 PASS、五个注错 FAIL、
-五项「注错的 FAIL 红在对应的判据上」的核对通过、从机定时模式 PASS。
+`sim/engine/mover/run.sh` 十七项全部符合预期：四个正常用例 PASS、六个注错 FAIL、
+六项「注错的 FAIL 红在对应的判据上」的核对通过、从机定时模式 PASS。
+下面是 2026-10-01 D48 之后的输出（`STAT=1`）；验收时是十五项，少的两项就是 `inject_no_tlast` 与它的核对。
 
 ```text
 正常用例:
@@ -935,18 +938,24 @@ axi_dma_rd.v ... differ: char 3, line 1
   inject_nogate_rd: RESULT: FAIL (看门狗：仿真没有自己结束)
       STAT rd_viol=4 wr_viol=0 rd_out=0 wr_out=0 ar=2 aw=0 multi=0 unal=0 x4k=0 rrb=0 tmo=0
   inject_mask: RESULT: FAIL (38 errors)
-  inject_nodrain: RESULT: FAIL (85 errors)
-      STAT rd_viol=0 wr_viol=0 rd_out=0 wr_out=0 ar=2 aw=1 multi=0 unal=0 x4k=0 rrb=19966 tmo=3
+      STAT rd_viol=0 wr_viol=0 rd_out=0 wr_out=0 ar=8 aw=4 multi=0 unal=0 x4k=0 rrb=0 tmo=0
+  inject_nodrain: RESULT: FAIL (看门狗：仿真没有自己结束)
+      STAT rd_viol=0 wr_viol=0 rd_out=0 wr_out=1 ar=2 aw=1 multi=0 unal=0 x4k=0 rrb=19966 tmo=2
   inject_nogate_wr: RESULT: FAIL (2 errors)
+      STAT rd_viol=0 wr_viol=0 rd_out=0 wr_out=0 ar=8 aw=4 multi=0 unal=0 x4k=0 rrb=0 tmo=0
   inject_drain_level: RESULT: FAIL (2 errors)
+      STAT rd_viol=0 wr_viol=0 rd_out=0 wr_out=0 ar=5 aw=2 multi=0 unal=0 x4k=0 rrb=0 tmo=0
+  inject_no_tlast: RESULT: FAIL (看门狗：仿真没有自己结束)
+      STAT rd_viol=0 wr_viol=0 rd_out=0 wr_out=0 ar=8 aw=1 multi=0 unal=0 x4k=0 rrb=0 tmo=0
   inject_nogate_rd: FAIL 由读流上下文错位或契约违例引起
   inject_mask: FAIL 由写目的区比对引起
   inject_nodrain: FAIL 由排空没有完成引起
   inject_nogate_wr: FAIL 由写方向在途契约违例引起
   inject_drain_level: FAIL 由「一次请求只完成一次」引起
+  inject_no_tlast: FAIL 由写核卡在 DROP_DATA（只有第一笔写上了总线）引起
 从机定时模式:
   slave_timed: RESULT: PASS
-SIM OK: 15/15 checks as expected
+SIM OK: 17/17 checks as expected
 ```
 
 统计字段的含义：`rd_viol`/`wr_viol` 是按 valid 判的在途契约违例周期数，
@@ -973,6 +982,8 @@ RAM 是 `EFX_RAM10` 块数，时序是 `core_clk`（100 MHz）的余量：
 | --- | --: | --: | --: | --: | --: | --: | --: |
 | 与主线同参数（`use-logic-for-small-mem = 64`） | 1171.5 | 16 | 361 / 8 | 536 / 8 | 5.187 | 0.026 | 76 |
 | `use-logic-for-small-mem = 0` | 898.5 | 19 | 258 / 9 | 366 / 10 | 5.206 | 0.027 | 71 |
+| 主线参数，D48 之后（2026-10-01） | 1173.5 | 16 | 353 / 8 | 547 / 8 | 5.126 | 0.027 | 70 |
+| `use-logic-for-small-mem = 0`，D48 之后 | 901.5 | 19 | 258 / 9 | 371 / 10 | 4.925 | 0.029 | 65 |
 
 XLR 与 RAM 取 Efinity 的 `hier_util` 报告；`u_mover` 一列是本层整块（两个核加仲裁、门控、排空、超时与掩码），
 不含综合顶层自己的激励与观测逻辑。告警全部落在两个核与综合顶层上，`engine_mover.v` 自身 0 条。
@@ -984,6 +995,11 @@ hold 0.026 ns 与主线同量级，整机接入后在 B6 复测。
 XLR 里读核 361 对整机的 388.5，写核 536 对 1126.5。写核那 590 XLR 的差距来自 3.1 节那次的测法：
 那次是整机编译，写核前面接着像素旋转与色键比较，整机优化会跨层次搬动逻辑；那次的工程与报告已经不在，
 这一段本批无法归因。两个核的规模以本批这一行为准，B6 整机编译再登记一次。
+
+后两行是 2026-10-01 按 B4 的 D48 改成本层自己打写流 `tlast` 之后重跑的（同两个工程，综合顶层只删掉 `ws_tlast` 一处连线）。
+`tlast` 现在每拍都要看剩余拍数，最差 setup 路径的起点换成 `wr_beats_total`（主线参数下到写核状态 FIFO 的使能，
+17 级逻辑、4.514 ns），余量仍在 4.9 ns 以上；`engine_mover.v` 自身告警仍是 0 条。读核没改，361 → 353 XLR 是综合与布局的波动。
+两个核合计 900 XLR，写核 547 与整机的差是 579.5，B6 对账按这一版。
 
 复核之前这里登记的是 706 XLR、0 块，是第一版综合顶层把两个核的输出 FIFO 剪掉之后的数（第四节）。
 
@@ -1018,9 +1034,9 @@ B6 复测 E5 时写方向要把 192 拍这一档带上。
   `fpga/gfx2d_ti60/gfx2d_ti60.xml`；B5 的 `engine_top.v` 例化它时三个文件一起加进去。
 - **超时门限要在真实引擎负载下复算。** 上面的 224 拍是用探针跑的，探针一次只跑一个方向、
   地址不递增；引擎读写同时在途时两者会互相挤。B6 按同一口径复测。
-- **三条接口约束要 B3、B4 守住**：每个描述符 16 字节对齐、不跨 4KB、不超过 192 拍；
-  写流最后一拍必须给 `tlast`；写描述符握手到写流首拍之间不能长过门限 `T`。
-  三条都写进了本批的判据与总览 2.4 节。
+- **两条接口约束要 B3、B4 守住**：每个描述符 16 字节对齐、不跨 4KB、不超过 192 拍；
+  写描述符握手到写流首拍之间不能长过门限 `T`。两条都写进了本批的判据与总览 2.4 节。
+  原先还有一条「写流最后一拍必须给 `tlast`」，2026-10-01 B4 的 D48 改由本层自己打，这一条没有了（3.2 节末）。
 - **读、写两个方向在同一拍同时超时，`tmo_dir` 只能报写方向。** `tmo_evt` 是两个方向的「或」，
   `tmo_dir` 取写方向的事件；读方向那一次的「只报一次」标志照样置位，所以它不会再报。
   两个方向的计数各从自己最后一次握手起算，正好同一拍到门限的概率很低；`TIMEOUT` 是一个码值，

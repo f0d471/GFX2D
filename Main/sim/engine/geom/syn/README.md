@@ -9,7 +9,7 @@ B3 的**单独综合**工程，两份：
 
 两份都入库、路径全相对。B1 与 B2 的单独综合建在仓库外，B2 因此丢过一次整机资源对账
 （两个核在整机里是 1515 XLR、16 块 RAM，而那次实验的工程已经删掉，复现不了，见
-[engine 第 02 章](../../../../Engineering/TechReports/engine/02-AXI事务层.md)第六节）；
+[engine 第 02 章](../../../../../Engineering/TechReports/engine/02-AXI事务层.md)第六节）；
 这一次谁都能重跑拿到同一组数。
 
 ## 文件

@@ -1,6 +1,7 @@
 # sim：仿真
 
-用 WSL 里的 iverilog 跑，不依赖 Efinity。每个子目录一个 `run.sh`，进去直接运行：
+用 WSL 里的 iverilog 跑；含 `Axi_Mux` 的套件需要 Efinity 的原语模型。
+每个子目录一个 `run.sh`，进去直接运行：
 
 ```
 wsl -e bash -c 'bash sim/<目录>/run.sh'
@@ -18,6 +19,7 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 | `engine/blend/` | `rtl/engine/engine_blend.v`（引擎 P1 B1 的单通道混合核） | `exhaustive`（六个方程全定义域 50462976 个向量，方程用不到的输入跟着变）、`golden`（抽样 1024 条对 `check_round255.c` 导出的金标准）、`stall`（随机插入 `en` 拉低的停顿拍）与 5 个注错。全量一次约 6 分钟。只有明文 RTL，不需要 `EFINITY_HOME` |
 | `engine/mover/` | `rtl/engine/engine_mover.v`（引擎 P1 B2 的搬运层）经仓内 `Axi_Mux`（S1）接从机 | `normal`（读侧仲裁、读流分发与上下文、写掩码、状态里的命令索引与末行标记、在途契约、地址与突发约束）、`drain`（读、写突发中途各排空一次，控制层复位与软复位各一组；请求完成后继续举着时 `drain_done` 只打一次、请求撤下之前不收新提交）、`err`（读回、写响应 SLVERR 各一例）、`timeout`（从机按住超过门限）与 5 个注错，另加从机定时模式的回归 `slave_timed`（`tb_slave_timed.v`，直连从机、不经过被测）。需要 `EFINITY_HOME`（`Axi_Mux` 例化 `EFX_SRL8`） |
 | `engine/geom/` | `rtl/engine/engine_geom.v`（引擎 P1 B3 的几何层）。同目录另有 B3 前期研究的探针 `probe_geom.v`（`probe_geom_intersect`、`probe_geom_d7`、`probe_geom_rowiter`），保留为回归 | 期望值全部由独立模型 `tools/check/geom_model.py` 现算，测试台只做「驱动 + 比对」：定向用例 34 条、159 条向量里几何层见到的 59 条命令、十一整帧用例的 17 条命令，合计 1020 + 338 + 5224 条记录逐字段比、每个描述符过 D3 规矩 1、D7 的读源/读目的有无、零面积命令的完成脉冲与命令索引；握手监视器查多发的描述符与非空命令的 `cmd_done`，B4 行缓冲替身查每一行都开在空着的那一半上。另加 `+STALL`（三个方向各压反压）与 `+RFSTALL`（行缓冲替身的排空拉长到 23 拍），判据是序列与恒 ready 时相同。五个注错，探针 14/14，全套 27/27。不需要 `EFINITY_HOME`。见 `../../Engineering/TechReports/engine/03-几何层.md` |
+| `engine/pix/` | `rtl/engine/engine_pix.v`（引擎 P1 B4 的计算阵列与片上缓存）。同目录另有 B4 前期研究的探针 `probe_pix.v`，保留为回归 | 一行一行的单元测试 418 行 / 10216 个槽与五个注错；乒乓测试台 874 行 / 28340 个槽（行与行之间不等，三种写流下游）与两个注错；B1~B4 真实通路（几何层、计算阵列、搬运层、两个 DMA 核、随机反压从机）30 条命令 512 KiB 逐字对软件执行器；跨命令写后读一组（等写回必须对、不等必须红）；研究探针 9 项，全套 25/25。不需要 `EFINITY_HOME`。见 `../../Engineering/TechReports/engine/04-计算阵列与片上缓存.md` |
 
 ## 规则
 

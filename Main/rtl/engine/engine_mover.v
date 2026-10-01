@@ -26,9 +26,12 @@
 //   而且 drain_req 举着的每一拍都不收新提交；drain_req 撤下之后，下一次举起才是新请求。
 //   按电平重进的话，退出排空那一拍门控就开了，drain_done 每两拍打一次。
 //
-// 哑拍的最后一拍必须带 tlast：核在突发拍数用完而流上还没见到 tlast 时进 STATE_DROP_DATA
+// 写流的 tlast 由本层打（D48）：写核在突发拍数用完而流上还没见到 tlast 时进 STATE_DROP_DATA
 // （axi_dma_wr.v:682-685），一路丢流上的数据直到 tlast；这期间写状态照常回来、门控放行下一个
-// 描述符，而核还没收完，下一行的写流会被丢掉。
+// 描述符，而核还没收完，下一行的写流会被丢掉。所以每个写描述符的最后一拍都必须带 tlast。
+// 本层本来就为排空记着在途写描述符的总拍数与已送拍数，tlast 一律取「这是剩下的最后一拍」，
+// 正常写流与排空哑拍同一个式子；计算阵列只送数据，不送 tlast。一行跨 4KB 拆成两个写描述符时，
+// 段界只在 I2 的写描述符上（I5 的边带只有两段之和），计算阵列算不出来，由本层打正好。
 //
 // 超时（D19、D30）。只报告、不放弃：某方向有描述符在途，且连续 T 个周期没有任何握手时，
 // 打一拍 tmo_evt 并给出方向；搬运层不撤 valid、不动核，照常等状态回来。**「握手」两侧都算**：
@@ -61,9 +64,10 @@
 //   位 2 (4)   排空旁路：排空期不帮忙收/补，直接等两个方向自己空
 //   位 3 (8)   去掉写门控：写核一 ready 就放下一个描述符
 //   位 4 (16)  排空按电平重进：drain_done 之后 drain_req 还高就再进排空，且只在排空态里挡提交
+//   位 5 (32)  正常写流不打 tlast（只有排空哑拍打），即 D48 之前「靠计算阵列给 tlast」而它没给
 //
 // 设计依据、定案 D3/D12/D16/D17/D19/D29~D32 与实测数据见
-// Engineering/TechReports/engine/02-AXI事务层.md。
+// Engineering/TechReports/engine/02-AXI事务层.md；写流 tlast 由本层打是 B4 定的 D48。
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -116,8 +120,7 @@ module engine_mover #(
 
     // ---- I4：写流（计算阵列 → 搬运层）----
     input  wire [127:0]          ws_tdata,     // 每拍 4 像素，X 字节最高位 = 1 表示不写
-    input  wire [15:0]           ws_tkeep,
-    input  wire                  ws_tlast,     // 每个写描述符的最后一拍必须给（见文件头）
+    input  wire [15:0]           ws_tkeep,     // 写流没有 tlast 口：本层按描述符拍数打（D48，见文件头）
     input  wire                  ws_tvalid,
     output wire                  ws_tready,
 
@@ -320,10 +323,12 @@ module engine_mover #(
     wire [127:0] core_wdata;
     wire [15:0]  core_wstrb;
 
-    // 排空补拍：欠多少拍补多少拍，最后一拍带 tlast，像素标记位全打「不写」
+    // 排空补拍：欠多少拍补多少拍，像素标记位全打「不写」。
+    // tlast 正常写流与排空同一个式子：剩下的最后一拍（D48）
     wire [11:0]  wr_beats_left  = wr_beats_total - wr_beats_sent;
     wire         ws_core_tvalid = wr_drain_help ? (wr_beats_left != 12'd0) : ws_tvalid;
-    wire         ws_core_tlast  = wr_drain_help ? (wr_beats_left == 12'd1) : ws_tlast;
+    wire         ws_core_tlast  = ((INJECT & 32) != 0 && !wr_drain_help) ? 1'b0
+                                                                          : (wr_beats_left == 12'd1);
     wire [127:0] ws_core_tdata  = wr_drain_help ? {4{32'h8000_0000}} : ws_tdata;
     wire [15:0]  ws_core_tkeep  = wr_drain_help ? 16'hFFFF : ws_tkeep;
     assign       ws_tready      = wr_drain_help ? 1'b0 : wr_data_ready;

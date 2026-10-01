@@ -9,6 +9,7 @@
 | `check_cmd_semantics.py` | 命令语义规格（设计文档 3.4 节、spec 第 02 章）的结构校验与 159 条一致性向量（ABI 1），带六项注错自检 | 改命令 ABI 或错误模型时，提交前 |
 | `geom_model.py` | 引擎 P1 B3（几何层）的**独立模型**：五者求交、逐行迭代、16 字节对齐的读写描述符、D7 读写避让、每行边带；`--selftest` `--directed` 自检，`--vectors` `--cases` 吃两组真实输入并与软件执行器逐像素对照，`--dump-records` 导 $readmemh 记录 | B3 开工前的研究已用它；B3 的单元仿真与它逐条比对；改裁剪规则、地址公式或 D7 时重跑 |
 | `geom_cases_dump.c` / `geom_cases_dump.sh` | 把十一个整帧用例的表面表与命令表导成几何模型能吃的记录（**链接 `sw/lib/gfx` 的 `cases.c` 与 `list.c`**，不照抄命令表） | 用例的命令表改了、或几何模型要重跑整帧用例时 |
+| `pix_cases_dump.c` | B4 金标准导出器：链接 `sw/lib/gfx`，经软件执行器导出初始与期望的 128 位内存、命令表与表面表。四种用例：定向（目的每行跨 4KB、六方程 FILL、相位 4×4、XRGB 源配 ALPHA 类方程、色键与近似字、源越界、多行命令）、`--hazard`（跨命令写后读）、`--sprites`（16 颗 16×16 ALPHA，量周期数）、`--frame 0..10`（十一个整帧用例，附命令表边界元数据） | B4 的真实通路仿真（`sim/engine/pix/run_formal.sh` 现编现导）；B6 的整帧仿真；整帧 CRC 11/11 已对 `golden.txt` |
 | `replay2c.py` | 录像（`.g2dr`）与 C 数组、录制文本之间的转换；`--check` / `--selftest` 做结构校验与文本往返 | 改录像格式时；`mk/host.mk test` 与 `check_sw4_pc.sh` 会调它 |
 | `check_sw4_scale.c` | PC 平台层「缩放用最近邻」的主机侧探针：把 8×8 棋盘放大 80 倍再读回边界像素 | 改缩放或像素格式时 |
 | `check_sw4_pc.sh` | PC 平台层（SW4）的提交前判据：整帧用例对 `golden.txt`、有窗与无窗逐行互比、注错构建、录像文本回灌、缩放探针 | 改 `sw/bsp/` 或 PC 侧构建时，提交前 |

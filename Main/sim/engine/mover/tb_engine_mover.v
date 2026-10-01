@@ -106,7 +106,7 @@ module tb_engine_mover;
 
     reg  [31:0] wr_addr = 0; reg [11:0] wr_bytes = 0; reg [3:0] wr_cidx = 0;
     reg         wr_last_row = 0; reg wr_valid = 0; wire wr_ready;
-    reg  [127:0] ws_tdata = 0; reg [15:0] ws_tkeep = 16'hFFFF; reg ws_tlast = 0;
+    reg  [127:0] ws_tdata = 0; reg [15:0] ws_tkeep = 16'hFFFF;
     reg  ws_tvalid = 0; wire ws_tready;
 
     wire rd_stat_valid, rd_stat_err; wire [3:0] rd_stat_cidx; wire [1:0] rd_stat_buf;
@@ -139,7 +139,7 @@ module tb_engine_mover;
         .fs_tready(fs_ready), .fs_cidx(fs_cidx),
         .wr_addr(wr_addr), .wr_bytes(wr_bytes), .wr_cidx(wr_cidx), .wr_last_row(wr_last_row),
         .wr_valid(wr_valid), .wr_ready(wr_ready),
-        .ws_tdata(ws_tdata), .ws_tkeep(ws_tkeep), .ws_tlast(ws_tlast),
+        .ws_tdata(ws_tdata), .ws_tkeep(ws_tkeep),
         .ws_tvalid(ws_tvalid), .ws_tready(ws_tready),
         .rd_stat_valid(rd_stat_valid), .rd_stat_err(rd_stat_err),
         .rd_stat_cidx(rd_stat_cidx), .rd_stat_buf(rd_stat_buf),
@@ -391,21 +391,19 @@ module tb_engine_mover;
     reg         wr_src_en = 0;
     integer     wsrc_i = 0, wsrc_total = 0, wsrc_stop = 0, wsrc_tag = 0;
     reg  [127:0] wsrc_data = 0;
-    reg          wsrc_last = 0;
+    // 写流不送 tlast：搬运层按描述符拍数自己打（D48）
 
     always @(*) begin
         wsrc_data[31:0]   = wpix(wsrc_tag, wsrc_i, 0);
         wsrc_data[63:32]  = wpix(wsrc_tag, wsrc_i, 1);
         wsrc_data[95:64]  = wpix(wsrc_tag, wsrc_i, 2);
         wsrc_data[127:96] = wpix(wsrc_tag, wsrc_i, 3);
-        wsrc_last = (wsrc_i == wsrc_total - 1);
     end
 
     always @(negedge clk) begin
         ws_tvalid = wr_src_en && (wsrc_i < wsrc_stop);
         ws_tdata  = wsrc_data;
         ws_tkeep  = 16'hFFFF;
-        ws_tlast  = wsrc_last;
     end
 
     always @(posedge clk) if (!rst && ws_tvalid && ws_tready) wsrc_i = wsrc_i + 1;

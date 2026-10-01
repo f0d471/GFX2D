@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .bx { fill:#eef2f7; stroke:#64748b; stroke-width:1.2 }
+      .br { fill:#e0f2fe; stroke:#0369a1; stroke-width:1.2 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .tg { font-size:9.5px; fill:#94a3b8 }
+      .bus { stroke:#334155; stroke-width:3; fill:none }
+      .ctl { stroke:#334155; stroke-width:1.3; fill:none }
+      .un  { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="900" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">计算阵列与片上缓存：两行进片上，每拍四个像素出去</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">B4 定下的一层。左边的几何层给每行边带（I5）、收 row_free；右边的搬运层送读流（I3）、收写流（I4）。蓝底是本层的乒乓行缓冲，虚线是尚未接入的部分。</text>
+
+  <!-- 图例 -->
+  <rect x="980" y="76" width="260" height="104" class="bi"/>
+  <text x="996" y="96" class="t" font-weight="600">图例</text>
+  <line x1="996" y1="114" x2="1048" y2="114" class="bus" marker-end="url(#a)"/>
+  <text x="1058" y="118" class="ts">128 位像素数据（已实现）</text>
+  <line x1="996" y1="136" x2="1048" y2="136" class="ctl" marker-end="url(#a)"/>
+  <text x="1058" y="140" class="ts">边带、握手与地址（已实现）</text>
+  <line x1="996" y1="158" x2="1048" y2="158" class="un" marker-end="url(#ag)"/>
+  <text x="1058" y="162" class="ts">尚未实现或尚未接入</text>
+
+  <!-- 左：几何层 -->
+  <rect x="40" y="210" width="200" height="120" class="b"/>
+  <text x="56" y="232" class="tt">B3 几何层</text>
+  <text x="56" y="250" class="ts">engine_geom（已实现）</text>
+  <text x="56" y="270" class="ts">每行先发边带，再发读源、读目的、</text>
+  <text x="56" y="286" class="ts">写目的三笔描述符（I2）</text>
+  <text x="56" y="306" class="ts">发边带前查 row_free[行号最低位]</text>
+  <text x="56" y="322" class="ts">（D41，每一行都查）</text>
+
+  <!-- 左下：控制层 -->
+  <rect x="40" y="420" width="200" height="96" class="bg"/>
+  <text x="56" y="442" class="tt">B5 控制层</text>
+  <text x="56" y="460" class="tg">尚未实现</text>
+  <text x="56" y="480" class="ts">I1：一条过了十步检查的命令</text>
+  <text x="56" y="496" class="ts">跨命令写后读由它处理（待定）</text>
+  <line x1="140" y1="416" x2="140" y2="336" class="un" marker-end="url(#ag)"/>
+  <text x="148" y="380" class="ts">I1</text>
+
+  <!-- 右：搬运层 -->
+  <rect x="980" y="210" width="260" height="150" class="b"/>
+  <text x="996" y="232" class="tt">B2 搬运层</text>
+  <text x="996" y="250" class="ts">engine_mover（已实现）</text>
+  <text x="996" y="270" class="ts">读、写两个方向各一笔在途</text>
+  <text x="996" y="290" class="ts">读流按 rs_buf 分发；写流的 tlast</text>
+  <text x="996" y="306" class="ts">按写描述符拍数自己打（D48）</text>
+  <text x="996" y="326" class="ts">X 字节最高位为 1 的像素清 wstrb（D16）</text>
+  <text x="996" y="346" class="ts">两个 verilog-axi DMA 核</text>
+
+  <!-- 右下：Axi_Mux -->
+  <rect x="980" y="430" width="260" height="86" class="bg"/>
+  <text x="996" y="452" class="tt">Axi_Mux 的 S1 → DDR3</text>
+  <text x="996" y="470" class="tg">尚未接入</text>
+  <text x="996" y="490" class="ts">S1 现由 axi_probe_master 占用，</text>
+  <text x="996" y="506" class="ts">引擎接入在 B6</text>
+  <line x1="1110" y1="364" x2="1110" y2="426" class="un" marker-end="url(#ag)"/>
+  <text x="1118" y="400" class="ts">AXI4，128 位</text>
+
+  <!-- 模块边界 -->
+  <rect x="280" y="190" width="660" height="590" class="b"/>
+  <text x="296" y="212" class="tt">engine_pix　rtl/engine/engine_pix.v（B4，已实现）</text>
+
+  <!-- 读流母线 -->
+  <line x1="976" y1="246" x2="944" y2="246" class="bus"/>
+  <polyline points="944,246 944,228 630,228" class="bus"/>
+  <line x1="630" y1="228" x2="630" y2="252" class="bus" marker-end="url(#a)"/>
+  <line x1="830" y1="228" x2="830" y2="252" class="bus" marker-end="url(#a)"/>
+  <text x="680" y="222" class="ts">I3 读流 + rs_buf = {源/目的, 半}，rs_tready 恒 1</text>
+
+  <!-- 行 A：队列、两块行缓冲 -->
+  <rect x="300" y="256" width="200" height="108" class="bx"/>
+  <text x="314" y="276" class="t" font-weight="600">行队列与每半的参数</text>
+  <text x="314" y="296" class="ts">occupied[1:0]：边带握手占上，</text>
+  <text x="314" y="312" class="ts">写流末拍被收走才放（D45）</text>
+  <text x="314" y="330" class="ts">两项队列记开行顺序；读入按拍数</text>
+  <text x="314" y="346" class="ts">判齐，不看读流 tlast</text>
+
+  <rect x="520" y="256" width="220" height="108" class="br"/>
+  <text x="534" y="276" class="t" font-weight="600">源行缓冲 src_mem</text>
+  <text x="534" y="294" class="ts">512×128，7 块 RAM（D23）</text>
+  <rect x="534" y="304" width="92" height="44" class="bi"/>
+  <text x="544" y="322" class="ts">半 0</text>
+  <text x="544" y="338" class="ts">地址 0~255</text>
+  <rect x="634" y="304" width="92" height="44" class="bi"/>
+  <text x="644" y="322" class="ts">半 1</text>
+  <text x="644" y="338" class="ts">地址 256~511</text>
+
+  <rect x="752" y="256" width="172" height="108" class="br"/>
+  <text x="766" y="276" class="t" font-weight="600">目的行缓冲 dst_mem</text>
+  <text x="766" y="294" class="ts">512×96，5 块（X 字节不存，D46）</text>
+  <rect x="766" y="304" width="70" height="44" class="bi"/>
+  <text x="774" y="322" class="ts">半 0</text>
+  <rect x="842" y="304" width="70" height="44" class="bi"/>
+  <text x="850" y="322" class="ts">半 1</text>
+  <text x="774" y="338" class="ts">0~255</text>
+  <text x="850" y="338" class="ts">256~511</text>
+
+  <!-- 行 B：状态机与地址 -->
+  <rect x="300" y="390" width="200" height="86" class="bx"/>
+  <text x="314" y="410" class="t" font-weight="600">行状态机</text>
+  <text x="314" y="430" class="ts">IDLE → PRE（off = 1 时预热一拍）</text>
+  <text x="314" y="446" class="ts">→ RUN（每拍一个目的拍）</text>
+  <text x="314" y="462" class="ts">→ DRAIN（8 拍排空）→ IDLE</text>
+
+  <rect x="520" y="390" width="404" height="86" class="bx"/>
+  <text x="534" y="410" class="t" font-weight="600">地址（周期 0）</text>
+  <text x="534" y="430" class="ts">源 = {半, k + off}，PRE 拍发 0；目的 = {半, k}；off = (ls ≥ ld)（D42）</text>
+  <text x="534" y="446" class="ts">FILL 不读源块，COPY 不读目的块；两个读口的读使能都挂 en</text>
+  <text x="534" y="462" class="ts">开行条件：队头那一半的源、目的都已读齐，流水已排空</text>
+  <line x1="630" y1="386" x2="630" y2="368" class="ctl" marker-end="url(#a)"/>
+  <line x1="830" y1="386" x2="830" y2="368" class="ctl" marker-end="url(#a)"/>
+  <line x1="504" y1="433" x2="516" y2="433" class="ctl" marker-end="url(#a)"/>
+
+  <!-- 行 C：流水 -->
+  <rect x="300" y="504" width="146" height="112" class="bx"/>
+  <text x="312" y="524" class="t" font-weight="600">数据级</text>
+  <text x="312" y="542" class="ts">周期 1~2</text>
+  <text x="312" y="560" class="ts">读出 q_src、q_dst</text>
+  <text x="312" y="576" class="ts">→ r_prev、r_cur：</text>
+  <text x="312" y="592" class="ts">前拍 + 当前拍</text>
+  <text x="312" y="608" class="ts">共 8 个像素的窗口</text>
+
+  <rect x="462" y="504" width="160" height="112" class="bx"/>
+  <text x="474" y="524" class="t" font-weight="600">旋转·色键·a·掩码</text>
+  <text x="474" y="542" class="ts">周期 3</text>
+  <text x="474" y="560" class="ts">px[t] = 窗口[st + t]</text>
+  <text x="474" y="576" class="ts">色键比原始 32 位字（BLIT）</text>
+  <text x="474" y="592" class="ts">a：XRGB 源 255，FILL 取 w4</text>
+  <text x="474" y="608" class="ts">首末拍掩码按目的拍（D43）</text>
+
+  <rect x="638" y="504" width="146" height="112" class="bx"/>
+  <text x="650" y="524" class="t" font-weight="600">12 × engine_blend</text>
+  <text x="650" y="542" class="ts">周期 4~6（B1，L = 3）</text>
+  <text x="650" y="560" class="ts">4 像素 × RGB</text>
+  <text x="650" y="576" class="ts">五个输入全由寄存器驱动</text>
+  <text x="650" y="592" class="ts">色键、掩码、valid 的</text>
+  <text x="650" y="608" class="ts">延迟像逐级对齐</text>
+
+  <rect x="800" y="504" width="124" height="112" class="bx"/>
+  <text x="812" y="524" class="t" font-weight="600">标记合并</text>
+  <text x="812" y="542" class="ts">周期 7</text>
+  <text x="812" y="560" class="ts">行外或色键命中：</text>
+  <text x="812" y="576" class="ts">X 字节最高位 = 1</text>
+  <text x="812" y="592" class="ts">其余 X 字节 = 0</text>
+  <text x="812" y="608" class="ts">tkeep 恒全 1</text>
+
+  <polyline points="560,364 560,378 290,378 290,484 373,484 373,500" class="bus" marker-end="url(#a)"/>
+  <polyline points="924,330 932,330 932,494 420,494 420,500" class="bus" marker-end="url(#a)"/>
+  <line x1="446" y1="560" x2="458" y2="560" class="bus" marker-end="url(#a)"/>
+  <line x1="622" y1="560" x2="634" y2="560" class="bus" marker-end="url(#a)"/>
+  <line x1="784" y1="560" x2="796" y2="560" class="bus" marker-end="url(#a)"/>
+
+  <!-- 写流出口 -->
+  <polyline points="924,560 960,560 960,340 976,340" class="bus" marker-end="url(#a)"/>
+  <text x="948" y="584" class="ts">I4 写流（没有 tlast，D48）</text>
+
+  <!-- 时钟使能 -->
+  <rect x="300" y="664" width="624" height="40" class="bi"/>
+  <text x="314" y="682" class="t" font-weight="600">en = ws_tready || !ws_tvalid（D47）</text>
+  <text x="314" y="698" class="ts">两个读口、各级寄存器、12 个核的 en、行状态机一起停；停顿时 ws_tdata 与 ws_tvalid 保持；单独综合里扇出 1247 个 FF</text>
+
+  <!-- 接口摘要 -->
+  <rect x="300" y="716" width="624" height="48" class="bi"/>
+  <text x="314" y="734" class="ts">clk：core_clk 100 MHz　rst：与几何层、搬运层同一个　延迟 7 拍，下游 ready 时行内不出气泡</text>
+  <text x="314" y="752" class="ts">单独综合 3886 XLR、12 块 RAM、12 个 DSP，setup +5.007 / hold +0.031 ns（3.10 节）</text>
+
+  <!-- 几何层 ↔ 本层 -->
+  <line x1="244" y1="282" x2="296" y2="282" class="ctl" marker-end="url(#a)"/>
+  <text x="248" y="274" class="ts">I5 边带</text>
+  <line x1="296" y1="318" x2="244" y2="318" class="ctl" marker-end="url(#a)"/>
+  <text x="248" y="338" class="ts">row_free[1:0]</text>
+
+  <!-- 底部说明 -->
+  <text x="40" y="820" class="ts">一行的生命周期：边带握手占上那一半 → 读流写进该半（拆段时两段共用一个写指针）→ 源、目的读齐且流水排空之后开行 → 写流末拍被写核收走，放出那一半。</text>
+  <text x="40" y="840" class="ts">两半交替：一半在读出时另一半照常读入下一行。半号是命令内行号的最低位，奇数行命令之后的第 0 行要等第 0 半放出来（D49）。</text>
+  <text x="40" y="860" class="ts">数字取自 3.9、3.10 节：单元 418 行与乒乓 874 行逐槽比对，B1~B4 真实通路 512 KiB 逐字对软件执行器。</text>
+</svg>

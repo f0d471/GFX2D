@@ -2,7 +2,8 @@
 # 引擎 P1 B2：搬运层 engine_mover 仿真
 #
 # 被测是 rtl/engine/engine_mover.v 整块，经仓内 Axi_Mux（S1）接补齐四样的从机。
-# 用例分四组：协议与上下文、复位与排空、错误、超时；另有五个注错，每一个都要见红。
+# 用例分四组：协议与上下文、复位与排空、错误、超时；另有六个注错，每一个都要见红
+# （第六个是 D48 之后补的：正常写流不打 tlast）。
 # 最后单独跑一次从机定时模式（TIMED=1）的回归，它不经过被测，只测 axi_ram_model。
 #
 # 正常用例全程不得置超时位（D30 复核补的判据），测试台自己检查。
@@ -72,6 +73,8 @@ check inject_nodrain   FAIL -DCASE_DRAIN  -DINJECT_VAL=4
 check inject_nogate_wr FAIL -DCASE_NORMAL -DINJECT_VAL=8
 # 排空按电平重进：请求举着时 drain_done 反复打，退出那一拍收了新提交
 check inject_drain_level FAIL -DCASE_DRAIN -DINJECT_VAL=16
+# 正常写流不打 tlast（D48 之前靠计算阵列给，它不给时）：写核进 DROP_DATA，吞掉下一笔的写流
+check inject_no_tlast  FAIL -DCASE_NORMAL -DINJECT_VAL=32
 
 # 注错的 FAIL 必须红在它对应的判据上，不是随便什么错
 if grep -qE 'RD 契约|在途契约违例|读流|像素读流|目标缓冲号' "$BUILD/inject_nogate_rd.log"; then
@@ -106,6 +109,15 @@ if grep -qE '请求一直举着时 drain_done|排空请求还举着就接受' "$
     echo "  inject_drain_level: FAIL 由「一次请求只完成一次」引起"
 else
     echo "  inject_drain_level: FAIL 不是由排空请求判据引起"; bad=$((bad + 1))
+fi
+total=$((total + 1))
+
+# 不打 tlast：第一笔写的拍数用完时流上没有 tlast，写核进 DROP_DATA 一直等，
+# 后面的写描述符一个也收不进去。正常用例发 4 笔写，这里只有第一笔上了总线
+if grep -qE '看门狗' "$BUILD/inject_no_tlast.log" && grep -qE '^STAT .* aw=1 ' "$BUILD/inject_no_tlast.log"; then
+    echo "  inject_no_tlast: FAIL 由写核卡在 DROP_DATA（只有第一笔写上了总线）引起"
+else
+    echo "  inject_no_tlast: FAIL 不是由写流 tlast 引起"; bad=$((bad + 1))
 fi
 total=$((total + 1))
 
