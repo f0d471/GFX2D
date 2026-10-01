@@ -1,6 +1,6 @@
 // probe_pix：引擎 P1 B4（计算阵列与片上缓存）前期研究的探针，**不是入库实现**
 //
-// 回答 B4 研究清单（Todo 引擎P1-B4 条目 2.2 节）的五问里能在仿真与综合台上量的三件：
+// 回答 B4 研究清单（engine 第 04 章第二节）的五问里能在仿真与综合台上量的三件：
 //   第 1 问 旋转器与首末拍：两拍窗口、4 个位置的像素旋转（D15）怎么写；
 //            首末拍「不属于本行的像素」的掩码怎么打（D16 的像素一侧）。
 //   第 3 问 流水线的拍对齐：源拍、目的拍、色键结果与 B1 的 L=3 怎么对齐，
@@ -12,7 +12,7 @@
 //   Efinity 的 RAM 读、写口都是寄存的（efinity-synthesis.pdf「RAM」章），
 //   本文件的 probe_pix_linebuf 用最普通的推断写法（读写分立 always、非阻塞），
 //   读延迟恒 1 拍；「这一半空出来」的握手按 D41，row_free 的释放时机
-//   见开发日志的定案候选 D45（这一半的写流末拍被写核收走那一拍）。探针不含这段握手。
+//   见 engine 第 04 章 3.12 节的 D45（这一半的写流末拍被写核收走那一拍）。探针不含这段握手。
 //
 // 写流的反压（2026-10-01 复核补的）：写核 axi_dma_wr 的 s_axis_write_data_tready 是寄存器，
 //   写核在 STATE_START 里看到 tvalid 才发 AW、下一拍才拉高 tready（axi_dma_wr.v:509、515），
@@ -29,7 +29,7 @@
 //                      st   = (ls >= ld) ? ls-ld : ls-ld+4   窗口内起始槽（0~3）
 //                      px[t] = 窗口槽 [st+t]，t = 0..3 对齐到目的拍槽 t。
 //                      摊开写就是 4 个 32 位 4:1 mux。推导与 Amiga blitter
-//                      桶形移位的对照见开发日志 2026-10-01 节。
+//                      桶形移位的对照见 engine 第 04 章 3.1 节。
 //   probe_pix_mask     纯组合的首末拍掩码：目的拍 k 的槽 t 有效
 //                      ⟺ 0 ≤ 4k − ld + t < npx。行外像素打「不写」（D16）。
 //   probe_pix_path     一行的数据通路：两块行缓冲、旋转、色键、XRGB 的 a、
@@ -38,8 +38,7 @@
 //                      不含读流写入与 row_free 的完整握手——那是入库实现的事。
 // 单独综合的顶层在 syn/syn_probe_pix.v（LFSR 驱动全部输入，含 ws_tready）。
 //
-// 设计依据与数据见 Engineering/TechReports/engine/（B4 开发完成后写第 04 章）；
-// 研究过程与结论的原文在 Engineering/Todo/hw/引擎P1-B4-计算阵列与片上缓存.md 开发日志。
+// 设计依据、研究过程与结论见 Engineering/TechReports/engine/04-计算阵列与片上缓存.md。
 `timescale 1ns/1ps
 `default_nettype none
 
