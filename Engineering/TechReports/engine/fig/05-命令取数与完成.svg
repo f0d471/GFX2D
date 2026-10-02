@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="810" viewBox="0 0 1280 810"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .bx { fill:#eef2f7; stroke:#64748b; stroke-width:1.2 }
+      .br { fill:#e0f2fe; stroke:#0369a1; stroke-width:1.2 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .ctl { stroke:#334155; stroke-width:1.4; fill:none }
+      .un  { stroke:#94a3b8; stroke-width:1.3; fill:none; stroke-dasharray:6 4 }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="810" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">命令取数：整批优先、失败回退、按序完成</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">图中 S_* 是 3.4 节的逻辑消费状态，并非 engine_cmd.v 的逐个 RTL 状态编码；B5 已实现这些行为。</text>
+
+  <rect x="972" y="78" width="268" height="66" class="bi"/>
+  <text x="988" y="99" class="t" font-weight="600">读图约定</text>
+  <line x1="988" y1="118" x2="1040" y2="118" class="ctl" marker-end="url(#a)"/>
+  <text x="1050" y="122" class="ts">当前批的提交与收尾</text>
+
+  <text x="40" y="154" class="tt">当前批：一次只提交一条命令的结果（D52）</text>
+  <rect x="40" y="174" width="200" height="125" class="br"/>
+  <text x="56" y="200" class="tt">S_IDLE</text>
+  <text x="56" y="222" class="t">DOORBELL 受理</text>
+  <text x="56" y="244" class="ts">锁存 LIST_BASE / COUNT</text>
+  <text x="56" y="261" class="ts">清旧 DONE 与错误定位</text>
+  <text x="56" y="278" class="ts">非空表须 32 字节对齐</text>
+
+  <rect x="290" y="174" width="220" height="125" class="br"/>
+  <text x="306" y="200" class="tt">S_FETCH_B　整批取数</text>
+  <text x="306" y="222" class="t">最多 16 条 / 512 字节</text>
+  <text x="306" y="244" class="ts">跨 4KB 时按记录边界拆两笔</text>
+  <text x="306" y="261" class="ts">全部读流与状态 OK 才执行</text>
+  <text x="306" y="278" class="ts">任一笔失败：整批丢弃</text>
+
+  <rect x="560" y="174" width="250" height="125" class="br"/>
+  <text x="576" y="200" class="tt">S_EXEC　顺序检查与执行</text>
+  <text x="576" y="222" class="t">十步检查 → I1 下发</text>
+  <text x="576" y="244" class="ts">非空 FILL/BLIT 等末行写状态</text>
+  <text x="576" y="261" class="ts">空命令等 cmd_done</text>
+  <text x="576" y="278" class="ts">END 后不检查、执行后续记录</text>
+
+  <rect x="860" y="174" width="190" height="125" class="bx"/>
+  <text x="876" y="200" class="tt">S_FINISH / S_ERROR</text>
+  <text x="876" y="222" class="t">先等命令与总线排空</text>
+  <text x="876" y="244" class="ts">预取读流也必须收完</text>
+  <text x="876" y="261" class="ts">前一条优先决定首错</text>
+  <text x="876" y="278" class="ts">软复位也在排空后收尾</text>
+
+  <rect x="1090" y="174" width="150" height="125" class="br"/>
+  <text x="1106" y="200" class="tt">DONE / ERR</text>
+  <text x="1106" y="222" class="t">引擎已空闲</text>
+  <text x="1106" y="244" class="ts">置粘滞状态</text>
+  <text x="1106" y="261" class="ts">可发中断 B</text>
+  <text x="1106" y="278" class="ts">D54</text>
+
+  <line x1="243" y1="237" x2="286" y2="237" class="ctl" marker-end="url(#a)"/>
+  <line x1="513" y1="237" x2="556" y2="237" class="ctl" marker-end="url(#a)"/>
+  <text x="520" y="226" class="ts">全 OK</text>
+  <line x1="813" y1="237" x2="856" y2="237" class="ctl" marker-end="url(#a)"/>
+  <text x="808" y="226" class="ts">END / 首错</text>
+  <line x1="1053" y1="237" x2="1086" y2="237" class="ctl" marker-end="url(#a)"/>
+
+  <rect x="290" y="363" width="220" height="118" class="bx"/>
+  <text x="306" y="389" class="tt">S_PER　失败批逐条回退</text>
+  <text x="306" y="411" class="t">从批首每条 2 拍重取</text>
+  <text x="306" y="431" class="ts">成功条目照常按序检查/执行</text>
+  <text x="306" y="450" class="ts">首个 SLVERR 才报 FETCH</text>
+  <text x="306" y="467" class="ts">先遇 END 则正常完成</text>
+  <line x1="400" y1="302" x2="400" y2="359" class="ctl" marker-end="url(#a)"/>
+  <text x="410" y="335" class="ts">批读失败</text>
+  <polyline points="513,407 685,407 685,303" class="ctl" marker-end="url(#a)"/>
+  <text x="531" y="396" class="ts">成功记录用同一执行规则</text>
+  <polyline points="513,455 955,455 955,303" class="ctl" marker-end="url(#a)"/>
+  <text x="690" y="447" class="ts">首个 FETCH 错误，或回退时先遇 END → 收尾</text>
+
+  <rect x="40" y="526" width="1200" height="188" class="bi"/>
+  <text x="60" y="554" class="tt">下一批预取与当前批执行并行（D18）；预取错误不能越过当前批的结果</text>
+  <rect x="60" y="579" width="255" height="92" class="br"/>
+  <text x="76" y="602" class="tt">P_INFLIGHT</text>
+  <text x="76" y="623" class="ts">当前批第 0 条开始执行后可发出</text>
+  <text x="76" y="642" class="ts">读流与状态全部收齐才定结果</text>
+
+  <rect x="360" y="579" width="270" height="92" class="br"/>
+  <text x="376" y="602" class="tt">P_OK / P_ERR</text>
+  <text x="376" y="623" class="ts">成功：保留下一半缓冲供批尾切换</text>
+  <text x="376" y="642" class="ts">失败：保留批首供逐条回退</text>
+
+  <rect x="675" y="579" width="330" height="92" class="bx"/>
+  <text x="691" y="602" class="tt">只在当前批走到批尾时采纳</text>
+  <text x="691" y="623" class="ts">P_OK 切下一半；P_ERR 从失败批首进 S_PER</text>
+  <text x="691" y="642" class="ts">当前批先遇 END / 错误：丢弃预取结果</text>
+
+  <rect x="1050" y="579" width="170" height="92" class="bx"/>
+  <text x="1066" y="602" class="tt">排空后报告</text>
+  <text x="1066" y="623" class="ts">预取 SLVERR 不抢首错</text>
+  <text x="1066" y="642" class="ts">D52 / D54</text>
+  <line x1="319" y1="625" x2="356" y2="625" class="ctl" marker-end="url(#a)"/>
+  <line x1="634" y1="625" x2="671" y2="625" class="ctl" marker-end="url(#a)"/>
+  <line x1="1009" y1="625" x2="1046" y2="625" class="ctl" marker-end="url(#a)"/>
+
+  <text x="40" y="755" class="t">D53 边界：未对齐的非空 LIST_BASE 在取第 0 条前报 FETCH；记录地址越过 32 位空间时不得回卷。</text>
+  <text x="40" y="777" class="t">D54 收尾：DONE / ERR 置位时 BUSY 已清，驱动可以直接读取稳定的 PERF 与错误三元组。</text>
+</svg>
