@@ -23,6 +23,7 @@
 | 02 | [AXI 事务层](02-AXI事务层.md) | B2。两个 verilog-axi 核的来源、参数与三条要命的行为、整机里的规模与 `ENABLE_UNALIGNED` 取 0 的代价、复位排空（只能做在两个核的流接口上）、超时只报告不放弃与门限 `T` 的板上依据、按 valid 判的在途门控与读核状态脉冲早于末拍 1~55 拍的时序、上下文寄存器、读侧仲裁、W 通道带内掩码、校准到 E4 板上数的事务模型与每颗弹幕 1092~1124 周期、定案 D3/D12/D16/D17/D19 与 D29~D32、借鉴来源（MTX、iDMA）与上游测试的覆盖、七行判据、`rtl/engine/engine_mover.v`、四类仿真用例与六个注错（第六个是 B4 的 D48 之后补的写流 `tlast`）、从机补四样与回归（含定时模式的三处修正）、单独综合的资源与时序、板上重复一次门限测量。配图 `fig/02-AXI事务层.svg` |
 | 03 | [几何层](03-几何层.md) | B3。**前期研究**：产出速率（探针 5.06~6.06 拍/行，对照搬运层 15.0/34.3/68.3/126.0）、五者求交与描述符的算式与位宽（含 **I5 的 `lead` 是行首地址拍内相位、不是 x 对 4 的余数**这处订正）、三份开源实现（iDMA 的 mid-end 与编译期 4KB 钳位、ORGFX 的两级裁剪、Amiga blitter 的首末字掩码）、独立模型 `tools/check/geom_model.py`（自检 23 项、定向 34 条、两组真实输入 2064 行 / 3498 个描述符，含与软件执行器的逐像素对照）。**实现**：`rtl/engine/engine_geom.v`（每行 4 拍，实测 4.68~6.22 拍/行；`row_free[1:0]` 每一行都查）、`sim/engine/geom/` 的单元仿真（三组输入 1020+338+5224 条记录逐字段比 0 处不符、握手监视器与 B4 行缓冲替身、五个注错见红、`+STALL`/`+RFSTALL` 两个握手用例、十种变异全部见红）、单独综合（裁剪框接变量后 2154 XLR、setup +0.572 / hold +0.091 ns）、定案 D33~D41、九行判据、七个研究问题、七个实现问题与六个验收时查出的问题。配图 `fig/03-几何层.svg`、`fig/03-一行描述符与边带.svg` |
 | 04 | [计算阵列与片上缓存](04-计算阵列与片上缓存.md) | B4。**前期研究**：两拍窗口旋转与首末拍掩码（Amiga blitter 的桶形移位与首尾字掩码对照，掩码按目的拍在旋转后打）、Efinity 的 RAM 推断与块数（128 位深 512 以内一律 7 块、512×96 是 5 块）、半的生命周期与 `row_free`、七拍流水与延迟链、写核首拍必停与 FIFO 半满的反压（整条流水挂 `en = ws_tready \|\| !ws_tvalid`）、四份参考实现、研究探针（真写核下段首停 426 拍、640 像素行段中停 9 拍；单独综合 3341 XLR、13 块 RAM）与板上基线、复核改掉的八处、D48 搬运层改打 `tlast`。**实现**：`rtl/engine/engine_pix.v`；单元 418 行、乒乓 874 行逐槽，B1~B4 真实通路 30 条命令 512 KiB 逐字对软件执行器，25/25；单独综合 3886 XLR、12 块 RAM、12 个 DSP，setup +5.007 / hold +0.031 ns；主工程编译与板卡基线；定案 D15、D16、D23 的像素一侧与 D42~D49。**验收查出**：FILL 的 alpha 取错来源（规范条款 §4.2）、32 种变异里原判据放过的八种、跨命令的写后读（待 B5 定，实测等写回多 2.1%）。配图 `fig/04-计算阵列与片上缓存.svg`。2026-10-01 已验收 |
+| 05 | [控制层](05-控制层.md) | B5，2026-10-02 已验收。研究十步检查的组合、状态机、预计算三结构并选组合；分析 efx_map 的结构崩溃、三份参考实现、寄存器真源、批量取数、命令顺序提交与写后读，定案 D50~D54。实现 `rtl/engine/engine_top.v`、`engine_regs.v`、`engine_cmd.v` 和 `tools/check/regs_gen.py`；159 向量端到端 + D1~D16 定向共 6576 项检查 0 错，两项注错见红；验收修复 KEY_SKIP、BUS_READ 写抑制、读拍计数、32 位 LIST_COUNT、APB PSLVERR、CAPS 与超时报错时机；单独综合 15186 XLR / 29 RAM / 6 DSP，setup +0.984 / hold +0.026 ns；主工程四步 PASS，板卡基线复测通过；整机接入与 RAM/DSP 对账留 B6 |
 
 ## 判据与工具
 
@@ -45,6 +46,11 @@
 | `Main/sim/engine/pix/run.sh` | B4 的仿真总入口：研究探针 9 项 + `run_formal.sh` 16 项，25/25 |
 | `Main/sim/engine/pix/tb_engine_pix.v`、`tb_engine_pix_pipe.v`、`tb_engine_path.v` | B4 的三个测试台：一行一行的单元、乒乓与流水（行与行之间不等）、B1~B4 真实通路 |
 | `Main/sim/engine/pix/syn/` | 两个单独综合工程：研究探针与入库实现各一份 |
+| `Main/rtl/engine/engine_top.v`/`engine_regs.v`/`engine_cmd.v` | B5 的顶层、寄存器层与命令层，接口是层间契约 I1、I2、I7、I8 |
+| `Main/sim/engine/ctrl/tb_engine_top.v` | B5 的单元仿真测试台：159 条向量端到端 + 定向 D1~D16 |
+| `Main/sim/engine/ctrl/syn/engine_top_syn.xml` | B5 的单独综合工程 |
+| `Main/tools/check/regs_gen.py` | B5 的寄存器表单一真源（D51），生成 `.vh` 与驱动 `.h`，`--check` 挂提交前 |
+| `Main/tools/check/vec_to_sim.py` | 把 `check_cmd_semantics.py --emit` 展开成测试台定型记录流 |
 | `Main/tools/check/pix_cases_dump.c` | 链接软件执行器导出定向、跨命令写后读、弹幕与十一个整帧用例的初始/期望内存 |
 | `Main/tools/check/check_subst.c` | 六个方程的代入表与逐位等价穷举（全定义域 50462976 组），另有 16 位截断注错与替代代入的等价性 |
 | `Main/tools/check/check_round255.c` | 规格侧的舍入校验；`--golden <文件>` 可选模式导出 1024 条抽样金标准给仿真对账 |
@@ -67,8 +73,9 @@ B3 于 2026-10-01 验收，Todo 条目已删除，研究、定案、实现与数
 `rtl/engine/engine_geom.v`、`sim/engine/geom/` 的单元仿真（三组输入 1020+338+5224 条
 期望记录逐字段比 0 处不符、五个注错见红、`+STALL`/`+RFSTALL` 两个握手用例）、
 单独综合（裁剪框接变量，2154 XLR、251 FF、0 块 RAM、0 个 DSP，setup +0.572 / hold +0.091 ns）、
-定案 D33~D41、两幅配图。**`engine_geom.v` 同样还没进网表**，B5 例化时一起加。
+定案 D33~D41、两幅配图。`engine_geom.v` 已由 B5 的 `engine_top.v` 例化，B6 接入 SoC 网表。
 两处待与邻居确认：D38（零面积命令的完成脉冲）与 B5；D41（`rd_buf` 与 `row_free[1:0]`）已由 B4 确认（D45、D49）。
 
 B4 于 2026-10-01 验收，Todo 条目已删除；研究、定案、实现、复核与数据都在 [第 04 章](04-计算阵列与片上缓存.md)。
-`engine_pix.v` 与 `engine_blend.v` 已列进工程源文件列表，尚未被顶层例化；跨命令的写后读交 B5 定。B5、B6 未开工。
+`engine_pix.v` 与 `engine_blend.v` 已列进工程源文件列表，尚未被顶层例化；跨命令的写后读已由 B5 定案并验证。
+B5 于 2026-10-02 验收，研究、实现与复核数据在[第 05 章](05-控制层.md)；B6 未开工。

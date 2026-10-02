@@ -107,7 +107,12 @@ module engine_pix #(
     output reg  [127:0] ws_tdata,       // 每拍 4 像素，X 字节最高位 = 1 表示不写（D16）
     output wire [15:0]  ws_tkeep,
     output reg          ws_tvalid,
-    input  wire         ws_tready
+    input  wire         ws_tready,
+
+    // ---- I8：色键跳过事件（B5 的 PERF_KEY_SKIP 计数源）----
+    // 与输出写流同拍寄存色键掩码，写流握手时才计数。
+    output wire [3:0]   perf_key_lanes,
+    output wire         perf_key_valid
 );
     localparam [7:0] OP_BLIT = 8'd2;
     localparam [3:0] FMT_XRGB = 4'd0;
@@ -325,14 +330,23 @@ module engine_pix #(
 
     // ---- 周期 7：合并「不写」标记（D16），输出 X 字节只有标记位 ----
     wire [3:0] no_write = key_d3 | ~mask_d3;
+    // key_d3/mask_d3 组合值用于生成下一拍 ws_tdata；计数掩码也必须经过同一拍
+    // 寄存器，否则握手时看到的是下一拍（排空段甚至可能是 X/陈旧值）。
+    reg [3:0] ws_key_lanes;
+    assign perf_key_lanes = ws_key_lanes;
+    assign perf_key_valid = ws_tvalid && ws_tready;
     wire [127:0] next_data = {
         (no_write[3] ? 8'h80 : 8'h00), color[95:72],
         (no_write[2] ? 8'h80 : 8'h00), color[71:48],
         (no_write[1] ? 8'h80 : 8'h00), color[47:24],
         (no_write[0] ? 8'h80 : 8'h00), color[23:0]};
     always @(posedge clk) begin
-        if (rst) begin ws_tdata <= 128'd0; ws_tvalid <= 1'b0; end
-        else if (en) begin ws_tdata <= next_data; ws_tvalid <= v_d4; end
+        if (rst) begin
+            ws_tdata <= 128'd0; ws_tvalid <= 1'b0; ws_key_lanes <= 4'd0;
+        end else if (en) begin
+            ws_tdata <= next_data; ws_tvalid <= v_d4;
+            ws_key_lanes <= key_d3 & mask_d3;
+        end
     end
 
     // 本行写流的末拍被写核收走：放出这一半（D45）

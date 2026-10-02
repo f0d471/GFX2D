@@ -1,0 +1,871 @@
+// engine_cmd：引擎 P1 B5 的命令层——命令表取数、十步检查与命令提交
+//
+// 职责（B5 条目 2.3 节）：经 I7 从搬运层读核取命令表（D18：每批 16 条、两批乒乓、
+// 整批出错退回逐条取），把每条 32 字节记录按 spec 第 02 章 §5 的固定顺序做十步检查
+// （结构为 B5 定案 D50 的单拍组合，逻辑权威 sw/lib/gfx/check.c 的 gfx_cmd_check()），
+// 通过的 FILL/BLIT 按 I1 串行下发给几何层，NOP/SET_CLIP/END 在本层就地处理；
+// 错误按「码/完整表内索引/w7 标签」三元组上报（D10），由寄存器层（engine_regs）
+// 落到 STATUS/ERROR_*/中断。
+//
+// 取数契约（2026-10-01 复核定稿，engine 第 05 章 3.4 节）：
+//   * 非空命令表要求 LIST_BASE 按 32 字节对齐，违例在取第 0 条前报 FETCH（索引 0、TAG 0）
+//     ——B2 读核 ENABLE_UNALIGNED=0 会把未对齐地址向下取整，不能静默读错；
+//   * 一个批最多 512 字节，跨 4KB 时在记录边界拆成两笔描述符，数据按序拼入同一批，
+//     全部状态 OK 才执行；任一笔失败整批丢弃、从批首逐条回退（回退语义 = spec §5 的
+//     顺序执行：出错点之前的记录照常取、查、执行）；
+//   * 记录地址 base+32*index 按 38 位求值（base < 2^32、index 为完整 32 位，
+//     32*index < 2^37，和最多需要 38 位）；批长先截到 32 位地址空间末尾的完整记录数，
+//     越过地址空间的记录不取也不回卷，逻辑执行真需要它时才报 FETCH；
+//   * B2 的 fd_cidx/fs_cidx 只有 4 位且是描述符上下文（批首，不是每条记录），
+//     完整 ERROR_INDEX 由本层保存的批首/记录号重建；fe_cidx_err 只作一致性监视；
+//   * 预取只缓存：预取批的数据与状态收齐才标记 OK/ERR（收齐前不停 fs_tready、
+//     不覆盖当前批）；当前批先遇 END 或错误时丢弃预取结果，预取的 SLVERR 不上报；
+//   * 物理预取可能读到 END 之后的记录（命令表在 DDR 上无读副作用，spec §5 允许）；
+//     这些字不检查、不执行，预取失败也不上报。
+//
+// 提交纪律（D52）：一次只给几何层一条 FILL/BLIT；非空命令等带 wr_last_row 的写状态、
+// 空命令等 cmd_done（D38），NOP/SET_CLIP 当拍完成；只有当前命令完成后才检查/提交
+// 下一条，「前一条 BUS_WRITE 先于后一条 BAD_FIELD」由构造保证。活动命令任何一笔
+// 读写状态报错或超时立即按该命令上报并停止推进（不专等末行写状态，早期读错不挂死），
+// 等在途命令自然收尾、预取流收完才回空闲；迟到响应到达后能再次提交。
+//
+// 读状态的归属：读核每方向一笔在途，mover 的门控保证上一个描述符的状态脉冲（延后一拍）
+// 在下一个描述符发出之前已被本层看见；所以取数引擎在途（F_ISSUE/F_POLL/F_PULSE）期间
+// 的 rd_stat 全属于取数，其余全属于像素读。写状态只来自像素通路，恒归活动命令。
+//
+// 仿真注错口（综合时是常量）：位 0 (1) 对调 space/format 两步（优先级向量必须见红）；
+// 位 1 (2) 关掉逐条回退（FETCH 落在批中间的向量必须见红）。
+//
+// 设计依据：B5 条目、TechReports engine 第 05 章（研究、定案 D50/D51/D52 与 D38 确认）。
+`timescale 1ns/1ps
+`default_nettype none
+`include "engine_regs_offsets.vh"
+
+// ---------------------------------------------------------------- 结构谓词
+// spec 第 02 章 §2。末像素：base + ((h-1)<<stride_log2) + (w-1)*4 + 3 ≤ 0xFFFFFFFF。
+// 行偏移最多 47 位，不能截断后再判——B5 复核：33 位截断会把「和的第 32 位恰好
+// 回到 0」的越界误判为合法（第 05 章第四节有反例）。实现：行偏移高 16 位非 0 直接
+// 越界；否则 base、行偏移低位、行尾字节用 34 位相加，高 2 位非 0 即越界。
+module ec_struct_ok(
+    input  wire [31:0] s0,   // base
+    input  wire [31:0] s1,   // {height, width}
+    input  wire [31:0] s2,   // 控制字：[31] valid、[15:12] format、[9:8] space、[4:0] stride_log2
+    output wire        ok
+);
+    wire [15:0] w  = s1[15:0];
+    wire [15:0] h  = s1[31:16];
+    wire [4:0]  sl = s2[4:0];
+
+    wire base_al = (s0[1:0] == 2'b00);
+    wire wh_nz   = (w != 16'd0) && (h != 16'd0);
+    wire sl_ok   = (sl >= 5'd2);
+    // w*4 <= 1<<sl ⟺ w <= 2^(sl-2)；sl-2 ≥ 16 时上限超出 16 位宽，恒成立
+    wire [4:0] t         = sl - 5'd2;
+    wire       stride_ok = (t >= 5'd16) || (w <= (16'd1 << t));
+    wire [15:0] hm     = h - 16'd1;
+    wire [47:0] rowoff = {32'd0, hm} << sl;
+    wire        hi_ovf = (rowoff[47:32] != 16'd0);
+    wire [15:0] wm     = w - 16'd1;
+    wire [33:0] lowsum = {2'b00, s0} + {18'd0, rowoff[31:0]} + {16'd0, wm, 2'b11};
+    wire        no_ovf = !hi_ovf && (lowsum[33:32] == 2'b00);
+    wire        ctrl_ok = ((s2 & 32'h7fff0ce0) == 32'b0);
+
+    assign ok = s2[31] && base_al && wh_nz && sl_ok && stride_ok && no_ovf && ctrl_ok;
+endmodule
+
+// ---------------------------------------------------------------- 字段步
+// spec 第 02 章 §3 字段矩阵 + w0[15:14]、w0[13]（tint）、w6 三句散文。
+module ec_fields(
+    input  wire [255:0] cmd,
+    output wire         bad
+);
+    wire [7:0] op  = cmd[7:0];
+    wire [3:0] eq  = cmd[11:8];
+    wire       key = cmd[12];
+
+    wire is_nop  = (op == 8'h00);
+    wire is_fill = (op == 8'h01);
+    wire is_blit = (op == 8'h02);
+    wire is_clip = (op == 8'h03);
+    wire is_end  = (op == 8'hff);
+
+    wire w1_nz = (cmd[63:32]   != 32'b0);
+    wire w2_nz = (cmd[95:64]   != 32'b0);
+    wire w3_nz = (cmd[127:96]  != 32'b0);
+    wire w4_nz = (cmd[159:128] != 32'b0);
+    wire w5_nz = (cmd[191:160] != 32'b0);
+    wire w6_nz = (cmd[223:192] != 32'b0);
+    wire c_nz  = (cmd[31:24]   != 8'b0);
+    wire src_nz = (cmd[19:16]  != 4'b0);
+    wire dst_nz = (cmd[23:20]  != 4'b0);
+    wire eq_nz  = (eq != 4'b0);
+    wire rsvd_nz = (cmd[15:14] != 2'b0);
+
+    wire const_ok = (eq == 4'd3);   // 仅 CONST 允许 c 非零
+
+    wire z_nop_end = eq_nz || key || src_nz || dst_nz || c_nz
+                   || w1_nz || w2_nz || w3_nz || w4_nz || w5_nz;
+    wire z_fill    = key || src_nz || w1_nz || w5_nz || (!const_ok && c_nz);
+    wire z_blit    = w4_nz || (!const_ok && c_nz) || (!key && w5_nz);
+    wire z_clip    = eq_nz || key || src_nz || dst_nz || c_nz
+                   || w2_nz || w4_nz || w5_nz;
+
+    // tint 位对所有操作码都必须为 0（check.c 的 must_zero_mask 恒含 F_TINT）
+    assign bad = rsvd_nz || cmd[13] || w6_nz
+              || ((is_nop || is_end) && z_nop_end)
+              || (is_fill && z_fill)
+              || (is_blit && z_blit)
+              || (is_clip && z_clip);
+endmodule
+
+// =====================================================================
+module engine_cmd #(
+    parameter integer INJECT = 0
+)(
+    input  wire        clk,
+    input  wire        rst,           // 控制层复位（soc_system_reset），同步
+
+    // ---- 寄存器层（engine_regs）----
+    input  wire        kick,          // 一拍：DOORBELL 受理
+    input  wire [31:0] list_base,
+    input  wire [31:0] list_count,
+    input  wire        soft_rst,      // 电平：软复位请求举着，立即弃单回空闲
+    output wire        busy,          // 已受理的命令表在跑（含收尾排空）
+    output reg         err_set,       // 一拍：错误三元组同拍有效
+    output reg  [3:0]  err_code,
+    output reg  [31:0] err_index,     // 完整表内零基索引（低 4 位上下文在这里重建）
+    output reg  [31:0] err_tag,
+    output reg         done_set,      // 一拍：整表正常完成
+    output reg         commit,        // 一拍：一条命令完成（PERF_CMD；不含 END 与出错命令）
+    output wire        suppress_writes, // 活动命令总线错误后，余下写流只发零 strobe
+
+    // ---- 表面表读口（engine_regs 的组合读口，下标来自当前记录）----
+    output wire [3:0]  surf_ra_id,
+    output wire [3:0]  surf_rb_id,
+    input  wire [31:0] surf_ra_w0, surf_ra_w1, surf_ra_w2,
+    input  wire [31:0] surf_rb_w0, surf_rb_w1, surf_rb_w2,
+
+    // ---- 搬运层：命令取数（I7）----
+    output wire [31:0] fd_addr,
+    output wire [11:0] fd_bytes,
+    output wire [3:0]  fd_cidx,
+    output wire        fd_valid,
+    input  wire        fd_ready,
+    input  wire [127:0] fs_tdata,
+    input  wire        fs_tlast,
+    input  wire        fs_tvalid,
+    output wire        fs_tready,
+    input  wire [3:0]  fs_cidx,
+
+    // ---- 搬运层：状态与超时（I7）----
+    input  wire        rd_stat_valid,
+    input  wire        rd_stat_err,
+    input  wire [3:0]  rd_stat_cidx,
+    input  wire        wr_stat_valid,
+    input  wire        wr_stat_err,
+    input  wire [3:0]  wr_stat_cidx,
+    input  wire        wr_stat_last_row,
+    input  wire        tmo_evt,
+
+    // ---- 几何层：I1 下发与完成 ----
+    output reg         start,
+    output reg  [7:0]  i1_op,
+    output reg  [3:0]  i1_eq,
+    output reg         i1_key_en,
+    output reg  [31:0] i1_key,
+    output reg  [31:0] i1_w4,
+    output reg  [7:0]  i1_c,
+    output reg  [3:0]  i1_sfmt,
+    output reg  [31:0] i1_src_base,
+    output reg  [15:0] i1_src_w,
+    output reg  [15:0] i1_src_h,
+    output reg  [4:0]  i1_src_slog2,
+    output reg  [31:0] i1_dst_base,
+    output reg  [15:0] i1_dst_w,
+    output reg  [15:0] i1_dst_h,
+    output reg  [4:0]  i1_dst_slog2,
+    output reg signed [15:0] i1_src_x,
+    output reg signed [15:0] i1_src_y,
+    output reg signed [15:0] i1_dst_x,
+    output reg signed [15:0] i1_dst_y,
+    output reg [15:0]  i1_w,
+    output reg [15:0]  i1_h,
+    output reg signed [15:0] i1_clip_x0,
+    output reg signed [15:0] i1_clip_y0,
+    output reg signed [15:0] i1_clip_x1,
+    output reg signed [15:0] i1_clip_y1,
+    output reg [3:0]   i1_cidx,
+    input  wire        geom_busy,
+    input  wire        geom_cmd_done,
+    input  wire [3:0]  geom_done_cidx,
+
+    // ---- 仿真观测（综合悬空）----
+    output wire        fe_cidx_err    // 取数流上下文低 4 位与期望不符（一致性监视）
+);
+    localparam [7:0] OP_NOP  = 8'h00;
+    localparam [7:0] OP_FILL = 8'h01;
+    localparam [7:0] OP_BLIT = 8'h02;
+    localparam [7:0] OP_CLIP = 8'h03;
+    localparam [7:0] OP_END  = 8'hff;
+
+    wire inj_nofb = (INJECT & 2) != 0;    // 关掉逐条回退
+
+    // =====================================================================
+    // 裁剪框（spec §4.4）：复位与软复位恢复全游戏区 [0,639]×[0,479]（闭区间）
+    // =====================================================================
+    reg signed [15:0] clip_x0, clip_y0, clip_x1, clip_y1;
+
+    // =====================================================================
+    // 命令缓冲：两批乒乓，64 × 128 位，一写口（取数流）一读口（执行）
+    // =====================================================================
+    reg [127:0] cbuf [0:63];
+    reg [127:0] cbuf_rdata;
+    wire        fs_fire = fs_tvalid && fs_tready;
+    // 槽位 = 半区 ×32 + 批内拍号（rq_off+fe_tot 逐字定义在 5 位内：批 ≤32 拍、
+    // 逐条回退 off ≤30 加 2 拍也 ≤31，自然回卷等价 (off+tot) mod 32）
+    wire [4:0]  cbuf_walo = rq_off + fe_tot[4:0];
+    wire [5:0]  cbuf_wa   = {rq_half, cbuf_walo};
+    wire [5:0]  cbuf_ra   = {half, k[3:0], rd_word};
+
+    always @(posedge clk) begin
+        if (fs_fire) cbuf[cbuf_wa] <= fs_tdata;
+        cbuf_rdata <= cbuf[cbuf_ra];
+    end
+
+    // =====================================================================
+    // 取数请求（主状态机先摆好 rq_*，再举一拍 fe_start_q；FE 空闲时受理）
+    // =====================================================================
+    reg [31:0] rq_addr;     // 批首地址（32 字节对齐、在地址空间内）
+    reg [4:0]  rq_n;        // 记录数（0 = 直接完成）
+    reg        rq_half;     // 写入哪一批半区
+    reg [4:0]  rq_off;      // 起始拍偏移（逐条回退指向 k 的槽位）
+    reg [3:0]  rq_ctx;      // 描述符上下文（批首/记录号的低 4 位）
+    reg        rq_pf;       // 本请求是预取批（fe_owner 的归属）
+    reg        pf_armed;    // 预取请求已摆好，等 FE 空闲再发脉冲
+
+    // 批长的地址截断：32 位 LIST_COUNT × 32 字节加 32 位基址需 38 位。
+    function [4:0] calc_n(input [31:0] bs, input [31:0] bidx, input [31:0] cnt);
+        reg [37:0] a0, sp;
+        reg [32:0] remain;
+        reg [4:0]  nc, na;
+        begin
+            a0 = {6'd0, bs} + {1'b0, bidx, 5'd0};
+            remain = {1'b0, cnt} - {1'b0, bidx};
+            nc = (remain >= 33'd16) ? 5'd16 : remain[4:0];
+            if (a0 > 38'h00_FFFF_FFE0) begin       // addr0 + 31 越过 2^32-1
+                calc_n = 5'd0;
+            end else begin
+                sp = 38'h01_0000_0000 - a0;
+                na = (sp >= 38'd512) ? 5'd16 : sp[9:5];
+                calc_n = (nc < na) ? nc : na;
+            end
+        end
+    endfunction
+
+    // =====================================================================
+    // 取数引擎 FE：把 rq_n 条记录取进 rq_half 半区；也服务逐条回退（n=1）
+    // =====================================================================
+    localparam [1:0] F_IDLE = 2'd0, F_ISSUE = 2'd1, F_POLL = 2'd2, F_PULSE = 2'd3;
+    reg [1:0]  fe_st;
+    reg [1:0]  fe_d;        // 当前描述符（0/1，跨 4KB 拆分）
+    reg [5:0]  fe_bd_exp, fe_bd_rcv;   // 当前描述符的拍数期望/已收（满批 32 拍要 6 位）
+    reg [5:0]  fe_tot;      // 本批已收总拍数
+    reg        fe_stat;     // 当前描述符的状态已见
+    reg        fe_err;
+    reg        fe_start_q;
+    reg [1:0]  fe_owner;    // 0 当前批（主状态机在等）、1 预取批
+    reg        fe_cidx_err_r;
+
+    wire fe_ready = (fe_st == F_IDLE);
+    wire fe_pulse = fe_start_q && fe_ready;
+
+    // 拆分：批首 32 字节对齐 → 第一笔装本页剩余的整条记录（0x1000-off)>>5 = 128-off/32）
+    wire [11:0] rq_pgoff = rq_addr[11:0];
+    wire [7:0]  rq_first = (rq_pgoff == 12'd0) ? 8'd128 : 8'd128 - {1'b0, rq_pgoff[11:5]};
+    wire [4:0]  rq_n1    = ({1'b0, rq_first} >= {1'b0, rq_n}) ? rq_n : rq_first[4:0];
+    wire        rq_split = (rq_n1 != rq_n);
+    wire [31:0] rq_a1    = rq_addr + {27'd0, rq_n1, 5'd0};
+
+    assign fd_addr   = (fe_d == 2'd0) ? rq_addr : rq_a1;
+    assign fd_bytes  = {7'd0, (fe_d == 2'd0) ? rq_n1 : (rq_n - rq_n1)} << 5;
+    assign fd_cidx   = rq_ctx;
+    assign fd_valid  = (fe_st == F_ISSUE) && !soft_rst;
+    assign fs_tready = (fe_st == F_POLL) && !soft_rst;
+    wire fe_done     = (fe_st == F_PULSE);      // 一拍，负载 fe_err
+    wire fe_busy_any = (fe_st != F_IDLE);
+    assign fe_cidx_err = fe_cidx_err_r;
+
+    // 当前描述符收尾：最后一拍已握手且状态已见（先后都支持）
+    wire bd_cnt_hit = ({1'b0, fe_bd_rcv} + 6'd1 == {1'b0, fe_bd_exp});
+    wire desc_done  = (fs_fire && bd_cnt_hit && (fe_stat || rd_stat_valid))
+                   || (rd_stat_valid && !fs_fire && ({1'b0, fe_bd_rcv} == {1'b0, fe_bd_exp}));
+
+    always @(posedge clk) begin
+        if (rst || soft_rst) begin
+            fe_st         <= F_IDLE;
+            fe_err        <= 1'b0;
+            fe_cidx_err_r <= 1'b0;
+            fe_owner      <= 2'd0;
+        end else begin
+            if (fe_pulse) fe_owner <= rq_pf;
+            else if (fe_done) fe_owner <= 2'd0;
+
+            case (fe_st)
+                F_IDLE: if (fe_pulse) begin
+                    fe_d      <= 2'd0;
+                    fe_bd_rcv <= 5'd0;
+                    fe_tot    <= 6'd0;
+                    fe_stat   <= 1'b0;
+                    fe_err    <= 1'b0;
+                    fe_st     <= (rq_n == 5'd0) ? F_PULSE : F_ISSUE;
+                end
+                F_ISSUE: if (fd_ready) begin
+                    fe_bd_exp <= (fe_d == 2'd0) ? {1'b0, rq_n1} << 1
+                                                : {1'b0, rq_n - rq_n1} << 1;
+                    fe_bd_rcv <= 5'd0;
+                    fe_stat   <= 1'b0;
+                    fe_st     <= F_POLL;
+                end
+                F_POLL: begin
+                    if (fs_fire) begin
+                        fe_tot    <= fe_tot + 6'd1;
+                        fe_bd_rcv <= fe_bd_rcv + 5'd1;
+                        if (fs_cidx != rq_ctx) fe_cidx_err_r <= 1'b1;
+                    end
+                    if (rd_stat_valid) begin
+                        fe_stat <= 1'b1;
+                        if (rd_stat_err) fe_err <= 1'b1;
+                    end
+                    if (desc_done) begin
+                        if (rq_split && (fe_d == 2'd0)) begin
+                            fe_d  <= 2'd1;
+                            fe_st <= F_ISSUE;
+                        end else begin
+                            fe_st <= F_PULSE;
+                        end
+                    end
+                end
+                default: fe_st <= F_IDLE;   // F_PULSE：一拍完成脉冲
+            endcase
+        end
+    end
+
+    // =====================================================================
+    // 主状态机
+    // =====================================================================
+    localparam [3:0] S_IDLE   = 4'd0,  S_FETCH  = 4'd1,  S_RD0  = 4'd2,  S_RD1   = 4'd3,
+                     S_RUN    = 4'd4,  S_ISSUE  = 4'd5,  S_ACTIVE = 4'd6, S_ADV = 4'd7,
+                     S_SWITCH = 4'd8,  S_PERW   = 4'd9,  S_PER_WAIT = 4'd10,
+                     S_TERM   = 4'd12, S_EXEC = 4'd13,
+                     S_RD2    = 4'd14;
+    reg [3:0]  st;
+    reg        busy_r;
+    reg [31:0] base_r;
+    reg [31:0] count_r;
+    reg [31:0] bi, k;          // 批首索引、当前记录索引
+    reg [4:0]  bn;             // 当前批的记录数（含地址截断；可大于 16 吗——calc_n ≤ 16）
+    reg        half;           // 当前批在 cbuf 的半区
+    reg        per;            // 逐条回退模式
+    reg [127:0] w0, w1;        // 当前记录的低/高 128 位（w0 = 字 0..3）
+    reg [31:0] tag_cur;        // 活动命令的 w7
+    reg        active;         // FILL/BLIT 已下发未完成
+    reg        rd_word;        // cbuf 读口字选
+    reg        pend_err, pend_done;
+    // 完成语义（D20 的驱动契约：DONE/ERR 置位即引擎已空闲，驱动可立即读 PERF）：
+    // 检出时只挂 pending，等在途命令收尾、预取流收完（S_TERM）才置 done_set/err_set。
+
+    // 预取槽
+    localparam [2:0] N_IDLE = 3'd0, N_INFL = 3'd1, N_OK = 3'd2, N_ERR = 3'd3;
+    reg [2:0]  nst;
+    reg [31:0] n_bi;
+    reg [4:0]  n_bn;
+    reg        n_half;
+
+    assign busy = busy_r;
+    assign suppress_writes = pend_err && active;
+
+    // 逐条回退的当前记录地址是否可取（越过 32 位空间不取不回卷）
+    wire [37:0] k_a0 = {6'd0, base_r} + {1'b0, k, 5'd0};
+    wire        k_ok = (k_a0 <= 38'h00_FFFF_FFE0);
+
+    // 读状态是否属于取数引擎（在途取数还有描述符没收尾）：是则不给像素错误通路
+    wire fe_hold_stat = (fe_st != F_IDLE);
+
+    // =====================================================================
+    // 十步检查（D50 单拍组合；权威 sw/lib/gfx/check.c；第一步取记录归取数状态机）
+    // =====================================================================
+    wire [255:0] cmd_full = {w1, w0};
+    wire [7:0]   c_op     = cmd_full[7:0];
+    wire [3:0]   c_eq     = cmd_full[11:8];
+    wire [3:0]   c_srcid  = cmd_full[19:16];
+    wire [3:0]   c_dstid  = cmd_full[23:20];
+
+    assign surf_ra_id = c_srcid;
+    assign surf_rb_id = c_dstid;
+
+    wire is_fill_c = (c_op == OP_FILL);
+    wire is_blit_c = (c_op == OP_BLIT);
+    wire op_ok_c   = (c_op == OP_NOP) || is_fill_c || is_blit_c
+                   || (c_op == OP_CLIP) || (c_op == OP_END);
+
+    wire f_bad_c;
+    ec_fields u_fields(.cmd(cmd_full), .bad(f_bad_c));
+    wire eq_bad_c = (c_eq > 4'd5);
+
+    wire src_ok_c, dst_ok_c;
+    ec_struct_ok u_ssrc(.s0(surf_ra_w0), .s1(surf_ra_w1), .s2(surf_ra_w2), .ok(src_ok_c));
+    ec_struct_ok u_sdst(.s0(surf_rb_w0), .s1(surf_rb_w1), .s2(surf_rb_w2), .ok(dst_ok_c));
+    wire src_bad_c = is_blit_c && !src_ok_c;
+    wire dst_bad_c = (is_fill_c || is_blit_c) && !dst_ok_c;
+
+    wire sp_src_bad = is_blit_c && (surf_ra_w2[9:8] != 2'd00);
+    wire sp_dst_bad = (is_fill_c || is_blit_c) && (surf_rb_w2[9:8] != 2'd00);
+    wire sp_bad_c   = sp_src_bad || sp_dst_bad;
+
+    wire fmt_src_ok  = (c_eq == 4'd1) ? (surf_ra_w2[15:12] == 4'd0 || surf_ra_w2[15:12] == 4'd1)
+                     : (c_eq == 4'd5) ? (surf_ra_w2[15:12] == 4'd0 || surf_ra_w2[15:12] == 4'd2)
+                     :                  (surf_ra_w2[15:12] <= 4'd2);
+    wire fmt_src_bad = is_blit_c && !fmt_src_ok;
+    wire fmt_dst_bad = (is_fill_c || is_blit_c) && (surf_rb_w2[15:12] != 4'd0);
+    wire fmt_bad_c   = fmt_src_bad || fmt_dst_bad;
+
+    wire [7:0] a_const = cmd_full[159:152];    // w4[31:24]
+    wire premult_bad = is_fill_c && (c_eq == 4'd1)
+                    && (cmd_full[151:144] > a_const
+                     || cmd_full[143:136] > a_const
+                     || cmd_full[135:128] > a_const);
+
+    // 第十步：同表面 BLIT 的矩形重叠（未裁剪半开区间；18 位有符号足够）
+    wire [15:0] ow = cmd_full[111:96];
+    wire [15:0] oh = cmd_full[127:112];
+    wire [17:0] sx18 = {{2{cmd_full[47]}}, cmd_full[47:32]};
+    wire [17:0] sy18 = {{2{cmd_full[63]}}, cmd_full[63:48]};
+    wire [17:0] dx18 = {{2{cmd_full[79]}}, cmd_full[79:64]};
+    wire [17:0] dy18 = {{2{cmd_full[95]}}, cmd_full[95:80]};
+    wire ovl_bad_c = is_blit_c && (c_srcid == c_dstid)
+                  && (ow != 16'd0) && (oh != 16'd0)
+                  && ($signed(sx18 + {2'b00, ow}) > $signed(dx18))
+                  && ($signed(dx18 + {2'b00, ow}) > $signed(sx18))
+                  && ($signed(sy18 + {2'b00, oh}) > $signed(dy18))
+                  && ($signed(dy18 + {2'b00, oh}) > $signed(sy18));
+
+    // 优先链（注错位 0：对调 space/format 两步，验收必须见红）
+    wire [4:0] v_norm = !op_ok_c    ? {1'b1, EC_ERR_BAD_OPCODE}
+                      : f_bad_c     ? {1'b1, EC_ERR_BAD_FIELD}
+                      : eq_bad_c    ? {1'b1, EC_ERR_BAD_EQUATION}
+                      : src_bad_c   ? {1'b1, EC_ERR_BAD_SURFACE}
+                      : dst_bad_c   ? {1'b1, EC_ERR_BAD_SURFACE}
+                      : sp_bad_c    ? {1'b1, EC_ERR_BAD_SPACE}
+                      : fmt_bad_c   ? {1'b1, EC_ERR_BAD_FORMAT}
+                      : premult_bad ? {1'b1, EC_ERR_BAD_PREMULT}
+                      : ovl_bad_c   ? {1'b1, EC_ERR_OVERLAP}
+                      :               {1'b0, EC_ERR_OK};
+    wire [4:0] v_swap = !op_ok_c    ? {1'b1, EC_ERR_BAD_OPCODE}
+                      : f_bad_c     ? {1'b1, EC_ERR_BAD_FIELD}
+                      : eq_bad_c    ? {1'b1, EC_ERR_BAD_EQUATION}
+                      : src_bad_c   ? {1'b1, EC_ERR_BAD_SURFACE}
+                      : dst_bad_c   ? {1'b1, EC_ERR_BAD_SURFACE}
+                      : fmt_bad_c   ? {1'b1, EC_ERR_BAD_FORMAT}
+                      : sp_bad_c    ? {1'b1, EC_ERR_BAD_SPACE}
+                      : premult_bad ? {1'b1, EC_ERR_BAD_PREMULT}
+                      : ovl_bad_c   ? {1'b1, EC_ERR_OVERLAP}
+                      :               {1'b0, EC_ERR_OK};
+    wire [4:0] chk = ((INJECT & 1) != 0) ? v_swap : v_norm;
+
+    // SET_CLIP 的新框：x1 = x + w − 1。x 是有符号 16 位、w 是无符号 16 位，
+    // 和的范围 [−32768, 98301]，用 18 位有符号求值再饱和到 16 位
+    // （B5 复核：17 位零扩展会把负原点 −4 抬成 65532，裁剪框永远不空，
+    //   159 条向量的 clip-negative-origin 抓出）
+    wire [15:0] cw  = w0[111:96];
+    wire [15:0] ch  = w0[127:112];
+    wire signed [17:0] cx1 = $signed({{3{w0[47]}}, w0[47:32]})
+                           + $signed({3'b000, cw}) - 18'sd1;
+    wire signed [17:0] cy1 = $signed({{3{w0[63]}}, w0[63:48]})
+                           + $signed({3'b000, ch}) - 18'sd1;
+
+    // =====================================================================
+    // 主时序
+    // =====================================================================
+    integer i;
+    always @(posedge clk) begin
+        if (rst || soft_rst) begin
+            st <= S_IDLE; busy_r <= 1'b0;
+            err_set <= 1'b0; done_set <= 1'b0; commit <= 1'b0;
+            start <= 1'b0; active <= 1'b0;
+            bi <= 32'd0; k <= 32'd0; bn <= 5'd0; half <= 1'b0; per <= 1'b0;
+            nst <= N_IDLE; n_bi <= 32'd0; n_bn <= 5'd0; n_half <= 1'b0;
+            fe_start_q <= 1'b0; rd_word <= 1'b0;
+            pf_armed <= 1'b0; rq_pf <= 1'b0;
+            pend_err <= 1'b0; pend_done <= 1'b0;
+            clip_x0 <= 16'sd0; clip_y0 <= 16'sd0;
+            clip_x1 <= 16'sd639; clip_y1 <= 16'sd479;
+        end else begin
+            err_set    <= 1'b0;
+            done_set   <= 1'b0;
+            commit     <= 1'b0;
+            start      <= 1'b0;
+            fe_start_q <= 1'b0;
+
+            // 预取请求等 FE 空闲再发（S_FETCH/S_SWITCH 出口那一拍 FE 可能还在 F_PULSE）
+            if (pf_armed && fe_ready) begin
+                pf_armed   <= 1'b0;
+                fe_start_q <= 1'b1;
+            end
+
+            // 预取完成 → 预取槽落定：错误也落为 N_ERR，由 S_SWITCH 处理；
+            // END/错误收尾只等流收完，丢弃结果、预取的 SLVERR 不上报
+            if (fe_done && fe_owner == 2'd1)
+                nst <= fe_err ? N_ERR : N_OK;
+
+            case (st)
+                // ------------------------------------------------ IDLE
+                S_IDLE: if (kick) begin
+                    busy_r  <= 1'b1;
+                    base_r  <= list_base;
+                    count_r <= list_count;
+                    if (list_count == 32'd0) begin
+                        pend_done <= 1'b1;              // COUNT=0：直接成功
+                        st        <= S_TERM;
+                    end else if (list_base[4:0] != 5'd0) begin
+                        pend_err  <= 1'b1;              // 非对齐：取第 0 条前报 FETCH
+                        err_code  <= EC_ERR_FETCH;
+                        err_index <= 32'd0;
+                        err_tag   <= 32'd0;
+                        st        <= S_TERM;
+                    end else begin
+                        bi   <= 32'd0;
+                        k    <= 32'd0;
+                        half <= 1'b0;
+                        per  <= 1'b0;
+                        bn   <= calc_n(list_base, 32'd0, list_count);
+                        // 取第一批（calc_n 为 0 时第一批不可取，执行时报 FETCH）
+                        rq_addr <= list_base;
+                        rq_n    <= calc_n(list_base, 32'd0, list_count);
+                        rq_half <= 1'b0;
+                        rq_off  <= 5'd0;
+                        rq_ctx  <= 4'd0;
+                        rq_pf   <= 1'b0;
+                        // 首批不可取（地址空间截断到 0）时不发请求：
+                        // S_FETCH 会永远等不到 fe_done，直接进执行路径报 FETCH
+                        if (calc_n(list_base, 32'd0, list_count) != 5'd0)
+                            fe_start_q <= 1'b1;
+                        st <= (calc_n(list_base, 32'd0, list_count) != 5'd0) ? S_FETCH : S_EXEC;
+                    end
+                end
+
+                // ------------------------------------------------ 等当前批取数
+                S_FETCH: if (tmo_evt) begin
+                    // 取数方向超过门限：只报告不放弃；迟到响应到达后 S_TERM 收尾
+                    pend_err  <= 1'b1;
+                    err_code  <= EC_ERR_TIMEOUT;
+                    err_index <= bi;
+                    err_tag   <= 32'd0;
+                    st        <= S_TERM;
+                end else if (fe_done && fe_owner == 2'd0) begin
+                    if (fe_err && inj_nofb) begin
+                        err_set   <= 1'b1;              // 注错：关掉逐条回退
+                        err_code  <= EC_ERR_FETCH;
+                        err_index <= bi;
+                        err_tag   <= 32'd0;
+                        st        <= S_TERM;
+                    end else if (fe_err) begin
+                        k   <= bi;                      // 整批失败：从批首逐条回退
+                        per <= 1'b1;
+                        st  <= S_PERW;
+                    end else begin
+                        // 触发下一批预取（rq_* 此时可改：FE 已空闲）
+                        if ({1'b0, bi} + {1'b0, bn} < {1'b0, count_r}) begin
+                            n_bi   <= bi + bn;
+                            n_bn   <= calc_n(base_r, bi + bn, count_r);
+                            n_half <= ~half;
+                            nst    <= N_INFL;
+                            if (calc_n(base_r, bi + bn, count_r) != 5'd0) begin
+                                rq_addr <= base_r + ((bi + bn) << 5);
+                                rq_n    <= calc_n(base_r, bi + bn, count_r);
+                                rq_half <= ~half;
+                                rq_off  <= 5'd0;
+                                rq_ctx  <= bi[3:0] + bn[3:0];   // (bi+bn) mod 16
+                                rq_pf   <= 1'b1;
+                                pf_armed <= 1'b1;   // FE 可能还在 F_PULSE，等空闲再发
+                            end else begin
+                                rq_pf <= 1'b0;
+                                nst   <= N_OK;      // 下一批不可取：执行到那再报 FETCH
+                            end
+                        end else begin
+                            nst <= N_IDLE;
+                        end
+                        st <= S_EXEC;
+                    end
+                end
+
+                // ------------------------------------------------ 读记录
+                // 同步读 RAM 的时序：EX 发地址 0；RD0 发地址 1；RD1 拍的 rdata
+                // 已是字 0，捕进 w0；RD2 拍的 rdata 是字 1，捕进 w1。
+                S_EXEC: begin
+                    rd_word <= 1'b0;
+                    st      <= S_RD0;
+                end
+                S_RD0: begin
+                    rd_word <= 1'b1;
+                    st      <= S_RD1;
+                end
+                S_RD1: begin
+                    w0 <= cbuf_rdata;
+                    st <= S_RD2;
+                end
+                S_RD2: begin
+                    w1 <= cbuf_rdata;
+                    st <= S_RUN;
+                end
+
+                // ------------------------------------------------ 判定与就地处理
+                S_RUN: begin
+                    if ({1'b0, k} >= {1'b0, bi} + {1'b0, bn}) begin
+                        // 记录没有取到（地址空间截断）：逻辑执行需要它，报 FETCH
+                        pend_err  <= 1'b1;
+                        err_code  <= EC_ERR_FETCH;
+                        err_index <= k;
+                        err_tag   <= 32'd0;
+                        st        <= S_TERM;
+                    end else if (chk[4]) begin
+                        pend_err  <= 1'b1;
+                        err_code  <= chk[3:0];
+                        err_index <= k;
+                        err_tag   <= w1[127:96];
+                        st        <= S_TERM;
+                    end else begin
+                        case (c_op)
+                            OP_NOP: begin
+                                commit <= 1'b1;
+                                st     <= S_ADV;
+                            end
+                            OP_CLIP: begin
+                                clip_x0 <= $signed(w0[47:32]);
+                                clip_y0 <= $signed(w0[63:48]);
+                                if (cw == 16'd0 || ch == 16'd0) begin
+                                    clip_x1 <= 16'sd0 - 16'sd1;     // 空矩形全裁
+                                    clip_y1 <= 16'sd0 - 16'sd1;
+                                end else begin
+                                    clip_x1 <= (cx1 > 18'sd32767) ? 16'sd32767 : cx1[15:0];
+                                    clip_y1 <= (cy1 > 18'sd32767) ? 16'sd32767 : cy1[15:0];
+                                end
+                                commit <= 1'b1;
+                                st     <= S_ADV;
+                            end
+                            OP_END: begin
+                                pend_done <= 1'b1;          // END 后不读取（spec §5）
+                                st        <= S_TERM;
+                            end
+                            default: st <= S_ISSUE;         // FILL/BLIT
+                        endcase
+                    end
+                end
+
+                // ------------------------------------------------ 下发几何层
+                S_ISSUE: if (!geom_busy && !active) begin
+                    i1_op      <= w0[7:0];
+                    i1_eq      <= w0[11:8];
+                    i1_key_en  <= w0[12];
+                    i1_key     <= w1[63:32];
+                    i1_w4      <= w1[31:0];
+                    i1_c       <= w0[31:24];
+                    i1_sfmt    <= (w0[7:0] == OP_BLIT) ? surf_ra_w2[15:12] : 4'd0;
+                    i1_src_base   <= surf_ra_w0;
+                    i1_src_w      <= surf_ra_w1[15:0];
+                    i1_src_h      <= surf_ra_w1[31:16];
+                    i1_src_slog2  <= surf_ra_w2[4:0];
+                    i1_dst_base   <= surf_rb_w0;
+                    i1_dst_w      <= surf_rb_w1[15:0];
+                    i1_dst_h      <= surf_rb_w1[31:16];
+                    i1_dst_slog2  <= surf_rb_w2[4:0];
+                    i1_src_x   <= $signed(w0[47:32]);
+                    i1_src_y   <= $signed(w0[63:48]);
+                    i1_dst_x   <= $signed(w0[79:64]);
+                    i1_dst_y   <= $signed(w0[95:80]);
+                    i1_w       <= w0[111:96];
+                    i1_h       <= w0[127:112];
+                    i1_clip_x0 <= clip_x0;
+                    i1_clip_y0 <= clip_y0;
+                    i1_clip_x1 <= clip_x1;
+                    i1_clip_y1 <= clip_y1;
+                    i1_cidx    <= k[3:0];
+                    start      <= 1'b1;
+                    active     <= 1'b1;
+                    tag_cur    <= w1[127:96];
+                    st         <= S_ACTIVE;
+                end
+
+                // ------------------------------------------------ 等活动命令完成
+                S_ACTIVE: begin
+                    if (wr_stat_valid && wr_stat_err) begin
+                        pend_err  <= 1'b1;
+                        err_code  <= EC_ERR_BUS_WRITE;
+                        err_index <= k;
+                        err_tag   <= tag_cur;
+                        // 末行的写状态本身就是完成回报：错误与完成同拍时也要撤 active，
+                        // 否则 S_TERM 等一个已经来过的 last_row，永远收不了尾
+                        if (wr_stat_last_row)
+                            active <= 1'b0;
+                        st        <= S_TERM;
+                    end else if (rd_stat_valid && rd_stat_err && !fe_hold_stat) begin
+                        pend_err  <= 1'b1;
+                        err_code  <= EC_ERR_BUS_READ;
+                        err_index <= k;
+                        err_tag   <= tag_cur;
+                        st        <= S_TERM;
+                    end else if (tmo_evt) begin
+                        pend_err  <= 1'b1;
+                        err_code  <= EC_ERR_TIMEOUT;
+                        err_index <= k;
+                        err_tag   <= tag_cur;
+                        st        <= S_TERM;
+                    end else if ((wr_stat_valid && wr_stat_last_row)
+                              || (geom_cmd_done && geom_done_cidx == k[3:0])) begin
+                        // 非空命令的末行写状态 / 空命令的 cmd_done（D38）
+                        commit <= 1'b1;
+                        active <= 1'b0;
+                        st     <= S_ADV;
+                    end
+                end
+
+                // ------------------------------------------------ 推进
+                S_ADV: begin
+                    k <= k + 32'd1;
+                    if ({1'b0, k} + 33'd1 >= {1'b0, bi} + {1'b0, bn})
+                        st <= S_SWITCH;
+                    else
+                        st <= per ? S_PERW : S_EXEC;
+                end
+
+                // ------------------------------------------------ 批切换
+                S_SWITCH: begin
+                    if ({1'b0, bi} + {1'b0, bn} >= {1'b0, count_r}) begin
+                        pend_done <= 1'b1;                  // 表尾：正常完成
+                        st        <= S_TERM;
+                    end else if (per) begin
+                        // 逐条回退消耗完失败批：整批取下一批，回到批量模式。
+                        // k 在 S_ADV 已推进到 bi+bn = 下一批的批首。
+                        per     <= 1'b0;
+                        bn      <= calc_n(base_r, bi + bn, count_r);
+                        rq_addr <= base_r + ((bi + bn) << 5);
+                        rq_n    <= calc_n(base_r, bi + bn, count_r);
+                        rq_half <= half;
+                        rq_off  <= 5'd0;
+                        rq_ctx  <= bi[3:0] + bn[3:0];           // (bi+bn) mod 16
+                        rq_pf   <= 1'b0;
+                        if (calc_n(base_r, bi + bn, count_r) != 5'd0) begin
+                            fe_start_q <= 1'b1;     // FE 此时必空闲（本批刚收完）
+                            st <= S_FETCH;
+                        end else begin
+                            st <= S_EXEC;           // 不可取：执行到那再报 FETCH
+                        end
+                        bi <= bi + bn;              // 批首推进（NBA 用旧 bn）
+                    end else if (nst == N_OK) begin
+                        half <= n_half;
+                        bi   <= n_bi;
+                        bn   <= n_bn;
+                        k    <= n_bi;
+                        // 再预取下一批
+                        if ({1'b0, n_bi} + {1'b0, n_bn} < {1'b0, count_r}) begin
+                            n_bi <= n_bi + n_bn;
+                            n_bn <= calc_n(base_r, n_bi + n_bn, count_r);
+                            n_half <= ~n_half;
+                            nst <= N_INFL;
+                            if (calc_n(base_r, n_bi + n_bn, count_r) != 5'd0) begin
+                                rq_addr <= base_r + ((n_bi + n_bn) << 5);
+                                rq_n    <= calc_n(base_r, n_bi + n_bn, count_r);
+                                rq_half <= ~n_half;
+                                rq_off  <= 5'd0;
+                                rq_ctx  <= n_bi[3:0] + n_bn[3:0];   // (n_bi+n_bn) mod 16
+                                rq_pf   <= 1'b1;
+                                pf_armed <= 1'b1;
+                            end else begin
+                                rq_pf <= 1'b0;
+                                nst   <= N_OK;
+                            end
+                        end else begin
+                            nst <= N_IDLE;
+                        end
+                        st <= S_EXEC;
+                    end else if (nst == N_ERR) begin
+                        // 预取的下一批取数失败：从它的批首逐条回退
+                        bi  <= n_bi;
+                        bn  <= n_bn;
+                        k   <= n_bi;
+                        per <= 1'b1;
+                        nst <= N_IDLE;
+                        rq_pf <= 1'b0;
+                        if (inj_nofb) begin
+                            pend_err  <= 1'b1;
+                            err_code  <= EC_ERR_FETCH;
+                            err_index <= n_bi;
+                            err_tag   <= 32'd0;
+                            st        <= S_TERM;
+                        end else begin
+                            st <= S_PERW;
+                        end
+                    end
+                    // N_INFL：等预取收尾（不能停 fs_tready）
+                end
+
+                // ------------------------------------------------ 逐条回退取一条
+                S_PERW: if (!k_ok) begin
+                    pend_err  <= 1'b1;                      // 越过地址空间：报 FETCH
+                    err_code  <= EC_ERR_FETCH;
+                    err_index <= k;
+                    err_tag   <= 32'd0;
+                    st        <= S_TERM;
+                end else if (fe_ready) begin
+                    rq_addr <= base_r + (k << 5);
+                    rq_n    <= 5'd1;
+                    rq_half <= half;
+                    rq_off  <= {k[3:0] - bi[3:0], 1'b0};    // (k-bi) mod 16 的槽位×2 拍
+                    rq_ctx  <= k[3:0];
+                    rq_pf   <= 1'b0;
+                    fe_start_q <= 1'b1;
+                    st <= S_PER_WAIT;
+                end
+
+                S_PER_WAIT: if (tmo_evt) begin
+                    pend_err  <= 1'b1;
+                    err_code  <= EC_ERR_TIMEOUT;
+                    err_index <= k;
+                    err_tag   <= 32'd0;
+                    st        <= S_TERM;
+                end else if (fe_done && fe_owner == 2'd0) begin
+                    if (fe_err) begin
+                        pend_err  <= 1'b1;
+                        err_code  <= EC_ERR_FETCH;
+                        err_index <= k;
+                        err_tag   <= 32'd0;
+                        st        <= S_TERM;
+                    end else begin
+                        st <= S_EXEC;
+                    end
+                end
+
+                // ------------------------------------------------ 收尾
+                // 等在途命令自然收尾（状态/完成照常回来，不再上报）、预取流收完；
+                // 全部静止后才置 done_set/err_set 并回空闲——DONE/ERR 置位即引擎已空闲
+                S_TERM: begin
+                    if ((wr_stat_valid && wr_stat_last_row)
+                     || (geom_cmd_done && geom_done_cidx == k[3:0]))
+                        active <= 1'b0;
+                    if (!active && !fe_busy_any && !geom_busy) begin
+                        err_set  <= pend_err;
+                        done_set <= pend_done;
+                        pend_err <= 1'b0;
+                        pend_done <= 1'b0;
+                        busy_r   <= 1'b0;
+                        nst      <= N_IDLE;
+                        per      <= 1'b0;
+                        st       <= S_IDLE;
+                    end
+                end
+
+                default: st <= S_IDLE;
+            endcase
+        end
+    end
+endmodule
+`default_nettype wire

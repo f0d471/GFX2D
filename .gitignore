@@ -54,3 +54,9 @@ __pycache__/
 # ---- 板上 Flash 整片备份 ----
 # 每份 24MB，只留在本地用于恢复
 Main/bit/flash_backup/
+
+# ---- 参考实现的本地存档，不入库 ----
+# TechReports 引用第三方源码时读到代码级留的审查副本（MAME GPLv2/BSD-3、ORGFX LGPL-3、
+# iDMA SHL-0.51 等），与厂商资料包同一理由：著作权不属于本仓库，出处以文档里的
+# URL 与版本为准，原始件不进版本库。
+Engineering/refs/

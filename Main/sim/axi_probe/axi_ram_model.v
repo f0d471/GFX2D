@@ -30,6 +30,11 @@
 //              （前期研究校准值 23/12/6/1，见 engine 第 02 章 3.8 节）
 // wstrb 是一个新增的输入端口，用 STRB_EN 门控：默认不读它，
 // 所以三个既有测试台不接这个端口也保持原行为。
+//
+// 2026-10-01 引擎 P1 · B5 再补一样（默认行为仍逐字节不变）：
+//   ERR_LO/ERR_HI 复制进运行时寄存器 err_lo_r/err_hi_r（复位时取参数值），
+//   in_err 判运行时寄存器。既有套件不碰这两个寄存器，行为与原来一致；
+//   B5 的 159 条向量测试台按向量把 FETCH 截断点搬进 err 窗口（层次引用赋值）。
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -91,16 +96,20 @@ function stall;
     end
 endfunction
 
-// 按地址区间回 SLVERR：默认 ERR_LO/ERR_HI 使这个函数恒为 0
+// 按地址区间回 SLVERR：判运行时寄存器（复位时取 ERR_LO/ERR_HI 参数值，
+// 默认 0xFFFF_FFFF/0 使这个函数恒为 0）。测试台可层次引用赋值移动窗口。
+reg [31:0] err_lo_r, err_hi_r;
 function in_err;
     input [31:0] a;
     begin
-        in_err = (a >= ERR_LO) && (a <= ERR_HI);
+        in_err = (a >= err_lo_r) && (a <= err_hi_r);
     end
 endfunction
 
 integer i;
 initial begin
+    err_lo_r = ERR_LO;
+    err_hi_r = ERR_HI;
     for (i = 0; i < MEM_WORDS; i = i + 1)
         mem[i] = 128'h0;
 end
@@ -315,7 +324,12 @@ always @(posedge clk) begin
             ra   <= q_addr[q_head[3:0]];
             rlen <= q_len [q_head[3:0]];
             rcnt <= 8'd0;
-            rerr <= (q_len[q_head[3:0]] > MAX_LEN) || in_err(q_addr[q_head[3:0]]);
+            // B5 补：跨进窗口的突发（基址在窗外、末拍在窗内）也算命中——
+            // 命令表的批量预取是一笔大突发，FETCH 截断点落在突发中间。
+            // 既有套件的窗口与描述符对齐（首拍命中），行为不变。
+            rerr <= (q_len[q_head[3:0]] > MAX_LEN)
+                 || in_err(q_addr[q_head[3:0]])
+                 || in_err(q_addr[q_head[3:0]] + {q_len[q_head[3:0]], 4'b0000} - 5'd16);
             q_head <= q_head + 5'd1;
             // 地址握手之后入队、下一拍才出队，已经过去一拍，所以少等一拍：
             // 首拍离地址握手正好 RD_LAT 拍，与前期研究校准用的从机逐拍相同

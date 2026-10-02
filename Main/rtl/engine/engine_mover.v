@@ -92,7 +92,7 @@ module engine_mover #(
     // ---- I7：命令取数描述符（控制层 → 搬运层），优先于像素读 ----
     input  wire [31:0]           fd_addr,
     input  wire [11:0]           fd_bytes,
-    input  wire [3:0]            fd_cidx,
+    input  wire [3:0]            fd_cidx,     // 描述符上下文低 4 位；批量取数时取批首，不是每条记录的索引
     input  wire                  fd_valid,
     output wire                  fd_ready,
 
@@ -108,7 +108,7 @@ module engine_mover #(
     output wire                  fs_tlast,
     output wire                  fs_tvalid,
     input  wire                  fs_tready,
-    output wire [3:0]            fs_cidx,      // 本拍数据属于哪条命令
+    output wire [3:0]            fs_cidx,      // 回显 fd_cidx；批量取数须按拍序在 B5 重建记录索引
 
     // ---- I2：写描述符（几何层 → 搬运层）----
     input  wire [31:0]           wr_addr,
