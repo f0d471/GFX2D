@@ -3,7 +3,7 @@
 #
 # 偏移、位域、复位值与读写属性只在本文件的 REGS 表里写一遍，一条命令生成两份产物：
 #   Main/rtl/engine/engine_regs_offsets.vh   Verilog `localparam`，RTL `include
-#   Main/sw/lib/gfx/gfx_regs.h               C `#define`，驱动（B6）include
+#   Main/sw/bsp/include/gfx_regs.h           C `#define`，驱动（B6）include
 # `--check` 重新生成并与仓库内两份产物逐行比，不一致即退出码 1（挂提交前检查，
 # 与 localize_paths.py --check 同一位置）。语义（每一位干什么）的权威是
 # Main/doc/赛题二总体设计.md 3.4 节与 Engineering/TechReports/spec/02-命令语义.md；
@@ -186,7 +186,7 @@ def gen_h():
     return "\n".join(L) + "\n"
 
 VH_PATH = Path("rtl/engine/engine_regs_offsets.vh")
-H_PATH = Path("sw/lib/gfx/gfx_regs.h")
+H_PATH = Path("sw/bsp/include/gfx_regs.h")
 
 def main():
     ap = argparse.ArgumentParser()
