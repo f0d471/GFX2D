@@ -3,7 +3,7 @@
 // 组成：
 //   u_soc        Sapphire RISC-V SoC（efx_soc 3.4.0 生成，fpga/gfx2d_ti60/ip/soc/soc.v）
 //   u_ddr3       DDR3 软核控制器（厂商加密源码，rtl/vendor/ddr3_controller/）
-//   u_engine     2D 渲染引擎（rtl/engine/，引擎 P1 B1~B5 六层，B6 接进顶层）
+//   u_engine     2D 渲染引擎（rtl/engine/，引擎 P1 B1~B5，B6 接进顶层）
 //   u_display    从 DDR3 帧缓冲取数并输出像素（rtl/display/display_top.v）
 //   u_axi_mux    AXI 多路器，扫描输出、引擎与 SoC 共用 DDR3 控制器（rtl/vendor/axi_mux/Axi_Mux.v）
 //   u_mux_guard 仲裁配置与 SoC 防饿死保护，永久模块（rtl/bus/axi_mux_guard.v）

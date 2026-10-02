@@ -540,7 +540,7 @@ gcc 13.4.0，最终复核版 bin 11322 字节（sha256 前 16 位 `e5cf7dabcfe78
 
 `FILL` 一段的三个数（`back2back_cyc`、`after_vsync_cyc` 与 `ANIM` 的 `fill_per_frame`）
 是同一个 `fb_fill` 在不同位置量出来的，相差 58%，归因未定，见
-`../../Engineering/Todo/hw/扫描输出.md` 第 4 节 2026-09-21 条与 E7。
+[display 第 01 章 3.10 节](../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md)与 E7。
 判据只卡一个很宽的上界（`per_px_x100` 不超过 10000），不拿它当性能结论。
 
 ## platformTest 的期望值

@@ -21,7 +21,7 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | DDR3 帧缓冲与双缓冲 | 已由 display 工作点接入并上板验收，CPU 软件绘制可写后缓冲并在场边界切换 |
 | 软件执行器像素吞吐（E7） | **已收尾（2026-09-27）**：4KB 固定生产基线精确 S1 整表约 80.46 M 周期（805 ms），18 项输出独立复算全对；旧六方程注错 CRC 已重判，本次两个 VERIFY_ONLY 构建分别 `fail 0`、`fail 8`，均完整结束。默认生产 BIN 与原基线逐位相同。记录与按影响复测的边界见 [platform 第 09 章](../Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md) |
 | CPU 每弹幕开销（E8） | **已收尾（2026-09-27）**：两份修改版 DDR 探针在 4KB/16KB 各一次均 `fail 0`/`done`；同一份 69,034 字节程序在两档各一次九组、每组 1000 帧，逐帧状态与命令摘要均 0 错。N=2000 更新加提交 3.510→2.338 ms（−33.4%），同产物新旧读数最大变化 <0.08%。主线已恢复 4KB/1 路，16KB/4 路继续作为候选，采用条件与按影响复测边界见 [platform 第 10 章](../Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md)；真实游戏验证归 SW9 |
-| 2D 渲染引擎 | B1~B5 已验收，**B6 已接入整机并上板（2026-10-02，待验收）**：S1、APB 第 0 页和中断 B 已接上；整机 36009 XLR / 105 RAM / 16 DSP，`core_clk` setup +1.067 / hold +0.026 ns，四步 PASS。整帧仿真 16/16；本轮重编程序在板上复现十一帧 CRC、32 位 `LIST_COUNT`、定向命令、注错、缓存一致性、显示和 memTest。压力表最低水位 335 拍、欠载 0，16 颗 ALPHA 每颗约 1184 拍。真实游戏完整场景的帧率留 SW9。见 [engine 第 06 章](../Engineering/TechReports/engine/06-顶层集成与上板.md)与[引擎总览](../Engineering/Todo/hw/引擎P1总览.md) |
+| 2D 渲染引擎 | **B1～B6 已验收归档（2026-10-03）**：S1、APB 第 0 页和中断 B 已接上；整机 36009 XLR / 105 RAM / 16 DSP，`core_clk` setup +1.067 / hold +0.026 ns，四步 PASS。整帧仿真 16/16；B6 重编程序在板上复现十一帧 CRC、32 位 `LIST_COUNT`、定向命令、注错、缓存一致性、显示和 memTest。压力表最低水位 335 拍、欠载 0，16 颗 ALPHA 每颗约 1184 拍。真实游戏完整场景的帧率留 SW9。见 [engine 第 06 章](../Engineering/TechReports/engine/06-顶层集成与上板.md)与[第 00 章](../Engineering/TechReports/engine/00-P1路线与层间契约.md) |
 | Axi_Mux 三端口仲裁、防饿死与扫描 FIFO 水位（E5） | **已整体验收（2026-09-24）**：S0 接扫描输出，S1 当前接 B6 引擎，S2 接 SoC；`axi_mux_guard` VERSION 2 负责仲裁配置与 CPU 地址等待保护。原 E5 探针压力矩阵最低水位 347/331/327 拍、欠载 0；B6 引擎压力表复测最低水位 335、欠载 0。512 拍 FIFO 维持原值；真实游戏更重命令表留 SW9。过程与数据见 [platform 第 06 章](../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md)、[第 08 章](../Engineering/TechReports/platform/08-扫描FIFO的压力矩阵与深度定值.md)及[engine 第 06 章](../Engineering/TechReports/engine/06-顶层集成与上板.md) |
 | 软件平台分层与双目标构建（SW1） | **已归档**（2026-09-19 验收，2026-09-28 删除条目）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
 | 命令表构造层与软件执行器（SW3） | **主机侧已验收**（2026-09-21）：`sw/lib/gfx/`（`gfx_abi.h` 数据布局、`check.c` 十步检查、`list.c` 构造层、`exec_sw.c` 执行器、`cases.c` 十一个整帧用例）与判据 `sw/lib/test/`（独立参考实现 `ref_exec`、手写 45 条向量、交换格式重放器）就位。78 项断言在 64 位与 `-m32` 下输出逐字节相同，ASan + UBSan 无报告；工具导出的 159 条向量与手写 45 条在两个实现上逐项一致；六个方程的注错各自只命中用到它的用例；同一份源码用 riscv-none-elf-gcc 13.4.0 零告警编过。整帧 CRC 期望值入库 `sw/lib/test/golden.txt`，E7 与引擎仿真拿它当金标准。**SW3 验收时未单独上板**；之后 SW6 已用同一执行器在板上逐帧对账，E7 已完成分方程吞吐测量并归档。见 `../Engineering/TechReports/sw/02-命令表构造层与软件执行器.md` |
@@ -31,9 +31,11 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | 演示模式、压力测试与统计埋点（SW8） | **已验收**（2026-09-28）：A~D 四批完成。按方程的普查 `sw/lib/gfx/census` 与模拟时钟、帧时间直方图 `sw/lib/core/framehist`、日志队列 `sw/lib/core/logq` 与 `board_tx_room()`；`N_max` 搜索状态机 `sw/lib/core/nmax`（倍增加二分、等涨潮、确认与退步）；默认构建是模式框架（1 基础 Demo、2 游戏、3 压力测试，和弦切换）、每秒一行统计 CSV、自动驾驶；模式 3 在终符上搜索（模拟时钟下 16×16 `N_max` 2002、8×8 5321，只验证流程）与固定旋钮 `-DGFX2D_PRESS_KNOB`；出图 `tools/stats/plot_stats.py` 与第一版统计（S1 规模每帧 872,384 像素，是设计文档估算的 1.28 倍）。`tools/check/check_sw8_stats.sh` 全过、各注错见红。板上的软件与硬件数字归 SW9。见 `../Engineering/TechReports/sw/07-演示模式与统计埋点.md` |
 | SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 已上板并验收（2026-09-19）：efx_soc 3.4.0 重新生成，开 GPIO1 接 KEY0~3、开用户中断 A/B/C、保留 I2C0 给摄像头、关 `axiA` 与 `io_ddrMasters_0`；工具链换成 gcc 13.4.0。调试通路连续 6 次会话、memTest、APB 探针、`ddrAliasTest`、`ddrBurstProbe`、E3 三件套、`bootSizeTest`（含对照组）与 gfx2dGame 60 帧 CRC 全过；HDMI 八色竖条与 SW0~SW3 按键已确认。见 `../Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md` |
 
-当前本地 `outflow` 是 2026-09-25 从主线 4KB/1 路配置重编的比特流，
-XLR **21935**、片上 RAM **71 块**、`core_clk` setup **+3.516** / hold **+0.026 ns**，
-SHA256 `5198db644338720d6fe53fc9ff59d4f6f86c0ddc3da5100c55a857b9d644b144`。
+当前本地 `outflow` 是 2026-10-02 B6 整机编译的 4KB/1 路比特流，
+XLR **36009**、片上 RAM **105 块**、DSP **16 个**、`core_clk` setup **+1.067** / hold **+0.026 ns**，
+SHA256 `b2118f54501cde5d6f3c8c8143aa45a578fa04aa32a797e37f4a2268d915cf63`。
+2026-09-25 的 21935 XLR / 71 RAM、setup +3.516 / hold +0.026 ns 是 B6 前的对照组，
+不是当前本地编译。B6 的逐项增量与板上证据见 engine 第 06 章。
 2026-09-21 扫描输出接入时的历史编译为 XLR 21807（35.87%）、RAM 71 块（27.7%）、DSP 4 个，约束告警 0 条，无负 slack，`core_clk` setup 3.898 / hold 0.026 ns
 （相对上一版 XLR +154、片上 RAM +6 块——那 6 块就是扫描输出的 128 位 × 512 深异步 FIFO，
 在设计文档 2.3 节 7 块的预算内；hold 没有被挤薄。像素域 `hdmi_tx_slow_clk` setup 33.807 / hold 0.071 ns。

@@ -27,20 +27,20 @@
 `display_fetch`/`display_out` 各有一个 `parameter integer INJECT`，是**仿真注错口**：0 是正式配置，
 综合时它是常量、对应分支会被优化掉。位定义见两个文件的端口说明，用它的地方只有 `sim/display/run.sh`。
 设计依据、寄存器表、判据与实测数据见
-[`../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md`](../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md)。
+[display 第 01 章](../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md)。
 
 ## engine/
 
 引擎 P1 按层分六批（B1~B6），层间接口契约见
-[`../../Engineering/Todo/hw/引擎P1总览.md`](../../Engineering/Todo/hw/引擎P1总览.md) 2.4 节。
+[engine 第 00 章第三节](../../Engineering/TechReports/engine/00-P1路线与层间契约.md)。
 
 | 文件 | 说明 |
 | --- | --- |
-| `engine_blend.v` | B1：单通道混合核。源/目的/`a`/`c` 各 8 位与方程号 3 位进去，8 位出来，固定延迟 `L = 3`（D24）。六个方程都写成 `x = base × 255 + m1 × m2`，每通道一个推断出来的 `EFX_DSP48`；`base × 255` 用移位相减。B4 的 `engine_pix.v` 例化 12 个实例，两个文件均已列进工程源文件列表；顶层接入后才进整机网表 |
-| `engine_mover.v` | B2：搬运层（AXI 事务层）。引擎唯一的 AXI 主机，接 `Axi_Mux` 的 S1。里面是 `vendor/verilog-axi/` 的两个核（参数见 D3）、读侧仲裁（命令取数优先，D8）、每方向一笔在途的门控（D3 规矩 2、D12）、W 通道带内掩码（D16）、复位排空（D17、D29；一次请求只完成一次，请求举着期间不收新提交）与超时（D19、D30）。读方向的「完成」是**状态脉冲已捕获且读流 `tlast` 已握手**（D32：读核的状态可以早于末拍握手 1~55 拍，只看状态会让上下文错位）。整块挂搬运层复位（顶层接 `~ddr_rstn`）。已列进工程源文件列表，B5 的 `engine_top.v` 已例化，B6 才接入 SoC 网表 |
-| `engine_geom.v` | B3：几何层。接一条过了十步检查的 FILL 或 BLIT（I1），五者求交、逐行迭代（每行 4 拍）、按 16 字节对齐的覆盖区间发读源、读目的、写目的的描述符（不跨 4KB、不超过 192 拍，I2），每行先发一条边带（I5）；`rd_buf = {源/目的, 行号最低位}`，每一行开始之前查 `row_free[行号最低位]`（D41）；零面积命令回一拍 `cmd_done`（D38）。已列进工程源文件列表，B5 的 `engine_top.v` 已例化，B6 才接入 SoC 网表 |
-| `engine_pix.v` | B4：计算阵列与片上缓存。源 512×128、目的 512×96（X 字节不存）两块行缓冲，各放两行乒乓；两拍窗口的像素旋转、首末拍掩码与色键（比原始存储字），在 X 字节最高位打「不写」标记；12 个 `engine_blend` 的四像素通路，FILL 的 a 一律取 `w4[31:24]`（规范条款 §4.2）；七拍流水挂一个时钟使能 `en = ws_tready \|\| !ws_tvalid`，写核停时整条停。I3 读流恒 ready，I4 写流没有 `tlast`（D48），`row_free[1:0]` 在该半写流末拍被写核收走之后拉高（D45）。已列进工程源文件列表，尚未被顶层例化 |
-| `engine_top.v`、`engine_regs.v`、`engine_cmd.v` | B5：APB 寄存器、命令表批量取数、十步检查、错误三元组与性能计数；`engine_top` 例化 B1~B4，各文件已列进工程源文件列表。159 向量端到端与 D1~D16 定向、单独综合和板卡基线均已验收；B6 才接入 SoC 顶层。寄存器偏移由 `tools/check/regs_gen.py` 生成，不手改 `.vh` |
+| `engine_blend.v` | B1：单通道混合核。源/目的/`a`/`c` 各 8 位与方程号 3 位进去，8 位出来，固定延迟 `L = 3`（D24）。六个方程都写成 `x = base × 255 + m1 × m2`，每通道一个推断出来的 `EFX_DSP48`；`base × 255` 用移位相减。B4 的 `engine_pix.v` 例化 12 个实例，B6 已随引擎接入整机网表 |
+| `engine_mover.v` | B2：搬运层（AXI 事务层）。引擎唯一的 AXI 主机，接 `Axi_Mux` 的 S1。里面是 `vendor/verilog-axi/` 的两个核（参数见 D3）、读侧仲裁（命令取数优先，D8）、每方向一笔在途的门控（D3 规矩 2、D12）、W 通道带内掩码（D16）、复位排空（D17、D29；一次请求只完成一次，请求举着期间不收新提交）与超时（D19、D30）。读方向的「完成」是**状态脉冲已捕获且读流 `tlast` 已握手**（D32：读核的状态可以早于末拍握手 1~55 拍，只看状态会让上下文错位）。整块挂搬运层复位（顶层接 `~ddr_rstn`）。B5 的 `engine_top.v` 已例化，B6 已接入 SoC 网表 |
+| `engine_geom.v` | B3：几何层。接一条过了十步检查的 FILL 或 BLIT（I1），五者求交、逐行迭代（每行 4 拍）、按 16 字节对齐的覆盖区间发读源、读目的、写目的的描述符（不跨 4KB、不超过 192 拍，I2），每行先发一条边带（I5）；`rd_buf = {源/目的, 行号最低位}`，每一行开始之前查 `row_free[行号最低位]`（D41）；零面积命令回一拍 `cmd_done`（D38）。B5 的 `engine_top.v` 已例化，B6 已接入 SoC 网表 |
+| `engine_pix.v` | B4：计算阵列与片上缓存。源 512×128、目的 512×96（X 字节不存）两块行缓冲，各放两行乒乓；两拍窗口的像素旋转、首末拍掩码与色键（比原始存储字），在 X 字节最高位打「不写」标记；12 个 `engine_blend` 的四像素通路，FILL 的 a 一律取 `w4[31:24]`（规范条款 §4.2）；七拍流水挂一个时钟使能 `en = ws_tready \|\| !ws_tvalid`，写核停时整条停。I3 读流恒 ready，I4 写流没有 `tlast`（D48），`row_free[1:0]` 在该半写流末拍被写核收走之后拉高（D45）。B5 的 `engine_top.v` 已例化，B6 已接入 SoC 网表 |
+| `engine_top.v`、`engine_regs.v`、`engine_cmd.v` | B5：APB 寄存器、命令表批量取数、十步检查、错误三元组与性能计数；`engine_top` 例化 B1~B4，各文件已列进工程源文件列表。159 向量端到端与 D1~D16 定向、单独综合和板卡基线均已验收；B6 已接入 SoC 顶层。寄存器偏移由 `tools/check/regs_gen.py` 生成，不手改 `.vh` |
 
 B1~B4 的四个文件各有一个 `parameter integer INJECT`，是仿真注错口：0 是正式配置，综合时是常量、
 对应分支会被优化掉。位定义见各自文件头，用它的地方只有 `sim/engine/` 下各自目录的 `run.sh`（B4 是 `run_formal.sh`）。
@@ -50,7 +50,8 @@ B1~B4 的四个文件各有一个 `parameter integer INJECT`，是仿真注错�
 [`../../Engineering/TechReports/engine/02-AXI事务层.md`](../../Engineering/TechReports/engine/02-AXI事务层.md)（B2，D3、D12、D16、D17、D19、D29~D32）、
 [`../../Engineering/TechReports/engine/03-几何层.md`](../../Engineering/TechReports/engine/03-几何层.md)（B3，D33~D41）与
 [`../../Engineering/TechReports/engine/04-计算阵列与片上缓存.md`](../../Engineering/TechReports/engine/04-计算阵列与片上缓存.md)（B4，D15、D23、D42~D49）、
-[`../../Engineering/TechReports/engine/05-控制层.md`](../../Engineering/TechReports/engine/05-控制层.md)（B5，D50~D54）。
+[`../../Engineering/TechReports/engine/05-控制层.md`](../../Engineering/TechReports/engine/05-控制层.md)（B5，D50~D54）与
+[engine 第 06 章](../../Engineering/TechReports/engine/06-顶层集成与上板.md)（B6）。
 
 ## top/
 
@@ -65,7 +66,7 @@ B1~B4 的四个文件各有一个 `parameter integer INJECT`，是仿真注错�
 SoC 经 `u_axi_mux` 接 DDR3 控制器，中间有两处有意的位宽截断，在文件里也写了：地址 32 位接 28 位（DDR3 只有 256MB），ID 8 位接 4 位（回来的响应高位补 0）。两处都已查证安全：`0x0000_1000`~`0x0FFF_FFFF` 内 CPU 地址即控制器地址，以上回绕；SoC 发出的 ID 恒为 0。前提是 SoC 的外部主机口 `io_ddrMasters_0` 不用，它的 ID 最高位是 1；2026-09-19 起这个口已在 SoC IP 里关掉。
 
 SoC 的其余连接（2026-09-19 SoC IP 定型之后）：GPIO1 读口 [3:0] 接顶层 `key_n[3:0]`（KEY0~3，低有效），[7:4] 接 0，写口悬空，[4] 预留给摄像头复位；
-用户中断 A/B/C（中断号 16/17/22）分给扫描输出、引擎、摄像头，源模块接入前接 0；
+用户中断 A/B/C（中断号 16/17/22）分给扫描输出、引擎、摄像头；A/B 已接各自的 IRQ，C 因摄像头尚未接入而接 0；
 I2C0（`0xF801_7000`）预留给摄像头，读口接 1、写口悬空；`axiA` 从口已关掉。分配表见 `../fpga/README.md`「SoC IP」。
 
 ## bus/
@@ -90,7 +91,7 @@ I2C0（`0xF801_7000`）预留给摄像头，读口接 1、写口悬空；`axiA` 
 
 三个官方文件与资料包中的原件 MD5 一致。仿真见 `sim/hdmi/`。
 
-彩条搬到了 `rtl/display/display_out.v`（D10 取 B′，见 `Engineering/Todo/hw/扫描输出.md` 2.1 节）：
+彩条搬到了 `rtl/display/display_out.v`（D10 取 B′，见 [display 第 01 章](../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md) 3.5 节）：
 这样「场」只有一个真源，彩条与帧缓冲两条通路共用同一个编码器，唯一的差别就是像素来源。
 `sim/hdmi/tb_hdmi_tx.v` 因此自己例化一个彩条来驱动 `hdmi_tx` 的像素输入，三个用例的判据一条没改。
 
@@ -100,7 +101,7 @@ I2C0（`0xF801_7000`）预留给摄像头，读口接 1、写口悬空；`axiA` 
 | --- | --- | --- |
 | `ddr3_controller/` | 易灵思 DDR3 软核控制器。顶层 `ddr3_top.v`，参数 `ddr3_parameter.vh`，其余为 PHY、bank 管理、AXI 从口 | 在工程源文件列表中。多数文件是加密 RTL，开源仿真工具读不了 |
 | `axi_mux/` | 第三方明文 AXI 多路器（2~8 主机进、1 出，128 位），来自官方工程，官方设计里没有例化过它 | 在工程源文件列表中，例化为 `u_axi_mux`；S0 已由扫描替身换成真实 `display`，S1 引擎 P1 B6 起接 `engine_top`（之前是探针主机）、S2 接 SoC。除第 43 行的宏以外未改动。没有 BRESP 端口，顶层把控制器的 bresp 并接给各主机；`EFX_SRL8` 的输出取反、地址反向，仿真必须用厂商模型 |
-| `verilog-axi/` | 第三方明文 AXI DMA 核：`axi_dma_rd.v`（读）、`axi_dma_wr.v`（写），来自 [alexforencich/verilog-axi](https://github.com/alexforencich/verilog-axi) 归档前最后一个提交 `516bd5dadc3365b7f9e225d2af8fe0b8d804fe53`（2025-02-27），MIT 许可。三个文件都与上游逐字节相同（git blob 与上游提交里的相同） | **不在工程源文件列表中**（还没有模块例化它）：B5 的 `engine_top.v` 例化 `engine_mover.v` 时一起加进去。`LICENSE` 是上游的 `COPYING`，只是换了个更好找的名字，内容一字不改。`engine_mover.v` 用参数把它们配到本工程的位宽与突发上限，源码本身一字不改（D3），只在本文件登记 |
+| `verilog-axi/` | 第三方明文 AXI DMA 核：`axi_dma_rd.v`（读）、`axi_dma_wr.v`（写），来自 [alexforencich/verilog-axi](https://github.com/alexforencich/verilog-axi) 归档前最后一个提交 `516bd5dadc3365b7f9e225d2af8fe0b8d804fe53`（2025-02-27），MIT 许可。三个文件都与上游逐字节相同（git blob 与上游提交里的相同） | 两个 RTL 已列入工程源文件列表并由 `engine_mover.v` 例化。`LICENSE` 是上游的 `COPYING`，只是换了个更好找的名字，内容一字不改。`engine_mover.v` 用参数把它们配到本工程的位宽与突发上限，源码本身一字不改（D3） |
 
 两处要注意的：
 

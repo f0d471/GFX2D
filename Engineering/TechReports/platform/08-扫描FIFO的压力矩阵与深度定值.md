@@ -57,7 +57,7 @@ E5 前三节（端口重分配、防饿死措施、替身量测）在第 06 章�
 
 E5 第四节要读 display、`axi_mux_guard`、`axi_probe_master` 三个 APB 窗口，权威寄存器表在
 `rtl/display/display_fetch.v`、`rtl/bus/axi_mux_guard.v`、`rtl/bus/axi_probe_master.v` 三个文件头，
-另有 `Engineering/Todo/hw/扫描输出.md` 2.2 节的同名表。核对方式是读 RTL 与源码行，
+另有 [display 第 01 章](../display/01-从DDR3帧缓冲到HDMI的扫描输出.md) 3.2 节的同名表。核对方式是读 RTL 与源码行，
 逐条落到具体行：
 
 | 规格条目 | RTL 位置 | 核对结果 |

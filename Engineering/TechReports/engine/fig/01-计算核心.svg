@@ -105,7 +105,7 @@
 
   <!-- I6 约定 -->
   <rect x="350" y="382" width="760" height="80" class="bi"/>
-  <text x="364" y="403" class="t" font-weight="600">I6（总览 2.4 节）</text>
+  <text x="364" y="403" class="t" font-weight="600">I6（engine 第 00 章）</text>
   <text x="364" y="425" class="ts">clk：core_clk 100 MHz，与 SoC、DDR3 控制器同域　　en：时钟使能，B4 不用时接 1'b1</text>
   <text x="364" y="445" class="ts">src[7:0]　dst[7:0]　a[7:0]　c[7:0]　eq[2:0]　→　out[7:0]　固定延迟 L = 3 拍</text>
 
