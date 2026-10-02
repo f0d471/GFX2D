@@ -3,12 +3,14 @@
 // 组成：
 //   u_soc        Sapphire RISC-V SoC（efx_soc 3.4.0 生成，fpga/gfx2d_ti60/ip/soc/soc.v）
 //   u_ddr3       DDR3 软核控制器（厂商加密源码，rtl/vendor/ddr3_controller/）
-//   u_apb_probe  APB 探针寄存器，占位并验证 APB 通路（rtl/bus/apb_probe.v）
-//   u_axi_probe  AXI 探针主机，占用引擎预留的 S1 端口（rtl/bus/axi_probe_master.v）
+//   u_engine     2D 渲染引擎（rtl/engine/，引擎 P1 B1~B5 六层，B6 接进顶层）
 //   u_display    从 DDR3 帧缓冲取数并输出像素（rtl/display/display_top.v）
-//   u_axi_mux    AXI 多路器，扫描输出、探针主机与 SoC 共用 DDR3 控制器（rtl/vendor/axi_mux/Axi_Mux.v）
+//   u_axi_mux    AXI 多路器，扫描输出、引擎与 SoC 共用 DDR3 控制器（rtl/vendor/axi_mux/Axi_Mux.v）
 //   u_mux_guard 仲裁配置与 SoC 防饿死保护，永久模块（rtl/bus/axi_mux_guard.v）
 //   u_hdmi_tx    HDMI 编码与发送，640x480@60（rtl/hdmi/hdmi_tx.v）
+//
+//   apb_probe 与 axi_probe_master 已按引擎 P1 的 D6、D21 从顶层撤下
+//   （源文件保留在 rtl/bus/，不再例化；测量程序与回归见 doc/开发环境.md）。
 //
 // 时钟（全部由 Interface Designer 里的 PLL 产生，见 fpga/gfx2d_ti60/README.md）：
 //   core_clk           100MHz   PLL_TL0 <- clk_25m    SoC、DDR3 控制器 AXI 侧、APB
@@ -16,15 +18,15 @@
 //   hdmi_tx_slow_clk   25.2MHz  PLL_BL0 <- clk_27m    HDMI 像素时钟
 //
 // 连接（实验 E5 的 2.1 节：Axi_Mux 用 X3，端口重分配为 S0 扫描、S1 引擎、S2 SoC）：
-//   display_top（真实扫描输出）             -> Axi_Mux S0 --+
-//   axi_probe_master（引擎接入前是引擎替身）-> S1 -------+--> DDR3 控制器的 AXI 从口
-//   SoC io_ddrA（AXI4，128 位）          -> S2 ----------+
+//   display_top（真实扫描输出）-> Axi_Mux S0 --+
+//   engine_top（渲染引擎）    -> S1 ---------+--> DDR3 控制器的 AXI 从口
+//   SoC io_ddrA（AXI4，128 位）-> S2 ---------+
 //   仲裁方式与三通道掩码由 u_mux_guard 给出，掩码 = 用户掩码 & SoC 防饿死保护掩码
 //   SoC APB Slave 0（CPU 地址 0xF810_0000，64KB 窗口）
-//     0x1000~0x1FFF -> axi_probe_master 寄存器
+//     0x0000~0x0FFF -> engine 寄存器（引擎 P1 的 D5/D51）
 //     0xE000~0xEFFF -> display 寄存器（扫描输出的量测）
 //     0xF000~0xFFFF -> axi_mux_guard 寄存器（仲裁配置与保护）
-//     其余          -> apb_probe
+//     其余          -> 默认常量应答：PREADY=1、PSLVERR=1、PRDATA=0（D21，未映射页必须有应答）
 //   HDMI 像素可来自 DDR3 帧缓冲或八色彩条，由 display_out 按 SRC 选择。
 //
 // 端口名与 fpga/gfx2d_ti60/gfx2d_ti60.peri.xml 中的信号名一一对应，改一边要同步另一边。
@@ -210,32 +212,38 @@ wire [`AXI_DATA_WIDTH-1:0]     soc_ddr_rdata;
 wire [1:0]                     soc_ddr_rresp;
 
 // ---------------------------------------------------------------------------
-// axi_probe_master 的 AXI 主机口（Axi_Mux S1）
+// 渲染引擎的 AXI 主机口（Axi_Mux S1）与 APB 从口（第 0 页）
 // ---------------------------------------------------------------------------
-wire [31:0]                    prb_awaddr;
-wire [7:0]                     prb_awlen;
-wire [2:0]                     prb_awsize;
-wire [1:0]                     prb_awburst;
-wire                           prb_awvalid;
-wire                           prb_awready;
-wire [`AXI_DATA_WIDTH-1:0]     prb_wdata;
-wire [`AXI_DATA_WIDTH/8-1:0]   prb_wstrb;
-wire                           prb_wlast;
-wire                           prb_wvalid;
-wire                           prb_wready;
-wire                           prb_bvalid;
-wire                           prb_bready;
-wire [31:0]                    prb_araddr;
-wire [7:0]                     prb_arlen;
-wire [2:0]                     prb_arsize;
-wire [1:0]                     prb_arburst;
-wire                           prb_arvalid;
-wire                           prb_arready;
-wire [`AXI_DATA_WIDTH-1:0]     prb_rdata;
-wire [1:0]                     prb_rresp;
-wire                           prb_rlast;
-wire                           prb_rvalid;
-wire                           prb_rready;
+wire [31:0]                    eng_awaddr;
+wire [7:0]                     eng_awlen;
+wire [2:0]                     eng_awsize;
+wire [1:0]                     eng_awburst;
+wire                           eng_awvalid;
+wire                           eng_awready;
+wire [`AXI_DATA_WIDTH-1:0]     eng_wdata;
+wire [`AXI_DATA_WIDTH/8-1:0]   eng_wstrb;
+wire                           eng_wlast;
+wire                           eng_wvalid;
+wire                           eng_wready;
+wire                           eng_bvalid;
+wire                           eng_bready;
+wire [31:0]                    eng_araddr;
+wire [7:0]                     eng_arlen;
+wire [2:0]                     eng_arsize;
+wire [1:0]                     eng_arburst;
+wire                           eng_arvalid;
+wire                           eng_arready;
+wire [`AXI_DATA_WIDTH-1:0]     eng_rdata;
+wire [1:0]                     eng_rresp;
+wire                           eng_rlast;
+wire                           eng_rvalid;
+wire                           eng_rready;
+
+// 引擎的 APB 从口（第 0 页）与中断 B（命令表完成与错误）
+wire [31:0]                    eng_prdata;
+wire                           eng_pready;
+wire                           eng_pslverr;
+wire                           eng_irq_b;
 // ---------------------------------------------------------------------------
 // 扫描输出（display）的 AXI 读主机口（Axi_Mux S0）
 // ---------------------------------------------------------------------------
@@ -519,9 +527,10 @@ soc u_soc (
 
     // 用户中断：A 扫描输出场同步，B 引擎，C 摄像头帧完成（中断号 16/17/22，见 sdk 的 soc.h）。
     // A 已接到扫描输出的场起始中断（电平，复位后 IRQ_EN=0，见扫描输出 spec 的 D5）；
-    // B、C 的模块还没有接入，先接 0。分配见 Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md 3.1 节。
+    // B 接到引擎的中断输出（电平 = IRQ_STAT & IRQ_EN，复位后不举）；C 的模块还没接入，先接 0。
+    // 分配见 Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md 3.1 节。
     .userInterruptA                     (disp_irq),
-    .userInterruptB                     (1'b0),
+    .userInterruptB                     (eng_irq_b),
     .userInterruptC                     (1'b0),
 
     // I2C0：保留给摄像头配置传感器（0xF801_7000）。管脚等摄像头工作点再接，
@@ -535,20 +544,16 @@ soc u_soc (
 // ---------------------------------------------------------------------------
 // APB Slave 0 的地址划分（按 paddr[15:12] 分成四个窗口）
 // ---------------------------------------------------------------------------
-//   0x1000~0x1FFF  axi_probe_master 的寄存器（CPU 地址 0xF810_1000 起）
+//   0x0000~0x0FFF  engine 的寄存器（CPU 地址 0xF810_0000 起，引擎 P1 的 D5）
 //   0xE000~0xEFFF  display 的寄存器（真实扫描输出量测）
 //   0xF000~0xFFFF  axi_mux_guard 的寄存器（仲裁配置与 SoC 防饿死保护）
-//   其余           apb_probe，它按完整 16 位译码，未映射地址仍然置 PSLVERROR
-wire        apb_sel_prb = (apb_paddr[15:12] == 4'h1);
+//   其余           默认常量应答（D21）：PREADY=1、PSLVERR=1、PRDATA=0。
+//                  未映射页必须有模块应答，CPU 的访问才不会停住；
+//                  第 1 页随 axi_probe_master 撤下，也落进默认应答。
+wire        apb_sel_eng = (apb_paddr[15:12] == 4'h0);
 wire        apb_sel_sco = (apb_paddr[15:12] == 4'hE);
 wire        apb_sel_grd = (apb_paddr[15:12] == 4'hF);
 
-wire [31:0] probe_prdata;
-wire        probe_pready;
-wire        probe_pslverr;
-wire [31:0] prb_prdata;
-wire        prb_pready;
-wire        prb_pslverr;
 wire [31:0] sco_prdata;
 wire        sco_pready;
 wire        sco_pslverr;
@@ -556,80 +561,77 @@ wire [31:0] grd_prdata;
 wire        grd_pready;
 wire        grd_pslverr;
 
-apb_probe u_apb_probe (
-    .clk        (core_clk),
-    .rst        (soc_system_reset),
-    .paddr      (apb_paddr),
-    .psel       (apb_psel & ~apb_sel_prb & ~apb_sel_sco & ~apb_sel_grd),
-    .penable    (apb_penable),
-    .pwrite     (apb_pwrite),
-    .pwdata     (apb_pwdata),
-    .prdata     (probe_prdata),
-    .pready     (probe_pready),
-    .pslverr    (probe_pslverr)
-);
-
-assign apb_prdata  = apb_sel_prb ? prb_prdata  :
-                     apb_sel_sco ? sco_prdata  :
-                     apb_sel_grd ? grd_prdata  : probe_prdata;
-assign apb_pready  = apb_sel_prb ? prb_pready  :
-                     apb_sel_sco ? sco_pready  :
-                     apb_sel_grd ? grd_pready  : probe_pready;
-assign apb_pslverr = apb_sel_prb ? prb_pslverr :
-                     apb_sel_sco ? sco_pslverr :
-                     apb_sel_grd ? grd_pslverr : probe_pslverr;
-
 // ---------------------------------------------------------------------------
-// AXI 探针主机（实验 E4），Axi_Mux 的 S1
+// 渲染引擎（引擎 P1 B1~B5 的六层，B6 接进顶层）
 // ---------------------------------------------------------------------------
-axi_probe_master u_axi_probe (
+// 寄存器表：rtl/engine/engine_regs.v，偏移与位号的真源是 tools/check/regs_gen.py。
+// 复位（D17）：控制层挂 soc_system_reset（同步、高有效），搬运层挂 ddr_rstn 取反
+// （与 Axi_Mux 同一复位源，只在上电与 PLL 失锁时复位）；软复位经寄存器层的
+// drain_req 请求排空，见 engine_top.v 文件头。AXI 主口接 Axi_Mux 的 S1。
+engine_top u_engine (
     .clk        (core_clk),
-    .rst        (soc_system_reset),
+    .rst_ctrl   (soc_system_reset),
+    .rst_ddr_n  (ddr_rstn),
+
     .paddr      (apb_paddr[11:0]),
-    .psel       (apb_psel & apb_sel_prb),
+    .psel       (apb_psel & apb_sel_eng),
     .penable    (apb_penable),
     .pwrite     (apb_pwrite),
     .pwdata     (apb_pwdata),
-    .prdata     (prb_prdata),
-    .pready     (prb_pready),
-    .pslverr    (prb_pslverr),
+    .prdata     (eng_prdata),
+    .pready     (eng_pready),
+    .pslverr    (eng_pslverr),
 
-    // 仲裁配置已移到 u_mux_guard（E5 2.1 节第 3 步）：探针的 ARB 寄存器不再驱动多路器，
-    // 寄存器本身保留，供自检与旧程序读回
-    .arb_type   (),
-    .arb_mask   (),
+    .m_axi_araddr  (eng_araddr),
+    .m_axi_arlen   (eng_arlen),
+    .m_axi_arsize  (eng_arsize),
+    .m_axi_arburst (eng_arburst),
+    .m_axi_arvalid (eng_arvalid),
+    .m_axi_arready (eng_arready),
+    .m_axi_rdata   (eng_rdata),
+    .m_axi_rresp   (eng_rresp),
+    .m_axi_rlast   (eng_rlast),
+    .m_axi_rvalid  (eng_rvalid),
+    .m_axi_rready  (eng_rready),
 
-    .awaddr     (prb_awaddr),
-    .awlen      (prb_awlen),
-    .awsize     (prb_awsize),
-    .awburst    (prb_awburst),
-    .awvalid    (prb_awvalid),
-    .awready    (prb_awready),
-    .wdata      (prb_wdata),
-    .wstrb      (prb_wstrb),
-    .wlast      (prb_wlast),
-    .wvalid     (prb_wvalid),
-    .wready     (prb_wready),
-    .bresp      (ddr_bresp),
-    .bvalid     (prb_bvalid),
-    .bready     (prb_bready),
-    .araddr     (prb_araddr),
-    .arlen      (prb_arlen),
-    .arsize     (prb_arsize),
-    .arburst    (prb_arburst),
-    .arvalid    (prb_arvalid),
-    .arready    (prb_arready),
-    .rdata      (prb_rdata),
-    .rresp      (prb_rresp),
-    .rlast      (prb_rlast),
-    .rvalid     (prb_rvalid),
-    .rready     (prb_rready)
+    .m_axi_awaddr  (eng_awaddr),
+    .m_axi_awlen   (eng_awlen),
+    .m_axi_awsize  (eng_awsize),
+    .m_axi_awburst (eng_awburst),
+    .m_axi_awvalid (eng_awvalid),
+    .m_axi_awready (eng_awready),
+    .m_axi_wdata   (eng_wdata),
+    .m_axi_wstrb   (eng_wstrb),
+    .m_axi_wlast   (eng_wlast),
+    .m_axi_wvalid  (eng_wvalid),
+    .m_axi_wready  (eng_wready),
+    .m_axi_bresp   (ddr_bresp),
+    .m_axi_bvalid  (eng_bvalid),
+    .m_axi_bready  (eng_bready),
+
+    // 中断 B = IRQ_STAT & IRQ_EN，接 SoC 的 userInterruptB（引擎 P1 的 D5）
+    .irq_b      (eng_irq_b),
+
+    // 仿真观测口（取数流上下文一致性监视），综合悬空
+    .dbg_fe_cidx_err ()
 );
+
+assign apb_prdata  = apb_sel_eng ? eng_prdata :
+                     apb_sel_sco ? sco_prdata  :
+                     apb_sel_grd ? grd_prdata  : 32'h0;
+assign apb_pready  = apb_sel_eng ? eng_pready  :
+                     apb_sel_sco ? sco_pready   :
+                     apb_sel_grd ? grd_pready   : 1'b1;
+assign apb_pslverr = apb_sel_eng ? eng_pslverr :
+                     apb_sel_sco ? sco_pslverr  :
+                     apb_sel_grd ? grd_pslverr  : 1'b1;
 
 // ---------------------------------------------------------------------------
 // Axi_Mux 的仲裁配置与 SoC 防饿死保护（E5 2.1 节第 3、4 步，永久模块）
 // ---------------------------------------------------------------------------
 // APB 窗口 0xF810_F000~0xF810_FFFF；送进多路器的掩码 = 用户掩码 & 保护掩码。
+// axi_probe_master 已按 D6/D22 从顶层撤下（它的 ARB 寄存器随之不可访问），
+// 源文件与 sim/axi_probe/ 保留。
 axi_mux_guard u_mux_guard (
     .clk            (core_clk),
     .rst            (soc_system_reset),
@@ -710,7 +712,7 @@ display_top #(
 );
 
 // ---------------------------------------------------------------------------
-// Axi_Mux：S0 = 扫描输出，S1 = axi_probe_master，S2 = SoC，出口 = DDR3 控制器
+// Axi_Mux：S0 = 扫描输出，S1 = 引擎，S2 = SoC，出口 = DDR3 控制器
 // ---------------------------------------------------------------------------
 // Normal 模式下响应按事务顺序送回，与 ID 无关，所以控制器 4 位 ID 截断仍然安全。
 // Axi_Mux 没有 BRESP 端口；同一时刻只有被选中的主机看到 bvalid，控制器的 bresp 直接并接给各主机。
@@ -823,36 +825,36 @@ Axi_Mux #(
     .I_S2_R_READY   (soc_ddr_rready),
 
     .I_S1_AW_ID     (8'h0),
-    .I_S1_AW_ADDR   (prb_awaddr),
-    .I_S1_AW_LEN    (prb_awlen),
-    .I_S1_AW_SIZE   (prb_awsize),
-    .I_S1_AW_BURST  (prb_awburst),
+    .I_S1_AW_ADDR   (eng_awaddr),
+    .I_S1_AW_LEN    (eng_awlen),
+    .I_S1_AW_SIZE   (eng_awsize),
+    .I_S1_AW_BURST  (eng_awburst),
     .I_S1_AW_LOCK   (2'b00),
-    .I_S1_AW_VALID  (prb_awvalid),
-    .O_S1_AW_READY  (prb_awready),
+    .I_S1_AW_VALID  (eng_awvalid),
+    .O_S1_AW_READY  (eng_awready),
     .I_S1_W_ID      (8'h0),
-    .I_S1_W_DATA    (prb_wdata),
-    .I_S1_W_LAST    (prb_wlast),
-    .I_S1_W_STRB    (prb_wstrb),
-    .I_S1_W_VALID   (prb_wvalid),
-    .O_S1_W_READY   (prb_wready),
+    .I_S1_W_DATA    (eng_wdata),
+    .I_S1_W_LAST    (eng_wlast),
+    .I_S1_W_STRB    (eng_wstrb),
+    .I_S1_W_VALID   (eng_wvalid),
+    .O_S1_W_READY   (eng_wready),
     .O_S1_B_ID      (),
-    .O_S1_B_VALID   (prb_bvalid),
-    .I_S1_B_READY   (prb_bready),
+    .O_S1_B_VALID   (eng_bvalid),
+    .I_S1_B_READY   (eng_bready),
     .I_S1_AR_ID     (8'h0),
-    .I_S1_AR_ADDR   (prb_araddr),
-    .I_S1_AR_LEN    (prb_arlen),
-    .I_S1_AR_SIZE   (prb_arsize),
-    .I_S1_AR_BURST  (prb_arburst),
+    .I_S1_AR_ADDR   (eng_araddr),
+    .I_S1_AR_LEN    (eng_arlen),
+    .I_S1_AR_SIZE   (eng_arsize),
+    .I_S1_AR_BURST  (eng_arburst),
     .I_S1_AR_LOCK   (2'b00),
-    .I_S1_AR_VALID  (prb_arvalid),
-    .O_S1_AR_READY  (prb_arready),
+    .I_S1_AR_VALID  (eng_arvalid),
+    .O_S1_AR_READY  (eng_arready),
     .O_S1_R_ID      (),
-    .O_S1_R_DATA    (prb_rdata),
-    .O_S1_R_LAST    (prb_rlast),
-    .O_S1_R_RESP    (prb_rresp),
-    .O_S1_R_VALID   (prb_rvalid),
-    .I_S1_R_READY   (prb_rready),
+    .O_S1_R_DATA    (eng_rdata),
+    .O_S1_R_LAST    (eng_rlast),
+    .O_S1_R_RESP    (eng_rresp),
+    .O_S1_R_VALID   (eng_rvalid),
+    .I_S1_R_READY   (eng_rready),
 
     .Cfg_Arb_Type   (guard_arb_type),
     .Cfg_Cnl_Mask   (guard_cnl_mask),

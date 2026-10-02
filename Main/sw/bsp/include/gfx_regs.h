@@ -29,6 +29,7 @@
 #define GFX_PERF_WR_BEAT     6
 #define GFX_PERF_WAIT_DDR     7
 #define GFX_PERF_BUSY     8
+#define GFX_PERF_COUNT   9
 
 /* ID 与版本 */
 #define GFX_ID_VALUE     0x47465801u  /* "GFX" << 8 | 版本 */

@@ -1,0 +1,20 @@
+# COM11 @ 115200 8N1, opened 19:50:03
+assetTest SW5
+cacheCoherencyTest B6
+IDENT ok
+ got=00de00f1P FAIL
+ got=00de00f1A1 ok
+ got=00de00f1A2 ok
+ got=00de00f1A3 FAIL
+ got=00de00f1A1 ok
+ got=00de00f1A2 ok
+ got=00de00f1A3 FAIL
+ got=00de00f1B FAIL
+ got=00de00f1C FAIL
+D FAIL
+fail 6
+done
+
+# --- 程序已加载，以下才是它的输出 ---
+
+# closed 19:51:04, 243 bytes

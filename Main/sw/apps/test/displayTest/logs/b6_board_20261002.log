@@ -1,0 +1,26 @@
+# COM11 @ 115200 8N1, opened 20:20:46
+assetTest SW5
+
+displayTest
+IDENT id=0x44495350 ok
+IDENT version=0x00000001 ok
+IDENT front_base=0x02000000 ok
+PATTERN ctrl=0x00000003 front=0x02000000 status=0x00000004
+PATTERN resperr=0x00000000 ok
+PATTERN 看屏幕：四角红绿蓝白、最左四列红绿蓝白、黄色横线与青色竖线
+FILL back2back_cyc=0x0020d629 after_vsync_cyc=0x0020d6fe per_px_x100=0x000002bc
+FILL per_px_x100=0x000002bc ok
+
+# --- 程序已加载，以下才是它的输出 ---
+ANIM frames=0x00000078 cycles=0x0bfdabc8 fps_x100=0x0000170c fill_per_frame=0x0014c79d present_per_frame=0x000467d3
+ANIM swap_count=0x00000079 ok
+STATS min_level_lo=0x0000015b hi=0x0000015b max_full=0x000000ff max_first=0x00000059
+STATS frame_beats_bad=0x00000000 ok
+STATS end_level_bad=0x00000000 ok
+STATS min_level_floor=0x0000015b ok
+STATS zero_hits=0x00000000 ok
+STATS underflow_beats=0x00000000 ok
+fail 0
+done
+
+# closed 20:20:52, 841 bytes

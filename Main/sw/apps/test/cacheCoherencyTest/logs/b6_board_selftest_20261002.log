@@ -1,0 +1,20 @@
+# COM11 @ 115200 8N1, opened 20:16:03
+assetTest SW5
+cacheCoherencyTest B6
+IDENT ok
+ got=00c0def1P ok
+ got=c0de00a1A1 ok
+ got=c0de00a1A2 ok
+ got=00c0def1A3 NOT_RED (inject)
+ got=c0de00a2A1 ok
+ got=c0de00a2A2 ok
+ got=00c0def1A3 NOT_RED (inject)
+ got=00c0def1B NOT_RED (inject)
+ got=00c0def1C NOT_RED (inject)
+D ok
+fail 4
+done
+
+# --- 程序已加载，以下才是它的输出 ---
+
+# closed 20:18:03, 287 bytes

@@ -70,6 +70,28 @@ static int set_surface(gfx_surface_table *t, int id, uint32_t base, int fmt)
     return gfx_surface_set(t, id, &s);
 }
 
+static void write_counts(const char *prefix, uint32_t n1, uint32_t n2,
+                         const exec_sw_stats *stats, uint32_t window_words)
+{
+    char name[512];
+    FILE *f;
+
+    /* cnt/stats 是 B6 整帧仿真的机器可读输入（$readmemh）：两张表的条数、
+       软件执行器的统计与本用例的设备窗口（128 位字数）。meta.txt 供人读与
+       run_frames.sh 的 CRC 核对，两者并存。 */
+    if (snprintf(name, sizeof(name), "%s.cnt.hex", prefix) >= (int)sizeof(name)) exit(2);
+    f = fopen(name, "w");
+    if (!f) { perror(name); exit(2); }
+    fprintf(f, "%08x\n%08x\n%08x\n", n1, n2, window_words);
+    fclose(f);
+
+    if (snprintf(name, sizeof(name), "%s.stats.hex", prefix) >= (int)sizeof(name)) exit(2);
+    f = fopen(name, "w");
+    if (!f) { perror(name); exit(2); }
+    fprintf(f, "%08x\n%08x\n%08x\n", stats->pixel_total, stats->src_oob, stats->key_skip);
+    fclose(f);
+}
+
 static int export_frame(uint32_t idx, const char *prefix)
 {
     uint8_t *buf = (uint8_t *)calloc(1u, GFX_CASE_DEV_BYTES);
@@ -104,6 +126,7 @@ static int export_frame(uint32_t idx, const char *prefix)
     }
     file_name(name, sizeof(name), prefix, "exp");
     write_words(name, buf, GFX_CASE_DEV_BYTES);
+    write_counts(prefix, n1, n2, &stats, GFX_CASE_DEV_BYTES/16u);
     if (snprintf(name, sizeof(name), "%s.meta.txt", prefix) >= (int)sizeof(name)) {
         free(buf); return 2;
     }
@@ -111,6 +134,8 @@ static int export_frame(uint32_t idx, const char *prefix)
     if (!meta) { perror(name); free(buf); return 2; }
     fprintf(meta, "name=%s\nfirst_list=%u\nsecond_list=%u\n",
             gfx_case_name(idx), n1, n2);
+    fprintf(meta, "pixels=%u src_oob=%u key=%u\n",
+            stats.pixel_total, stats.src_oob, stats.key_skip);
     fclose(meta);
     printf("FRAME %u %s: lists=%u+%u pixels=%u written=%u\n",
            idx, gfx_case_name(idx), n1, n2, stats.pixel_total, stats.pixel_written);
@@ -240,6 +265,7 @@ list_done:
         return 2;
     }
     file_name(name, sizeof(name), argv[1], "exp"); write_words(name, buf, MEM_BYTES);
+    write_counts(argv[1], list.used, 0u, &stats, MEM_BYTES/16u);
     printf("PIX CASES: commands=%u pixels=%u written=%u key=%u src_oob=%u\n",
            list.used, stats.pixel_total, stats.pixel_written,
            stats.key_skip, stats.src_oob);

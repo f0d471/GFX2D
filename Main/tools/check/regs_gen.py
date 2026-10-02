@@ -149,6 +149,7 @@ def gen_h():
     a("/* 性能计数器下标 */")
     for i, n in enumerate(PERF_NAMES):
         a(f"#define GFX_PERF_{n}     {i}")
+    a(f"#define GFX_PERF_COUNT   {PERF_COUNT}")
     a("")
     a("/* ID 与版本 */")
     a(f"#define GFX_ID_VALUE     0x{ID_VALUE:08X}u  /* \"GFX\" << 8 | 版本 */")

@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800"
+     font-family="'Source Han Sans SC','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0369a1"/>
+    </marker>
+    <style>
+      .b  { fill:#ffffff; stroke:#334155; stroke-width:1.3 }
+      .bi { fill:#f8fafc; stroke:#64748b; stroke-width:1 }
+      .br { fill:#e0f2fe; stroke:#0369a1; stroke-width:1.4 }
+      .bg { fill:#f1f5f9; stroke:#94a3b8; stroke-width:1.1; stroke-dasharray:5 4 }
+      .tt { font-size:13px; font-weight:600; fill:#0f172a }
+      .t  { font-size:11.5px; fill:#0f172a }
+      .ts { font-size:9.5px; fill:#475569 }
+      .tg { font-size:9.5px; fill:#94a3b8 }
+      .bus { stroke:#334155; stroke-width:2.5; fill:none }
+      .new { stroke:#0369a1; stroke-width:2.5; fill:none }
+      .ctl { stroke:#334155; stroke-width:1.4; fill:none }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="800" fill="#ffffff"/>
+  <text x="40" y="38" font-size="18" font-weight="600" fill="#0f172a">顶层集成：引擎占用 S1，与 CPU、扫描输出共享 DDR3</text>
+  <text x="40" y="60" font-size="12" fill="#64748b">S0：扫描输出　S1：engine_top　S2：SoC　CPU 数据缓存：4KB/1 路</text>
+
+  <rect x="995" y="78" width="245" height="168" class="bi"/>
+  <text x="1011" y="99" class="t" font-weight="600">图例</text>
+  <line x1="1011" y1="119" x2="1061" y2="119" class="new" marker-end="url(#an)"/>
+  <text x="1072" y="123" class="ts">B6 接入的通路</text>
+  <line x1="1011" y1="149" x2="1061" y2="149" class="bus" marker-end="url(#a)"/>
+  <text x="1072" y="153" class="ts">既有 AXI 通路</text>
+  <line x1="1011" y1="179" x2="1061" y2="179" class="ctl" marker-end="url(#a)"/>
+  <text x="1072" y="183" class="ts">APB / 控制线</text>
+  <rect x="1011" y="204" width="50" height="18" class="bg"/>
+  <text x="1072" y="218" class="ts">已撤下的实例</text>
+
+  <!-- CPU and its three outputs -->
+  <rect x="40" y="235" width="235" height="225" class="bi"/>
+  <text x="56" y="262" class="tt">u_soc　Sapphire RISC-V</text>
+  <text x="56" y="288" class="t">CPU 与 4KB/1 路数据缓存</text>
+  <text x="56" y="317" class="ts">AXI io_ddrA → S2</text>
+  <text x="56" y="342" class="ts">APB Slave 0 → 第 0 / E / F 页</text>
+  <text x="56" y="367" class="ts">userInterruptB ← 引擎 irq_b</text>
+  <text x="56" y="405" class="ts">UART / JTAG：板上程序与寄存器回归</text>
+  <text x="56" y="429" class="ts">core_clk：100 MHz</text>
+
+  <!-- Engine -->
+  <rect x="370" y="168" width="333" height="242" class="br"/>
+  <text x="389" y="196" class="tt">u_engine　engine_top</text>
+  <text x="389" y="219" class="ts">APB 第 0 页：寄存器、表面表、DOORBELL、PERF</text>
+  <rect x="389" y="236" width="295" height="47" class="b"/>
+  <text x="405" y="255" class="t">engine_regs ＋ engine_cmd</text>
+  <text x="405" y="273" class="ts">APB → CTRL / CMD / ERR</text>
+  <rect x="389" y="291" width="295" height="47" class="b"/>
+  <text x="405" y="310" class="t">engine_geom ＋ engine_pix</text>
+  <text x="405" y="328" class="ts">I1 / I3 / I4 / I5；4 px/clk</text>
+  <rect x="389" y="346" width="295" height="47" class="b"/>
+  <text x="405" y="365" class="t">engine_mover</text>
+  <text x="405" y="383" class="ts">AXI4 读 / 写 → S1</text>
+
+  <!-- Existing scanout and its physical output -->
+  <rect x="370" y="440" width="333" height="106" class="bi"/>
+  <text x="389" y="468" class="tt">u_display　display_top</text>
+  <text x="389" y="491" class="t">APB 第 E 页；AXI 只读 → S0</text>
+  <text x="389" y="516" class="ts">扫描 FIFO 512 拍；userInterruptA</text>
+  <rect x="810" y="590" width="230" height="96" class="bi"/>
+  <text x="829" y="619" class="tt">u_hdmi_tx</text>
+  <text x="829" y="644" class="t">640 × 480 @ 60 Hz</text>
+  <text x="829" y="667" class="ts">RGB / HS / VS / DE → HDMI</text>
+
+  <!-- Other APB windows -->
+  <rect x="370" y="585" width="333" height="100" class="bi"/>
+  <text x="389" y="613" class="tt">u_mux_guard　APB 第 F 页</text>
+  <text x="389" y="637" class="t">ARB / 通道掩码 → u_axi_mux</text>
+  <text x="389" y="662" class="ts">SoC 地址等待计数 → APB</text>
+  <rect x="40" y="555" width="235" height="95" class="br"/>
+  <text x="56" y="582" class="tt">其余 APB 页：顶层常量应答</text>
+  <text x="56" y="605" class="ts">PREADY=1，PSLVERR=1</text>
+  <text x="56" y="627" class="ts">PRDATA=0；第 1 页同此应答</text>
+  <rect x="40" y="686" width="235" height="53" class="bg"/>
+  <text x="56" y="707" class="tg">u_apb_probe / u_axi_probe 已撤下</text>
+
+  <!-- Arbitration and memory -->
+  <rect x="810" y="260" width="230" height="250" class="b"/>
+  <text x="829" y="290" class="tt">u_axi_mux　Axi_Mux X3</text>
+  <text x="829" y="318" class="t">S2　SoC / CPU</text>
+  <text x="829" y="347" class="t" fill="#0369a1">S1　引擎读写</text>
+  <text x="829" y="376" class="t">S0　扫描输出只读</text>
+  <line x1="829" y1="397" x2="1020" y2="397" stroke="#cbd5e1"/>
+  <text x="829" y="425" class="ts">ARB_MODE=Normal</text>
+  <text x="829" y="449" class="ts">u_mux_guard → 优先级 / 通道掩码</text>
+  <text x="829" y="480" class="ts">DDR3 控制器 AXI 从口 →</text>
+  <rect x="1100" y="337" width="140" height="100" class="bi"/>
+  <text x="1116" y="370" class="tt">u_ddr3</text>
+  <text x="1116" y="395" class="t">DDR3 控制器</text>
+  <text x="1116" y="418" class="ts">256 MB 外存</text>
+
+  <!-- SoC AXI is routed above the engine to S2 -->
+  <path d="M156 235 V126 H925 V260" class="bus" marker-end="url(#a)"/>
+  <text x="185" y="116" class="ts">S2：CPU io_ddrA（AXI4，128 位）</text>
+  <!-- Engine S1 and display S0 -->
+  <path d="M703 348 H758 V345 H810" class="new" marker-end="url(#an)"/>
+  <text x="716" y="338" class="ts">S1：引擎读写</text>
+  <path d="M703 490 H754 V375 H810" class="bus" marker-end="url(#a)"/>
+  <text x="711" y="483" class="ts">S0：扫描读</text>
+  <path d="M1040 386 H1100" class="bus" marker-end="url(#a)"/>
+
+  <!-- APB fanout, IRQ and guard configuration -->
+  <path d="M275 325 H330 V630" class="ctl"/>
+  <text x="283" y="314" class="ts">APB</text>
+  <path d="M330 335 H370" class="new" marker-end="url(#an)"/>
+  <path d="M330 492 H370" class="ctl" marker-end="url(#a)"/>
+  <path d="M330 630 H370" class="ctl" marker-end="url(#a)"/>
+  <path d="M330 602 H275" class="new" marker-end="url(#an)"/>
+  <path d="M370 200 H303 V250 H275" class="new" marker-end="url(#an)"/>
+  <text x="293" y="187" class="ts">irq_b → 中断 B</text>
+  <path d="M540 685 V715 H1080 V490 H1040" class="ctl" marker-end="url(#a)"/>
+  <text x="817" y="708" class="ts">仲裁优先级 / 通道掩码</text>
+  <path d="M703 525 H783 V637 H810" class="ctl" marker-end="url(#a)"/>
+  <text x="715" y="570" class="ts">像素流</text>
+
+</svg>

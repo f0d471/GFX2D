@@ -47,17 +47,18 @@ sw/
 | `apps/game/gfx2dGame/` | 基础 Demo（SW6，赛题基础要求 3）：场景 A 大量方块随机移动、场景 B 三张整屏图快速切换，每帧一条命令表交给软件执行器，双缓冲呈现。默认编**演示模式**（实时输入），`EXTRA_CFLAGS=-DSW6_JUDGE=1` 编**判据模式**（回放两段入库录像、逐帧打日志）。串起来跑的是 `Main/tools/check/check_sw6_demo.sh`。期望输出见下。另有 SW7 游戏本体的代码逐步放进 `src/game/stg_*`（A 批是实体池 `stg_pool`；B 批加了弹种表 `stg_kind`、发射器 `stg_emit`、五种弹型 `stg_pattern` 与弹幕场 `stg_field`），它们的主机测试在 `test/`，由 `Main/tools/check/check_sw7_game.sh` 编译运行；弹型判据的期望文件 `test/stg_patterns.txt` 由 `Main/tools/check/gen_stg_patterns.py` 生成。`EXTRA_CFLAGS=-DSTG_FIELD=<n>` 换成弹幕场的入口（1 演示、2 判据、3 `N_max` 搜索、4 游戏的判据入口），见下「弹幕场入口」。 |
 | `apps/game/cup3d/` | 纯软件 3D 光栅器在扫描输出的帧缓冲上转一只茶杯。三个用途：用真实负载量软件渲染的像素吞吐（E7 要的数）、让扫描输出跑在会动会遮挡的负载下、对外演示。320×240 光栅，1:1 贴在 640×480 的正中间。期望输出见下 |
 | `apps/test/bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
-| `apps/test/cacheCoherencyTest/` | 实验 E3 的判据程序：用探针主机当外部写入者，一致性判据、注错与注错自检，并量失效指令的代价 |
+| `apps/test/cacheCoherencyTest/` | E3 回归（**B6 改写版**）：引擎当外部写入者（FILL COPY）与第二个读者（BLIT），P/A/B/C/D 五组判据、注错与注错自检。B6 前的探针版（外部写入者 = `axi_probe_master`）随 D22 撤探针停用，机理实验归档 platform 第 05 章，改写前的最后一份基线日志 `logs/b6_preintegration_20261002.log`。**target-only**，target.mk 构建，产物 `build/cacheCoherencyTest-O2.bin`（注错 `build_inject/`、自检 `build_inject_selftest/`）。期望输出见下 |
+| `apps/test/engineTest/` | 引擎 P1 B6 的板上判据：同一张命令表软件执行器画一份、引擎画一份逐行 CRC 比对（SW3 十一个整帧金标准 + 几何定向与写掩码 + 单缓存行失效判据 INJ-COH），PERF 弹幕性能与 E5 复测（扫描 FIFO 水位/欠载/guard 等待）。**target-only**，target.mk 构建，产物 `build/engineTest-O2.bin`（注错 `build_inject/`）。期望输出见下 |
 | `apps/test/keyTest/` | SoC IP 定型的按键判据：空闲时 GPIO1 读口应为 `0x0f`，30 秒窗口内 KEY0~3 各要出现一次按下与松开（要人按） |
 | `apps/test/displayTest/` | 扫描输出的板上判据，也是 `board_present`/`board_wait_frame` 的验证程序：IDENT、PATTERN（画定位图案上屏，这一段看屏幕）、FILL（整屏填充计时）、ANIM（120 帧移动方块，打帧率）、STATS（120 场快照）。走 SW1 的分层构建，产物 `build/displayTest-O2.bin`。期望输出见下 |
 | `apps/test/platformTest/` | PC 平台层（SW4）的判据程序：十一个整帧用例、600 帧帧节拍、掉帧注错、实时输入与关窗退出、录制的往返与两次回放。**一段要人动手**（按 F1~F3、点关闭按钮），其余自己判并打印 `fail N`。默认编 PC 版（`make` 即 `PLATFORM=host`）；串起来跑的是 `Main/tools/check/check_sw4_pc.sh`。期望输出见下 |
 | `apps/test/assetTest/` | 素材流水线（SW5）的判据程序：经板级读入口把素材包装进 DDR 素材区、完整校验、与生成的 `assets.h` 对账、挑条目登记表面，再用软件执行器画一整帧并打印整帧 CRC 与一张 64×24 字符画。PC 与板上跑同一份源码、同一份包，整帧 CRC 必须相同；默认编 PC 版（`make`），板上是 `make PLATFORM=target RISCV_BIN=<RISCV_BIN>`。串起来跑的是 `Main/tools/check/check_sw5_assets.sh`。期望输出见下 |
-| `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象。E8 复核把 `rd8_fresh` 从单次异标签读改为按地址失效（SDK 指令覆盖所有可能路）；2026-09-27 修改版已在 4KB/16KB 各完整运行一次，均 `fail 0`/`done` |
-| `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验（E5 的 SHARE/TRI/INJECT 阶段）。E8 复核把只适用单路的读后驱逐改为按地址失效，2026-09-27 修改版已在 4KB/16KB 各完整运行一次，均 `fail 0`/`done` |
+| `apps/probe/ddrAliasTest/` | 实验 E2：逐位翻转地址检查 DDR 地址译码与回绕，并演示数据缓存遮蔽别名的现象。E8 复核把 `rd8_fresh` 从单次异标签读改为按地址失效（SDK 指令覆盖所有可能路）；2026-09-27 修改版已在 4KB/16KB 各完整运行一次，均 `fail 0`/`done`。**依赖 S1 探针，B6 撤探针（D22）后需要 B6 前的比特流才能跑** |
+| `apps/probe/ddrBurstProbe/` | 实验 E4、E5：经 APB 驱动 `axi_probe_master`，做 CPU 与第二个主机的交叉读、突发长度扫描、并发实验（E5 的 SHARE/TRI/INJECT 阶段）。E8 复核把只适用单路的读后驱逐改为按地址失效，2026-09-27 修改版已在 4KB/16KB 各完整运行一次，均 `fail 0`/`done`。**依赖 S1 探针，B6 撤探针（D22）后需要 B6 前的比特流才能跑** |
 | `apps/probe/execSwTest/` | E7 固定软件基线已于 2026-09-27 收尾。生产版 36,090 字节、SHA256 `81f859988862e66489884b19302743ec38983539d75a1ec0a49f5a45c9cf632d`，精确 S1 约 805 ms；生产数字仅对应该固定产物。本次 VERIFY_ONLY 的 ALPHA 正常判分与错配自检均为 26,370 字节，分别 `fail 0` 与 `fail 8`，原始 CRC 独立核对通过。开关已实装，注错收尾不会执行 THR/S1/OVH。全部历史记录、构建哈希和维护边界见 [platform 第 09 章](../../Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md) |
 | `apps/probe/entityBench/` | E8 实体更新与合法命令记录微基准，**2026-09-27 已收尾**，本次 4KB/16KB 使用同一份产物。九组：A（AoS 纯更新）、B（SoA 纯更新）、C（SoA 更新并提交，N=1000/2000/5000/10000）、D（SoA 纯更新，N=2000/5000/10000）。当前 `build/entityBench-O2.bin` **69,034 字节**、SHA256 `b0f2bbc5100b24702b750cca803ce5c94c34c8f81aee68372317f35381184e29`，gcc 13.4.0、`-O2`；计时外再运行 1000 帧，对每帧实体六字段及 C 组全部 `32×N` 命令字节与主机期望摘要校验。新产物 4KB、16KB 各九组全为 `state_bad 0 cmd_bad 0`、`fail 0`；历史日志 `logs/board_framecheck_{4k,16k}_20260925.log`，本次每档一次的日志 `logs/closeout_20260927_{4k,16k}.log`，新旧同产物最大变化 <0.08%。旧版 8KB 仅作历史对照，不补新版矩阵；候选采用与维护见 platform 第 10 章第六节 |
-| `apps/probe/displayFifoProbe/` | 实验 E5 2.4 节：真实扫描 FIFO 的压力矩阵与深度定值。`idle` / 满负载 `read` / 满负载 `write` 三组各收 120 场连续快照，报最低水位的最小值、最大值、首次最小值帧号与两个中位数。**target-only**（只在 Ti60 上跑，不提供 host 构建），产物 `build/displayFifoProbe-O2.bin`。期望输出见下 |
-| `apps/probe/cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价 |
+| `apps/probe/displayFifoProbe/` | 实验 E5 2.4 节：真实扫描 FIFO 的压力矩阵与深度定值。`idle` / 满负载 `read` / 满负载 `write` 三组各收 120 场连续快照，报最低水位的最小值、最大值、首次最小值帧号与两个中位数。**依赖 S1 探针造负载，B6 撤探针（D22）后需要 B6 前的比特流才能跑**；引擎负载下的水位复测由 `engineTest` 的 STRESS 段承担（判据：最低水位 ≥ 160 拍、欠载 0）。**target-only**，产物 `build/displayFifoProbe-O2.bin`。期望输出见下 |
+| `apps/probe/cacheMechTest/` | 实验 E3 的机理实验 T1~T11：装行规则、写缓冲、缓存行几何、失效时机、被跳过的失效指令、失效与装行的代价。**依赖 S1 探针，B6 撤探针（D22）后需要 B6 前的比特流才能跑**；机理结论已归档 platform 第 05 章 |
 | `apps/probe/cacheMinTest/` | 实验 E3 早期的最小实验，只作现象可复现保留，不作为结论证据 |
 
 除 `gfx2dGame` 以外的七个诊断程序仍沿用官方的 makefile 体系
@@ -458,31 +459,42 @@ gcc 13.4.0，最终复核版 bin 11322 字节（sha256 前 16 位 `e5cf7dabcfe78
 
 结果表、解释与适用边界见 `../../Engineering/TechReports/platform/08-扫描FIFO的压力矩阵与深度定值.md`。
 
-## cacheCoherencyTest 的期望值
+## cacheCoherencyTest 的期望值（B6 改写版，引擎当外部写入者）
 
-需要带 `axi_probe_master` 的比特流。gcc 13.4.0（bin 5050 字节 `sha256:98b875e0d3baa9f5…`，2026-09-19 起；此前 gcc 8.3.0），默认编译档 `-Og`（`DEBUG=yes` 加 BSP 的 `DEBUG_OG?=yes`）。**加载前必须 `reset halt`**（`tools/board/board_run.py` 已包含）；不复位时探针挂住的坏状态会让程序一行都不跑，现象与程序有 bug 相同。
+现行比特流（引擎在网表、探针已撤）跑的是 B6 改写版。gcc 13.4.0、`-O2`，target.mk 构建，产物落 `build/`、`build_inject/`、`build_inject_selftest/`。**加载前必须 `reset halt`**（`tools/board/board_run.py` 已包含）。程序整体只跑几百毫秒；复核实测原先的两秒启动等待不足，完整输出会落在 `board_run.py` 的「程序已加载」分界之前，导致 `--stop-on done` 误报超时。现等八秒再打横幅，三构建的完整输出与 `done` 都在分界之后，见下方新日志。
 
 | 产物 | 编译 | bin 字节 | SHA256 前 16 位 | 末尾 | 日志 |
 | --- | --- | ---: | --- | --- | --- |
-| 正常版 | `OBJDIR=build` | 4850 | `a4c88d7b4f3fd078` | `fail 0` | `logs/normal_1.log` ~ `normal_3.log` |
-| 注错版 | `OBJDIR=build_inject INJECT=1` | 4986 | `f3170f2da4a4c4a9` | `fail 0`，四行 `FAIL (inject)` | `logs/inject.log` |
-| 注错自检版 | `OBJDIR=build_inject_selftest INJECT=2` | 4994 | `98287c7a6126d411` | `fail 4`，四行 `NOT_RED (inject)` | `logs/inject_selftest.log` |
-| 正常版 `-O0` | `OBJDIR=build_o0 DEBUG_OG=no` | 9098 | `dfb5b2d3f767e29d` | `fail 0` | `logs/o0_normal.log` |
-| 注错版 `-O0` | `OBJDIR=build_o0_inject DEBUG_OG=no INJECT=1` | 9146 | `974d605510654c6f` | `fail 0`，四行 `FAIL (inject)` | `logs/o0_inject.log` |
+| 正常版 | （默认） | 39826 | `08a61c0342ce8381` | `fail 0` | `logs/b6_review_20261002.log` |
+| 注错版 | `INJECT=1 OBJDIR=build_inject` | 39818 | `5dd9716e1229fdfa` | `fail 0`，四行 `FAIL (inject)` | `logs/b6_review_inject_20261002.log` |
+| 注错自检版 | `INJECT=2 OBJDIR=build_inject_selftest` | 39794 | `e9e87b9ce5e70cf` | `fail 4`，四行 `NOT_RED (inject)` | `logs/b6_review_selftest_20261002.log` |
 
-正常版每行 `ok`，A 组跑两遍所以 A 的行各出现两次：
+`b6_board_20261002.log` 等原开发日志保留现场，但 `done` 位于采集分界之前；验收本轮改用上表三份日志。
 
-- `P cpu_to_prb`：CPU 经别名放进去的值被探针读回；
-- `A/B/C ... armed=1`：装行读到的确实是旧值，这一条为 0 时同组的判据作废；
-- `A immediate`、`A after_loads`：读到旧值 `c0de00a1`，即缓存遮蔽了外部写入；
-- `A invalidated_after`、`B invalidate_all`、`C invalidate_addr`：失效之后读到探针写入的新值；
-- `D evicted`、`D word1`：驱逐之后读到新值，这是判据自检。
+每行带 `got=<8 位十六进制>`（该次读回的实际值）。正常版逐行：
 
-注错版变红的恰好是 A3 两行加 B、C 四行，A1、A2、D、P 与正常版相同。注错自检版保留失效调用、按注错模式判定，四行没变红就计入 `fail`，末尾必须是 `fail 4`；它证明注错宏没生效的产物不会得到 `fail 0`。
+- `IDENT ok`：引擎在位（ID 读回 `0x47465801`）；
+- `P ... ok`：引擎 FILL 写入后失效读到新值 `00c0def1`；
+- `A1 ... ok`、`A2 ... ok`：读回旧值（`c0de00a1`/`c0de00a2`），缓存遮蔽了引擎的写入；A 组跑两遍，第二遍验证反复性；
+- `A3 ... ok`（两遍）、`B ... ok`、`C ... ok`：失效全部/单地址之后读到新值 `00c0def1`；
+- `D ... ok`：CPU 写源表面、引擎 BLIT 拷到另一面、CPU 失效后逐字读回。
 
-`TIME` 三行是失效代价，1 tick = 10 ns = 1 个 CPU 周期。三次正常版的 1000 次总量：空循环 13090~13104，全清 148044~148164（单次减空循环约 135.0 个周期），单地址 18094（约 5.0），全清加一次读 217707~217748（约 204.6）。这里的循环体写栈上的 `sink`，所以「全清」里含栈那一行重新装入的约 69 个周期，失效指令本身的代价看 `cacheMechTest` 的 T11。`probe_err` 一行都不应出现，出现即为探针异常并已计入 `fail`。
+判据常数必须取**最高字节为 0** 的值（`V_NEW = 0x00C0DEF1`）：像素规格规定写 XRGB8888 时高字节恒写 0（软件执行器与硬件一致），带非零高字节的期望值永远读不回来。装行（`arm_line`）走**别名写**（翻转 bit28）加**换行读**（读 `a^0x2000_0000`），与探针版读数序列等价——被观测行不能 CPU 直写，不换行会让上一轮的新值遮住装行。
 
-原始输出与结论见 `../../Engineering/TechReports/platform/05-CPU数据缓存与第二个主机写入的一致性.md` 第五节。
+注错版变红的恰好是 A3 两行加 B、C 四行，P、A1、A2、D 与正常版相同。注错自检版保留失效调用、按注错模式判定，四行计入 `fail`，末尾必须是 `fail 4`；它证明注错宏没生效的产物不会得到 `fail 0`。
+
+探针版的期望值（外部写入者 = `axi_probe_master`，gcc 8.3.0/-Og 与 gcc 13.4.0/-Og 两批）见 `logs/normal_*.log`、`inject*.log`、`o0_*.log` 与 platform 第 05 章；探针版随 D22 撤探针停用。
+
+## engineTest 的期望值
+
+引擎 P1 B6 的板上判据（见上表 `apps/test/engineTest/` 行）。gcc 13.4.0、`-O2`，target.mk 构建。
+
+| 产物 | 编译 | bin 字节 | SHA256 前 16 位 | 末尾 | 日志 |
+| --- | --- | ---: | --- | --- | --- |
+| 正常版 | （默认） | 43210 | `482aaccf10cc2d06` | `fail 0`，`COUNT32 ok` | `logs/b6_review_20261002.log` |
+| 注错版 | `INJECT=1 OBJDIR=build_inject` | 43290 | `699253ee80e55b21` | `fail 0`，`COUNT32 ok` 且 INJ-COH 行 `differ FAIL (inject)` | `logs/b6_review_inject_20261002.log` |
+
+正常版逐段：`ENG id ok`；十一行金标准 `名字 引擎面CRC 软件面CRC ok`（两面 CRC 相同且与 `sw/lib/test/golden.txt` 一致，本轮复核 `fill-screen 9cd34cb7`、`blit-copy bc9be6ff` 等 11/11）；`COUNT32 ok` 用 FILL+END 与 `LIST_COUNT=0x10000` 验证驱动没有截成 16 位；`DIR narrow-x1x2x3 ok`、`DIR key-sparse ok`（首末拍部分掩码与色键稀疏掩码）；`INJ-COH ok`；`PERF-BUSY ok` 加 `PERF busy=<hex>`（16 颗 16×16 预乘 ALPHA 的 `PERF_BUSY`，除以 16 得每颗周期数，本轮 `0x49f8` = 18936，约 1184 拍/颗；初次开发日志为 `0x4a10`）；`STRESS ok` 加 `wm=欠载=ar=aw=`（扫描 FIFO 最低水位，判据 ≥ 160 拍；欠载 0；guard 的 SoC 最大地址等待登记，本轮 wm=0x14f=335、z=0、ar=0xd3=211、aw=0xe0=224）。注错版仅 INJ-COH 一行变为 `differ FAIL (inject)`（不计入 `fail`），其余相同。
 
 ## cacheMechTest 的期望值
 

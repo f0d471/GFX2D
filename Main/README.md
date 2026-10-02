@@ -10,10 +10,10 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | 部分 | 状态 |
 | --- | --- |
 | SoC（Sapphire RISC-V，100MHz）+ DDR3（256MB） | 已上板，memTest 通过。SoC 经 `Axi_Mux` 访问 DDR3。**构型定在 Standard**（Lite 的对比与不采用的理由见 platform 第 04 章） |
-| DDR3 上的第二个 AXI 主机 | `Axi_Mux` 已接入，暂由测量主机 `axi_probe_master` 占用。实测突发上限 256 拍，读事务固定开销约 27 个周期、写约 7 个 |
-| HDMI 输出 640x480@60 | 已上板，八色竖条显示正确（接入 `Axi_Mux` 后的比特流 2026-09-17 复核通过）。画面来自彩条发生器，还没有接帧缓冲 |
+| DDR3 上的第二个 AXI 主机 | `Axi_Mux` 已接入；S1 当前连接 B6 渲染引擎。256 拍突发上限及读写固定开销是接入前的探针测量，见 platform 第 03 章 |
+| HDMI 输出 640x480@60 | 当前从 DDR3 帧缓冲经扫描 FIFO 输出，双缓冲与场边界切换已上板验证；早期八色竖条为历史基线 |
 | 程序从 Flash 引导（512KB 镜像） | 已上板验证，两个 CRC 与对照组都符合预期 |
-| APB 寄存器通路 | 已上板验证，探针寄存器四项全对；`0x1000~0x1FFF` 分给测量主机 |
+| APB 寄存器通路 | B6 当前第 0 页连接引擎寄存器；板上回读 `ID=0x47465801`、`CAPS=0x0000040F` 与 `LIST_BASE`。早期探针寄存器测试为历史基线 |
 | Cache 一致性（E3） | 已上板实测并验收（2026-09-18）：外部主机改写后 CPU 读到旧值，失效之后读到新值；共享区约定放宽为「读回前必须失效」，失效要晚于外部写入完成。判据 `sw/apps/test/cacheCoherencyTest`、机理实验 `sw/apps/probe/cacheMechTest`，见 `../Engineering/TechReports/platform/05-CPU数据缓存与第二个主机写入的一致性.md` |
 | 像素规格（E7 §2.1） | 已定稿并已确认（2026-09-18）：写进 `doc/赛题二总体设计.md` 3.5 节，舍入、位宽、舍入顺序与预乘量化误差有穷举校验（`tools/check/check_round255.c`）。修正版 `execSwTest` 三次在板上对齐 SW3 十一个整帧 CRC、均 `fail 0`；详见 `../Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md` |
 | 命令语义规格（SW2） | **已定稿、确认并复核闭环（2026-09-20）**：v1 为 DDR 直通、XRGB 目的，不实现 tint；新增 ARGB8888_STRAIGHT；重叠 BLIT 报错；字段矩阵、COUNT/END、错误优先级和副作用写入 `doc/赛题二总体设计.md` 3.4 节及 `../Engineering/TechReports/spec/02-命令语义.md`。九组一致性用例落成 159 条向量（ABI 1），校验工具 `tools/check/check_cmd_semantics.py` 全部通过六项注错和交换格式回读；五项语义选择已定案，多命令表、FETCH、保留位与零面积边界已补齐 |
@@ -21,8 +21,8 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | DDR3 帧缓冲与双缓冲 | 已由 display 工作点接入并上板验收，CPU 软件绘制可写后缓冲并在场边界切换 |
 | 软件执行器像素吞吐（E7） | **已收尾（2026-09-27）**：4KB 固定生产基线精确 S1 整表约 80.46 M 周期（805 ms），18 项输出独立复算全对；旧六方程注错 CRC 已重判，本次两个 VERIFY_ONLY 构建分别 `fail 0`、`fail 8`，均完整结束。默认生产 BIN 与原基线逐位相同。记录与按影响复测的边界见 [platform 第 09 章](../Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md) |
 | CPU 每弹幕开销（E8） | **已收尾（2026-09-27）**：两份修改版 DDR 探针在 4KB/16KB 各一次均 `fail 0`/`done`；同一份 69,034 字节程序在两档各一次九组、每组 1000 帧，逐帧状态与命令摘要均 0 错。N=2000 更新加提交 3.510→2.338 ms（−33.4%），同产物新旧读数最大变化 <0.08%。主线已恢复 4KB/1 路，16KB/4 路继续作为候选，采用条件与按影响复测边界见 [platform 第 10 章](../Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md)；真实游戏验证归 SW9 |
-| 2D 渲染引擎 | B1~B5 已验收：计算核心、AXI 搬运、几何层、计算阵列与控制层均已由 `engine_top.v` 例化，并列入工程源文件；159 条向量端到端与 D1~D16 定向共 6576 项检查 0 错，B5 单独综合 15186 XLR / 29 RAM / 6 DSP，setup +0.984 / hold +0.026 ns。当前 SoC 的 S1 仍由 `axi_probe_master` 占用，引擎尚未进入整机网表；B6 将接入顶层，复测时序、扫描 FIFO 与真实负载。E7 软件执行约 805 ms/帧、E8 N=2000 更新加提交约 3.51 ms/帧，真实游戏同表测量留 SW9。见 [engine 第 05 章](../Engineering/TechReports/engine/05-控制层.md)与[引擎总览](../Engineering/Todo/hw/引擎P1总览.md) |
-| Axi_Mux 三端口仲裁、防饿死与扫描 FIFO 水位（E5） | **已整体验收（2026-09-24）**：S0 接真实扫描输出、S1 由探针主机占用并预留给引擎、S2 接 SoC；`axi_mux_guard` VERSION 2 负责仲裁配置与 CPU 地址等待保护。引擎读、写方向各最多一笔在途，写方向不能依赖 guard 兜底。2.4 在 `idle/read/write` 三组各连续采 120 场，五个有效完整会话均 `fail 0`，最低水位 347/331/327 拍、欠载 0，维持 512 拍 FIFO；一次 `no_frame` 已定位为快照跨域握手缺陷并修复，新比特流上三次完整启动复测均通过。真实引擎接入后仍须在最重命令表下复测。过程与数据见 `../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md`、`../Engineering/TechReports/platform/08-扫描FIFO的压力矩阵与深度定值.md` |
+| 2D 渲染引擎 | B1~B5 已验收，**B6 已接入整机并上板（2026-10-02，待验收）**：S1、APB 第 0 页和中断 B 已接上；整机 36009 XLR / 105 RAM / 16 DSP，`core_clk` setup +1.067 / hold +0.026 ns，四步 PASS。整帧仿真 16/16；本轮重编程序在板上复现十一帧 CRC、32 位 `LIST_COUNT`、定向命令、注错、缓存一致性、显示和 memTest。压力表最低水位 335 拍、欠载 0，16 颗 ALPHA 每颗约 1184 拍。真实游戏完整场景的帧率留 SW9。见 [engine 第 06 章](../Engineering/TechReports/engine/06-顶层集成与上板.md)与[引擎总览](../Engineering/Todo/hw/引擎P1总览.md) |
+| Axi_Mux 三端口仲裁、防饿死与扫描 FIFO 水位（E5） | **已整体验收（2026-09-24）**：S0 接扫描输出，S1 当前接 B6 引擎，S2 接 SoC；`axi_mux_guard` VERSION 2 负责仲裁配置与 CPU 地址等待保护。原 E5 探针压力矩阵最低水位 347/331/327 拍、欠载 0；B6 引擎压力表复测最低水位 335、欠载 0。512 拍 FIFO 维持原值；真实游戏更重命令表留 SW9。过程与数据见 [platform 第 06 章](../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md)、[第 08 章](../Engineering/TechReports/platform/08-扫描FIFO的压力矩阵与深度定值.md)及[engine 第 06 章](../Engineering/TechReports/engine/06-顶层集成与上板.md) |
 | 软件平台分层与双目标构建（SW1） | **已归档**（2026-09-19 验收，2026-09-28 删除条目）：`sw/bsp/`（`ti60/` 与 `host/`）、`sw/lib/`、两套构建 `sw/mk/{target,host}.mk` 与判据脚本 `tools/check/check_sw_layers.sh` 就位。PC 与板上 60 帧整帧 CRC 逐帧相同，分层与注错判据全过。见 `../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md` |
 | 命令表构造层与软件执行器（SW3） | **主机侧已验收**（2026-09-21）：`sw/lib/gfx/`（`gfx_abi.h` 数据布局、`check.c` 十步检查、`list.c` 构造层、`exec_sw.c` 执行器、`cases.c` 十一个整帧用例）与判据 `sw/lib/test/`（独立参考实现 `ref_exec`、手写 45 条向量、交换格式重放器）就位。78 项断言在 64 位与 `-m32` 下输出逐字节相同，ASan + UBSan 无报告；工具导出的 159 条向量与手写 45 条在两个实现上逐项一致；六个方程的注错各自只命中用到它的用例；同一份源码用 riscv-none-elf-gcc 13.4.0 零告警编过。整帧 CRC 期望值入库 `sw/lib/test/golden.txt`，E7 与引擎仿真拿它当金标准。**SW3 验收时未单独上板**；之后 SW6 已用同一执行器在板上逐帧对账，E7 已完成分方程吞吐测量并归档。见 `../Engineering/TechReports/sw/02-命令表构造层与软件执行器.md` |
 | PC 平台层（SW4） | **已归档**（2026-09-21）：`sw/bsp/host/board.c` 的场节拍按扫描输出的既成事实重写（场计数自由运行 + present 等下一个场边界），`board.h` 补 `board_frame_count`/`board_swap_count`/`board_should_quit` 三个服务，缩放用最近邻、无窗跑同一个二进制；`sw/lib/core/replay` 是录像格式的唯一真源，`tools/check/replay2c.py` 在 `.g2dr`、C 数组与录制文本之间转换。判据程序 `sw/apps/test/platformTest` 与 `tools/check/check_sw4_pc.sh` 全过：十一用例 CRC 对 `golden.txt`、600 帧节拍（每帧恰好一场）、掉帧注错、1800 帧回放两遍逐帧相同、有窗与无窗逐行相同、注错构建见红。板上那三个查询也已上板跑过（`platformTest` 板上产物 `fail =0`：十一用例 CRC 与 `golden.txt` 逐行相同、600 帧 `dfield=dswap=600` 且每帧恰一场、`drop` 的 2 减 1、60 帧回放两遍 `diff=0`；板上节拍抖动 1~2 微秒，PC 上约 300 微秒）。只剩关窗退出与 F1~F3 要人动手。见 `../Engineering/TechReports/sw/03-PC平台层与帧节拍.md` |
@@ -151,6 +151,8 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   `engine/mover` 17/17（四个正常用例、六个注错与从机定时模式，需要 `EFINITY_HOME`），
   `engine/geom` 27/27（三组输入逐条比对、两个握手用例、五个注错），
   `engine/pix` 25/25（研究探针、单元、乒乓、B1~B4 真实通路、跨命令写后读），
+  `engine/ctrl` 4/4（159 向量端到端、D1~D16 定向、两个注错见红），
+  `engine/frame` 16/16（十一整帧 CRC 对 golden、SW6 两帧、定时从机性能、SLVERR 注错），
   Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
   改了 `sw/` 下走新构建的程序（`gfx2dGame`、`cup3d`、`assetTest` 等）还要过 `sw/README.md` 里的两套构建、
   主机侧单元测试与 `tools/check/check_sw_layers.sh`；改了 `gfx2dGame`、`lib/gfx` 的执行器或素材还要过

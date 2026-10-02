@@ -1,499 +1,442 @@
 /******************************************************************************
 *
-* @file main.c: cacheCoherencyTest
+* @file main.c: cacheCoherencyTest —— E3 回归的引擎改写版（B6）
 *
-* @brief  实验 E3：另一个 AXI 主机改写 DDR 之后，CPU 的数据缓存会不会读到旧值。
+* @brief  B6 接入引擎时探针主机撤下（引擎 P1 的 D6/D22），本程序的外部写入者
+*         从 axi_probe_master 换成引擎（FILL COPY），第二个读者换成引擎 BLIT
+*         （读 CPU 写过的表面再拷一份，CPU 失效后读回）。E3 的机理实验与
+*         「为什么」见 platform 第 05 章；探针版的最后一份基线日志在
+*         logs/b6_preintegration_20261002.log。判据不变：引擎写入后失效读到
+*         新值、不失效读到旧值。
 *
-*         引擎是 DDR3 上的第二个 AXI 主机，直接改 DDR。设计文档 2.1 节靠一条
-*         「共享区单向使用」的约定绕开一致性问题，代价是命令表写完不能读回校验、
-*         素材上传完不能复核、调试时不能用 CPU 读帧缓冲。赛题要求的
-*         「软硬件同帧 CRC 对比」恰好要 CPU 读回后缓冲，所以这条约定的现状与
-*         代价都要在板上实测。本程序用探针主机 axi_probe_master 当外部写入者。
+*         ## 组
 *
-*         完整的实验记录与每一步的依据见
-*         Engineering/TechReports/platform/05-CPU数据缓存与第二个主机写入的一致性.md
+*           P 前置      引擎在位；引擎 FILL 写入、CPU 失效后读到新值
+*           A 基线      A1 引擎 FILL 之后不失效，预期旧值（缓存遮蔽外部写入）
+*                       A2 装行之后再访问 64 个同行号、不同标签的地址（被观测
+*                          行不受影响），引擎写，不失效，预期旧值
+*                       A3 失效全部，预期新值（与 A1 只差一次失效）
+*           B 失效全部  预期新值
+*           C 失效单地址 预期新值
+*           D 第二读者  CPU 经缓存写源表面，引擎 BLIT 拷到另一面，CPU 失效后
+*                       读回，预期与源逐字相同
 *
-*         ## 读数序列
+*         ## 读数序列与栈纪律
 *
-*         每一条判据都按下面的顺序走，arm_line() 做前四步：
-*
-*           0 读 a ^ 0x2000_0000：行号相同、标签不同，把 a 所在的缓存行换掉。
-*             这一步不能省。上一轮留在缓存里的 a（例如 A3 失效之后读回的新值）
-*             会遮住第 1 步的别名写，第 2 步于是读到上一轮的值、armed=0；
-*           1 别名写（a ^ 0x1000_0000）把 DDR 置成旧值。别名落到同一个颗粒地址，
-*             但它的标签与 a 不同，不经过 a 的缓存行；
-*           2 读 a：缓存未命中，从 DDR 装进这一行；
-*           3 核对读到的确实是旧值，输出里的 armed=，为 0 时这一条判据作废；
-*           4 探针主机改写同一地址；
-*           5 按组的定义决定是否失效；
-*           6 紧跟一次读。
+*         每条判据：CPU 写旧值并读一次（装行）→ 引擎 FILL 新值 → 按组定义失效
+*         或不失效 → 读一次。装行与最后一次读之间不调用打印（board_puts 也是
+*         DDR 访问，落到被观测行号上会把它挤掉），只经栈顶附近留几个局部量。
+*         数据缓存 1 路直接映射、64 行、每行 64 字节，行号取地址 [11:6]
+*         （cacheMechTest 的 T4 逐位实测，归档在 platform 第 05 章）。
 *
 *         ## 为什么三种失效方式各占一个函数
 *
 *         这颗 CPU 上，紧跟在一条「跳走的分支」后面的失效指令，即使没有执行，
-*         也会把数据缓存清掉（platform 第 05 章 T10）。如果把三种方式写成同一个函数
-*         里的 if，不失效的那条路径就可能被相邻的失效指令误清，判据的结果随编译器
-*         怎么排指令而变。拆成三个函数之后，coherency_read_none 里根本没有失效指令，
-*         -Og 与 -O0 两种编译档下结果相同（两者都上板实测过）。
-*
-*         本构型没有写缓冲：CSR 0x810 读写都触发非法指令异常，SoC 网表里是
-*         dBus_Bridge_withoutWriteBuffer。所以别名写之后不需要任何排空步骤。
-*
-*         ## 组
-*
-*           P 前置      CPU 经别名写、探针读回，确认两个主机看到同一块 DDR
-*           A 基线      A1 不失效，预期旧值（缓存遮蔽外部写入）
-*                       A2 装行之后访问 64 页别的行号再让探针写，不失效，预期旧值
-*                       A3 失效全部，预期新值（与 A1 只差一次失效）
-*           B 失效全部  预期新值
-*           C 失效单地址 预期新值
-*           D 未缓存    探针写之后驱逐该行再读，预期新值（判据自检）
-*
-*         A 组连跑两遍，第二遍检查反复性，也检查上一遍留下的缓存状态不会串进来。
+*         也会把数据缓存清掉（platform 第 05 章 T10）。不失效的路径必须住在
+*         一个根本没有失效指令的函数里，判据结果才不随编译器排指令而变
+*         （探针版在 -Og 与 -O0 两档都实测过；本版沿用同一结构）。
 *
 *         ## 注错
 *
-*           make INJECT=1  去掉 A3、B、C 的失效调用。A3 两行加 B、C 共四行必须报
-*                          FAIL (inject)，它们不计入 fail；A1、A2、D、P 不变。
-*           make INJECT=2  注错自检：输出按注错模式判定，但失效调用保留。
+*           make INJECT=1  去掉 A3、B、C 的失效调用。这四行必须报 FAIL (inject)
+*                          且不计入 fail（它们读旧值正是注错想要的效果）；
+*                          A1、A2、D、P 不变。末尾 fail 0。
+*           make INJECT=2  注错自检：失效调用保留，但判定按注错口径走。
 *                          四行必须报 NOT_RED (inject) 并计入 fail，末尾 fail 4。
 *                          这一版证明「注错没生效」不会被当成通过。
 *
 *         ## 地址
 *
-*         数据缓存 1 路直接映射、64 行、每行 64 字节，行号取地址 [11:6]、标签取
-*         [31:12]（cacheMechTest 的 T4 逐位实测）。每个测试地址给一个不同的行号，
-*         测试区在 0x0C80_0000 起，程序、数据与栈都在 0x0000_1000 起的几十 KB 内。
-*         栈访问与读字符串也是 DDR 访问，落到被观测行号上就会把它挤掉：
-*         读数序列在装行与最后一次读之间不调用打印，只用到栈顶附近的几行；
-*         栈顶随产物变化（-Og 版 _sp = 0x3280，-O0 版约 0x4450），换测试地址时要避开。
+*         测试区在共享池前段（REGION_SHARED，0x0064_0000 起），每个测试地址
+*         行号不同；栈在程序区 0x0000_1000 起的几十 KB 内，与测试地址不同行号。
+*         引擎写的表面是 64×1 的 XRGB（FILL COPY 一条命令写 64 个字），
+*         命令表放 REGION_CMDLIST_A（基址 32 字节对齐，D53）。
 *
-*         寄存器表与数据图样见 rtl/bus/axi_probe_master.v 文件头，基址 0xF810_1000。
-*
+*         引擎访问一律走 sw/bsp 的 gfx_engine 驱动，本文件不出现寄存器偏移。
 ******************************************************************************/
-
 #include <stdint.h>
-#include "bsp.h"
-#include "vexriscv.h"
+#include <string.h>
 
-#define PRB             0xF8101000u
+#include "board.h"
+#include "gfx_engine.h"
+#include "gfx/gfx.h"
 
-#define R_CTRL          0x00
-#define R_STATUS        0x04
-#define R_ADDR          0x08
-#define R_LEN           0x0C
-#define R_COUNT         0x10
-#define R_MODE          0x14
-#define R_SEED          0x18
-#define R_TIMEOUT       0x1C
-#define R_TXDONE        0x20
-#define R_CYCLES        0x24
-#define R_LATSUM        0x28
-#define R_ERRS          0x2C
-#define R_RDATA0        0x30
-#define R_RDATA1        0x34
-#define R_ARB           0x38
-#define R_ID            0x3C
+/* --- 测试地址（行号取 [11:6]，互不相同） ---------------------------------- */
+#define A_BASE      0x00640400u     /* 行号 0：A 组的被观测字 */
+#define A_STRESS    0x00640440u     /* 行号 1：A2 用来访问 64 个别的标签 */
+#define B_BASE      0x00640480u     /* 行号 2 */
+#define C_BASE      0x006404C0u     /* 行号 3 */
+#define D_SRC       0x00640600u     /* D 组 CPU 写的源（64×1） */
+#define D_DST       0x00640800u     /* D 组引擎 BLIT 的目的（64×1） */
+#define P_BASE      0x00640C00u     /* P 组 */
 
-#define ST_DONE         0x02u
-#define ST_TIMEOUT      0x04u
-#define ST_RESPERR      0x08u
-#define ST_LASTERR      0x10u
+#define SURF_WORDS  64u
+#define CMDLIST     0x00400000u
+#define V_NEW       0x00C0DEF1u     /* 引擎 FILL 的新值 */
 
-#define MODE_WRITE      0x1u
+#define STRESS_N    64u
 
-/* 测试区：一行一个地址，行号取地址 [11:6] */
-#define A_BASE          0x0C800000u   /* 行号 0 */
-#define A_STRESS        0x0C800040u   /* 行号 1，A2 用的「别的地址」 */
-#define B_BASE          0x0C800080u   /* 行号 2 */
-#define C_BASE          0x0C8000C0u   /* 行号 3 */
-#define D_ARM           0x0C801000u   /* 行号 0，与 A_BASE 同号、标签不同 */
-#define P_BASE          0x0C802000u   /* 行号 0，P 组用 */
+static int fails = 0;
 
-#define EVICT           0x20000000u   /* 翻转 bit29：行号不变、标签不同 */
-#define ALIAS_BIT       0x10000000u   /* 翻转 bit28：DDR 别名，映射同一颗粒地址 */
-#define STRESS_PAGE     0x1000u
-#define STRESS_N        64u
-
-#define SEED            0x1357A5C0u
-#define V_A             0xC0DE00A1u   /* A 组在 DDR 里先放的旧值 */
-#define V_B             0xC0DE00B1u
-#define V_C             0xC0DE00C1u
-#define V_D             0xC0DE00D1u
-#define V_P             0xC0DE00F1u
-#define V_STRESS        0xC0DE0101u
-
-/* INJECT=1 去掉失效调用；INJECT=2 只按注错模式判定，失效调用保留 */
-#if defined(INJECT_NO_INVALIDATE) && !defined(INJECT_REPORT_ONLY)
-#define SKIP_INVALIDATE 1
-#else
-#define SKIP_INVALIDATE 0
-#endif
-
-static int fail = 0;
-
-static inline uint32_t rd(uint32_t off)               { return *(volatile uint32_t *)(PRB + off); }
-static inline void     wr32(uint32_t off, uint32_t v) { *(volatile uint32_t *)(PRB + off) = v; }
-
-static void hex8(char *buf, uint32_t v)
+static void ok_line(const char *what, const char *verdict)
 {
-    static const char digits[] = "0123456789abcdef";
-    for (int k = 7; k >= 0; k--) {
-        buf[k] = digits[v & 0xF];
-        v >>= 4;
-    }
-    buf[8] = '\0';
+    board_puts(what);
+    board_puts(" ");
+    board_puts(verdict);
+    board_puts("\n");
 }
 
-/* 探针写到地址 a 的 128 位拍：{v^A5A5A5A5, v^5A5A5A5A, ~v, v}，v = SEED + a。
-   AXI 小端，所以 CPU 在 a 读到 v、a+4 读到 ~v、a+8 读到 v^A5A5A5A5、a+12 读到 v^5A5A5A5A */
-static inline uint32_t fresh(uint32_t a) { return SEED + a; }
+/* --- 注错与判定 ------------------------------------------------------------ */
 
-/* 一条判据。expect 一栏在所有编译模式下都打正常模式的期望值，
- * 所以 FAIL 行读起来永远是「期望新值、读到旧值」。
- *
- * inject_fail 标明这一条在注错模式下必须变红（A3、B、C）。注错模式下：
- *   变红    打 FAIL (inject)，不计入 fail；
- *   没变红  打 NOT_RED (inject)，计入 fail。注错没生效时末尾因此不会是 fail 0。 */
-struct rec {
-    const char *tag;
-    const char *sub;
-    uint32_t    expect;
-    uint32_t    got;
-    int         inject_fail;
-};
-
-static void report_all(const struct rec *r, int n)
-{
-    for (int i = 0; i < n; i++) {
-        int ok = (r[i].got == r[i].expect);
-        int expected_fail = 0;
-#ifdef INJECT_NO_INVALIDATE
-        expected_fail = r[i].inject_fail;
+#ifdef INJECT_2
+#define REPORT_ONLY 1
+#else
+#define REPORT_ONLY 0
 #endif
-        char e[9], g[9];
-        hex8(e, r[i].expect);
-        hex8(g, r[i].got);
-        if (expected_fail) {
-            bsp_printf("%s %s expect=%s got=%s %s (inject)\r\n",
-                       r[i].tag, r[i].sub, e, g, ok ? "NOT_RED" : "FAIL");
-            if (ok)
-                fail++;
+#ifdef INJECT_1
+#define SKIP_INV 1
+#else
+#define SKIP_INV 0
+#endif
+
+/* 每行带 got=<8 位十六进制>：失败时分辨「读回旧值」（缓存/转发问题）与
+   「读回别的」（地址/译码问题）。 */
+static void put_hex(uint32_t v)
+{
+    static const char hex[] = "0123456789abcdef";
+    char s[14];
+    int i;
+
+    s[0] = ' ';
+    s[1] = 'g';
+    s[2] = 'o';
+    s[3] = 't';
+    s[4] = '=';
+    for (i = 0; i < 8; i++)
+        s[5 + i] = hex[(v >> (28 - 4 * i)) & 0xFu];
+    s[13] = '\0';
+    board_puts(s);
+}
+
+/* expect_new=1 的组：读到新值才算 ok。injectable=1 的组（A3、B、C）在三个
+   构建里分岔；其余组（P、D、A1、A2）三个构建同一口径。 */
+static void judge(const char *what, uint32_t got, uint32_t expect_new,
+                  uint32_t injectable)
+{
+    put_hex(got);
+    if (!injectable) {
+        ok_line(what, (got == V_NEW) == (expect_new != 0u) ? "ok" : "FAIL");
+        if ((got == V_NEW) != (expect_new != 0u))
+            fails++;
+        return;
+    }
+    if (got == V_NEW) {
+        if (!SKIP_INV && !REPORT_ONLY)
+            ok_line(what, "ok");
+        else if (REPORT_ONLY) {
+            /* INJECT_2：失效保留、读回新值，按注错口径判定必须红而没红 */
+            ok_line(what, "NOT_RED (inject)");
+            fails++;
         } else {
-            bsp_printf("%s %s expect=%s got=%s %s\r\n",
-                       r[i].tag, r[i].sub, e, g, ok ? "ok" : "FAIL");
-            if (!ok)
-                fail++;
+            /* SKIP_INV 下读到新值：注错没生效，判据必须见红 */
+            ok_line(what, "FAIL");
+            fails++;
+        }
+    } else {
+        if (!SKIP_INV && !REPORT_ONLY) {
+            ok_line(what, "FAIL");
+            fails++;
+        } else if (REPORT_ONLY) {
+            ok_line(what, "NOT_RED (inject)");
+            fails++;
+        } else {
+            /* SKIP_INV（INJECT_1）：读旧值正是注错的效果，这行算注错见红 */
+            ok_line(what, "FAIL (inject)");
         }
     }
 }
 
-static void report_armed(const char *tag, const char *sub, int armed)
+/* --- 引擎侧 ---------------------------------------------------------------- */
+
+/* 把表面表里 valid 的槽登记进引擎 */
+static int engine_load(const gfx_surface_table *t)
 {
-    bsp_printf("%s %s armed=%d %s\r\n", tag, sub, armed, armed ? "ok" : "FAIL");
-    if (!armed)
-        fail++;
+    int s;
+
+    for (s = 0; s < (int)GFX_SURF_N; s++) {
+        uint32_t ctrl = t->s[s].ctrl;
+        if ((ctrl & 0x80000000u) == 0u)
+            continue;
+        if (gfx_engine_surf_set(s, t->s[s].base,
+                                t->s[s].dim & 0xFFFFu, t->s[s].dim >> 16,
+                                ctrl & 0x1Fu, (ctrl >> 12) & 0xFu) != GFX_ENG_OK)
+            return -1;
+    }
+    return 0;
 }
 
-/* 探针主机：单拍写、单拍读
- *
- * 每一笔之后都要核对错误通路，不能只看 DONE：
- * 硬件超时会同时置 DONE 与 TIMEOUT，轮询 DONE 会正常退出，异常于是被当成成功。
- * 另外 ERRS[15:0] 是非 OKAY 响应计数、STATUS 的 bit4 LAST_ERR 是读突发的 rlast 位置不对，
- * 都要一起查。任何一项异常都计入 fail，避免末尾出现假的 fail 0。 */
-
-static uint32_t probe_write(uint32_t a)
+static uint32_t engine_run(const gfx_surface_table *t,
+                           const gfx_cmd *cmds, uint32_t n)
 {
-    wr32(R_ADDR, a);
-    wr32(R_LEN, 0);
-    wr32(R_COUNT, 1);
-    wr32(R_MODE, MODE_WRITE);
-    wr32(R_SEED, SEED);
-    wr32(R_CTRL, 1);
-    uint32_t st;
-    do {
-        st = rd(R_STATUS);
-    } while (!(st & ST_DONE));
-    return st;
+    uint32_t code = 0u, eidx, etag;
+
+    if (engine_load(t) != 0)
+        return 0xFFu;
+    memcpy((void *)(uintptr_t)CMDLIST, cmds, (size_t)n * 32u);
+    if (gfx_engine_submit(CMDLIST, n) != GFX_ENG_OK)
+        return 0xFFu;
+    if (gfx_engine_wait(&code, &eidx, &etag) != GFX_ENG_OK || code != 0u)
+        return (code == 0u) ? 0xFFu : code;
+    return 0u;
 }
 
-static uint32_t probe_read(uint32_t a, uint32_t *status)
+static uint32_t engine_fill(uint32_t base, uint32_t color)
 {
-    wr32(R_ADDR, a);
-    wr32(R_LEN, 0);
-    wr32(R_COUNT, 1);
-    wr32(R_MODE, 0);
-    wr32(R_SEED, SEED);
-    wr32(R_CTRL, 1);
-    uint32_t st;
-    do {
-        st = rd(R_STATUS);
-    } while (!(st & ST_DONE));
-    (void)rd(R_STATUS);
-    (void)rd(R_STATUS);
-    uint32_t v = rd(R_RDATA0);
-    if (status)
-        *status = st;
+    static gfx_surface_table tbl;
+    static gfx_cmd cmds[2];
+    gfx_list l;
+    gfx_surface s;
+    gfx_rect r;
+
+    gfx_surface_reset(&tbl);
+    s.base = base; s.width = SURF_WORDS; s.height = 1u;
+    s.stride_log2 = 8u; s.space = GFX_SPACE_DDR; s.format = GFX_FMT_XRGB8888;
+    gfx_surface_set(&tbl, 0, &s);
+    gfx_list_begin(&l, cmds, 2u, &tbl);
+    r.x0 = 0; r.y0 = 0; r.x1 = (int)SURF_WORDS - 1; r.y1 = 0;
+    gfx_fill(&l, 0, r, color, GFX_EQ_COPY, 0u);
+    gfx_list_end(&l);
+    return engine_run(&tbl, cmds, l.used);
+}
+
+/* --- CPU 侧（失效方式各占一个函数，见文件头） ------------------------------ */
+
+static uint32_t read_none(const volatile uint32_t *p)
+{
+    return *p;
+}
+
+/* 失效方式各占一个函数；INJECT_1 的「去掉失效」也收在函数内部，
+   调用点三个构建完全一致——判据的差别只剩 judge() 一处。 */
+static uint32_t read_inv_all(const volatile uint32_t *p)
+{
+    uint32_t v;
+
+#if !SKIP_INV
+    board_dcache_invalidate_all();
+#endif
+    v = *p;
     return v;
 }
 
-/* 核对一笔事务的结果。tag/sub 只用于打印，异常一律计入 fail。
-   判据：STATUS 的 bit2 TIMEOUT、bit3 RESP_ERR、bit4 LAST_ERR 都不能置位；
-   TX_DONE 必须等于期望的事务数；ERRS 的两个字段都必须为 0 */
-static void probe_check(const char *tag, const char *sub, uint32_t st, uint32_t tx_expect)
+static uint32_t read_inv_addr(const volatile uint32_t *p)
 {
-    uint32_t tx  = rd(R_TXDONE);
-    uint32_t err = rd(R_ERRS);
-    uint32_t bad = 0;
-    char a[9];
+    uint32_t v;
 
-    if (st & ST_TIMEOUT)  bad |= 1u;
-    if (st & ST_RESPERR)  bad |= 2u;
-    if (st & ST_LASTERR)  bad |= 4u;
-    if (tx != tx_expect)  bad |= 8u;
-    if (err != 0)         bad |= 16u;
-
-    if (bad) {
-        hex8(a, st);
-        bsp_printf("%s %s probe_err status=%s tx=%u/%u errs=", tag, sub, a, tx, tx_expect);
-        hex8(a, err);
-        bsp_printf("%s code=%u FAIL\r\n", a, bad);
-        fail++;
-    }
-}
-
-/* 在装行与探针写之间制造 DDR 访问压力，全部落在行号 1 的 A_STRESS 那一片，
-   不碰被观测的行号 0 */
-static void stress_loads(void)
-{
-    volatile uint32_t acc = 0;
-    for (uint32_t k = 0; k < STRESS_N; k++) {
-        uint32_t p = A_STRESS + (k + 1u) * STRESS_PAGE;
-        *(volatile uint32_t *)p = V_STRESS + k;
-        acc += *(volatile uint32_t *)p;
-    }
-    (void)acc;
-}
-
-/* 读数序列第 0~3 步：挤出、别名写、装行、核对。返回 armed。
-   这个函数里没有失效指令 */
-static int arm_line(uint32_t a, uint32_t stale)
-{
-    (void)*(volatile uint32_t *)(a ^ EVICT);        /* 0 挤出 a 所在行 */
-    *(volatile uint32_t *)(a ^ ALIAS_BIT) = stale;  /* 1 DDR <- stale */
-    uint32_t got = *(volatile uint32_t *)a;         /* 2 装行 */
-    return got == stale;                            /* 3 */
-}
-
-/* 第 4~6 步，不失效。这个函数里没有失效指令 */
-static uint32_t coherency_read_none(uint32_t a, uint32_t stale, uint32_t *st_out, int *armed)
-{
-    *armed = arm_line(a, stale);
-    *st_out = probe_write(a);
-    return *(volatile uint32_t *)a;
-}
-
-/* 第 4~6 步，失效全部 */
-static uint32_t coherency_read_all(uint32_t a, uint32_t stale, uint32_t *st_out, int *armed)
-{
-    *armed = arm_line(a, stale);
-    *st_out = probe_write(a);
-#if !SKIP_INVALIDATE
-    data_cache_invalidate_all();
+#if !SKIP_INV
+    board_dcache_invalidate_range((const void *)(uintptr_t)p, 4u);
 #endif
-    return *(volatile uint32_t *)a;
+    v = *p;
+    return v;
 }
 
-/* 第 4~6 步，失效 a 所在的那一行 */
-static uint32_t coherency_read_addr(uint32_t a, uint32_t stale, uint32_t *st_out, int *armed)
+/* CPU 把旧值写进 DDR 并读一次（装行）。返回读到的值，恒等于旧值。
+   三步与探针版「读数序列」第 0~2 步等价：
+   0 读 a^0x2000_0000（行号相同、标签不同）把被观测行换掉——上一轮 A3 失效后
+     读回的新值还留在这一行里，不换掉它会遮住别名写，装进缓存的就是新值
+     （本轮实测：省掉这一步时第二遍的 A1/A2 全部读回上一轮的新值）；
+   1 经**别名地址**（翻转 bit28，同一颗粒地址、不同缓存标签，E2 实测）把 DDR
+     置成旧值。被观测行不能用 CPU 直写（直写后失效行为与探针基线对不上）；
+   2 读被观测地址：缓存未命中，从 DDR 装进这一行（旧值）。 */
+static uint32_t arm_line(uint32_t addr, uint32_t old)
 {
-    *armed = arm_line(a, stale);
-    *st_out = probe_write(a);
-#if !SKIP_INVALIDATE
-    data_cache_invalidate_address(a);
-#endif
-    return *(volatile uint32_t *)a;
+    uint32_t evict;
+
+    evict = *(volatile uint32_t *)(uintptr_t)(addr ^ 0x20000000u);
+    *(volatile uint32_t *)(uintptr_t)(addr ^ 0x10000000u) = old | (evict & 0u);
+    return *(volatile uint32_t *)(uintptr_t)addr;
 }
 
-/* 各组 */
-
-static void group_pre(void)
+/* A2：访问 64 个同行号、不同标签的地址（步长 0x1000 翻标签、不动行号），
+   被观测行不受影响。访问结果折进一个字写到别的行号上，防被优化掉。 */
+static void poke_lines(void)
 {
-    uint32_t st = 0;
+    const volatile uint32_t *p =
+        (const volatile uint32_t *)(uintptr_t)A_STRESS;
+    uint32_t acc = 0u;
+    uint32_t i;
 
-    /* 让 DDR 里有一个只有 CPU 知道的值，探针读回它。本构型没有写缓冲，
-       别名写返回时已经落到 DDR */
-    *(volatile uint32_t *)(P_BASE ^ ALIAS_BIT) = V_P;
-    uint32_t got = probe_read(P_BASE, &st);
-    probe_check("P", "cpu_to_prb", st, 1);
-
-    struct rec r[1] = { { "P", "cpu_to_prb", V_P, got, 0 } };
-    report_all(r, 1);
+    for (i = 0; i < STRESS_N; i++)
+        acc ^= p[i * (0x1000u / 4u)];
+    *(volatile uint32_t *)(uintptr_t)(A_STRESS + 0x2000u) = acc;
 }
 
-static void group_a(void)
+/* --- 组 -------------------------------------------------------------------- */
+
+static void group_a(int pass, uint32_t old)
 {
-    struct rec r[3];
-    int armed[3];
-    uint32_t st = 0;
+    volatile uint32_t *p = (volatile uint32_t *)(uintptr_t)A_BASE;
+    char name[4];
+    uint32_t got;
 
-    /* A1 装行之后紧跟探针写，再读 */
-    r[0].tag = "A"; r[0].sub = "immediate";
-    r[0].expect = V_A; r[0].inject_fail = 0;
-    r[0].got = coherency_read_none(A_BASE, V_A, &st, &armed[0]);
-    probe_check("A", "immediate", st, 1);
+    name[0] = 'A'; name[1] = (char)('1'); name[2] = '\0';
+    (void)pass;
 
-    /* A2 装行之后访问一批别的行号，再让探针写 */
-    armed[1] = arm_line(A_BASE, V_A);
-    stress_loads();
-    st = probe_write(A_BASE);
-    r[1].tag = "A"; r[1].sub = "after_loads";
-    r[1].expect = V_A; r[1].inject_fail = 0;
-    r[1].got = *(volatile uint32_t *)A_BASE;
-    probe_check("A", "after_loads", st, 1);
+    /* A1：装行 → 引擎写 → 不失效 → 读旧值 */
+    arm_line(A_BASE, old);
+    if (engine_fill(A_BASE, V_NEW) != 0u) {
+        ok_line(name, "FAIL");
+        fails++;
+        return;
+    }
+    got = read_none(p);
+    judge(name, got, 0u, 0u);
 
-    /* A3 与 A1 只差一次失效 */
-    r[2].tag = "A"; r[2].sub = "invalidated_after";
-    r[2].expect = fresh(A_BASE); r[2].inject_fail = 1;
-    r[2].got = coherency_read_all(A_BASE, V_A, &st, &armed[2]);
-    probe_check("A", "invalidated_after", st, 1);
+    /* A2：先访问 64 个别的标签再走一遍同一序列 */
+    name[1] = '2';
+    poke_lines();
+    arm_line(A_BASE, old);
+    if (engine_fill(A_BASE, V_NEW) != 0u) {
+        ok_line(name, "FAIL");
+        fails++;
+        return;
+    }
+    got = read_none(p);
+    judge(name, got, 0u, 0u);
 
-    report_armed("A", "immediate", armed[0]);
-    report_armed("A", "after_loads", armed[1]);
-    report_armed("A", "invalidated_after", armed[2]);
-    report_all(r, 3);
+    /* A3：与 A1 只差一次失效全部 */
+    name[1] = '3';
+    arm_line(A_BASE, old);
+    if (engine_fill(A_BASE, V_NEW) != 0u) {
+        ok_line(name, "FAIL");
+        fails++;
+        return;
+    }
+    got = read_inv_all(p);
+    judge(name, got, 1u, 1u);
 }
 
-static void group_b(void)
+static void group_b(uint32_t old)
 {
-    uint32_t st = 0;
-    int armed = 0;
-    uint32_t got = coherency_read_all(B_BASE, V_B, &st, &armed);
-    probe_check("B", "invalidate_all", st, 1);
-    struct rec r[1] = { { "B", "invalidate_all", fresh(B_BASE), got, 1 } };
-    report_armed("B", "invalidate_all", armed);
-    report_all(r, 1);
+    volatile uint32_t *p = (volatile uint32_t *)(uintptr_t)B_BASE;
+    uint32_t got;
+
+    arm_line(B_BASE, old);
+    if (engine_fill(B_BASE, V_NEW) != 0u) {
+        ok_line("B", "FAIL");
+        fails++;
+        return;
+    }
+    got = read_inv_all(p);
+    judge("B", got, 1u, 1u);
 }
 
-static void group_c(void)
+static void group_c(uint32_t old)
 {
-    uint32_t st = 0;
-    int armed = 0;
-    uint32_t got = coherency_read_addr(C_BASE, V_C, &st, &armed);
-    probe_check("C", "invalidate_addr", st, 1);
-    struct rec r[1] = { { "C", "invalidate_addr", fresh(C_BASE), got, 1 } };
-    report_armed("C", "invalidate_addr", armed);
-    report_all(r, 1);
+    volatile uint32_t *p = (volatile uint32_t *)(uintptr_t)C_BASE;
+    uint32_t got;
+
+    arm_line(C_BASE, old);
+    if (engine_fill(C_BASE, V_NEW) != 0u) {
+        ok_line("C", "FAIL");
+        fails++;
+        return;
+    }
+    got = read_inv_addr(p);
+    judge("C", got, 1u, 1u);
 }
 
 static void group_d(void)
 {
-    struct rec r[2];
-    uint32_t st = 0;
+    static gfx_surface_table tbl;
+    static gfx_cmd cmds[2];
+    uint32_t *src = (uint32_t *)(uintptr_t)D_SRC;
+    volatile uint32_t *dst = (volatile uint32_t *)(uintptr_t)D_DST;
+    gfx_list l;
+    gfx_surface s;
+    uint32_t i, bad = 0u;
 
-    /* D1 装行、探针写、驱逐、读，预期新值 */
-    (void)arm_line(D_ARM, V_D);
-    st = probe_write(D_ARM);
-    probe_check("D", "evicted", st, 1);
-    (void)*(volatile uint32_t *)(D_ARM ^ EVICT);
-    r[0].tag = "D"; r[0].sub = "evicted";
-    r[0].expect = fresh(D_ARM); r[0].inject_fail = 0;
-    r[0].got = *(volatile uint32_t *)D_ARM;
+    /* CPU 经缓存写源表面（写穿到 DDR），引擎 BLIT 拷到目的面，
+       CPU 失效后读回必须逐字相同 */
+    for (i = 0; i < SURF_WORDS; i++)
+        src[i] = 0x00570000u + i;
 
-    /* D2 该 128 位拍的第二个字，同一条未缓存路径 */
-    r[1].tag = "D"; r[1].sub = "word1";
-    r[1].expect = ~fresh(D_ARM); r[1].inject_fail = 0;
-    (void)*(volatile uint32_t *)(D_ARM ^ EVICT);
-    r[1].got = *(volatile uint32_t *)(D_ARM + 4);
-
-    report_all(r, 2);
-}
-
-static int probe_ident(void)
-{
-    uint32_t id = rd(R_ID);
-    uint32_t arb = rd(R_ARB);
-    char a[9], b[9];
-    hex8(a, id);
-    hex8(b, arb);
-    int ok = (id == 0x41584950u) && (arb == 0x6u);
-    bsp_printf("IDENT id=0x%s arb=0x%s %s\r\n", a, b, ok ? "ok" : "FAIL");
-    return ok;
-}
-
-/* 失效代价。打点包住 TIMING_N 次调用，再减去同样次数的空循环。
-   单条指令只有几个周期，与读计时器本身的开销同量级，不能逐次打点 */
-
-#define TIMING_N    1000u
-
-static void timing(void)
-{
-    char a[9], b[9], c[9];
-    uint32_t t0, t_all, t_addr, t_read, t_empty;
-    volatile uint32_t sink = 0;
-
-    t0 = clint_getTimeLow(BSP_CLINT);
-    for (uint32_t k = 0; k < TIMING_N; k++)
-        sink = sink + 1u;
-    t_empty = clint_getTimeLow(BSP_CLINT) - t0;
-
-    t0 = clint_getTimeLow(BSP_CLINT);
-    for (uint32_t k = 0; k < TIMING_N; k++) {
-        data_cache_invalidate_all();
-        sink = sink + 1u;
-    }
-    t_all = clint_getTimeLow(BSP_CLINT) - t0;
-
-    t0 = clint_getTimeLow(BSP_CLINT);
-    for (uint32_t k = 0; k < TIMING_N; k++) {
-        data_cache_invalidate_address(A_BASE);
-        sink = sink + 1u;
-    }
-    t_addr = clint_getTimeLow(BSP_CLINT) - t0;
-
-    t0 = clint_getTimeLow(BSP_CLINT);
-    for (uint32_t k = 0; k < TIMING_N; k++) {
-        data_cache_invalidate_all();
-        sink = sink + *(volatile uint32_t *)A_BASE;
-    }
-    t_read = clint_getTimeLow(BSP_CLINT) - t0;
-
-    hex8(a, t_empty); hex8(b, t_all); hex8(c, t_addr);
-    bsp_printf("TIME raw empty=%s all=%s addr=%s ticks\r\n", a, b, c);
-
-    hex8(a, (t_all  > t_empty) ? (t_all  - t_empty) / TIMING_N : 0u);
-    hex8(b, (t_addr > t_empty) ? (t_addr - t_empty) / TIMING_N : 0u);
-    hex8(c, t_read);
-    bsp_printf("TIME per_call all=%s addr=%s all_plus_read=%s ticks\r\n", a, b, c);
-    bsp_printf("TIME n=%d tick=10ns sink=%x\r\n", TIMING_N, sink);
-}
-
-void main()
-{
-    bsp_printf("cacheCoherencyTest\r\n");
-#if defined(INJECT_NO_INVALIDATE) && defined(INJECT_REPORT_ONLY)
-    bsp_printf("build=INJECT_REPORT_ONLY\r\n");
-#elif defined(INJECT_NO_INVALIDATE)
-    bsp_printf("build=INJECT_NO_INVALIDATE\r\n");
-#else
-    bsp_printf("build=normal\r\n");
-#endif
-
-    if (!probe_ident()) {
-        bsp_printf("probe absent, stop\r\n");
-        bsp_printf("fail 1\r\n");
-        bsp_printf("done\r\n");
+    gfx_surface_reset(&tbl);
+    s.base = D_SRC; s.width = SURF_WORDS; s.height = 1u;
+    s.stride_log2 = 8u; s.space = GFX_SPACE_DDR; s.format = GFX_FMT_XRGB8888;
+    gfx_surface_set(&tbl, 0, &s);
+    s.base = D_DST;
+    gfx_surface_set(&tbl, 1, &s);
+    gfx_list_begin(&l, cmds, 2u, &tbl);
+    gfx_blit(&l, 0, 0, 0, 1, 0, 0, (int)SURF_WORDS, 1, GFX_EQ_COPY, 0u, 0, 0u);
+    gfx_list_end(&l);
+    if (engine_run(&tbl, cmds, l.used) != 0u) {
+        ok_line("D", "FAIL");
+        fails++;
         return;
     }
+    board_dcache_invalidate_range((const void *)(uintptr_t)dst, SURF_WORDS * 4u);
+    for (i = 0; i < SURF_WORDS; i++)
+        if (dst[i] != 0x00570000u + i)
+            bad++;
+    ok_line("D", bad == 0u ? "ok" : "FAIL");
+    if (bad != 0u)
+        fails++;
+}
 
-    group_pre();
-    group_a();
-    group_a();          /* 第二遍：反复性，以及上一遍的缓存状态不串进来 */
-    group_b();
-    group_c();
+/* --- 入口 ------------------------------------------------------------------- */
+
+int main(void)
+{
+    uint32_t got;
+
+    board_init();
+    /* 本程序只跑几百毫秒。实测停两秒仍会在 board_run 的 OpenOCD 会话退出前
+       打完 done，整段输出落在加载分界之前，--stop-on 因而误报未完成。
+       启动后等八秒，使本次程序的判据落在分界之后；不改变缓存实验的读数序列。 */
+    while (board_cycles() < 8u * BOARD_HZ)
+        ;
+    board_puts("cacheCoherencyTest B6\n");
+
+    if (!gfx_engine_present() || gfx_engine_soft_reset() != GFX_ENG_OK) {
+        ok_line("IDENT", "FAIL");
+        board_puts("fail 1\n");
+        board_puts("done\n");
+        return 0;
+    }
+    ok_line("IDENT", "ok");
+
+    /* P 前置：引擎 FILL 写入、CPU 失效后读到新值（引擎通路本身的可用性） */
+    if (engine_fill(P_BASE, V_NEW) == 0u) {
+        got = read_inv_all((volatile uint32_t *)(uintptr_t)P_BASE);
+        judge("P", got, 1u, 0u);
+    } else {
+        ok_line("P", "FAIL");
+        fails++;
+    }
+
+    group_a(0, 0xC0DE00A1u);
+    group_a(1, 0xC0DE00A2u);    /* 第二遍：反复性，旧值换个数 */
+    group_b(0xC0DE00B1u);
+    group_c(0xC0DE00C1u);
     group_d();
-    timing();
 
-    bsp_printf("fail %d\r\n", fail);
-    bsp_printf("done\r\n");
+    gfx_engine_soft_reset();
+    {
+        char line[16];
+        char *p = line;
+        int n = fails;
+        *p++ = 'f'; *p++ = 'a'; *p++ = 'i'; *p++ = 'l'; *p++ = ' ';
+        if (n == 0) *p++ = '0';
+        else {
+            char buf[8];
+            int m = 0;
+            while (n > 0) { buf[m++] = (char)('0' + n % 10); n /= 10; }
+            while (m > 0) *p++ = buf[--m];
+        }
+        *p++ = '\n'; *p = '\0';
+        board_puts(line);
+    }
+    board_puts("done\n");
+    return 0;
 }

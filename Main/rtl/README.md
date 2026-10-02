@@ -56,7 +56,7 @@ B1~B4 的四个文件各有一个 `parameter integer INJECT`，是仿真注错�
 
 | 文件 | 说明 |
 | --- | --- |
-| `gfx2d_top.v` | 顶层。例化 SoC（`u_soc`）、DDR3 控制器（`u_ddr3`）、APB 探针（`u_apb_probe`）、AXI 探针主机（`u_axi_probe`）、真实扫描输出（`u_display`）、AXI 多路器（`u_axi_mux`）、仲裁配置与防饿死保护（`u_mux_guard`）、HDMI 发送（`u_hdmi_tx`） |
+| `gfx2d_top.v` | 顶层。例化 SoC（`u_soc`）、DDR3 控制器（`u_ddr3`）、渲染引擎（`u_engine`，引擎 P1 B6 接入）、真实扫描输出（`u_display`）、AXI 多路器（`u_axi_mux`）、仲裁配置与防饿死保护（`u_mux_guard`）、HDMI 发送（`u_hdmi_tx`） |
 
 端口名与 `fpga/gfx2d_ti60/gfx2d_ti60.peri.xml` 中的信号名一一对应，改一边必须同步另一边，否则 Interface Designer 会报 Missing Interface Pins。
 
@@ -72,12 +72,12 @@ I2C0（`0xF801_7000`）预留给摄像头，读口接 1、写口悬空；`axiA` 
 
 | 文件 | 说明 |
 | --- | --- |
-| `apb_probe.v` | APB 探针寄存器，挂 APB Slave 0（CPU 地址 `0xF810_0000`，64KB 窗口）。窗口内 `0x1000~0x1FFF` 归 `axi_probe_master`、`0xE000~0xEFFF` 归 `display`、`0xF000~0xFFFF` 归 `axi_mux_guard`，其余地址归它。`0x000` ID（只读，"GFX2"）、`0x004` VERSION（只读）、`0x008` SCRATCH（读写）；其余地址读回 0 并置 PSLVERROR |
-| `axi_probe_master.v` | AXI 探针主机，DDR3 上的第二个 AXI 主机，经 `Axi_Mux` S1 接入。寄存器在 APB Slave 0 的 `0x1000~0x1FFF`（CPU 地址 `0xF810_1000`），表在文件头。用于实验 E4，也是 CPU 之外的 DDR 观测者。它的 `ARB` 寄存器自 2026-09-19 起不再驱动 `Axi_Mux`，仲裁配置改由 `axi_mux_guard` 给出 |
+| `apb_probe.v` | APB 探针寄存器（占位并验证 APB 通路）。**引擎 P1 B6 起（D21）不在顶层例化**：它占的 APB 第 0 页已归引擎，顶层未映射页改为常量应答（`PREADY=1`、`PSLVERR=1`、`PRDATA=0`）。源文件与 `sim/apb_probe/` 保留。`0x000` ID（只读，"GFX2"）、`0x004` VERSION（只读）、`0x008` SCRATCH（读写）；其余地址读回 0 并置 PSLVERROR |
+| `axi_probe_master.v` | AXI 探针主机，DDR3 上的第二个 AXI 主机。**引擎 P1 B6 起（D6/D22）不在顶层例化**：它占的 Axi_Mux S1 已归引擎。寄存器表在文件头（APB `0x1000~0x1FFF`，随之不可访问）。用于实验 E4/E5；用它的四个板上程序见 `sw/README.md` 的标注。源文件与 `sim/axi_probe/` 保留 |
 | `axi_mux_guard.v` | `Axi_Mux` 的仲裁方式、三通道用户掩码与 SoC（S2）地址等待的防饿死保护，永久模块。挂 APB Slave 0 的 `0xF000~0xFFFF`（CPU 地址 `0xF810_F000`），寄存器表在文件头，当前 `VERSION` 为 2（两个 `S2_MAX_WAIT` 每拍更新，含尚未握手的那一笔）。写方向上 guard 没有可观测的作用，写方向的等待靠主机侧「每方向一笔在途」的契约。实验 E5 的 2.1、2.2 节，platform 第 06 章 |
 | `scanout_stub.v` | 实验 E5 2.3 的扫描替身：按行节拍发 160 拍读，记录等待与间隙。真实 `display` 已接管 APB `0xE000~0xEFFF` 与 Axi_Mux S0；本文件仍列在 Efinity 工程源列表中，但顶层不例化，并保留给 `sim/axi_mux_guard/` 使用 |
 
-加速器的控制寄存器将来接在同一条 APB 上，这个模块是占位，也是 APB 通路的自检手段：上板用 OpenOCD 直接读写这几个地址即可，不需要写程序。仿真见 `sim/apb_probe/`。
+引擎的控制寄存器已接在同一条 APB 第 0 页（`rtl/engine/`，D21 撤下本模块后由顶层常量应答未映射页）；上板用 OpenOCD 直接读写即可，不需要写程序，回归表见 `doc/开发环境.md`。仿真见 `sim/apb_probe/`。
 
 ## hdmi/
 
@@ -99,7 +99,7 @@ I2C0（`0xF801_7000`）预留给摄像头，读口接 1、写口悬空；`axiA` 
 | 目录 | 内容 | 状态 |
 | --- | --- | --- |
 | `ddr3_controller/` | 易灵思 DDR3 软核控制器。顶层 `ddr3_top.v`，参数 `ddr3_parameter.vh`，其余为 PHY、bank 管理、AXI 从口 | 在工程源文件列表中。多数文件是加密 RTL，开源仿真工具读不了 |
-| `axi_mux/` | 第三方明文 AXI 多路器（2~8 主机进、1 出，128 位），来自官方工程，官方设计里没有例化过它 | 在工程源文件列表中，例化为 `u_axi_mux`；S0 已由扫描替身换成真实 `display`，S1 接 `axi_probe_master`、S2 接 SoC。除第 43 行的宏以外未改动。没有 BRESP 端口，顶层把控制器的 bresp 并接给各主机；`EFX_SRL8` 的输出取反、地址反向，仿真必须用厂商模型 |
+| `axi_mux/` | 第三方明文 AXI 多路器（2~8 主机进、1 出，128 位），来自官方工程，官方设计里没有例化过它 | 在工程源文件列表中，例化为 `u_axi_mux`；S0 已由扫描替身换成真实 `display`，S1 引擎 P1 B6 起接 `engine_top`（之前是探针主机）、S2 接 SoC。除第 43 行的宏以外未改动。没有 BRESP 端口，顶层把控制器的 bresp 并接给各主机；`EFX_SRL8` 的输出取反、地址反向，仿真必须用厂商模型 |
 | `verilog-axi/` | 第三方明文 AXI DMA 核：`axi_dma_rd.v`（读）、`axi_dma_wr.v`（写），来自 [alexforencich/verilog-axi](https://github.com/alexforencich/verilog-axi) 归档前最后一个提交 `516bd5dadc3365b7f9e225d2af8fe0b8d804fe53`（2025-02-27），MIT 许可。三个文件都与上游逐字节相同（git blob 与上游提交里的相同） | **不在工程源文件列表中**（还没有模块例化它）：B5 的 `engine_top.v` 例化 `engine_mover.v` 时一起加进去。`LICENSE` 是上游的 `COPYING`，只是换了个更好找的名字，内容一字不改。`engine_mover.v` 用参数把它们配到本工程的位宽与突发上限，源码本身一字不改（D3），只在本文件登记 |
 
 两处要注意的：
