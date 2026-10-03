@@ -204,8 +204,7 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
 
     o->presented_dst = -1;
     if (renderer_pipeline_enabled(ctx->hw)) {
-        exec_sw_stats_clear(&xs);
-        rc = renderer_pipeline_step(&l, dst, &o->cyc_exec,
+        rc = renderer_pipeline_step(&l, dst, &xs, &o->cyc_exec,
                                     &o->t_present, &o->presented_dst);
     } else {
         rc = renderer_run(ctx->hw, ctx->tab, ctx->mem, ctx->es, ctx->err,

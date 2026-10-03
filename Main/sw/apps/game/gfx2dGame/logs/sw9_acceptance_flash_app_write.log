@@ -1,0 +1,13 @@
+Connecting to JTAG_TAP: efx_ti
+Connecting to JTAG_TAP: efx_ti
+Flash device: Winbond W25Q64 8 MiB (JEDEC ID: 0xEF6017) @ JTAG freq 6.0 MHz
+Unlock all sectors for write.
+Erasing 84 KiB from flash @ 0x00380000 (may take a while...)
+Finished erase in 0 seconds
+Writing 82 KiB to flash @ 0x00380000 ...
+Finished write in 0 seconds
+Reading 82 KiB from flash @ 0x00380000 ...
+Finished read in 0 seconds
+Flash verify successful
+Restore Write-protect status register.
+JTAG2SPI programming...done

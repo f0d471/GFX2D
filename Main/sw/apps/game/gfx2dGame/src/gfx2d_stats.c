@@ -64,11 +64,6 @@ int stats_want_sample(const stats_state *s)
     return !s->have_sample;
 }
 
-int stats_want_rollup(const stats_state *s)
-{
-    return board_frame_count() - s->win_field0 >= STATS_ROW_FIELDS;
-}
-
 void stats_sample_list(stats_state *s, const gfx_surface_table *t, const gfx_cmd *list, uint32_t used,
                        const stats_sample *other)
 {

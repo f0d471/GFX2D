@@ -103,6 +103,8 @@ void       board_present(int index);
 int        board_present_request(int index, uint32_t *ticket);
 int        board_present_finished(uint32_t ticket);
 int        board_present_wait(uint32_t ticket);
+/* 板上与场起始同一拍写入而被硬件吞掉、由 BSP 重写的交换请求次数；PC 恒 0。 */
+uint32_t   board_present_retries(void);
 
 /* SW9：项目 ISR，只在板级层操作 PLIC 和中断源。计数用于等待和板上判据。 */
 int        board_irq_init(void);

@@ -202,7 +202,24 @@ static int disp_present_in_bitstream(void)
 static int s_disp_started;      /* 第一次 board_present 时打开取数并切到帧缓冲 */
 static uint32_t s_present_event; /* 请求时的场起始中断序号 */
 static uint32_t s_present_ticket;
+static uint32_t s_present_field; /* 写 SWAP_REQ 之前读的 FRAME_COUNT */
+static uint32_t s_present_retries;
 static int s_present_pending;
+
+/* SWAP_REQ 的写恰好落在场起始那一拍时，硬件让场起始的清零优先（display 第 01 章 4.1 节），
+   这次请求被吞掉，SWAP_COUNT 再也不会变。场号先于请求读，正常的请求最迟在其后第二个
+   场起始生效、并在该场排空复位时计数；到第三个场起始仍没换，只能是被吞了，重写一次。
+   引擎忙时恰好约一场的负载会让请求成串贴着场起始写，这个窗口才真的会碰上。 */
+static void present_retry_lost(void)
+{
+    if (disp_rd(DISP_FRAME_COUNT) - s_present_field < 3u)
+        return;
+    if (disp_rd(DISP_SWAP_COUNT) != s_present_ticket)
+        return;
+    s_present_field = disp_rd(DISP_FRAME_COUNT);
+    disp_wr(DISP_SWAP_REQ, 1u);
+    s_present_retries++;
+}
 
 int board_present_request(int index, uint32_t *ticket)
 {
@@ -233,7 +250,16 @@ int board_present_request(int index, uint32_t *ticket)
        那一面必须已经不在扫描了。 */
     swaps = disp_rd(DISP_SWAP_COUNT);
     s_present_event = board_irq_frame_events();
+    s_present_field = disp_rd(DISP_FRAME_COUNT);
     disp_wr(DISP_SWAP_REQ, 1u);
+#ifdef INJECT_SW9_DROP_SWAP
+    {
+        /* 注错：每 64 次撤销一次，等同请求被场起始吞掉，验证 present_retry_lost */
+        static uint32_t n;
+        if ((n++ & 63u) == 0u)
+            disp_wr(DISP_SWAP_REQ, 0u);
+    }
+#endif
     s_present_ticket = swaps;
     s_present_pending = 1;
     *ticket = swaps;
@@ -242,8 +268,14 @@ int board_present_request(int index, uint32_t *ticket)
 
 int board_present_finished(uint32_t ticket)
 {
-    const int done = disp_present_in_bitstream() && disp_rd(DISP_SWAP_COUNT) != ticket
-                     && (!board_irq_enabled() || board_irq_frame_events() != s_present_event);
+    int done;
+
+    if (!disp_present_in_bitstream())
+        return 0;
+    if (s_present_pending && ticket == s_present_ticket)
+        present_retry_lost();
+    done = disp_rd(DISP_SWAP_COUNT) != ticket
+           && (!board_irq_enabled() || board_irq_frame_events() != s_present_event);
     if (done && s_present_pending && ticket == s_present_ticket)
         s_present_pending = 0;
     return done;
@@ -254,10 +286,17 @@ int board_present_wait(uint32_t ticket)
     const uint32_t t0 = board_cycles();
 
     while (!board_present_finished(ticket)) {
-        if ((uint32_t)(board_cycles() - t0) > DISP_POLL_LIMIT)
+        if ((uint32_t)(board_cycles() - t0) > DISP_POLL_LIMIT) {
+            s_present_pending = 0;   /* 留着它，之后每次请求都会被拒收 */
             return -1;
+        }
     }
     return 0;
+}
+
+uint32_t board_present_retries(void)
+{
+    return s_present_retries;
 }
 
 void board_present(int index)

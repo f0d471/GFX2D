@@ -9,9 +9,33 @@
 
 #ifdef __riscv
 #include "gfx_engine.h"
+#include "gfx_regs.h"
 static int s_pending;
 static int s_pending_dst;
 static uint32_t s_pending_event, s_pending_start;
+static uint32_t s_perf_cmd, s_perf_pix, s_perf_key;
+
+/* 引擎一次只执行一张表，相邻两次完成之间的 PERF 增量就是那一张表的计数，
+   所以每次完成都要取一次，丢掉一次下一张就会算成两张。
+   PERF_PIXEL 等于软件的 pixel_total - src_oob，扣掉色键跳过才与 pixel_written 同口径。 */
+static void perf_take(exec_sw_stats *st)
+{
+    uint32_t v[GFX_PERF_COUNT];
+
+    if (st != NULL)
+        exec_sw_stats_clear(st);
+    if (gfx_engine_perf_read(v, GFX_PERF_COUNT) != GFX_ENG_OK)
+        return;
+    if (st != NULL) {
+        st->cmd           = v[GFX_PERF_CMD] - s_perf_cmd;
+        st->pixel_total   = v[GFX_PERF_PIXEL] - s_perf_pix;
+        st->key_skip      = v[GFX_PERF_KEY_SKIP] - s_perf_key;
+        st->pixel_written = st->pixel_total - st->key_skip;
+    }
+    s_perf_cmd = v[GFX_PERF_CMD];
+    s_perf_pix = v[GFX_PERF_PIXEL];
+    s_perf_key = v[GFX_PERF_KEY_SKIP];
+}
 
 static void engine_error(int code, uint32_t index, uint32_t tag)
 {
@@ -40,17 +64,23 @@ int renderer_pipeline_enabled(int hw)
 }
 
 #ifdef __riscv
-static int pending_finish(uint32_t *cycles, int *presented, uint32_t *ready_time)
+static int pending_finish(exec_sw_stats *st, uint32_t *cycles, int *presented,
+                          uint32_t *ready_time)
 {
     uint32_t code = 0u, index = 0u, tag = 0u, ticket;
     int rc;
 
     *presented = -1;
+    if (st != NULL)
+        exec_sw_stats_clear(st);
     if (!s_pending) {
         *cycles = 0u;
         *ready_time = board_cycles();
         return 0;
     }
+    /* 失败的表也算收尾：留着 s_pending 会让之后每帧都再等 1 秒超时，
+       且 renderer_prepare 拒绝软复位，切后端也救不回来。 */
+    s_pending = 0;
     while (board_irq_engine_events() == s_pending_event) {
         if ((uint32_t)(board_cycles() - s_pending_start) > BOARD_HZ) {
             *ready_time = board_cycles();
@@ -60,28 +90,27 @@ static int pending_finish(uint32_t *cycles, int *presented, uint32_t *ready_time
         }
     }
     rc = gfx_engine_wait(&code, &index, &tag);
+    *ready_time = board_cycles();  /* 此刻以前是 CPU 与引擎并行的工作，不含等场 */
+    *cycles = *ready_time - s_pending_start;
+    if (rc == GFX_ENG_OK)
+        perf_take(st);
     if (rc != GFX_ENG_OK || code != 0u) {
-        *ready_time = board_cycles();
-        *cycles = *ready_time - s_pending_start;
         engine_error((rc != GFX_ENG_OK) ? rc : (int)code, index, tag);
         return -1;
     }
-    *ready_time = board_cycles();  /* 此刻以前是 CPU 与引擎并行的工作，不含等场 */
-    *cycles = *ready_time - s_pending_start;
     if (board_present_request(s_pending_dst, &ticket) != 0 ||
         board_present_wait(ticket) != 0)
         return -1;
     *presented = s_pending_dst;
-    s_pending = 0;
     return 0;
 }
 #endif
 
-int renderer_pipeline_step(const gfx_list *list, int dst, uint32_t *exec_cycles,
-                           uint32_t *ready_time, int *presented)
+int renderer_pipeline_step(const gfx_list *list, int dst, exec_sw_stats *done_st,
+                           uint32_t *exec_cycles, uint32_t *ready_time, int *presented)
 {
 #ifdef __riscv
-    if (pending_finish(exec_cycles, presented, ready_time) != 0)
+    if (pending_finish(done_st, exec_cycles, presented, ready_time) != 0)
         return -1;
     s_pending_event = board_irq_engine_events();
     s_pending_start = board_cycles();
@@ -94,6 +123,8 @@ int renderer_pipeline_step(const gfx_list *list, int dst, uint32_t *exec_cycles,
     return 0;
 #else
     (void)list; (void)dst; (void)exec_cycles; (void)ready_time; (void)presented;
+    if (done_st != NULL)
+        exec_sw_stats_clear(done_st);
     return -1;
 #endif
 }
@@ -102,7 +133,7 @@ int renderer_pipeline_flush(int *presented)
 {
 #ifdef __riscv
     uint32_t cycles, ready;
-    return pending_finish(&cycles, presented, &ready);
+    return pending_finish(NULL, &cycles, presented, &ready);
 #else
     *presented = -1;
     return 0;
@@ -129,6 +160,7 @@ int renderer_prepare(int hw, const gfx_surface_table *tab)
                                 (s->ctrl >> 12) & 0xFu) != GFX_ENG_OK)
             return -1;
     }
+    perf_take(NULL);
     board_engine_irq_enable();
 #else
     (void)hw;
@@ -162,12 +194,13 @@ int renderer_run(int hw, const gfx_surface_table *tab, const gfx_mem *mem,
         rc = gfx_engine_wait(&code, &index, &tag);
         if (rc != GFX_ENG_OK)
             goto hw_fail;
+        *cycles = board_cycles() - t0;
+        perf_take(st);
         err->code = (int)code;
         err->index = index;
         err->tag = tag;
         if (code != 0u)
             engine_error((int)code, index, tag);
-        *cycles = board_cycles() - t0;
         return (int)code;
 hw_fail:
         err->code = rc;

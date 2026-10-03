@@ -34,7 +34,8 @@
 ## 退出码
 
 0：每一步都有正面证据（烧写输出里有成功标记；OpenOCD 考察到目标、`load_image` 报了写入字节数；
-串口收到了数据，给了 `--stop-on` 时还收到了该文本）。1：任何一步缺证据。2：参数或环境有问题。
+串口收到了数据，给了 `--stop-on` 时还收到了该文本）。1：任何一步缺证据，或采集中途串口失效
+（USB 掉线，日志末尾记 `# serial lost`）。2：参数或环境有问题。
 退出码不判断程序自己的 `fail N`，那一行要看输出。
 
 ## 已验证范围
@@ -217,10 +218,18 @@ def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result,
                     result["stopped"] = True
                     break
             f.write("\n# closed %s, %d bytes\n" % (time.strftime("%H:%M:%S"), nbytes))
+    except serial.SerialException as e:
+        # USB 掉线时串口句柄失效，若不单独记下，主线程只会报成「N 秒内没收到」
+        result["read_error"] = str(e)
+        with open(out_path, "a", encoding="utf-8", newline="") as f:
+            f.write("\n# serial lost %s, %d bytes: %s\n" % (time.strftime("%H:%M:%S"), nbytes, e))
     finally:
-        if forwarder is not None or input_script:
-            sp.write(packet(0))
-        sp.close()
+        try:
+            if forwarder is not None or input_script:
+                sp.write(packet(0))
+            sp.close()
+        except serial.SerialException:
+            pass
         result["bytes"] = nbytes
         result["pre_load_bytes"] = 0 if match_from is None else match_from
 
@@ -354,7 +363,10 @@ def main():
             print("读日志失败：%s" % e)
 
         rc = 0
-        if not result.get("bytes"):
+        if result.get("read_error"):
+            print("ERROR: 采集中途串口失效（USB 掉线？）：%s" % result["read_error"], file=sys.stderr)
+            rc = 1
+        elif not result.get("bytes"):
             print("ERROR: 串口 0 字节。先查串口号（--list-ports）、比特流是否已加载", file=sys.stderr)
             rc = 1
         elif args.stop_on and not result.get("stopped"):
@@ -450,7 +462,10 @@ def main():
         print("读日志失败：%s" % e)
 
     rc = 0 if loaded else 1
-    if not result.get("bytes"):
+    if result.get("read_error"):
+        print("ERROR: 采集中途串口失效（USB 掉线？）：%s" % result["read_error"], file=sys.stderr)
+        rc = 1
+    elif not result.get("bytes"):
         print("ERROR: 串口 0 字节。先查串口号（--list-ports）、比特流是否已加载", file=sys.stderr)
         rc = 1
     elif args.stop_on and not result.get("stopped"):

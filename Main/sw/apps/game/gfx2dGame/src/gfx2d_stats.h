@@ -72,7 +72,6 @@ void stats_window(stats_state *s, uint32_t mode, uint32_t exec_hw, uint32_t ovf_
 
 /* 这一帧要不要抽样（这一秒还没有抽样帧时要）。 */
 int  stats_want_sample(const stats_state *s);
-int  stats_want_rollup(const stats_state *s);
 
 /* 抽样：普查一张命令表（由调用方给的表面表与记录），连同执行器统计与其它量记下。 */
 void stats_sample_list(stats_state *s, const gfx_surface_table *t, const gfx_cmd *list, uint32_t used,

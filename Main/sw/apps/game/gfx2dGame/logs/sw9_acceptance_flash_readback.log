@@ -1,0 +1,20 @@
+Connecting to JTAG_TAP: efx_ti
+Connecting to JTAG_TAP: efx_ti
+Flash device: Winbond W25Q64 8 MiB (JEDEC ID: 0xEF6017) @ JTAG freq 6.0 MHz
+Reading 8192 KiB from flash @ 0x00000000 ...
+Finished read in 32 seconds
+PASS: independent full Flash readback; active bitstream and app equal inputs; app tail FF; assets and untouched regions preserved
+{
+  "backup_text_sha256": "139a54ed82189589eca1ea128bf1630756ef63dd3521cdcec0c877a1002e44be",
+  "backup_decoded_sha256": "864419a59cc53ee3c6edaa79afbaa16064ea880ee3081b0f63e671a0d2df4ea3",
+  "active_hex_text_sha256": "baca88ec542ad6f21d90904baea11ae82b911eb01005c73b181005487b382f4e",
+  "active_decoded_sha256": "28a22a7001a1dd0190355bd5a238c3c34b78687f722c14e2fa3c0f55041b6db6",
+  "active_bytes": 785759,
+  "app_sha256": "dd43775236a67937009ccddea31d97cd5366e13573bc91567632ca324218ce5e",
+  "app_bytes": 83974,
+  "asset_sha256": "90c9a42af5cac86050c50d05ec70c719863f148905acd10ef803a04ee2e806dc",
+  "asset_bytes": 2840320,
+  "after_decoded_sha256": "cf886567748c445338efbb3bac970f23c516db7fa4c346238fbf26dac5018dd8",
+  "after_text_sha256": "67ec402ba440df88c91dfba5ed555c8d86f7a71320eeae848e88b8d571dc9613",
+  "untouched_regions_equal": true
+}

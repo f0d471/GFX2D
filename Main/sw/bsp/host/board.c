@@ -517,6 +517,8 @@ int board_present_wait(uint32_t ticket)
     return 0;
 }
 
+uint32_t board_present_retries(void) { return 0u; }
+
 void board_present(int index)
 {
     uint32_t ticket;

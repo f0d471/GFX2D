@@ -1,5 +1,5 @@
-# COM11 @ 115200 8N1, opened 15:59:11
-assetTest SW5
+# COM11 @ 115200 8N1, opened 21:51:46
+gfx2dGame MODES
 gfx2dGame MODES
 # --- 程序已加载，以下才是它的输出 ---
 pak 2840320 b370ba0a
@@ -11,9 +11,9 @@ csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,c
 err present v 0
 mode 2 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
 err present v 1
-csvsum,2,53,52,38920903,38920903,0,0
-diag fifo_min 347 samples 2 zero 0 under 0 irqA 0 irqB 0 faults 0
+csvsum,2,59,57,38761241,38761241,0,0
+diag fifo_min 347 samples 2 zero 0 under 0 irqA 0 irqB 0 faults 0 swap_retry 0
 fail 2
 done
 
-# closed 15:59:26, 770 bytes
+# closed 21:52:01, 785 bytes

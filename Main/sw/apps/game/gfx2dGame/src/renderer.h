@@ -12,8 +12,10 @@ int renderer_run(int hw, const gfx_surface_table *tab, const gfx_mem *mem,
                  exec_sw_stats *st, uint32_t *cycles);
 int renderer_perf_read(uint32_t values[9]);
 int renderer_pipeline_enabled(int hw);
-int renderer_pipeline_step(const gfx_list *list, int dst, uint32_t *exec_cycles,
-                           uint32_t *ready_time, int *presented);
+/* 先收尾上一张表（done_st、exec_cycles、presented 都属于它），再提交 list。
+   硬件的 done_st 由引擎 PERF 增量换算，没有在途表时清零。 */
+int renderer_pipeline_step(const gfx_list *list, int dst, exec_sw_stats *done_st,
+                           uint32_t *exec_cycles, uint32_t *ready_time, int *presented);
 int renderer_pipeline_flush(int *presented);
 int renderer_compare_shadow(int dst, int shadow, const gfx_surface_table *tab,
                             const gfx_mem *mem, exec_sw_state *es,

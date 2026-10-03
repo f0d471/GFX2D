@@ -1,5 +1,5 @@
-# COM11 @ 115200 8N1, opened 15:27:23
-assetTest SW5
+# COM11 @ 115200 8N1, opened 22:56:42
+gfx2dGame MODES
 gfx2dGame STG
 # --- 程序已加载，以下才是它的输出 ---
 pak 2840320 b370ba0a
@@ -18,4 +18,4 @@ end frames 10 hits 0 over 0
 fail 0
 done
 
-# closed 15:27:41, 878 bytes
+# closed 22:57:00, 880 bytes

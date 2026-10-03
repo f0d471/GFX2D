@@ -29,6 +29,7 @@ def main():
     board = "check_sw9_board.py"
     run(board, "--reference", pc, "--board", LOG / "sw9_replay_sw600.log",
         "--frames", 600)
+    print("HISTORICAL: 旧源码的 9208 帧日志；修复后完整硬件回放未完成重跑", flush=True)
     run(board, "--reference", pc, "--board", LOG / "sw9_replay_hw9208.log",
         "--frames", 9208, "--full")
     run(board, "--reference", pc, "--board", LOG / "sw9_compare_normal.log",
@@ -60,11 +61,11 @@ def main():
         "--status", "BELOW_N0")
     run("check_sw9_flash.py", LOG / "sw9_flash_boot.log")
 
-    keys = body(MAIN / "sw/apps/test/sw9InputTest/sw9_input.log")
-    for marker in ("keys frame 11 value 00000080 pressed 00000080",
-                   "keys frame 12 value 00000000 pressed 00000000",
-                   "keys frame 33 value 00000040 pressed 00000040",
-                   "keys frame 51 value 00000000 pressed 00000000"):
+    keys = body(MAIN / "sw/apps/test/sw9InputTest/logs/sw9_input.log")
+    for marker in ("keys frame 15 value 00000080 pressed 00000080",
+                   "keys frame 16 value 00000000 pressed 00000000",
+                   "keys frame 36 value 00000040 pressed 00000040",
+                   "keys frame 54 value 00000000 pressed 00000000"):
         need(marker in keys, "串口短按或超时: " + marker)
     switch = body(LOG / "sw9_switch_board.log")
     seq = ("mode 2 enter", "mode 3 enter", "mode 1 enter",
@@ -77,11 +78,30 @@ def main():
     no_clear = body(LOG / "sw9_inject_skip_clear_b.log")
     need("err present v 0" in no_a and "irqA 0" in no_a and "fail 2" in no_a,
          "禁用场中断没有让呈现超时")
+    # 超时的那张表算收尾，退出时的 flush 不再重等一次，所以只记 1 次失败
     need("engine err code 4294967295" in no_b and "irqB 0" in no_b and
-         "fail 2" in no_b, "禁用引擎中断没有让执行超时")
+         "fail 1" in no_b and "engine flush err" not in no_b,
+         "禁用引擎中断没有让执行超时，或超时之后流水没有收尾")
     need("csvh," in no_clear and "done" not in no_clear,
          "漏清引擎中断没有使程序停住")
-    print("PASS: SW9 入库日志全部复核通过")
+
+    drop = LOG / "sw9_inject_drop_swap.log"
+    run(perf, drop)
+    retry = [line.split() for line in body(drop).splitlines()
+             if line.startswith("diag ")]
+    need(len(retry) == 1 and "swap_retry" in retry[0] and
+         int(retry[0][retry[0].index("swap_retry") + 1]) > 0,
+         "撤销交换请求的注错没有触发 BSP 重写")
+    lost = body(LOG / "sw9_perf_hw_nmax_swap_lost.log")
+    need("err exec v 4294967295" in lost and "swap_retry" not in lost and
+         "fail 0" not in lost, "修复前的交换丢失反例日志不符")
+    boot = body(LOG / "sw9_acceptance_flash_boot.log")
+    need("gfx2dGame MODES" in boot and "pak 2840320 b370ba0a" in boot and
+         "mode 2 enter" in boot and ",game,hw," in boot and
+         "# serial lost" not in boot and "engine err" not in boot and
+         not any(line.startswith("err ") for line in boot.splitlines()),
+         "验收固化后的硬件交互游戏没有正常从 Flash 启动")
+    print("PASS: SW9 已完成项目与历史日志复核通过（修复后 9208 帧重跑未完成）")
 
 
 if __name__ == "__main__":

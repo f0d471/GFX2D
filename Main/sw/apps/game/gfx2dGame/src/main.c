@@ -489,10 +489,11 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
         hud.hw_fps       = s_backend_fps[1];
         hud.hw_fps_valid = (int)s_backend_fps_valid[1];
 #else
+        /* 只有一个窗口，实测值按当前后端归栏；判据只走软件，HUD 与 SW6 期望日志不变 */
         hud.sw_fps       = s_sw_fps;
-        hud.sw_fps_valid = s_fps_valid;
-        hud.hw_fps       = 0u;
-        hud.hw_fps_valid = 0;
+        hud.sw_fps_valid = s_fps_valid && s_backend == 0u;
+        hud.hw_fps       = s_sw_fps;
+        hud.hw_fps_valid = s_fps_valid && s_backend != 0u;
 #endif
         hud.cyc_in     = s_last_in;
         hud.cyc_bld    = s_last_bld;
@@ -515,8 +516,7 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
     /* --- 执行 --- */
     if (renderer_pipeline_enabled((int)s_backend)) {
         int presented;
-        exec_sw_stats_clear(&st);
-        rc = renderer_pipeline_step(&l, dst, &d_exe, &s_last_tp, &presented);
+        rc = renderer_pipeline_step(&l, dst, &st, &d_exe, &s_last_tp, &presented);
         if (presented >= 0)
             s_shown = presented;
     } else {
@@ -1079,9 +1079,10 @@ static int run_modes(void)
                                  ? s_last_in + s_last_bld
                                  : s_mout.cyc_auto + s_mout.cyc_logic + s_mout.cyc_build;
 #if SW9_PERF
+            /* 每帧都读：先问「这一帧会不会出行」再读，场边界落在两次读场号之间时
+               这一行会拿到窗口开头的计数，忙周期跟着错两行 */
             uint32_t hw_end[9];
-            if (s_backend != 0u && stats_want_rollup(&s_stats) &&
-                renderer_perf_read(hw_end) == 0)
+            if (s_backend != 0u && renderer_perf_read(hw_end) == 0)
                 hw_rollup = hw_end;
 #endif
         stats_frame(&s_stats, ft, cpu_cyc, stg_modes_overflow(), hw_rollup);
@@ -1148,6 +1149,8 @@ static int run_modes(void)
         core_out_u32(&o, board_irq_engine_events());
         core_out_str(&o, " faults ");
         core_out_u32(&o, board_irq_faults());
+        core_out_str(&o, " swap_retry ");
+        core_out_u32(&o, board_present_retries());
         core_out_str(&o, "\r\n");
         log_line(buf);
     }
