@@ -346,6 +346,8 @@ wsl -e bash -c 'cd sw/apps/game/gfx2dGame && SDL_VIDEODRIVER=dummy GFX2D_UNPACED
 
 ## SW9 板上移植
 
+SW9 于 2026-10-04 按本次范围验收归档；完整硬件回放重跑与现场观察的边界由 sw 第 08 章第六节维护。
+
 板上 `gfx2dGame` 已接入真实硬件引擎。普通构建保留逐帧 CRC 对账；`PERF=1` 生成带
 `-perf` 后缀的性能 BIN，逐帧整屏 CRC 停用，每秒一次的普查、CSV 与硬件 `PERF_*` 计数保留。
 硬件性能路径交替使用两张命令表，CPU 组下一帧时引擎执行上一帧；引擎中断确认完成，
