@@ -51,6 +51,7 @@ OPT      ?= 2
 BITS     ?= 64
 SAN      ?= 0
 INJECT   ?=
+PERF     ?= 0
 EXTRA_CFLAGS ?=
 
 # SW6：录像（`.g2dr`）在构建时转成 C 数组。板上没有文件系统，SW4 定这个格式
@@ -89,6 +90,10 @@ BASE += -DINJECT_$(INJECT)
 NAME := $(APP)-inject
 else
 NAME := $(APP)
+endif
+ifeq ($(PERF),1)
+BASE += -DSW9_PERF=1
+NAME := $(NAME)-perf
 endif
 
 # 头文件依赖：-MMD 让 gcc 为每个目标文件写一份同名的 .d，下面 include 进来。

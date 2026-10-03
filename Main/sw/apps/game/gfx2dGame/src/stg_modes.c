@@ -24,6 +24,7 @@
 #include "game/stg_press.h"
 
 #include "stg_slots.h"
+#include "renderer.h"
 
 /* --- 状态 ---------------------------------------------------------------- */
 
@@ -36,11 +37,17 @@ static uint32_t   s_idle;           /* 模式 2：连续无按键的帧数（自
 #define PRESS_8     1u              /* 再搜 8x8 小圆弹 */
 #define PRESS_DONE  2u              /* 两遍都搜完，停在 8x8 的结果那一档 */
 #define PRESS_FIXED 3u              /* -DGFX2D_PRESS_KNOB=<K>：不搜索，16x16、旋钮固定为 K */
+#ifndef GFX2D_PRESS_PREWARM_STEPS
+#define GFX2D_PRESS_PREWARM_STEPS 0
+#endif
 
 static nmax_state      s_nmax;
 static stg_press_clock s_clock;
 static uint32_t        s_press_stage;
 static uint32_t        s_press_nmax[2];     /* 两遍的结果（N_max），HUD 用 */
+#if SW9_PERF
+static int             s_press_prime;       /* 流水切段后的首帧只预热，不喂搜索器 */
+#endif
 static char            s_press_text[32];    /* HUD 段名那一行 */
 static logq           *s_log;               /* 日志队列；NULL 时直接 board_puts */
 
@@ -164,10 +171,14 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     const uint32_t   idx = (dst == STG_SLOT_FB1) ? 1u : 0u;
     gfx_list         l;
     stg_draw_cfg     cfg;
+#if !SW9_PERF || !GFX2D_PRESS_CLOCK
     gfx_census_state cs;
+#endif
     gfx_census       cc;
     exec_sw_stats    xs;
+#if !SW9_PERF || !GFX2D_PRESS_CLOCK
     uint32_t         e;
+#endif
     int              rc;
     uint32_t         t0 = board_cycles();
 
@@ -178,29 +189,48 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     if (l.rejected != 0u || l.overflow != 0u || o->st.rejected != 0u)
         say_err("list rejected/overflow", l.rejected + l.overflow + o->st.rejected);
 
-    gfx_census_reset(&cs);
     gfx_census_clear(&cc);
+#if !SW9_PERF || !GFX2D_PRESS_CLOCK
+    gfx_census_reset(&cs);
     if (gfx_census_run(&cs, ctx->tab, l.buf, l.used, &cc) != 0)
         say_err("census", 0u);
     for (e = 0u; e <= GFX_EQ_MAX; e++)
         if (cc.cmd_by_eq[e] != o->st.by_eq[e])
             say_err("census eq", e);
+#endif
     if (census != NULL)
         *census = cc;
     o->cyc_build = board_cycles() - t0;             /* 组帧含普查自查 */
 
-    exec_sw_stats_clear(&xs);
-    t0 = board_cycles();
-    rc = exec_sw_run(ctx->es, ctx->tab, ctx->mem, l.buf, l.used, l.used, &xs, ctx->err);
-    o->cyc_exec = board_cycles() - t0;
+    o->presented_dst = -1;
+    if (renderer_pipeline_enabled(ctx->hw)) {
+        exec_sw_stats_clear(&xs);
+        rc = renderer_pipeline_step(&l, dst, &o->cyc_exec,
+                                    &o->t_present, &o->presented_dst);
+    } else {
+        rc = renderer_run(ctx->hw, ctx->tab, ctx->mem, ctx->es, ctx->err,
+                          &l, &xs, &o->cyc_exec);
+    }
     if (rc != GFX_OK)
         say_err("exec", (uint32_t)rc);
     o->list_idx = idx;
     o->used     = l.used;
     o->xs       = xs;
-    o->crc       = stg_modes_frame_crc(board_fb(dst));
-    o->t_present = board_cycles();
-    board_present(dst);
+#if SW9_PERF
+    o->crc = 0u;
+#else
+    if (ctx->hw)
+        board_dcache_invalidate_all();
+    o->crc = stg_modes_frame_crc(board_fb(dst));
+#endif
+    if (!renderer_pipeline_enabled(ctx->hw)) {
+        uint32_t ticket;
+        o->t_present = board_cycles();
+        if (board_present_request(dst, &ticket) != 0 || board_present_wait(ticket) != 0)
+            say_err("present", (uint32_t)dst);
+        else
+            o->presented_dst = dst;
+    }
 }
 
 /* --- 模式 2：游戏 -------------------------------------------------------- */
@@ -257,6 +287,9 @@ static void press_begin(uint32_t stage)
     char     buf[240];
 
     s_press_stage = stage;
+#if SW9_PERF
+    s_press_prime = 1;
+#endif
     say_line((stage == PRESS_16) ? "nmax load 16x16" : "nmax load 8x8");
     stg_game_press_begin(&s_game, (stage == PRESS_16) ? STG_KIND_ROUND16 : STG_KIND_SMALL8);
     nmax_cfg_default(&cfg);
@@ -282,6 +315,14 @@ void stg_mode_press_enter(void)
         s_press_stage = PRESS_FIXED;
         stg_game_press_begin(&s_game, STG_KIND_ROUND16);
         stg_game_set_knob(&s_game, (uint32_t)GFX2D_PRESS_KNOB);
+#if GFX2D_PRESS_PREWARM_STEPS > 0
+        for (uint32_t i = 0u; i < (uint32_t)GFX2D_PRESS_PREWARM_STEPS; i++)
+            stg_game_step(&s_game, 0u);
+        core_out_init(&o, buf, (uint32_t)sizeof buf);
+        core_out_str(&o, "press prewarm steps ");
+        core_out_u32(&o, (uint32_t)GFX2D_PRESS_PREWARM_STEPS);
+        say_line(buf);
+#endif
         core_out_init(&o, buf, (uint32_t)sizeof buf);
         core_out_str(&o, "press fixed knob ");
         core_out_u32(&o, (uint32_t)GFX2D_PRESS_KNOB);
@@ -330,6 +371,12 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
 #endif
     if (s_press_stage == PRESS_DONE || s_press_stage == PRESS_FIXED)
         return;
+#if SW9_PERF
+    if (renderer_pipeline_enabled(ctx->hw) && s_press_prime) {
+        s_press_prime = 0;
+        return;
+    }
+#endif
 
     ev = nmax_feed(&s_nmax, e, o->st.act.total, cyc);
     if (ev & NMAX_EV_PROBE) {
@@ -341,7 +388,11 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
     if (ev & NMAX_EV_DONE) {
         (void)nmax_format_result(&s_nmax, buf, (uint32_t)sizeof buf);
         say_line(buf);
-        if (s_nmax.status != NMAX_OK)
+        if (s_nmax.status != NMAX_OK
+#if GFX2D_PRESS_CLOCK
+            && s_nmax.status != NMAX_BELOW_N0
+#endif
+        )
             say_err("nmax status", s_nmax.status);
         s_press_nmax[s_press_stage] = s_nmax.n_max;
         if (s_press_stage == PRESS_16) {

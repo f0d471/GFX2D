@@ -18,6 +18,10 @@
 
 #include "gfx/gfx.h"
 
+#ifndef SW9_PERF
+#define SW9_PERF 0
+#endif
+
 #if defined(STG_FIELD)
 #define STG_FIELD_MODE (STG_FIELD)
 #else
@@ -31,6 +35,7 @@ typedef struct {
     exec_sw_error           *err;
     gfx_cmd                 *cmds[2];       /* 两张命令表，按全局帧序号的奇偶轮换 */
     uint32_t                 cap[2];
+    int                      hw;
 } stg_main_ctx;
 
 /* fail0 是启动阶段已经记下的失败数（素材包对账不符等）。返回 0 表示 fail 0。 */

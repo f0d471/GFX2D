@@ -3,6 +3,7 @@
 | 文件 | 用途 |
 | --- | --- |
 | `board_run.py` | 烧比特流、先开串口、复位并加载程序、回收串口输出，一条命令走完；也做调试通路检查、寄存器读写与「从 Flash 启动」的采集 |
+| `input_forward.py` | SW9 的两字节按键协议、Windows 键盘与 XInput 手柄采样；由 `board_run.py --forward-input` 调用 |
 | `gfx2d_debug.cfg` | 本板用的 OpenOCD 配置，修掉官方 cfg 在本板上的两处对不上，`board_run.py` 用它 |
 | `bin2hex.py` | 把程序 bin 转成 Efinity Programmer 写 Flash 用的 hex 文本 |
 | `make_flash_image.py` | 比特流 + 程序 + 素材包合成一个 Flash 镜像，并做回环校验（不烧录） |
@@ -21,11 +22,21 @@ set PYTHONHOME=<EFINITY>\python311
 | `--check-only` | 调试通路检查：连开两次 OpenOCD 会话各读一次 PC（`doc/开发环境.md` 0.6 节第 5 步） |
 | `--cmd "<OpenOCD 命令>"` | 不加载程序，复位后执行命令，可给多个。回归表的 APB 探针：`--cmd "mdw 0xf8100000 3"`；按键：`--cmd "mdw 0xf8016000"` |
 | `--list-ports` | 列串口 |
+| `--forward-input` | 在同一串口会话转发启动时前台窗口的键盘与第一个 XInput 手柄；状态变化即发包，每 100 ms 心跳，退出前发全松 |
+| `--input-script "100:128,101:0"` | 按相对加载完成时间发送诊断按键位图；用于检验慢帧里的短按、切模式与切后端 |
+| `--input-script-after "csvh,"` | 脚本从本次程序输出指定文本后开始计时；游戏加载素材较慢时，用表头作起点，避免把多个按键挤在第一帧 |
 
 `--flash-boot` 与 `--bin` 的区别只有一处：`--bin` 走 JTAG 把程序写进 DDR，
 `--flash-boot` 让板子自己从 Flash 拷。**判 Flash 启动路径必须用后者**——
 `--bin` 会把要验的那一段（bootloader 从 Flash 拷贝）绕过去。
 它不用 OpenOCD：配置完 FPGA 的那一刻 SoC 就复位并开始打印，所以串口必须先开。
+
+SW9 的转发位图与 `bsp/include/board.h` 一致：方向键或 WASD 为方向，空格为炸弹，
+左 Shift 为慢速，Tab 为软硬件切换，数字键 1～3 为三种模式；手柄方向键/左摇杆、A、左肩键、Start
+对应方向、炸弹、慢速、切换。实体 KEY0～KEY3（丝印 SW0～SW3）依次为左、下、上、右。
+每个串口包是两个字节：首字节 `0x80 | k[6:0]`；次字节高位为 0，`[6:3]` 为
+`(k ^ (k >> 4) ^ (k >> 8)) & 0xf`，`[2:0]` 为 `k[9:7]`。板上每帧读空接收 FIFO，
+保留同帧按下沿，300 ms 无有效包即释放转发键；实体键不受此超时影响。
 
 ```
 set PYTHONHOME=<EFINITY>\python311

@@ -463,18 +463,18 @@ static void wait_next_field(uint32_t f0)
     }
 }
 
-void board_present(int index)
+static int s_present_pending;
+static uint32_t s_present_ticket, s_present_field;
+
+int board_present_request(int index, uint32_t *ticket)
 {
     uint32_t *fb;
-    uint32_t  f0;
 
-    /* 关窗之后不再做任何等待，否则退出前每一帧还要各挂一场。 */
+    if (ticket == NULL || index < 0 || index >= BOARD_FB_COUNT || s_present_pending)
+        return -1;
+    *ticket = s_swaps;
     if (s_quit)
-        return;
-    /* 帧缓冲号越界与板上同处理：直接返回，不等场也不计切换。
-       板上是 `index < 0 || index >= BOARD_FB_COUNT` 就返回。 */
-    if (index < 0 || index >= BOARD_FB_COUNT)
-        return;
+        return 0;
 
     fb = board_fb(index);
     if (fb != NULL && s_snap_n != 0u)
@@ -490,13 +490,56 @@ void board_present(int index)
        这一帧的场数增量是 0，应用据此知道「不是掉帧，是退出」。 */
     pump_events();
     if (s_quit)
-        return;
+        return 0;
 
-    if (!s_unpaced) {
-        f0 = field_index();
-        wait_next_field(f0);
+    s_present_ticket = s_swaps;
+    s_present_field = field_index();
+    s_present_pending = 1;
+    return 0;
+}
+
+int board_present_finished(uint32_t ticket)
+{
+    if (s_quit)
+        return 1;
+    if (s_present_pending && ticket == s_present_ticket &&
+        (s_unpaced || field_index() != s_present_field)) {
+        s_swaps++;
+        s_present_pending = 0;
     }
-    s_swaps++;
+    return s_swaps != ticket;
+}
+
+int board_present_wait(uint32_t ticket)
+{
+    while (!board_present_finished(ticket))
+        wait_next_field(s_present_field);
+    return 0;
+}
+
+void board_present(int index)
+{
+    uint32_t ticket;
+    if (board_present_request(index, &ticket) == 0)
+        (void)board_present_wait(ticket);
+}
+
+int board_irq_init(void) { return 0; }
+int board_irq_enabled(void) { return 0; }
+void board_engine_irq_enable(void) { }
+uint32_t board_irq_frame_events(void) { return 0u; }
+uint32_t board_irq_engine_events(void) { return 0u; }
+uint32_t board_irq_faults(void) { return 0u; }
+int board_display_diag(uint32_t *frame, uint32_t *fifo_min,
+                       uint32_t *zero_hits, uint32_t *under_beats)
+{
+    if (frame == NULL || fifo_min == NULL || zero_hits == NULL || under_beats == NULL)
+        return -1;
+    *frame = 0u;
+    *fifo_min = 0u;
+    *zero_hits = 0u;
+    *under_beats = 0u;
+    return 0;
 }
 
 void board_wait_frame(void)

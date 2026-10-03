@@ -1,0 +1,16 @@
+gfx2dGame STG
+pak 2840320 b370ba0a
+seg 0 READY
+g 0 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 865e5e36
+g 1 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 0ae763f2
+g 2 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc f41a8294
+g 3 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc b18862ed
+g 4 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 335e659d
+g 5 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc febdd9ea
+g 6 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 1d247e01
+g 7 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc ac848183
+g 8 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc b5071109
+g 9 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc e1acec37
+end frames 10 hits 0 over 0
+fail 0
+done

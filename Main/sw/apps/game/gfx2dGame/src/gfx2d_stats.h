@@ -8,7 +8,8 @@
 *           csvsum,frames,fields,drops,ft_max,ft_p99,rows,lines_dropped
 *         每 60 场（board_frame_count 的增量）一行，t 是行号。fps 是这 60 场里的呈现次数，drop = 场数增量 - 呈现次数；
 *         n_active、n_bullet、cmd、pixel、key_skip、按方程的两组列与四个 cyc_* 取这一秒的抽样帧（这一秒的第一帧）：
-*         普查（lib/gfx/census）与执行器的统计都取那一帧的，普查的耗时不进帧时间。overflow 是这一秒敌弹池溢出计数的增量，
+*         软件行的执行器统计来自那一帧；硬件行的 cmd/pixel 来自同一表的抽样普查，key_skip 填 0 表示无逐帧硬件值，
+*         应读追加的 hw_key_cum 累计列。普查的耗时不进帧时间。overflow 是这一秒敌弹池溢出计数的增量，
 *         ft_max 是这一秒逐帧帧时间的最大值。切换模式时这一秒的窗口清零，下一行从进入新模式的那一帧重新计；
 *         汇总行的帧时间直方图（F = BOARD_HZ / 60）覆盖全程。
 *
@@ -41,6 +42,8 @@ typedef struct {
     uint32_t      n_bullet;
     exec_sw_stats xs;
     gfx_census    cc;
+    uint32_t      hw_perf[9];     /* 硬件寄存器累计值，与普查像素分开 */
+    int           hw_real;
     uint32_t      cyc_logic, cyc_build, cyc_exec, cyc_auto;
 } stats_sample;
 
@@ -54,6 +57,9 @@ typedef struct {
     /* 这一秒的窗口 */
     uint32_t     mode, exec_hw;
     uint32_t     win_field0, win_swap0, win_ovf0, win_ft_max;
+    uint64_t     win_cpu_sum;
+    uint32_t     win_frames, hw_busy_prev;
+    int          have_hw_busy_prev;
     int          have_sample;
     stats_sample sample;
 } stats_state;
@@ -66,13 +72,15 @@ void stats_window(stats_state *s, uint32_t mode, uint32_t exec_hw, uint32_t ovf_
 
 /* 这一帧要不要抽样（这一秒还没有抽样帧时要）。 */
 int  stats_want_sample(const stats_state *s);
+int  stats_want_rollup(const stats_state *s);
 
 /* 抽样：普查一张命令表（由调用方给的表面表与记录），连同执行器统计与其它量记下。 */
 void stats_sample_list(stats_state *s, const gfx_surface_table *t, const gfx_cmd *list, uint32_t used,
                        const stats_sample *other);
 
 /* 一帧结束：帧时间进窗口与直方图；满 60 场就出一行（ovf_now 是敌弹池溢出计数的当前值）。 */
-void stats_frame(stats_state *s, uint32_t ft_cyc, uint32_t ovf_now);
+void stats_frame(stats_state *s, uint32_t ft_cyc, uint32_t cpu_cyc,
+                 uint32_t ovf_now, const uint32_t *hw_perf_end);
 
 /* 运行结束：写汇总行。 */
 void stats_end(stats_state *s);

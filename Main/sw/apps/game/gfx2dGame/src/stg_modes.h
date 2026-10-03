@@ -55,6 +55,7 @@ typedef struct {
     exec_sw_stats   xs;         /* 执行器的统计 */
     uint32_t        cyc_logic, cyc_build, cyc_exec;     /* 推进、组帧、执行三段的周期数 */
     uint32_t        t_present;  /* 发出呈现请求前一刻的 board_cycles()：帧时间的终点（sw 第 07 章 3.4 节，不含等场） */
+    int             presented_dst; /* 流水线中本帧确认呈现的上一张图；-1 表示正在预热 */
     uint32_t        cyc_auto;   /* 自动驾驶（接管判断与选方向）的周期数；模式 3 为 0 */
     uint32_t        auto_on;    /* 这一帧由自动驾驶给按键 */
 } stg_mode_out;

@@ -1,0 +1,22 @@
+# COM11 @ 115200 8N1, opened 15:58:41
+assetTest SW5
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_autoengine err code 4294967295 index 0 tag 0
+,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3engine err code 4294967295 index 0 tag 0
+engine flush err
+,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+err exec v 4294967295
+csv,0,game,hw,0,61,0,0,0,196,377982,0,4294873969,11608,478642,0,261,192,2,0,0,0,0,2,334782,43200,0,0,0,0,196,377982,10354,2155,9612,25602,99668,78143,304925,pipeline,warming,510514,0,61,0
+csvsum,2,61,61,4294873969,4294873969,1,0
+diag fifo_min 512 samples 2 zero 0 under 0 irqA 494 irqB 0 faults 0
+fail 2
+done
+
+# closed 15:58:55, 1056 bytes

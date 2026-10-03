@@ -24,5 +24,6 @@
 | 文件 | 说明 |
 | --- | --- |
 | `flash_20260916_W25Q64_before_bootSizeTest.hex` | 2026-09-16 写 bootSizeTest 之前的出厂内容。`0x000000`~`0x0C74E2` 是摄像头转 HDMI 的演示比特流，其余全为 `0xFF` |
+| `flash_20261003_W25Q64_before_SW9.hex` | 2026-10-03 写 SW9 最终交互程序前的整片内容；解码为 8 MiB，素材分区与当前 `assets.pak` 逐字节相同。文本文件 SHA256 `4ade2808b5d71a375e281efeefbd40b923eb0dc54d55361935ce560639a2bf47` |
 
 备份格式与 Programmer 的 hex 相同，可以原样写回。恢复方法与读写命令见 `doc/开发环境.md` 第 8 节。

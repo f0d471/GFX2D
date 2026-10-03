@@ -60,6 +60,7 @@
 #include "stg_main.h"
 #include "stg_modes.h"
 #include "stg_slots.h"
+#include "renderer.h"
 
 /* --- 全局状态（都是静态的，不用 malloc）--------------------------------- */
 
@@ -73,6 +74,10 @@ static uint32_t          s_cmd_cap[2];
 static sw6_scene_a       s_a;
 static sw6_scene_b       s_b;
 static uint32_t          s_fail;
+static uint32_t          s_backend;       /* 0 软件，1 硬件；PC 的 1 仍模拟软件 */
+#if !SW6_MODE_JUDGE || SW9_PERF
+static uint32_t          s_backend_fps[2], s_backend_fps_valid[2];
+#endif
 
 /* 上一帧最终的统计与三段耗时：HUD 显示的就是它们 */
 static int      s_prev_valid;
@@ -416,11 +421,13 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
     sw6_build_stat  fs;
     sw6_hud_in      hud;
     uint32_t        hud_bad0, t0, d_in, d_bld, d_exe, n_field, k_field, idx;
+#if !SW9_PERF
     uint32_t       *fb;
+#endif
     int             rc;
 
     /* 双缓冲的不变量：不往正在扫描的那一面上画 */
-    if (dst == s_shown) {
+    if (!renderer_pipeline_enabled((int)s_backend) && dst == s_shown) {
         say2("fb err frame/dst=", frame, (uint32_t)dst);
         s_fail++;
     }
@@ -476,8 +483,17 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
 
         hud.n          = n_field;
         hud.k          = k_field;
+#if SW9_PERF
+        hud.sw_fps       = s_backend_fps[0];
+        hud.sw_fps_valid = (int)s_backend_fps_valid[0];
+        hud.hw_fps       = s_backend_fps[1];
+        hud.hw_fps_valid = (int)s_backend_fps_valid[1];
+#else
         hud.sw_fps       = s_sw_fps;
         hud.sw_fps_valid = s_fps_valid;
+        hud.hw_fps       = 0u;
+        hud.hw_fps_valid = 0;
+#endif
         hud.cyc_in     = s_last_in;
         hud.cyc_bld    = s_last_bld;
         hud.cyc_exe    = s_last_exe;
@@ -497,10 +513,16 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
     d_bld = board_cycles() - t0;
 
     /* --- 执行 --- */
-    exec_sw_stats_clear(&st);
-    t0 = board_cycles();
-    rc = exec_sw_run(&s_es, &s_tab, &s_mem, l.buf, l.used, l.used, &st, &s_err);
-    d_exe = board_cycles() - t0;
+    if (renderer_pipeline_enabled((int)s_backend)) {
+        int presented;
+        exec_sw_stats_clear(&st);
+        rc = renderer_pipeline_step(&l, dst, &d_exe, &s_last_tp, &presented);
+        if (presented >= 0)
+            s_shown = presented;
+    } else {
+        rc = renderer_run((int)s_backend, &s_tab, &s_mem, &s_es, &s_err,
+                          &l, &st, &d_exe);
+    }
     if (rc != GFX_OK) {
         say2("exec err code/index=", (uint32_t)rc, s_err.index);
         s_fail++;
@@ -520,11 +542,15 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
     rec.cyc_bld = d_bld;
     rec.cyc_exe = d_exe;
 
+#if !SW9_PERF
+    if (s_backend != 0u)
+        board_dcache_invalidate_all();
     fb = board_fb(dst);
     rec.crc  = sw6_crc_full(fb);
     rec.scrc = sw6_crc_scene(fb);
     rec.hcrc = sw6_crc_hud(fb);
     sw6_log_frame(&rec);
+#endif
 
     s_last_in    = d_in;
     s_last_bld   = d_bld;
@@ -537,9 +563,16 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
     s_prev_valid = 1;
 
     /* --- 呈现：它自己等掉一场 --- */
-    s_last_tp = board_cycles();
-    board_present(dst);
-    s_shown = dst;
+    if (!renderer_pipeline_enabled((int)s_backend)) {
+        uint32_t ticket;
+        s_last_tp = board_cycles();
+        if (board_present_request(dst, &ticket) != 0 || board_present_wait(ticket) != 0) {
+            say2("present err frame/dst=", frame, (uint32_t)dst);
+            s_fail++;
+        } else {
+            s_shown = dst;
+        }
+    }
     s_seq++;
 
     /* SW FPS 的窗口：累加整帧周期，满一秒结算一次（board_cycles 是 32 位回绕的，
@@ -549,6 +582,10 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
         const uint32_t now = board_swap_count();
 
         s_sw_fps     = now - s_fps_swaps0;
+#if SW9_PERF
+        s_backend_fps[s_backend] = s_sw_fps;
+        s_backend_fps_valid[s_backend] = 1u;
+#endif
         s_fps_swaps0 = now;
         s_fps_valid  = 1;
         s_cyc_acc   -= (uint64_t)BOARD_HZ;
@@ -610,6 +647,12 @@ static int run_judge(void)
 #ifndef GFX2D_START_MODE
 #define GFX2D_START_MODE    2
 #endif
+#ifndef GFX2D_START_BACKEND
+#define GFX2D_START_BACKEND 0
+#endif
+#if GFX2D_START_BACKEND != 0 && GFX2D_START_BACKEND != 1
+#error "GFX2D_START_BACKEND 只认 0（软件）或 1（硬件）"
+#endif
 #if GFX2D_START_MODE < 1 || GFX2D_START_MODE > 3
 #error "GFX2D_START_MODE 只认 1、2、3"
 #endif
@@ -620,6 +663,9 @@ static int run_judge(void)
 #define GFX2D_FRAMES_MAX    GFX2D_FRAMES
 #else
 #define GFX2D_FRAMES_MAX    SW6_FRAMES_MAX
+#endif
+#ifndef GFX2D_FIELDS_MAX
+#define GFX2D_FIELDS_MAX    0
 #endif
 
 /* 切换判据：合成的按键脚本代替实时按键（2.1 节「切换判据怎么驱动」） */
@@ -639,13 +685,12 @@ static int run_judge(void)
 static stg_chord    s_chord;
 static uint32_t     s_mode;             /* 当前模式 1~3 */
 static uint32_t     s_mode_frames;      /* 进入当前模式以来的帧数 */
-static uint32_t     s_backend;          /* 0 sw、1 hw（PC 上没有硬件，仍走软件执行器） */
 static gfx_rect     s_enter_clip;       /* 进入时复位之后的裁剪框（进入行里打） */
 static sw6_input    s_m1_in;            /* 模式 1：由框架喂的输入 */
 static uint32_t     s_m1_stage;
 static uint32_t     s_m1_frame;         /* 模式 1：本段的帧号 */
 static uint32_t     s_m1_field0;        /* 模式 1：本段开始时的场号（轮换按场数） */
-static uint32_t     s_mfps_cyc0, s_mfps_swaps0, s_mfps, s_mfps_valid;   /* 模式 2、3 的 SW FPS 窗口 */
+static uint32_t     s_mfps_cyc0, s_mfps_swaps0, s_mfps;
 static uint32_t     s_swj_n;            /* 切换判据：已经切了几次 */
 
 /* 统计埋点与日志队列（sw 第 07 章 3.9 节）：框架自己的行都进队列，每帧只取出 board_tx_room() 那么多字节 */
@@ -656,6 +701,10 @@ static char         s_logq_mem[LOGQ_BYTES];
 static char         s_log_out[LOG_TAKE_MAX + 1u];
 static stats_state  s_stats;
 static stg_mode_out s_mout;             /* 模式 2、3 最近一帧的输出（抽样用） */
+#if SW9_PERF
+static uint32_t     s_diag_min, s_diag_last_frame, s_diag_samples;
+static uint32_t     s_diag_zero, s_diag_under;
+#endif
 
 static void log_line(const char *s)
 {
@@ -712,6 +761,7 @@ static stg_main_ctx mode_ctx(void)
     c.cmds[1] = s_cmds[1];
     c.cap[0]  = s_cmd_cap[0];
     c.cap[1]  = s_cmd_cap[1];
+    c.hw      = (int)s_backend;
     return c;
 }
 
@@ -724,7 +774,6 @@ static void mode_enter(uint32_t m)
     s_mfps_cyc0    = board_cycles();
     s_mfps_swaps0  = board_swap_count();
     s_mfps         = 0u;
-    s_mfps_valid   = 0u;
     if (m == 1u) {
         if (boot_surfaces() != 0) {
             board_puts("surf err 表面登记失败\r\n");
@@ -745,11 +794,22 @@ static void mode_enter(uint32_t m)
         else
             stg_mode_press_enter();
     }
+    if (renderer_prepare((int)s_backend, &s_tab) != 0) {
+        board_puts("engine prepare err\r\n");
+        s_fail++;
+    }
 }
 
 /* 离开旧模式：游戏状态整体重置（池与计数清零）。模式 1 的状态在下次进入时由 stage_begin 复位。 */
 static void mode_leave(uint32_t m)
 {
+    int presented;
+    if (renderer_pipeline_flush(&presented) != 0) {
+        board_puts("engine flush err\r\n");
+        s_fail++;
+    }
+    if (presented >= 0)
+        s_shown = presented;
     if (m != 1u)
         stg_modes_reset();
 }
@@ -763,18 +823,26 @@ static void fps_tick(void)
         const uint32_t sw = board_swap_count();
 
         s_mfps        = sw - s_mfps_swaps0;
+        s_backend_fps[s_backend] = s_mfps;
+        s_backend_fps_valid[s_backend] = 1u;
         s_mfps_swaps0 = sw;
         s_mfps_cyc0   = now;
-        s_mfps_valid  = 1u;
     }
 }
 
 /* 当前模式的一帧；返回刚呈现的那一面的整帧 CRC。 */
-static uint32_t mode_frame(uint32_t keys)
+static uint32_t mode_frame(uint32_t keys, int entering)
 {
     if (s_mode == 1u) {
         /* 场景 A、B 按场数轮换（SW6_STAGE_FRAMES 在框架里当场数用） */
         if (board_frame_count() - s_m1_field0 >= (uint32_t)SW6_STAGE_FRAMES) {
+            int presented;
+            if (renderer_pipeline_flush(&presented) != 0) {
+                board_puts("engine flush err\r\n");
+                s_fail++;
+            }
+            if (presented >= 0)
+                s_shown = presented;
             s_m1_stage ^= 1u;
             s_m1_frame  = 0u;
             s_m1_field0 = board_frame_count();
@@ -788,24 +856,31 @@ static uint32_t mode_frame(uint32_t keys)
         const int          dst = (s_seq & 1u) ? STG_SLOT_FB1 : STG_SLOT_FB0;
         stg_hud_live       live;
 
-        if (dst == s_shown) {
+        if (!renderer_pipeline_enabled((int)s_backend) && dst == s_shown) {
             say2("fb err frame/dst=", s_mode_frames, (uint32_t)dst);
             s_fail++;
         }
-        live.sw_fps       = s_mfps;
-        live.sw_fps_valid = (int)s_mfps_valid;
-        live.hw_fps       = 0u;
-        live.hw_fps_valid = 0;
+        live.sw_fps       = s_backend_fps[0];
+        live.sw_fps_valid = (int)s_backend_fps_valid[0];
+        live.hw_fps       = s_backend_fps[1];
+        live.hw_fps_valid = (int)s_backend_fps_valid[1];
         live.seg_text     = 0;
         if (s_mode == 2u)
             stg_mode_game_frame(&ctx, dst, keys, &live, &s_mout);
         else
             stg_mode_press_frame(&ctx, dst, &live, &s_mout);
-        s_shown = dst;
+        if (s_mout.presented_dst >= 0)
+            s_shown = s_mout.presented_dst;
         s_seq++;
         fps_tick();
     }
+#if SW9_PERF
+    (void)entering;
+    return 0u;
+#else
+    (void)entering;
     return stg_modes_frame_crc(board_fb(s_shown));
+#endif
 }
 
 static void say_enter(uint32_t frame, uint32_t crc)
@@ -820,8 +895,13 @@ static void say_enter(uint32_t frame, uint32_t crc)
     core_out_u32(&o, s_mode);
     core_out_str(&o, " enter frame ");
     core_out_u32(&o, frame);
+#if SW9_PERF
+    (void)crc;
+    core_out_str(&o, " crc skip");
+#else
     core_out_str(&o, " crc ");
     core_out_hex32(&o, crc);
+#endif
     core_out_str(&o, " pool");
     for (i = 0u; i < 4u; i++) {
         core_out_ch(&o, ' ');
@@ -888,19 +968,42 @@ static void sample_frame(void)
         smp.cyc_exec   = s_mout.cyc_exec;
     }
     smp.cyc_auto = (s_mode == 2u) ? s_mout.cyc_auto : 0u;
+    smp.hw_real = 0;
+    {
+        uint32_t i;
+        for (i = 0u; i < 9u; i++)
+            smp.hw_perf[i] = 0u;
+    }
+#ifdef __riscv
+    if (s_backend != 0u) {
+        smp.hw_real = 1;
+        if (renderer_perf_read(smp.hw_perf) != 0)
+            s_fail++;
+    }
+#endif
     stats_sample_list(&s_stats, &s_tab, s_cmds[idx], used, &smp);
 }
 
 static int run_modes(void)
 {
     uint32_t total = 0u, prev = 0u, fail;
+#if GFX2D_FIELDS_MAX != 0
+    const uint32_t field_start = board_frame_count();
+#endif
     int      done = 0, entered;
 
     logq_init(&s_logq, s_logq_mem, LOGQ_BYTES);
     stg_modes_set_log(&s_logq);
     stg_chord_init(&s_chord);
-    s_backend = 0u;
+    s_backend = (uint32_t)GFX2D_START_BACKEND;
     s_swj_n   = 0u;
+#if SW9_PERF
+    s_diag_min = 0xFFFFFFFFu;
+    s_diag_samples = 0u;
+    s_diag_last_frame = 0u;
+    s_diag_zero = 0u;
+    s_diag_under = 0u;
+#endif
     mode_enter((uint32_t)GFX2D_START_MODE);
     stats_init(&s_stats, &s_logq, s_mode, s_backend, stg_modes_overflow());
     entered = 1;
@@ -914,6 +1017,10 @@ static int run_modes(void)
             break;
 #if GFX2D_FRAMES_MAX != 0
         if (total >= (uint32_t)GFX2D_FRAMES_MAX)
+            break;
+#endif
+#if GFX2D_FIELDS_MAX != 0
+        if ((uint32_t)(board_frame_count() - field_start) >= (uint32_t)GFX2D_FIELDS_MAX)
             break;
 #endif
         keys = frame_keys(&done);
@@ -937,7 +1044,18 @@ static int run_modes(void)
         if (ev & STG_CHORD_NEXT_MODE)
             next = s_mode % 3u + 1u;
         if ((pressed & BOARD_KEY_SWAP) || (ev & STG_CHORD_SWAP)) {
+            int presented;
+            if (renderer_pipeline_flush(&presented) != 0) {
+                board_puts("engine flush err\r\n");
+                s_fail++;
+            }
+            if (presented >= 0)
+                s_shown = presented;
             s_backend ^= 1u;
+            if (renderer_prepare((int)s_backend, &s_tab) != 0) {
+                board_puts("engine prepare err\r\n");
+                s_fail++;
+            }
             core_out_init(&o, buf, (uint32_t)sizeof buf);
             core_out_str(&o, s_backend ? "backend hw frame " : "backend sw frame ");
             core_out_u32(&o, total);
@@ -947,7 +1065,7 @@ static int run_modes(void)
         }
 
         /* 这一帧仍属当前模式：和弦期间的按键照常交给它 */
-        crc = mode_frame(keys);
+        crc = mode_frame(keys, entered);
         ft  = ((s_mode == 1u) ? s_last_tp : s_mout.t_present) - t0;    /* 到发出呈现请求为止，不含等场与下面的抽样普查 */
         if (entered) {
             say_enter(total, crc);
@@ -955,7 +1073,34 @@ static int run_modes(void)
         }
         if (stats_want_sample(&s_stats))
             sample_frame();
-        stats_frame(&s_stats, ft, stg_modes_overflow());
+        {
+            const uint32_t *hw_rollup = NULL;
+            uint32_t cpu_cyc = (s_mode == 1u)
+                                 ? s_last_in + s_last_bld
+                                 : s_mout.cyc_auto + s_mout.cyc_logic + s_mout.cyc_build;
+#if SW9_PERF
+            uint32_t hw_end[9];
+            if (s_backend != 0u && stats_want_rollup(&s_stats) &&
+                renderer_perf_read(hw_end) == 0)
+                hw_rollup = hw_end;
+#endif
+        stats_frame(&s_stats, ft, cpu_cyc, stg_modes_overflow(), hw_rollup);
+        }
+#if SW9_PERF
+        {
+            uint32_t snap, min, zero, under;
+            if (board_display_diag(&snap, &min, &zero, &under) == 0) {
+                if (snap != s_diag_last_frame) {
+                    if (min < s_diag_min)
+                        s_diag_min = min;
+                    s_diag_last_frame = snap;
+                    s_diag_samples++;
+                }
+                s_diag_zero = zero;
+                s_diag_under = under;
+            }
+        }
+#endif
         log_pump();
         total++;
         s_mode_frames++;
@@ -982,7 +1127,31 @@ static int run_modes(void)
         core_out_str(&o, "\r\n");
         log_line(buf);
     }
+    mode_leave(s_mode);
     stats_end(&s_stats);
+#if SW9_PERF
+    {
+        char buf[180];
+        core_out o;
+        core_out_init(&o, buf, (uint32_t)sizeof buf);
+        core_out_str(&o, "diag fifo_min ");
+        core_out_u32(&o, s_diag_samples ? s_diag_min : 0u);
+        core_out_str(&o, " samples ");
+        core_out_u32(&o, s_diag_samples);
+        core_out_str(&o, " zero ");
+        core_out_u32(&o, s_diag_zero);
+        core_out_str(&o, " under ");
+        core_out_u32(&o, s_diag_under);
+        core_out_str(&o, " irqA ");
+        core_out_u32(&o, board_irq_frame_events());
+        core_out_str(&o, " irqB ");
+        core_out_u32(&o, board_irq_engine_events());
+        core_out_str(&o, " faults ");
+        core_out_u32(&o, board_irq_faults());
+        core_out_str(&o, "\r\n");
+        log_line(buf);
+    }
+#endif
     log_flush();
     /* 最后两行等下一场、额度补满之后再打（PC 上 GFX2D_TX_BUDGET 模拟串口时不超额） */
     board_wait_frame();
@@ -1019,6 +1188,22 @@ static int run_stg(void)
     ctx.cmds[1] = s_cmds[1];
     ctx.cap[0]  = s_cmd_cap[0];
     ctx.cap[1]  = s_cmd_cap[1];
+#if defined(SW9_REPLAY_HW) && SW9_REPLAY_HW
+    ctx.hw = 1;
+#else
+    ctx.hw = 0;
+#endif
+    if (renderer_prepare(ctx.hw, &s_tab) != 0) {
+        board_puts("engine prepare err\r\n");
+        sw6_log_end(s_fail + 1u);
+        return 1;
+    }
+#if defined(SW9_COMPARE) && SW9_COMPARE
+    if (renderer_prepare(1, &s_tab) != 0) {
+        board_puts("compare prepare err\r\n");
+        return 1;
+    }
+#endif
     return stg_main(&ctx, s_fail);
 }
 
@@ -1031,6 +1216,10 @@ int main(void)
     board_mem cmdA, cmdB;
 
     board_init();
+    if (board_irq_init() != 0) {
+        board_puts("irq init err\r\n");
+        s_fail++;
+    }
     crc32_init();
 #if STG_FIELD_MODE != 0
     board_puts("gfx2dGame STG\r\n");

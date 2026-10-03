@@ -25,6 +25,8 @@ typedef struct {
     uint32_t k;             /* HUD 的 K 行 */
     uint32_t sw_fps;        /* 实时量：最近一秒的呈现次数 */
     int      sw_fps_valid;  /* 0 = 还没有完整的一秒，SW FPS 显示 -- 而不是 0 */
+    uint32_t hw_fps;
+    int      hw_fps_valid;
     uint32_t cyc_in;        /* 实时量：三段耗时 */
     uint32_t cyc_bld;
     uint32_t cyc_exe;

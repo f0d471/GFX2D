@@ -10,6 +10,10 @@
 
 #include "core/format.h"
 
+#ifndef SW9_PERF
+#define SW9_PERF 0
+#endif
+
 static const char *const s_mode_name[4] = { "?", "demo", "game", "press" };
 
 static void put(stats_state *s, const char *line)
@@ -25,27 +29,44 @@ void stats_init(stats_state *s, logq *q, uint32_t mode, uint32_t exec_hw, uint32
     s->fail   = 0u;
     s->field0 = board_frame_count();
     s->swap0  = board_swap_count();
+    s->have_hw_busy_prev = 0;
     fhist_init(&s->hist, BOARD_HZ / 60u);
     put(s, "csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,"
            "cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,"
+#if SW9_PERF
+           "cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,"
+           "hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,"
+           "hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,"
+           "pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli\r\n");
+#else
            "cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5\r\n");
+#endif
     stats_window(s, mode, exec_hw, ovf_now);
 }
 
 void stats_window(stats_state *s, uint32_t mode, uint32_t exec_hw, uint32_t ovf_now)
 {
+    if (s->mode != mode || s->exec_hw != exec_hw)
+        s->have_hw_busy_prev = 0;
     s->mode        = (mode <= 3u) ? mode : 0u;
     s->exec_hw     = exec_hw;
     s->win_field0  = board_frame_count();
     s->win_swap0   = board_swap_count();
     s->win_ovf0    = ovf_now;
     s->win_ft_max  = 0u;
+    s->win_cpu_sum = 0u;
+    s->win_frames = 0u;
     s->have_sample = 0;
 }
 
 int stats_want_sample(const stats_state *s)
 {
     return !s->have_sample;
+}
+
+int stats_want_rollup(const stats_state *s)
+{
+    return board_frame_count() - s->win_field0 >= STATS_ROW_FIELDS;
 }
 
 void stats_sample_list(stats_state *s, const gfx_surface_table *t, const gfx_cmd *list, uint32_t used,
@@ -58,6 +79,17 @@ void stats_sample_list(stats_state *s, const gfx_surface_table *t, const gfx_cmd
     gfx_census_clear(&s->sample.cc);
     if (gfx_census_run(&cs, t, list, used, &s->sample.cc) != 0)
         s->fail++;
+    if (s->sample.hw_real) {
+        uint32_t e, cmd = s->sample.cc.cmd_other, pix = 0u;
+        for (e = 0u; e < GFX_CENSUS_EQ_N; e++) {
+            cmd += s->sample.cc.cmd_by_eq[e];
+            pix += s->sample.cc.pix_by_eq[e];
+        }
+        /* CSV 的 cmd/pixel 保持 SW8 的普查口径；PERF_PIXEL 是硬件独立口径。 */
+        s->sample.xs.cmd = cmd;
+        s->sample.xs.pixel_total = pix;
+        s->sample.xs.key_skip = 0u; /* 逐帧软件值不可由累计硬件计数器冒充 */
+    }
     s->have_sample = 1;
 }
 
@@ -70,7 +102,7 @@ static void c_u32(core_out *o, uint32_t v)
 static void row(stats_state *s, uint32_t fields, uint32_t swaps, uint32_t ovf)
 {
     const stats_sample *p = &s->sample;
-    char                buf[400];
+    char                buf[640];
     core_out            o;
     uint32_t            e, sum_cmd, sum_pix;
 
@@ -132,21 +164,57 @@ static void row(stats_state *s, uint32_t fields, uint32_t swaps, uint32_t ovf)
         c_u32(&o, p->cc.pix_by_eq[e]);
 #endif
     }
+#if SW9_PERF
+    for (e = 0u; e < 9u; e++)
+        c_u32(&o, p->hw_perf[e]);
+    core_out_ch(&o, ',');
+    core_out_str(&o, p->hw_real ? "pipeline" : "serial");
+    core_out_ch(&o, ',');
+    if (!p->hw_real)
+        core_out_str(&o, "software");
+    else if (!s->have_hw_busy_prev)
+        core_out_str(&o, "warming");
+    else
+        core_out_str(&o, (s->win_cpu_sum / s->win_frames >=
+                          (uint64_t)(p->hw_perf[8] - s->hw_busy_prev) / s->win_frames)
+                             ? "cpu" : "engine");
+    c_u32(&o, (uint32_t)(s->win_cpu_sum / s->win_frames));
+    c_u32(&o, (p->hw_real && s->have_hw_busy_prev)
+                ? (p->hw_perf[8] - s->hw_busy_prev) / s->win_frames : 0u);
+    c_u32(&o, fields);
+    c_u32(&o, fields ? (swaps * 60000u) / fields : 0u);
+#endif
     core_out_str(&o, "\r\n");
     put(s, buf);
     s->rows++;
 }
 
-void stats_frame(stats_state *s, uint32_t ft_cyc, uint32_t ovf_now)
+void stats_frame(stats_state *s, uint32_t ft_cyc, uint32_t cpu_cyc,
+                 uint32_t ovf_now, const uint32_t *hw_perf_end)
 {
     const uint32_t fields = board_frame_count() - s->win_field0;
 
     s->frames++;
+    s->win_frames++;
+    s->win_cpu_sum += cpu_cyc;
     fhist_add(&s->hist, ft_cyc);
     if (ft_cyc > s->win_ft_max)
         s->win_ft_max = ft_cyc;
     if (fields >= STATS_ROW_FIELDS) {
+#if SW9_PERF
+        if (s->sample.hw_real && hw_perf_end != 0) {
+            uint32_t i;
+            for (i = 0u; i < 9u; i++)
+                s->sample.hw_perf[i] = hw_perf_end[i];
+        }
+#else
+        (void)hw_perf_end;
+#endif
         row(s, fields, board_swap_count() - s->win_swap0, ovf_now - s->win_ovf0);
+        if (s->sample.hw_real) {
+            s->hw_busy_prev = s->sample.hw_perf[8];
+            s->have_hw_busy_prev = 1;
+        }
         stats_window(s, s->mode, s->exec_hw, ovf_now);
     }
 }

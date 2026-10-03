@@ -56,6 +56,8 @@ import sys
 import threading
 import time
 
+from input_forward import InputForwarder, packet
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 MAIN = os.path.dirname(os.path.dirname(HERE))          # <仓库>/Main
 
@@ -145,7 +147,8 @@ def run_openocd(ocd, cfg, workspace, cmds, timeout=90):
     return "Target successfully examined" in out, out
 
 
-def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result):
+def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result,
+                  forward_input=False, input_script=None, script_after=None):
     """先开串口再让主线程去加载程序；读到的内容边读边写文件。
 
     `armed` 是主线程在 load_image + resume 之后置位的事件。它之前收到的字节
@@ -160,7 +163,7 @@ def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result):
     不要取开头的横幅。
     """
     try:
-        sp = serial.Serial(port, baud, timeout=0.2)
+        sp = serial.Serial(port, baud, timeout=0.02 if (forward_input or input_script) else 0.2)
         sp.reset_input_buffer()                   # 不让上一次运行残留的字节混进这一次
     except Exception as e:                        # 串口打不开要立刻告诉主线程
         result["error"] = str(e)
@@ -171,21 +174,43 @@ def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result):
     text = ""
     nbytes = 0
     match_from = None                             # None 表示还没加载完，先不匹配
+    marker_pending = False
     deadline = time.time() + seconds
+    forwarder = InputForwarder() if forward_input else None
+    script_start = None
+    script_pos = 0
     try:
         with open(out_path, "w", encoding="utf-8", newline="") as f:
             f.write("# %s @ %d 8N1, opened %s\n" % (port, baud, time.strftime("%H:%M:%S")))
             while time.time() < deadline:
+                if input_script and armed.is_set():
+                    if script_start is None and (script_after is None or
+                            (match_from is not None and script_after in text[match_from:])):
+                        script_start = time.monotonic()
+                    if script_start is not None:
+                        ms = (time.monotonic() - script_start) * 1000
+                        while script_pos < len(input_script) and ms >= input_script[script_pos][0]:
+                            sp.write(packet(input_script[script_pos][1]))
+                            script_pos += 1
+                if forwarder is not None and armed.is_set():
+                    forwarder.send(sp, time.monotonic())
                 if match_from is None and armed.is_set():
                     match_from = len(text)
-                    f.write("\n# --- 程序已加载，以下才是它的输出 ---\n")
-                    f.flush()
+                    marker_pending = True
+                    if not text or text.endswith("\n"):
+                        f.write("# --- 程序已加载，以下才是它的输出 ---\n")
+                        marker_pending = False
                 chunk = sp.read(4096)
                 if not chunk:
                     continue
                 nbytes += len(chunk)
                 s = dec.decode(chunk)
-                f.write(s)
+                if marker_pending and "\n" in s:
+                    first, rest = s.split("\n", 1)
+                    f.write(first + "\n# --- 程序已加载，以下才是它的输出 ---\n" + rest)
+                    marker_pending = False
+                else:
+                    f.write(s)
                 f.flush()
                 text += s
                 if stop_on and match_from is not None and stop_on in text[match_from:]:
@@ -193,6 +218,8 @@ def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result):
                     break
             f.write("\n# closed %s, %d bytes\n" % (time.strftime("%H:%M:%S"), nbytes))
     finally:
+        if forwarder is not None or input_script:
+            sp.write(packet(0))
         sp.close()
         result["bytes"] = nbytes
         result["pre_load_bytes"] = 0 if match_from is None else match_from
@@ -216,6 +243,12 @@ def main():
     ap.add_argument("--no-program", action="store_true", help="跳过烧写比特流")
     ap.add_argument("--port", default="COM11", help="串口号，默认 COM11")
     ap.add_argument("--baud", type=int, default=115200)
+    ap.add_argument("--forward-input", action="store_true",
+                    help="同一串口会话转发启动时前台窗口的键盘和 XInput 手柄")
+    ap.add_argument("--input-script", default=None,
+                    help="诊断输入，毫秒:10位按键位图，逗号分隔；如 500:64,550:0")
+    ap.add_argument("--input-script-after", default=None,
+                    help="诊断输入在本次程序串口输出包含此文本后才开始计时")
     ap.add_argument("--seconds", type=int, default=60, help="串口采集时长上限")
     ap.add_argument("--stop-on", default=None, help="收到该文本就结束采集；没收到时退出码为 1")
     ap.add_argument("--log", default=None, help="串口日志路径，默认 %%TEMP%%/board_run.log")
@@ -228,6 +261,25 @@ def main():
                     help="OpenOCD 找 cpu0.yaml 的目录，默认 Main/sdk")
     ap.add_argument("--dry-run", action="store_true", help="只打印将执行的步骤")
     args = ap.parse_args()
+
+    if args.forward_input and args.input_script:
+        ap.error("--forward-input 与 --input-script 只能选一个")
+    if args.input_script_after and not args.input_script:
+        ap.error("--input-script-after 需要 --input-script")
+    script = None
+    if args.input_script:
+        try:
+            script = []
+            for item in args.input_script.split(","):
+                ms, keys = item.split(":", 1)
+                pair = (int(ms, 0), int(keys, 0))
+                if pair[0] < 0 or pair[1] < 0 or pair[1] > 0x3ff:
+                    raise ValueError(item)
+                script.append(pair)
+            if any(script[i][0] > script[i + 1][0] for i in range(len(script) - 1)):
+                raise ValueError("时间必须递增")
+        except ValueError as exc:
+            ap.error("--input-script 格式错误: %s" % exc)
 
     if serial is None and (args.list_ports or not (args.check_only or args.cmd or args.dry_run)):
         print("ERROR: 当前解释器没有 pyserial，用 Efinity 自带的 python 运行", file=sys.stderr)
@@ -266,7 +318,8 @@ def main():
         result = {}
         th = threading.Thread(target=serial_worker, daemon=True,
                               args=(args.port, args.baud, log, args.seconds,
-                                    args.stop_on, ready, armed, result))
+                                    args.stop_on, ready, armed, result, args.forward_input, script,
+                                    args.input_script_after))
         th.start()
         ready.wait(timeout=10)
         if result.get("error"):
@@ -365,7 +418,8 @@ def main():
     result = {}
     th = threading.Thread(target=serial_worker, daemon=True,
                           args=(args.port, args.baud, log, args.seconds,
-                                args.stop_on, ready, armed, result))
+                          args.stop_on, ready, armed, result, args.forward_input, script,
+                          args.input_script_after))
     th.start()
     ready.wait(timeout=10)
     if result.get("error"):

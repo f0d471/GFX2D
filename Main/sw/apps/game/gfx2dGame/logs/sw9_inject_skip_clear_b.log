@@ -1,0 +1,11 @@
+# COM11 @ 115200 8N1, opened 16:00:24
+assetTest SW5
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cm
+# closed 16:00:46, 258 bytes

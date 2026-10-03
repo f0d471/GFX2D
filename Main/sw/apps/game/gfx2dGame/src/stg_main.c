@@ -46,6 +46,7 @@
 ******************************************************************************/
 
 #include "stg_main.h"
+#include "renderer.h"
 
 #if STG_FIELD_MODE != 0
 
@@ -231,8 +232,13 @@ static void frame_run(const stg_main_ctx *ctx, uint32_t frame, frame_out *fo)
 
     fo->crc = field_crc(board_fb(dst));
 
-    board_present(dst);
-    s_shown = dst;
+    {
+        uint32_t ticket;
+        if (board_present_request(dst, &ticket) != 0 || board_present_wait(ticket) != 0)
+            say_err("present", frame, (uint32_t)dst);
+        else
+            s_shown = dst;
+    }
     s_seq++;
 }
 
@@ -374,14 +380,53 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
     if (go->st.by_eq[GFX_EQ_CONST] != go->st.flash)
         say_err("class const", frame, go->st.by_eq[GFX_EQ_CONST]);
 
-    exec_sw_stats_clear(&xs);
-    rc = exec_sw_run(ctx->es, ctx->tab, ctx->mem, l.buf, l.used, l.used, &xs, ctx->err);
+    {
+        uint32_t cyc;
+        rc = renderer_run(ctx->hw, ctx->tab, ctx->mem, ctx->es, ctx->err,
+                          &l, &xs, &cyc);
+    }
     if (rc != GFX_OK)
         say_err("exec", frame, (uint32_t)rc);
+    if (ctx->hw)
+        board_dcache_invalidate_all();
     go->crc = stg_modes_frame_crc(board_fb(dst));
 
-    board_present(dst);
-    s_shown = dst;
+#if defined(SW9_COMPARE) && SW9_COMPARE
+    {
+        const int shadow = dst == STG_SLOT_FB0 ? STG_SLOT_FB1 : STG_SLOT_FB0;
+        uint32_t hw_crc;
+        char buf[96];
+        core_out out;
+        if (renderer_compare_shadow(dst, shadow, ctx->tab, ctx->mem, ctx->es,
+                                    ctx->err, &l) != 0)
+            say_err("compare engine", frame, 0u);
+        hw_crc = stg_modes_frame_crc(board_fb(shadow));
+        core_out_init(&out, buf, (uint32_t)sizeof buf);
+        core_out_str(&out, "compare ");
+        core_out_u32(&out, frame);
+        core_out_str(&out, " sw ");
+        core_out_hex32(&out, go->crc);
+        core_out_str(&out, " hw ");
+        core_out_hex32(&out, hw_crc);
+        core_out_str(&out, "\r\n");
+        board_puts(buf);
+#ifdef INJECT_SW9_SKIP_INVALIDATE
+        if (hw_crc == go->crc)
+            say_err("compare not red", frame, hw_crc);
+#else
+        if (hw_crc != go->crc)
+            say_err("compare mismatch", frame, hw_crc);
+#endif
+    }
+#else
+    {
+        uint32_t ticket;
+        if (board_present_request(dst, &ticket) != 0 || board_present_wait(ticket) != 0)
+            say_err("present", frame, (uint32_t)dst);
+        else
+            s_shown = dst;
+    }
+#endif
     s_seq++;
 }
 
@@ -575,13 +620,17 @@ static int run(const stg_main_ctx *ctx)
     say_auto((frame < STG_GAME_FRAME_LIMIT) ? frame + 1u : frame);
 #endif
 #if STG_JUDGE_REPLAY
+    {
+        const int partial = (STG_FRAMES_MAX != 0 && frame + 1u == (uint32_t)STG_FRAMES_MAX
+                             && frame + 1u < s_rv.frames);
     if (frame < STG_GAME_FRAME_LIMIT)
         frame++;                                    /* 总帧数：含回到标题的那一帧 */
     say_replay_end(frame, hits, over);
-    if (!clear || over)
+    if ((!clear && !partial) || over)
         say_err("replay no clear", frame, over);
-    if (s_rv_short || frame != s_rv.frames)
+    if (s_rv_short || (!partial && frame != s_rv.frames))
         say_err("replay frames", frame, s_rv.frames);
+    }
 #endif
     say_end();
     return (s_fail == 0u) ? 0 : 1;

@@ -71,8 +71,8 @@ void       board_puts(const char *s);
 uint32_t   board_tx_room(void);
 
 /* --- 输入 --------------------------------------------------------------- */
-/* 返回本帧的按键位图。位分配是两个实现必须一致的约定：板上 KEY0~3 与串口
-   （SW9 接），PC 上是 SDL 键盘。本条（SW1）板上恒为 0。 */
+/* 返回本帧的按键位图。板上 KEY0~3 与 UART 快照合并；PC 上用 SDL 键盘。
+   UART 接收端保留一帧内短按的按下沿，300 ms 无有效包就松开转发键。 */
 #define BOARD_KEY_UP        (1u << 0)
 #define BOARD_KEY_DOWN      (1u << 1)
 #define BOARD_KEY_LEFT      (1u << 2)
@@ -98,8 +98,24 @@ uint32_t  *board_fb(int index);
    比特流里没有扫描输出时板上退回空操作，老程序照常跑完。 */
 void       board_present(int index);
 
-/* 等下一个场同步。板上轮询扫描输出的 FRAME_COUNT（与 EN 无关，没 present 过也能用），
-   PC 上等到下一个 60Hz 场边界。两边都有轮询上界，不会停在这里不返回。
+/* SW9：异步请求交换；ticket 是请求前的 SWAP_COUNT。板上同时等场起始中断 A
+   与交换计数变化，确认之前不得复用原扫描面。返回 0 为成功。 */
+int        board_present_request(int index, uint32_t *ticket);
+int        board_present_finished(uint32_t ticket);
+int        board_present_wait(uint32_t ticket);
+
+/* SW9：项目 ISR，只在板级层操作 PLIC 和中断源。计数用于等待和板上判据。 */
+int        board_irq_init(void);
+int        board_irq_enabled(void);
+void       board_engine_irq_enable(void);
+uint32_t   board_irq_frame_events(void);
+uint32_t   board_irq_engine_events(void);
+uint32_t   board_irq_faults(void);
+int        board_display_diag(uint32_t *frame, uint32_t *fifo_min,
+                              uint32_t *zero_hits, uint32_t *under_beats);
+
+/* 等下一个场同步。板上用场起始中断 A 并核对 FRAME_COUNT（无中断时退回轮询），
+   PC 上等到下一个 60Hz 场边界。两边都有等待上界，不会停在这里不返回。
    board_should_quit() 置位时立即返回。 */
 void       board_wait_frame(void);
 

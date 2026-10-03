@@ -67,7 +67,8 @@ void sw6_hud_build(gfx_list *l, int dst, const sw6_hud_in *in,
 
     fmt(line, (uint32_t)sizeof line, "SW FPS ", in->sw_fps, in->live && in->sw_fps_valid);
     draw_text(l, dst, 0u, line);
-    draw_text(l, dst, 1u, "HW FPS --");
+    fmt(line, (uint32_t)sizeof line, "HW FPS ", in->hw_fps, in->live && in->hw_fps_valid);
+    draw_text(l, dst, 1u, line);
 
     fmt(line, (uint32_t)sizeof line, "N ", in->n, 1);
     draw_text(l, dst, 2u, line);

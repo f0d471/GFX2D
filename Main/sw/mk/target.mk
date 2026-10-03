@@ -46,6 +46,7 @@ ASSETS_BUILD ?= $(abspath $(SW)../assets/build)
 OPT      ?= 2
 OBJDIR   ?= build
 INJECT   ?=
+PERF     ?= 0
 EXTRA_CFLAGS ?=
 
 # SW6：录像（`.g2dr`）在构建时转成 C 数组，见 mk/host.mk 里的同一段与 replay.h。
@@ -86,6 +87,9 @@ SDK_INC  := $(addprefix -isystem ,$(BSP_PATH)/include $(BSP_PATH)/app $(STANDALO
 ifneq ($(INJECT),)
 CFLAGS += -DINJECT_$(INJECT)
 endif
+ifeq ($(PERF),1)
+CFLAGS += -DSW9_PERF=1
+endif
 
 # 头文件依赖：-MMD 让 gcc 为每个目标文件写一份同名的 .d，下面 include 进来。
 # 没有它时目标文件只依赖源文件，改了头文件不会触发重编，
@@ -106,6 +110,9 @@ NAME := $(APP)-O$(OPT)
 ifneq ($(INJECT),)
 NAME := $(NAME)-inject
 endif
+ifeq ($(PERF),1)
+NAME := $(NAME)-perf
+endif
 
 # 链接参数照抄 sdk 的 standalone.mk，只把链接脚本换成项目自己那份。
 LDFLAGS += -L$(STANDALONE)/common
@@ -118,6 +125,7 @@ LIB_OBJS  := $(patsubst $(SW)lib/%.c,$(OBJDIR)/lib/%.o,$(LIB_SRCS))
 BSP_SRCS  := $(wildcard $(SW)bsp/*.c) $(wildcard $(SW)bsp/ti60/*.c)
 BSP_OBJS  := $(patsubst $(SW)bsp/%.c,$(OBJDIR)/bsp/%.o,$(BSP_SRCS))
 START_OBJ := $(OBJDIR)/sdk/start.o
+TRAP_OBJ  := $(OBJDIR)/sdk/trap.o
 
 ELF := $(OBJDIR)/$(NAME).elf
 BIN := $(OBJDIR)/$(NAME).bin
@@ -131,7 +139,7 @@ BIN := $(OBJDIR)/$(NAME).bin
 
 all: $(ELF) $(OBJDIR)/$(NAME).hex $(OBJDIR)/$(NAME).asm $(BIN)
 
-$(ELF): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(START_OBJ)
+$(ELF): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(START_OBJ) $(TRAP_OBJ)
 	@echo "LD $@"
 	@$(RISCV_CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
@@ -165,6 +173,11 @@ $(START_OBJ): $(STANDALONE)/common/start.S
 	@echo "CC $(patsubst $(SW)%,%,$<)"
 	@$(RISCV_CC) -c $(CFLAGS) -o $@ $<
 
+$(TRAP_OBJ): $(STANDALONE)/common/trap.S
+	@mkdir -p $(dir $@)
+	@echo "CC $(patsubst $(SW)%,%,$<)"
+	@$(RISCV_CC) -c $(CFLAGS) -o $@ $<
+
 $(OBJDIR)/$(NAME).hex: $(ELF)
 	@$(RISCV_OBJCOPY) -O ihex $< $@
 
@@ -184,5 +197,5 @@ clean:
 
 # gcc 写出来的头文件依赖读到最后：-MMD 让每个目标文件带一份同名 .d，
 # 读进来之后改头文件就会重编。放在文件末尾是为了不动默认目标（见上面 .DEFAULT_GOAL）。
-DEPS := $(APP_OBJS:.o=.d) $(LIB_OBJS:.o=.d) $(BSP_OBJS:.o=.d) $(START_OBJ:.o=.d)
+DEPS := $(APP_OBJS:.o=.d) $(LIB_OBJS:.o=.d) $(BSP_OBJS:.o=.d) $(START_OBJ:.o=.d) $(TRAP_OBJ:.o=.d)
 -include $(DEPS)
