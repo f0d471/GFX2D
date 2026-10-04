@@ -4,13 +4,16 @@
 
 ## 目录约定
 
-`photos/`、`measurements/` 还没有文件，建立时按下表放置。
+`photos/`、`measurements/` 已于 2026-10-05 建立首批文件，登记见下方两张表。
 
 | 已有内容 | 数量 | 说明 |
 | --- | --- | --- |
 | `figures/*.png` | 24 张 | 幻灯片用图，每张 1760×880（2 倍像素导出） |
+| `figures/report/*.png` | 12 张 | 报告用图，源码在 `figures/src/report/` |
 | `figures/src/*.html` | 24 个 | 对应图的源码；`_fig.css` 是公共样式，`_fig.js` 提供连线 `L()` 与时序波形 `wave()`。`sw8_*.html` 三个是 `Main/tools/stats/plot_stats.py` 按日志生成的，改图改脚本或日志后重新生成，不手改 |
 | `figures/src/render.sh` | 1 个 | 用 Edge 无头模式导出：`bash render.sh [名字 ...]`，不带参数导出全部；导出后检查 png 修改时间，Edge 出错时不报错只留旧图 |
+| `photos/` | 2 个文件 | 2026-10-05 系统运行屏摄，登记见「photos/ 登记」 |
+| `measurements/` | 2 个子目录 | 2026-10-05 面板与 PC 解释器运行记录，登记见「measurements/ 登记」 |
 | `third-party/` | 9 个文件 | 出处台账见 `third-party/README.md` |
 
 | 子目录 | 放什么 | 要求 |
@@ -20,6 +23,20 @@
 | `photos/` | 板卡、显示器画面的实拍 | 文件名写拍的是什么和日期 |
 | `measurements/` | 上板录屏、串口输出截图、计数器导出的 CSV | 每个子目录写清是哪个程序、哪个比特流、哪天录的 |
 | `third-party/` | 引用的论文图、厂商手册图 | 必须在 `third-party/README.md` 登记出处（标题、作者或厂商、年份、页码或图号、链接） |
+
+## photos/ 登记
+
+| 文件 | 内容 | 日期 |
+| --- | --- | --- |
+| `board_myriad_hw61_20261005.jpg` | Ti60F225 开发板 + 显示器运行 MYRIAD 的全景屏摄：硬件后端，HUD 显示 HW FPS 61、活动弹 292（REAL 16X16 K 256 档），桌面下方可见开发板与连线 | 2026-10-05 |
+| `board_myriad_hw61_20261005_crop.jpg` | 上图的屏幕区域裁剪（报告 3.2.2 模式 2 用图） | 2026-10-05 |
+
+## measurements/ 登记
+
+| 子目录 | 内容 | 日期 |
+| --- | --- | --- |
+| `panel_board_20261005/` | 游戏控制面板（上位机 `Main/tools/board/game_control.py`）截图：面板经 COM11 连接板子，显示板上反馈「模式 3·HW 后端·60.0 FPS」 | 2026-10-05 |
+| `pc_sw4_20261005/` | PC 解释器（SDL2 窗口，SW4 版）运行画面 6 张：方块演示、渐变大图、MYRIAD 普通关（N=101/N=19）、MYRIAD 压力档（SIM 16X16 K 1024，N=1186）、棋盘格。**开发机上的记录，非板上证据**；板上证据以 `photos/` 与日志为准 | 2026-10-05 |
 
 ## 画图约定
 
