@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="fig-size" content="1040x500">
+<link rel="stylesheet" href="_rep.css">
+<style>
+.eq { position: absolute; box-sizing: border-box; border: 1.5px solid #C6CCD4; border-radius: 4px;
+      background: #FAFBFC; padding: 7px 10px; font-size: 16px; line-height: 1.4; }
+.eq b { color: #1D2733; }
+</style></head>
+<body><div id="fig" style="width:1040px;height:500px">
+
+<div class="n cmp" style="left:40px;top:30px;width:172px;height:110px"><div class="t" style="font-size:20px">级 0 取数</div>
+<div class="s">源 / 目的<br>各 128 位</div></div>
+<div class="n cmp" style="left:244px;top:30px;width:172px;height:110px"><div class="t" style="font-size:20px">级 1 判定</div>
+<div class="s">色键比较<br>选 Fs / Fd</div></div>
+<div class="n cmp" style="left:448px;top:30px;width:172px;height:110px"><div class="t" style="font-size:20px">级 2 乘</div>
+<div class="s">DSP ×12<br>4 像素 × RGB</div></div>
+<div class="n cmp" style="left:652px;top:30px;width:172px;height:110px"><div class="t" style="font-size:20px">级 3 舍入</div>
+<div class="s">相加<br>÷255 · 饱和 255</div></div>
+<div class="n cmp" style="left:856px;top:30px;width:172px;height:110px"><div class="t" style="font-size:20px">级 4 写回</div>
+<div class="s">写后台缓冲<br>色键命中不写</div></div>
+
+<svg class="links" viewBox="0 0 1040 500">
+  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="13" refX="13" refY="5.5" orient="auto"><path d="M1,1 L13,5.5 L1,10" stroke="#4A5568" stroke-width="2"/></marker></defs>
+  <line x1="212" y1="85" x2="238" y2="85" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="416" y1="85" x2="442" y2="85" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="620" y1="85" x2="646" y2="85" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="824" y1="85" x2="850" y2="85" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+</svg>
+
+<div class="n dat" style="left:40px;top:170px;width:988px;height:80px"><div class="t" style="font-family:Consolas,monospace;font-size:21px">x = src×Fs + dst×Fd　→　t = x + 128　→　out = min(255, (t + (t &gt;&gt; 8)) &gt;&gt; 8)</div>
+<div class="s">Fs、Fd 为 255 满量程整数；快速舍入式与 half-up 精确商全定义域逐值一致</div></div>
+
+<div class="lbl b" style="left:40px;top:282px">六种方程共用同一条通路（每通道系数，255 满量程）</div>
+<div class="eq" style="left:40px;top:314px;width:312px"><b>COPY</b>　255, 0　——　不透明块</div>
+<div class="eq" style="left:364px;top:314px;width:330px"><b>ALPHA</b>　255, 255−a　——　预乘半透明</div>
+<div class="eq" style="left:706px;top:314px;width:322px"><b>STRAIGHT</b>　a, 255−a　——　赛题原式</div>
+<div class="eq" style="left:40px;top:376px;width:312px"><b>ADD</b>　255, 255　——　发光叠加</div>
+<div class="eq" style="left:364px;top:376px;width:330px"><b>CONST</b>　c, 255−c　——　整屏淡入淡出</div>
+<div class="eq" style="left:706px;top:376px;width:322px"><b>MUL</b>　dst, 0　——　阴影暗化</div>
+
+<div class="lbl" style="left:40px;top:448px;color:#6B7684">主路径预乘 ALPHA 每通道仅 1 次乘法；STRAIGHT 以直通 ARGB 源直接实现 fg×a + bg×(1−a)。</div>
+</div></body></html>

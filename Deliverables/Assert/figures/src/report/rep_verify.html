@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="fig-size" content="1040x470">
+<link rel="stylesheet" href="_rep.css"></head>
+<body><div id="fig" style="width:1040px;height:470px">
+
+<div class="n ctl" style="left:300px;top:30px;width:440px;height:96px"><div class="t">同一份逐像素与命令规格</div>
+<div class="s">六种混合方程 · ÷255 舍入 · 裁剪与色键语义 · 32 字节命令 ABI</div></div>
+
+<div class="n" style="left:110px;top:176px;width:400px;height:96px"><div class="t">软件执行器（C，sw/lib/gfx）</div>
+<div class="s">参照实现 · PC 开发与统计后端</div></div>
+<div class="n" style="left:530px;top:176px;width:400px;height:96px"><div class="t">硬件流水线（RTL，rtl/engine）</div>
+<div class="s">每周期 4 像素 · 12 个 DSP 混合核</div></div>
+
+<div class="n dat" style="left:300px;top:330px;width:440px;height:96px"><div class="t">板上同帧 CRC 对比</div>
+<div class="s">同一命令表软硬各渲一帧<br>后缓冲 CRC32 逐像素等价</div></div>
+
+<svg class="links" viewBox="0 0 1040 470">
+  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="14" refX="13" refY="6" orient="auto"><path d="M1,1 L13,6 L1,11" stroke="#4A5568" stroke-width="2.2"/></marker></defs>
+  <line x1="430" y1="126" x2="320" y2="170" stroke="#4A5568" stroke-width="2.2" marker-end="url(#ar)"/>
+  <line x1="610" y1="126" x2="720" y2="170" stroke="#4A5568" stroke-width="2.2" marker-end="url(#ar)"/>
+  <line x1="320" y1="272" x2="430" y2="324" stroke="#4A5568" stroke-width="2.2" marker-end="url(#ar)"/>
+  <line x1="720" y1="272" x2="610" y2="324" stroke="#4A5568" stroke-width="2.2" marker-end="url(#ar)"/>
+</svg>
+</div></body></html>

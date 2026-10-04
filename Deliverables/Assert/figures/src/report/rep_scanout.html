@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="fig-size" content="1040x310">
+<link rel="stylesheet" href="_rep.css"></head>
+<body><div id="fig" style="width:1040px;height:310px">
+
+<div class="n mem" style="left:40px;top:50px;width:172px;height:150px"><div class="t" style="font-size:21px">前台帧缓冲</div>
+<div class="s">FRONT_BASE<br>行跨 4096 B<br>640×480 XRGB8888</div></div>
+<div class="n dat" style="left:244px;top:50px;width:172px;height:150px"><div class="t" style="font-size:21px">display_fetch</div>
+<div class="s">FIFO 水位触发<br>每行一笔 160 拍读<br>S0 只读 · 一笔在途</div></div>
+<div class="n mem" style="left:448px;top:50px;width:172px;height:150px"><div class="t" style="font-size:21px">display_fifo</div>
+<div class="s">512 拍异步 FIFO<br>100 MHz → 25.2 MHz<br>唯一跨时钟域</div></div>
+<div class="n dat" style="left:652px;top:50px;width:172px;height:150px"><div class="t" style="font-size:21px">display_out</div>
+<div class="s">128 位拍拆 4 像素<br>对齐相位<br>SRC：彩条 / 帧缓冲</div></div>
+<div class="n dat" style="left:856px;top:50px;width:152px;height:150px"><div class="t" style="font-size:21px">hdmi_tx</div>
+<div class="s">TMDS 编码<br>640×480 @ 60 Hz</div></div>
+
+<svg class="links" viewBox="0 0 1040 310">
+  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="14" refX="13" refY="6" orient="auto"><path d="M1,1 L13,6 L1,11" stroke="#3F668B" stroke-width="2.4"/></marker></defs>
+  <line x1="212" y1="125" x2="238" y2="125" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
+  <line x1="416" y1="125" x2="442" y2="125" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
+  <line x1="620" y1="125" x2="646" y2="125" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
+  <line x1="824" y1="125" x2="850" y2="125" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
+</svg>
+
+<div class="lbl" style="left:40px;top:238px;color:#6B7684">双缓冲切换（SWAP_REQ → 场消隐期锁存 FRONT_BASE）见图 4；上电默认输出八色彩条，欠载计数恒为 0。</div>
+</div></body></html>

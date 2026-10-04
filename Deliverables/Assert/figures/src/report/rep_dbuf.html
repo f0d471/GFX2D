@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="fig-size" content="1040x470">
+<link rel="stylesheet" href="_rep.css">
+<style>
+.lane { position: absolute; left: 150px; right: 30px; height: 52px; }
+.bar { position: absolute; top: 0; height: 52px; box-sizing: border-box; border: 2px solid;
+       border-radius: 4px; display: flex; align-items: center; justify-content: center;
+       font-size: 15.5px; font-weight: 700; }
+.vl { position: absolute; top: 70px; width: 1.5px; height: 300px; background: #C6CCD4; }
+.vlb { position: absolute; white-space: nowrap; font-size: 14px; color: #6B7684; transform: translateX(-50%); }
+.dm { position: absolute; width: 15px; height: 15px; background: #EFD9A8; border: 2px solid #8A6410;
+      transform: rotate(45deg); }
+</style></head>
+<body><div id="fig" style="width:1040px;height:470px">
+
+<!-- field boundaries abs x: 140 + k*176 -->
+<div class="vl" style="left:140px"></div><div class="vl" style="left:316px"></div>
+<div class="vl" style="left:492px"></div><div class="vl" style="left:668px"></div>
+<div class="vl" style="left:844px"></div><div class="vl" style="left:1020px"></div>
+<div class="vlb" style="left:140px;top:44px">场 0</div><div class="vlb" style="left:316px;top:44px">场 1</div>
+<div class="vlb" style="left:492px;top:44px">场 2</div><div class="vlb" style="left:668px;top:44px">场 3</div>
+<div class="vlb" style="left:844px;top:44px">场 4</div><div class="vlb" style="left:1020px;top:44px">场 5</div>
+
+<div class="lbl b" style="left:34px;top:88px">CPU 生成命令</div>
+<div class="lane" style="top:80px">
+  <div class="bar ctl" style="left:0;width:176px">命令表 0</div>
+  <div class="bar ctl" style="left:176px;width:176px">命令表 1</div>
+  <div class="bar ctl" style="left:352px;width:176px">命令表 2</div>
+  <div class="bar ctl" style="left:528px;width:176px">命令表 3</div>
+  <div class="bar ctl" style="left:704px;width:176px">命令表 4</div>
+</div>
+
+<div class="lbl b" style="left:34px;top:172px">引擎渲染后台</div>
+<div class="lane" style="top:164px">
+  <div class="bar cmp" style="left:53px;width:176px">渲表 0</div>
+  <div class="bar cmp" style="left:229px;width:176px">渲表 1</div>
+  <div class="bar cmp" style="left:405px;width:352px;border-color:#E8546B">渲表 2（超期）</div>
+</div>
+
+<div class="lbl b" style="left:34px;top:256px">屏幕呈现前台</div>
+<div class="lane" style="top:248px">
+  <div class="bar ext" style="left:0;width:352px">初始画面（流水建立）</div>
+  <div class="bar dat" style="left:352px;width:176px">表 0 结果</div>
+  <div class="bar dat" style="left:528px;width:176px">表 1 结果</div>
+  <div class="bar dat" style="left:704px;width:176px;background:repeating-linear-gradient(45deg,#FBE4E7,#FBE4E7 8px,#F6D3D9 8px,#F6D3D9 16px)">保持前帧（掉帧）</div>
+</div>
+
+<div class="dm" style="left:485px;top:302px"></div>
+<div class="dm" style="left:661px;top:302px"></div>
+<div class="dm" style="left:1013px;top:302px"></div>
+<div class="lbl bg" style="left:522px;top:330px;color:#8A6410">菱形 = 消隐期切换点</div>
+<div class="lbl bg" style="left:560px;top:224px;color:#B23A48">list_done 晚于消隐 → 该场不切换</div>
+
+<div class="lbl b" style="left:34px;top:372px">流水关系</div>
+<div class="lbl" style="left:150px;top:372px;line-height:1.7">CPU 填第 N 帧命令表与引擎渲第 N−1 帧并行；list_done 后置 SWAP_REQ，<br>下一场消隐期锁存切换；引擎超期则保持前帧并计入掉帧（帧率 = 场数 − 切换数）。</div>
+
+<div class="lg" style="left:34px;top:436px">
+<span class="bx" style="border-color:#E8546B;background:#FBEEF0"></span>CPU 侧
+<span class="bx" style="border-color:#67BA4A;background:#EEF7E9;margin-left:12px"></span>引擎侧
+<span class="bx" style="border-color:#4A7FD0;background:#EDF3FB;margin-left:12px"></span>呈现
+<span class="bx" style="border-color:#8A6410;background:#EFD9A8;margin-left:12px"></span>切换点
+</div>
+</div></body></html>

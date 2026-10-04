@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="fig-size" content="1040x740">
+<link rel="stylesheet" href="_rep.css"></head>
+<body><div id="fig" style="width:1040px;height:740px">
+
+<div class="grp" style="left:24px;top:56px;width:800px;height:560px"><div class="gl">Ti60F225 FPGA</div></div>
+
+<div class="n ctl" style="left:46px;top:300px;width:220px;height:220px"><div class="t">Sapphire SoC</div>
+<div class="s">VexRiscv RV32IM<br>100 MHz<br>I$ + D$ 各 4 KB</div></div>
+
+<div class="n cmp" style="left:350px;top:90px;width:240px;height:130px"><div class="t">GFX2D 渲染引擎</div>
+<div class="s">4 像素 / 周期<br>12 DSP 混合核 · 色键</div></div>
+<div class="n cmp" style="left:610px;top:90px;width:190px;height:130px"><div class="t">display</div>
+<div class="s">扫描输出<br>FIFO 512 拍<br>25.2 MHz</div></div>
+
+<div class="n dat" style="left:350px;top:315px;width:240px;height:120px"><div class="t">Axi_Mux（X3）</div>
+<div class="s">128 位 · 3 进 1 出</div></div>
+<div class="n dat" style="left:620px;top:315px;width:180px;height:120px"><div class="t">DDR3 控制器</div>
+<div class="s">800 Mbps<br>突发 ≤ 256 拍</div></div>
+<div class="n mem dark" style="left:620px;top:480px;width:180px;height:80px"><div class="t">DDR3 256 MB</div></div>
+
+<div class="n ctl" style="left:350px;top:480px;width:240px;height:70px"><div class="t">axi_mux_guard</div></div>
+
+<div class="n ext" style="left:856px;top:110px;width:170px;height:90px"><div class="t">HDMI 显示器</div>
+<div class="s">640×480 @ 60</div></div>
+<div class="n ext" style="left:856px;top:470px;width:170px;height:90px"><div class="t">上位机</div>
+<div class="s">串口日志 / 输入</div></div>
+<div class="n mem" style="left:46px;top:676px;width:220px;height:64px"><div class="t" style="font-size:20px">SPI Flash 8 MB</div></div>
+
+<svg class="links" viewBox="0 0 1040 740">
+  <defs>
+    <marker id="aB" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="16" refX="14" refY="7" orient="auto"><path d="M1,1 L14,7 L1,13" stroke="#3F668B" stroke-width="2.2"/></marker>
+    <marker id="aR" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="13" refX="12" refY="5.5" orient="auto"><path d="M1,1 L12,5.5 L1,10" stroke="#E8546B" stroke-width="1.8"/></marker>
+  </defs>
+  <!-- AXI 数据通路 -->
+  <line x1="470" y1="220" x2="470" y2="308" stroke="#3F668B" stroke-width="2.6" marker-end="url(#aB)"/>
+  <polyline points="700,220 700,262 560,262 560,308" stroke="#3F668B" stroke-width="2.6" marker-end="url(#aB)"/>
+  <line x1="266" y1="375" x2="342" y2="375" stroke="#3F668B" stroke-width="2.6" marker-end="url(#aB)"/>
+  <line x1="590" y1="375" x2="612" y2="375" stroke="#3F668B" stroke-width="2.6" marker-end="url(#aB)"/>
+  <line x1="710" y1="435" x2="710" y2="473" stroke="#3F668B" stroke-width="2.6" marker-end="url(#aB)"/>
+  <line x1="800" y1="155" x2="849" y2="155" stroke="#3F668B" stroke-width="2.6" marker-end="url(#aB)"/>
+  <!-- APB（虚线）与中断（点线） -->
+  <polyline points="156,296 156,165 342,165" stroke="#E8546B" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#aR)"/>
+  <polyline points="250,296 250,80 705,80 705,86" stroke="#E8546B" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#aR)"/>
+  <polyline points="180,520 180,544 342,544" stroke="#E8546B" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#aR)"/>
+  <line x1="470" y1="474" x2="470" y2="442" stroke="#E8546B" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#aR)"/>
+  <polyline points="390,220 390,250 262,250 262,294" stroke="#E8546B" stroke-width="1.8" stroke-dasharray="2 4" marker-end="url(#aR)"/>
+  <polyline points="650,220 650,282 292,282 292,294" stroke="#E8546B" stroke-width="1.8" stroke-dasharray="2 4" marker-end="url(#aR)"/>
+  <!-- 外设 -->
+  <polyline points="852,585 130,585 130,526" stroke="#87929E" stroke-width="1.8" marker-end="url(#aR)"/>
+  <line x1="90" y1="676" x2="90" y2="526" stroke="#87929E" stroke-width="1.8" marker-end="url(#aR)"/>
+</svg>
+
+<div class="lbl" style="left:484px;top:252px">S1</div>
+<div class="lbl" style="left:574px;top:266px">S0</div>
+<div class="lbl" style="left:288px;top:347px">S2</div>
+<div class="lbl bg" style="left:170px;top:140px"><span class="mono">APB 0xF810_0000</span></div>
+<div class="lbl bg" style="left:300px;top:84px"><span class="mono">APB 0xF810_E000</span></div>
+<div class="lbl bg" style="left:192px;top:556px"><span class="mono">APB 0xF810_F000</span></div>
+<div class="lbl bg" style="left:484px;top:450px">监测 / 屏蔽</div>
+<div class="lbl bg" style="left:270px;top:226px">中断 B</div>
+<div class="lbl bg" style="left:300px;top:260px">中断 A</div>
+<div class="lbl bg" style="left:804px;top:122px">TMDS</div>
+<div class="lbl bg" style="left:620px;top:592px">UART0</div>
+<div class="lbl" style="left:104px;top:644px">SPI0</div>
+
+<div class="lg" style="left:540px;top:640px;line-height:1.5">
+<span class="bx" style="border-color:#4A7FD0;background:#EDF3FB"></span>数据通路（AXI4 ×128 @100 MHz）<br>
+<span class="bx" style="border-color:#E8546B;background:#FBEEF0"></span>APB（虚线）· 中断（点线）<br>
+<span class="bx" style="border-color:#67BA4A;background:#EEF7E9"></span>自研计算　<span class="bx" style="border-color:#A37A1C;background:#F9F2E1"></span>存储　<span class="bx" style="border-color:#87929E;background:#F4F5F7"></span>外部
+</div>
+</div></body></html>
