@@ -4,6 +4,8 @@
 | --- | --- |
 | `board_run.py` | 烧比特流、先开串口、复位并加载程序、回收串口输出，一条命令走完；也做调试通路检查、寄存器读写与「从 Flash 启动」的采集 |
 | `input_forward.py` | SW9 的两字节按键协议、Windows 键盘与 XInput 手柄采样；由 `board_run.py --forward-input` 调用 |
+| `game_control.py` | 正在运行的游戏的电脑控制面板；固定操作说明、实时模式/后端/FPS、切换提示、硬件后端恢复和重开按钮 |
+| `play.ps1` | 游戏控制面板的 PowerShell 启动入口；定位 Efinity Python，日志与状态写入项目内的构建目录 |
 | `gfx2d_debug.cfg` | 本板用的 OpenOCD 配置，修掉官方 cfg 在本板上的两处对不上，`board_run.py` 用它 |
 | `bin2hex.py` | 把程序 bin 转成 Efinity Programmer 写 Flash 用的 hex 文本 |
 | `make_flash_image.py` | 比特流 + 程序 + 素材包合成一个 Flash 镜像，并做回环校验（不烧录） |
@@ -81,6 +83,53 @@ OpenOCD 考察到目标，`load_image` 报的写入字节数等于 bin 的大小
 6. **采集中途 USB 掉线。** FT4232H 被系统意外移除时串口句柄失效，读串口抛 `SerialException`。
    日志末尾记一行 `# serial lost`，退出码 1，报「采集中途串口失效」，
    不再报成「N 秒内没有收到」（2026-10-03 实测：9208 帧回放跑到第 8412 帧时掉线）。
+
+## game_control.py
+
+在仓库根目录启动面板：
+
+```powershell
+& ./Main/tools/board/play.ps1
+```
+
+启动器自动查找 Efinity 安装目录，也可通过 `EFINITY_HOME` 或 `-EfinityHome <EFINITY>` 指定。
+`play.ps1` 使用 UTF-8 BOM 编码，兼容 Windows PowerShell 5.1 和 PowerShell 7；编辑时保留 BOM。
+`-Port COM11` 指定串口；`-CheckOnly` 只检查解释器、依赖和命令行参数，不连接板子。
+串口日志和 `panel_status.json` 写入 `Main/sw/apps/game/gfx2dGame/build_control/`，由现有
+`build_*/` 规则忽略。关闭面板后恢复启动前的 Python 环境变量。
+
+直接调用 Python：
+
+```powershell
+$env:PYTHONHOME = '<EFINITY>\python311'
+& '<EFINITY>\python311\bin\python.exe' Main/tools/board/game_control.py --ensure-hw
+```
+
+面板连接已运行的游戏，读取串口状态并复用 `input_forward.py` 转发按键。当前模式、绘图后端与 FPS
+以板上日志为准；切到 SW 时后端栏和提示条变红。`--ensure-hw` 在每次连接后根据实际反馈恢复 HW，
+随后仍可主动切到 SW 作对比。“回到 HW”按钮只在当前为 SW 时发出一次切换；重开按钮先进入
+模式 1，收到板上反馈后再进入模式 2。可用 `--port`、`--baud` 指定串口；`--log` 追加原始串口日志，
+`--status-file` 写出当前状态 JSON。串口被占用或 USB 断开时，面板显示原因并提供重新连接按钮。
+
+| 操作 | 效果 |
+| --- | --- |
+| WASD / 方向键 | 移动；可斜向移动 |
+| 左 Shift | 按住慢速移动、显示判定点 |
+| 空格 | 每次按下使用一颗炸弹；射击自动进行 |
+| 1 / 2 / 3 | 图形演示 / 弹幕游戏 / 压力测试 |
+| Tab / 手柄 Start | 切换 HW、SW；SW 使用板上 CPU 绘图，帧率较低 |
+| 上+下保持 8 帧 | 下一个模式；W+S 同样触发 |
+| 左+右保持 8 帧 | 切换后端；A+D 同样触发，在 60 FPS 下约 0.13 秒就会触发 |
+| 组合键再次触发 | 一对键都松开后才能再次触发 |
+| Esc / 转发复选框 | 停止或恢复键盘与手柄转发；板上游戏继续运行 |
+| 重开本局 | 先切 1、等待确认、再切 2；也可按相同顺序手动重开 |
+| 手柄方向键/左摇杆、A、LB | 移动、炸弹、慢速；支持第一个 XInput 手柄 |
+| 实体 SW0 / SW1 / SW2 / SW3 | 左 / 下 / 上 / 右；不受电脑转发开关影响 |
+
+键盘仅在面板位于前台时转发；手柄不受前台限制，关闭转发开关后两者都停止。关闭面板前发送
+全松包，游戏继续运行。模式 2 连续 600 帧无输入后自动驾驶，任意游戏按键接管回来。
+标题显示 120 帧后自动开始；初始 3 残机、3 炸弹。有炸弹时受击自动消耗一颗，没有炸弹时扣残机并
+补回 3 炸弹；残机用完回标题，通关后自动进入新一局。
 
 ## gfx2d_debug.cfg
 
