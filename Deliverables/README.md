@@ -9,9 +9,9 @@
 
 | 目录 | 内容 | 状态 |
 | --- | --- | --- |
-| [Report/](Report/) | 技术报告 | 未开始 |
+| [Report/](Report/) | 技术报告 | 完成（2026-10-05）：docx/pdf 成品、`parts/` 正文源与构建脚本，数字登记在数据台账 |
 | [Slides/](Slides/) | 项目讲解幻灯片 | 第三版（2026-09-20）：PPTX 与 PDF 版 |
-| [Assert/](Assert/) | 报告与幻灯片用到的图片、图片源码、实拍与第三方图 | 已有 24 张自绘结构图与数据图（`figures/`，源码在 `figures/src/`）和 9 个第三方图文件（`third-party/`，出处台账见其 README） |
+| [Assert/](Assert/) | 报告与幻灯片用到的图片、图片源码、实拍与第三方图 | 24 张幻灯片自绘图（`figures/`）+ 12 张报告自绘图（`figures/report/`，源码在 `figures/src/report/`）、2 份屏摄（`photos/`）、面板与 PC 运行记录（`measurements/`）、9 个第三方图文件（`third-party/`，出处台账见其 README） |
 
 ## 数字从哪里取
 
