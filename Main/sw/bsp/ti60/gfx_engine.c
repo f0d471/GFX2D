@@ -1,8 +1,8 @@
 /******************************************************************************
 * @file gfx_engine.c: 2D 渲染引擎最小驱动的 Ti60F225 实现（引擎 P1 B6）
 *
-* @brief  协议与取舍见同目录 gfx_engine.h 的文件头与 Engineering/Todo/hw/
-*         引擎P1-B6-顶层集成与上板.md。寄存器偏移一律取生成的 gfx_regs.h，
+* @brief  协议与取舍见 gfx_engine.h 的文件头与 TechReports engine 第 06、07 章。
+*         寄存器偏移一律取生成的 gfx_regs.h，
 *         本文件不出现第二个偏移真源；页基址是 APB Slave 0（soc.h 的
 *         IO_APB_SLAVE_0_INPUT，CPU 地址 0xF810_0000）。
 *
@@ -46,6 +46,16 @@ int gfx_engine_present(void)
     return eng_rd(GFX_ID) == GFX_ID_VALUE;
 }
 
+int gfx_engine_caps_read(uint32_t *caps)
+{
+    if (!gfx_engine_present())
+        return GFX_ENG_E_ABSENT;
+    if (caps == NULL)
+        return GFX_ENG_E_ARG;
+    *caps = eng_rd(GFX_CAPS);
+    return GFX_ENG_OK;
+}
+
 int gfx_engine_soft_reset(void)
 {
     uint32_t st;
@@ -69,8 +79,9 @@ int gfx_engine_soft_reset(void)
     return GFX_ENG_E_TIMEOUT;
 }
 
-int gfx_engine_surf_set(int slot, uint32_t base, uint32_t width,
-                        uint32_t height, uint32_t stride_log2, uint32_t format)
+int gfx_engine_surf_set_space(int slot, uint32_t base, uint32_t width,
+                              uint32_t height, uint32_t stride_log2,
+                              uint32_t space, uint32_t format)
 {
     uint32_t ctrl;
 
@@ -82,19 +93,81 @@ int gfx_engine_surf_set(int slot, uint32_t base, uint32_t width,
         return GFX_ENG_E_ARG;    /* DIM 的两个字段都是 16 位，不能静默截断 */
     if (stride_log2 < 2u || stride_log2 > 31u)
         return GFX_ENG_E_ARG;
-    if (format > 3u)
+    if (space > 3u || format > 3u)
         return GFX_ENG_E_ARG;
+    if (eng_rd(GFX_STATUS) & (GFX_STATUS_BUSY | GFX_STATUS_DRAINING))
+        return GFX_ENG_E_REJECT;
+    if (space == 1u && !(eng_rd(GFX_CAPS) & GFX_CAPS_TEX_M))
+        return GFX_ENG_E_CAPS;
 
     /* +0 base、+4 [15:0] 宽 / [31:16] 高、+8 控制字：[4:0] stride_log2、
-       [9:8] space（恒 DDR=0）、[15:12] format、[31] valid，其余位必须为 0
+       [9:8] space、[15:12] format、[31] valid，其余位必须为 0
        （设计文档 3.4 节，违例报 BAD_SURFACE）。valid 最后置 1。
-       space/format 的取值写在位段里：space 只开放 DDR 一档（v1），
+       space 的取值写在位段里：0 DDR，1 TEX（v1-TEX profile 的 BLIT 源，G1）；
        format 的枚举在 gfx_abi.h，那是 lib 层的头，本层引用它就破坏了分层。 */
+    eng_wr(GFX_SURF((uint32_t)slot, 2u), 0u);
     eng_wr(GFX_SURF((uint32_t)slot, 0u), base);
     eng_wr(GFX_SURF((uint32_t)slot, 1u), (height << 16) | (width & 0xFFFFu));
-    ctrl = (stride_log2 & 0x1Fu) | (0u << 8)
+    ctrl = (stride_log2 & 0x1Fu) | ((space & 3u) << 8)
          | ((format & 0xFu) << 12);
     eng_wr(GFX_SURF((uint32_t)slot, 2u), ctrl | 0x80000000u);
+    return GFX_ENG_OK;
+}
+
+int gfx_engine_surf_set(int slot, uint32_t base, uint32_t width,
+                        uint32_t height, uint32_t stride_log2, uint32_t format)
+{
+    return gfx_engine_surf_set_space(slot, base, width, height, stride_log2,
+                                     0u /* GFX_SPACE_DDR */, format);
+}
+
+/* TEX 装载窗口的空闲要求：忙或排空中拒绝（硬件不加互锁，见 gfx_engine.h）。 */
+static int eng_idle_for_tex(void)
+{
+    uint32_t st = eng_rd(GFX_STATUS);
+
+    return (st & (GFX_STATUS_BUSY | GFX_STATUS_DRAINING)) == 0u;
+}
+
+int gfx_engine_tex_write(const void *src, uint32_t offset, uint32_t bytes)
+{
+    const uint32_t *w = (const uint32_t *)(uintptr_t)src;
+    uint32_t i;
+
+    if (!gfx_engine_present())
+        return GFX_ENG_E_ABSENT;
+    if (src == NULL || ((uintptr_t)src & 3u) != 0u
+        || (offset & 3u) != 0u || bytes == 0u || (bytes & 3u) != 0u
+        || offset > GFX_TEX_BYTES || bytes > GFX_TEX_BYTES - offset)
+        return GFX_ENG_E_ARG;
+    if (!(eng_rd(GFX_CAPS) & GFX_CAPS_TEX_M))
+        return GFX_ENG_E_CAPS;
+    if (!eng_idle_for_tex())
+        return GFX_ENG_E_REJECT;
+
+    for (i = 0u; i < bytes / 4u; i++)
+        eng_wr(GFX_TEX_WINDOW + offset + i * 4u, w[i]);
+    return GFX_ENG_OK;
+}
+
+int gfx_engine_tex_read(void *dst, uint32_t offset, uint32_t bytes)
+{
+    uint32_t *w = (uint32_t *)(uintptr_t)dst;
+    uint32_t i;
+
+    if (!gfx_engine_present())
+        return GFX_ENG_E_ABSENT;
+    if (dst == NULL || ((uintptr_t)dst & 3u) != 0u
+        || (offset & 3u) != 0u || bytes == 0u || (bytes & 3u) != 0u
+        || offset > GFX_TEX_BYTES || bytes > GFX_TEX_BYTES - offset)
+        return GFX_ENG_E_ARG;
+    if (!(eng_rd(GFX_CAPS) & GFX_CAPS_TEX_M))
+        return GFX_ENG_E_CAPS;
+    if (!eng_idle_for_tex())
+        return GFX_ENG_E_REJECT;
+
+    for (i = 0u; i < bytes / 4u; i++)
+        w[i] = eng_rd(GFX_TEX_WINDOW + offset + i * 4u);
     return GFX_ENG_OK;
 }
 

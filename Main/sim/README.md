@@ -25,6 +25,10 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 
 ## 规则
 
+G1 的 `engine/tex/` 为正式 TEX 验证：APB 全窗口、两种读延迟、TEX/DDR 请求重叠
+与流隔离、PERF、错误、复位及四个定向变异，共 6/6。研究探针另行保留，
+入口和证据见 [tex/README](engine/tex/README.md)。
+
 每个 `run.sh` 除了正常用例，还必须带注错用例：把一处改错，对应的判据必须报 FAIL。全部用例都符合预期才输出 `SIM OK`，否则退出码非零。只跑正常用例无法说明判据真的在检查东西。
 
 | 用例 | 注错内容 | 期望 |

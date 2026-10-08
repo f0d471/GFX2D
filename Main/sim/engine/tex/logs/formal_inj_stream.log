@@ -1,0 +1,6 @@
+UNIT APB done (errors=0)
+UNIT STR done (errors=0)
+UNIT done errors=0
+PIXEL_STREAM_COLLISION
+TEX MIX INJECT red
+tb_engine_tex.v:362: $finish called at 718165000 (1ps)

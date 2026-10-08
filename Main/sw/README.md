@@ -521,6 +521,12 @@ gcc 13.4.0，最终复核版 bin 11322 字节（sha256 前 16 位 `e5cf7dabcfe78
 
 正常版逐段：`ENG id ok`；十一行金标准 `名字 引擎面CRC 软件面CRC ok`（两面 CRC 相同且与 `sw/lib/test/golden.txt` 一致，本轮复核 `fill-screen 9cd34cb7`、`blit-copy bc9be6ff` 等 11/11）；`COUNT32 ok` 用 FILL+END 与 `LIST_COUNT=0x10000` 验证驱动没有截成 16 位；`DIR narrow-x1x2x3 ok`、`DIR key-sparse ok`（首末拍部分掩码与色键稀疏掩码）；`INJ-COH ok`；`PERF-BUSY ok` 加 `PERF busy=<hex>`（16 颗 16×16 预乘 ALPHA 的 `PERF_BUSY`，除以 16 得每颗周期数，本轮 `0x49f8` = 18936，约 1184 拍/颗；初次开发日志为 `0x4a10`）；`STRESS ok` 加 `wm=欠载=ar=aw=`（扫描 FIFO 最低水位，判据 ≥ 160 拍；欠载 0；guard 的 SoC 最大地址等待登记，本轮 wm=0x14f=335、z=0、ar=0xd3=211、aw=0xe0=224）。注错版仅 INJ-COH 一行变为 `differ FAIL (inject)`（不计入 `fail`），其余相同。
 
+G1 的现行正常版追加 TEX-CAPS/BUSY/LOAD、十一行 TEX 金标准、六个 TEXERR
+错误三元组及 TEX-PERF。最终日志 `engineTest/logs/g1_board.log` 为 `fail 0/done`，
+DDR/TEX 同轮为 1183.625/657.375 周期每颗；上表两个 BIN 身份属于历史 B6。
+当前 G1 的完整身份集中在 `sim/engine/tex/logs/g1_artifacts.json`。
+外部判据运行 `tools/check/check_g1_logs.py --board-only`。
+
 ## cacheMechTest 的期望值
 
 需要带 `axi_probe_master` 的比特流。gcc 13.4.0，`-Og`，bin 7018 字节（`sha256:4369e2ff4ae43938…`；gcc 8.3.0 时 6906 字节 `21dccb3fd0e8a20b…`）。每组一行数据加一行 `Tn ok`，末尾 `fail 0` 与 `done`（`logs/run_1.log`、`run_2.log`）。各组的期望：

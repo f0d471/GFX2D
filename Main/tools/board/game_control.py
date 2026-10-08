@@ -37,14 +37,14 @@ class BoardState:
             self.headers = line.split(",")[1:]
         elif line.startswith("csv,"):
             fields = line.split(",")
-            if len(fields) >= 9 and fields[2] in MODE_NAMES and fields[3] in ("hw", "sw"):
+            if len(fields) >= 9 and fields[2] in MODE_NAMES and fields[3] in ("hw", "hw-tex", "sw"):
                 try:
                     row = dict(zip(self.headers, fields[1:])) if self.headers else {}
                     milli = row.get("fps_milli")
                     if milli is None and fields[-6] in ("serial", "pipeline"):
                         milli = fields[-1]
                     fps = float(milli) / 1000 if milli is not None else float(fields[4])
-                    bullets = int(fields[8])
+                    bullets = int(row.get("n_bullet", fields[7]))
                 except (ValueError, IndexError):
                     return False
                 self.mode, self.backend = fields[2], fields[3]
@@ -52,7 +52,7 @@ class BoardState:
                 self.last_csv = time.monotonic()
         elif line.startswith("backend "):
             backend = line.split()[1]
-            if backend in ("hw", "sw"):
+            if backend in ("hw", "hw-tex", "sw"):
                 self.backend = backend
                 self.fps = None
         else:
@@ -73,6 +73,7 @@ class ControlPanel:
         self.ensure_hw = args.ensure_hw
         self.pending_backend = None
         self.pending_since = 0.0
+        self.pending_steps = 0
         self.restart_pending = False
         self.restart_since = 0.0
         self.closed = False
@@ -127,6 +128,7 @@ class ControlPanel:
         actions = ttk.Frame(outer)
         actions.pack(fill="x", pady=(0, 8))
         ttk.Button(actions, text="回到 HW 硬件（推荐）", command=lambda: self.set_backend("hw")).pack(side="left", padx=(0, 6))
+        ttk.Button(actions, text="HW/TEX 片上纹理", command=lambda: self.set_backend("hw-tex")).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="SW 软件对比（很慢）", command=lambda: self.set_backend("sw")).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="重开本局（1 → 2）", command=self.restart_game).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="重新连接", command=self.connect).pack(side="right")
@@ -245,6 +247,7 @@ class ControlPanel:
             self.notify(f"板上当前已是 {target.upper()} 后端。")
         elif self.send_action(1 << 6):
             self.pending_backend = target
+            self.pending_steps = 1
             self.pending_since = time.monotonic()
             self.notify(f"已请求切到 {target.upper()}，等待板上确认。")
 
@@ -285,6 +288,7 @@ class ControlPanel:
             self.log.write(f"# serial lost: {error}\n")
 
     def process_line(self, line):
+        before_backend = self.state.backend
         changed = self.state.consume(line)
         if changed:
             mode = MODE_NAMES.get(self.state.mode, "模式未知")
@@ -293,6 +297,13 @@ class ControlPanel:
                         (" SW 软件绘图会很慢，正常游玩请回到 HW。" if self.state.backend == "sw" else ""))
         if self.pending_backend == self.state.backend:
             self.pending_backend = None
+        elif self.pending_backend and before_backend != self.state.backend:
+            if self.pending_steps >= 3:
+                self.pending_backend = None
+                self.notify("板上未进入请求的后端；当前程序可能不提供 TEX，已停止切换。")
+            elif self.send_action(1 << 6):
+                self.pending_steps += 1
+                self.pending_since = time.monotonic()
         if self.restart_pending and self.state.mode == "demo":
             self.restart_pending = False
             self.send_action(1 << 8)
@@ -304,8 +315,8 @@ class ControlPanel:
     def refresh(self):
         self.mode_label.configure(text=MODE_NAMES.get(self.state.mode, "等待板上反馈"))
         backend = self.state.backend
-        self.backend_label.configure(text={"hw": "HW · FPGA 加速", "sw": "SW · CPU 绘图"}.get(backend, "等待板上反馈"),
-                                     fg="#167144" if backend == "hw" else "#b42318" if backend == "sw" else "#17243b")
+        self.backend_label.configure(text={"hw": "HW/DDR · FPGA 加速", "hw-tex": "HW/TEX · 片上纹理", "sw": "SW · CPU 绘图"}.get(backend, "等待板上反馈"),
+                                     fg="#167144" if backend in ("hw", "hw-tex") else "#b42318" if backend == "sw" else "#17243b")
         fps = f"{self.state.fps:.1f}" if self.state.fps is not None else "—"
         bullets = str(self.state.bullets) if self.state.bullets is not None else "—"
         self.fps_label.configure(text=f"{fps} FPS / {bullets} 颗")

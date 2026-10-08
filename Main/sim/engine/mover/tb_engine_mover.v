@@ -109,7 +109,8 @@ module tb_engine_mover;
     reg  [127:0] ws_tdata = 0; reg [15:0] ws_tkeep = 16'hFFFF;
     reg  ws_tvalid = 0; wire ws_tready;
 
-    wire rd_stat_valid, rd_stat_err; wire [3:0] rd_stat_cidx; wire [1:0] rd_stat_buf;
+    wire rd_stat_valid, rd_stat_err, rd_stat_fetch;
+    wire [3:0] rd_stat_cidx; wire [1:0] rd_stat_buf;
     wire wr_stat_valid, wr_stat_err; wire [3:0] wr_stat_cidx; wire wr_stat_last_row;
 
     reg  drain_req = 0; wire drain_busy, drain_done;
@@ -130,7 +131,13 @@ module tb_engine_mover;
     ) dut (
         .clk(clk), .rst(rst),
         .rd_addr(rd_addr), .rd_bytes(rd_bytes), .rd_buf(rd_buf), .rd_cidx(rd_cidx),
+        .rd_tex(1'b0),
         .rd_valid(rd_valid), .rd_ready(rd_ready),
+        .tx_addr(), .tx_bytes(), .tx_buf(), .tx_cidx(), .tx_valid(),
+        .tx_ready(1'b1), .tx_busy(1'b0),
+        .tx_rs_tdata(128'd0), .tx_rs_tvalid(1'b0), .tx_rs_tlast(1'b0),
+        .tx_rs_buf(2'd0),
+        .tx_stat_valid(1'b0), .tx_stat_cidx(4'd0), .tx_stat_buf(2'd0),
         .fd_addr(fd_addr), .fd_bytes(fd_bytes), .fd_cidx(fd_cidx),
         .fd_valid(fd_valid), .fd_ready(fd_ready),
         .rs_tdata(rs_tdata), .rs_tkeep(rs_tkeep), .rs_tlast(rs_tlast), .rs_tvalid(rs_tvalid),
@@ -142,6 +149,7 @@ module tb_engine_mover;
         .ws_tdata(ws_tdata), .ws_tkeep(ws_tkeep),
         .ws_tvalid(ws_tvalid), .ws_tready(ws_tready),
         .rd_stat_valid(rd_stat_valid), .rd_stat_err(rd_stat_err),
+        .rd_stat_fetch(rd_stat_fetch),
         .rd_stat_cidx(rd_stat_cidx), .rd_stat_buf(rd_stat_buf),
         .wr_stat_valid(wr_stat_valid), .wr_stat_err(wr_stat_err),
         .wr_stat_cidx(wr_stat_cidx), .wr_stat_last_row(wr_stat_last_row),

@@ -107,11 +107,16 @@ typedef struct {
 
 /* 设备地址到主机内存的窗口。
    表面的 base 是设备地址：板上可以直接解引用，PC 上不能，所以所有访存都经这里换算。
-   板上把 dev_base 设成 host 所指的那个地址即为恒等映射。 */
+   板上把 dev_base 设成 host 所指的那个地址即为恒等映射。
+   v1-TEX（G1）：space=1 表面的 base 是片上 TEX 窗口内的字节偏移，经 tex 影子窗口
+   解析——tex_host 指向与片上内容相同的 DDR 影子（板上）或宿主缓冲（PC），
+   tex_bytes 是影子长度；两个屏位置零表示宿主没有提供影子，TEX 源按 BAD_SURFACE 停。 */
 typedef struct {
     uint32_t  dev_base;
     uint8_t  *host;
     uint32_t  bytes;
+    uint8_t  *tex_host;
+    uint32_t  tex_bytes;
 } gfx_mem;
 
 _Static_assert(sizeof(gfx_cmd) == 32, "命令记录必须是 32 字节");

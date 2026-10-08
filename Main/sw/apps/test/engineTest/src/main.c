@@ -45,6 +45,7 @@ static const uint32_t FB_SW     = 0x02400000u;  /* REGION_FB1：软件执行器�
 static const uint32_t TEX_BASE  = 0x00600000u;  /* REGION_SHARED：金标准的纹理 */
 static const uint32_t TEX_KEY   = 0x00610000u;  /* 色键棋盘（定向用例） */
 static const uint32_t TEX_BUL   = 0x00620000u;  /* 弹幕源格子（16×16 预乘） */
+static const uint32_t TEX_SCR   = 0x00650000u;  /* TEX 装载判据的对照缓冲 */
 static const uint32_t TEX_FULL  = 0x00680000u;  /* 整屏 BLIT 的源（640×480） */
 static const uint32_t CMDLIST   = 0x00400000u;  /* REGION_CMDLIST_A，1MB 对齐 */
 
@@ -115,7 +116,7 @@ static void fill_face(uint32_t base)
         p[i] = i * 0x9E3779B9u + (i >> 3);
 }
 
-/* 把表面表登记进引擎（只登记 ctrl 有 valid 位的槽） */
+/* 把表面表登记进引擎（只登记 ctrl 有 valid 位的槽；space 随表——G1 起源可以是 TEX） */
 static int engine_load_table(const gfx_surface_table *t)
 {
     int s;
@@ -124,9 +125,10 @@ static int engine_load_table(const gfx_surface_table *t)
         uint32_t ctrl = t->s[s].ctrl;
         if ((ctrl & 0x80000000u) == 0u)
             continue;
-        if (gfx_engine_surf_set(s, t->s[s].base,
-                                t->s[s].dim & 0xFFFFu, t->s[s].dim >> 16,
-                                ctrl & 0x1Fu, (ctrl >> 12) & 0xFu) != GFX_ENG_OK)
+        if (gfx_engine_surf_set_space(s, t->s[s].base,
+                                      t->s[s].dim & 0xFFFFu, t->s[s].dim >> 16,
+                                      ctrl & 0x1Fu, (ctrl >> 8) & 3u,
+                                      (ctrl >> 12) & 0xFu) != GFX_ENG_OK)
             return -1;
     }
     return 0;
@@ -187,7 +189,10 @@ static void run_count32(void)
 
 /* --- 金标准整帧 ----------------------------------------------------------- */
 
-static void run_golden(uint32_t idx)
+/* 一个整帧用例的软硬比对。tex=0 是 DDR 基线；tex=1 是 v1-TEX：同一张命令表、
+   同一份表面逻辑内容，源表面改指片上 TEX（base=0、space=1），纹理内容先经
+   APB 装载窗口写进 scratchpad，软件执行器经 gfx_mem 的 TEX 影子窗口读同一份。 */
+static void golden_case(uint32_t idx, int tex)
 {
     static gfx_surface_table tbl_eng, tbl_sw;
     static gfx_cmd cmds[2u * GFX_CASE_MAX_CMD];
@@ -201,6 +206,7 @@ static void run_golden(uint32_t idx)
 
     /* 引擎面：构建器把初始内容画进 FB0 与共享纹理 */
     m.dev_base = 0u; m.host = NULL; m.bytes = 0x03000000u;
+    m.tex_host = NULL; m.tex_bytes = 0u;
     n1 = gfx_case_build(idx, &tbl_eng, &m, FB_ENGINE, TEX_BASE, cmds, &n2);
     /* 软件面：同一构建器对 FB1 再画一遍（纹理内容相同，FB 的初始内容一致） */
     n1b = gfx_case_build(idx, &tbl_sw, &m, FB_SW, TEX_BASE, cmds_sw, &n2b);
@@ -210,9 +216,25 @@ static void run_golden(uint32_t idx)
         return;
     }
 
+    if (tex) {
+        /* 源表面改指片上 TEX；驱动把 64x64 纹理（恰 16 KiB）装载进 scratchpad，
+           装载与登记都发生在提交之前（引擎空闲，D57 的驱动纪律） */
+        tbl_eng.s[1].base = 0u;
+        tbl_eng.s[1].ctrl = (tbl_eng.s[1].ctrl & ~0x300u) | ((uint32_t)GFX_SPACE_TEX << 8);
+        // 只复制源空间；软件目的仍指向 FB_SW，不能覆盖硬件后缓冲。
+        tbl_sw.s[1] = tbl_eng.s[1];
+        m.tex_host = (uint8_t *)(uintptr_t)TEX_BASE;
+        m.tex_bytes = GFX_TEX_BYTES;
+        if (gfx_engine_tex_write((const void *)(uintptr_t)TEX_BASE, 0u,
+                                 GFX_TEX_BYTES) != GFX_ENG_OK) {
+            ok_line("TEX-LOAD", 0);
+            return;
+        }
+    }
+
     ecode = engine_run(&tbl_eng, cmds, n1, n2);
     if (ecode != 0u) {
-        ok_line("ENG-ERR", 0);
+        ok_line(tex ? "TEX-ENG-ERR" : "ENG-ERR", 0);
         return;
     }
     /* 软件面：与引擎同一份记录流（两张表的用例按同一顺序提交，
@@ -220,7 +242,7 @@ static void run_golden(uint32_t idx)
     exec_sw_reset(&es);
     if (exec_sw_run(&es, &tbl_sw, &m, cmds_sw, n1b, n1b, NULL, &err) ||
         (n2b != 0u && exec_sw_run(&es, &tbl_sw, &m, cmds_sw + n1b, n2b, n2b, NULL, &err))) {
-        ok_line("SW-ERR", 0);
+        ok_line(tex ? "TEX-SW-ERR" : "SW-ERR", 0);
         return;
     }
     /* E3 规则：引擎写过的面，CPU 读回之前必须失效（失效晚于写入完成）。
@@ -241,6 +263,7 @@ static void run_golden(uint32_t idx)
         for (i = 28; i >= 0; i -= 4) *p++ = hex[(c_sw >> i) & 0xFu];
         *p = '\0';
     }
+    board_puts(tex ? "TEX-" : "");
     board_puts(name);
     board_puts(line);
     if (c_eng == c_sw)
@@ -249,6 +272,11 @@ static void run_golden(uint32_t idx)
         board_puts(" FAIL\n");
         fails++;
     }
+}
+
+static void run_golden(uint32_t idx)
+{
+    golden_case(idx, 0);
 }
 
 /* --- E3 注错：单缓存行上的失效判据 ---------------------------------------- */
@@ -412,6 +440,160 @@ static void dir_key(gfx_list *l, int dst)
     gfx_blit(l, 1, 0, 0, dst, 10, 200, 620, 4, GFX_EQ_COPY, 0u, 1, KEY_COLOR);
 }
 
+/* --- v1-TEX（G1）：能力位、装载窗口与错误三元组 --------------------------- */
+
+static void run_tex_caps(void)
+{
+    uint32_t caps = 0u;
+
+    ok_line("TEX-CAPS", gfx_engine_caps_read(&caps) == GFX_ENG_OK
+                       && caps == GFX_CAPS_VALUE);
+}
+
+static void run_tex_busy(void)
+{
+    gfx_surface_table table;
+    gfx_surface surface;
+    gfx_cmd commands[2];
+    gfx_list list;
+    gfx_rect rect = {0,0,639,479};
+    uint32_t scratch, code, index, tag;
+    int rejected;
+
+    gfx_surface_reset(&table);
+    surface.base=FB_ENGINE; surface.width=FB_WIDTH; surface.height=FB_HEIGHT;
+    surface.stride_log2=FB_STRIDE_LOG2; surface.space=GFX_SPACE_DDR;
+    surface.format=GFX_FMT_XRGB8888;
+    if (gfx_surface_set(&table,0,&surface) || engine_load_table(&table)) {
+        ok_line("TEX-BUSY",0); return;
+    }
+    gfx_list_begin(&list,commands,2u,&table);
+    if (gfx_fill(&list,0,rect,0x00123456u,GFX_EQ_COPY,0u) || gfx_list_end(&list)) {
+        ok_line("TEX-BUSY",0); return;
+    }
+    memcpy((void *)(uintptr_t)CMDLIST,commands,list.used*sizeof(gfx_cmd));
+    if (gfx_engine_submit(CMDLIST,list.used) != GFX_ENG_OK) {
+        ok_line("TEX-BUSY",0); return;
+    }
+    rejected=gfx_engine_tex_write(&scratch,0u,4u)==GFX_ENG_E_REJECT;
+    rejected=rejected && gfx_engine_tex_read(&scratch,0u,4u)==GFX_ENG_E_REJECT;
+    rejected=rejected && gfx_engine_surf_set_space(15,0u,4u,1u,4u,1u,0u)==GFX_ENG_E_REJECT;
+    rejected=rejected && gfx_engine_wait(&code,&index,&tag)==GFX_ENG_OK && code==0u;
+    ok_line("TEX-BUSY",rejected);
+}
+
+/* 16 KiB 装载/读回：逐字不同的图案盖住首末地址与相邻字隔离；
+   对照缓冲在读回前抹掉，读回值只能来自 scratchpad。 */
+static void run_tex_load(void)
+{
+    crc32_ctx c;
+    volatile uint32_t *ref = (volatile uint32_t *)(uintptr_t)TEX_SCR;
+    uint32_t i, want, got;
+    int ok;
+
+    for (i = 0; i < GFX_TEX_BYTES / 4u; i++)
+        ref[i] = i * 0x9E3779B9u + (i >> 5);
+    crc32_begin(&c);
+    crc32_update(&c, (const void *)(uintptr_t)TEX_SCR, GFX_TEX_BYTES);
+    want = crc32_end(&c);
+
+    ok = gfx_engine_tex_write((const void *)(uintptr_t)TEX_SCR, 0u, GFX_TEX_BYTES)
+         == GFX_ENG_OK;
+    /* 驱动层的参数闸：未对齐长度必须被拦下 */
+    ok = ok && gfx_engine_tex_write((const void *)(uintptr_t)TEX_SCR, 0u, 2u)
+         == GFX_ENG_E_ARG;
+    ok = ok && gfx_engine_tex_write((const void *)(uintptr_t)TEX_SCR, 1u, 4u)
+         == GFX_ENG_E_ARG;
+    ok = ok && gfx_engine_tex_write(NULL, 0u, 4u) == GFX_ENG_E_ARG;
+    ok = ok && gfx_engine_tex_read((void *)(uintptr_t)TEX_SCR, 1u, 4u)
+         == GFX_ENG_E_ARG;
+    ok = ok && gfx_engine_tex_write((const void *)(uintptr_t)TEX_SCR, GFX_TEX_BYTES - 2u, 4u)
+         == GFX_ENG_E_ARG;
+
+    for (i = 0; i < GFX_TEX_BYTES / 4u; i++)
+        ref[i] = ~i ^ 0x5A5A5A5Au;      /* 抹掉对照缓冲 */
+    ok = ok && gfx_engine_tex_read((void *)(uintptr_t)TEX_SCR, 0u, GFX_TEX_BYTES)
+         == GFX_ENG_OK;
+    crc32_begin(&c);
+    crc32_update(&c, (const void *)(uintptr_t)TEX_SCR, GFX_TEX_BYTES);
+    got = crc32_end(&c);
+    ok_line("TEX-LOAD", ok && got == want);
+}
+
+/* 提交一条 8x2 BLIT + END（源表面号为 1），先按合法表面过构造层检查，
+   再按参数改写两个槽的原始字，让硬件的检查报错。返回三元组。 */
+static uint32_t tex_err_run(uint32_t src_raw0, uint32_t src_raw1, uint32_t src_raw2,
+                            uint32_t dst_raw0, uint32_t dst_raw1, uint32_t dst_raw2,
+                            uint32_t *eidx, uint32_t *etag)
+{
+    static gfx_surface_table tbl;
+    static gfx_cmd cmds[2];
+    gfx_list l;
+    gfx_surface s;
+    uint32_t code = 0xFFu, ec, ei, eg;
+
+    gfx_surface_reset(&tbl);
+    s.base = FB_ENGINE; s.width = 8u; s.height = 2u; s.stride_log2 = 8u;
+    s.space = GFX_SPACE_DDR; s.format = GFX_FMT_XRGB8888;
+    if (gfx_surface_set(&tbl, 0, &s) != 0 || gfx_surface_set(&tbl, 1, &s) != 0)
+        return 0xFFu;
+    gfx_list_begin(&l, cmds, 2u, &tbl);
+    if (gfx_blit(&l, 1, 0, 0, 0, 0, 0, 8, 2, GFX_EQ_ALPHA, 0u, 0, 0u) != 0 ||
+        gfx_list_end(&l) != 0)
+        return 0xFFu;
+    tbl.s[1].base = src_raw0; tbl.s[1].dim = src_raw1; tbl.s[1].ctrl = src_raw2;
+    tbl.s[0].base = dst_raw0; tbl.s[0].dim = dst_raw1; tbl.s[0].ctrl = dst_raw2;
+    code = engine_run(&tbl, cmds, l.used, 0u);
+    if (code == 0xFFu)
+        return 0xFFu;
+    if (gfx_engine_wait(&ec, &ei, &eg) != GFX_ENG_OK)
+        return 0xFFu;
+    code = ec;
+    *eidx = ei;
+    *etag = eg;
+    return code;
+}
+
+static void run_tex_errors(void)
+{
+    uint32_t idx, tag, code;
+    /* 合法的 TEX 源（8x2、stride_log2=8、base 0）：end = 512 ≤ 0x4000 */
+    const uint32_t tex_ok1 = (2u << 16) | 8u,
+                   tex_ok2 = 0x80000000u | (1u << 12) | (1u << 8) | 8u;
+    /* 合法的 DDR 源（挂在 TEX_BASE 上，结构同上） */
+    const uint32_t ddr_ok0 = TEX_BASE,
+                   ddr_ok2 = 0x80000000u | 8u;
+
+    code = tex_err_run(ddr_ok0, tex_ok1, ddr_ok2 | (2u << 8),
+                       FB_ENGINE, tex_ok1, ddr_ok2, &idx, &tag);
+    ok_line("TEXERR-BAND", code == GFX_ERR_BAD_SPACE && idx == 0u && tag == 0u);
+
+    /* 目的 space=1：小面结构合法（end = 8 ≤ 0x4000），space 步必须报 BAD_SPACE */
+    code = tex_err_run(ddr_ok0, tex_ok1, ddr_ok2,
+                       0u, tex_ok1, tex_ok2, &idx, &tag);
+    ok_line("TEXERR-DST", code == GFX_ERR_BAD_SPACE && idx == 0u && tag == 0u);
+
+    /* TEX 源 base 未按 16 字节对齐：结构一步报 BAD_SURFACE（在 space 之前） */
+    code = tex_err_run(4u, tex_ok1, tex_ok2,
+                       FB_ENGINE, tex_ok1, ddr_ok2, &idx, &tag);
+    ok_line("TEXERR-ALIGN", code == GFX_ERR_BAD_SURFACE && idx == 0u && tag == 0u);
+
+    /* TEX 源越界：base 0x3000 + 64x256 = 0x7000 > 0x4000 */
+    code = tex_err_run(0x3000u, (64u << 16) | 64u, tex_ok2,
+                       FB_ENGINE, tex_ok1, ddr_ok2, &idx, &tag);
+    ok_line("TEXERR-OOB", code == GFX_ERR_BAD_SURFACE && idx == 0u && tag == 0u);
+
+    /* 未登记槽（valid=0）：仍然 BAD_SURFACE */
+    code = tex_err_run(TEX_BASE, tex_ok1, 0u /* valid 位为 0 */,
+                       FB_ENGINE, tex_ok1, ddr_ok2, &idx, &tag);
+    ok_line("TEXERR-NOVAL", code == GFX_ERR_BAD_SURFACE && idx == 0u && tag == 0u);
+
+    /* 合法 TEX 源 + 非法格式组合：ALPHA 方程配 STRAIGHT 源 → BAD_FORMAT（检查没被跳过） */
+    code = tex_err_run(0u, tex_ok1, 0x80000000u | (2u << 12) | (1u << 8) | 8u,
+                       FB_ENGINE, tex_ok1, ddr_ok2, &idx, &tag);
+    ok_line("TEXERR-FMT", code == GFX_ERR_BAD_FORMAT && idx == 0u && tag == 0u);
+}
+
 /* --- 性能（16×16 预乘 ALPHA 弹幕）----------------------------------------- */
 
 static void run_perf_sprites(void)
@@ -473,6 +655,53 @@ static void run_perf_sprites(void)
         *p = '\0';
         board_puts(hexline);
         board_puts("\n");
+    }
+
+    /* v1-TEX 成对测量（G1）：同一份命令表与逻辑输入，源表面改指片上 TEX。
+       源 DDR 事务必须消失：两轮 RD_BURST 之差 = 16 颗 × 16 行 = 256；
+       每颗周期数按条目门槛 ≤750（软件执行器与校准仿真的口径见 engine 第 07 章）。 */
+    {
+        static uint32_t perf2[GFX_ENG_PERF_N];
+        uint32_t busy_t, rd_ddr = perf[GFX_PERF_RD_BURST], rd_t;
+        int ok;
+
+        if (gfx_engine_tex_write((const void *)(uintptr_t)TEX_BUL, 0u, GFX_TEX_BYTES)
+            != GFX_ENG_OK || engine_load_table(&tbl) != 0) {
+            ok_line("TEX-PERF", 0);
+            return;
+        }
+        tbl.s[1].base = 0u;
+        tbl.s[1].ctrl = (tbl.s[1].ctrl & ~0x300u) | ((uint32_t)GFX_SPACE_TEX << 8);
+        if (engine_load_table(&tbl) != 0) {
+            ok_line("TEX-PERF", 0);
+            return;
+        }
+        gfx_engine_perf_clear();
+        if (gfx_engine_submit(CMDLIST, l.used) != GFX_ENG_OK ||
+            gfx_engine_wait(&code, &eidx, &etag) != GFX_ENG_OK || code != 0u) {
+            ok_line("TEX-PERF", 0);
+            return;
+        }
+        gfx_engine_perf_read(perf2, GFX_ENG_PERF_N);
+        busy_t = perf2[GFX_PERF_BUSY];
+        rd_t = perf2[GFX_PERF_RD_BURST];
+        ok = busy_t <= 750u * 16u && rd_ddr > rd_t && rd_ddr - rd_t == 256u;
+        ok_line("TEX-PERF", ok);
+        {
+            static const char hex[] = "0123456789abcdef";
+            char hexline[48];
+            char *p = hexline;
+            int sh;
+            *p++ = 'P'; *p++ = 'E'; *p++ = 'R'; *p++ = 'F';
+            *p++ = ' '; *p++ = 't'; *p++ = 'e'; *p++ = 'x'; *p++ = ' ';
+            *p++ = 'b'; *p++ = 'u'; *p++ = 's'; *p++ = 'y'; *p++ = '=';
+            for (sh = 28; sh >= 0; sh -= 4) *p++ = hex[(busy_t >> sh) & 0xFu];
+            *p++ = ' '; *p++ = 'r'; *p++ = 'd'; *p++ = '=';
+            for (sh = 28; sh >= 0; sh -= 4) *p++ = hex[(rd_t >> sh) & 0xFu];
+            *p = '\0';
+            board_puts(hexline);
+            board_puts("\n");
+        }
     }
 }
 
@@ -641,6 +870,14 @@ int main(void)
     run_directed("DIR narrow-x1x2x3", dir_narrow, TEX_BASE + 0x400u, 64u * 16u);
     run_directed("DIR key-sparse", dir_key, TEX_BASE + 0x800u, 64u * 16u);
     run_inject_check();
+
+    /* v1-TEX（G1）：能力位、装载窗口、金标准的 TEX 源版本与错误三元组 */
+    run_tex_caps();
+    run_tex_busy();
+    run_tex_load();
+    for (i = 0; i < GFX_CASE_N; i++)
+        golden_case(i, 1);
+    run_tex_errors();
 
     run_perf_sprites();
     run_stress();

@@ -1,0 +1,34 @@
+{
+  "apb_addresses_checked": 65536,
+  "register_bytes": 4096,
+  "tex_bytes": 16384,
+  "aligned_tex_words": 4096,
+  "hot_layout": [
+    {
+      "name": "BUL16",
+      "width": 64,
+      "height": 16,
+      "stride": 256,
+      "offset": 0,
+      "bytes": 4096
+    },
+    {
+      "name": "BUL8",
+      "width": 32,
+      "height": 8,
+      "stride": 128,
+      "offset": 4096,
+      "bytes": 1024
+    },
+    {
+      "name": "SPARK",
+      "width": 32,
+      "height": 40,
+      "stride": 128,
+      "offset": 5120,
+      "bytes": 5120
+    }
+  ],
+  "hot_bytes": 10240,
+  "free_bytes": 6144
+}

@@ -608,6 +608,50 @@ static void t12_frames(const char *golden, int gen)
     }
 }
 
+static void t13_tex(void)
+{
+    uint32_t pixels[4], reference[4], texture[8] = {0};
+    const uint32_t seeds[4] = {0x00112233u,0x00445566u,0x00778899u,0x00aabbccu};
+    gfx_mem mem = {0x100u,(uint8_t *)pixels,sizeof pixels,(uint8_t *)texture,sizeof texture};
+    gfx_mem ref = {0x100u,(uint8_t *)reference,sizeof reference,(uint8_t *)texture,sizeof texture};
+    gfx_surface_table table;
+    gfx_surface surface;
+    gfx_cmd cmd;
+    exec_sw_state state;
+    gfx_rect clip;
+    exec_sw_stats stats;
+    int i, rc, rr;
+
+    gfx_surface_reset(&table);
+    surface.base=0x100u; surface.width=4u; surface.height=1u; surface.stride_log2=4u;
+    surface.space=GFX_SPACE_DDR; surface.format=GFX_FMT_XRGB8888;
+    (void)gfx_surface_set(&table,0,&surface);
+    surface.base=16u; surface.space=GFX_SPACE_TEX;
+    for (i=0;i<2;i++) {
+        surface.format=i ? GFX_FMT_ARGB8888_ST : GFX_FMT_ARGB8888_PM;
+        (void)gfx_surface_set(&table,1,&surface);
+        texture[4]=i ? 0x80ff0000u : 0x80402010u;
+        texture[5]=i ? 0x4000ff00u : 0x40201008u;
+        texture[6]=0xff102030u;
+        texture[7]=0u;
+        memcpy(pixels,seeds,sizeof pixels); memcpy(reference,seeds,sizeof reference);
+        mk_blit(&cmd,i ? GFX_EQ_ALPHA_STRAIGHT : GFX_EQ_ALPHA);
+        cmd.w[0] |= 1u<<12; cmd.w[3]=4u|(1u<<16); cmd.w[5]=texture[4];
+        exec_sw_reset(&state); ref_exec_reset(&clip);
+        exec_sw_stats_clear(&stats);
+        rc=exec_sw_run(&state,&table,&mem,&cmd,1u,1u,&stats,0);
+        rr=ref_exec_run(&clip,&table,&ref,&cmd,1u,1u,0,0);
+        ck(i ? "T13 TEX straight/key vs independent reference" : "T13 TEX premult/key vs independent reference",
+           rc==0 && rr==0 && memcmp(pixels,reference,sizeof pixels)==0 &&
+           pixels[0]==seeds[0] && stats.key_skip==1u && stats.pixel_written==3u);
+    }
+    mem.tex_host=0; ref.tex_host=0;
+    exec_sw_reset(&state); ref_exec_reset(&clip);
+    ck("T13 TEX missing shadow rejected by both executors",
+       exec_sw_run(&state,&table,&mem,&cmd,1u,1u,0,0)==GFX_E_BAD_SURFACE &&
+       ref_exec_run(&clip,&table,&ref,&cmd,1u,1u,0,0)==GFX_E_BAD_SURFACE);
+}
+
 uint32_t test_gfx_run(const char *vecpath, const char *golden, int gen)
 {
     g_fail = 0u;
@@ -623,6 +667,7 @@ uint32_t test_gfx_run(const char *vecpath, const char *golden, int gen)
     t10_builtin();
     t11_replay(vecpath);
     t12_frames(golden, gen);
+    t13_tex();
 
     return g_fail;
 }

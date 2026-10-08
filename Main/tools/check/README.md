@@ -4,6 +4,9 @@
 | --- | --- | --- |
 | `localize_paths.py` | 展开、还原厂商生成物里的绝对路径；扫描整个仓库里的机器专属路径 | 克隆后 `--apply`；提交前 `--restore` 再 `--check` |
 | `regs_gen.py` | D51 的寄存器数字单一真源，生成 `rtl/engine/engine_regs_offsets.vh` 与供 BSP 驱动使用的 `sw/bsp/include/gfx_regs.h` | 改寄存器偏移或位号后重生成；提交前在 `Main/` 下运行 `python3 tools/check/regs_gen.py --check` |
+| `g1_research.py` | G1 前期研究：完整 APB 地址集合、热集布局、四 bank RAM 端口实验、软件金标准对真实像素路径的同步读延迟与 valid 变异；`--prepare-syn` 生成隔离 RAM 工程；`--record-board` 核对本次 B6 板测产物身份 | WSL 中从仓库根运行 `python3 Main/tools/check/g1_research.py`；范围与原始证据见 [tex/README](../../sim/engine/tex/README.md) |
+| `check_g1_logs.py` | G1 外部验收：22 个固定负载 CRC、性能/水位、真实 N_max、360 帧游戏同帧、后端切换和 CRC 失败回退 | G1 归档时；`--board-only` 只检查固定负载 |
+| `test_game_control.py` | 离线核对三个后端、CSV 弹数、确认后的连续切换和目标缺失时停止 | 控制协议改动后；不打开 GUI/串口 |
 | `check_sw_layers.sh` | 软件分层与构建的结构判据，七项，含三处注错 | 改了 `sw/` 的结构、构建文件或 `bsp/include` 时，提交前 |
 | `check_round255.c` | 逐像素规格（设计文档 3.5 节）的穷举校验：舍入、中间量位宽、舍入顺序、预乘量化误差 | 改像素规格时；v1 不实现 tint，后续 profile 启用时再加对应穷举 |
 | `check_subst.c` | 引擎 P1 B1 的六方程**代入表**校验：`x = base×255 + m1×m2` 与 `src×Fs + dst×Fd` 的逐位等价、位宽与符号、16 位模截断注错，另有替代代入（两个乘数都压进 8 位）的等价性 | 改混合方程、代入方式或引擎的位宽时，提交前 |

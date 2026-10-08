@@ -143,12 +143,106 @@ static int export_frame(uint32_t idx, const char *prefix)
     return 0;
 }
 
+/* v1-TEX（G1）：72 颗 16×8 预乘 ALPHA 弹幕，前 24 颗源在片上 TEX（slot 1，
+ * 64×64 纹理的 base=0/space=1），后 48 颗源在 DDR（slot 2，同一份内容），
+ * 目的 640×96。命令表 73 条跨五个取数批（16×4+9，批 ≤16 条）：后续批的
+ * 预取窗口落在前面命令的执行中段。取数优先 + 单读所有者使「像素状态与
+ * 取数在途同拍」在结构上被排除（仿真的判据就是它恒为 0）；cmd 的显式
+ * 读状态来源位让归属不再依赖这条仲裁，是第二道保险。
+ * 期望内存由软件执行器经 gfx_mem 的 TEX 影子窗口算出；tex.hex 是装载窗口
+ * 的 16 KiB 内容，测试台经 APB 写进 scratchpad（TWIN 与它逐字相同）。 */
+static int export_tex_sprites(const char *prefix)
+{
+    const uint32_t FB_BASE = 0x1000u, TWIN_BASE = 0x62000u;
+    uint8_t *buf = (uint8_t *)calloc(1u, MEM_BYTES);
+    uint8_t *texbuf = (uint8_t *)calloc(1u, 16384u);
+    gfx_mem m;
+    gfx_surface_table table;
+    gfx_surface s;
+    gfx_cmd cmds[96];
+    gfx_list list;
+    exec_sw_state es;
+    exec_sw_stats stats;
+    exec_sw_error err;
+    char name[512];
+    uint32_t i;
+
+    if (!buf || !texbuf) { free(buf); free(texbuf); return 2; }
+    for (i = 0; i < 16384u / 4u; i++) {
+        uint32_t v = i * 0x9E3779B9u + (i >> 3);
+        ((uint32_t *)(void *)texbuf)[i] = (v & 0x003F3F3Fu) | 0x40000000u;
+    }
+    memcpy(buf + TWIN_BASE, texbuf, 16384u);
+    /* 目的底色：与坐标有关的渐变，「该写没写」与「不该写却写了」都能被对出来 */
+    for (i = 0; i < (96u * 4096u) / 4u; i++)
+        ((uint32_t *)(void *)(buf + FB_BASE))[i] =
+            (((i >> 10) & 0xFFu) << 16) | ((i * 3u) & 0xFFu) | (((i * 5u) & 0xFFu) << 8);
+
+    gfx_surface_reset(&table);
+    s.base = FB_BASE; s.width = 640u; s.height = 96u; s.stride_log2 = 12u;
+    s.space = GFX_SPACE_DDR; s.format = GFX_FMT_XRGB8888;
+    if (gfx_surface_set(&table, 0, &s) != 0) { free(buf); free(texbuf); return 2; }
+    s.base = 0u; s.width = 64u; s.height = 48u; s.stride_log2 = 8u;
+    s.space = GFX_SPACE_TEX; s.format = GFX_FMT_ARGB8888_PM;
+    if (gfx_surface_set(&table, 1, &s) != 0) { free(buf); free(texbuf); return 2; }
+    s.base = TWIN_BASE; s.height = 64u; s.space = GFX_SPACE_DDR;
+    if (gfx_surface_set(&table, 2, &s) != 0) { free(buf); free(texbuf); return 2; }
+    // 最后 4 KiB 独立划给长行源，迫使 DDR 返回早于 TEX 末拍并产生反压。
+    s.base = 0x3000u; s.width = 640u; s.height = 1u; s.stride_log2 = 12u;
+    s.space = GFX_SPACE_TEX;
+    if (gfx_surface_set(&table, 3, &s) != 0) { free(buf); free(texbuf); return 2; }
+
+    gfx_list_begin(&list, cmds, 96u, &table);
+    for (i = 0; i < 72u; i++) {
+        int src = (i < 24u) ? 1 : 2;
+        if (gfx_blit(&list, src, (int)((i % 4u) * 16u), (int)((i / 4u % 8u) * 8u),
+                     0, (int)((i % 8u) * 76u) + 4, (int)((i / 8u) * 10u) + 1,
+                     16, 8, GFX_EQ_ALPHA, 0u, 0, 0u)) {
+            fprintf(stderr, "tex-sprites: blit %u rejected\n", i);
+            free(buf); free(texbuf); return 2;
+        }
+    }
+    if (gfx_blit(&list, 3, 0, 0, 0, 0, 95, 640, 1,
+                 GFX_EQ_ALPHA, 0u, 0, 0u) != 0 || gfx_list_end(&list) != 0) {
+        free(buf); free(texbuf); return 2;
+    }
+
+    m.dev_base = 0; m.host = buf; m.bytes = MEM_BYTES;
+    m.tex_host = texbuf; m.tex_bytes = 16384u;
+
+    /* init/tex 先落盘（执行器跑之前的原始内容），再跑执行器写 exp——
+       顺序与 frame 导出器一致，第一版把 init 写在跑完之后，
+       init 与 exp 相同，整机仿真整面失配却查不出原因。 */
+    file_name(name, sizeof(name), prefix, "init");
+    write_words(name, buf, MEM_BYTES);
+    file_name(name, sizeof(name), prefix, "tex");
+    write_words(name, texbuf, 16384u);
+    exec_sw_reset(&es); exec_sw_stats_clear(&stats);
+    if (exec_sw_run(&es, &table, &m, cmds, list.used, list.used, &stats, &err)) {
+        fprintf(stderr, "tex-sprites: software executor error %d at %u\n",
+                err.code, err.index);
+        free(buf); free(texbuf); return 2;
+    }
+    file_name(name, sizeof(name), prefix, "cmd");
+    write_commands(name, cmds, list.used);
+    file_name(name, sizeof(name), prefix, "surf");
+    write_surfaces(name, &table);
+    file_name(name, sizeof(name), prefix, "exp");
+    write_words(name, buf, MEM_BYTES);
+    write_counts(prefix, list.used, 0u, &stats, MEM_BYTES / 16u);
+    printf("TEX-SPRITES: records=%u pixels=%u written=%u key=%u oob=%u\n",
+           list.used, stats.pixel_total, stats.pixel_written, stats.key_skip,
+           stats.src_oob);
+    free(buf); free(texbuf);
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     uint8_t *buf;
     gfx_mem m;
     gfx_surface_table table;
-    gfx_cmd cmds[64];
+    gfx_cmd cmds[96];
     gfx_list list;
     exec_sw_state es;
     exec_sw_stats stats;
@@ -166,6 +260,8 @@ int main(int argc, char **argv)
         }
         return export_frame((uint32_t)idx, argv[3]);
     }
+    if (argc == 3 && strcmp(argv[1], "--tex-sprites") == 0)
+        return export_tex_sprites(argv[2]);
     int hazard = 0, sprites = 0;
     if (argc == 3 && strcmp(argv[1], "--hazard") == 0) {
         hazard = 1; argv++; argc--;
@@ -173,7 +269,8 @@ int main(int argc, char **argv)
         sprites = 1; argv++; argc--;
     }
     if (argc != 2) {
-        fprintf(stderr, "usage: pix_cases_dump PREFIX | --hazard PREFIX | --sprites PREFIX | --frame 0..10 PREFIX\n");
+        fprintf(stderr, "usage: pix_cases_dump PREFIX | --hazard PREFIX | --sprites PREFIX |"
+                        " --tex-sprites PREFIX | --frame 0..10 PREFIX\n");
         return 2;
     }
     buf = (uint8_t *)malloc(MEM_BYTES);

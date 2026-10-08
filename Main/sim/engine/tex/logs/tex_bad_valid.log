@@ -1,0 +1,26 @@
+WARNING: build/tex_bad_valid_tb.v:244: $readmemh(build/sprites.cmd.hex): Not enough words in the file for the requested range [0:63].
+PERF cycles=11508 commands=16
+BUS source_ar=0 dst_ar=256
+MEM_MISMATCH addr=0000a040 got=00xxxxxx00xxxxxx00xxxxxx004e101c want=00adfff400956d400061ffff004e101c
+MEM_MISMATCH addr=0000a050 got=009361ff004aff6b00xxxxxx00xxxxxx want=005f5cff00f6f70c00ffe2ef00ffe183
+MEM_MISMATCH addr=0000a060 got=00ffffff0072892d0079ffff00fff2ff want=00ffffff00c6fff400d33de100d9b8e1
+MEM_MISMATCH addr=0000a070 got=00ffec8900f7f80c00c038ff00fff799 want=00ffffff00f08b7600e1fa7900e682f5
+MEM_MISMATCH addr=0000a080 got=000347ca007ed72400ed460600dbb8e2 want=000347ca007ed72400ed46060073b380
+MEM_MISMATCH addr=0000a0d0 got=00daffff00c19c5e00ff316100acd671 want=00e5ffcf0066151d00ff316100acd671
+MEM_MISMATCH addr=0000a0e0 got=00fddeff00cb9257009c61b800fada6e want=009dffff00ffebff00ff936a00af5603
+MEM_MISMATCH addr=0000a0f0 got=00ffb5db0058201d00cf2ab900f9d96d want=00ff52ff006f585b006cd66100d0f2ff
+MEM_MISMATCH addr=0000a100 got=00b5ffff00ffe7ff00ff674d00ae5400 want=00ffffff00ffffb200afffa30099c1a9
+MEM_MISMATCH addr=0000a110 got=0050301e004e3ebb0090ff6d00c7ffff want=0050301e004e3ebb00ffffff00ffffff
+MEM_MISMATCH addr=0000a160 got=005e79a4009bbdf3008a704500dcd31b want=00696f39009bbdf3008a704500dcd31b
+MEM_MISMATCH addr=0000a170 got=00708cb4007847ff008d85e900f6ff11 want=00b2a88e00d1cdff00ff984a00c056a0
+MEM_MISMATCH addr=0000a180 got=0050ac4700d6d46c0098a2d900f3ff0a want=00e3ffcf00fdb7ff00ffff4200529128
+MEM_MISMATCH addr=0000a190 got=008e937d00d6ffff00dab55500b263b1 want=00cb836600ff66a300b2ffff00fff5ff
+MEM_MISMATCH addr=0000a1a0 got=0044bf8600ffb4ff00ffefa20040b11c want=0044bf8600ff8ba000bec3ba004fff9f
+MEM_MISMATCH addr=0000a200 got=00b2faff00b5ffff0073647f00666eff want=00b2faff00d795c5001176b800d5deff
+MEM_MISMATCH addr=0000a210 got=004aff5200ff8ea4007e61720065e3ff want=00b9ffff00ebd1ff007a8e62006eaabc
+MEM_MISMATCH addr=0000a220 got=00f4fffe00ffb4f7001d71ae00cfffff want=00ee777f00aece77004e141b00ffd2b9
+MEM_MISMATCH addr=0000a230 got=00c3ebff00c8ffff00759063007954d9 want=00ff9ecf00fbffff00ffa7ff00ffffd0
+MEM_MISMATCH addr=0000a290 got=0047c15600664aff00ac2bf1005202b7 want=0019c57400ffffff00ffc95d005202b7
+PATH stats commands=16 read=512 write=256 stalls=256 mem_bad=1206 errors=1206
+RESULT: FAIL (B1-B4 integration)
+build/tex_bad_valid_tb.v:289: $finish called at 115330000 (1ps)

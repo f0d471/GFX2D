@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-07",
+  "scope": "P1 baseline; no G1 implementation",
+  "artifacts": [
+    {
+      "path": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+      "bytes": 2357217,
+      "sha256": "b2118f54501cde5d6f3c8c8143aa45a578fa04aa32a797e37f4a2268d915cf63",
+      "matches_archived_b6": true
+    },
+    {
+      "path": "Main/sw/apps/test/engineTest/build/engineTest-O2.bin",
+      "bytes": 43210,
+      "sha256": "482aaccf10cc2d0683b7d0a74891a4c8fa2818044bb86f79e152c436005ef013",
+      "matches_archived_b6": true
+    }
+  ],
+  "comparison": "Engineering/TechReports/engine/06, sections 5.3 and 5.4",
+  "board_log": "Main/sw/apps/test/engineTest/logs/g1_research_p1_board.log"
+}

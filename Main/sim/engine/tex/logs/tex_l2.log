@@ -1,0 +1,6 @@
+WARNING: build/tex_l2_tb.v:244: $readmemh(build/sprites.cmd.hex): Not enough words in the file for the requested range [0:63].
+PERF cycles=11508 commands=16
+BUS source_ar=0 dst_ar=256
+PATH stats commands=16 read=512 write=256 stalls=256 mem_bad=0 errors=0
+RESULT: PASS (B1-B4, software executor golden)
+build/tex_l2_tb.v:289: $finish called at 115330000 (1ps)

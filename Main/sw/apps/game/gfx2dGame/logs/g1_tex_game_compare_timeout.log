@@ -1,0 +1,573 @@
+# COM11 @ 115200 8N1, opened 01:07:04
+# --- 程序已加载，以下才是它的输出 ---
+gfx2dGame STG
+pak 2840320 b370ba0a
+compare tex ready; scan pattern
+seg 0 READY
+compare 0 sw 97d09cae hw 97d09cae
+g 0 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 97d09cae
+compare 1 sw 984faf18 hw 984faf18
+g 1 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 984faf18
+compare 2 sw bf66b282 hw bf66b282
+g 2 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc bf66b282
+compare 3 sw 79276f52 hw 79276f52
+g 3 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 79276f52
+compare 4 sw ec4844cb hw ec4844cb
+g 4 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc ec4844cb
+compare 5 sw 4e611aaf hw 4e611aaf
+g 5 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 4e611aaf
+compare 6 sw 336a6371 hw 336a6371
+g 6 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 336a6371
+compare 7 sw 45e20be2 hw 45e20be2
+g 7 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 45e20be2
+compare 8 sw 48c95625 hw 48c95625
+g 8 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 48c95625
+compare 9 sw bc9ca316 hw bc9ca316
+g 9 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc bc9ca316
+compare 10 sw a812b6d1 hw a812b6d1
+g 10 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc a812b6d1
+compare 11 sw 93bd017f hw 93bd017f
+g 11 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 93bd017f
+compare 12 sw 85b084b6 hw 85b084b6
+g 12 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 85b084b6
+compare 13 sw 56e1d031 hw 56e1d031
+g 13 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 56e1d031
+compare 14 sw f2b8023b hw f2b8023b
+g 14 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc f2b8023b
+compare 15 sw 5e10c188 hw 5e10c188
+g 15 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 5e10c188
+compare 16 sw efe029c9 hw efe029c9
+g 16 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc efe029c9
+compare 17 sw 6fce5963 hw 6fce5963
+g 17 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 6fce5963
+compare 18 sw 69f053b3 hw 69f053b3
+g 18 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 69f053b3
+compare 19 sw 01d4bd25 hw 01d4bd25
+g 19 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 01d4bd25
+compare 20 sw 36c12408 hw 36c12408
+g 20 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 36c12408
+compare 21 sw 40705d1f hw 40705d1f
+g 21 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 40705d1f
+compare 22 sw 593155de hw 593155de
+g 22 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 593155de
+compare 23 sw 66d6bc73 hw 66d6bc73
+g 23 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 66d6bc73
+compare 24 sw d4f82dfe hw d4f82dfe
+g 24 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc d4f82dfe
+compare 25 sw 6cdf696c hw 6cdf696c
+g 25 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 6cdf696c
+compare 26 sw f100e74f hw f100e74f
+g 26 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc f100e74f
+compare 27 sw 4b7bcfb6 hw 4b7bcfb6
+g 27 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 4b7bcfb6
+compare 28 sw 98dd0e58 hw 98dd0e58
+g 28 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 98dd0e58
+compare 29 sw db9e0258 hw db9e0258
+g 29 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc db9e0258
+compare 30 sw 00ea5589 hw 00ea5589
+g 30 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 00ea5589
+compare 31 sw 8319c073 hw 8319c073
+g 31 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 8319c073
+compare 32 sw 59639bbc hw 59639bbc
+g 32 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 59639bbc
+compare 33 sw 22867600 hw 22867600
+g 33 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 22867600
+compare 34 sw 7507f6ab hw 7507f6ab
+g 34 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 7507f6ab
+compare 35 sw 6d356a15 hw 6d356a15
+g 35 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 6d356a15
+compare 36 sw 0db35de2 hw 0db35de2
+g 36 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 0db35de2
+compare 37 sw 60fd6872 hw 60fd6872
+g 37 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 60fd6872
+compare 38 sw 10e0308c hw 10e0308c
+g 38 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 10e0308c
+compare 39 sw 74bb9727 hw 74bb9727
+g 39 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 74bb9727
+compare 40 sw 9a440825 hw 9a440825
+g 40 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 9a440825
+compare 41 sw 4d622c23 hw 4d622c23
+g 41 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 4d622c23
+compare 42 sw fa6a4e3d hw fa6a4e3d
+g 42 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc fa6a4e3d
+compare 43 sw f125a010 hw f125a010
+g 43 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc f125a010
+compare 44 sw 325477b9 hw 325477b9
+g 44 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 325477b9
+compare 45 sw 61074131 hw 61074131
+g 45 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 61074131
+compare 46 sw 2aac5e0d hw 2aac5e0d
+g 46 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 2aac5e0d
+compare 47 sw e1fa8761 hw e1fa8761
+g 47 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc e1fa8761
+compare 48 sw 2f8ad8f0 hw 2f8ad8f0
+g 48 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 2f8ad8f0
+compare 49 sw b55603b1 hw b55603b1
+g 49 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc b55603b1
+compare 50 sw bc488fad hw bc488fad
+g 50 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc bc488fad
+compare 51 sw 28394aa4 hw 28394aa4
+g 51 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 28394aa4
+compare 52 sw dee4a308 hw dee4a308
+g 52 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc dee4a308
+compare 53 sw af5f7d13 hw af5f7d13
+g 53 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc af5f7d13
+compare 54 sw ccfb719b hw ccfb719b
+g 54 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc ccfb719b
+compare 55 sw 82b95452 hw 82b95452
+g 55 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 82b95452
+compare 56 sw 60679760 hw 60679760
+g 56 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 60679760
+compare 57 sw 96531af9 hw 96531af9
+g 57 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 96531af9
+compare 58 sw c23c1043 hw c23c1043
+g 58 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc c23c1043
+compare 59 sw c74bd57b hw c74bd57b
+g 59 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc c74bd57b
+compare 60 sw 67cb50a0 hw 67cb50a0
+g 60 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 67cb50a0
+compare 61 sw 5fbaf2ec hw 5fbaf2ec
+g 61 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 5fbaf2ec
+compare 62 sw dcd8d3d0 hw dcd8d3d0
+g 62 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc dcd8d3d0
+compare 63 sw e10d5071 hw e10d5071
+g 63 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc e10d5071
+compare 64 sw 5b623698 hw 5b623698
+g 64 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 5b623698
+compare 65 sw 3d97d562 hw 3d97d562
+g 65 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 3d97d562
+compare 66 sw 1e1b7ce1 hw 1e1b7ce1
+g 66 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 1e1b7ce1
+compare 67 sw 4e7eef55 hw 4e7eef55
+g 67 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 4e7eef55
+compare 68 sw 855efcc6 hw 855efcc6
+g 68 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 855efcc6
+compare 69 sw e91174cb hw e91174cb
+g 69 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc e91174cb
+compare 70 sw c9d63066 hw c9d63066
+g 70 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc c9d63066
+compare 71 sw a48fd3e5 hw a48fd3e5
+g 71 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc a48fd3e5
+compare 72 sw 1a17dfd3 hw 1a17dfd3
+g 72 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 1a17dfd3
+compare 73 sw 3ab5c79d hw 3ab5c79d
+g 73 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 3ab5c79d
+compare 74 sw a68a8339 hw a68a8339
+g 74 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc a68a8339
+compare 75 sw fc4437e7 hw fc4437e7
+g 75 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc fc4437e7
+compare 76 sw bfa5c64f hw bfa5c64f
+g 76 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc bfa5c64f
+compare 77 sw f50f7129 hw f50f7129
+g 77 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc f50f7129
+compare 78 sw 685b6a6a hw 685b6a6a
+g 78 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 685b6a6a
+compare 79 sw 36954e57 hw 36954e57
+g 79 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 36954e57
+compare 80 sw 29b7a561 hw 29b7a561
+g 80 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 29b7a561
+compare 81 sw abc3ca6f hw abc3ca6f
+g 81 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc abc3ca6f
+compare 82 sw f9f9ce2f hw f9f9ce2f
+g 82 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc f9f9ce2f
+compare 83 sw b70c0759 hw b70c0759
+g 83 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc b70c0759
+compare 84 sw a487b729 hw a487b729
+g 84 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc a487b729
+compare 85 sw 19b16c02 hw 19b16c02
+g 85 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 19b16c02
+compare 86 sw 546157ac hw 546157ac
+g 86 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 546157ac
+compare 87 sw 4e9f1c49 hw 4e9f1c49
+g 87 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 4e9f1c49
+compare 88 sw e87a40b0 hw e87a40b0
+g 88 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc e87a40b0
+compare 89 sw 6a4b331b hw 6a4b331b
+g 89 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 6a4b331b
+compare 90 sw c58da2c2 hw c58da2c2
+g 90 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc c58da2c2
+compare 91 sw df5f9ec9 hw df5f9ec9
+g 91 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc df5f9ec9
+compare 92 sw f56e4982 hw f56e4982
+g 92 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc f56e4982
+compare 93 sw 0ec435f7 hw 0ec435f7
+g 93 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 0ec435f7
+compare 94 sw 33786357 hw 33786357
+g 94 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 33786357
+compare 95 sw 5eedcab8 hw 5eedcab8
+g 95 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 5eedcab8
+compare 96 sw 5ea093d8 hw 5ea093d8
+g 96 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 5ea093d8
+compare 97 sw 342d8f43 hw 342d8f43
+g 97 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 342d8f43
+compare 98 sw 3fb381b0 hw 3fb381b0
+g 98 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 3fb381b0
+compare 99 sw 9c684a7c hw 9c684a7c
+g 99 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 9c684a7c
+compare 100 sw 20ecb560 hw 20ecb560
+g 100 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 20ecb560
+compare 101 sw 4eb5583d hw 4eb5583d
+g 101 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 4eb5583d
+compare 102 sw 12902cd4 hw 12902cd4
+g 102 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 12902cd4
+compare 103 sw 952cd094 hw 952cd094
+g 103 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 952cd094
+compare 104 sw 53ccdc8f hw 53ccdc8f
+g 104 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 53ccdc8f
+compare 105 sw d1adb5c2 hw d1adb5c2
+g 105 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc d1adb5c2
+compare 106 sw c62f4ea0 hw c62f4ea0
+g 106 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc c62f4ea0
+compare 107 sw cfcf4e3a hw cfcf4e3a
+g 107 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc cfcf4e3a
+compare 108 sw 3d5b070b hw 3d5b070b
+g 108 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 3d5b070b
+compare 109 sw 9af1f595 hw 9af1f595
+g 109 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 9af1f595
+compare 110 sw 18526030 hw 18526030
+g 110 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 18526030
+compare 111 sw f1841e8a hw f1841e8a
+g 111 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc f1841e8a
+compare 112 sw d13d2e2e hw d13d2e2e
+g 112 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc d13d2e2e
+compare 113 sw cc785f80 hw cc785f80
+g 113 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc cc785f80
+compare 114 sw 013b28bc hw 013b28bc
+g 114 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 013b28bc
+compare 115 sw 1a0f7640 hw 1a0f7640
+g 115 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 1a0f7640
+compare 116 sw d5abbe36 hw d5abbe36
+g 116 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc d5abbe36
+compare 117 sw 725fe31d hw 725fe31d
+g 117 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 725fe31d
+compare 118 sw a2848990 hw a2848990
+g 118 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc a2848990
+compare 119 sw 6c4df6b9 hw 6c4df6b9
+g 119 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 6c4df6b9
+compare 120 sw bfe622da hw bfe622da
+seg 120 STAGE
+g 120 1 1 pool 0 2 0 act 0 2 0 0 1 life 3 bomb 3 score 0 graze 0 crc bfe622da
+compare 121 sw fa57351b hw fa57351b
+g 121 1 1 pool 0 2 0 act 0 2 0 0 1 life 3 bomb 3 score 0 graze 0 crc fa57351b
+compare 122 sw 7ffc9c6f hw 7ffc9c6f
+g 122 1 1 pool 0 2 0 act 0 2 0 0 1 life 3 bomb 3 score 0 graze 0 crc 7ffc9c6f
+compare 123 sw 328eb6b6 hw 328eb6b6
+g 123 1 1 pool 0 2 0 act 0 2 0 0 1 life 3 bomb 3 score 0 graze 0 crc 328eb6b6
+compare 124 sw dd4f2045 hw dd4f2045
+g 124 1 1 pool 0 4 0 act 0 4 0 0 1 life 3 bomb 3 score 0 graze 0 crc dd4f2045
+compare 125 sw b62c1570 hw b62c1570
+g 125 1 1 pool 0 4 0 act 0 4 0 0 1 life 3 bomb 3 score 0 graze 0 crc b62c1570
+compare 126 sw 99c88231 hw 99c88231
+g 126 1 1 pool 0 4 0 act 0 4 0 0 1 life 3 bomb 3 score 0 graze 0 crc 99c88231
+compare 127 sw e5bc9cad hw e5bc9cad
+g 127 1 1 pool 0 4 0 act 0 4 0 0 1 life 3 bomb 3 score 0 graze 0 crc e5bc9cad
+compare 128 sw 187b9fb0 hw 187b9fb0
+g 128 1 1 pool 0 6 0 act 0 6 0 0 1 life 3 bomb 3 score 0 graze 0 crc 187b9fb0
+compare 129 sw 8615b164 hw 8615b164
+g 129 1 1 pool 0 6 0 act 0 6 0 0 1 life 3 bomb 3 score 0 graze 0 crc 8615b164
+compare 130 sw 9c43ed19 hw 9c43ed19
+g 130 1 1 pool 0 6 0 act 0 6 0 0 1 life 3 bomb 3 score 0 graze 0 crc 9c43ed19
+compare 131 sw dc8342dc hw dc8342dc
+g 131 1 1 pool 0 6 0 act 0 6 0 0 1 life 3 bomb 3 score 0 graze 0 crc dc8342dc
+compare 132 sw cbf2daf8 hw cbf2daf8
+g 132 1 1 pool 0 8 0 act 0 8 0 0 1 life 3 bomb 3 score 0 graze 0 crc cbf2daf8
+compare 133 sw a247b2c4 hw a247b2c4
+g 133 1 1 pool 0 8 0 act 0 8 0 0 1 life 3 bomb 3 score 0 graze 0 crc a247b2c4
+compare 134 sw 7dfe5c3c hw 7dfe5c3c
+g 134 1 1 pool 0 8 0 act 0 8 0 0 1 life 3 bomb 3 score 0 graze 0 crc 7dfe5c3c
+compare 135 sw 47461313 hw 47461313
+g 135 1 1 pool 0 8 0 act 0 8 0 0 1 life 3 bomb 3 score 0 graze 0 crc 47461313
+compare 136 sw fdbda4a5 hw fdbda4a5
+g 136 1 1 pool 0 10 0 act 0 10 0 0 1 life 3 bomb 3 score 0 graze 0 crc fdbda4a5
+compare 137 sw 144aedfc hw 144aedfc
+g 137 1 1 pool 0 10 0 act 0 10 0 0 1 life 3 bomb 3 score 0 graze 0 crc 144aedfc
+compare 138 sw c3bd0c55 hw c3bd0c55
+g 138 1 1 pool 0 10 0 act 0 10 0 0 1 life 3 bomb 3 score 0 graze 0 crc c3bd0c55
+compare 139 sw a800076b hw a800076b
+g 139 1 1 pool 0 10 0 act 0 10 0 0 1 life 3 bomb 3 score 0 graze 0 crc a800076b
+compare 140 sw 514699a1 hw 514699a1
+g 140 1 1 pool 0 12 0 act 0 12 0 0 1 life 3 bomb 3 score 0 graze 0 crc 514699a1
+compare 141 sw ada9d8cd hw ada9d8cd
+g 141 1 1 pool 0 12 0 act 0 12 0 0 1 life 3 bomb 3 score 0 graze 0 crc ada9d8cd
+compare 142 sw c9d78fbe hw c9d78fbe
+g 142 1 1 pool 0 12 0 act 0 12 0 0 1 life 3 bomb 3 score 0 graze 0 crc c9d78fbe
+compare 143 sw fe59a288 hw fe59a288
+g 143 1 1 pool 0 12 0 act 0 12 0 0 1 life 3 bomb 3 score 0 graze 0 crc fe59a288
+compare 144 sw 777496c1 hw 777496c1
+g 144 1 1 pool 0 14 0 act 0 14 0 0 1 life 3 bomb 3 score 0 graze 0 crc 777496c1
+compare 145 sw a0861de5 hw a0861de5
+g 145 1 1 pool 0 14 0 act 0 14 0 0 1 life 3 bomb 3 score 0 graze 0 crc a0861de5
+compare 146 sw 70af2dca hw 70af2dca
+g 146 1 1 pool 0 14 0 act 0 14 0 0 1 life 3 bomb 3 score 0 graze 0 crc 70af2dca
+compare 147 sw e93da622 hw e93da622
+g 147 1 1 pool 0 14 0 act 0 14 0 0 1 life 3 bomb 3 score 0 graze 0 crc e93da622
+compare 148 sw 20e4d620 hw 20e4d620
+g 148 1 1 pool 0 16 0 act 0 16 0 0 1 life 3 bomb 3 score 0 graze 0 crc 20e4d620
+compare 149 sw be79c4f1 hw be79c4f1
+g 149 1 1 pool 0 16 0 act 0 16 0 0 1 life 3 bomb 3 score 0 graze 0 crc be79c4f1
+compare 150 sw 5756a63a hw 5756a63a
+g 150 1 1 pool 0 16 0 act 0 16 0 0 1 life 3 bomb 3 score 0 graze 0 crc 5756a63a
+compare 151 sw 98f4006b hw 98f4006b
+g 151 1 1 pool 0 16 0 act 0 16 0 0 1 life 3 bomb 3 score 0 graze 0 crc 98f4006b
+compare 152 sw 3454e19f hw 3454e19f
+g 152 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc 3454e19f
+compare 153 sw 5648e233 hw 5648e233
+g 153 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc 5648e233
+compare 154 sw 1a45808f hw 1a45808f
+g 154 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc 1a45808f
+compare 155 sw 02634046 hw 02634046
+g 155 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc 02634046
+compare 156 sw 24f4445b hw 24f4445b
+g 156 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 24f4445b
+compare 157 sw 5753f9e5 hw 5753f9e5
+g 157 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc 5753f9e5
+compare 158 sw 637b2274 hw 637b2274
+g 158 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc 637b2274
+compare 159 sw 6490a8cb hw 6490a8cb
+g 159 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc 6490a8cb
+compare 160 sw 54fae10a hw 54fae10a
+g 160 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 54fae10a
+compare 161 sw 85d054d6 hw 85d054d6
+g 161 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 85d054d6
+compare 162 sw a544c26c hw a544c26c
+g 162 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc a544c26c
+compare 163 sw c274f7a1 hw c274f7a1
+g 163 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc c274f7a1
+compare 164 sw d5307cc0 hw d5307cc0
+g 164 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc d5307cc0
+compare 165 sw e410e9de hw e410e9de
+g 165 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc e410e9de
+compare 166 sw f288c79a hw f288c79a
+g 166 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc f288c79a
+compare 167 sw 5eb9f004 hw 5eb9f004
+g 167 1 1 pool 0 18 0 act 0 18 0 0 1 life 3 bomb 3 score 0 graze 0 crc 5eb9f004
+compare 168 sw c556a586 hw c556a586
+g 168 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc c556a586
+compare 169 sw 178c36fd hw 178c36fd
+g 169 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 178c36fd
+compare 170 sw 2fb8d64f hw 2fb8d64f
+g 170 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 2fb8d64f
+compare 171 sw 619079bd hw 619079bd
+g 171 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 619079bd
+compare 172 sw 44379656 hw 44379656
+g 172 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 44379656
+compare 173 sw 459b961f hw 459b961f
+g 173 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 459b961f
+compare 174 sw 7192d9d6 hw 7192d9d6
+g 174 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 7192d9d6
+compare 175 sw 642ecb48 hw 642ecb48
+g 175 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 642ecb48
+compare 176 sw af706530 hw af706530
+g 176 1 1 pool 0 22 0 act 0 22 0 0 1 life 3 bomb 3 score 0 graze 0 crc af706530
+compare 177 sw 4095e441 hw 4095e441
+g 177 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 4095e441
+compare 178 sw 846efbef hw 846efbef
+g 178 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 846efbef
+compare 179 sw 2253bea5 hw 2253bea5
+g 179 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 2253bea5
+compare 180 sw 6212af68 hw 6212af68
+g 180 1 1 pool 0 22 0 act 0 22 0 0 1 life 3 bomb 3 score 0 graze 0 crc 6212af68
+compare 181 sw 9b7582f4 hw 9b7582f4
+g 181 1 1 pool 0 22 0 act 0 22 0 0 1 life 3 bomb 3 score 0 graze 0 crc 9b7582f4
+compare 182 sw 583dfec2 hw 583dfec2
+g 182 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc 583dfec2
+compare 183 sw c1c4d835 hw c1c4d835
+g 183 1 1 pool 0 20 0 act 0 20 0 0 1 life 3 bomb 3 score 0 graze 0 crc c1c4d835
+compare 184 sw 8f93be4a hw 8f93be4a
+g 184 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 0 graze 0 crc 8f93be4a
+compare 185 sw a9ea9b6f hw a9ea9b6f
+g 185 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 0 graze 0 crc a9ea9b6f
+compare 186 sw 6939bc86 hw 6939bc86
+g 186 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 0 graze 0 crc 6939bc86
+compare 187 sw dac2f6ec hw dac2f6ec
+g 187 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 0 graze 0 crc dac2f6ec
+compare 188 sw b572242e hw b572242e
+g 188 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 0 graze 0 crc b572242e
+compare 189 sw a390c29e hw a390c29e
+g 189 1 1 pool 0 22 0 act 0 21 1 0 1 life 3 bomb 3 score 0 graze 0 crc a390c29e
+compare 190 sw 9f31d0d1 hw 9f31d0d1
+g 190 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 0 graze 0 crc 9f31d0d1
+compare 191 sw 62353b61 hw 62353b61
+g 191 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 0 graze 0 crc 62353b61
+compare 192 sw 66641a69 hw 66641a69
+g 192 1 1 pool 0 22 0 act 0 21 1 0 1 life 3 bomb 3 score 0 graze 0 crc 66641a69
+compare 193 sw 93d629ec hw 93d629ec
+g 193 1 1 pool 0 21 0 act 0 21 1 0 1 life 3 bomb 3 score 0 graze 0 crc 93d629ec
+compare 194 sw 8d4eda91 hw 8d4eda91
+g 194 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 0 graze 0 crc 8d4eda91
+compare 195 sw b8d51881 hw b8d51881
+g 195 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 0 graze 0 crc b8d51881
+compare 196 sw 02dd872f hw 02dd872f
+g 196 1 1 pool 0 22 8 act 0 21 0 8 1 life 3 bomb 3 score 100 graze 0 crc 02dd872f
+compare 197 sw 0c4c86e7 hw 0c4c86e7
+g 197 1 1 pool 0 21 8 act 0 21 0 8 1 life 3 bomb 3 score 100 graze 0 crc 0c4c86e7
+compare 198 sw a533da4d hw a533da4d
+g 198 1 1 pool 0 20 8 act 0 20 0 8 1 life 3 bomb 3 score 100 graze 0 crc a533da4d
+compare 199 sw 8de9b540 hw 8de9b540
+g 199 1 1 pool 0 20 8 act 0 20 0 8 1 life 3 bomb 3 score 100 graze 0 crc 8de9b540
+compare 200 sw 0455616e hw 0455616e
+g 200 1 1 pool 0 22 8 act 0 22 0 8 1 life 3 bomb 3 score 100 graze 0 crc 0455616e
+compare 201 sw b5ea6b6d hw b5ea6b6d
+g 201 1 1 pool 0 22 8 act 0 22 0 8 1 life 3 bomb 3 score 100 graze 0 crc b5ea6b6d
+compare 202 sw 3ce2bc6c hw 3ce2bc6c
+g 202 1 1 pool 0 20 8 act 0 20 0 8 1 life 3 bomb 3 score 100 graze 0 crc 3ce2bc6c
+compare 203 sw 190b68f6 hw 190b68f6
+g 203 1 1 pool 0 20 8 act 0 20 0 7 1 life 3 bomb 3 score 100 graze 0 crc 190b68f6
+compare 204 sw b450ede6 hw b450ede6
+g 204 1 1 pool 0 22 8 act 0 22 0 7 1 life 3 bomb 3 score 100 graze 0 crc b450ede6
+compare 205 sw cc147ad4 hw cc147ad4
+g 205 1 1 pool 0 22 8 act 0 22 0 7 1 life 3 bomb 3 score 100 graze 0 crc cc147ad4
+compare 206 sw 27283515 hw 27283515
+g 206 1 1 pool 0 20 8 act 0 20 0 5 1 life 3 bomb 3 score 100 graze 0 crc 27283515
+compare 207 sw cdd10e0b hw cdd10e0b
+g 207 1 1 pool 0 20 7 act 0 20 0 5 1 life 3 bomb 3 score 100 graze 0 crc cdd10e0b
+compare 208 sw 2551c128 hw 2551c128
+g 208 1 1 pool 0 22 7 act 0 22 1 5 1 life 3 bomb 3 score 100 graze 0 crc 2551c128
+compare 209 sw 9f46223d hw 9f46223d
+g 209 1 1 pool 0 22 7 act 0 21 1 5 1 life 3 bomb 3 score 100 graze 0 crc 9f46223d
+compare 210 sw 04c44318 hw 04c44318
+g 210 1 1 pool 0 20 7 act 0 20 1 5 1 life 3 bomb 3 score 100 graze 0 crc 04c44318
+compare 211 sw cf3b5fa2 hw cf3b5fa2
+g 211 1 1 pool 0 20 5 act 0 20 1 5 1 life 3 bomb 3 score 100 graze 0 crc cf3b5fa2
+compare 212 sw 1598c1e6 hw 1598c1e6
+g 212 1 1 pool 0 22 5 act 0 22 1 0 1 life 3 bomb 3 score 100 graze 0 crc 1598c1e6
+compare 213 sw c7a7a26d hw c7a7a26d
+g 213 1 1 pool 0 22 0 act 0 21 1 0 1 life 3 bomb 3 score 100 graze 0 crc c7a7a26d
+compare 214 sw 83c05c30 hw 83c05c30
+g 214 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 100 graze 0 crc 83c05c30
+compare 215 sw 62493d23 hw 62493d23
+g 215 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 100 graze 0 crc 62493d23
+compare 216 sw 47990efc hw 47990efc
+g 216 1 1 pool 0 22 8 act 0 21 0 8 1 life 3 bomb 3 score 200 graze 0 crc 47990efc
+compare 217 sw 8218a2ca hw 8218a2ca
+g 217 1 1 pool 0 21 8 act 0 21 0 8 1 life 3 bomb 3 score 200 graze 0 crc 8218a2ca
+compare 218 sw 26d3ab6a hw 26d3ab6a
+g 218 1 1 pool 0 20 8 act 0 20 0 8 1 life 3 bomb 3 score 200 graze 0 crc 26d3ab6a
+compare 219 sw 51d67b89 hw 51d67b89
+g 219 1 1 pool 0 20 8 act 0 20 0 7 1 life 3 bomb 3 score 200 graze 0 crc 51d67b89
+compare 220 sw 52f57cb7 hw 52f57cb7
+g 220 1 1 pool 0 22 8 act 0 22 0 5 1 life 3 bomb 3 score 200 graze 0 crc 52f57cb7
+compare 221 sw de849c29 hw de849c29
+g 221 1 1 pool 0 22 8 act 0 22 0 5 1 life 3 bomb 3 score 200 graze 0 crc de849c29
+compare 222 sw 0ce65e67 hw 0ce65e67
+g 222 1 1 pool 0 20 8 act 0 20 0 5 1 life 3 bomb 3 score 200 graze 0 crc 0ce65e67
+compare 223 sw bd3ed095 hw bd3ed095
+g 223 1 1 pool 0 20 7 act 0 20 0 5 1 life 3 bomb 3 score 200 graze 0 crc bd3ed095
+compare 224 sw b5273403 hw b5273403
+g 224 1 1 pool 0 22 7 act 0 22 0 5 1 life 3 bomb 3 score 200 graze 0 crc b5273403
+compare 225 sw 345f96ee hw 345f96ee
+g 225 1 1 pool 0 22 5 act 0 22 0 5 1 life 3 bomb 3 score 200 graze 0 crc 345f96ee
+compare 226 sw 537c4063 hw 537c4063
+g 226 1 1 pool 0 20 5 act 0 20 0 5 1 life 3 bomb 3 score 200 graze 0 crc 537c4063
+compare 227 sw c0dc3696 hw c0dc3696
+g 227 1 1 pool 0 20 5 act 0 20 0 5 1 life 3 bomb 3 score 200 graze 0 crc c0dc3696
+compare 228 sw 9bef8536 hw 9bef8536
+g 228 1 1 pool 0 22 5 act 0 22 0 5 1 life 3 bomb 3 score 200 graze 0 crc 9bef8536
+compare 229 sw 50aa9c30 hw 50aa9c30
+g 229 1 1 pool 0 22 5 act 0 22 0 5 1 life 3 bomb 3 score 200 graze 0 crc 50aa9c30
+compare 230 sw 04c31f2d hw 04c31f2d
+g 230 1 1 pool 0 20 5 act 0 20 0 5 1 life 3 bomb 3 score 200 graze 0 crc 04c31f2d
+compare 231 sw af4e1c74 hw af4e1c74
+g 231 1 1 pool 0 20 5 act 0 20 0 5 1 life 3 bomb 3 score 200 graze 0 crc af4e1c74
+compare 232 sw 1eb10a5f hw 1eb10a5f
+g 232 1 1 pool 0 22 5 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc 1eb10a5f
+compare 233 sw 76894930 hw 76894930
+g 233 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc 76894930
+compare 234 sw 613781ba hw 613781ba
+g 234 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc 613781ba
+compare 235 sw e51591da hw e51591da
+g 235 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc e51591da
+compare 236 sw 745037a7 hw 745037a7
+g 236 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc 745037a7
+compare 237 sw 70e9deb7 hw 70e9deb7
+g 237 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc 70e9deb7
+compare 238 sw 75fc56b4 hw 75fc56b4
+g 238 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc 75fc56b4
+compare 239 sw 3f94d7e3 hw 3f94d7e3
+g 239 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc 3f94d7e3
+compare 240 sw 60438410 hw 60438410
+g 240 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc 60438410
+compare 241 sw 430f4187 hw 430f4187
+g 241 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc 430f4187
+compare 242 sw a14e2062 hw a14e2062
+g 242 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc a14e2062
+compare 243 sw b66dd97d hw b66dd97d
+g 243 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc b66dd97d
+compare 244 sw 5640e937 hw 5640e937
+g 244 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc 5640e937
+compare 245 sw b36a64e3 hw b36a64e3
+g 245 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc b36a64e3
+compare 246 sw 0625be43 hw 0625be43
+g 246 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc 0625be43
+compare 247 sw 289e333a hw 289e333a
+g 247 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc 289e333a
+compare 248 sw 027213d5 hw 027213d5
+g 248 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc 027213d5
+compare 249 sw a6c1a589 hw a6c1a589
+g 249 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc a6c1a589
+compare 250 sw 6f72a21d hw 6f72a21d
+g 250 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc 6f72a21d
+compare 251 sw f2acbd05 hw f2acbd05
+g 251 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc f2acbd05
+compare 252 sw b488592c hw b488592c
+g 252 1 1 pool 0 22 0 act 0 22 1 0 1 life 3 bomb 3 score 200 graze 0 crc b488592c
+compare 253 sw 15c1ba11 hw 15c1ba11
+g 253 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc 15c1ba11
+compare 254 sw 3ce7d440 hw 3ce7d440
+g 254 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc 3ce7d440
+compare 255 sw 9ab15c22 hw 9ab15c22
+g 255 1 1 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 200 graze 0 crc 9ab15c22
+compare 256 sw 59d4ed4d hw 59d4ed4d
+g 256 1 1 pool 0 20 0 act 0 20 2 0 1 life 3 bomb 3 score 200 graze 0 crc 59d4ed4d
+compare 257 sw 023816d5 hw 023816d5
+g 257 1 1 pool 0 20 0 act 0 20 2 0 1 life 3 bomb 3 score 200 graze 0 crc 023816d5
+compare 258 sw ec1dd7e8 hw ec1dd7e8
+g 258 1 1 pool 1 18 0 act 1 18 2 0 1 life 3 bomb 3 score 200 graze 0 crc ec1dd7e8
+compare 259 sw 1119b5d3 hw 1119b5d3
+g 259 1 1 pool 1 18 0 act 1 18 2 0 1 life 3 bomb 3 score 200 graze 0 crc 1119b5d3
+compare 260 sw f2829881 hw f2829881
+g 260 1 1 pool 1 20 0 act 1 20 2 0 1 life 3 bomb 3 score 200 graze 0 crc f2829881
+compare 261 sw c3dd3665 hw c3dd3665
+g 261 1 1 pool 1 18 0 act 1 18 2 0 1 life 3 bomb 3 score 200 graze 0 crc c3dd3665
+compare 262 sw 0e6ac4a7 hw 0e6ac4a7
+g 262 1 1 pool 1 18 0 act 1 18 2 0 1 life 3 bomb 3 score 200 graze 0 crc 0e6ac4a7
+compare 263 sw cada7471 hw cada7471
+g 263 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc cada7471
+compare 264 sw 2e8ba1bf hw 2e8ba1bf
+g 264 1 1 pool 1 18 0 act 1 18 2 0 1 life 3 bomb 3 score 200 graze 0 crc 2e8ba1bf
+compare 265 sw a34e00af hw a34e00af
+g 265 1 1 pool 1 18 0 act 1 18 2 0 1 life 3 bomb 3 score 200 graze 0 crc a34e00af
+compare 266 sw 51d91cdd hw 51d91cdd
+g 266 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc 51d91cdd
+compare 267 sw d3d23079 hw d3d23079
+g 267 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc d3d23079
+compare 268 sw 7e914870 hw 7e914870
+g 268 1 1 pool 1 18 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc 7e914870
+compare 269 sw 3b568b37 hw 3b568b37
+g 269 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc 3b568b37
+compare 270 sw 22cee600 hw 22cee600
+g 270 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc 22cee600
+compare 271 sw 062f8ee8 hw 062f8ee8
+g 271 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc 062f8ee8
+compare 272 sw 704f88c1 hw 704f88c1
+g 272 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc 704f88c1
+compare 273 sw 2cf550c4 hw 2cf550c4
+g 273 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc 2cf550c4
+compare 274 sw 3b00668e hw 3b00668e
+g 274 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc 3b00668e
+compare 275 sw ed37aa60 hw ed37aa60
+g 275 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc ed37aa60
+compare 276 sw 23dc96b5 hw 23dc96b5
+g 276 1 1 pool 1 18 0 act 1 18 2 0 1 life 3 bomb 3 score 200 graze 0 crc 23dc96b5
+compare 277 sw d52b6196 hw d52b6196
+g 277 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc d52b6196
+compare 278 sw 8b2e12c7 hw 8b2e12c7
+g 278 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc 8b2e12c7
+compare 279 sw aaca1fd4 hw aaca1fd4
+g 279 1 1 pool 1 16 0 act 1 16 2 0 1 life 3 bomb 3 score 200 graze 0 crc aaca1fd4
+compare 280 sw 5a96e1c0 hw 5a96e1c0
+g 280 1 1 pool 1 18 0 act 1 18 3 0 1 life 3 bomb 3 score 200 graze 0 crc 5a96e1c0
+compare 281 sw 56d81855 hw 56d81855
+g 281 1 1 pool 1 18 0 act 1 18 3 0 1 life 3 bomb 3 score 200 graze 0 crc 56d81855
+
+# closed 01:11:04, 33054 bytes

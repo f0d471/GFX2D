@@ -91,6 +91,24 @@ static inline uint32_t *dev_ptr(const gfx_mem *m, uint32_t addr)
     return (uint32_t *)(void *)(m->host + off);
 }
 
+/* 表面的地址窗口：space=1（TEX，G1）经宿主的 TEX 影子窗口，其余走设备窗口。
+   返回 0 表示宿主没有提供所需的窗口（调用方违约，按 BAD_SURFACE 停下，
+   与 PC 上给错 DDR 窗口同一处理）。tex_view 是调用方提供的暂存视图。 */
+static const gfx_mem *surf_window(const gfx_mem *m, const gfx_surf_raw *s,
+                                  gfx_mem *tex_view)
+{
+    if (gfx_surf_space(s) != GFX_SPACE_TEX)
+        return m;
+    if (m->tex_host == 0)
+        return 0;
+    tex_view->dev_base = 0u;
+    tex_view->host     = m->tex_host;
+    tex_view->bytes    = m->tex_bytes;
+    tex_view->tex_host = 0;
+    tex_view->tex_bytes = 0u;
+    return tex_view;
+}
+
 /* 整张表面是否落在窗口内。表面的最后一个字节由描述符算出，
    地址随 x、y 单调增，所以首尾两点在窗口内就够。
 
@@ -176,10 +194,11 @@ DEF_FILL_LOOP(fill_mul,      GFX_EQ_MUL)
 DEF_FILL_LOOP(fill_straight, GFX_EQ_ALPHA_STRAIGHT)
 
 /* BLIT 的一个像素有三种结局：源越界跳过、色键命中跳过、写回。
-   顺序照 spec 第 01 章 3.6 节第 5 步：先判源越界，再判色键。 */
+   顺序照 spec 第 01 章 3.6 节第 5 步：先判源越界，再判色键。
+   ms 是源表面窗口（v1-TEX 的 TEX 源经影子窗口），m 是目的窗口。 */
 #define DEF_BLIT_LOOP(fn, EQ)                                                  \
 static void fn(const gfx_surf_raw *ss, const gfx_surf_raw *ds,                 \
-               const gfx_mem *m, const gfx_rect *win,                          \
+               const gfx_mem *ms, const gfx_mem *m, const gfx_rect *win,       \
                int32_t sx0, int32_t sy0, int32_t dx, int32_t dy,               \
                uint32_t key_en, uint32_t key, uint32_t c, uint32_t sfmt,       \
                exec_sw_stats *st)                                              \
@@ -196,7 +215,7 @@ static void fn(const gfx_surf_raw *ss, const gfx_surf_raw *ds,                 \
             uint32_t *p;                                                       \
             total++;                                                           \
             if (sx < 0 || sx >= sw || sy < 0 || sy >= sh) { oob++; continue; } \
-            srcw = *dev_ptr(m, gfx_addr_of(ss, sx, sy));                       \
+            srcw = *dev_ptr(ms, gfx_addr_of(ss, sx, sy));                      \
             if (key_en != 0u && srcw == key) { skipped++; continue; }          \
             p = dev_ptr(m, gfx_addr_of(ds, px, py));                           \
             *p = blend_px(srcw, *p, (EQ), c, sfmt);                            \
@@ -285,6 +304,8 @@ int exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
         const gfx_cmd *c;
         uint32_t       op, eq, srcid, dstid, w, h, sfmt;
         gfx_rect       win;
+        gfx_mem        sv;              /* TEX 源的影子窗口视图（G1） */
+        const gfx_mem *swin;            /* 本条命令的源表面窗口 */
         int            code;
 
         if (st != 0)
@@ -320,11 +341,20 @@ int exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
         w     = gfx_u16(c->w[3]);
         h     = gfx_u16(c->w[3] >> 16);
 
-        /* 宿主约束：本命令用到的表面要整个落在地址窗口内。 */
+        /* 宿主约束：本命令用到的表面要整个落在地址窗口内。
+           目的恒走设备窗口（space 步已排除 TEX 目的）；BLIT 源按 space 选窗口，
+           TEX 源经宿主的影子窗口，没给影子按 BAD_SURFACE 停。sv 必须活在
+           整个循环体里——swin 指向它，像素循环还要用。 */
+        sv.dev_base = 0u; sv.host = 0; sv.bytes = 0u;
+        sv.tex_host = 0; sv.tex_bytes = 0u;
+        swin = m;
         if (!surf_in_window(m, &t->s[dstid]))
             return fail(err, GFX_E_BAD_SURFACE, idx, c->w[7]);
-        if (op == GFX_OP_BLIT && !surf_in_window(m, &t->s[srcid]))
-            return fail(err, GFX_E_BAD_SURFACE, idx, c->w[7]);
+        if (op == GFX_OP_BLIT) {
+            swin = surf_window(m, &t->s[srcid], &sv);
+            if (swin == 0 || !surf_in_window(swin, &t->s[srcid]))
+                return fail(err, GFX_E_BAD_SURFACE, idx, c->w[7]);
+        }
 
         if (!dst_window(t, &es->clip, dstid, gfx_s16(c->w[2]),
                         gfx_s16(c->w[2] >> 16), w, h, &win)) {
@@ -367,27 +397,27 @@ int exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
             sfmt = gfx_surf_format(&t->s[srcid]);
             switch (eq) {
             case GFX_EQ_COPY:
-                blit_copy(&t->s[srcid], &t->s[dstid], m, &win, sx0, sy0, dx, dy,
+                blit_copy(&t->s[srcid], &t->s[dstid], swin, m, &win, sx0, sy0, dx, dy,
                           keyen, c->w[5], gfx_c(c), sfmt, st);
                 break;
             case GFX_EQ_ALPHA:
-                blit_alpha(&t->s[srcid], &t->s[dstid], m, &win, sx0, sy0, dx, dy,
+                blit_alpha(&t->s[srcid], &t->s[dstid], swin, m, &win, sx0, sy0, dx, dy,
                            keyen, c->w[5], gfx_c(c), sfmt, st);
                 break;
             case GFX_EQ_ADD:
-                blit_add(&t->s[srcid], &t->s[dstid], m, &win, sx0, sy0, dx, dy,
+                blit_add(&t->s[srcid], &t->s[dstid], swin, m, &win, sx0, sy0, dx, dy,
                          keyen, c->w[5], gfx_c(c), sfmt, st);
                 break;
             case GFX_EQ_CONST:
-                blit_const(&t->s[srcid], &t->s[dstid], m, &win, sx0, sy0, dx, dy,
+                blit_const(&t->s[srcid], &t->s[dstid], swin, m, &win, sx0, sy0, dx, dy,
                            keyen, c->w[5], gfx_c(c), sfmt, st);
                 break;
             case GFX_EQ_MUL:
-                blit_mul(&t->s[srcid], &t->s[dstid], m, &win, sx0, sy0, dx, dy,
+                blit_mul(&t->s[srcid], &t->s[dstid], swin, m, &win, sx0, sy0, dx, dy,
                          keyen, c->w[5], gfx_c(c), sfmt, st);
                 break;
             default:
-                blit_straight(&t->s[srcid], &t->s[dstid], m, &win, sx0, sy0, dx, dy,
+                blit_straight(&t->s[srcid], &t->s[dstid], swin, m, &win, sx0, sy0, dx, dy,
                               keyen, c->w[5], gfx_c(c), sfmt, st);
                 break;
             }

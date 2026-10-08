@@ -1,0 +1,49 @@
+# COM11 @ 115200 8N1, opened 23:43:21
+gfx2dGame MODES
+engineTest B6
+ENG id ok
+# --- 程序已加载，以下才是它的输出 ---
+fill-screen 9cd34cb7 9cd34cb7 ok
+blit-copy bc9be6ff bc9be6ff ok
+blit-key 084d6bb2 084d6bb2 ok
+blit-alpha-pm 0b14ce03 0b14ce03 ok
+blit-alpha-straight 5b4feb8d 5b4feb8d ok
+blit-add cfcef0ee cfcef0ee ok
+fill-const f50e8644 f50e8644 ok
+blit-mul 46667f89 46667f89 ok
+blit-clip-partial 0fd9dcaf 0fd9dcaf ok
+set-clip-state a07324ee a07324ee ok
+copy-argb-high-byte 8843eb2f 8843eb2f ok
+COUNT32 ok
+DIR narrow-x1x2x3 ok
+DIR key-sparse ok
+INJ-COH ok
+TEX-CAPS ok
+TEX-LOAD ok
+TEX-fill-screen 9cd34cb7 6ab1aca3 FAIL
+TEX-blit-copy bc9be6ff 6ab1aca3 FAIL
+TEX-blit-key 084d6bb2 6ab1aca3 FAIL
+TEX-blit-alpha-pm 4f74ba7f 6ab1aca3 FAIL
+TEX-blit-alpha-straight 46f2ee47 6ab1aca3 FAIL
+TEX-blit-add cfcef0ee 6ab1aca3 FAIL
+TEX-fill-const b672af7d 6ab1aca3 FAIL
+TEX-blit-mul 3bbc5fb9 6ab1aca3 FAIL
+TEX-blit-clip-partial 0fd9dcaf 6ab1aca3 FAIL
+TEX-set-clip-state a07324ee 6ab1aca3 FAIL
+TEX-copy-argb-high-byte 8843eb2f 6ab1aca3 FAIL
+TEXERR-BAND FAIL
+TEXERR-DST FAIL
+TEXERR-ALIGN FAIL
+TEXERR-OOB FAIL
+TEXERR-NOVAL FAIL
+TEXERR-FMT FAIL
+PERF-BUSY ok
+PERF busy=000049d5
+TEX-PERF FAIL
+PERF tex busy=00003d6e rd=00000102
+STRESS ok
+ wm=00000152 z=00000000 ar=000000d6 aw=000000e0
+fail 18
+done
+
+# closed 23:43:46, 1201 bytes

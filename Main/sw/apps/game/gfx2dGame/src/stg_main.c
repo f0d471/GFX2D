@@ -118,6 +118,9 @@ static stg_field s_field;           /* 场的全部状态，约 380 KB */
 #if STG_PRESENTS
 static uint32_t  s_seq;             /* 全局帧序号：选命令表与帧缓冲 */
 static int       s_shown = -1;      /* 正在显示的那一面 */
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+static uint32_t s_compare_tex_commands;
+#endif
 #endif
 
 #if STG_DRAWS
@@ -260,6 +263,16 @@ static void seg_begin(uint32_t seg)
 
 static void say_end(void)
 {
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+    {
+        char text[64]; core_out out;
+        core_out_init(&out,text,sizeof text);
+        core_out_str(&out,"compare tex commands ");
+        core_out_u32(&out,s_compare_tex_commands);
+        core_out_str(&out,"\r\n"); board_puts(text);
+        if (s_compare_tex_commands==0u) s_fail++;
+    }
+#endif
     char     buf[48];
     core_out o;
 
@@ -364,6 +377,12 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
         say_err("compose", frame, 0u);
     if (l.rejected != 0u || l.overflow != 0u || go->st.rejected != 0u)
         say_err("list rejected/overflow", frame, l.rejected + l.overflow + go->st.rejected);
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+    for (e=0u;e<l.used;e++)
+        if (gfx_op(&l.buf[e])==GFX_OP_BLIT &&
+            gfx_surf_space(&ctx->tab->s[gfx_src(&l.buf[e])])==GFX_SPACE_TEX)
+            s_compare_tex_commands++;
+#endif
 
     /* 普查从命令表另数一遍：每个方程的条数等于组帧记下的，且按类对得上 */
     gfx_census_reset(&cs);
@@ -819,6 +838,9 @@ static int run(const stg_main_ctx *ctx)
 int stg_main(const stg_main_ctx *ctx, uint32_t fail0)
 {
     s_fail  = fail0;
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+    s_compare_tex_commands=0u;
+#endif
 #if STG_PRESENTS
     s_seq   = 0u;
     s_shown = -1;

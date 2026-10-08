@@ -1,0 +1,21 @@
+正常用例:
+  normal: RESULT: PASS
+  drain: RESULT: PASS
+  err: RESULT: PASS
+  timeout: RESULT: PASS
+注错用例（期望 FAIL）:
+  inject_nogate_rd: RESULT: FAIL (看门狗：仿真没有自己结束)
+  inject_mask: RESULT: FAIL (38 errors)
+  inject_nodrain: RESULT: FAIL (看门狗：仿真没有自己结束)
+  inject_nogate_wr: RESULT: FAIL (2 errors)
+  inject_drain_level: RESULT: FAIL (2 errors)
+  inject_no_tlast: RESULT: FAIL (看门狗：仿真没有自己结束)
+  inject_nogate_rd: FAIL 由读流上下文错位或契约违例引起
+  inject_mask: FAIL 由写目的区比对引起
+  inject_nodrain: FAIL 由排空没有完成引起
+  inject_nogate_wr: FAIL 由写方向在途契约违例引起
+  inject_drain_level: FAIL 由「一次请求只完成一次」引起
+  inject_no_tlast: FAIL 由写核卡在 DROP_DATA（只有第一笔写上了总线）引起
+从机定时模式:
+  slave_timed: RESULT: PASS
+SIM OK: 17/17 checks as expected

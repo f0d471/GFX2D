@@ -38,6 +38,7 @@ module tb_engine_path;
     wire [11:0] rd_bytes=rd_beats<<4,wr_bytes=wr_beats<<4;
     wire [1:0] rd_buf; wire [3:0] rd_cidx,wr_cidx;
     wire rd_valid,rd_ready,wr_valid,wr_ready,wr_last_row;
+    wire rd_tex;
     wire [15:0] sb_row,sb_py;
     wire [10:0] sb_npx;wire [7:0] sb_beats,sb_op,sb_c;
     wire [1:0] sb_lead_dst,sb_lead_src;
@@ -49,14 +50,14 @@ module tb_engine_path;
         .clk(clk),.rst(rst),.start(start),.op(op),.eq(eq),
         .key_en(key_en),.key_w5(key_w5),.const_w4(const_w4),.c(c),
         .sfmt(sfmt),.src_base(src_base),.src_w(src_w),.src_h(src_h),
-        .src_slog2(src_slog2),.dst_base(dst_base),.dst_w(dst_w),
+        .src_slog2(src_slog2),.src_tex(1'b0),.dst_base(dst_base),.dst_w(dst_w),
         .dst_h(dst_h),.dst_slog2(dst_slog2),.src_x(src_x),.src_y(src_y),
         .dst_x(dst_x),.dst_y(dst_y),.w(width),.h(height),
         .clip_x0(16'sd0),.clip_y0(16'sd0),
         .clip_x1(16'sd639),.clip_y1(16'sd479),.cidx(cidx),
         .row_free(row_free),.busy(geom_busy),.cmd_done(cmd_done),
         .done_cidx(done_cidx),
-        .rd_addr(rd_addr),.rd_beats(rd_beats),.rd_buf(rd_buf),
+        .rd_addr(rd_addr),.rd_beats(rd_beats),.rd_buf(rd_buf),.rd_tex(rd_tex),
         .rd_cidx(rd_cidx),.rd_valid(rd_valid),.rd_ready(rd_ready),
         .wr_addr(wr_addr),.wr_beats(wr_beats),.wr_cidx(wr_cidx),
         .wr_last_row(wr_last_row),.wr_valid(wr_valid),.wr_ready(wr_ready),
@@ -97,8 +98,12 @@ module tb_engine_path;
     wire [15:0] wstrb;
     engine_mover u_mover(
         .clk(clk),.rst(rst),
-        .rd_addr(rd_addr),.rd_bytes(rd_bytes),.rd_buf(rd_buf),
+        .rd_addr(rd_addr),.rd_bytes(rd_bytes),.rd_buf(rd_buf),.rd_tex(rd_tex),
         .rd_cidx(rd_cidx),.rd_valid(rd_valid),.rd_ready(rd_ready),
+        .tx_addr(),.tx_bytes(),.tx_buf(),.tx_cidx(),.tx_valid(),
+        .tx_ready(1'b1),.tx_busy(1'b0),
+        .tx_rs_tdata(128'd0),.tx_rs_tvalid(1'b0),.tx_rs_tlast(1'b0),.tx_rs_buf(2'd0),
+        .tx_stat_valid(1'b0),.tx_stat_cidx(4'd0),.tx_stat_buf(2'd0),
         .fd_addr(32'd0),.fd_bytes(12'd0),.fd_cidx(4'd0),
         .fd_valid(1'b0),.fd_ready(),
         .rs_tdata(rs_tdata),.rs_tkeep(rs_tkeep),.rs_tlast(rs_tlast),
@@ -110,6 +115,7 @@ module tb_engine_path;
         .ws_tdata(ws_tdata),.ws_tkeep(ws_tkeep),
         .ws_tvalid(ws_tvalid),.ws_tready(ws_tready),
         .rd_stat_valid(rd_stat_valid),.rd_stat_err(rd_stat_err),
+        .rd_stat_fetch(),
         .rd_stat_cidx(rd_stat_cidx),.rd_stat_buf(rd_stat_buf),
         .wr_stat_valid(wr_stat_valid),.wr_stat_err(wr_stat_err),
         .wr_stat_cidx(wr_stat_cidx),.wr_stat_last_row(wr_stat_last_row),

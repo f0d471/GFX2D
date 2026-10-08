@@ -57,7 +57,9 @@ def main():
                 if p != b:
                     raise ValueError("%s 行不同: PC=%s 板=%s" % (prefix, p, b))
         if args.compare_equal or args.compare_different:
-            compares = [line.split() for line in hw if line.startswith("compare ")]
+            # G1 的装载/覆盖计数诊断采用 compare tex 前缀，不是逐帧 CRC 记录。
+            compares = [line.split() for line in hw if line.startswith("compare ")
+                        and not line.startswith("compare tex ")]
             if len(compares) != args.frames:
                 raise ValueError("compare 行数量 %d，预期 %d" % (len(compares), args.frames))
             for i, parts in enumerate(compares):

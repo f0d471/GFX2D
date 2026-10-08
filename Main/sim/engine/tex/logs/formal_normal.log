@@ -1,0 +1,10 @@
+UNIT APB done (errors=0)
+UNIT STR done (errors=0)
+UNIT done errors=0
+TEX_OVERLAP ar=193 hold=133 pixel_stat_during_fetch=0
+RENDER done errors=0
+ERR cases done errors=0
+SOFT-RST done errors=0
+HARD-RST done errors=0
+TEX SIM OK: unit + render + perf + err + resets
+tb_engine_tex.v:691: $finish called at 1584245000 (1ps)

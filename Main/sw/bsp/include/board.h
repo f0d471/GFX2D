@@ -21,6 +21,10 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+/* 同帧诊断选择彩条并等一场，两个帧缓冲均不参与扫描，帧时钟继续运行。 */
+int board_begin_compare(void);
+#endif
 #include "memmap.h"
 
 /* 板级帧节拍与计时基准：core_clk = 100MHz，1 个 cycle = 10ns。

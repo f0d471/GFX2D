@@ -1,0 +1,6 @@
+{
+  "path": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+  "bytes": 2371230,
+  "sha256": "461ee8f8ad4a2fc2a7ff5530d01fa0378cf3145a042ebbd19950554230ee2eca",
+  "scope": "initial three-stage TEX bit; first board performance 982.875 cycles/sprite; program not preserved"
+}

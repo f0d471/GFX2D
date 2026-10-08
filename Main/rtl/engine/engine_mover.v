@@ -55,6 +55,15 @@
 // 写方向另存 I2 写描述符的「是否本命令最后一行」，随写状态交给控制层。
 // 每个方向只有一笔在途，所以每方向一组寄存器就够。
 //
+// TEX 片上读（引擎 P3 G1，D57）：几何层的 rd_tex 在描述符入口选择本地或 DDR。
+// TEX 只在上一笔 DDR 读完整收尾后受理；TEX 在途时允许 DDR 目的读或命令取数
+// 提前请求。DDR 像素先留在 DMA FIFO，等 TEX 数据与状态收尾后再送 I3，保持
+// 单个像素流所有者；命令取数走独立 fs。置 1 的描述符发给 engine_tex，源读无 AXI 事务。
+// 状态合并带显式来源位 rd_stat_fetch（1 = 命令取数）；DDR 状态无反压口，
+// 同拍竞争时 TEX 状态保持到 ready，控制层不再按 FE 状态猜归属。
+// 排空同时等 TEX 与两个核，
+// 超时计时把 TEX 的描述符/流/状态握手算进读方向。
+//
 // 层间接口（总览 2.4 节）：I2 描述符进、I3 读流出、I4 写流进、I7 状态与排空/超时进出。
 //
 // 仿真注错口（0 是正式配置，综合时是常量、对应分支会被优化掉），
@@ -86,8 +95,26 @@ module engine_mover #(
     input  wire [11:0]           rd_bytes,     // 字节数，16 的倍数
     input  wire [1:0]            rd_buf,       // 落到哪块行缓冲
     input  wire [3:0]            rd_cidx,      // 命令索引（D19 的错误归属）
+    input  wire                  rd_tex,       // 源在片上 TEX（G1）：描述符入口选路
     input  wire                  rd_valid,
     output wire                  rd_ready,
+
+    // ---- TEX 片上读（engine_tex，G1）：描述符出口与流/状态入口 ----
+    output wire [13:0]           tx_addr,      // TEX 窗口内字节地址，16 字节对齐
+    output wire [11:0]           tx_bytes,
+    output wire [1:0]            tx_buf,
+    output wire [3:0]            tx_cidx,
+    output wire                  tx_valid,
+    input  wire                  tx_ready,
+    input  wire [127:0]          tx_rs_tdata,  // 本地读流（消费者恒 ready，无 ready 口）
+    input  wire                  tx_rs_tvalid,
+    input  wire                  tx_rs_tlast,
+    input  wire [1:0]            tx_rs_buf,
+    input  wire                  tx_stat_valid, // 保持到 ready，恒无错
+    output wire                  tx_stat_ready,
+    input  wire [3:0]            tx_stat_cidx,
+    input  wire [1:0]            tx_stat_buf,
+    input  wire                  tx_busy,       // TEX 描述符在途（受理起到状态脉冲止）
 
     // ---- I7：命令取数描述符（控制层 → 搬运层），优先于像素读 ----
     input  wire [31:0]           fd_addr,
@@ -127,6 +154,7 @@ module engine_mover #(
     // ---- I7：状态（搬运层 → 控制层）----
     output wire                  rd_stat_valid, // 一拍脉冲，负载同拍有效
     output wire                  rd_stat_err,   // 1 = 读回 rresp 非 OKAY（D19 的 10）
+    output wire                  rd_stat_fetch, // 显式来源：1 = 命令取数（G1，控制层不再按 FE 状态猜）
     output wire [3:0]            rd_stat_cidx,
     output wire [1:0]            rd_stat_buf,
     output wire                  wr_stat_valid,
@@ -192,7 +220,8 @@ module engine_mover #(
     always @(posedge clk) begin
         if (rst)                                   draining <= 1'b0;
         else if (drain_enter)                      draining <= 1'b1;
-        else if (draining && !rd_busy && !wr_busy) draining <= 1'b0;
+        else if (draining && !rd_busy && !wr_busy && !tx_busy)
+                                                   draining <= 1'b0;
     end
 
     always @(posedge clk) begin
@@ -208,7 +237,7 @@ module engine_mover #(
     wire        wr_drain_help = draining && wr_busy && !drain_bypass;
 
     assign      drain_busy = draining;
-    assign      drain_done = draining && !rd_busy && !wr_busy;
+    assign      drain_done = draining && !rd_busy && !wr_busy && !tx_busy;
 
     // =====================================================================
     // 读侧：仲裁（D8、D32）与门控（D3 规矩 2）
@@ -222,32 +251,47 @@ module engine_mover #(
 
     // 门控条件：状态脉冲已捕获且读流 tlast 已握手；注错位 0 去掉它
     wire        rd_gate_done = ((INJECT & 1) != 0) ? 1'b1 : (rd_status_seen && rd_stream_done);
-    // 排空期间与请求举着时不再收新提交，即使这个方向已经空了
+    // 排空期间挡新提交。TEX 流在途时可预发 DDR 请求，但 I3 保持单流所有者。
     wire        rd_block     = (rd_busy && !rd_gate_done) || drain_hold;
     wire        rd_open      = !rd_block;
 
-    // 仲裁：命令取数有请求就选它，否则选像素读
+    // 仲裁（G1）：命令取数仍优先于像素读；像素读按 rd_tex 在描述符入口选路。
+    // TEX 在 DDR 读流收尾后才开始；DDR 可提前取目的，返回流先停在 DMA FIFO。
+    // 待 TEX 数据与状态收尾后才交给 I3，防止共享行写指针在源/目的间交错。
     wire        rd_pick_fd    = fd_valid;
-    wire        rd_fire       = rd_core_ready && rd_open && (fd_valid || rd_valid);
+    wire        rd_pick_tex   = !fd_valid && rd_valid && rd_tex;
+    wire        rd_fire       = rd_core_ready && rd_open && (fd_valid || (rd_valid && !rd_tex));
+    wire        tx_fire       = tx_ready && rd_open && rd_pick_tex && !rd_busy;
     assign      fd_ready      = rd_core_ready && rd_open;
-    assign      rd_ready      = rd_core_ready && rd_open && !fd_valid;
+    assign      rd_ready      = rd_open && !fd_valid &&
+                                (rd_tex ? (tx_ready && !rd_busy) : rd_core_ready);
 
     wire [31:0] dsc_addr      = rd_pick_fd ? fd_addr  : rd_addr;
     wire [11:0] dsc_bytes     = rd_pick_fd ? fd_bytes : rd_bytes;
 
-    // 读流
+    // TEX 描述符出口：地址截到窗口内使用（越界是 cmd 检查的责任）
+    assign      tx_addr       = rd_addr[13:0];
+    assign      tx_bytes      = rd_bytes;
+    assign      tx_buf        = rd_buf;
+    assign      tx_cidx       = rd_cidx;
+    assign      tx_valid      = tx_fire;
+
+    // I3 的源流先于目的流，命令流另走 fs；上下文各带各的。
+    // INJECT 位 6（64）去掉目的流等待，长行用例必须抓到流碰撞。
     wire [127:0] core_rs_tdata;
     wire [15:0]  core_rs_tkeep;
     wire         core_rs_tlast, core_rs_tvalid, core_rs_tready;
-
+    wire        tx_data_blocks = tx_busy && ((INJECT & 64) == 0);
+    wire        core_rs_pix   = core_rs_tvalid && !rd_ctx_cmd && !rd_drain_help && !tx_data_blocks;
+    wire        tex_rs_pix    = tx_rs_tvalid && !drain_hold;
     assign      core_rs_tready = rd_drain_help ? 1'b1
-                               : (rd_ctx_cmd ? fs_tready : rs_tready);
-    assign      rs_tvalid      = core_rs_tvalid && !rd_ctx_cmd && !rd_drain_help;
+                               : (rd_ctx_cmd ? fs_tready : (rs_tready && !tx_data_blocks));
+    assign      rs_tvalid      = core_rs_pix || tex_rs_pix;
     assign      fs_tvalid      = core_rs_tvalid &&  rd_ctx_cmd && !rd_drain_help;
-    assign      rs_tdata       = core_rs_tdata;
-    assign      rs_tkeep       = core_rs_tkeep;
-    assign      rs_tlast       = core_rs_tlast;
-    assign      rs_buf         = rd_ctx_buf;
+    assign      rs_tdata       = tex_rs_pix ? tx_rs_tdata : core_rs_tdata;
+    assign      rs_tkeep       = tex_rs_pix ? 16'hFFFF    : core_rs_tkeep;
+    assign      rs_tlast       = tex_rs_pix ? tx_rs_tlast : core_rs_tlast;
+    assign      rs_buf         = tex_rs_pix ? tx_rs_buf   : rd_ctx_buf;
     assign      fs_tdata       = core_rs_tdata;
     assign      fs_tkeep       = core_rs_tkeep;
     assign      fs_tlast       = core_rs_tlast;
@@ -293,10 +337,15 @@ module engine_mover #(
         end
     end
 
-    assign rd_stat_valid = rd_stat_v;
-    assign rd_stat_err   = rd_err_r;
-    assign rd_stat_cidx  = rd_ctx_cidx;
-    assign rd_stat_buf   = rd_ctx_buf;
+    // 状态：读核/取数的状态（延后一拍）与 TEX 的状态合并成一路。
+    // 单所有者保证两者不同拍；TEX 本地读没有错误来源，err 恒 0。
+    assign rd_stat_valid = rd_stat_v || tx_stat_valid;
+    assign rd_stat_err   = rd_stat_v && rd_err_r;
+    assign rd_stat_cidx  = rd_stat_v ? rd_ctx_cidx : tx_stat_cidx;
+    assign rd_stat_buf   = rd_stat_v ? rd_ctx_buf  : tx_stat_buf;
+    assign rd_stat_fetch = rd_stat_v && rd_ctx_cmd;   // TEX 状态恒属像素读
+    // DDR 状态无反压口；本地状态遇到同拍 DDR 状态时保留到下一拍。
+    assign tx_stat_ready = !rd_stat_v;
 
     // =====================================================================
     // 写侧：门控与排空补拍（D3 规矩 2、D29）
@@ -378,20 +427,21 @@ module engine_mover #(
     reg  [TMO_WIDTH-1:0] rd_tmo, wr_tmo;
     reg                  rd_tmo_rep, wr_tmo_rep;
 
-    // 「握手」两侧都算：本层一侧与 AXI 一侧
+    // 「握手」两侧都算：本层一侧与 AXI 一侧；TEX 的描述符/流/状态算读方向（G1）
     wire rd_axi_hs = (m_axi_arvalid && m_axi_arready) || (m_axi_rvalid && m_axi_rready);
     wire wr_axi_hs = (m_axi_awvalid && m_axi_awready) || (m_axi_wvalid && m_axi_wready)
                   || (m_axi_bvalid && m_axi_bready);
-    wire rd_hs     = rd_fire || rs_fire || rd_status_valid || rd_axi_hs;
+    wire rd_hs     = rd_fire || tx_fire || rs_fire || tx_rs_tvalid
+                   || rd_status_valid || tx_stat_valid || rd_axi_hs;
     wire wr_hs     = wr_fire || ws_core_fire || wr_status_valid || wr_axi_hs;
 
-    wire rd_over   = rd_busy && (rd_tmo >= tmo_limit);
+    wire rd_over   = (rd_busy || tx_busy) && (rd_tmo >= tmo_limit);
     wire wr_over   = wr_busy && (wr_tmo >= tmo_limit);
     wire rd_over_evt = rd_over && !rd_tmo_rep;
     wire wr_over_evt = wr_over && !wr_tmo_rep;
 
     always @(posedge clk) begin
-        if (rst || err_clr || !rd_busy || rd_hs) begin
+        if (rst || err_clr || (!rd_busy && !tx_busy) || rd_hs) begin
             rd_tmo <= {TMO_WIDTH{1'b0}};
         end else if (!rd_over) begin
             rd_tmo <= rd_tmo + 1'b1;
@@ -407,8 +457,8 @@ module engine_mover #(
     end
 
     always @(posedge clk) begin
-        if (rst || err_clr || !rd_busy)     rd_tmo_rep <= 1'b0;
-        else if (rd_over)                   rd_tmo_rep <= 1'b1;
+        if (rst || err_clr || (!rd_busy && !tx_busy))     rd_tmo_rep <= 1'b0;
+        else if (rd_over)                                 rd_tmo_rep <= 1'b1;
     end
 
     always @(posedge clk) begin

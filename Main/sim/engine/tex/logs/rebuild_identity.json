@@ -1,0 +1,9 @@
+{
+  "verified_programs": [
+    "Main/sw/apps/game/gfx2dGame/build_g1_nmax/gfx2dGame-O2-perf.bin",
+    "Main/sw/apps/game/gfx2dGame/build_g1_switch/gfx2dGame-O2-perf.bin",
+    "Main/sw/apps/game/gfx2dGame/build_g1_crc_bad/gfx2dGame-O2-inject-perf.bin"
+  ],
+  "byte_identical": true,
+  "changed": []
+}

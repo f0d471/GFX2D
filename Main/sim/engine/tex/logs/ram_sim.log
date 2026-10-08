@@ -1,0 +1,3 @@
+RAM checks=2048 writes=8192 errors=0
+RAM RESULT: PASS
+tb_probe_tex_ram.v:37: $finish called at 102420000 (1ps)

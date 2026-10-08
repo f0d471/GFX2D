@@ -85,6 +85,7 @@ module engine_geom #(
     input  wire [15:0] src_w,
     input  wire [15:0] src_h,
     input  wire [4:0]  src_slog2,
+    input  wire        src_tex,       // 源在片上 TEX（G1，I1 的新字段；仅 BLIT 源会置 1）
     input  wire [31:0] dst_base,
     input  wire [15:0] dst_w,
     input  wire [15:0] dst_h,
@@ -110,6 +111,7 @@ module engine_geom #(
     output reg  [31:0] rd_addr,
     output reg  [11:0] rd_beats,
     output reg  [1:0]  rd_buf,
+    output reg         rd_tex,        // 源读描述符的片上标记（G1）：仅 BLIT 源可能置 1
     output reg  [3:0]  rd_cidx,
     output reg         rd_valid,
     input  wire        rd_ready,
@@ -165,6 +167,7 @@ module engine_geom #(
     reg [31:0] r_key, r_w4;
     reg [7:0]  r_c;
     reg [3:0]  r_sfmt;
+    reg        r_src_tex;
     reg [3:0]  r_cidx;
 
     // ---------------------------------------------------------------- 五者求交
@@ -368,6 +371,8 @@ module engine_geom #(
         rd_addr       = seg_addr[seg_i];
         rd_beats      = seg_beats[seg_i];
         rd_buf        = {seg_dir[seg_i], row_i[0]};
+        // 片上标记只上源读描述符（G1）：目的读恒走 DDR
+        rd_tex        = cur_rd && !seg_dir[seg_i] && r_src_tex;
         rd_cidx       = r_cidx;
 
         wr_valid      = cur_wr;
@@ -387,7 +392,7 @@ module engine_geom #(
             dst_stride <= 32'd0; src_stride <= 32'd0;
             nrows <= 16'd0; npx <= 11'd0; py <= 16'sd0;
             r_op <= 8'd0; r_eq <= 4'd0; r_key_en <= 1'b0; r_key <= 32'd0;
-            r_w4 <= 32'd0; r_c <= 8'd0; r_sfmt <= 4'd0; r_cidx <= 4'd0;
+            r_w4 <= 32'd0; r_c <= 8'd0; r_sfmt <= 4'd0; r_src_tex <= 1'b0; r_cidx <= 4'd0;
         end else begin
             cmd_done <= 1'b0;
             case (st)
@@ -396,7 +401,8 @@ module engine_geom #(
                 if (start) begin
                     // start 那一拍端口值有效：组合求交的结果当拍锁存
                     r_op <= op; r_eq <= eq; r_key_en <= key_en; r_key <= key_w5;
-                    r_w4 <= const_w4; r_c <= c; r_sfmt <= sfmt; r_cidx <= cidx;
+                    r_w4 <= const_w4; r_c <= c; r_sfmt <= sfmt;
+                    r_src_tex <= src_tex; r_cidx <= cidx;
                     done_cidx <= cidx;
                     if (i_empty) begin
                         cmd_done <= 1'b1;                 // D38：零面积命令

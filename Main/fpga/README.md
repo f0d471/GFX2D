@@ -88,3 +88,9 @@ Standard 构型、单核 100MHz、指令与数据缓存各 4KB、无 FPU、DDR �
 
 程序区 `LDSize=4092`，片上 RAM 启用自定义 hex（512KB bootloader）。
 重新生成用 `tools/soc/ipm_gen_soc.py`，步骤见 `sdk/README.md`「重新生成 SoC IP 时」。生成前先提交。
+
+## G1 当前构型
+
+engine_tex 已登记到 gfx2d_ti60 源文件列表并接入四页 TEX 窗口。当前 4KB/1 路
+整机的资源和时序见 [engine 第 07 章](../../Engineering/TechReports/engine/07-片上纹理前期研究.md)。
+产物身份集中在 `../sim/engine/tex/logs/g1_artifacts.json`，旧 outflow 身份不代表当前 G1。

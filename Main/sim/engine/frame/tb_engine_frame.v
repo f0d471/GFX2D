@@ -37,7 +37,7 @@ module tb_engine_frame #(
 
     reg clk=0, rst=1; always #5 clk=~clk;
     reg psel=0, penable=0, pwrite=0;
-    reg [11:0] paddr=0;
+    reg [15:0] paddr=0;
     reg [31:0] pwdata=0;
     wire [31:0] prdata;
     wire pready, pslverr;
@@ -190,13 +190,13 @@ module tb_engine_frame #(
         repeat(5) @(negedge clk); rst=0;
         repeat(2) @(negedge clk);
 
-        // ID 与 CAPS 在位（D51：ID="GFX"<<8|1；CAPS 复位值 0x0000040F）
+        // ID 与 CAPS 在位（D51：ID="GFX"<<8|1；CAPS 复位值 0x0000044F，G1 起 TEX 位为 1）
         apb_rd(12'h000, id);
         if (id !== 32'h4746_5801) begin
             errors = errors + 1; $display("ID-FAIL %08x", id);
         end
         apb_rd(12'h004, caps);
-        if (caps !== 32'h0000_040F) begin
+        if (caps !== 32'h0000_044F) begin
             errors = errors + 1; $display("CAPS-FAIL %08x", caps);
         end
 

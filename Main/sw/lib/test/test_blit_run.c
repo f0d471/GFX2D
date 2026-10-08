@@ -117,7 +117,7 @@ static void make_table(gfx_surface_table *t, uint32_t variant)
     set_surf(t, 2, 0x00210000u, 64u, 64u, 8u, GFX_SPACE_DDR, GFX_FMT_ARGB8888_ST);
     set_surf(t, 3, 0x00220000u, 64u, 64u, 8u, GFX_SPACE_DDR, GFX_FMT_XRGB8888);
     gfx_surface_set_raw(t, 5, 0x00230000u, 64u | (64u << 16), 0x80000000u | 8u | 0x20u);
-    set_surf(t, 6, 0x00240000u, 64u, 64u, 8u, GFX_SPACE_TEX, GFX_FMT_XRGB8888);
+    set_surf(t, 6, 0u, 64u, 64u, 8u, GFX_SPACE_TEX, GFX_FMT_XRGB8888);
     set_surf(t, 7, 0x00250000u, 64u, 64u, 8u, GFX_SPACE_DDR, GFX_FMT_ARGB8888_PM);
     if (variant == 1u)
         gfx_surface_set_raw(t, 1, 0u, 0u, 0u);

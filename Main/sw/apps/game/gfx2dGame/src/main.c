@@ -56,11 +56,17 @@
 
 #include "game/stg_chord.h"
 
+#ifdef __riscv
+#include "gfx_engine.h"
+#include "gfx_regs.h"
+#endif
+
 #include "gfx2d_stats.h"
 #include "stg_main.h"
 #include "stg_modes.h"
 #include "stg_slots.h"
 #include "renderer.h"
+#include <string.h>
 
 /* --- 全局状态（都是静态的，不用 malloc）--------------------------------- */
 
@@ -74,9 +80,11 @@ static uint32_t          s_cmd_cap[2];
 static sw6_scene_a       s_a;
 static sw6_scene_b       s_b;
 static uint32_t          s_fail;
-static uint32_t          s_backend;       /* 0 软件，1 硬件；PC 的 1 仍模拟软件 */
+static uint32_t          s_backend;       /* 0 软件，1 硬件/DDR，2 硬件/TEX（G1）；PC 的非 0 仍模拟软件 */
+static int               s_tex_ready;     /* 热集已装载并 CRC 自校验通过（G1，HW/TEX 可用） */
+static int               s_tex_on;        /* 表面表的热集槽当前处于 TEX 覆盖层之下 */
 #if !SW6_MODE_JUDGE || SW9_PERF
-static uint32_t          s_backend_fps[2], s_backend_fps_valid[2];
+static uint32_t          s_backend_fps[3], s_backend_fps_valid[3];
 #endif
 
 /* 上一帧最终的统计与三段耗时：HUD 显示的就是它们 */
@@ -236,6 +244,7 @@ static int boot_surfaces(void)
     uint32_t       i;
 
     gfx_surface_reset(&s_tab);
+    s_tex_on = 0;               /* 表重建回 DDR 基址，覆盖层随之失效（G1） */
 
     for (i = 0u; i < 8u; i++) {
         assetpak_entry e;
@@ -346,6 +355,8 @@ static int boot_surfaces_stg(void)
     uint32_t       i;
 
     gfx_surface_reset(&s_tab);
+    s_tex_on = 0;               /* 表重建回 DDR 基址，覆盖层随之失效（G1） */
+
     for (i = 0u; i < (uint32_t)STG_SLOT_N_ASSETS; i++) {
         assetpak_entry e;
 
@@ -486,8 +497,8 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
 #if SW9_PERF
         hud.sw_fps       = s_backend_fps[0];
         hud.sw_fps_valid = (int)s_backend_fps_valid[0];
-        hud.hw_fps       = s_backend_fps[1];
-        hud.hw_fps_valid = (int)s_backend_fps_valid[1];
+        hud.hw_fps       = s_backend_fps[s_backend == 2u ? 2u : 1u];
+        hud.hw_fps_valid = (int)s_backend_fps_valid[s_backend == 2u ? 2u : 1u];
 #else
         /* 只有一个窗口，实测值按当前后端归栏；判据只走软件，HUD 与 SW6 期望日志不变 */
         hud.sw_fps       = s_sw_fps;
@@ -650,8 +661,8 @@ static int run_judge(void)
 #ifndef GFX2D_START_BACKEND
 #define GFX2D_START_BACKEND 0
 #endif
-#if GFX2D_START_BACKEND != 0 && GFX2D_START_BACKEND != 1
-#error "GFX2D_START_BACKEND 只认 0（软件）或 1（硬件）"
+#if GFX2D_START_BACKEND != 0 && GFX2D_START_BACKEND != 1 && GFX2D_START_BACKEND != 2
+#error "GFX2D_START_BACKEND 只认 0（软件）、1（硬件/DDR）或 2（硬件/TEX）"
 #endif
 #if GFX2D_START_MODE < 1 || GFX2D_START_MODE > 3
 #error "GFX2D_START_MODE 只认 1、2、3"
@@ -692,6 +703,125 @@ static uint32_t     s_m1_frame;         /* 模式 1：本段的帧号 */
 static uint32_t     s_m1_field0;        /* 模式 1：本段开始时的场号（轮换按场数） */
 static uint32_t     s_mfps_cyc0, s_mfps_swaps0, s_mfps;
 static uint32_t     s_swj_n;            /* 切换判据：已经切了几次 */
+static int          s_tex_ready;        /* 热集装载并 CRC 自校验通过（G1，HW/TEX 可用） */
+
+/* --- v1-TEX（G1）：热集装载与 HW/TEX 后端 --------------------------------- */
+
+/* 热集 = 标准圆弹/小圆弹/火花（SW7 口径），按现行 manifest 顺序紧凑摆进
+   16 KiB 窗口；装载一次、读回 CRC 自校验，通过后 HW/TEX 后端才可用。
+   装载、读回与重登记都要求引擎空闲（D57 的驱动纪律，驱动层拒绝忙时访问），
+   上传只在启动与重载时发生，不进每帧循环、不藏在引擎计时之外。 */
+static const struct {
+    uint32_t entry;
+    int      slot;
+} s_tex_hot[3] = {
+    { ASSET_BUL16_ENTRY, STG_SLOT_BUL16 },
+    { ASSET_BUL8_ENTRY,  STG_SLOT_BUL8 },
+    { ASSET_SPARK_ENTRY, STG_SLOT_SPARK },
+};
+static uint32_t s_tex_off[3];       /* 各热集槽在 TEX 窗口内的字节偏移 */
+static uint32_t s_tex_ddr[3];       /* 各热集槽的 DDR 基址（恢复其它后端用） */
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+static uint32_t s_tex_shadow[4096]; /* 对拍专用的连续影子；性能构建不分配或复制 */
+#endif
+
+/* 上电装载一次：写 APB 窗口、分块读回、与素材区内容逐字节 CRC 对账；
+   不符不启用（该次上电 HW/TEX 不可用，其余后端照常）。 */
+#ifdef __riscv
+static int boot_tex(void)
+{
+    const uint32_t asset_dev = g_mem_regions[REGION_ASSET].offset;
+    uint32_t off = 0u;
+    uint32_t i;
+
+    for (i = 0u; i < 3u; i++) {
+        assetpak_entry e;
+        uint32_t bytes, pos, want, got;
+        crc32_ctx c1, c2;
+
+        if (assetpak_entry_at(&s_pak, s_tex_hot[i].entry, &e) != ASSETPAK_OK)
+            return -1;
+        bytes = e.length;                       /* = height << stride_log2，含行 padding */
+        if ((bytes & 3u) != 0u || off + bytes > GFX_TEX_BYTES)
+            return -1;
+        board_dcache_invalidate_range((const void *)(uintptr_t)(asset_dev + e.offset), bytes);
+        if (gfx_engine_tex_write((const void *)(uintptr_t)(asset_dev + e.offset),
+                                 off, bytes) != GFX_ENG_OK)
+            return -1;
+        crc32_begin(&c1);
+        crc32_update(&c1, (const void *)(uintptr_t)(asset_dev + e.offset), bytes);
+        want = crc32_end(&c1);
+        crc32_begin(&c2);
+        for (pos = 0u; pos < bytes; ) {
+            uint32_t chunk[64];
+            uint32_t n = bytes - pos;
+
+            if (n > sizeof chunk)
+                n = sizeof chunk;
+            if (gfx_engine_tex_read(chunk, off + pos, n) != GFX_ENG_OK)
+                return -1;
+            crc32_update(&c2, chunk, n);
+            pos += n;
+        }
+        got = crc32_end(&c2);
+#ifdef INJECT_TEX_CRC
+        got ^= 1u;
+#endif
+        if (want != e.data_crc || got != want)
+            return -1;
+        s_tex_off[i] = off;
+        s_tex_ddr[i] = asset_dev + e.offset;
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+        memcpy((uint8_t *)s_tex_shadow + off,
+               (const void *)(uintptr_t)(asset_dev + e.offset),bytes);
+#endif
+        off += bytes;
+    }
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+    s_mem.tex_host=(uint8_t *)s_tex_shadow;
+    s_mem.tex_bytes=sizeof s_tex_shadow;
+#endif
+    return 0;
+}
+#endif
+
+/* 热集槽在 DDR 基址与 TEX 偏移之间改写（HW/TEX 后端的覆盖层）。
+   表面表重建（进模式/切模式）会把表打回 DDR，那时 s_tex_on 已被清 0。 */
+static int tex_overlay(int on)
+{
+    uint32_t i;
+
+    for (i = 0u; i < 3u; i++) {
+        assetpak_entry e;
+        gfx_surface s;
+
+        if (assetpak_entry_at(&s_pak, s_tex_hot[i].entry, &e) != ASSETPAK_OK)
+            return -1;
+        s.width = e.width;
+        s.height = e.height;
+        s.stride_log2 = e.stride_log2;
+        s.format = e.format;
+        s.base = on ? s_tex_off[i] : s_tex_ddr[i];
+        s.space = on ? GFX_SPACE_TEX : GFX_SPACE_DDR;
+        if (gfx_surface_set(&s_tab, s_tex_hot[i].slot, &s) != 0)
+            return -1;
+    }
+    s_tex_on = on;
+    return 0;
+}
+
+/* 后端切换前的表面表准备；HW/TEX 不可用或覆盖层失败返回 -1（调用方退回 HW/DDR）。 */
+static int backend_apply(uint32_t backend)
+{
+    // 演示模式使用 SW6 的另一套槽位，不能覆盖成 STG 的热集槽。
+    const int want = (backend == 2u && s_mode != 1u);
+
+    if (!want)
+        return s_tex_on ? tex_overlay(0) : 0;
+    if (!s_tex_ready)
+        return -1;
+    return s_tex_on ? 0 : tex_overlay(1);
+}
 
 /* 统计埋点与日志队列（sw 第 07 章 3.9 节）：框架自己的行都进队列，每帧只取出 board_tx_room() 那么多字节 */
 #define LOGQ_BYTES          8192u
@@ -794,6 +924,10 @@ static void mode_enter(uint32_t m)
         else
             stg_mode_press_enter();
     }
+    if (s_backend == 2u && backend_apply(2u) != 0) {
+        board_puts("tex err 覆盖层失败，退回 HW/DDR\r\n");
+        s_backend = 1u;
+    }
     if (renderer_prepare((int)s_backend, &s_tab) != 0) {
         board_puts("engine prepare err\r\n");
         s_fail++;
@@ -862,8 +996,8 @@ static uint32_t mode_frame(uint32_t keys, int entering)
         }
         live.sw_fps       = s_backend_fps[0];
         live.sw_fps_valid = (int)s_backend_fps_valid[0];
-        live.hw_fps       = s_backend_fps[1];
-        live.hw_fps_valid = (int)s_backend_fps_valid[1];
+        live.hw_fps       = s_backend_fps[s_backend == 2u ? 2u : 1u];
+        live.hw_fps_valid = (int)s_backend_fps_valid[s_backend == 2u ? 2u : 1u];
         live.seg_text     = 0;
         if (s_mode == 2u)
             stg_mode_game_frame(&ctx, dst, keys, &live, &s_mout);
@@ -995,7 +1129,20 @@ static int run_modes(void)
     logq_init(&s_logq, s_logq_mem, LOGQ_BYTES);
     stg_modes_set_log(&s_logq);
     stg_chord_init(&s_chord);
+#ifdef __riscv
+    if (boot_tex() != 0) {
+        s_fail++;
+        s_tex_ready = 0;
+        board_puts("tex err 热集装载或 CRC 自校验失败，HW/TEX 后端不可用\r\n");
+    } else {
+        s_tex_ready = 1;
+    }
+#else
+    s_tex_ready = 0;
+#endif
     s_backend = (uint32_t)GFX2D_START_BACKEND;
+    if (s_backend == 2u && !s_tex_ready)
+        s_backend = 1u;         /* 装载失败或宿主无引擎：退回 HW/DDR */
     s_swj_n   = 0u;
 #if SW9_PERF
     s_diag_min = 0xFFFFFFFFu;
@@ -1045,19 +1192,31 @@ static int run_modes(void)
             next = s_mode % 3u + 1u;
         if ((pressed & BOARD_KEY_SWAP) || (ev & STG_CHORD_SWAP)) {
             int presented;
+            uint32_t nb = s_backend + 1u;           /* 软件→硬件/DDR→硬件/TEX→软件 */
+
+            if (nb >= 3u)
+                nb = 0u;
+            if (nb == 2u && !s_tex_ready)
+                nb = 0u;                            /* 热集没装载成功：跳过 HW/TEX */
             if (renderer_pipeline_flush(&presented) != 0) {
                 board_puts("engine flush err\r\n");
                 s_fail++;
             }
             if (presented >= 0)
                 s_shown = presented;
-            s_backend ^= 1u;
+            if (backend_apply(nb) != 0) {
+                nb = 1u;                            /* 覆盖层失败：退回 HW/DDR */
+                (void)backend_apply(nb);
+            }
+            s_backend = nb;
             if (renderer_prepare((int)s_backend, &s_tab) != 0) {
                 board_puts("engine prepare err\r\n");
                 s_fail++;
             }
             core_out_init(&o, buf, (uint32_t)sizeof buf);
-            core_out_str(&o, s_backend ? "backend hw frame " : "backend sw frame ");
+            core_out_str(&o, s_backend == 0u ? "backend sw frame "
+                             : (s_backend == 1u ? "backend hw frame "
+                                                : "backend hw-tex frame "));
             core_out_u32(&o, total);
             core_out_str(&o, "\r\n");
             log_line(buf);
@@ -1195,6 +1354,18 @@ static int run_stg(void)
     ctx.hw = 1;
 #else
     ctx.hw = 0;
+#endif
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+    if (boot_tex() != 0) {
+        board_puts("compare tex load err\r\n");
+        sw6_log_end(s_fail+1u); return 1;
+    }
+    s_tex_ready=1;
+    if (backend_apply(2u) != 0 || board_begin_compare() != 0) {
+        board_puts("compare tex prepare err\r\n");
+        sw6_log_end(s_fail+1u); return 1;
+    }
+    board_puts("compare tex ready; scan pattern\r\n");
 #endif
     if (renderer_prepare(ctx.hw, &s_tab) != 0) {
         board_puts("engine prepare err\r\n");

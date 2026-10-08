@@ -545,12 +545,13 @@ soc u_soc (
 // APB Slave 0 的地址划分（按 paddr[15:12] 分成四个窗口）
 // ---------------------------------------------------------------------------
 //   0x0000~0x0FFF  engine 的寄存器（CPU 地址 0xF810_0000 起，引擎 P1 的 D5）
+//   0x4000~0x7FFF  engine 的 TEX 装载窗口（G1，16 KiB；引擎顶层按 paddr[15:14] 分选）
 //   0xE000~0xEFFF  display 的寄存器（真实扫描输出量测）
 //   0xF000~0xFFFF  axi_mux_guard 的寄存器（仲裁配置与 SoC 防饿死保护）
 //   其余           默认常量应答（D21）：PREADY=1、PSLVERR=1、PRDATA=0。
 //                  未映射页必须有模块应答，CPU 的访问才不会停住；
 //                  第 1 页随 axi_probe_master 撤下，也落进默认应答。
-wire        apb_sel_eng = (apb_paddr[15:12] == 4'h0);
+wire        apb_sel_eng = (apb_paddr[15:12] == 4'h0) || (apb_paddr[15:14] == 2'b01);
 wire        apb_sel_sco = (apb_paddr[15:12] == 4'hE);
 wire        apb_sel_grd = (apb_paddr[15:12] == 4'hF);
 
@@ -562,18 +563,20 @@ wire        grd_pready;
 wire        grd_pslverr;
 
 // ---------------------------------------------------------------------------
-// 渲染引擎（引擎 P1 B1~B5 的六层，B6 接进顶层）
+// 渲染引擎（引擎 P1 B1~B5 的六层，B6 接进顶层；G1 加 TEX 装载窗口）
 // ---------------------------------------------------------------------------
 // 寄存器表：rtl/engine/engine_regs.v，偏移与位号的真源是 tools/check/regs_gen.py。
 // 复位（D17）：控制层挂 soc_system_reset（同步、高有效），搬运层挂 ddr_rstn 取反
 // （与 Axi_Mux 同一复位源，只在上电与 PLL 失锁时复位）；软复位经寄存器层的
 // drain_req 请求排空，见 engine_top.v 文件头。AXI 主口接 Axi_Mux 的 S1。
+// G1：16 位页内偏移完整传入，寄存器与 TEX 的分选在引擎顶层做——只扩 psel 不扩位
+// 会让 TEX 窗口的访问按 12 位截断别名进第 0 页寄存器（engine 第 07 章 4.1 节）。
 engine_top u_engine (
     .clk        (core_clk),
     .rst_ctrl   (soc_system_reset),
     .rst_ddr_n  (ddr_rstn),
 
-    .paddr      (apb_paddr[11:0]),
+    .paddr      (apb_paddr[15:0]),
     .psel       (apb_psel & apb_sel_eng),
     .penable    (apb_penable),
     .pwrite     (apb_pwrite),

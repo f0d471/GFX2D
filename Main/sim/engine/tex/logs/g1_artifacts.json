@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-08",
+  "baseline_commit": "fc41a8d",
+  "delivery": "JTAG bit configuration and DDR application load; Flash unchanged",
+  "artifacts": [
+    {
+      "name": "bit",
+      "path": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+      "bytes": 2376780,
+      "sha256": "58073ae5baa24a37cdaed1e25cecd0003a18d6c0fa199ffd81d6ead2658deede",
+      "consumer_log": "Main/sw/apps/test/engineTest/logs/g1_board.log"
+    },
+    {
+      "name": "engineTest",
+      "path": "Main/sw/apps/test/engineTest/build_g1/engineTest-O2.bin",
+      "bytes": 49002,
+      "sha256": "9e6555528875ca9f3a69d9a26bacf5781a2039594d94ad66fa29e9f9e0023d37",
+      "consumer_log": "Main/sw/apps/test/engineTest/logs/g1_board.log",
+      "build_flags": "-DSYSTEM_UART_A_APB=SYSTEM_UART_0_IO_APB -DSYSTEM_GPIO_A_APB=SYSTEM_GPIO_0_IO_APB -DSYSTEM_I2C_A_APB=SYSTEM_I2C_0_IO_APB -march=rv32im_zicsr_zifencei -mabi=ilp32 -DUSE_GP -fcommon -O2 -g3 -std=gnu11 -Wall -Wextra -Werror -MMD -MP -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/include -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/app -isystem ../../../../sdk/software/standalone/include -isystem ../../../../sdk/software/standalone/driver ../../../bsp/ti60/linker/gfx2d.ld"
+    },
+    {
+      "name": "tex_nmax",
+      "path": "Main/sw/apps/game/gfx2dGame/build_g1_nmax/gfx2dGame-O2-perf.bin",
+      "bytes": 86182,
+      "sha256": "46ea2770fcb6ccc18338f86f73bbfeb3a588babbf1af02a493bf071371d01b9d",
+      "consumer_log": "Main/sw/apps/game/gfx2dGame/logs/g1_hw_tex_nmax.log",
+      "build_flags": "-DSYSTEM_UART_A_APB=SYSTEM_UART_0_IO_APB -DSYSTEM_GPIO_A_APB=SYSTEM_GPIO_0_IO_APB -DSYSTEM_I2C_A_APB=SYSTEM_I2C_0_IO_APB -march=rv32im_zicsr_zifencei -mabi=ilp32 -DUSE_GP -fcommon -O2 -g3 -std=gnu11 -Wall -Wextra -Werror -DSW9_PERF=1 -MMD -MP -DGFX2D_START_MODE=3 -DGFX2D_START_BACKEND=2 -DGFX2D_PRESS_CLOCK=1 -DGFX2D_PRESS_EXIT=1 -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/include -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/app -isystem ../../../../sdk/software/standalone/include -isystem ../../../../sdk/software/standalone/driver ../../../bsp/ti60/linker/gfx2d.ld"
+    },
+    {
+      "name": "ddr_nmax",
+      "path": "Main/sw/apps/game/gfx2dGame/build_g1_ddr_nmax/gfx2dGame-O2-perf.bin",
+      "bytes": 86166,
+      "sha256": "6d18a220f7308f039cc8bf177d81cd0fb1a014fdb4c1fd930a24016f49682ba9",
+      "consumer_log": "Main/sw/apps/game/gfx2dGame/logs/g1_hw_ddr_nmax.log",
+      "build_flags": "-DSYSTEM_UART_A_APB=SYSTEM_UART_0_IO_APB -DSYSTEM_GPIO_A_APB=SYSTEM_GPIO_0_IO_APB -DSYSTEM_I2C_A_APB=SYSTEM_I2C_0_IO_APB -march=rv32im_zicsr_zifencei -mabi=ilp32 -DUSE_GP -fcommon -O2 -g3 -std=gnu11 -Wall -Wextra -Werror -DSW9_PERF=1 -MMD -MP -DGFX2D_START_MODE=3 -DGFX2D_START_BACKEND=1 -DGFX2D_PRESS_CLOCK=1 -DGFX2D_PRESS_EXIT=1 -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/include -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/app -isystem ../../../../sdk/software/standalone/include -isystem ../../../../sdk/software/standalone/driver ../../../bsp/ti60/linker/gfx2d.ld"
+    },
+    {
+      "name": "game_compare",
+      "path": "Main/sw/apps/game/gfx2dGame/build_g1_compare/gfx2dGame-O2.bin",
+      "bytes": 81846,
+      "sha256": "aeb5b76512c8d6dec295573057448a78eb3bd3e3d6495abf09007b91d0e3a527",
+      "consumer_log": "Main/sw/apps/game/gfx2dGame/logs/g1_tex_game_compare.log",
+      "build_flags": "-DSYSTEM_UART_A_APB=SYSTEM_UART_0_IO_APB -DSYSTEM_GPIO_A_APB=SYSTEM_GPIO_0_IO_APB -DSYSTEM_I2C_A_APB=SYSTEM_I2C_0_IO_APB -march=rv32im_zicsr_zifencei -mabi=ilp32 -DUSE_GP -fcommon -O2 -g3 -std=gnu11 -Wall -Wextra -Werror -MMD -MP -DSTG_FIELD=4 -DSTG_FRAMES=360 -DSW9_COMPARE=1 -DG1_TEX_COMPARE=1 -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/include -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/app -isystem ../../../../sdk/software/standalone/include -isystem ../../../../sdk/software/standalone/driver ../../../bsp/ti60/linker/gfx2d.ld"
+    },
+    {
+      "name": "crc_mutation",
+      "path": "Main/sw/apps/game/gfx2dGame/build_g1_crc_bad/gfx2dGame-O2-inject-perf.bin",
+      "bytes": 86350,
+      "sha256": "55e82e9387acdd777a4f8f02c5c7d6bb891cc2aa48cb9a34df4c57194b9bdc4c",
+      "consumer_log": "Main/sw/apps/game/gfx2dGame/logs/g1_tex_crc_bad.log",
+      "build_flags": "-DSYSTEM_UART_A_APB=SYSTEM_UART_0_IO_APB -DSYSTEM_GPIO_A_APB=SYSTEM_GPIO_0_IO_APB -DSYSTEM_I2C_A_APB=SYSTEM_I2C_0_IO_APB -march=rv32im_zicsr_zifencei -mabi=ilp32 -DUSE_GP -fcommon -O2 -g3 -std=gnu11 -Wall -Wextra -Werror -DINJECT_TEX_CRC -DSW9_PERF=1 -MMD -MP -DGFX2D_START_MODE=2 -DGFX2D_START_BACKEND=2 -DGFX2D_FRAMES=120 -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/include -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/app -isystem ../../../../sdk/software/standalone/include -isystem ../../../../sdk/software/standalone/driver ../../../bsp/ti60/linker/gfx2d.ld"
+    },
+    {
+      "name": "switch",
+      "path": "Main/sw/apps/game/gfx2dGame/build_g1_switch/gfx2dGame-O2-perf.bin",
+      "bytes": 86342,
+      "sha256": "1adb664439dce2c0385e6d959f0c149cb7f702c4d5a4a2e53f431d390b95f40d",
+      "consumer_log": "Main/sw/apps/game/gfx2dGame/logs/g1_switch_board.log",
+      "build_flags": "-DSYSTEM_UART_A_APB=SYSTEM_UART_0_IO_APB -DSYSTEM_GPIO_A_APB=SYSTEM_GPIO_0_IO_APB -DSYSTEM_I2C_A_APB=SYSTEM_I2C_0_IO_APB -march=rv32im_zicsr_zifencei -mabi=ilp32 -DUSE_GP -fcommon -O2 -g3 -std=gnu11 -Wall -Wextra -Werror -DSW9_PERF=1 -MMD -MP -DGFX2D_START_MODE=2 -DGFX2D_START_BACKEND=2 -DGFX2D_FIELDS_MAX=1800 -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/include -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/app -isystem ../../../../sdk/software/standalone/include -isystem ../../../../sdk/software/standalone/driver ../../../bsp/ti60/linker/gfx2d.ld"
+    },
+    {
+      "name": "interactive",
+      "path": "Main/sw/apps/game/gfx2dGame/build_g1_play/gfx2dGame-O2-perf.bin",
+      "bytes": 86294,
+      "sha256": "582ae8ada808657b7f3e37bba3549648f67578eec1ce9acdcdd9805439aaed6d",
+      "consumer_log": "Main/sw/apps/game/gfx2dGame/logs/g1_play_startup.log",
+      "build_flags": "-DSYSTEM_UART_A_APB=SYSTEM_UART_0_IO_APB -DSYSTEM_GPIO_A_APB=SYSTEM_GPIO_0_IO_APB -DSYSTEM_I2C_A_APB=SYSTEM_I2C_0_IO_APB -march=rv32im_zicsr_zifencei -mabi=ilp32 -DUSE_GP -fcommon -O2 -g3 -std=gnu11 -Wall -Wextra -Werror -DSW9_PERF=1 -MMD -MP -DGFX2D_START_MODE=2 -DGFX2D_START_BACKEND=2 -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/include -isystem ../../../../sdk/software/standalone/../../bsp/efinix/EfxSapphireSoc/app -isystem ../../../../sdk/software/standalone/include -isystem ../../../../sdk/software/standalone/driver ../../../bsp/ti60/linker/gfx2d.ld"
+    }
+  ],
+  "validated_log_digest": {
+    "path": "Main/sw/apps/game/gfx2dGame/logs/g1_tex_game_compare.log",
+    "sha256": "c7f5d7a3c323f6083785d6d5f5d8e5a7811eed529bd0a4dce5ae469f1dd192dc",
+    "source": "check_sw9_board.py validated 360 reference/compare frames; digest reused"
+  },
+  "rebuild_comparison": "Main/sim/engine/tex/logs/rebuild_identity.json"
+}

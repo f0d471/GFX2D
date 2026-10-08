@@ -155,9 +155,11 @@ int renderer_prepare(int hw, const gfx_surface_table *tab)
         const gfx_surf_raw *s = &tab->s[i];
         if ((s->ctrl & 0x80000000u) == 0u)
             continue;
-        if (gfx_engine_surf_set((int)i, s->base, s->dim & 0xFFFFu,
-                                s->dim >> 16, s->ctrl & 0x1Fu,
-                                (s->ctrl >> 12) & 0xFu) != GFX_ENG_OK)
+        /* G1：space 随表登记——HW/TEX 后端的热集槽是 space=1 的 TEX 源 */
+        if (gfx_engine_surf_set_space((int)i, s->base, s->dim & 0xFFFFu,
+                                      s->dim >> 16, s->ctrl & 0x1Fu,
+                                      (s->ctrl >> 8) & 3u,
+                                      (s->ctrl >> 12) & 0xFu) != GFX_ENG_OK)
             return -1;
     }
     perf_take(NULL);

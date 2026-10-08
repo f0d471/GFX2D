@@ -86,6 +86,11 @@ OpenOCD 考察到目标，`load_image` 报的写入字节数等于 bin 的大小
 
 ## game_control.py
 
+G1 程序按 SW → HW/DDR → HW/TEX → SW 循环。控制面板显示三个后端，
+请求跨两步切换时等待每次板上反馈后再发下一步；旧程序没有 TEX 时停止继续请求。
+CSV 弹数按 n_bullet 列解析。运行 `tools/check/test_game_control.py` 可离线检查，
+GUI 不承担板上功能判分；完整验收见 engine 第 07 章。
+
 在仓库根目录启动面板：
 
 ```powershell

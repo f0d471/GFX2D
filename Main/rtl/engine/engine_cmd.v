@@ -29,9 +29,16 @@
 // 读写状态报错或超时立即按该命令上报并停止推进（不专等末行写状态，早期读错不挂死），
 // 等在途命令自然收尾、预取流收完才回空闲；迟到响应到达后能再次提交。
 //
-// 读状态的归属：读核每方向一笔在途，mover 的门控保证上一个描述符的状态脉冲（延后一拍）
-// 在下一个描述符发出之前已被本层看见；所以取数引擎在途（F_ISSUE/F_POLL/F_PULSE）期间
-// 的 rd_stat 全属于取数，其余全属于像素读。写状态只来自像素通路，恒归活动命令。
+// 读状态的归属（G1 修订）：搬运层把 DDR/取数与 TEX 的读状态合并成一路，并带显式
+// 来源位 rd_stat_fetch（1 = 命令取数）。取数引擎只消费带取数来源的状态，像素读的
+// 状态（含 TEX）恒归活动命令——预取在途与本地末拍同拍也不再串线
+//（旧版按「FE 在途即取数」推断，TEX 本地读快、同拍概率大，靠不住）。
+// 写状态只来自像素通路，恒归活动命令。
+//
+// v1-TEX profile（引擎 P3 G1，spec 02 章 3.8 节）：BLIT 的源表面允许 space=1（TEX），
+// 目的仍必须 DDR，space=2/3 仍报 BAD_SPACE。TEX 源在结构一步多查两条（仍在
+// space/format 之前，违反报 BAD_SURFACE）：base 16 字节对齐；
+// base + height × 2^stride_log2 ≤ 0x4000（扩展位宽，完整行跨含 padding）。
 //
 // 仿真注错口（综合时是常量）：位 0 (1) 对调 space/format 两步（优先级向量必须见红）；
 // 位 1 (2) 关掉逐条回退（FETCH 落在批中间的向量必须见红）。
@@ -69,8 +76,12 @@ module ec_struct_ok(
     wire [33:0] lowsum = {2'b00, s0} + {18'd0, rowoff[31:0]} + {16'd0, wm, 2'b11};
     wire        no_ovf = !hi_ovf && (lowsum[33:32] == 2'b00);
     wire        ctrl_ok = ((s2 & 32'h7fff0ce0) == 32'b0);
-
-    assign ok = s2[31] && base_al && wh_nz && sl_ok && stride_ok && no_ovf && ctrl_ok;
+    // TEX 结构检查对源、目的一致；合法结构的 TEX 目的随后由 space 步拒绝。
+    wire [46:0] tex_size = {31'd0, h} << sl;
+    wire [47:0] tex_end = {16'd0, s0} + {1'b0, tex_size};
+    wire tex_ok = (s2[9:8] != 2'd1) ||
+                  ((s0[3:0] == 4'd0) && (tex_end <= 48'h4000));
+    assign ok = s2[31] && base_al && wh_nz && sl_ok && stride_ok && no_ovf && ctrl_ok && tex_ok;
 endmodule
 
 // ---------------------------------------------------------------- 字段步
@@ -159,6 +170,7 @@ module engine_cmd #(
 
     // ---- 搬运层：状态与超时（I7）----
     input  wire        rd_stat_valid,
+    input  wire        rd_stat_fetch,  // 显式来源：1 = 命令取数（G1）
     input  wire        rd_stat_err,
     input  wire [3:0]  rd_stat_cidx,
     input  wire        wr_stat_valid,
@@ -177,6 +189,7 @@ module engine_cmd #(
     output reg  [7:0]  i1_c,
     output reg  [3:0]  i1_sfmt,
     output reg  [31:0] i1_src_base,
+    output reg         i1_src_tex,    // 源在片上 TEX（G1，I1 的新字段）
     output reg  [15:0] i1_src_w,
     output reg  [15:0] i1_src_h,
     output reg  [4:0]  i1_src_slog2,
@@ -295,10 +308,11 @@ module engine_cmd #(
     wire fe_busy_any = (fe_st != F_IDLE);
     assign fe_cidx_err = fe_cidx_err_r;
 
-    // 当前描述符收尾：最后一拍已握手且状态已见（先后都支持）
+    // 当前描述符收尾：最后一拍已握手且状态已见（先后都支持）；状态必须带取数来源
     wire bd_cnt_hit = ({1'b0, fe_bd_rcv} + 6'd1 == {1'b0, fe_bd_exp});
-    wire desc_done  = (fs_fire && bd_cnt_hit && (fe_stat || rd_stat_valid))
-                   || (rd_stat_valid && !fs_fire && ({1'b0, fe_bd_rcv} == {1'b0, fe_bd_exp}));
+    wire fe_stat_in = rd_stat_valid && rd_stat_fetch;
+    wire desc_done  = (fs_fire && bd_cnt_hit && (fe_stat || fe_stat_in))
+                   || (fe_stat_in && !fs_fire && ({1'b0, fe_bd_rcv} == {1'b0, fe_bd_exp}));
 
     always @(posedge clk) begin
         if (rst || soft_rst) begin
@@ -332,7 +346,7 @@ module engine_cmd #(
                         fe_bd_rcv <= fe_bd_rcv + 5'd1;
                         if (fs_cidx != rq_ctx) fe_cidx_err_r <= 1'b1;
                     end
-                    if (rd_stat_valid) begin
+                    if (fe_stat_in) begin
                         fe_stat <= 1'b1;
                         if (rd_stat_err) fe_err <= 1'b1;
                     end
@@ -388,8 +402,8 @@ module engine_cmd #(
     wire [37:0] k_a0 = {6'd0, base_r} + {1'b0, k, 5'd0};
     wire        k_ok = (k_a0 <= 38'h00_FFFF_FFE0);
 
-    // 读状态是否属于取数引擎（在途取数还有描述符没收尾）：是则不给像素错误通路
-    wire fe_hold_stat = (fe_st != F_IDLE);
+    // 读状态按搬运层给的显式来源位分发（G1）：带取数来源的归取数引擎，
+    // 其余（DDR 像素读与 TEX 本地读）归活动命令的像素通路。
 
     // =====================================================================
     // 十步检查（D50 单拍组合；权威 sw/lib/gfx/check.c；第一步取记录归取数状态机）
@@ -415,12 +429,15 @@ module engine_cmd #(
     wire src_ok_c, dst_ok_c;
     ec_struct_ok u_ssrc(.s0(surf_ra_w0), .s1(surf_ra_w1), .s2(surf_ra_w2), .ok(src_ok_c));
     ec_struct_ok u_sdst(.s0(surf_rb_w0), .s1(surf_rb_w1), .s2(surf_rb_w2), .ok(dst_ok_c));
-    wire src_bad_c = is_blit_c && !src_ok_c;
-    wire dst_bad_c = (is_fill_c || is_blit_c) && !dst_ok_c;
 
-    wire sp_src_bad = is_blit_c && (surf_ra_w2[9:8] != 2'd00);
+    // v1-TEX（G1）：BLIT 源放行 space=1，其余非 DDR 仍报 BAD_SPACE
+    wire [1:0] src_space_c = surf_ra_w2[9:8];
+    wire sp_src_bad = is_blit_c && (src_space_c == 2'd2 || src_space_c == 2'd3);
     wire sp_dst_bad = (is_fill_c || is_blit_c) && (surf_rb_w2[9:8] != 2'd00);
     wire sp_bad_c   = sp_src_bad || sp_dst_bad;
+
+    wire src_bad_c = is_blit_c && !src_ok_c;
+    wire dst_bad_c = (is_fill_c || is_blit_c) && !dst_ok_c;
 
     wire fmt_src_ok  = (c_eq == 4'd1) ? (surf_ra_w2[15:12] == 4'd0 || surf_ra_w2[15:12] == 4'd1)
                      : (c_eq == 4'd5) ? (surf_ra_w2[15:12] == 4'd0 || surf_ra_w2[15:12] == 4'd2)
@@ -671,6 +688,7 @@ module engine_cmd #(
                     i1_c       <= w0[31:24];
                     i1_sfmt    <= (w0[7:0] == OP_BLIT) ? surf_ra_w2[15:12] : 4'd0;
                     i1_src_base   <= surf_ra_w0;
+                    i1_src_tex    <= (w0[7:0] == OP_BLIT) && (surf_ra_w2[9:8] == 2'd1);
                     i1_src_w      <= surf_ra_w1[15:0];
                     i1_src_h      <= surf_ra_w1[31:16];
                     i1_src_slog2  <= surf_ra_w2[4:0];
@@ -707,7 +725,7 @@ module engine_cmd #(
                         if (wr_stat_last_row)
                             active <= 1'b0;
                         st        <= S_TERM;
-                    end else if (rd_stat_valid && rd_stat_err && !fe_hold_stat) begin
+                    end else if (rd_stat_valid && rd_stat_err && !rd_stat_fetch) begin
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_BUS_READ;
                         err_index <= k;

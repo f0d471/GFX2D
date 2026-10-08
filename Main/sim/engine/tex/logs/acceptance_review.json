@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-08",
+  "baseline_commit": "fc41a8d",
+  "scope": "G1 implementation acceptance; saved synthesis and board evidence reviewed; no new synthesis, board run or Flash write",
+  "simulation": {
+    "tex": {"passed": 6, "total": 6, "log": "acceptance_tex.log"},
+    "geom": {"passed": 27, "total": 27, "log": "acceptance_geom.log"},
+    "mover": {"passed": 17, "total": 17, "log": "acceptance_mover.log"},
+    "pix": {"passed": 25, "total": 25, "log": "acceptance_pix.log"},
+    "ctrl": {"passed": 4, "total": 4, "log": "acceptance_ctrl.log"},
+    "frame": {"passed": 16, "total": 16, "log": "acceptance_frame.log"}
+  },
+  "software": {
+    "lib_64_sanitizer_and_32_equal": true,
+    "log": "acceptance_host.log",
+    "golden_asan_ubsan": true,
+    "golden_log": "acceptance_sanitizer.log",
+    "semantics_and_mutations": true,
+    "semantics_log": "acceptance_semantics.log",
+    "layers_and_mutations": true,
+    "layers_log": "acceptance_layers.log",
+    "register_generation": true,
+    "control_panel_offline": true,
+    "control_panel_python": "Efinity python311"
+  },
+  "artifact_identity": {
+    "manifest": "g1_artifacts.json",
+    "artifacts_checked": 8,
+    "size_and_registered_sha256_matched": 8
+  },
+  "saved_board_evidence": {
+    "checker": "Main/tools/check/check_g1_logs.py",
+    "passed": true,
+    "results": "acceptance_results.json"
+  },
+  "documentation": {
+    "local_links_before_archive": 472,
+    "broken_links_before_archive": 0,
+    "g1_whitespace": true,
+    "architecture_svg_rendered": true,
+    "known_workspace_path_findings": 7,
+    "path_findings_scope": "pre-existing Deliverables report files; excluded from G1 change"
+  },
+  "retained_boundaries": [
+    "repaired full 9208-frame hardware replay deferred",
+    "HDMI and physical-key field observations remain outside automated evidence",
+    "Flash unchanged",
+    "16KB CPU-cache candidate and BAND/ABI v2 belong to G2-G4"
+  ]
+}

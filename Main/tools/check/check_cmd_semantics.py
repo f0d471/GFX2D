@@ -137,7 +137,7 @@ def make_surfaces():
     S[1] = surf(base=0x00002000, fmt=FMT_PM)                        # 预乘源
     S[2] = surf(base=0x00003000, fmt=FMT_STRAIGHT)                  # 直通源
     S[3] = surf(base=0x00004000)                                    # XRGB 源 / 同表面
-    S[4] = surf(base=0x00005000, space=SPACE_TEX)                   # 非 DDR
+    S[4] = surf(base=0x00003000, space=SPACE_TEX)                   # 结构合法的 TEX 目的反例
     S[5] = surf(base=0x00006000, space=SPACE_BAND, fmt=FMT_INDEX8)  # 非 DDR 且格式不支持
     S[6] = surf(base=0x00007000, fmt=FMT_INDEX8)                    # 不支持的格式
     S[7] = surf(base=0x00008000, fmt=5)                             # 未知格式
@@ -634,7 +634,9 @@ def build_vectors(S):
         ("fill-dst-argb", fill_rec(2, EQ_COPY, 0x00FF0000), E_BAD_FORMAT, "format"),
         ("blit-src-unregistered", blit_rec(8, 0, EQ_COPY), E_BAD_SURFACE, "src_surface"),
         ("blit-dst-unregistered", blit_rec(3, 8, EQ_COPY), E_BAD_SURFACE, "dst_surface"),
-        ("blit-src-tex", blit_rec(4, 0, EQ_COPY), E_BAD_SPACE, "space"),
+        # 源空间非法用 space=3（2026-10-07 起从 TEX 槽位换过来：v1-TEX 的
+        # space=1 源合法化，TEX 源的结构两条会在 space 步之前报 BAD_SURFACE）
+        ("blit-src-spc3", blit_rec(4, 0, EQ_COPY), E_BAD_SPACE, "space"),
         ("blit-dst-tex", blit_rec(3, 4, EQ_COPY), E_BAD_SPACE, "space"),
         ("blit-src-index8", blit_rec(6, 0, EQ_COPY), E_BAD_FORMAT, "format"),
         ("blit-dst-index8", blit_rec(3, 6, EQ_COPY), E_BAD_FORMAT, "format"),
@@ -643,7 +645,13 @@ def build_vectors(S):
         ("blit-straight-src-pm", blit_rec(1, 0, EQ_ALPHA_STRAIGHT), E_BAD_FORMAT, "format"),
     ]
     for name, r, code, cover in bad:
+        # 独立表面覆盖保留槽 15 的地址溢出用例，避免两个反例抢同一个槽。
+        surfaces = None
+        if name == "blit-src-spc3":
+            surfaces = list(S)
+            surfaces[4] = surf(base=0x00003000, space=3)
         V.append(Vec(g, name, [r], code=code, reads=1, covers=cover,
+                     surfaces=surfaces,
                      rule="ch02 §2 描述符谓词与格式表"))
 
     # 方程×格式匹配表：18 个组合逐个一条，只判错误码（像素由第一、四、五组覆盖）
@@ -826,7 +834,12 @@ def build_vectors(S):
          E_BAD_FORMAT, "format"),
     ]
     for name, r, code, cov in prio:
-        V.append(Vec(g, name, [r], code=code, reads=1, covers=cov, rule="ch02 §5"))
+        surfaces = None
+        if name == "prio-surface-over-space":
+            surfaces = list(S)
+            surfaces[4] = surf(base=0x00003000, space=3)
+        V.append(Vec(g, name, [r], code=code, reads=1, covers=cov,
+                     surfaces=surfaces, rule="ch02 §5"))
     # 源格式非法 + 目的 space 非 DDR：两种读法给出不同答案，本轮按规范条款 §5 定序
     V.append(Vec(g, "prio-src-format-vs-dst-space", [blit_rec(6, 4, EQ_COPY)],
                  code=E_BAD_SPACE, reads=1, covers="space", newspec=True,

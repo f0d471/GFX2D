@@ -54,7 +54,7 @@
 #define GFX_CAPS_INDEX8_S   7
 #define GFX_CAPS_LANES_M   0x00000F00u
 #define GFX_CAPS_LANES_S   8
-#define GFX_CAPS_VALUE   0x0000040Fu
+#define GFX_CAPS_VALUE   0x0000044Fu
 
 /* CTRL 位（SOFT_RST/CNT_CLR 写 1 自清，读恒 0） */
 #define GFX_CTRL_EN     (1u << 0)
@@ -87,6 +87,11 @@
 #define GFX_ERR_BUS_READ      0xAu
 #define GFX_ERR_BUS_WRITE      0xBu
 #define GFX_ERR_TIMEOUT      0xCu
+
+/* TEX 装载窗口（v1-TEX profile，G1 的 D57）：APB Slave0 页内偏移，
+ * 不是第 0 页寄存器表的偏移；CPU 地址 = 0xF810_0000 + GFX_TEX_WINDOW。 */
+#define GFX_TEX_WINDOW   0x4000u
+#define GFX_TEX_BYTES    16384u
 
 /* 超时门限 T 的复位值（D30） */
 #define GFX_TMO_RESET    4096u

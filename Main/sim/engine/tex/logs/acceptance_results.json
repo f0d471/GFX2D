@@ -1,0 +1,18 @@
+{
+  "board": {
+    "ddr_cycles_per_sprite": 1183.625,
+    "tex_cycles_per_sprite": 657.375,
+    "tex_rd_burst": 258,
+    "fifo_min": 336,
+    "crc_pairs": 22
+  },
+  "nmax_tex": [
+    1460,
+    1494
+  ],
+  "nmax_ddr": [
+    1016,
+    1402
+  ],
+  "game_tex_commands": 390
+}

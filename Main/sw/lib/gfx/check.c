@@ -117,6 +117,19 @@ int gfx_surface_struct_ok(const gfx_surface_table *t, uint32_t id)
     if ((s->ctrl & GFX_SURF_CTRL_RSVD) != 0u)
         return 0;
 
+    /* v1-TEX（G1，spec 第 02 章 3.8 节）：space=1 的 base 是片上 16 KiB 窗口内的
+       偏移，额外要求 16 字节对齐与 base + height × 2^stride_log2 ≤ 0x4000；
+       64 位求值，完整行跨含 padding。违反按 BAD_SURFACE 报，仍在 space 步之前。 */
+    if (gfx_surf_space(s) == GFX_SPACE_TEX) {
+        uint64_t end;
+
+        if ((s->base & 15u) != 0u)
+            return 0;
+        end = (uint64_t)s->base + (uint64_t)h * ((uint64_t)1 << sl);
+        if (end > 0x4000u)
+            return 0;
+    }
+
     return 1;
 }
 
@@ -138,8 +151,12 @@ static int space_step(const gfx_surface_table *t, uint32_t op,
         if (gfx_surf_space(&t->s[dstid]) != GFX_SPACE_DDR)
             return GFX_E_BAD_SPACE;
     } else if (op == GFX_OP_BLIT) {
-        if (gfx_surf_space(&t->s[srcid]) != GFX_SPACE_DDR
-         || gfx_surf_space(&t->s[dstid]) != GFX_SPACE_DDR)
+        /* v1-TEX（G1）：BLIT 源放行 TEX，目的仍必须 DDR；BAND 与 space=3 拒绝 */
+        uint32_t ssp = gfx_surf_space(&t->s[srcid]);
+
+        if (ssp != GFX_SPACE_DDR && ssp != GFX_SPACE_TEX)
+            return GFX_E_BAD_SPACE;
+        if (gfx_surf_space(&t->s[dstid]) != GFX_SPACE_DDR)
             return GFX_E_BAD_SPACE;
     }
     return GFX_OK;

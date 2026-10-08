@@ -130,7 +130,7 @@ static void row(stats_state *s, uint32_t fields, uint32_t swaps, uint32_t ovf)
     core_out_u32(&o, s->rows);
     core_out_ch(&o, ',');
     core_out_str(&o, s_mode_name[s->mode]);
-    core_out_str(&o, s->exec_hw ? ",hw" : ",sw");
+    core_out_str(&o, s->exec_hw == 2u ? ",hw-tex" : (s->exec_hw ? ",hw" : ",sw"));
     c_u32(&o, swaps);
     c_u32(&o, (fields > swaps) ? fields - swaps : 0u);     /* 不等场（PC 的 GFX2D_UNPACED）时呈现可以多于场 */
     c_u32(&o, p->n_active);

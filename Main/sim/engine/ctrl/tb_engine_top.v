@@ -32,7 +32,7 @@ module tb_engine_top #(
 
     // APB
     reg         psel = 1'b0, penable = 1'b0, pwrite = 1'b0;
-    reg [11:0]  paddr = 12'd0;
+    reg [15:0]  paddr = 16'd0;
     reg [31:0]  pwdata = 32'd0;
     wire [31:0] prdata;
     wire        pready, pslverr;
@@ -813,9 +813,9 @@ module tb_engine_top #(
         end
         apb_rd(12'h004, caps_rd);
         checks = checks + 1;
-        if (caps_rd !== 32'h0000_040f) begin
+        if (caps_rd !== 32'h0000_044f) begin
             errors = errors + 1;
-            $display("CAPS-FAIL got=%08x exp=0000040f", caps_rd);
+            $display("CAPS-FAIL got=%08x exp=0000044f", caps_rd);
         end
 
         parse_vectors;

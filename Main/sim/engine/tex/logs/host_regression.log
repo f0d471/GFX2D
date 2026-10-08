@@ -1,0 +1,9 @@
+make: Entering directory '/mnt/e/Workspace/Efinix/Main/sw'
+./lib/test/replay_fixture.g2dr -> build_g1_host/test/replay_fixture.h 数组 replay_fixture_bytes[1040] frames=256
+== lib/test 64-bit ==
+== lib/test 32-bit ==
+== 两份输出比对 ==
+libTest 64/32 identical ok
+fail 0
+done
+make: Leaving directory '/mnt/e/Workspace/Efinix/Main/sw'

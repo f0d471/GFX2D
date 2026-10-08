@@ -333,6 +333,19 @@ void board_wait_frame(void)
     }
 }
 
+#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+int board_begin_compare(void)
+{
+    uint32_t field, start;
+    if (!disp_present_in_bitstream()) return -1;
+    field=disp_rd(DISP_FRAME_COUNT); start=board_cycles();
+    disp_wr(DISP_CTRL,DISP_CTRL_EN | DISP_CTRL_CLEAR);
+    while (disp_rd(DISP_FRAME_COUNT)==field)
+        if ((uint32_t)(board_cycles()-start)>DISP_POLL_LIMIT) return -1;
+    return 0;
+}
+#endif
+
 /* 两个计数直接读寄存器：它们是同一条通路的真实状态，本层不另做影子计数
    （做了反而会与硬件漂移）。比特流里没有扫描输出时读回来没有意义，恒返回 0，
    与 board_present 退回空操作是同一件事。 */

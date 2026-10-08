@@ -58,14 +58,14 @@ localparam EC_CAPS_BAND_W  = 1;
 localparam EC_CAPS_BAND_VALUE = 0;
 localparam EC_CAPS_TEX_LO = 6;
 localparam EC_CAPS_TEX_W  = 1;
-localparam EC_CAPS_TEX_VALUE = 0;
+localparam EC_CAPS_TEX_VALUE = 1;
 localparam EC_CAPS_INDEX8_LO = 7;
 localparam EC_CAPS_INDEX8_W  = 1;
 localparam EC_CAPS_INDEX8_VALUE = 0;
 localparam EC_CAPS_LANES_LO = 8;
 localparam EC_CAPS_LANES_W  = 4;
 localparam EC_CAPS_LANES_VALUE = 4;
-localparam [31:0] EC_CAPS_VALUE = 32'h0000040F;
+localparam [31:0] EC_CAPS_VALUE = 32'h0000044F;
 
 // CTRL 位位号（SOFT_RST/CNT_CLR 写 1 自清）
 localparam EC_CTRL_EN_BIT = 0;
@@ -98,6 +98,11 @@ localparam [3:0] EC_ERR_FETCH = 4'd9;
 localparam [3:0] EC_ERR_BUS_READ = 4'd10;
 localparam [3:0] EC_ERR_BUS_WRITE = 4'd11;
 localparam [3:0] EC_ERR_TIMEOUT = 4'd12;
+
+// TEX 装载窗口（v1-TEX profile，G1 的 D57）：APB Slave0 页内偏移，
+// 不是第 0 页寄存器表的 12 位偏移；CPU 地址 = 0xF810_0000 + EC_TEX_WINDOW。
+localparam [15:0] EC_TEX_WINDOW = 16'h4000;
+localparam [31:0] EC_TEX_BYTES  = 32'd16384;
 
 // 超时门限 T 的复位值（D30；本表不设 T 寄存器，B6 若要可写再扩 CTRL）
 localparam [12:0] EC_TMO_RESET = 13'd4096;

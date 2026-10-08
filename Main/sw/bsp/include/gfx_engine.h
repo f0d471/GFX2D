@@ -36,6 +36,7 @@
 #define GFX_ENG_E_REJECT   (-3)     /* 访问被拒（PSLVERR，如忙时写 DOORBELL） */
 #define GFX_ENG_E_TIMEOUT  (-4)     /* 等完成超过轮询上界 */
 #define GFX_ENG_E_ARG      (-5)     /* 参数越界（表面号、计数器个数） */
+#define GFX_ENG_E_CAPS     (-6)     /* 当前比特流未提供所需能力 */
 
 /* 性能计数器个数（PERF0 + 4*i，i = 0..GFX_PERF_COUNT-1，gfx_regs.h 的真源表） */
 #define GFX_ENG_PERF_N     GFX_PERF_COUNT
@@ -45,16 +46,33 @@
    扫描输出的退回是同一手法）。 */
 int        gfx_engine_present(void);
 
+/* 读 CAPS（G1：判 TEX 能力位用；位定义见 gfx_regs.h 的 GFX_CAPS_*_M）。 */
+int        gfx_engine_caps_read(uint32_t *caps);
+
 /* 软复位并等排空结束：写 SOFT_RST（写 1 自清），等 DRAINING/BUSY 落下。
    表面表 valid 全被清，重新提交前要重新登记；EN 一起置回 1（DOORBELL 要它）。 */
 int        gfx_engine_soft_reset(void);
 
 /* 登记表面：写 SURF[slot] 的三个字，valid 位最后置 1（设计文档 3.4 节）。
    slot 0..15；stride_log2 2..31；format 见 gfx_abi.h 的 GFX_FMT_*（v1 的目的
-   只能是 XRGB8888）。space 恒为 DDR，v1 不开放别的取值。 */
+   只能是 XRGB8888）。space 0 DDR、1 TEX（v1-TEX profile 的 BLIT 源，G1），
+   2/3 会被命令层按 BAD_SPACE 拒绝。 */
+int        gfx_engine_surf_set_space(int slot, uint32_t base, uint32_t width,
+                                     uint32_t height, uint32_t stride_log2,
+                                     uint32_t space, uint32_t format);
+
+/* 旧入口：space 恒为 DDR 的包装（保留给既有调用）。 */
 int        gfx_engine_surf_set(int slot, uint32_t base, uint32_t width,
                                uint32_t height, uint32_t stride_log2,
                                uint32_t format);
+
+/* TEX 装载窗口（G1，0xF810_4000~0xF810_7FFF）：把 [offset, offset+bytes) 写成
+   src 指到的内容 / 读回进 dst。bytes 是 4 的倍数且不越 16 KiB；要求引擎空闲
+   （忙或排空中返回 GFX_ENG_E_REJECT），驱动纪律见设计文档 3.4 节 2026-10-07
+   定案段——硬件不加互锁，装载/读回/重登记由调用方保证不与命令表并发。
+   src/dst 是 CPU 视角地址；装载前调用方对 src 失效缓存（E3 规则）。 */
+int        gfx_engine_tex_write(const void *src, uint32_t offset, uint32_t bytes);
+int        gfx_engine_tex_read(void *dst, uint32_t offset, uint32_t bytes);
 
 /* 提交一张命令表：写 LIST_BASE/LIST_COUNT 并敲 DOORBELL。list_base 必须按
    32 字节对齐（D53）；list_count 是记录数（含 END，硬件按 COUNT 与 END 先到者

@@ -31,6 +31,9 @@
 #define C_STR1  0x80000001u                 /* stride_log2 = 1，违反 2 <= stride_log2 */
 #define C_RSVD5 0x80000024u                 /* 控制字保留段 [7:5] 非零 */
 #define C_TEX   0x80000104u                 /* space = TEX */
+#define C_SPC3  0x80000304u                 /* space = 3：v1 与 v1-TEX 都非法（G1 起
+                                               space=1 的 BLIT 源已合法化，不能再当
+                                               「非法空间」的例子） */
 #define C_IDX8  0x80003004u                 /* format = INDEX8 */
 
 #define SEED    0x00004080u                 /* 帧缓冲的种子像素 */
@@ -337,7 +340,7 @@ int vec_builtin_get(uint32_t idx, vec_case *v)
 
     case 20:
         reset(v, "03", "b-dst-space-tex");
-        surf(v, 8u, 0x00008000u, C_TEX);
+        surf(v, 8u, 0x00003000u, C_TEX);
         one_bad(v, w0f(GFX_OP_FILL, GFX_EQ_COPY, 0u, 0u, 8u, 0u), 0u, 0u, wh42,
                 0u, 0u, 0u, 0x25u, GFX_E_BAD_SPACE);
         break;
@@ -530,9 +533,11 @@ int vec_builtin_get(uint32_t idx, vec_case *v)
         break;
 
     case 39:
-        /* space 与 format 各一步、源在前：源 space 非 DDR 压过目的格式非法 */
+        /* space 与 format 各一步、源在前：源 space 非法压过目的格式非法。
+           源用 space=3（两个 profile 都非法）；v1-TEX（G1）起 space=1 的
+           BLIT 源合法化，这条在 2026-10-07 从 C_TEX 改过来。 */
         reset(v, "07", "b-prio-space-over-format");
-        surf(v, 8u, 0x00008000u, C_TEX);
+        surf(v, 8u, 0x00008000u, C_SPC3);
         surf(v, 9u, 0x00009000u, C_IDX8);
         one_bad(v, w0f(GFX_OP_BLIT, GFX_EQ_COPY, 0u, 8u, 9u, 0u), 0u, 0u, wh42,
                 0u, 0u, 0u, 0x54u, GFX_E_BAD_SPACE);

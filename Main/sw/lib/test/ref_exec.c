@@ -66,6 +66,15 @@ static int ref_surf_ok(const gfx_surface_table *t, uint32_t id)
     if (last > 0xFFFFFFFFu)        return 0;
 
     if ((t->s[id].ctrl & GFX_SURF_CTRL_RSVD) != 0u) return 0;
+
+    /* v1-TEX（G1）：space=1 的 base 是片上窗口内偏移，加 16 字节对齐与
+       base + height*2^stride_log2 <= 0x4000 两条，64 位求值。 */
+    if (sf_space(t, id) == GFX_SPACE_TEX) {
+        uint64_t end;
+        if ((sf_base(t, id) % 16u) != 0u) return 0;
+        end = (uint64_t)sf_base(t, id) + (uint64_t)h * ((uint64_t)1u << sl);
+        if (end > 0x4000u) return 0;
+    }
     return 1;
 }
 
@@ -144,7 +153,8 @@ static int ref_check(const gfx_surface_table *t, const gfx_cmd *c)
     if (op == GFX_OP_FILL) {
         if (sf_space(t, did) != GFX_SPACE_DDR) return GFX_E_BAD_SPACE;
     } else if (op == GFX_OP_BLIT) {
-        if (sf_space(t, sid) != GFX_SPACE_DDR) return GFX_E_BAD_SPACE;
+        uint32_t ssp = sf_space(t, sid);
+        if (ssp != GFX_SPACE_DDR && ssp != GFX_SPACE_TEX) return GFX_E_BAD_SPACE;
         if (sf_space(t, did) != GFX_SPACE_DDR) return GFX_E_BAD_SPACE;
     }
 
@@ -203,6 +213,23 @@ static uint32_t ref_addr(const gfx_surface_table *t, uint32_t id, int32_t x, int
     return sf_base(t, id) + ((uint32_t)y << sf_sl(t, id)) + ((uint32_t)x * 4u);
 }
 
+/* v1-TEX（G1）：源表面的地址窗口。TEX 源经宿主的影子窗口；
+   返回 0 表示宿主没给影子（按 BAD_SURFACE 停）。view 由调用方提供并保持存活。 */
+static const gfx_mem *ref_surf_win(const gfx_mem *m, const gfx_surface_table *t,
+                                   uint32_t id, gfx_mem *view)
+{
+    if (sf_space(t, id) != GFX_SPACE_TEX)
+        return m;
+    if (m->tex_host == 0)
+        return 0;
+    view->dev_base = 0u;
+    view->host = m->tex_host;
+    view->bytes = m->tex_bytes;
+    view->tex_host = 0;
+    view->tex_bytes = 0u;
+    return view;
+}
+
 static int ref_surf_in_window(const gfx_surface_table *t, uint32_t id, const gfx_mem *m)
 {
     uint32_t w = sf_w(t, id), h = sf_h(t, id);
@@ -255,6 +282,8 @@ int ref_exec_run(gfx_rect *clip, const gfx_surface_table *t, const gfx_mem *m,
                  exec_sw_stats *st, exec_sw_error *err)
 {
     uint32_t idx;
+    gfx_mem sv;
+    const gfx_mem *swin;
 
     if (err != 0) {
         err->code = GFX_OK;
@@ -310,10 +339,18 @@ int ref_exec_run(gfx_rect *clip, const gfx_surface_table *t, const gfx_mem *m,
         dx  = lo_s(c->w[2]);
         dy  = hi_s(c->w[2]);
 
-        if (!ref_surf_in_window(t, did, m)
-         || (op == GFX_OP_BLIT && !ref_surf_in_window(t, sid, m))) {
+        sv.dev_base = 0u; sv.host = 0; sv.bytes = 0u; sv.tex_host = 0; sv.tex_bytes = 0u;
+        swin = m;
+        if (!ref_surf_in_window(t, did, m)) {
             if (err != 0) { err->code = GFX_E_BAD_SURFACE; err->index = idx; err->tag = c->w[7]; }
             return GFX_E_BAD_SURFACE;
+        }
+        if (op == GFX_OP_BLIT) {
+            swin = ref_surf_win(m, t, sid, &sv);
+            if (swin == 0 || !ref_surf_in_window(t, sid, swin)) {
+                if (err != 0) { err->code = GFX_E_BAD_SURFACE; err->index = idx; err->tag = c->w[7]; }
+                return GFX_E_BAD_SURFACE;
+            }
         }
 
         /* spec 第 01 章 3.6 节：宽高先判 0，再四者求交，闭区间 */
@@ -354,7 +391,7 @@ int ref_exec_run(gfx_rect *clip, const gfx_surface_table *t, const gfx_mem *m,
                         if (st != 0) st->src_oob++;
                         continue;               /* 源越界只跳过该像素 */
                     }
-                    srcw = *ref_ptr(m, ref_addr(t, sid, sx, sy));
+                    srcw = *ref_ptr(swin, ref_addr(t, sid, sx, sy));
                     if (f_key(c) != 0u && srcw == c->w[5]) {
                         if (st != 0) st->key_skip++;
                         continue;

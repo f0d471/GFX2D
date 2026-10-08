@@ -1,0 +1,6 @@
+WARNING: build/ddr_tb.v:216: $readmemh(build/sprites.cmd.hex): Not enough words in the file for the requested range [0:63].
+PERF cycles=17668 commands=16
+BUS source_ar=256 dst_ar=256
+PATH stats commands=16 read=512 write=256 stalls=256 mem_bad=0 errors=0
+RESULT: PASS (B1-B4, software executor golden)
+build/ddr_tb.v:260: $finish called at 176930000 (1ps)

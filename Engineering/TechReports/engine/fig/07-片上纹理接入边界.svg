@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="850" viewBox="0 0 1400 850">
+<defs>
+  <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#202020"/></marker>
+  <marker id="planned" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#777"/></marker>
+</defs>
+<rect width="1400" height="850" fill="white"/>
+<g font-family="Microsoft YaHei, sans-serif" fill="#202020" font-size="19">
+  <text x="52" y="46" font-size="28">G1 片上纹理接入</text>
+  <text x="52" y="79">TEX 源 / DDR 目的；请求可重叠，I3 像素流保持源先目的后</text>
+  <g fill="white" stroke="#202020" stroke-width="2">
+    <rect x="52" y="120" width="270" height="114"/>
+    <rect x="412" y="120" width="275" height="114"/>
+    <rect x="777" y="120" width="240" height="114"/>
+    <rect x="1100" y="120" width="245" height="114"/>
+    <rect x="52" y="385" width="230" height="105"/>
+    <rect x="370" y="385" width="245" height="105"/>
+    <rect x="710" y="385" width="270" height="105"/>
+    <rect x="1075" y="385" width="270" height="105"/>
+    <rect x="710" y="590" width="270" height="97"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="187" y="154">gfx2d_top</text><text x="187" y="184">APB Slave0 [15:0]</text><text x="187" y="213">E / F 页独立应答</text>
+    <text x="550" y="154">engine_top</text><text x="550" y="184">APB 分选 / PERF</text><text x="550" y="213">16 位偏移</text>
+    <text x="897" y="158">engine_regs</text><text x="897" y="194">第 0 页 / 12 位</text><text x="897" y="219">SURF / CAPS</text>
+    <text x="1222" y="160">engine_cmd</text><text x="1222" y="194">表面 / 命令检查</text><text x="1222" y="218">src_tex</text>
+    <text x="167" y="423">engine_geom</text><text x="167" y="453">I1 → 行描述符 I2</text><text x="167" y="479">锁存 src_tex / rd_tex</text>
+    <text x="492" y="423">engine_mover</text><text x="492" y="453">I3 流所有者 / 排空</text><text x="492" y="479">按 rd_tex 选路</text>
+    <text x="845" y="423">engine_pix</text><text x="845" y="453">128 位 I3 / 恒 ready</text><text x="845" y="479">行缓冲 / 混合</text>
+    <text x="1210" y="423">axi_dma_rd / wr</text><text x="1210" y="454">mover 内部 u_rd / u_wr</text><text x="1210" y="479">vendor 保持原样</text>
+    <text x="845" y="628">engine_blend ×12</text><text x="845" y="663">4 像素 / 100 MHz</text>
+  </g>
+  <g fill="none" stroke="#202020" marker-end="url(#arrow)">
+    <path d="M322 170 H412" stroke-width="3"/>
+    <path d="M687 170 H777" stroke-width="3"/>
+    <path d="M1017 170 H1100" stroke-width="2"/>
+    <path d="M1222 234 V292 H167 V385" stroke-width="2"/>
+    <path d="M282 429 H370" stroke-width="2"/>
+    <path d="M615 429 H710" stroke-width="4"/>
+    <path d="M845 490 V590" stroke-width="4"/>
+    <path d="M492 385 V335 H1210 V385" stroke-width="4"/>
+    <path d="M420 490 V560 H360 V590" stroke-width="2"/>
+  </g>
+  <text x="720" y="280">I1：命令与表面字段</text>
+  <text x="299" y="414" font-size="16">I2</text>
+  <text x="638" y="414" font-size="16">I3</text>
+  <text x="371" y="536" font-size="16">描述符</text>
+  <text x="774" y="323" font-size="16">描述符 / 128 位流</text>
+  <g fill="white" stroke="#202020" stroke-width="2">
+    <rect x="75" y="590" width="365" height="125"/>
+  </g>
+  <g text-anchor="middle" fill="#202020">
+    <text x="257" y="625">engine_tex</text>
+    <text x="257" y="658">16 KiB / 四个 1024×32 bank</text>
+    <text x="257" y="691">32 位装载 / 同步读延迟 1～2 拍</text>
+  </g>
+  <g fill="none" stroke="#202020" stroke-width="3" marker-end="url(#arrow)">
+    <path d="M412 211 H350 V546 H180 V590"/>
+    <path d="M440 652 H535 V490"/>
+  </g>
+  <text x="61" y="535">APB 4000～7FFF / 32 位</text>
+  <text x="551" y="564" font-size="17">128 位本地流 / 上下文</text>
+  <text x="551" y="591" font-size="17">data / valid / tlast</text>
+  <text x="52" y="776">图例：实线为已接入接口；粗线表示数据总线，细线表示描述符与控制字段。</text>
+  <text x="52" y="813">所有引擎接口同属 100 MHz core_clk；DDR 返回先停在 DMA FIFO，TEX 收尾后再送目的流。</text>
+</g>
+</svg>

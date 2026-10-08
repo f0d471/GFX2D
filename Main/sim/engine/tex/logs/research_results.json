@@ -1,0 +1,50 @@
+[
+  {
+    "name": "ddr",
+    "latency": 0,
+    "inject": 0,
+    "cycles": 17668,
+    "commands": 16,
+    "cycles_per_blit": 1104.25,
+    "source_ar": 256,
+    "dst_ar": 256,
+    "mem_bad": 0,
+    "expected_failure": false
+  },
+  {
+    "name": "tex_l1",
+    "latency": 1,
+    "inject": 0,
+    "cycles": 11252,
+    "commands": 16,
+    "cycles_per_blit": 703.25,
+    "source_ar": 0,
+    "dst_ar": 256,
+    "mem_bad": 0,
+    "expected_failure": false
+  },
+  {
+    "name": "tex_l2",
+    "latency": 2,
+    "inject": 0,
+    "cycles": 11508,
+    "commands": 16,
+    "cycles_per_blit": 719.25,
+    "source_ar": 0,
+    "dst_ar": 256,
+    "mem_bad": 0,
+    "expected_failure": false
+  },
+  {
+    "name": "tex_bad_valid",
+    "latency": 2,
+    "inject": 1,
+    "cycles": 11508,
+    "commands": 16,
+    "cycles_per_blit": 719.25,
+    "source_ar": 0,
+    "dst_ar": 256,
+    "mem_bad": 1206,
+    "expected_failure": true
+  }
+]

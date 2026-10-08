@@ -109,6 +109,7 @@ module tb_engine_geom;
     wire [31:0] rd_addr, wr_addr;
     wire [11:0] rd_beats, wr_beats;
     wire [1:0]  rd_buf;
+    wire        rd_tex;
     wire [3:0]  rd_cidx, wr_cidx;
     wire        rd_valid, wr_valid, wr_last_row;
     wire [15:0] sb_row, sb_py;
@@ -237,13 +238,14 @@ module tb_engine_geom;
         .start(start), .op(op), .eq(eq), .key_en(key_en), .key_w5(key_w5),
         .const_w4(const_w4), .c(c), .sfmt(sfmt),
         .src_base(src_base), .src_w(src_w), .src_h(src_h), .src_slog2(src_slog2),
+        .src_tex(1'b0),
         .dst_base(dst_base), .dst_w(dst_w), .dst_h(dst_h), .dst_slog2(dst_slog2),
         .src_x(src_x), .src_y(src_y), .dst_x(dst_x), .dst_y(dst_y),
         .w(w), .h(h),
         .clip_x0(clip_x0), .clip_y0(clip_y0), .clip_x1(clip_x1), .clip_y1(clip_y1),
         .cidx(cidx), .row_free(row_free),
         .busy(busy), .cmd_done(cmd_done), .done_cidx(done_cidx),
-        .rd_addr(rd_addr), .rd_beats(rd_beats), .rd_buf(rd_buf),
+        .rd_addr(rd_addr), .rd_beats(rd_beats), .rd_buf(rd_buf), .rd_tex(rd_tex),
         .rd_cidx(rd_cidx), .rd_valid(rd_valid), .rd_ready(rd_ready),
         .wr_addr(wr_addr), .wr_beats(wr_beats), .wr_cidx(wr_cidx),
         .wr_last_row(wr_last_row), .wr_valid(wr_valid), .wr_ready(wr_ready),

@@ -1,0 +1,39 @@
+生成期望值（独立模型）：
+写出 build/directed.hex：1089 行记录（34 条命令）
+写出 build/vectors.hex：718 行记录（59 条命令）
+写出 build/cases.hex：5265 行记录（17 条命令）
+
+研究探针 probe_geom（B3 前期研究）：
+  probe: RESULT: PASS (14/14)
+
+单元仿真 engine_geom（第 03 章 3.7 节）：
+  geom_directed: RESULT: PASS (200 checks)
+  geom_vectors: RESULT: PASS (334 checks)
+  geom_cases: RESULT: PASS (98 checks)
+
+握手用例（判据：序列与恒 ready 时逐条相同）：
+  geom_stall: RESULT: PASS (200 checks)
+      (+STALL)
+  geom_stall_c: RESULT: PASS (98 checks)
+      (+STALL)
+  geom_rfstall: RESULT: PASS (200 checks)
+      (+RFSTALL)
+  geom_rfstall_v: RESULT: PASS (334 checks)
+      (+RFSTALL)
+  geom_rfstall_c: RESULT: PASS (98 checks)
+      (+RFSTALL)
+
+注错用例（期望 FAIL，且红在对应的判据上）：
+  inj_nosrc: RESULT: FAIL (196 errors; 200 checks run)
+  inj_no4k: RESULT: FAIL (86 errors; 200 checks run)
+  inj_alpha: RESULT: FAIL (61 errors; 200 checks run)
+  inj_extra: RESULT: FAIL (26 errors; 200 checks run)
+  inj_norf: RESULT: FAIL (362 errors; 200 checks run)
+      (+RFSTALL)
+  inj_nosrc: 与模型的逐条比对引起（求交错，矩形变了）
+  inj_no4k: 规矩 1 的「不跨 4KB」引起
+  inj_alpha: D7 的「读不读目的」引起
+  inj_extra: 握手监视器的「握手条数」引起
+  inj_norf: 行缓冲替身的「开在占用的那一半上」引起
+
+SIM OK: 27/27 checks as expected

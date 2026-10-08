@@ -1,0 +1,14 @@
+# COM11 @ 115200 8N1, opened 02:04:19
+# --- 程序已加载，以下才是它的输出 ---
+gfx2dGame MODES
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+csv,0,game,hw-tex,60,0,0,0,0,196,377982,0,540254,12022,437930,0,129,192,2,0,0,0,0,2,334782,43200,0,0,0,0,11750,22688448,621216,129266,576710,1536126,5982833,5275026,19090260,pipeline,warming,530067,0,60,60000
+csv,1,game,hw-tex,60,0,0,0,0,196,377978,0,564074,12612,492827,585573,131,192,2,0,0,0,0,2,334778,43200,0,0,0,0,23502,45367694,1239191,258529,1153394,3072193,11962971,10551999,38188895,pipeline,cpu,532839,318310,60,60000
+
+# closed 02:04:35, 1032 bytes

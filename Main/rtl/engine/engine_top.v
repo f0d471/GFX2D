@@ -2,8 +2,13 @@
 //
 // B5 把六层接成一台引擎：寄存器层（APB 第 0 页）→ 命令层 → 几何层 → 计算阵列 →
 // 搬运层（AXI 主口），外加计算核心。B6 把本模块接进 SoC 顶层（APB 第 0 页的
-// psel 在顶层按 paddr[15:12]==0 门控，与 D21 的撤探针一起做；AXI 口接 Axi_Mux 的 S1；
+// psel 在顶层按第 0 页及第 4～7 页门控；AXI 口接 Axi_Mux 的 S1；
 // 中断 B 接 SoC 的 userInterruptB）。
+// G1（引擎 P3，2026-10-07）：顶层收完整的 16 位 Slave0 页内偏移并分选——
+// paddr[15:12]==0 落寄存器表（engine_regs 继续只收页内 12 位地址），
+// paddr[15:14]==01 落 TEX 装载窗口（engine_tex，第 4~7 页，16 KiB）。
+// TEX 的描述符出口接搬运层，读流与状态并回搬运层；PERF 的读事件按显式
+// rd_tex 过滤，只计真实 DDR 描述符与命令取数。
 //
 // 复位（D17）：控制层（寄存器、命令、几何、计算阵列）挂 rst_ctrl（soc_system_reset），
 // 搬运层挂 rst_ddr_n 的取反（与 Axi_Mux 同源，只在上电与 PLL 失锁时复位）。
@@ -27,14 +32,16 @@
 `include "engine_regs_offsets.vh"
 
 module engine_top #(
-    parameter integer INJECT = 0      // 仿真注错口，透传给命令层；综合时常量
+    parameter integer INJECT = 0,     // 仿真注错口，透传给命令层；综合时常量
+    parameter integer TEX_READ_LATENCY = 1,
+    parameter integer MOVER_INJECT = 0
 )(
     input  wire        clk,           // core_clk，100 MHz，与 SoC、DDR3 控制器同域
     input  wire        rst_ctrl,      // 控制层复位（soc_system_reset），同步、高有效
     input  wire        rst_ddr_n,     // 搬运层复位源（顶层接 ddr_rstn，低有效）
 
-    // ---- APB 从口（第 0 页；psel 已按页门控）----
-    input  wire [11:0] paddr,
+    // ---- APB 从口（第 0 页寄存器 + 第 4~7 页 TEX；psel 已在顶层按两处页门控）----
+    input  wire [15:0] paddr,
     input  wire        psel,
     input  wire        penable,
     input  wire        pwrite,
@@ -100,10 +107,31 @@ module engine_top #(
     wire        fs_tlast, fs_tvalid, fs_tready;
     wire [3:0]  fs_cidx;
     wire        rd_stat_valid, rd_stat_err;
+    wire        rd_stat_fetch;
     wire [3:0]  rd_stat_cidx;
     wire        wr_stat_valid, wr_stat_err, wr_stat_last_row;
     wire [3:0]  wr_stat_cidx;
     wire        tmo_evt;
+
+    // TEX 装载窗口（G1，第 4~7 页）与片上读流
+    wire [31:0] regs_prdata;
+    wire        regs_pready, regs_pslverr;
+    wire        tex_psel;
+    wire [31:0] tex_prdata;
+    wire        tex_pready, tex_pslverr;
+    wire [13:0] tx_addr;
+    wire [11:0] tx_bytes;
+    wire [1:0]  tx_buf;
+    wire [3:0]  tx_cidx;
+    wire        tx_valid, tx_ready;
+    wire [127:0] tx_rs_tdata;
+    wire        tx_rs_tvalid, tx_rs_tlast;
+    wire [1:0]  tx_rs_buf;
+    wire        tx_stat_valid;
+    wire        tx_stat_ready;
+    wire [3:0]  tx_stat_cidx;
+    wire [1:0]  tx_stat_buf;
+    wire        tx_busy;
 
     // 几何层（I1/I2/I5）
     wire        geom_start;
@@ -114,6 +142,7 @@ module engine_top #(
     wire [7:0]  i1_c;
     wire [3:0]  i1_sfmt;
     wire [31:0] i1_src_base;
+    wire        i1_src_tex;
     wire [15:0] i1_src_w, i1_src_h;
     wire [4:0]  i1_src_slog2;
     wire [31:0] i1_dst_base;
@@ -127,7 +156,10 @@ module engine_top #(
     wire [3:0]  geom_done_cidx;
     wire [31:0] g_rd_addr, g_wr_addr;
     wire [11:0] g_rd_beats, g_wr_beats;
+    wire [11:0] g_rd_bytes = g_rd_beats << 4;
+    wire [11:0] g_wr_bytes = g_wr_beats << 4;
     wire [1:0]  g_rd_buf;
+    wire        g_rd_tex;
     wire [3:0]  g_rd_cidx, g_wr_cidx;
     wire        g_rd_valid, g_rd_ready, g_wr_valid, g_wr_ready, g_wr_last_row;
     wire [15:0] sb_row, sb_py;
@@ -158,10 +190,10 @@ module engine_top #(
     wire [31:0] surf_ra_w0, surf_ra_w1, surf_ra_w2;
     wire [31:0] surf_rb_w0, surf_rb_w1, surf_rb_w2;
 
-    // PERF 汇聚（I8）
+    // PERF 汇聚（I8）。G1：读事件只计真实 DDR 描述符与命令取数，TEX 读不计入。
     wire [3:0] perf_key_lanes_w;
     wire       perf_key_valid_w;
-    wire perf_rdb = (g_rd_valid && g_rd_ready) || (fd_valid && fd_ready);
+    wire perf_rdb = (g_rd_valid && g_rd_ready && !g_rd_tex) || (fd_valid && fd_ready);
     wire [11:0] perf_rdb_beats = (fd_valid && fd_ready) ? {4'b0, fd_bytes[11:4]}
                                                         : g_rd_beats;
     wire perf_wrb = (g_wr_valid && g_wr_ready);
@@ -172,12 +204,21 @@ module engine_top #(
                   || (m_axi_bvalid  && !m_axi_bready);
 
     // =====================================================================
+    // APB 分选（G1）：第 0 页寄存器、第 4~7 页 TEX；psel 已含两处页门控
+    // =====================================================================
+    wire apb_hit_regs = (paddr[15:12] == 4'h0);
+    wire apb_hit_tex  = (paddr[15:14] == 2'b01);
+    assign prdata  = apb_hit_regs ? regs_prdata : tex_prdata;
+    assign pready  = apb_hit_regs ? regs_pready : tex_pready;
+    assign pslverr = apb_hit_regs ? regs_pslverr : tex_pslverr;
+
+    // =====================================================================
     // 寄存器层
     // =====================================================================
     engine_regs u_regs (
         .clk(clk), .rst(rst_ctrl),
-        .paddr(paddr), .psel(psel), .penable(penable), .pwrite(pwrite),
-        .pwdata(pwdata), .prdata(prdata), .pready(pready), .pslverr(pslverr),
+        .paddr(paddr[11:0]), .psel(psel && apb_hit_regs), .penable(penable), .pwrite(pwrite),
+        .pwdata(pwdata), .prdata(regs_prdata), .pready(regs_pready), .pslverr(regs_pslverr),
         .cmd_busy(cmd_busy),
         .err_set(err_set), .err_code(err_code), .err_index(err_index), .err_tag(err_tag),
         .done_set(done_set),
@@ -216,7 +257,8 @@ module engine_top #(
         .fd_valid(fd_valid), .fd_ready(fd_ready),
         .fs_tdata(fs_tdata), .fs_tlast(fs_tlast), .fs_tvalid(fs_tvalid),
         .fs_tready(fs_tready), .fs_cidx(fs_cidx),
-        .rd_stat_valid(rd_stat_valid), .rd_stat_err(rd_stat_err),
+        .rd_stat_valid(rd_stat_valid), .rd_stat_fetch(rd_stat_fetch),
+        .rd_stat_err(rd_stat_err),
         .rd_stat_cidx(rd_stat_cidx),
         .wr_stat_valid(wr_stat_valid), .wr_stat_err(wr_stat_err),
         .wr_stat_cidx(wr_stat_cidx), .wr_stat_last_row(wr_stat_last_row),
@@ -224,7 +266,8 @@ module engine_top #(
         .start(geom_start),
         .i1_op(i1_op), .i1_eq(i1_eq), .i1_key_en(i1_key_en),
         .i1_key(i1_key), .i1_w4(i1_w4), .i1_c(i1_c), .i1_sfmt(i1_sfmt),
-        .i1_src_base(i1_src_base), .i1_src_w(i1_src_w), .i1_src_h(i1_src_h),
+        .i1_src_base(i1_src_base), .i1_src_tex(i1_src_tex),
+        .i1_src_w(i1_src_w), .i1_src_h(i1_src_h),
         .i1_src_slog2(i1_src_slog2),
         .i1_dst_base(i1_dst_base), .i1_dst_w(i1_dst_w), .i1_dst_h(i1_dst_h),
         .i1_dst_slog2(i1_dst_slog2),
@@ -248,7 +291,7 @@ module engine_top #(
         .op(i1_op), .eq(i1_eq), .key_en(i1_key_en),
         .key_w5(i1_key), .const_w4(i1_w4), .c(i1_c), .sfmt(i1_sfmt),
         .src_base(i1_src_base), .src_w(i1_src_w), .src_h(i1_src_h),
-        .src_slog2(i1_src_slog2),
+        .src_slog2(i1_src_slog2), .src_tex(i1_src_tex),
         .dst_base(i1_dst_base), .dst_w(i1_dst_w), .dst_h(i1_dst_h),
         .dst_slog2(i1_dst_slog2),
         .src_x(i1_src_x), .src_y(i1_src_y), .dst_x(i1_dst_x), .dst_y(i1_dst_y),
@@ -259,6 +302,7 @@ module engine_top #(
         .row_free(row_free),
         .busy(geom_busy), .cmd_done(geom_cmd_done), .done_cidx(geom_done_cidx),
         .rd_addr(g_rd_addr), .rd_beats(g_rd_beats), .rd_buf(g_rd_buf),
+        .rd_tex(g_rd_tex),
         .rd_cidx(g_rd_cidx), .rd_valid(g_rd_valid), .rd_ready(g_rd_ready),
         .wr_addr(g_wr_addr), .wr_beats(g_wr_beats), .wr_cidx(g_wr_cidx),
         .wr_last_row(g_wr_last_row), .wr_valid(g_wr_valid), .wr_ready(g_wr_ready),
@@ -290,21 +334,29 @@ module engine_top #(
     // =====================================================================
     // 搬运层（AXI 事务层）
     // =====================================================================
-    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13), .INJECT(0)) u_mover (
+    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13), .INJECT(MOVER_INJECT)) u_mover (
         .clk(clk), .rst(mover_rst),
-        .rd_addr(g_rd_addr), .rd_bytes({g_rd_beats, 4'b0000}), .rd_buf(g_rd_buf),
-        .rd_cidx(g_rd_cidx), .rd_valid(g_rd_valid), .rd_ready(g_rd_ready),
+        .rd_addr(g_rd_addr), .rd_bytes(g_rd_bytes), .rd_buf(g_rd_buf),
+        .rd_cidx(g_rd_cidx), .rd_tex(g_rd_tex),
+        .rd_valid(g_rd_valid), .rd_ready(g_rd_ready),
+        .tx_addr(tx_addr), .tx_bytes(tx_bytes), .tx_buf(tx_buf), .tx_cidx(tx_cidx),
+        .tx_valid(tx_valid), .tx_ready(tx_ready),
+        .tx_rs_tdata(tx_rs_tdata), .tx_rs_tvalid(tx_rs_tvalid),
+        .tx_rs_tlast(tx_rs_tlast), .tx_rs_buf(tx_rs_buf),
+        .tx_stat_valid(tx_stat_valid), .tx_stat_ready(tx_stat_ready), .tx_stat_cidx(tx_stat_cidx),
+        .tx_stat_buf(tx_stat_buf), .tx_busy(tx_busy),
         .fd_addr(fd_addr), .fd_bytes(fd_bytes), .fd_cidx(fd_cidx),
         .fd_valid(fd_valid), .fd_ready(fd_ready),
         .rs_tdata(rs_tdata), .rs_tkeep(rs_tkeep), .rs_tlast(rs_tlast),
         .rs_tvalid(rs_tvalid), .rs_tready(rs_tready), .rs_buf(rs_buf),
         .fs_tdata(fs_tdata), .fs_tkeep(), .fs_tlast(fs_tlast), .fs_tvalid(fs_tvalid),
         .fs_tready(fs_tready), .fs_cidx(fs_cidx),
-        .wr_addr(g_wr_addr), .wr_bytes({g_wr_beats, 4'b0000}), .wr_cidx(g_wr_cidx),
+        .wr_addr(g_wr_addr), .wr_bytes(g_wr_bytes), .wr_cidx(g_wr_cidx),
         .wr_last_row(g_wr_last_row), .wr_valid(g_wr_valid), .wr_ready(g_wr_ready),
         .ws_tdata(ws_data_safe), .ws_tkeep(ws_tkeep),
         .ws_tvalid(ws_tvalid), .ws_tready(ws_tready),
         .rd_stat_valid(rd_stat_valid), .rd_stat_err(rd_stat_err),
+        .rd_stat_fetch(rd_stat_fetch),
         .rd_stat_cidx(rd_stat_cidx), .rd_stat_buf(),
         .wr_stat_valid(wr_stat_valid), .wr_stat_err(wr_stat_err),
         .wr_stat_cidx(wr_stat_cidx), .wr_stat_last_row(wr_stat_last_row),
@@ -324,6 +376,22 @@ module engine_top #(
         .m_axi_wdata(m_axi_wdata), .m_axi_wstrb(m_axi_wstrb), .m_axi_wlast(m_axi_wlast),
         .m_axi_wvalid(m_axi_wvalid), .m_axi_wready(m_axi_wready),
         .m_axi_bresp(m_axi_bresp), .m_axi_bvalid(m_axi_bvalid), .m_axi_bready(m_axi_bready)
+    );
+
+    // =====================================================================
+    // TEX 装载窗口（G1，D57）：第 4~7 页的 16 KiB scratchpad
+    // =====================================================================
+    assign tex_psel = psel && apb_hit_tex;
+    engine_tex #(.INJECT(0), .READ_LATENCY(TEX_READ_LATENCY)) u_tex (
+        .clk(clk), .rst(rst_ctrl),
+        .paddr(paddr[13:0]), .psel(tex_psel), .penable(penable), .pwrite(pwrite),
+        .pwdata(pwdata), .prdata(tex_prdata), .pready(tex_pready), .pslverr(tex_pslverr),
+        .req_addr(tx_addr), .req_bytes(tx_bytes), .req_buf(tx_buf), .req_cidx(tx_cidx),
+        .req_valid(tx_valid), .req_ready(tx_ready),
+        .rs_tdata(tx_rs_tdata), .rs_tvalid(tx_rs_tvalid),
+        .rs_tlast(tx_rs_tlast), .rs_buf(tx_rs_buf),
+        .stat_valid(tx_stat_valid), .stat_ready(tx_stat_ready), .stat_cidx(tx_stat_cidx),
+        .stat_buf(tx_stat_buf), .busy(tx_busy)
     );
 
 endmodule
