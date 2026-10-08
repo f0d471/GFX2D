@@ -23,11 +23,9 @@ RTL_FILES="$RTL/engine/engine_tex.v $RTL/engine/engine_geom.v $RTL/engine/engine
     $RTL/vendor/verilog-axi/axi_dma_rd.v $RTL/vendor/verilog-axi/axi_dma_wr.v \
     ../../../sim/axi_probe/axi_ram_model.v"
 
-run_case() {  # <名字> <期望 PASS|FAIL> [注错值]
+run_case() {  # <名字> <期望 PASS|FAIL> [注错开关]
     local name="$1" want="$2" inj="${3:-}"
-    local defs=""
-    [[ "$inj" =~ ^[124]$ ]] && defs="-DINJECT_TEX_VAL=$inj"
-    if ! iverilog -g2012 -s tb_engine_tex -DCASE='"build/tex_sprites"' $defs \
+    if ! iverilog -g2012 -s tb_engine_tex -DCASE='"build/tex_sprites"' $inj \
          ${G1_EXTRA_DEFS:-} -I $RTL/engine -o build/$name.vvp tb_engine_tex.v $RTL_FILES; then
         echo "$name: COMPILE-FAIL"
         bad=1
@@ -47,17 +45,19 @@ run_case() {  # <名字> <期望 PASS|FAIL> [注错值]
             bad=1
         fi
     else
-        local evidence=""
+        # 日志里的位号（TEX INJECT n）由测试台按开关名换算，这里也换算一次用于核对
+        local injno evidence=""
         case "$inj" in
-            1) evidence='STR-DATA' ;;
-            2) evidence='APB-UNALIGN-SIDE-EFFECT' ;;
-            4) evidence='TEX INJECT 4 STATUS_MISSING' ;;
-            stream) evidence='PIXEL_STREAM_COLLISION' ;;
+            -DINJ_VALID_EARLY) injno=1; evidence='STR-DATA' ;;
+            -DINJ_WR_LOOSE)    injno=2; evidence='APB-UNALIGN-SIDE-EFFECT' ;;
+            -DINJ_STAT_DROP)   injno=4; evidence='TEX INJECT 4 STATUS_MISSING' ;;
+            -DINJ_TX_NOWAIT)   injno=64; evidence='PIXEL_STREAM_COLLISION' ;;
+            *)                 injno=0 ;;
         esac
         if ! grep -q "TEX INJECT NOT_RED" build/$name.log &&
            grep -q "$evidence" build/$name.log &&
-           { [ "$inj" = 4 ] || { [ "$inj" = stream ] && grep -q 'TEX MIX INJECT red' build/$name.log; } ||
-             grep -qE "TEX INJECT $inj red=[1-9][0-9]*" build/$name.log; }; then
+           { [ "$injno" = 4 ] || { [ "$injno" = 64 ] && grep -q 'TEX MIX INJECT red' build/$name.log; } ||
+             grep -qE "TEX INJECT $injno red=[1-9][0-9]*" build/$name.log; }; then
             echo "$name: RESULT: FAIL (inject, as expected)"
         else
             echo "$name: RESULT: NOT_RED (missing targeted evidence)"
@@ -68,10 +68,10 @@ run_case() {  # <名字> <期望 PASS|FAIL> [注错值]
 
 run_case normal PASS
 G1_EXTRA_DEFS='-Ptb_engine_tex.TEX_LATENCY=2' run_case normal_latency2 PASS
-run_case inj_valid FAIL 1
-run_case inj_unalign FAIL 2
-run_case inj_stat FAIL 4
-G1_EXTRA_DEFS='-Ptb_engine_tex.MOVER_INJECT=64' run_case inj_stream FAIL stream
+run_case inj_valid FAIL -DINJ_VALID_EARLY
+run_case inj_unalign FAIL -DINJ_WR_LOOSE
+run_case inj_stat FAIL -DINJ_STAT_DROP
+run_case inj_stream FAIL -DINJ_TX_NOWAIT
 
 if [ $bad = 0 ]; then
     echo "SIM OK: 6 checks as expected"

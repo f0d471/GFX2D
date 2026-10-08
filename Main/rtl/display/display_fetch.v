@@ -27,6 +27,14 @@
 // 帧缓冲模式下读空 FIFO，把 FIFO_UNDERFLOW_BEATS 灌进整整一场（实测 77266 拍、
 // ZERO_HITS 1 次）。判据要求这两个数恒为 0，清不掉就永远判不过。
 // 寄存器表里 bit2 写的本来就是「清统计」，没写「只清 core 侧」，按表办。
+// 注错（变异测试）：本文件是干净形态，四处变异各包在 `ifdef 内。
+// 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
+// 编译开关与 sim/display/run.sh 的用例一一对应，一次只开一个：
+//   INJ_NO_DRAIN   场起始不等 rlast 就复位写指针
+//   INJ_NO_CLEAR   场起始不清 FIFO
+//   INJ_SWAP_NOW   切换立刻生效
+//   INJ_INFLIGHT2  允许两笔在途
+// 见 Engineering/Todo/hw/扫描输出.md 2.3 节。
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -35,12 +43,7 @@ module display_fetch #(
     parameter [31:0]  BACK_BASE_DEF  = 32'h0240_0000,   // 帧缓冲 1
     parameter integer V_ACTIVE       = 480,
     parameter integer LINE_BEATS     = 160,             // 一行 640 像素 = 160 个 128 位拍
-    parameter integer DEPTH          = 512,
-    // 仿真注错口：0 是正式配置，综合时是常量、对应分支会被优化掉。
-    // 位 0 NO_DRAIN（场起始不等 rlast 就复位写指针）、位 1 NO_CLEAR（场起始不清 FIFO）、
-    // 位 2 SWAP_NOW（切换立刻生效）、位 3 INFLIGHT2（允许两笔在途）。
-    // 见 sim/display/run.sh 与 Engineering/Todo/hw/扫描输出.md 2.3 节。
-    parameter integer INJECT         = 0
+    parameter integer DEPTH          = 512
 )(
     input  wire         clk,            // core_clk
     input  wire         rst,            // 同步复位，高有效
@@ -137,11 +140,6 @@ module display_fetch #(
     localparam [7:0]  AR_LEN     = LINE_BEATS - 1;
     localparam [9:0]  LINE_BEATS_10 = LINE_BEATS;
     localparam [9:0]  DEPTH_10      = DEPTH;
-
-    localparam INJ_NO_DRAIN = ((INJECT & 1) != 0);
-    localparam INJ_NO_CLEAR = ((INJECT & 2) != 0);
-    localparam INJ_SWAP_NOW = ((INJECT & 4) != 0);
-    localparam INJ_INFLIGHT2= ((INJECT & 8) != 0);
 
     wire access = psel & penable;
 
@@ -287,9 +285,15 @@ module display_fetch #(
     // 那笔 AR 随后才被接走，它的拍正好落在 S_RUN 恢复之后，进新场的队头——
     // 这就是 D7 要防的那件事，由清空动作自己造出来。
     // 触发条件很窄（本场还有行没取 + 恰好在 fs_event 那一拍空闲），但那正是欠载自愈的场景。
-    wire can_issue = (state == S_RUN) && started && en_eff && !ar_valid && !fs_event &&
-                     (INJ_INFLIGHT2 ? 1'b1 : !in_flight) &&
-                     (row < V_ACTIVE) && room_for_line;
+    wire can_issue;
+`ifdef INJ_INFLIGHT2
+    // 注错：允许两笔在途
+    assign can_issue = (state == S_RUN) && started && en_eff && !ar_valid && !fs_event &&
+                       (row < V_ACTIVE) && room_for_line;
+`else
+    assign can_issue = (state == S_RUN) && started && en_eff && !ar_valid && !fs_event &&
+                       !in_flight && (row < V_ACTIVE) && room_for_line;
+`endif
 
     always @(posedge clk) begin
         if (rst) begin
@@ -356,16 +360,23 @@ module display_fetch #(
                 ar_addr  <= base_eff + ({22'h0, row} << 12);
             end
 
+`ifdef INJ_SWAP_NOW
             // 注错 SWAP_NOW：写请求立刻切换，不等场起始（会切出撕裂帧）
-            if (INJ_SWAP_NOW && swap_write) begin
+            if (swap_write) begin
                 base_eff   <= back_sh;
                 front_base <= back_sh;
                 swap_count <= swap_count + 32'h1;
             end
+`endif
 
             // SWAP_REQ 的请求位：软件写它（写 0 撤销），场起始那一刻锁存并清零（D9）
+`ifdef INJ_SWAP_NOW
             if (swap_wr_any)
-                swap_req_sh <= INJ_SWAP_NOW ? 1'b0 : pwdata[0];
+                swap_req_sh <= 1'b0;      // 注错：请求位不再由软件置起
+`else
+            if (swap_wr_any)
+                swap_req_sh <= pwdata[0];
+`endif
 
             // ---- 场起始清空的六步（D7）----
             case (state)
@@ -381,7 +392,11 @@ module display_fetch #(
                         // ar_valid 挂起时不能直接去复位：那一笔迟早会被接走，然后它的拍会
                         // 流进新场的队头——正是 D7 要防的那件事。
                         // 注错 NO_DRAIN：跳过第二步，在途那笔剩下的拍会落进新场的队头
-                        state <= ((in_flight || ar_valid) && !INJ_NO_DRAIN) ? S_DRAIN : S_RESET;
+`ifdef INJ_NO_DRAIN
+                        state <= S_RESET;
+`else
+                        state <= (in_flight || ar_valid) ? S_DRAIN : S_RESET;
+`endif
                     end
                 end
                 S_DRAIN: begin
@@ -390,7 +405,11 @@ module display_fetch #(
                 end
                 S_RESET: begin
                     // 第三步：两侧一起复位，保持 2 个 core_clk 周期
-                    fifo_rst <= ~INJ_NO_CLEAR;
+`ifdef INJ_NO_CLEAR
+                    fifo_rst <= 1'b0;             // 注错：场起始不清 FIFO
+`else
+                    fifo_rst <= 1'b1;
+`endif
                     if (rst_cnt == 2'h1) begin
                         rst_cnt <= 2'h0;
                         state   <= S_WAIT;

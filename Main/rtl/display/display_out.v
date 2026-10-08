@@ -33,12 +33,7 @@ module display_out #(
     parameter V_FP     = 10,
     parameter V_SYNC   = 2,
     parameter V_BP     = 33,
-    parameter SYNC_POL = 1'b0,
-    // 仿真注错口：0 是正式配置，综合时是常量、对应分支会被优化掉。
-    // 位 4 LAG0（对齐取 D=0，用 psel 而不是 psel_d1）、位 5 PHASE3（弹出相位改成 psel==3）、
-    // 位 6 ORDER_REV（拍内像素顺序拆反）。
-    // 见 sim/display/run.sh 与 Engineering/Todo/hw/扫描输出.md 2.3 节。
-    parameter integer INJECT = 0
+    parameter SYNC_POL = 1'b0
 )(
     input  wire         clk,            // 像素时钟（hdmi_tx_slow_clk）
     input  wire         rst_n,          // vid_rst_n，来自 hdmi_tx 的复位同步
@@ -70,9 +65,14 @@ module display_out #(
 );
 
     localparam [9:0] LEVEL_MAX = 10'd512;
-    localparam INJ_LAG0   = ((INJECT & 16) != 0);
-    localparam INJ_PHASE3 = ((INJECT & 32) != 0);
-    localparam INJ_ORDER_REV = ((INJECT & 64) != 0);
+
+    // 注错（变异测试）：本文件是干净形态，三处变异各包在 `ifdef 内。
+    // 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
+    // 编译开关与 sim/display/run.sh 的用例一一对应，一次只开一个：
+    //   INJ_LAG0      对齐取 D=0，用 psel 而不是 psel_d1
+    //   INJ_PHASE3    弹出相位改成 psel==3
+    //   INJ_ORDER_REV 拍内像素顺序拆反
+    // 见 Engineering/Todo/hw/扫描输出.md 2.3 节。
 
     // 「水位与触底」的计量窗口：一场取 480 行、弹 480 行，起始水位是 0（场起始清空过），
     // 所以**场末必然排空到 0**——这是守恒，不是故障。取数侧发完最后一行就没有行可发了，
@@ -168,7 +168,11 @@ module display_out #(
 
     // 每组的第一个像素周期弹这一组的拍（D=1，见文件头）
     wire group_start = de0 & (psel == 2'd0);
-    wire pop_phase   = INJ_PHASE3 ? (de0 & (psel == 2'd3)) : group_start;
+`ifdef INJ_PHASE3
+    wire pop_phase   = de0 & (psel == 2'd3);   // 注错：弹出相位改成 psel==3
+`else
+    wire pop_phase   = group_start;
+`endif
     assign rd_en = pop_phase & ~rd_empty;
 
     // 这一组没弹到（FIFO 空）：本组的 4 个像素输出黑色。miss_sh 在组首装载、每拍左移，
@@ -190,10 +194,16 @@ module display_out #(
         end
     end
 
-    // 注错 LAG0：延迟改成 0（时序仍然延迟一拍），整幅横移一个像素组
-    // 注错 ORDER_REV：拍内像素顺序拆反
-    wire [1:0] sel_base = INJ_LAG0 ? psel : psel_d1;
-    wire [1:0] sel = INJ_ORDER_REV ? ~sel_base : sel_base;
+`ifdef INJ_LAG0
+    wire [1:0] sel_base = psel;                // 注错：对齐取 D=0
+`else
+    wire [1:0] sel_base = psel_d1;
+`endif
+`ifdef INJ_ORDER_REV
+    wire [1:0] sel = ~sel_base;                // 注错：拍内像素顺序拆反
+`else
+    wire [1:0] sel = sel_base;
+`endif
     wire missed = miss_sh[sel];
 
     wire [31:0] fifo_pixel = rd_data[{sel, 5'b0} +: 32];

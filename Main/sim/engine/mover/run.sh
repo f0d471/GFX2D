@@ -64,17 +64,17 @@ check timeout PASS -DCASE_TIMEOUT -DTMO_LIMIT_VAL=64
 
 echo "注错用例（期望 FAIL）:"
 # 去掉读门控：读核一 ready 就放下一个，读流上下文错位、总线侧违例
-check inject_nogate_rd FAIL -DCASE_NORMAL -DINJECT_VAL=1
+check inject_nogate_rd FAIL -DCASE_NORMAL -DINJ_NO_GATE_RD
 # 带内掩码旁路：wstrb 与 X 字节直通，被标记的像素照写
-check inject_mask      FAIL -DCASE_NORMAL -DINJECT_VAL=2
+check inject_mask      FAIL -DCASE_NORMAL -DINJ_MASK_BYPASS
 # 排空旁路：排空期不帮忙收/补，两个方向都停在忙态
-check inject_nodrain   FAIL -DCASE_DRAIN  -DINJECT_VAL=4
+check inject_nodrain   FAIL -DCASE_DRAIN  -DINJ_DRAIN_BYPASS
 # 去掉写门控：写核一 ready 就放下一个
-check inject_nogate_wr FAIL -DCASE_NORMAL -DINJECT_VAL=8
+check inject_nogate_wr FAIL -DCASE_NORMAL -DINJ_NO_GATE_WR
 # 排空按电平重进：请求举着时 drain_done 反复打，退出那一拍收了新提交
-check inject_drain_level FAIL -DCASE_DRAIN -DINJECT_VAL=16
+check inject_drain_level FAIL -DCASE_DRAIN -DINJ_DRAIN_LEVEL
 # 正常写流不打 tlast（D48 之前靠计算阵列给，它不给时）：写核进 DROP_DATA，吞掉下一笔的写流
-check inject_no_tlast  FAIL -DCASE_NORMAL -DINJECT_VAL=32
+check inject_no_tlast  FAIL -DCASE_NORMAL -DINJ_NO_TLAST
 
 # 注错的 FAIL 必须红在它对应的判据上，不是随便什么错
 if grep -qE 'RD 契约|在途契约违例|读流|像素读流|目标缓冲号' "$BUILD/inject_nogate_rd.log"; then

@@ -13,8 +13,9 @@
 //     不死锁；前一条 BUS_WRITE 先于后一条 BAD_FIELD。
 //   6 PERF_CMD/PIXEL/KEY_SKIP 的精确对账与读拍、CAPS、APB 拒绝语义。
 //
-// 注错构建（run.sh 另编两次）：INJECT=1 对调 space/format、INJECT=2 关掉逐条回退，
+// 注错构建（run.sh 另编两次）：-DINJ_CHK_SWAP 对调 space/format、-DINJ_NO_FB 关掉逐条回退，
 // 各自必须让至少一条向量见红（+vectors_only 只跑向量段并反转判据）。
+// 开关是预处理器级宏，直接作用于被测 RTL，本测试台不持有也不转译它们。
 // +vec_from=N 跳过前 N 条向量（调试用）。
 //
 // 地址约定：模型存储 4 MiB、按 (addr>>4) 取模映射。命令表区 0x0020_0000 起每表
@@ -23,9 +24,7 @@
 // XRGB 目的的 X 字节恒为 0，所有内存期望只对比低 24 位。
 `timescale 1ns/1ps
 `default_nettype none
-module tb_engine_top #(
-    parameter integer INJECT = 0
-);
+module tb_engine_top;
     reg clk = 1'b0;
     reg rst = 1'b1;
     always #5 clk = ~clk;
@@ -54,7 +53,7 @@ module tb_engine_top #(
     wire irq_b;
     wire fe_cidx_err;
 
-    engine_top #(.INJECT(INJECT)) dut (
+    engine_top dut (
         .clk(clk), .rst_ctrl(rst), .rst_ddr_n(~rst),
         .paddr(paddr), .psel(psel), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(prdata), .pready(pready), .pslverr(pslverr),

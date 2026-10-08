@@ -28,7 +28,20 @@
 // 跑法见同目录 run.sh：vvp -n build/geom.vvp +REC=<记录文件> [+STALL] [+RFSTALL]
 `timescale 1ns/1ps
 `default_nettype none
-`ifndef INJECT_VAL
+
+// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏），本测试台不持有也不转译它们；
+// 下面的 INJECT_VAL 只为打印，名字与 run.sh 的用例一一对应。
+`ifdef INJ_SKIP_SURF
+`define INJECT_VAL 1
+`elsif INJ_NO_SPLIT
+`define INJECT_VAL 2
+`elsif INJ_ALPHA_AS_COPY
+`define INJECT_VAL 4
+`elsif INJ_COPY_READ
+`define INJECT_VAL 8
+`elsif INJ_ROW_NOFREE
+`define INJECT_VAL 16
+`else
 `define INJECT_VAL 0
 `endif
 
@@ -233,7 +246,7 @@ module tb_engine_geom;
         end
     endtask
 
-    engine_geom #(.MAX_BEATS(192), .INJECT(`INJECT_VAL)) dut (
+    engine_geom #(.MAX_BEATS(192)) dut (
         .clk(clk), .rst(rst),
         .start(start), .op(op), .eq(eq), .key_en(key_en), .key_w5(key_w5),
         .const_w4(const_w4), .c(c), .sfmt(sfmt),

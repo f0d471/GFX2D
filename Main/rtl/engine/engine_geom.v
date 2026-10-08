@@ -49,14 +49,15 @@
 //   约定：B4 只在第 h 半的边带握手之后才把 row_free[h] 拉低，所以本层看到它高之后
 //   到边带握手之间它不会掉。B4 已确认这套编码与时机（D45：该半写流的末拍被写核收走之后才拉高）。
 //
-// 仿真注错口（0 是正式配置，综合时是常量、对应分支被优化掉）。
-// 注错改的都是本文件里真实的逻辑，由测试台与独立模型逐条比对抓出来：
-//   位 0 (1)   漏掉第五项求交（源表面）
-//   位 1 (2)   跨 4KB 不拆：一个描述符盖过页边界，违反 D3 规矩 1
-//   位 2 (4)   ALPHA 也按 COPY 走「不读目的」的避让，读描述符少一半
-//   位 3 (8)   COPY 也发读目的描述符（边带仍说不读）：多发的描述符
-//   位 4 (16)  行开始之前不看 row_free：下一行的读盖掉还没写完的那一半
-// 位序与 sim/engine/geom/run.sh 的 -DINJECT_VAL 一一对应。
+// 注错（变异测试）：本文件是干净形态，五处变异各包在 `ifdef 内。
+// 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
+// 注错改的都是本文件里真实的逻辑，由测试台与独立模型逐条比对抓出来；
+// 编译开关与 sim/engine/geom/run.sh 的用例一一对应，一次只开一个：
+//   INJ_SKIP_SURF    漏掉第五项求交（源表面）
+//   INJ_NO_SPLIT     跨 4KB 不拆：一个描述符盖过页边界，违反 D3 规矩 1
+//   INJ_ALPHA_AS_COPY ALPHA 也按 COPY 走「不读目的」的避让，读描述符少一半
+//   INJ_COPY_READ     COPY 也发读目的描述符（边带仍说不读）：多发的描述符
+//   INJ_ROW_NOFREE    行开始之前不看 row_free：下一行的读盖掉还没写完的那一半
 //
 // 设计依据、算式、位宽、定案 D33~D40 与实测数据见
 // Engineering/TechReports/engine/03-几何层.md。
@@ -65,9 +66,7 @@
 
 module engine_geom #(
     // D3 规矩 1 的拍数上限，与搬运层两个核的 AXI_MAX_BURST_LEN 同一个值
-    parameter integer MAX_BEATS = 192,
-    // 仿真注错口，见文件头
-    parameter integer INJECT = 0
+    parameter integer MAX_BEATS = 192
 )(
     input  wire        clk,
     input  wire        rst,
@@ -215,8 +214,11 @@ module engine_geom #(
             if ($signed(p_dsw) - 32'sd1 < t_x1) t_x1 = $signed(p_dsw) - 32'sd1;
             if ($signed(p_dsh) - 32'sd1 < t_y1) t_y1 = $signed(p_dsh) - 32'sd1;
 
-            // 第五项：源表面。注错位 0 把它整块跳过。
-            if ((op == OP_BLIT) && ((INJECT & 1) == 0)) begin
+            // 第五项：源表面
+`ifdef INJ_SKIP_SURF
+            // 注错：整块跳过第五项求交
+`else
+            if (op == OP_BLIT) begin
                 if (p_dx - p_sx > t_x0) t_x0 = p_dx - p_sx;
                 if (p_dy - p_sy > t_y0) t_y0 = p_dy - p_sy;
                 s_hi_x = p_dx - p_sx + $signed(p_ssw) - 32'sd1;
@@ -224,6 +226,7 @@ module engine_geom #(
                 if (s_hi_x < t_x1) t_x1 = s_hi_x;
                 if (s_hi_y < t_y1) t_y1 = s_hi_y;
             end
+`endif
 
             if ((t_x1 < t_x0) || (t_y1 < t_y0)) i_empty = 1'b1;
             else                                    i_empty = 1'b0;
@@ -233,13 +236,21 @@ module engine_geom #(
     // 源的行首 x 偏移：sx0 = src_x + (x0 - dst_x)
     wire signed [31:0] sx_off = p_sx + (t_x0 - p_dx);
 
-    // D7 的两条判定（D37）。注错位 2（值 4）：ALPHA 也按 COPY 处理。
+    // D7 的两条判定（D37）。
     // 声明放在用它的段计算之前：先用后声明在 iverilog 与 Efinity 里能过，换一个工具未必。
-    wire d7_read_dst = !(((r_eq == EQ_COPY) ||
-                          (((INJECT & 4) != 0) && (r_eq == EQ_ALPHA))));
-    // 本行发不发读目的描述符。正式配置就是 d7_read_dst；注错位 3（值 8）让 COPY 也发，
+    wire d7_read_dst;
+`ifdef INJ_ALPHA_AS_COPY
+    assign d7_read_dst = ((r_eq == EQ_COPY) || (r_eq == EQ_ALPHA));  // 注错：ALPHA 也按 COPY
+`else
+    assign d7_read_dst = !(r_eq == EQ_COPY);
+`endif
+    // 本行发不发读目的描述符。正式配置就是 d7_read_dst；注错版让 COPY 也发，
     // 而边带的 sb_read_dst 仍按 D7 说不读——测试台的握手计数要抓住多出来的那几笔。
-    wire seg_read_dst = d7_read_dst || ((INJECT & 8) != 0);
+`ifdef INJ_COPY_READ
+    wire seg_read_dst = 1'b1;             // 注错：COPY 也发读目的描述符
+`else
+    wire seg_read_dst = d7_read_dst;
+`endif
 
     // ---------------------------------------------------------------- 本行的段
     // 组合量：从 dst_cur / src_cur / nb 算出本行最多六个候选段与一个边带槽。
@@ -268,9 +279,11 @@ module engine_geom #(
         a1   = (dst_cur + nb + 32'd15) & 32'hFFFFFFF0;
         alen = a1 - a0;
         page_left = 13'h1000 - {1'b0, a0[11:0]};
-        // 注错位 1：跨 4KB 不拆
-        xcross = (((INJECT & 2) == 0)) &&
-                 (({19'b0, a0[11:0]} + {19'b0, alen[11:0]}) > 32'h1000);
+`ifdef INJ_NO_SPLIT
+        xcross = 1'b0;                       // 注错：跨 4KB 不拆
+`else
+        xcross = (({19'b0, a0[11:0]} + {19'b0, alen[11:0]}) > 32'h1000);
+`endif
         if (xcross) begin
             b0 = (page_left > {1'b0, max_bytes}) ? max_bytes : page_left[11:0];
             b1 = alen[11:0] - b0;
@@ -283,8 +296,11 @@ module engine_geom #(
         s_a1  = (src_cur + nb + 32'd15) & 32'hFFFFFFF0;
         s_len = s_a1 - s_a0;
         page_left_s = 13'h1000 - {1'b0, s_a0[11:0]};
-        sxcross = (((INJECT & 2) == 0)) &&
-                  (({19'b0, s_a0[11:0]} + {19'b0, s_len[11:0]}) > 32'h1000);
+`ifdef INJ_NO_SPLIT
+        sxcross = 1'b0;                      // 注错：跨 4KB 不拆
+`else
+        sxcross = (({19'b0, s_a0[11:0]} + {19'b0, s_len[11:0]}) > 32'h1000);
+`endif
         if (sxcross) begin
             s_b0 = (page_left_s > {1'b0, max_bytes}) ? max_bytes : page_left_s[11:0];
             s_b1 = s_len[11:0] - s_b0;
@@ -343,10 +359,17 @@ module engine_geom #(
     wire last_wr_seg = (seg_i == 3'd6) || (seg_pres[6] == 1'b0);
     wire last_row_now = (row_i == (nrows - 16'd1));
 
-    // 行缓冲那一半空没空（D41）。注错位 4（值 16）：不看，直接开下一行。
-    wire rf_first = row_free[0]          || ((INJECT & 16) != 0);   // 命令的第 0 行
-    wire rf_cur   = row_free[row_i[0]]   || ((INJECT & 16) != 0);   // S_GATE 里等的这一行
-    wire rf_next  = row_free[~row_i[0]]  || ((INJECT & 16) != 0);   // S_ADV 要推进到的下一行
+    // 行缓冲那一半空没空（D41）。
+`ifdef INJ_ROW_NOFREE
+    // 注错：不看 row_free，直接开下一行
+    wire rf_first = 1'b1;                 // 命令的第 0 行
+    wire rf_cur   = 1'b1;                 // S_GATE 里等的这一行
+    wire rf_next  = 1'b1;                 // S_ADV 要推进到的下一行
+`else
+    wire rf_first = row_free[0];          // 命令的第 0 行
+    wire rf_cur   = row_free[row_i[0]];   // S_GATE 里等的这一行
+    wire rf_next  = row_free[~row_i[0]];  // S_ADV 要推进到的下一行
+`endif
 
     always @* begin
         sb_valid      = cur_sb;

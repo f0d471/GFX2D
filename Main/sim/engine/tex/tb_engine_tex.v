@@ -28,8 +28,7 @@
 `endif
 
 module tb_engine_tex #(
-    parameter integer TEX_LATENCY = 1,
-    parameter integer MOVER_INJECT = 0
+    parameter integer TEX_LATENCY = 1
 );
     localparam integer CASE_WORDS = 32768;      // 512 KiB，与 --tex-sprites 的窗口一致
     // 命令表落点：512 KiB 从机窗口的顶部空白段（FB 到 0x61000、twin 到 0x66000；
@@ -41,11 +40,31 @@ module tb_engine_tex #(
     reg clk = 0, rst = 1;
     always #5 clk = ~clk;
 
-    `ifdef INJECT_TEX_VAL
-    localparam integer TEX_INJ = `INJECT_TEX_VAL;
+    // 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）；TEX_INJ 只为打印。
+    `ifdef INJ_VALID_EARLY
+    localparam integer TEX_INJ = 1;
+    `elsif INJ_WR_LOOSE
+    localparam integer TEX_INJ = 2;
+    `elsif INJ_STAT_DROP
+    localparam integer TEX_INJ = 4;
+    `elsif INJ_TX_NOWAIT
+    localparam integer TEX_INJ = 64;
     `else
     localparam integer TEX_INJ = 0;
     `endif
+
+    // 上面开关的合取，用于「注入构建跑到单元级就收尾」这一个判断。
+    // INJ_TX_NOWAIT 不在其中：它注入的是搬运层（原始设计用 mover 的注错参数做同一件事），
+    // 靶子在整机级的像素流碰撞，单元级看不到，必须让它继续跑下去。
+`ifdef INJ_VALID_EARLY
+`define INJ_ANY_TEX
+`endif
+`ifdef INJ_WR_LOOSE
+`define INJ_ANY_TEX
+`endif
+`ifdef INJ_STAT_DROP
+`define INJ_ANY_TEX
+`endif
 
     integer errors = 0;
     integer tck = 0;
@@ -83,7 +102,7 @@ module tb_engine_tex #(
     wire [1:0]   ustat_buf;
     wire         utex_busy;
 
-    engine_tex #(.INJECT(TEX_INJ), .READ_LATENCY(TEX_LATENCY)) u_unit (
+    engine_tex #(.READ_LATENCY(TEX_LATENCY)) u_unit (
         .clk(clk), .rst(rst),
         .paddr(uapaddr), .psel(uapsel), .penable(uapen), .pwrite(uapwr),
         .pwdata(uapwdata), .prdata(uaprdata), .pready(uapready), .pslverr(uapslverr),
@@ -314,7 +333,7 @@ module tb_engine_tex #(
     wire [15:0] wstrb;
     wire irq_b, fe_cidx_err;
 
-    engine_top #(.TEX_READ_LATENCY(TEX_LATENCY), .MOVER_INJECT(MOVER_INJECT)) u_eng(
+    engine_top #(.TEX_READ_LATENCY(TEX_LATENCY)) u_eng(
         .clk(clk), .rst_ctrl(rst), .rst_ddr_n(!rst),
         .paddr(paddr), .psel(psel), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(prdata), .pready(pready), .pslverr(pslverr),
@@ -359,7 +378,9 @@ module tb_engine_tex #(
         if (u_eng.u_mover.core_rs_pix && u_eng.u_mover.tex_rs_pix)
             begin
                 errors=errors+1; $display("PIXEL_STREAM_COLLISION");
-                if (MOVER_INJECT == 64) begin $display("TEX MIX INJECT red"); $finish; end
+`ifdef INJ_TX_NOWAIT
+                $display("TEX MIX INJECT red"); $finish;
+`endif
             end
         if (prev_fe_state == 2'd2 && !prev_fe_stat && u_eng.u_cmd.fe_stat && !prev_fetch_status)
             begin errors=errors+1; $display("FETCH_STATUS_ATTRIBUTION"); end
@@ -537,26 +558,39 @@ module tb_engine_tex #(
 
     initial begin
         $readmemh({`CASE, ".tex.hex"}, tex_ref);
-        if (TEX_INJ == 0) begin
-            $readmemh({`CASE, ".cmd.hex"}, cmd_rom);
-            $readmemh({`CASE, ".surf.hex"}, surf_rom);
-            $readmemh({`CASE, ".exp.hex"}, exp_mem);
-            $readmemh({`CASE, ".init.hex"}, init_mem);
-            $readmemh({`CASE, ".cnt.hex"}, cnt_hex);
-            $readmemh({`CASE, ".stats.hex"}, stats_hex);
-        end
+`ifdef INJ_TX_NOWAIT
+        // 这一处变异注入的是搬运层，靶子在整机级的像素流碰撞，fixture 照常装载
+`elsif INJ_ANY_TEX
+        // 其余注错构建只跑单元级，整机级的 fixture 不装载
+`else
+        $readmemh({`CASE, ".cmd.hex"}, cmd_rom);
+        $readmemh({`CASE, ".surf.hex"}, surf_rom);
+        $readmemh({`CASE, ".exp.hex"}, exp_mem);
+        $readmemh({`CASE, ".init.hex"}, init_mem);
+        $readmemh({`CASE, ".cnt.hex"}, cnt_hex);
+        $readmemh({`CASE, ".stats.hex"}, stats_hex);
+`endif
 
         // ---------------- 单元级 ----------------
         repeat (5) @(negedge clk); rst = 0;
         repeat (2) @(negedge clk);
         unit_apb_cases;
         unit_stream_cases;
-        if (TEX_INJ != 0) begin
-            $display("TEX INJECT %0d red=%0d", TEX_INJ, errors);
-            if (errors == 0) $display("TEX INJECT NOT_RED");
-            $finish;
-        end
+`ifdef INJ_ANY_TEX
+        // 每处变异各自打印一行定位证据，run.sh 按它核对「红在对应判据上」；
+        // 取不到证据时打印 NOT_RED，避免把「注错没生效」误读成「判据没问题」。
+`ifdef INJ_VALID_EARLY
+        if (errors != 0) $display("STR-DATA red=%0d", errors);
+`endif
+`ifdef INJ_WR_LOOSE
+        if (errors != 0) $display("APB-UNALIGN-SIDE-EFFECT red=%0d", errors);
+`endif
+        $display("TEX INJECT %0d red=%0d", TEX_INJ, errors);
+        if (errors == 0) $display("TEX INJECT NOT_RED");
+        $finish;
+`else
         $display("UNIT done errors=%0d", errors);
+`endif
 
         // ---------------- 整机级：渲染 + PERF 对账 ----------------
         rst = 1;

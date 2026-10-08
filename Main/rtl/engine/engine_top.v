@@ -32,9 +32,9 @@
 `include "engine_regs_offsets.vh"
 
 module engine_top #(
-    parameter integer INJECT = 0,     // 仿真注错口，透传给命令层；综合时常量
-    parameter integer TEX_READ_LATENCY = 1,
-    parameter integer MOVER_INJECT = 0
+    // 注错（变异测试）：各子模块的变异由 `ifdef INJ_xxx 选择 compile 输入，
+    // 见 Main/doc/开发环境.md 0.3 节，本层不再透传注错参数。
+    parameter integer TEX_READ_LATENCY = 1
 )(
     input  wire        clk,           // core_clk，100 MHz，与 SoC、DDR3 控制器同域
     input  wire        rst_ctrl,      // 控制层复位（soc_system_reset），同步、高有效
@@ -239,7 +239,7 @@ module engine_top #(
     // =====================================================================
     // 命令层
     // =====================================================================
-    engine_cmd #(.INJECT(INJECT)) u_cmd (
+    engine_cmd u_cmd (
         .clk(clk), .rst(rst_ctrl),
         .kick(kick), .list_base(list_base), .list_count(list_count),
         .soft_rst(soft_pending),
@@ -285,7 +285,7 @@ module engine_top #(
     // =====================================================================
     // 几何层
     // =====================================================================
-    engine_geom #(.MAX_BEATS(192), .INJECT(0)) u_geom (
+    engine_geom #(.MAX_BEATS(192)) u_geom (
         .clk(clk), .rst(rst_ctrl),
         .start(geom_start),
         .op(i1_op), .eq(i1_eq), .key_en(i1_key_en),
@@ -316,7 +316,7 @@ module engine_top #(
     // =====================================================================
     // 计算阵列与计算核心
     // =====================================================================
-    engine_pix #(.INJECT(0)) u_pix (
+    engine_pix u_pix (
         .clk(clk), .rst(rst_ctrl),
         .sb_row(sb_row), .sb_npx(sb_npx), .sb_beats(sb_beats),
         .sb_lead_dst(sb_lead_dst), .sb_lead_src(sb_lead_src),
@@ -334,7 +334,7 @@ module engine_top #(
     // =====================================================================
     // 搬运层（AXI 事务层）
     // =====================================================================
-    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13), .INJECT(MOVER_INJECT)) u_mover (
+    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13)) u_mover (
         .clk(clk), .rst(mover_rst),
         .rd_addr(g_rd_addr), .rd_bytes(g_rd_bytes), .rd_buf(g_rd_buf),
         .rd_cidx(g_rd_cidx), .rd_tex(g_rd_tex),
@@ -382,7 +382,7 @@ module engine_top #(
     // TEX 装载窗口（G1，D57）：第 4~7 页的 16 KiB scratchpad
     // =====================================================================
     assign tex_psel = psel && apb_hit_tex;
-    engine_tex #(.INJECT(0), .READ_LATENCY(TEX_READ_LATENCY)) u_tex (
+    engine_tex #(.READ_LATENCY(TEX_READ_LATENCY)) u_tex (
         .clk(clk), .rst(rst_ctrl),
         .paddr(paddr[13:0]), .psel(tex_psel), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(tex_prdata), .pready(tex_pready), .pslverr(tex_pslverr),

@@ -16,7 +16,12 @@
 // 结束时期望队列取空、两半都放出来、没有多余的拍。
 `timescale 1ns/1ps
 `default_nettype none
-`ifndef INJ_VAL
+// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）；INJ_VAL 只为打印。
+`ifdef INJ_EN_NOTREADY
+`define INJ_VAL 8
+`elsif INJ_CORE_NOEN
+`define INJ_VAL 16
+`else
 `define INJ_VAL 0
 `endif
 `ifndef READY_MODE
@@ -47,7 +52,7 @@ module tb_engine_pix_pipe;
     wire         ws_tvalid;
     reg          ws_tready = 1;
 
-    engine_pix #(.INJECT(`INJ_VAL)) dut (
+    engine_pix dut (
         .clk(clk), .rst(rst), .sb_row(sb_row), .sb_npx(sb_npx), .sb_beats(sb_beats),
         .sb_lead_dst(sb_ld), .sb_lead_src(sb_ls), .sb_op(sb_op), .sb_eq(sb_eq),
         .sb_key_en(sb_key_en), .sb_key(sb_key), .sb_w4(sb_w4), .sb_c(sb_c),

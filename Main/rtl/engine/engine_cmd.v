@@ -130,9 +130,7 @@ module ec_fields(
 endmodule
 
 // =====================================================================
-module engine_cmd #(
-    parameter integer INJECT = 0
-)(
+module engine_cmd (
     input  wire        clk,
     input  wire        rst,           // 控制层复位（soc_system_reset），同步
 
@@ -221,7 +219,10 @@ module engine_cmd #(
     localparam [7:0] OP_CLIP = 8'h03;
     localparam [7:0] OP_END  = 8'hff;
 
-    wire inj_nofb = (INJECT & 2) != 0;    // 关掉逐条回退
+    // 注错（变异测试）：两处变异各包在 `ifdef 内，都不定义时它们不进编译输入。
+    // 编译开关与 sim/engine/ctrl/run.sh 的用例一一对应，一次只开一个：
+    //   INJ_CHK_SWAP  用对调 space/format 的错误码，十步检查的顺序判据必须红
+    //   INJ_NO_FB     关掉逐条回退，整批失败时直接报错收尾
 
     // =====================================================================
     // 裁剪框（spec §4.4）：复位与软复位恢复全游戏区 [0,639]×[0,479]（闭区间）
@@ -487,7 +488,11 @@ module engine_cmd #(
                       : premult_bad ? {1'b1, EC_ERR_BAD_PREMULT}
                       : ovl_bad_c   ? {1'b1, EC_ERR_OVERLAP}
                       :               {1'b0, EC_ERR_OK};
-    wire [4:0] chk = ((INJECT & 1) != 0) ? v_swap : v_norm;
+`ifdef INJ_CHK_SWAP
+    wire [4:0] chk = v_swap;              // 注错：用对调 space/format 的错误码
+`else
+    wire [4:0] chk = v_norm;
+`endif
 
     // SET_CLIP 的新框：x1 = x + w − 1。x 是有符号 16 位、w 是无符号 16 位，
     // 和的范围 [−32768, 98301]，用 18 位有符号求值再饱和到 16 位
@@ -579,13 +584,17 @@ module engine_cmd #(
                     err_tag   <= 32'd0;
                     st        <= S_TERM;
                 end else if (fe_done && fe_owner == 2'd0) begin
-                    if (fe_err && inj_nofb) begin
+`ifdef INJ_NO_FB
+                    if (fe_err) begin
                         err_set   <= 1'b1;              // 注错：关掉逐条回退
                         err_code  <= EC_ERR_FETCH;
                         err_index <= bi;
                         err_tag   <= 32'd0;
                         st        <= S_TERM;
                     end else if (fe_err) begin
+`else
+                    if (fe_err) begin
+`endif
                         k   <= bi;                      // 整批失败：从批首逐条回退
                         per <= 1'b1;
                         st  <= S_PERW;
@@ -813,15 +822,15 @@ module engine_cmd #(
                         per <= 1'b1;
                         nst <= N_IDLE;
                         rq_pf <= 1'b0;
-                        if (inj_nofb) begin
-                            pend_err  <= 1'b1;
-                            err_code  <= EC_ERR_FETCH;
-                            err_index <= n_bi;
-                            err_tag   <= 32'd0;
-                            st        <= S_TERM;
-                        end else begin
-                            st <= S_PERW;
-                        end
+`ifdef INJ_NO_FB
+                        pend_err  <= 1'b1;      // 注错：关掉逐条回退
+                        err_code  <= EC_ERR_FETCH;
+                        err_index <= n_bi;
+                        err_tag   <= 32'd0;
+                        st        <= S_TERM;
+`else
+                        st <= S_PERW;
+`endif
                     end
                     // N_INFL：等预取收尾（不能停 fs_tready）
                 end

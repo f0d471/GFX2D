@@ -24,8 +24,10 @@
 | `display_fifo.v` | 跨时钟的异步 FIFO：仓内厂商明文源码 `efx_fifo_wrapper` 的薄封装（`SYNC_CLK=0`、512 深 × 128 位、`OUTPUT_REG=0`），定值与三条纪律写在文件头 |
 | `display_out.v` | 像素侧（像素时钟）：唯一的视频时序发生器（例化官方 `color_bar_rgb`）、拍拆像素、D=1 对齐、`SRC` 二选一、水位与欠载观测、帧快照 |
 
-`display_fetch`/`display_out` 各有一个 `parameter integer INJECT`，是**仿真注错口**：0 是正式配置，
-综合时它是常量、对应分支会被优化掉。位定义见两个文件的端口说明，用它的地方只有 `sim/display/run.sh`。
+`display_fetch`/`display_out` 各有若干处注错（变异测试），各包在 `` `ifdef INJ_xxx `` 内：不定义时
+那些行进不了编译输入，RTL 的干净形态就是正式配置。开关名见两个文件的文件头，
+用它的地方只有 `sim/display/run.sh`；机制与提交前检查见
+[`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节。
 设计依据、寄存器表、判据与实测数据见
 [display 第 01 章](../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md)。
 
@@ -45,8 +47,10 @@ G1 在此基础启用 TEX profile，接口、验证与板测见
 | `engine_pix.v` | B4：计算阵列与片上缓存。源 512×128、目的 512×96（X 字节不存）两块行缓冲，各放两行乒乓；两拍窗口的像素旋转、首末拍掩码与色键（比原始存储字），在 X 字节最高位打「不写」标记；12 个 `engine_blend` 的四像素通路，FILL 的 a 一律取 `w4[31:24]`（规范条款 §4.2）；七拍流水挂一个时钟使能 `en = ws_tready \|\| !ws_tvalid`，写核停时整条停。I3 读流恒 ready，I4 写流没有 `tlast`（D48），`row_free[1:0]` 在该半写流末拍被写核收走之后拉高（D45）。B5 的 `engine_top.v` 已例化，B6 已接入 SoC 网表 |
 | `engine_top.v`、`engine_regs.v`、`engine_cmd.v` | B5：APB 寄存器、命令表批量取数、十步检查、错误三元组与性能计数；`engine_top` 例化 B1~B4，各文件已列进工程源文件列表。159 向量端到端与 D1~D16 定向、单独综合和板卡基线均已验收；B6 已接入 SoC 顶层。寄存器偏移由 `tools/check/regs_gen.py` 生成，不手改 `.vh` |
 
-B1~B4 的四个文件各有一个 `parameter integer INJECT`，是仿真注错口：0 是正式配置，综合时是常量、
-对应分支会被优化掉。位定义见各自文件头，用它的地方只有 `sim/engine/` 下各自目录的 `run.sh`（B4 是 `run_formal.sh`）。
+B1~B4、B5 与 G1 的六个文件各有若干处注错（变异测试），各包在 `` `ifdef INJ_xxx `` 内：
+不定义时那些行进不了编译输入，RTL 的干净形态就是正式配置，不依赖综合器把常量分支优化掉。
+开关名见各自文件头，用它的地方只有 `sim/engine/` 下各自目录的 `run.sh`（B4 是 `run_formal.sh`）。
+机制、命名与提交前检查见 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节。
 
 设计依据、定案与实测数据见
 [`../../Engineering/TechReports/engine/01-计算核心.md`](../../Engineering/TechReports/engine/01-计算核心.md)（B1，D9、D24~D28）、

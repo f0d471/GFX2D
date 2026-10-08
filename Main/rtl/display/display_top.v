@@ -31,10 +31,7 @@ module display_top #(
     parameter [31:0]  FRONT_BASE_DEF = 32'h0200_0000,
     parameter [31:0]  BACK_BASE_DEF  = 32'h0240_0000,
     parameter integer LINE_BEATS     = 160,
-    parameter integer DEPTH          = 512,
-    // 仿真注错口（透传给 display_fetch 与 display_out）：0 是正式配置。
-    // 位 0~3 给取数侧，位 4~5 给像素侧，见两个子模块的端口说明。
-    parameter integer INJECT         = 0
+    parameter integer DEPTH          = 512
 )(
     input  wire         clk_core,       // core_clk（100MHz）
     input  wire         rst_core,       // 同步复位，高有效（顶层的 soc_system_reset）
@@ -132,8 +129,7 @@ module display_top #(
         .BACK_BASE_DEF  (BACK_BASE_DEF),
         .V_ACTIVE       (V_ACTIVE),
         .LINE_BEATS     (LINE_BEATS),
-        .DEPTH          (DEPTH),
-        .INJECT         (INJECT)
+        .DEPTH          (DEPTH)
     ) u_fetch (
         .clk        (clk_core),
         .rst        (rst_core),
@@ -189,8 +185,7 @@ module display_top #(
         .V_FP     (V_FP),
         .V_SYNC   (V_SYNC),
         .V_BP     (V_BP),
-        .SYNC_POL (SYNC_POL),
-        .INJECT   (INJECT)
+        .SYNC_POL (SYNC_POL)
     ) u_out (
         .clk        (clk_pixel),
         .rst_n      (rst_pixel_n),

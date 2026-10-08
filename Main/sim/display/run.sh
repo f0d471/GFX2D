@@ -69,15 +69,15 @@ check_disp snapshot         PASS -DCASE_SNAPSHOT
 check_disp corerst          PASS -DCASE_CORERST
 
 # ---- 注错：每一个都要红在它对应的判据上 ----
-check_disp inj_lag0         FAIL -DCASE_IMAGE -DINJECT_VAL=16
-check_disp inj_order        FAIL -DCASE_IMAGE -DINJECT_VAL=64
-check_disp inj_phase        FAIL -DCASE_IMAGE -DINJECT_VAL=32
+check_disp inj_lag0         FAIL -DCASE_IMAGE -DINJ_LAG0
+check_disp inj_order        FAIL -DCASE_IMAGE -DINJ_ORDER_REV
+check_disp inj_phase        FAIL -DCASE_IMAGE -DINJ_PHASE3
 # inj_no_drain 的靶子是「场起始排空在途那一笔」，它跟 starve 配对：
 # 正常场的最后一行早就取完，场起始时取数侧是闲着的，跟 image 配对测不出任何东西。
-check_disp inj_no_drain     FAIL -DCASE_STARVE -DINJECT_VAL=1
-check_disp inj_no_clear     FAIL -DCASE_IMAGE -DINJECT_VAL=2
-check_disp inj_inflight2    FAIL -DCASE_INFLIGHT -DINJECT_VAL=8
-check_disp inj_swap_now     FAIL -DCASE_SWAP -DINJECT_VAL=4
+check_disp inj_no_drain     FAIL -DCASE_STARVE -DINJ_NO_DRAIN
+check_disp inj_no_clear     FAIL -DCASE_IMAGE -DINJ_NO_CLEAR
+check_disp inj_inflight2    FAIL -DCASE_INFLIGHT -DINJ_INFLIGHT2
+check_disp inj_swap_now     FAIL -DCASE_SWAP -DINJ_SWAP_NOW
 
 # ---- 整帧用例：跑得慢，单独开关 ----
 if [ "${FULL:-0}" = "1" ]; then

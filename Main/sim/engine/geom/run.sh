@@ -56,10 +56,12 @@ fi
 echo ""
 
 # ---------------------------------------------------------------- 2 单元仿真
-# build_one <名字> <INJECT 值>
+# build_one <名字> [注错开关...]（开关是预处理器级宏，直接作用于被测 RTL）
 build_one() {
-    iverilog -g2012 -o "$BUILD/$1.vvp" -DINJECT_VAL=$2 \
-        "$RTL/engine/engine_geom.v" tb_engine_geom.v > "$BUILD/$1.compile.log" 2>&1
+    local name=$1
+    shift
+    iverilog -g2012 -o "$BUILD/$name.vvp" "$@" \
+        "$RTL/engine/engine_geom.v" tb_engine_geom.v > "$BUILD/$name.compile.log" 2>&1
 }
 
 # run_case <日志名> <vvp 名> <记录文件> <期望 RESULT> [plusargs]
@@ -78,7 +80,7 @@ run_case() {
 }
 
 echo "单元仿真 engine_geom（第 03 章 3.7 节）："
-build_one geom 0 || { echo "  RESULT: COMPILE-ERROR (see $BUILD/geom.compile.log)"; exit 1; }
+build_one geom || { echo "  RESULT: COMPILE-ERROR (see $BUILD/geom.compile.log)"; exit 1; }
 run_case geom_directed geom "$BUILD/directed.hex" PASS
 run_case geom_vectors  geom "$BUILD/vectors.hex"  PASS
 run_case geom_cases    geom "$BUILD/cases.hex"    PASS
@@ -96,20 +98,18 @@ echo ""
 
 # ---------------------------------------------------------------- 3 注错
 echo "注错用例（期望 FAIL，且红在对应的判据上）："
-# 位 0：漏掉第五项求交（源表面）
-build_one inj_nosrc 1
+# 五处变异各开一个开关
+build_one inj_nosrc -DINJ_SKIP_SURF
 run_case inj_nosrc inj_nosrc "$BUILD/directed.hex" FAIL
-# 位 1：跨 4KB 不拆
-build_one inj_no4k 2
+build_one inj_no4k -DINJ_NO_SPLIT
 run_case inj_no4k inj_no4k "$BUILD/directed.hex" FAIL
-# 位 2：ALPHA 误开读目的避让
-build_one inj_alpha 4
+build_one inj_alpha -DINJ_ALPHA_AS_COPY
 run_case inj_alpha inj_alpha "$BUILD/directed.hex" FAIL
-# 位 3：COPY 也发读目的（多发的描述符，消费循环看不见，要握手监视器抓）
-build_one inj_extra 8
+# COPY 也发读目的：多发的描述符，消费循环看不见，要握手监视器抓
+build_one inj_extra -DINJ_COPY_READ
 run_case inj_extra inj_extra "$BUILD/directed.hex" FAIL
-# 位 4：行开始之前不看 row_free（要排空拉长才露出来）
-build_one inj_norf 16
+# 行开始之前不看 row_free：要排空拉长才露出来
+build_one inj_norf -DINJ_ROW_NOFREE
 run_case inj_norf inj_norf "$BUILD/directed.hex" FAIL "+RFSTALL"
 
 check_marker() {

@@ -31,6 +31,8 @@ G1 的 `engine/tex/` 为正式 TEX 验证：APB 全窗口、两种读延迟、TE
 
 每个 `run.sh` 除了正常用例，还必须带注错用例：把一处改错，对应的判据必须报 FAIL。全部用例都符合预期才输出 `SIM OK`，否则退出码非零。只跑正常用例无法说明判据真的在检查东西。
 
+注错的机制、命名与提交前检查见 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节（原型是变异测试 / functional qualification，与安全标准的 fault injection 不同）。要点：生产 RTL 里不放运行时注错开关，变异分支包在 `` `ifdef INJ_xxx `` 内，开关由 `run.sh` 以 `-DINJ_xxx` 传入，不定义时那些行进不了编译输入。`sim/` 下不综合的研究探针（`probe_*.v`）例外，它们继续用参数化注错口，不进网表。
+
 | 用例 | 注错内容 | 期望 |
 | --- | --- | --- |
 | `hdmi/inject_hbp` | 行后沿少 1 个像素 | FAIL |
@@ -49,16 +51,20 @@ G1 的 `engine/tex/` 为正式 TEX 验证：APB 全窗口、两种读延迟、TE
 | `engine/blend/inject_unreg_c` | 乘之后只寄存乘积，`base × 255` 仍取当前输入（2026-09-29 草案里真实出现过的错） | FAIL，ALPHA 上两拍的操作数被相加 |
 | `engine/blend/inject_copy_dst` | COPY 的 `base` 误取 `src + dst`（抄了 ADD 行） | FAIL，COPY 的第一个向量；方程用不到的输入若固定成 0 就看不出 |
 | `engine/blend/inject_x_no_en` | 级 2 的 `r_x` 不看 `en` | FAIL，第一次停顿之后；`en` 恒为 1 时看不出 |
-| `engine/mover/inject_nogate_rd` | 去掉读方向的在途门控（`INJECT=1`），读核一 ready 就放下一个 | FAIL，读流上下文错位（拍子带的目标缓冲号与命令索引属于另一笔），总线侧也有违例周期 |
-| `engine/mover/inject_mask` | 带内掩码旁路（`INJECT=2`），`wstrb` 与 X 字节直通 | FAIL，被标记「不写」的像素被写进了目的区 |
-| `engine/mover/inject_nodrain` | 排空旁路（`INJECT=4`），排空期不帮忙收读流、也不补哑拍 | FAIL，两个方向都停在忙态，排空完成等不到 |
-| `engine/mover/inject_nogate_wr` | 去掉写方向的在途门控（`INJECT=8`） | FAIL，上一笔写还没结束就接受了下一个写描述符 |
-| `engine/mover/inject_drain_level` | 排空按电平重进（`INJECT=16`），且只在排空态里挡提交 | FAIL，请求举着时 `drain_done` 打了两次，退出排空那一拍接受了新的读描述符 |
-| `engine/geom/inject_nosrc` | `engine_geom` 的 `INJECT=1`：求交跳过第五项（源表面） | FAIL，逐条比对见红：矩形变大，边带、读描述符、写描述符都不同 |
-| `engine/geom/inject_no4k` | `INJECT=2`：跨 4KB 不拆，一个描述符盖过页边界 | FAIL，`RULE1 ... crosses 4KB`（定向用例里 8 处） |
-| `engine/geom/inject_alpha` | `INJECT=4`：ALPHA 也按 COPY 走「不读目的」的避让 | FAIL，`MISMATCH sideband read-dst vs D7`，读描述符少一半 |
-| `engine/geom/inject_extra` | `INJECT=8`：COPY 也发读目的描述符（边带仍说不读） | FAIL，握手监视器的 `PROTO handshake count`（消费循环看不见多发的描述符） |
-| `engine/geom/inject_norf` | `INJECT=16`：行开始之前不看 `row_free`，配 `+RFSTALL` | FAIL，行缓冲替身的 `BUFERR ... started on busy half` |
+| `engine/mover/inject_nogate_rd` | 去掉读方向的在途门控（`-DINJ_NO_GATE_RD`），读核一 ready 就放下一个 | FAIL，读流上下文错位（拍子带的目标缓冲号与命令索引属于另一笔），总线侧也有违例周期 |
+| `engine/mover/inject_mask` | 带内掩码旁路（`-DINJ_MASK_BYPASS`），`wstrb` 与 X 字节直通 | FAIL，被标记「不写」的像素被写进了目的区 |
+| `engine/mover/inject_nodrain` | 排空旁路（`-DINJ_DRAIN_BYPASS`），排空期不帮忙收读流、也不补哑拍 | FAIL，两个方向都停在忙态，排空完成等不到 |
+| `engine/mover/inject_nogate_wr` | 去掉写方向的在途门控（`-DINJ_NO_GATE_WR`） | FAIL，上一笔写还没结束就接受了下一个写描述符 |
+| `engine/mover/inject_drain_level` | 排空按电平重进（`-DINJ_DRAIN_LEVEL`），且只在排空态里挡提交 | FAIL，请求举着时 `drain_done` 打了两次，退出排空那一拍接受了新的读描述符 |
+| `engine/mover/inject_no_tlast` | 正常写流不打 `tlast`（`-DINJ_NO_TLAST`，D48 之前靠计算阵列给而它没给） | FAIL，写核进 `DROP_DATA`，吞掉下一笔的写流 |
+| `engine/geom/inject_nosrc` | `-DINJ_SKIP_SURF`：求交跳过第五项（源表面） | FAIL，逐条比对见红：矩形变大，边带、读描述符、写描述符都不同 |
+| `engine/geom/inject_no4k` | `-DINJ_NO_SPLIT`：跨 4KB 不拆，一个描述符盖过页边界 | FAIL，`RULE1 ... crosses 4KB` |
+| `engine/geom/inject_alpha` | `-DINJ_ALPHA_AS_COPY`：ALPHA 也按 COPY 走「不读目的」的避让 | FAIL，`MISMATCH sideband read-dst vs D7`，读描述符少一半 |
+| `engine/geom/inject_extra` | `-DINJ_COPY_READ`：COPY 也发读目的描述符（边带仍说不读） | FAIL，握手监视器的 `PROTO handshake count`（消费循环看不见多发的描述符） |
+| `engine/geom/inject_norf` | `-DINJ_ROW_NOFREE`：行开始之前不看 `row_free`，配 `+RFSTALL` | FAIL，行缓冲替身的 `BUFERR ... started on busy half` |
+| `engine/pix` 的五个注错 | `-DINJ_ROT_OFF`、`-DINJ_SKIP_KEY`、`-DINJ_DROP_MASK`、`-DINJ_EN_NOTREADY`、`-DINJ_CORE_NOEN` | FAIL，各自红在对应的像素比对或协议检查上；`-DINJ_EN_NOTREADY`/`-DINJ_CORE_NOEN` 在恒 ready 的测试台上必须不红 |
+| `engine/tex` 的四个注错 | `-DINJ_VALID_EARLY`、`-DINJ_WR_LOOSE`、`-DINJ_STAT_DROP`、`-DINJ_TX_NOWAIT` | FAIL，证据行分别是 `STR-DATA`、`APB-UNALIGN-SIDE-EFFECT`、`TEX INJECT 4 STATUS_MISSING`、`PIXEL_STREAM_COLLISION` |
+| `display` 的七个注错 | `-DINJ_NO_DRAIN`、`-DINJ_NO_CLEAR`、`-DINJ_SWAP_NOW`、`-DINJ_INFLIGHT2`、`-DINJ_LAG0`、`-DINJ_PHASE3`、`-DINJ_ORDER_REV` | FAIL，各自红在对应的判据上 |
 | `engine/geom` 的探针注错 | `probe_geom.v` 的 `INJECT`（跨 4KB 不拆、漏第五项、`probe_geom_d7` 的 ALPHA 误避让） | FAIL，各自红在探针自己的判据上（14/14 → 见红） |
 
 后两个 `apb_probe` 注错对应的是顶层曾经真实存在的 bug：APB 信号在顶层没有声明，被当成 1 位线，32 位地址和数据都被截断。

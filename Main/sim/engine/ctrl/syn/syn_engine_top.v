@@ -43,7 +43,7 @@ module syn_engine_top(input wire clk, input wire rst, output reg [127:0] obs);
     wire        m_axi_bready;              // 引擎的输出（mover 驱动）
     wire        irq_b, dbg_fe_cidx_err;
 
-    engine_top #(.INJECT(0)) u_dut (
+    engine_top u_dut (
         .clk(clk), .rst_ctrl(rst), .rst_ddr_n(~rst),
         .paddr(paddr), .psel(psel), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(prdata), .pready(pready), .pslverr(pslverr),

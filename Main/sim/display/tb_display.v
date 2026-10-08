@@ -4,8 +4,9 @@
 //   CASE_IMAGE / CASE_SWAP / CASE_INFLIGHT / CASE_LEVEL / CASE_STARVE / CASE_SNAPSHOT / CASE_CORERST
 //   FULL_FRAME     整帧 640x480（默认小帧 640x8，逐像素比对跑得动）
 //   CLK_PLUS / CLK_MINUS   像素时钟偏 ±0.5%，结论不能依赖固定相位
-//   INJECT_VAL=n   注错（位定义见 rtl/display 两个子模块的端口说明）：
-//                  1 不排空、2 不清空、4 立刻切换、8 两笔在途、16 D=0、32 相位 psel==3、64 拍内顺序反
+//   -DINJ_xxx      注错开关，直接作用于 rtl/display 两个子模块的 `ifdef：
+//                  INJ_NO_DRAIN / INJ_NO_CLEAR / INJ_SWAP_NOW / INJ_INFLIGHT2 /
+//                  INJ_LAG0 / INJ_PHASE3 / INJ_ORDER_REV
 //
 // 从机用 ../axi_probe/axi_ram_model.v：带随机反压与读地址队列。它的存储是 4096 拍（64KB），
 // 按 (addr>>4)%4096 取模，所以两个帧缓冲不能用 4MB 的实际间隔（会重叠），本仿真取
@@ -21,6 +22,29 @@ module tb_display;
 
 `ifndef INJECT_VAL
 `define INJECT_VAL 0
+`endif
+// 注错开关（-DINJ_xxx）直接作用于被测 RTL 的 `ifdef；INJECT_VAL 只为打印，
+// 名字与 rtl/display 两个子模块的文件头、sim/display/run.sh 的用例一一对应。
+`ifdef INJ_NO_DRAIN
+`define INJECT_VAL 1
+`endif
+`ifdef INJ_NO_CLEAR
+`define INJECT_VAL 2
+`endif
+`ifdef INJ_SWAP_NOW
+`define INJECT_VAL 4
+`endif
+`ifdef INJ_INFLIGHT2
+`define INJECT_VAL 8
+`endif
+`ifdef INJ_LAG0
+`define INJECT_VAL 16
+`endif
+`ifdef INJ_PHASE3
+`define INJECT_VAL 32
+`endif
+`ifdef INJ_ORDER_REV
+`define INJECT_VAL 64
 `endif
 
 `ifdef FULL_FRAME
@@ -95,8 +119,7 @@ module tb_display;
         .FRONT_BASE_DEF (BASE0),
         .BACK_BASE_DEF  (BASE1),
         .LINE_BEATS (LINE_BEATS),
-        .DEPTH      (512),
-        .INJECT     (INJECT)
+        .DEPTH      (512)
     ) dut (
         .clk_core (clk_core),
         .rst_core (rst_core),

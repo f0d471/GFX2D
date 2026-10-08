@@ -12,7 +12,10 @@
 // 配 --sprites 那组用例量两种提交方式的总周期数（PERF 一行，从第一条提交到最后一条写回完成）。
 `timescale 1ns/1ps
 `default_nettype none
-`ifndef INJ_VAL
+// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）。
+`ifdef INJ_SKIP_KEY
+`define INJ_VAL 2
+`else
 `define INJ_VAL 0
 `endif
 `ifndef CASE
@@ -71,7 +74,7 @@ module tb_engine_path;
     wire [15:0] rs_tkeep,ws_tkeep;
     wire rs_tlast,rs_tvalid,rs_tready,ws_tvalid,ws_tready;
     wire [1:0] rs_buf;
-    engine_pix #(.INJECT(`INJ_VAL)) u_pix(
+    engine_pix u_pix(
         .clk(clk),.rst(rst),.sb_row(sb_row),.sb_npx(sb_npx),
         .sb_beats(sb_beats),.sb_lead_dst(sb_lead_dst),
         .sb_lead_src(sb_lead_src),.sb_op(sb_op),.sb_eq(sb_eq),

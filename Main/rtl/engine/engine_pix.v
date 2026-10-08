@@ -58,22 +58,20 @@
 //   I4 本层 → 搬运层：写流，tkeep 恒全 1，没有 tlast（D48：每个写描述符的末拍由
 //      搬运层按描述符拍数自己打）；本层按边带的 sb_beats 出拍。
 //
-// 仿真注错口（0 是正式配置，综合时是常量、对应分支被优化掉），
-// 位定义与 sim/engine/pix/run_formal.sh 的用例一一对应：
-//   位 0 (1)   旋转错一个位置：st 多加 1
-//   位 1 (2)   跳过色键：命中的像素照写
-//   位 2 (4)   丢首拍掩码：第 0 拍按满拍写，行首行外的像素被写坏
-//   位 3 (8)   不看写流 tready：en 恒 1，写核停顿时拍子被丢掉
-//   位 4 (16)  12 个混合核不随流水停：停顿时核里的数据照走
+// 注错（变异测试）：本文件是干净形态，五处变异各包在 `ifdef 内。
+// 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
+// 编译开关与 sim/engine/pix/run.sh 及 run_formal.sh 的用例一一对应，一次只开一个：
+//   INJ_ROT_OFF    旋转错一个位置：st 多加 1
+//   INJ_SKIP_KEY   跳过色键：命中的像素照写
+//   INJ_DROP_MASK  丢首拍掩码：第 0 拍按满拍写，行首行外的像素被写坏
+//   INJ_EN_NOTREADY 不看写流 tready：en 恒 1，写核停顿时拍子被丢掉
+//   INJ_CORE_NOEN  12 个混合核不随流水停：停顿时核里的数据照走
 //
 // 设计依据、定案 D42~D49 与实测数据见 Engineering/TechReports/engine/04-计算阵列与片上缓存.md。
 `timescale 1ns/1ps
 `default_nettype none
 
-module engine_pix #(
-    // 仿真注错口，见文件头；综合时是常量。
-    parameter integer INJECT = 0
-)(
+module engine_pix (
     input  wire         clk,
     input  wire         rst,            // 同步复位，与几何层、搬运层同一个
 
@@ -120,9 +118,16 @@ module engine_pix #(
                      PS_RUN = 2'd2, PS_DRAIN = 2'd3;
 
     // D47：同一个时钟使能管住每一级，包括行缓冲读口与 12 个核。
-    // 注错位 3 让流水不看 tready，位 4 只让 12 个核不看。
-    wire en = ((INJECT & 8) != 0) ? 1'b1 : (ws_tready || !ws_tvalid);
-    wire en_core = ((INJECT & 16) != 0) ? 1'b1 : en;
+`ifdef INJ_EN_NOTREADY
+    wire en = 1'b1;                       // 注错：流水不看 tready
+`else
+    wire en = (ws_tready || !ws_tvalid);
+`endif
+`ifdef INJ_CORE_NOEN
+    wire en_core = 1'b1;                  // 注错：只让 12 个核不看流水停
+`else
+    wire en_core = en;
+`endif
     assign ws_tkeep = 16'hffff;
     assign rs_tready = 1'b1;
 
@@ -218,7 +223,11 @@ module engine_pix #(
     wire rot_off = (r_ls >= r_ld);
     wire [2:0] st_raw = rot_off ? ({1'b0, r_ls} - {1'b0, r_ld})
                                  : ({1'b0, r_ls} + 3'd4 - {1'b0, r_ld});
-    wire [2:0] st_use = ((INJECT & 1) != 0) ? (st_raw + 3'd1) : st_raw;
+`ifdef INJ_ROT_OFF
+    wire [2:0] st_use = (st_raw + 3'd1);  // 注错：旋转错一个位置
+`else
+    wire [2:0] st_use = st_raw;
+`endif
     wire [7:0] src_k = cnt_k + {7'd0, rot_off};
     always @* begin
         src_raddr = {r_half, (pst == PS_PRE ? 8'd0 : src_k)};
@@ -265,16 +274,25 @@ module engine_pix #(
     wire [31:0] s1 = r_blit ? px1 : r_w4;
     wire [31:0] s2 = r_blit ? px2 : r_w4;
     wire [31:0] s3 = r_blit ? px3 : r_w4;
-    wire [3:0] keys = r_blit && r_key_en && ((INJECT & 2) == 0) ?
+`ifdef INJ_SKIP_KEY
+    wire [3:0] keys = 4'd0;               // 注错：跳过色键，命中的像素照写
+`else
+    wire [3:0] keys = r_blit && r_key_en ?
                       {s3 == r_key, s2 == r_key, s1 == r_key, s0 == r_key} : 4'd0;
+`endif
     // a：BLIT 的 XRGB 源取 255；FILL 一律取 w4[31:24]（规范条款 §4.2，见文件头第 4 条）
     wire [7:0] a0 = (r_blit && r_sfmt == FMT_XRGB) ? 8'hff : s0[31:24];
     wire [7:0] a1 = (r_blit && r_sfmt == FMT_XRGB) ? 8'hff : s1[31:24];
     wire [7:0] a2 = (r_blit && r_sfmt == FMT_XRGB) ? 8'hff : s2[31:24];
     wire [7:0] a3 = (r_blit && r_sfmt == FMT_XRGB) ? 8'hff : s3[31:24];
-    wire [3:0] mask_now = ((INJECT & 4) != 0 && r_k2 == 8'd0) ? 4'hf :
-                          (r_k2 == 8'd0) ? r_first_mask :
-                          (r_k2 == (r_beats - 8'd1)) ? r_last_mask : 4'hf;
+    wire [3:0] mask_now;
+`ifdef INJ_DROP_MASK
+    assign mask_now = (r_k2 == 8'd0) ? 4'hf :        // 注错：丢首拍掩码
+                      (r_k2 == (r_beats - 8'd1)) ? r_last_mask : 4'hf;
+`else
+    assign mask_now = (r_k2 == 8'd0) ? r_first_mask :
+                      (r_k2 == (r_beats - 8'd1)) ? r_last_mask : 4'hf;
+`endif
 
     // 混合核的五个输入全由寄存器直接驱动（I6 的约定，D44）：
     // 旋转与色键的组合逻辑不能挂在核的第一级前面

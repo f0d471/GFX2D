@@ -73,12 +73,13 @@ check stall      PASS -DSTALL -DSTRIDE=5
 # ONLY_EQ 把范围压到被注错的那个方程，FAILFAST 让它在第一处不符就收尾，所以这几个都很快。
 # inject_copy_dst 只有「用不到的输入会变」时才红，inject_x_no_en 只有插了停顿拍才红，
 # 它们证明 exhaustive 与 stall 真的在检查这两件事。
+# 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏），不经过 parameter。
 echo "注错用例（期望 FAIL）:"
-check inject_wrong_eq FAIL -DINJECT=1  -DONLY_EQ=3 -DFAILFAST
-check inject_trunc16  FAIL -DINJECT=2  -DONLY_EQ=2 -DFAILFAST
-check inject_unreg_c  FAIL -DINJECT=4  -DONLY_EQ=1 -DFAILFAST
-check inject_copy_dst FAIL -DINJECT=8  -DONLY_EQ=0 -DFAILFAST
-check inject_x_no_en  FAIL -DINJECT=16 -DSTALL -DSTRIDE=5 -DFAILFAST
+check inject_wrong_eq FAIL -DINJ_WRONG_EQ -DONLY_EQ=3 -DFAILFAST
+check inject_trunc16  FAIL -DINJ_TRUNC16  -DONLY_EQ=2 -DFAILFAST
+check inject_unreg_c  FAIL -DINJ_UNREG_C  -DONLY_EQ=1 -DFAILFAST
+check inject_copy_dst FAIL -DINJ_COPY_DST -DONLY_EQ=0 -DFAILFAST
+check inject_x_no_en  FAIL -DINJ_X_NO_EN  -DSTALL -DSTRIDE=5 -DFAILFAST
 
 if [ "$bad" -eq 0 ]; then
     echo "SIM OK: 9/9 cases as expected"

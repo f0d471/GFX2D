@@ -19,10 +19,33 @@
 
 module tb_engine_mover;
 
-`ifdef INJECT_VAL
-    localparam integer INJECT = `INJECT_VAL;
+// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏），本测试台不持有也不转译它们；
+// ANY_INJ 只为「有注错时不跑那一段正常流程」用，与 run.sh 的用例一一对应。
+`ifdef INJ_NO_GATE_RD
+`define ANY_INJ
+`endif
+`ifdef INJ_MASK_BYPASS
+`define ANY_INJ
+`endif
+`ifdef INJ_DRAIN_BYPASS
+`define ANY_INJ
+`endif
+`ifdef INJ_NO_GATE_WR
+`define ANY_INJ
+`endif
+`ifdef INJ_DRAIN_LEVEL
+`define ANY_INJ
+`endif
+`ifdef INJ_NO_TLAST
+`define ANY_INJ
+`endif
+`ifdef INJ_TX_NOWAIT
+`define ANY_INJ
+`endif
+`ifdef ANY_INJ
+    localparam integer ANY_INJECT = 1;
 `else
-    localparam integer INJECT = 0;
+    localparam integer ANY_INJECT = 0;
 `endif
 `ifdef TMO_LIMIT_VAL
     localparam integer TMO_LIMIT = `TMO_LIMIT_VAL;
@@ -127,7 +150,7 @@ module tb_engine_mover;
     wire [1:0]   m_bresp; wire m_bvalid, m_bready;
 
     engine_mover #(
-        .AXI_MAX_BURST_LEN(192), .TMO_WIDTH(TMO_W), .INJECT(INJECT)
+        .AXI_MAX_BURST_LEN(192), .TMO_WIDTH(TMO_W)
     ) dut (
         .clk(clk), .rst(rst),
         .rd_addr(rd_addr), .rd_bytes(rd_bytes), .rd_buf(rd_buf), .rd_cidx(rd_cidx),
@@ -693,7 +716,7 @@ module tb_engine_mover;
             verify_write(WB + 96, 4, 3, 4);
 
             // (c) 软复位那一组：消费者维持 ready，读方向靠搬运层自己把数据吃掉
-            if (INJECT == 0) begin
+            if (ANY_INJECT == 0) begin
                 exp_pix_en = 0; exp_rd_st_cidx = -1;
                 @(negedge clk);
                 base = rd_fire_n;

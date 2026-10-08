@@ -52,20 +52,20 @@ $RTL/vendor/verilog-axi/axi_dma_rd.v $RTL/vendor/verilog-axi/axi_dma_wr.v \
 ../../axi_probe/axi_ram_model.v"
 
 echo 'B4 入库像素单元（一行一行）：'
-run_case unit_ready     tb_engine_pix PASS "$UNIT" -DINJ_VAL=0
-run_case unit_stall     tb_engine_pix PASS "$UNIT" -DINJ_VAL=0  -DSTALL
-run_case unit_inj_rot   tb_engine_pix FAIL "$UNIT" -DINJ_VAL=1  -DSTALL
-run_case unit_inj_key   tb_engine_pix FAIL "$UNIT" -DINJ_VAL=2  -DSTALL
-run_case unit_inj_mask  tb_engine_pix FAIL "$UNIT" -DINJ_VAL=4  -DSTALL
-run_case unit_inj_ready tb_engine_pix FAIL "$UNIT" -DINJ_VAL=8  -DSTALL
-run_case unit_inj_core  tb_engine_pix FAIL "$UNIT" -DINJ_VAL=16 -DSTALL
+run_case unit_ready     tb_engine_pix PASS "$UNIT"
+run_case unit_stall     tb_engine_pix PASS "$UNIT" -DSTALL
+run_case unit_inj_rot   tb_engine_pix FAIL "$UNIT" -DINJ_ROT_OFF    -DSTALL
+run_case unit_inj_key   tb_engine_pix FAIL "$UNIT" -DINJ_SKIP_KEY    -DSTALL
+run_case unit_inj_mask  tb_engine_pix FAIL "$UNIT" -DINJ_DROP_MASK   -DSTALL
+run_case unit_inj_ready tb_engine_pix FAIL "$UNIT" -DINJ_EN_NOTREADY -DSTALL
+run_case unit_inj_core  tb_engine_pix FAIL "$UNIT" -DINJ_CORE_NOEN   -DSTALL
 
 echo 'B4 入库像素单元（乒乓与流水，行与行之间不等）：'
-run_case pipe_ready     tb_engine_pix_pipe PASS "$PIPE" -DINJ_VAL=0  -DREADY_MODE=0
-run_case pipe_stall     tb_engine_pix_pipe PASS "$PIPE" -DINJ_VAL=0  -DREADY_MODE=1
-run_case pipe_burst     tb_engine_pix_pipe PASS "$PIPE" -DINJ_VAL=0  -DREADY_MODE=2
-run_case pipe_inj_ready tb_engine_pix_pipe FAIL "$PIPE" -DINJ_VAL=8  -DREADY_MODE=2
-run_case pipe_inj_core  tb_engine_pix_pipe FAIL "$PIPE" -DINJ_VAL=16 -DREADY_MODE=2
+run_case pipe_ready     tb_engine_pix_pipe PASS "$PIPE" -DREADY_MODE=0
+run_case pipe_stall     tb_engine_pix_pipe PASS "$PIPE" -DREADY_MODE=1
+run_case pipe_burst     tb_engine_pix_pipe PASS "$PIPE" -DREADY_MODE=2
+run_case pipe_inj_ready tb_engine_pix_pipe FAIL "$PIPE" -DINJ_EN_NOTREADY -DREADY_MODE=2
+run_case pipe_inj_core  tb_engine_pix_pipe FAIL "$PIPE" -DINJ_CORE_NOEN -DREADY_MODE=2
 
 if ! gcc -O2 -std=c11 -Wall -Wextra -Werror -I../../../sw/lib \
     -o build/pix_cases_dump ../../../tools/check/pix_cases_dump.c \
@@ -77,15 +77,15 @@ if ! gcc -O2 -std=c11 -Wall -Wextra -Werror -I../../../sw/lib \
 else
     echo "  directed_export: $(cat build/export.log)"
     echo 'B1~B4 真实通路与随机反压 AXI RAM：'
-    run_case path_golden  tb_engine_path PASS "$PATH_SRC" -DINJ_VAL=0
-    run_case path_inj_key tb_engine_path FAIL "$PATH_SRC" -DINJ_VAL=2
+    run_case path_golden  tb_engine_path PASS "$PATH_SRC"
+    run_case path_inj_key tb_engine_path FAIL "$PATH_SRC" -DINJ_SKIP_KEY
 fi
 if ! build/pix_cases_dump --hazard build/hazard >build/hazard_export.log 2>&1; then
     echo '  hazard_export: FAIL'; bad=$((bad+1))
 else
     echo "  hazard_export: $(cat build/hazard_export.log)"
-    run_case path_hazard_wait   tb_engine_path PASS "$PATH_SRC" -DINJ_VAL=0 '-DCASE="build/hazard"'
-    run_case path_hazard_nowait tb_engine_path FAIL "$PATH_SRC" -DINJ_VAL=0 '-DCASE="build/hazard"' -DNOWAIT
+    run_case path_hazard_wait   tb_engine_path PASS "$PATH_SRC" '-DCASE="build/hazard"'
+    run_case path_hazard_nowait tb_engine_path FAIL "$PATH_SRC" '-DCASE="build/hazard"' -DNOWAIT
 fi
 
 if [ "$bad" -eq 0 ]; then

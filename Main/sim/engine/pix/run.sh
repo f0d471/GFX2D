@@ -26,11 +26,11 @@ mkdir -p "$BUILD"
 bad=0
 total=0
 
-# build_one <名字> <INJ_VAL> <期望 PASS|FAIL|NOT_RED> <REALWR 0|1>
+# build_one <名字> <注错开关，空为干净构建> <期望 PASS|FAIL|NOT_RED> <REALWR 0|1>
 build_one() {
     local name="$1" inj="$2" want="$3" real="$4" defs src
     if [ "$real" = 1 ]; then defs="-DREALWR"; src="$SRC_WR"; else defs=""; src="$SRC"; fi
-    if ! iverilog -g2012 -DINJ_VAL=$inj $defs -o "$BUILD/$name.vvp" $src \
+    if ! iverilog -g2012 $inj $defs -o "$BUILD/$name.vvp" $src \
             > "$BUILD/$name.compile.log" 2>&1; then
         echo "  $name: RESULT: COMPILE-ERROR (see $BUILD/$name.compile.log)"
         bad=$((bad + 1)); total=$((total + 1)); return
@@ -50,15 +50,16 @@ build_one() {
 }
 
 echo "B4 研究探针 probe_pix："
-build_one probe_normal          0  PASS    0
-build_one probe_realwr          0  PASS    1
-build_one probe_inj_rot         1  FAIL    0     # 旋转错一个位置
-build_one probe_inj_key         2  FAIL    0     # 跳过色键（命中像素照写）
-build_one probe_inj_msk         4  FAIL    0     # 首拍掩码丢掉（行首行外像素照样写）
-build_one probe_inj_rdy         8  FAIL    1     # 不看 ws_tready（en 恒 1）
-build_one probe_inj_core       16  FAIL    1     # 混合核不随流水停
-build_one probe_inj_rdy_const   8  NOT_RED 0     # 同一个错，恒 ready 的测试台看不见
-build_one probe_inj_core_const 16  NOT_RED 0
+build_one probe_normal          ""  PASS    0
+build_one probe_realwr          ""  PASS    1
+# 研究探针是仿真模型（非生产 RTL），仍用自己的 parameter 注错口，值经 -DINJ_VAL 传入
+build_one probe_inj_rot         "-DINJ_VAL=1"  FAIL    0     # 旋转错一个位置
+build_one probe_inj_key         "-DINJ_VAL=2"  FAIL    0     # 跳过色键（命中像素照写）
+build_one probe_inj_msk         "-DINJ_VAL=4"  FAIL    0     # 首拍掩码丢掉（行首行外像素照样写）
+build_one probe_inj_rdy         "-DINJ_VAL=8"  FAIL    1     # 不看 ws_tready（en 恒 1）
+build_one probe_inj_core        "-DINJ_VAL=16" FAIL    1     # 混合核不随流水停
+build_one probe_inj_rdy_const   "-DINJ_VAL=8"  NOT_RED 0     # 同一个错，恒 ready 的测试台看不见
+build_one probe_inj_core_const  "-DINJ_VAL=16" NOT_RED 0
 
 if [ "$bad" -ne 0 ]; then
     echo "SIM BAD: $bad of $total probe checks unexpected"

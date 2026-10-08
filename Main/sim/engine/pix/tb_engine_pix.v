@@ -1,7 +1,19 @@
 // B4 formal RTL unit test: I5 sidebands + I3 read stream + I4 write stream.
 `timescale 1ns/1ps
 `default_nettype none
-`ifndef INJ_VAL
+// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）；INJ_VAL 只为打印，
+// 名字与 run_formal.sh 的用例一一对应。
+`ifdef INJ_ROT_OFF
+`define INJ_VAL 1
+`elsif INJ_SKIP_KEY
+`define INJ_VAL 2
+`elsif INJ_DROP_MASK
+`define INJ_VAL 4
+`elsif INJ_EN_NOTREADY
+`define INJ_VAL 8
+`elsif INJ_CORE_NOEN
+`define INJ_VAL 16
+`else
 `define INJ_VAL 0
 `endif
 module tb_engine_pix;
@@ -20,7 +32,7 @@ module tb_engine_pix;
 `else
     wire ws_tready = 1'b1;
 `endif
-    engine_pix #(.INJECT(`INJ_VAL)) dut (
+    engine_pix dut (
         .clk(clk),.rst(rst),.sb_row({15'd0,half[0]}),.sb_npx(npx),
         .sb_beats(seg1_beats+seg2_beats),.sb_lead_dst(lead_dst),
         .sb_lead_src(lead_src),.sb_op(is_blit?8'd2:8'd1),
