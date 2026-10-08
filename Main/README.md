@@ -32,7 +32,22 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | 板上移植（SW9） | **已验收归档**（2026-10-04）：B6 比特流上接通两路中断、真实硬件执行器、双命令表流水、Flash 自启动与键盘/手柄输入。修复后软件前 600 帧、同帧 CRC 与注错、性能和 Flash 判据通过；完整硬件 9208 帧新回放暂缓，旧日志仅为历史证据。普通游戏 240 帧短测预热后 60 fps、软件约 2.5 fps；硬件 `N_max` 为 16×16 的 1014、8×8 的 1365，软件均 `BELOW_N0`；S1 约 30.6 fps，扫描欠载 0。完整关卡流水性能和 HDMI/实体键现场观察仍未覆盖。见 [sw 第 08 章](../Engineering/TechReports/sw/08-板上移植.md) |
 | SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 已上板并验收（2026-09-19）：efx_soc 3.4.0 重新生成，开 GPIO1 接 KEY0~3、开用户中断 A/B/C、保留 I2C0 给摄像头、关 `axiA` 与 `io_ddrMasters_0`；工具链换成 gcc 13.4.0。调试通路连续 6 次会话、memTest、APB 探针、`ddrAliasTest`、`ddrBurstProbe`、E3 三件套、`bootSizeTest`（含对照组）与 gfx2dGame 60 帧 CRC 全过；HDMI 八色竖条与 SW0~SW3 按键已确认。见 `../Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md` |
 
-当前本地 `outflow` 是 2026-10-02 B6 整机编译的 4KB/1 路比特流，
+当前本地 `outflow` 是 2026-10-08 的 G1 整机编译（4KB/1 路，注错机制已改为 `ifdef`），
+XLR **36716**、片上 RAM **121 块**、DSP **16 个**、`core_clk` setup **+0.591** / hold **+0.026 ns**，
+像素域 `hdmi_tx_slow_clk` setup +34.377 ns，SHA256
+`34d9acc1f3b9cb4ca77ac0dfd9a6ada35ba71e901c34d740832534bc15ccc8cd`，四步 PASS。
+
+相对下面那次 B6 登记（36009 XLR / 105 RAM / 16 DSP）的增量里，片上 RAM +16 块可以逐项归因：
+那 16 块是 G1 的片上纹理 `u_engine/u_tex` 的四个 1024×32 bank（该模块单独占 113 XLR / 16 块 RAM，
+见 `outflow/gfx2d_ti60.hier_util.rpt`）。XLR +707 中，`u_tex` 的 113 是明确的；
+余下约 590 属 G1 的其余改动（源空间传播、状态与排空、驱动），**尚未逐模块归因**。
+其中约 479 是注错机制由 `parameter` 换成 `ifdef` 带来的映射差异（同一份逻辑，
+两种写法综合出的 XLR 分别为 36716 与 36237），量级与代价见
+[platform 第 11 章](../Engineering/TechReports/platform/11-注错机制改为条件编译.md) 3.5 节与 4.4 节。
+
+下面保留 B6 及更早的历史登记，作为逐次对照：
+
+2026-10-02 B6 整机编译的 4KB/1 路比特流，
 XLR **36009**、片上 RAM **105 块**、DSP **16 个**、`core_clk` setup **+1.067** / hold **+0.026 ns**，
 SHA256 `b2118f54501cde5d6f3c8c8143aa45a578fa04aa32a797e37f4a2268d915cf63`。
 2026-09-25 的 21935 XLR / 71 RAM、setup +3.516 / hold +0.026 ns 是 B6 前的对照组，

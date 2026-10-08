@@ -524,6 +524,16 @@ gcc 13.4.0，最终复核版 bin 11322 字节（sha256 前 16 位 `e5cf7dabcfe78
 G1 的现行正常版追加 TEX-CAPS/BUSY/LOAD、十一行 TEX 金标准、六个 TEXERR
 错误三元组及 TEX-PERF。最终日志 `engineTest/logs/g1_board.log` 为 `fail 0/done`，
 DDR/TEX 同轮为 1183.625/657.375 周期每颗；上表两个 BIN 身份属于历史 B6。
+
+**G1 已验收的产物身份**在 `sim/engine/tex/logs/g1_artifacts.json`，那里记的路径是
+`build_g1/engineTest-O2.bin`，49002 字节、SHA256 `9e6555528875ca9f...`。
+
+**跑回归之前先核对 `build/engineTest-O2.bin` 的身份**：它必须与 `build_g1/` 那份逐字节相同。
+2026-10-08 踩过一次：`build/` 里留的是 G1 之前的旧版本（48346 字节、`4c8bf102...`），
+而回归表指向的正是 `build/`，于是在正确的比特流上跑出 `fail 17`（十一行 TEX 金标准与
+六个 TEXERR 全红、引擎面 CRC 却与归档一致），排查了半天才发现是产物陈旧而不是 RTL 缺陷。
+重编一次即 `fail 0`。这类「源码与产物脱钩」不能靠人记得，判据要自己比对身份：
+`sha256sum build/engineTest-O2.bin build_g1/engineTest-O2.bin` 两行相同才算可以开跑。
 当前 G1 的完整身份集中在 `sim/engine/tex/logs/g1_artifacts.json`。
 外部判据运行 `tools/check/check_g1_logs.py --board-only`。
 
