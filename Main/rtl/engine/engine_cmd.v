@@ -298,7 +298,9 @@ module engine_cmd (
     wire [7:0]  rq_first = (rq_pgoff == 12'd0) ? 8'd128 : 8'd128 - {1'b0, rq_pgoff[11:5]};
     wire [4:0]  rq_n1    = ({1'b0, rq_first} >= {1'b0, rq_n}) ? rq_n : rq_first[4:0];
     wire        rq_split = (rq_n1 != rq_n);
-    wire [31:0] rq_a1    = rq_addr + {27'd0, rq_n1, 5'd0};
+    // 第二笔起点：addr + n1*32。n1 是 5 位，左移 5 位后占 10 位，补零到 32 位相加——
+    // 原来写成 {27'd0, rq_n1, 5'd0}（拼接和 37 位）再截回 32 位，数值一样但报 VERI-WARNING 截断。
+    wire [31:0] rq_a1    = rq_addr + {22'd0, rq_n1, 5'd0};
 
     assign fd_addr   = (fe_d == 2'd0) ? rq_addr : rq_a1;
     assign fd_bytes  = {7'd0, (fe_d == 2'd0) ? rq_n1 : (rq_n - rq_n1)} << 5;
@@ -500,10 +502,16 @@ module engine_cmd (
     //   159 条向量的 clip-negative-origin 抓出）
     wire [15:0] cw  = w0[111:96];
     wire [15:0] ch  = w0[127:112];
-    wire signed [17:0] cx1 = $signed({{3{w0[47]}}, w0[47:32]})
-                           + $signed({3'b000, cw}) - 18'sd1;
-    wire signed [17:0] cy1 = $signed({{3{w0[63]}}, w0[63:48]})
-                           + $signed({3'b000, ch}) - 18'sd1;
+    // 三项各自**先**取成 18 位有符号再相加。原来把 $signed({{3{sign}},x}) 直接写进和式：
+    // {{3{..}} 是 3 个填充位 + 16 位 = 19 位，$signed 之后操作数是 19 位，
+    // 于是整个表达式 19 位、赋给 18 位目标而报截断。数值本来就在 18 位内，
+    // 这里按上面注释的本意（18 位有符号求值）显式拆开。
+    wire signed [17:0] cx0  = $signed({{2{w0[47]}}, w0[47:32]});
+    wire signed [17:0] cw18 = $signed({2'b00, cw});
+    wire signed [17:0] cy0  = $signed({{2{w0[63]}}, w0[63:48]});
+    wire signed [17:0] ch18 = $signed({2'b00, ch});
+    wire signed [17:0] cx1  = cx0 + cw18 - 18'sd1;
+    wire signed [17:0] cy1  = cy0 + ch18 - 18'sd1;
 
     // =====================================================================
     // 主时序

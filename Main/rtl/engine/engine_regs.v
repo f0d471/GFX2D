@@ -141,8 +141,15 @@ module engine_regs (
     integer    surf_i;
     always @* begin
         // 向上循环、最后一次赋值生效：命中的是满足 widx >= slot*3 的最大 slot
+        //
+        // surf_diff 只需 7 位：surf_i ∈ [0,15]，surf_i*3 ∈ [0,45]，
+        // 而 surf_widx ∈ [0,47]，所以差值落在 [−45,47]，7 位放得下。
+        // 原来写成 surf_widx - surf_i*3（surf_widx 6 位、surf_i*3 是 32 位整数）——
+        // 表达式 32 位、赋给 7 位目标，报 VERI-WARNING 截断。
+        // 这里把两项各补一位零扩展到 7 位，相减正好 7 位，数值不变且没有截断。
+        // 不用 7'(...) 这种尺寸转换：iverilog 接受，Efinity 综合报语法错。
         for (surf_i = 0; surf_i <= 15; surf_i = surf_i + 1) begin
-            surf_diff = surf_widx - surf_i * 3;
+            surf_diff = {1'b0, surf_widx} - {1'b0, surf_i[5:0] * 6'd3};
             if (!surf_diff[6] && (surf_diff >= 0)) begin
                 surf_slot_id  = surf_i[3:0];
                 surf_word_sel = surf_diff[1:0];
