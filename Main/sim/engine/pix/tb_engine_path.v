@@ -52,7 +52,7 @@ module tb_engine_path;
     engine_geom u_geom(
         .clk(clk),.rst(rst),.start(start),.op(op),.eq(eq),
         .key_en(key_en),.key_w5(key_w5),.const_w4(const_w4),.c(c),
-        .sfmt(sfmt),.src_base(src_base),.src_w(src_w),.src_h(src_h),
+        .sfmt(sfmt),.src_base(src_base), .band_enable(1'b0), .band_y0(16'd0),.src_w(src_w),.src_h(src_h),
         .src_slog2(src_slog2),.src_tex(1'b0),.dst_base(dst_base),.dst_w(dst_w),
         .dst_h(dst_h),.dst_slog2(dst_slog2),.src_x(src_x),.src_y(src_y),
         .dst_x(dst_x),.dst_y(dst_y),.w(width),.h(height),
@@ -101,7 +101,9 @@ module tb_engine_path;
     wire [15:0] wstrb;
     engine_mover u_mover(
         .clk(clk),.rst(rst),
-        .rd_addr(rd_addr),.rd_bytes(rd_bytes),.rd_buf(rd_buf),.rd_tex(rd_tex),
+        .rd_addr(rd_addr),.rd_bytes(rd_bytes),.rd_buf(rd_buf),.rd_tex(rd_tex), .rd_band(1'b0), .wr_band(1'b0), .band_start(1'b0), .band_flush(1'b0),
+        .band_bg_base(32'd0), .band_dst_base(32'd0), .band_bg_slog2(5'd12), .band_dst_slog2(5'd12),
+        .band_y0(16'd0), .band_frame_height(16'd480),
         .rd_cidx(rd_cidx),.rd_valid(rd_valid),.rd_ready(rd_ready),
         .tx_addr(),.tx_bytes(),.tx_buf(),.tx_cidx(),.tx_valid(),
         .tx_ready(1'b1),.tx_busy(1'b0),

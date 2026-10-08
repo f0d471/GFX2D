@@ -1,19 +1,62 @@
-# G2 BAND 前期研究
+# G2 BAND 数据面验证与前期研究
 
-本目录仅含前期研究探针与证据，不是正式 `engine_band` 实现，未接入主工程。
-研究入口为 `Main/tools/check/g2_research.py`；过程与解释归入
+正式数据面已实现、待验收，默认 `run.sh` 为正式验证。主帧控制仍未启用，
+研究探针与历史证据继续保留。过程与解释归入
 [engine 第 08 章](../../../../Engineering/TechReports/engine/08-条带缓冲前期研究.md)。
 
-## 复现
+## 正式复现
+
+WSL 中从仓库根执行，需 gcc、ASan/UBSan、iverilog、vvp 和 Python 3：
+
+```text
+bash Main/sim/engine/band/run.sh
+python3 Main/tools/check/check_g2_band.py --prepare-syn
+```
+
+9 个正常检查、8 个针对性变异全部符合预期才输出 SIM OK。完整通路实际例化
+geom/pix/blend/mover/BAND/TEX 与两个 DMA 核；内存逐 128 位对软件执行器，
+每组完整比较 512 KiB。含混合源、负 x、跨条带、重叠、色键、取数并发、空条带、
+原始高字节及 8/16/32 行；控制测试含 4KB 拆分、迟到数据超时、取消与错误重试。
+
+| 文件 | 职责 |
+| --- | --- |
+| `tb_engine_band.v` | 首尾/分段边界、本地状态/标签、地址/keep 拒绝、同址冲突、装载取消与独立背景/目的 stride 重试 |
+| `tb_engine_band_mover.v` | 真实 DMA/AXI、超时/取消/错误恢复、FIFO 十拍前缀与排空 WSTRB |
+| `tb_engine_band_path.v` | 全部真实数据面核、软件金标准、三相计时和数据/流纪律 |
+| `syn_engine_band.v` | 全变量输入、按 valid 分相观测，防止同源输出 XOR 裁剪 RAM |
+
+独立工程在 build/formal/syn，按开发环境手册运行四步后：
+
+```text
+python3 Main/tools/check/check_g2_band.py --collect-syn
+python3 Main/tools/check/check_g2_band.py --collect-main
+python3 Main/tools/check/check_g2_band.py --record-board
+```
+
+--collect-syn 要求 36 RAM 与网表物理数量一致、setup 为正、hold ≥0.026 ns。
+--collect-main 核对新四步、全部时序、六个已登记未用接口和最新告警。
+主工程编译时将四步控制台输出重定向到其忽略目录 outflow/g2_synthesis.log，
+例如在主工程目录执行 `efx_run.bat gfx2d_ti60.xml > outflow/g2_synthesis.log 2>&1`。
+--record-board 复核新 formal_board_legacy.log 后登记当前 bit/BIN 完整身份一次；
+产物未变时不重复登记。它不是上传/Flash 工具，也不证明 BAND 已上板启用。
+单组定位用 --case path_timed 等；单组会更新结果汇总，交付前用默认完整运行恢复。
+
+正式证据：formal_results.json、formal_*.log、formal_synthesis_results.json，
+独立 formal_{place,timing,hier_util}.rpt 与主工程 formal_main_*。
+formal_bad_observer_* 是 RAM=0 的失败观测报告，保留为试错，不能计通过。
+formal_board_results.json 与 formal_artifacts.json 绑定新 bit 的 DDR/TEX 22 CRC
+兼容性板测，BAND 帧模式/N_max 仍归 G3/G4。formal_regression_*.log 为原十二套回归。
+
+## 研究复现
 
 WSL 中从仓库根运行，需 gcc、ASan/UBSan、iverilog、vvp 和 Python 3：
 
 ```text
-bash Main/sim/engine/band/run.sh
+python3 Main/tools/check/g2_research.py
 python3 Main/tools/check/g2_research.py --prepare-syn
 ```
 
-默认脚本检查全帧有效地址、RAM/分段与掩码变异、实际 geom/pix 的局部合成、
+研究脚本检查全帧有效地址、RAM/分段与掩码变异、实际 geom/pix 的局部合成、
 实际 mover/DMA 的装载/写回和中途排空。软件执行器现算金标准，导出器挂 sanitizer。
 正常与针对性变异共 11 项符合预期才输出完成；运行失败、挂起不能算注错通过。
 
@@ -38,7 +81,7 @@ python3 Main/tools/check/g2_research.py --collect-syn
 | `g2_research.py` 生成的 `tb_band_path.v` | 保留实际 geom/pix/blend；6 条带边界拷贝不计时；对拍完整 512 KiB |
 | 生成的 `tb_probe_band_dma.v` | 保留实际 mover 与 DMA；推荐分段 RAM 接 E4 校准从机，独立测装载/写回/取消 |
 
-计算和搬运是两个分开的实验，尚无统一 BAND 控制器。全部数据和行协议相符，
+前期研究的计算和搬运是两个分开的实验。其数据和行协议相符，
 不等于主工程已经支持 BAND，也不等于板上性能提升。
 
 ## 证据索引

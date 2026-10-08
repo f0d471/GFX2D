@@ -1,0 +1,3 @@
+BAND UNIT errors=0 reads=33 writes=32
+RESULT: PASS
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/tb_engine_band.v:178: $finish called at 119090000 (1ps)

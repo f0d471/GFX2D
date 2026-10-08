@@ -65,6 +65,7 @@
 `default_nettype none
 
 module engine_geom #(
+    parameter integer STRIP_H = 16,
     // D3 规矩 1 的拍数上限，与搬运层两个核的 AXI_MAX_BURST_LEN 同一个值
     parameter integer MAX_BEATS = 192
 )(
@@ -85,6 +86,8 @@ module engine_geom #(
     input  wire [15:0] src_h,
     input  wire [4:0]  src_slog2,
     input  wire        src_tex,       // 源在片上 TEX（G1，I1 的新字段；仅 BLIT 源会置 1）
+    input  wire        band_enable,   // G2：目的片上化，按当前条带求交
+    input  wire [15:0] band_y0,
     input  wire [31:0] dst_base,
     input  wire [15:0] dst_w,
     input  wire [15:0] dst_h,
@@ -111,6 +114,7 @@ module engine_geom #(
     output reg  [11:0] rd_beats,
     output reg  [1:0]  rd_buf,
     output reg         rd_tex,        // 源读描述符的片上标记（G1）：仅 BLIT 源可能置 1
+    output reg         rd_band,
     output reg  [3:0]  rd_cidx,
     output reg         rd_valid,
     input  wire        rd_ready,
@@ -120,6 +124,7 @@ module engine_geom #(
     output reg  [11:0] wr_beats,
     output reg  [3:0]  wr_cidx,
     output reg         wr_last_row,
+    output reg         wr_band,
     output reg         wr_valid,
     input  wire        wr_ready,
 
@@ -167,6 +172,7 @@ module engine_geom #(
     reg [7:0]  r_c;
     reg [3:0]  r_sfmt;
     reg        r_src_tex;
+    reg        r_dst_band;
     reg [3:0]  r_cidx;
 
     // ---------------------------------------------------------------- 五者求交
@@ -211,6 +217,15 @@ module engine_geom #(
             t_y1 = (dy1 < 32'sd479) ? dy1 : 32'sd479;
             if (clip_x1 < t_x1) t_x1 = clip_x1;
             if (clip_y1 < t_y1) t_y1 = clip_y1;
+`ifdef INJ_BAND_CLIP
+            // 注错：漏掉当前条带求交。
+`else
+            if(band_enable) begin
+                if($signed({16'd0,band_y0})>t_y0) t_y0=$signed({16'd0,band_y0});
+                if($signed({16'd0,band_y0})+STRIP_H-1<t_y1)
+                    t_y1=$signed({16'd0,band_y0})+STRIP_H-1;
+            end
+`endif
             if ($signed(p_dsw) - 32'sd1 < t_x1) t_x1 = $signed(p_dsw) - 32'sd1;
             if ($signed(p_dsh) - 32'sd1 < t_y1) t_y1 = $signed(p_dsh) - 32'sd1;
 
@@ -394,8 +409,10 @@ module engine_geom #(
         rd_addr       = seg_addr[seg_i];
         rd_beats      = seg_beats[seg_i];
         rd_buf        = {seg_dir[seg_i], row_i[0]};
-        // 片上标记只上源读描述符（G1）：目的读恒走 DDR
+        // TEX 标记仅用于源读；G2 BAND 标记仅用于目的读写，逻辑地址仍为全帧地址。
         rd_tex        = cur_rd && !seg_dir[seg_i] && r_src_tex;
+        rd_band       = cur_rd && seg_dir[seg_i] && r_dst_band;
+        wr_band       = cur_wr && r_dst_band;
         rd_cidx       = r_cidx;
 
         wr_valid      = cur_wr;
@@ -415,7 +432,7 @@ module engine_geom #(
             dst_stride <= 32'd0; src_stride <= 32'd0;
             nrows <= 16'd0; npx <= 11'd0; py <= 16'sd0;
             r_op <= 8'd0; r_eq <= 4'd0; r_key_en <= 1'b0; r_key <= 32'd0;
-            r_w4 <= 32'd0; r_c <= 8'd0; r_sfmt <= 4'd0; r_src_tex <= 1'b0; r_cidx <= 4'd0;
+            r_w4 <= 32'd0; r_c <= 8'd0; r_sfmt <= 4'd0; r_src_tex <= 1'b0; r_dst_band<=0; r_cidx <= 4'd0;
         end else begin
             cmd_done <= 1'b0;
             case (st)
@@ -426,6 +443,7 @@ module engine_geom #(
                     r_op <= op; r_eq <= eq; r_key_en <= key_en; r_key <= key_w5;
                     r_w4 <= const_w4; r_c <= c; r_sfmt <= sfmt;
                     r_src_tex <= src_tex; r_cidx <= cidx;
+                    r_dst_band<=band_enable;
                     done_cidx <= cidx;
                     if (i_empty) begin
                         cmd_done <= 1'b1;                 // D38：零面积命令

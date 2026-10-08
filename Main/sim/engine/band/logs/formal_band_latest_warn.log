@@ -1,0 +1,20 @@
+ 
+// Oct 08, 2026 20:25:15
+///////////////////////////////////
+
+[EFX-0200 WARNING] Removing redundant signal : desc_ok. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:144)
+[EFX-0200 WARNING] Removing redundant signal : ws_data[126:120]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:69)
+[EFX-0200 WARNING] Removing redundant signal : ws_data[94:88]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:69)
+[EFX-0200 WARNING] Removing redundant signal : ws_data[62:56]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:69)
+[EFX-0200 WARNING] Removing redundant signal : ws_data[30:24]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:69)
+[EFX-0200 WARNING] Removing redundant signal : desc_ok.a[31:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:145)
+[EFX-0200 WARNING] Removing redundant signal : desc_ok.n[11:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:146)
+[EFX-0200 WARNING] Removing redundant signal : desc_ok.off[31:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:147)
+[EFX-0200 WARNING] Removing redundant signal : desc_ok.yy[31:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:147)
+[EFX-0200 WARNING] Removing redundant signal : desc_ok.col[31:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:147)
+[EFX-0200 WARNING] Removing redundant signal : local_index[11:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:155)
+[EFX-0200 WARNING] Removing redundant signal : local_index.a[31:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:156)
+[EFX-0200 WARNING] Removing redundant signal : local_index.off[31:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:157)
+[EFX-0200 WARNING] Removing redundant signal : local_index.yy[31:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:157)
+[EFX-0200 WARNING] Removing redundant signal : local_index.col[31:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:157)
+[EFX-0200 WARNING] Removing redundant signal : local_index.idx[31:0]. (E:\Workspace\Efinix\Main\rtl\engine\engine_band.v:157)

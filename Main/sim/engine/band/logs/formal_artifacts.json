@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "base_commit": "a151bf45f15faf98fa8f9c261ad48225721494e3",
+  "source": "working tree G2 implementation; source diff delivered in same commit",
+  "scope": "new full bit legacy DDR/TEX regression; BAND disabled; no Flash or 9208 replay",
+  "artifacts": [
+    {
+      "name": "bit",
+      "path": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+      "bytes": 2361939,
+      "sha256": "507dacaab7e3afce1ada599857edec15b56188ad585408a19d26daed04299cd9"
+    },
+    {
+      "name": "engineTest",
+      "path": "Main/sw/apps/test/engineTest/build_g2_formal/engineTest-O2.bin",
+      "bytes": 49002,
+      "sha256": "9e6555528875ca9f3a69d9a26bacf5781a2039594d94ad66fa29e9f9e0023d37"
+    }
+  ],
+  "consumer_log": "formal_board_legacy.log"
+}

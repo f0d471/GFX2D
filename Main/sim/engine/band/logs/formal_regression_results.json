@@ -1,0 +1,74 @@
+{
+  "apb_probe": {
+    "completed": true,
+    "footer": "SIM OK: 3/3 cases as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_apb_probe.log"
+  },
+  "axi_mux_guard": {
+    "completed": true,
+    "footer": "SIM OK: 17/17 checks as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_axi_mux_guard.log"
+  },
+  "axi_probe": {
+    "completed": true,
+    "footer": "SIM OK: 5/5 cases as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_axi_probe.log"
+  },
+  "blend": {
+    "completed": true,
+    "footer": "SIM OK: 9/9 cases as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_blend.log"
+  },
+  "ctrl": {
+    "completed": true,
+    "footer": "SIM OK: 4/4 checks as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_ctrl.log"
+  },
+  "display": {
+    "completed": true,
+    "footer": "SIM OK",
+    "skipped_full_display": true,
+    "log": "formal_regression_display.log"
+  },
+  "frame": {
+    "completed": true,
+    "footer": "SIM OK: 16/16 checks as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_frame.log"
+  },
+  "geom": {
+    "completed": true,
+    "footer": "SIM OK: 27/27 checks as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_geom.log"
+  },
+  "hdmi": {
+    "completed": true,
+    "footer": "SIM OK: 3/3 cases as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_hdmi.log"
+  },
+  "mover": {
+    "completed": true,
+    "footer": "SIM OK: 17/17 checks as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_mover.log"
+  },
+  "pix": {
+    "completed": true,
+    "footer": "SIM OK: 25/25 checks as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_pix.log"
+  },
+  "tex": {
+    "completed": true,
+    "footer": "SIM OK: 6 checks as expected",
+    "skipped_full_display": false,
+    "log": "formal_regression_tex.log"
+  }
+}

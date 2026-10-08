@@ -1,0 +1,9 @@
+发现 7 处机器专属路径：
+  Deliverables/Assert/figures/src/report/plot_report_fps.py:42  fig.savefig(r"E:\Workspace\Efinix\Deliverables\Assert\figures\report\rep_fps.png")
+  Deliverables/Assert/figures/src/report/plot_report_nmax.py:9  LOG = r"E:\Workspace\Efinix\Main\sw\apps\game\gfx2dGame\logs\sw9_perf_hw_nmax.log"
+  Deliverables/Assert/figures/src/report/plot_report_nmax.py:65  fig.savefig(r"E:\Workspace\Efinix\Deliverables\Assert\figures\report\rep_nmax.png")
+  Deliverables/Assert/figures/src/report/plot_report_stable.py:9  LOG = r"E:\Workspace\Efinix\Main\sw\apps\game\gfx2dGame\logs\sw9_perf_hw_k896_60s.log"
+  Deliverables/Assert/figures/src/report/plot_report_stable.py:51  fig.savefig(r"E:\Workspace\Efinix\Deliverables\Assert\figures\report\rep_stable.png")
+  Deliverables/Report/README.md:26  PDF 预览与验收：LibreOfficePortable（`E:\Software`）headless 转 PDF，
+  Deliverables/Report/.work/diff_user_edits.py:6  HERE = Path(r"E:\Workspace\Efinix\Deliverables\Report")
+按 Main/doc/开发环境.md 第 1 节改成占位符，或者确认它属于该文件第 11 节那类记录再加进本脚本的 ALLOW。

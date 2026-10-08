@@ -160,6 +160,7 @@ module engine_top #(
     wire [11:0] g_wr_bytes = g_wr_beats << 4;
     wire [1:0]  g_rd_buf;
     wire        g_rd_tex;
+    wire        g_rd_band,g_wr_band;
     wire [3:0]  g_rd_cidx, g_wr_cidx;
     wire        g_rd_valid, g_rd_ready, g_wr_valid, g_wr_ready, g_wr_last_row;
     wire [15:0] sb_row, sb_py;
@@ -292,6 +293,7 @@ module engine_top #(
         .key_w5(i1_key), .const_w4(i1_w4), .c(i1_c), .sfmt(i1_sfmt),
         .src_base(i1_src_base), .src_w(i1_src_w), .src_h(i1_src_h),
         .src_slog2(i1_src_slog2), .src_tex(i1_src_tex),
+        .band_enable(1'b0), .band_y0(16'd0),
         .dst_base(i1_dst_base), .dst_w(i1_dst_w), .dst_h(i1_dst_h),
         .dst_slog2(i1_dst_slog2),
         .src_x(i1_src_x), .src_y(i1_src_y), .dst_x(i1_dst_x), .dst_y(i1_dst_y),
@@ -303,6 +305,7 @@ module engine_top #(
         .busy(geom_busy), .cmd_done(geom_cmd_done), .done_cidx(geom_done_cidx),
         .rd_addr(g_rd_addr), .rd_beats(g_rd_beats), .rd_buf(g_rd_buf),
         .rd_tex(g_rd_tex),
+        .rd_band(g_rd_band), .wr_band(g_wr_band),
         .rd_cidx(g_rd_cidx), .rd_valid(g_rd_valid), .rd_ready(g_rd_ready),
         .wr_addr(g_wr_addr), .wr_beats(g_wr_beats), .wr_cidx(g_wr_cidx),
         .wr_last_row(g_wr_last_row), .wr_valid(g_wr_valid), .wr_ready(g_wr_ready),
@@ -334,10 +337,19 @@ module engine_top #(
     // =====================================================================
     // 搬运层（AXI 事务层）
     // =====================================================================
-    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13)) u_mover (
+    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13), .ENABLE_BAND(1)) u_mover (
         .clk(clk), .rst(mover_rst),
         .rd_addr(g_rd_addr), .rd_bytes(g_rd_bytes), .rd_buf(g_rd_buf),
         .rd_cidx(g_rd_cidx), .rd_tex(g_rd_tex),
+        .rd_band(g_rd_band), .wr_band(g_wr_band),
+        // G2 数据面已接入；G3 再提供帧级控制与能力位，当前明确禁用。
+        .band_start(1'b0), .band_flush(1'b0),
+        .band_start_ready(), .band_flush_ready(),
+        .band_bg_base(32'd0), .band_dst_base(32'd0),
+        .band_bg_slog2(5'd12), .band_dst_slog2(5'd12),
+        .band_y0(16'd0), .band_frame_height(16'd480),
+        .band_loaded(), .band_flushed(), .band_active(), .band_busy(),
+        .band_error(), .band_error_code(),
         .rd_valid(g_rd_valid), .rd_ready(g_rd_ready),
         .tx_addr(tx_addr), .tx_bytes(tx_bytes), .tx_buf(tx_buf), .tx_cidx(tx_cidx),
         .tx_valid(tx_valid), .tx_ready(tx_ready),

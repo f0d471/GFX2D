@@ -18,7 +18,7 @@ gcc -O2 -std=c11 -Wall -Wextra -Werror -I../../../tools/check -I../../../sw/lib 
 ./build/dump --tex-sprites build/tex_sprites > build/dump.log || exit 1
 
 RTL_FILES="$RTL/engine/engine_tex.v $RTL/engine/engine_geom.v $RTL/engine/engine_cmd.v \
-    $RTL/engine/engine_mover.v $RTL/engine/engine_regs.v $RTL/engine/engine_top.v \
+    $RTL/engine/engine_band.v $RTL/engine/engine_mover.v $RTL/engine/engine_regs.v $RTL/engine/engine_top.v \
     $RTL/engine/engine_pix.v $RTL/engine/engine_blend.v \
     $RTL/vendor/verilog-axi/axi_dma_rd.v $RTL/vendor/verilog-axi/axi_dma_wr.v \
     ../../../sim/axi_probe/axi_ram_model.v"

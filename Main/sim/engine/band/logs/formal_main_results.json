@@ -1,0 +1,127 @@
+{
+  "xlr": 37426,
+  "ram": 121,
+  "dsp": 16,
+  "core_setup_ns": 0.551,
+  "core_hold_ns": 0.026,
+  "minimum_hold_ns": 0.009,
+  "clocks": [
+    {
+      "launch": "core_clk",
+      "capture": "core_clk",
+      "constraint_ns": 10.0,
+      "slack_ns": 0.551
+    },
+    {
+      "launch": "sdram_clk",
+      "capture": "sdram_clk",
+      "constraint_ns": 2.5,
+      "slack_ns": 0.251
+    },
+    {
+      "launch": "rx_cal_clk",
+      "capture": "rx_cal_clk",
+      "constraint_ns": 2.5,
+      "slack_ns": 0.229
+    },
+    {
+      "launch": "tx_cal_clk",
+      "capture": "tx_cal_clk",
+      "constraint_ns": 2.5,
+      "slack_ns": 0.295
+    },
+    {
+      "launch": "tx_cal_clk_90edge",
+      "capture": "tx_cal_clk_90edge",
+      "constraint_ns": 2.5,
+      "slack_ns": 0.293
+    },
+    {
+      "launch": "hdmi_tx_slow_clk",
+      "capture": "hdmi_tx_slow_clk",
+      "constraint_ns": 39.683,
+      "slack_ns": 33.38
+    },
+    {
+      "launch": "jtag_inst1_TCK",
+      "capture": "jtag_inst1_TCK",
+      "constraint_ns": 100.0,
+      "slack_ns": 95.571
+    },
+    {
+      "launch": "jtag_inst1_TCK",
+      "capture": "jtag_inst1_TCK",
+      "constraint_ns": 50.0,
+      "slack_ns": 49.791
+    },
+    {
+      "launch": "core_clk",
+      "capture": "core_clk",
+      "constraint_ns": 0.0,
+      "slack_ns": 0.026
+    },
+    {
+      "launch": "sdram_clk",
+      "capture": "sdram_clk",
+      "constraint_ns": 0.0,
+      "slack_ns": 0.045
+    },
+    {
+      "launch": "rx_cal_clk",
+      "capture": "rx_cal_clk",
+      "constraint_ns": 0.0,
+      "slack_ns": 0.009
+    },
+    {
+      "launch": "tx_cal_clk",
+      "capture": "tx_cal_clk",
+      "constraint_ns": 0.0,
+      "slack_ns": 0.097
+    },
+    {
+      "launch": "tx_cal_clk_90edge",
+      "capture": "tx_cal_clk_90edge",
+      "constraint_ns": 0.0,
+      "slack_ns": 0.063
+    },
+    {
+      "launch": "hdmi_tx_slow_clk",
+      "capture": "hdmi_tx_slow_clk",
+      "constraint_ns": 0.0,
+      "slack_ns": 0.091
+    },
+    {
+      "launch": "jtag_inst1_TCK",
+      "capture": "jtag_inst1_TCK",
+      "constraint_ns": 0.0,
+      "slack_ns": 0.097
+    },
+    {
+      "launch": "jtag_inst1_TCK",
+      "capture": "jtag_inst1_TCK",
+      "constraint_ns": -50.0,
+      "slack_ns": 48.64
+    }
+  ],
+  "missing_interface_pins": [
+    "jtag_inst1_DRCK",
+    "jtag_inst1_TMS",
+    "jtag_inst1_RESET",
+    "jtag_inst1_RUNTEST",
+    "jtag_inst1_UPDATE",
+    "hdmi_pll_fb"
+  ],
+  "warnings": {
+    "band": {
+      "own_warning_records": 16,
+      "own_compile_or_width_warnings": 0,
+      "note": "latest synthesis section; EFX-0200 redundant signals are expected"
+    },
+    "main": {
+      "own_warning_records": 0,
+      "own_compile_or_width_warnings": 0,
+      "note": "latest synthesis section; EFX-0200 redundant signals are expected"
+    }
+  },
+  "scope": "G2 wiring present, frame BAND controls tied zero and CAPS.BAND=0; no enabled BAND RAM"
+}

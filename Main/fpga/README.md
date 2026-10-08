@@ -11,6 +11,7 @@
 | 路径 | 内容 |
 | --- | --- |
 | `gfx2d_ti60/gfx2d_ti60.xml` | 工程文件：源文件列表、综合与布局布线选项、比特流选项、约束文件路径 |
+| `../rtl/engine/engine_band.v` | G2 已加入源列表并经 mover 接线，帧级控制仍绑 0、CAPS.BAND=0，主 bit 存储被裁剪。36 RAM 以正式独立综合为准；新 bit 的原 DDR/TEX 板测通过 |
 | `../rtl/engine/engine_blend.v`、`../rtl/engine/engine_pix.v` | B4 已加入源文件列表；当前顶层尚未例化，资源与时序以 `sim/engine/pix/syn` 独立综合为准 |
 | `gfx2d_ti60/gfx2d_ti60.peri.xml` | 接口设计：管脚分配、IO 电压、PLL、LVDS TX、硬 JTAG |
 | `gfx2d_ti60/sdc/gfx2d_ti60.sdc` | 时序约束 |
@@ -94,3 +95,8 @@ Standard 构型、单核 100MHz、指令与数据缓存各 4KB、无 FPU、DDR �
 engine_tex 已登记到 gfx2d_ti60 源文件列表并接入四页 TEX 窗口。当前 4KB/1 路
 整机的资源和时序见 [engine 第 07 章](../../Engineering/TechReports/engine/07-片上纹理前期研究.md)。
 产物身份集中在 `../sim/engine/tex/logs/g1_artifacts.json`，旧 outflow 身份不代表当前 G1。
+
+2026-10-08 G2 正式数据面接线后的当前 outflow：37426 XLR/121 RAM/16 DSP，
+core_clk setup/hold +0.551/+0.026 ns，最薄 rx_cal_clk hold +0.009 ns；四步通过。
+本次 bit/BIN 身份以 `../sim/engine/band/logs/formal_artifacts.json` 为准，
+G1 清单仅对应其历史构建。BAND 帧功能与新完整资源账归 G3/G4。

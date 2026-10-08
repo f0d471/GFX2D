@@ -1,0 +1,8 @@
+PHASE strip=0 height=16 load=4247 exec=893 flush=4255
+PHASE strip=1 height=16 load=4141 exec=4114 flush=4280
+PHASE strip=2 height=16 load=4239 exec=53 flush=4230
+PHASE strip=3 height=16 load=4244 exec=53 flush=4217
+PHASE strip=4 height=16 load=4247 exec=53 flush=4223
+BAND_FLOW_COLLISION
+RESULT: FAIL
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/tb_engine_band_path.v:235: $finish called at 643445000 (1ps)

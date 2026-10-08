@@ -23,8 +23,9 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 | `engine/ctrl/` | B5 的控制层：研究探针 `probe_check.v`（保留为回归）+ 正式单元仿真 `tb_engine_top.v`（`rtl/engine/engine_top.v` 全链经 APB 提交，从机是 `axi_ram_model`）| 探针：定向 54 条 × 三结构全符、随机 3000 组互比、预计算位等价。正式：159 条一致性向量端到端逐条对错误三元组与内存、定向 D1~D16（取数边界/总线错误/超时/软复位/写后读/首错顺序/PERF 与 APB 对账），6576 项检查 0 错；两个注错构建（对调 space/format、关掉逐条回退）各自见红。不需要 `EFINITY_HOME`。见 `../../Engineering/TechReports/engine/05-控制层.md` |
 | `engine/frame/` | B6 的整帧仿真：`tb_engine_frame.v`（`engine_top` 经 APB 提交整张命令表，从机 `axi_ram_model` 带随机反压，4 MiB 存储，其中用例窗口由各用例 `cnt.hex` 指定）| SW3 十一个整帧金标准（内存逐 128 位对软件执行器、帧缓冲 CRC 对 `golden.txt` 11/11）+ SW6 场景 A 连续两帧（`tools/check/sw6_frames_dump.c` 从游戏本体的 `sw6_scene_a.c` 组表导出）+ 定时从机弹幕性能（16 颗 16×16 ALPHA，`PERF_BUSY` 逐颗对账）+ 从机 SLVERR 窗口注错；计数器对账 `PIXEL == pixel_total − src_oob`、`RD/WR_BEAT`、`RD/WR_BURST` 对从机观测值。不需要 `EFINITY_HOME`。见 `../../Engineering/TechReports/engine/06-顶层集成与上板.md` |
 
-`engine/band/` 是 G2 前期研究，入口为 `python3 Main/tools/check/g2_research.py`。
-它保留 RAM/真实几何像素代理/校准 DMA 实验，未接入生产 BAND。
+`engine/band/` 是 G2 正式数据面验证，默认 `run.sh` 共 17 项：9 正常、8 定向变异。
+真实全部数据面核对软件金标准，含状态/取消/超时/重试、空条带和 8/16/32 行参数。
+研究探针仍由 `python3 Main/tools/check/g2_research.py` 独立复现。主帧级 BAND 未启用。
 端口、资源、周期与边界见 [band/README](engine/band/README.md)。
 
 ## 规则

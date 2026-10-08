@@ -7,6 +7,15 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 
 ## 现在的状态
 
+2026-10-08 G2 正式条带数据面已完成、待验收：17 项正式验证符合预期，独立
+1638 XLR/36 RAM/0 DSP、setup/hold +3.579/+0.035 ns。当前 outflow 为本批新
+整机接线构建，37426 XLR/121 RAM/16 DSP，core setup/hold +0.551/+0.026 ns，
+最薄 rx_cal hold +0.009 ns；新 bit 的 DDR/TEX 22 CRC 与错误/压力板测通过。
+主帧控制仍接 0、CAPS.BAND=0，BAND 的主工程 RAM 被裁剪，整机条带功能归 G3。
+本批产物清单在 sim/engine/band/logs/formal_artifacts.json；过程见
+[engine 第 08 章](../Engineering/TechReports/engine/08-条带缓冲前期研究.md)。
+下面 B6/G1 的资源表保留各自历史测量口径。
+
 | 部分 | 状态 |
 | --- | --- |
 | SoC（Sapphire RISC-V，100MHz）+ DDR3（256MB） | 已上板，memTest 通过。SoC 经 `Axi_Mux` 访问 DDR3。**构型定在 Standard**（Lite 的对比与不采用的理由见 platform 第 04 章） |
@@ -32,7 +41,7 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 | 板上移植（SW9） | **已验收归档**（2026-10-04）：B6 比特流上接通两路中断、真实硬件执行器、双命令表流水、Flash 自启动与键盘/手柄输入。修复后软件前 600 帧、同帧 CRC 与注错、性能和 Flash 判据通过；完整硬件 9208 帧新回放暂缓，旧日志仅为历史证据。普通游戏 240 帧短测预热后 60 fps、软件约 2.5 fps；硬件 `N_max` 为 16×16 的 1014、8×8 的 1365，软件均 `BELOW_N0`；S1 约 30.6 fps，扫描欠载 0。完整关卡流水性能和 HDMI/实体键现场观察仍未覆盖。见 [sw 第 08 章](../Engineering/TechReports/sw/08-板上移植.md) |
 | SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 已上板并验收（2026-09-19）：efx_soc 3.4.0 重新生成，开 GPIO1 接 KEY0~3、开用户中断 A/B/C、保留 I2C0 给摄像头、关 `axiA` 与 `io_ddrMasters_0`；工具链换成 gcc 13.4.0。调试通路连续 6 次会话、memTest、APB 探针、`ddrAliasTest`、`ddrBurstProbe`、E3 三件套、`bootSizeTest`（含对照组）与 gfx2dGame 60 帧 CRC 全过；HDMI 八色竖条与 SW0~SW3 按键已确认。见 `../Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md` |
 
-当前本地 `outflow` 是 2026-10-08 的 G1 整机编译（4KB/1 路，注错机制已改为 `ifdef`，
+下表的 G1 历史整机编译为 2026-10-08（4KB/1 路，注错机制已改为 `ifdef`，
 自写 RTL 的位宽截断告警已清），XLR **36443**、片上 RAM **121 块**、DSP **16 个**、
 `core_clk` setup **+0.699** / hold **+0.026 ns**，像素域 `hdmi_tx_slow_clk` setup +34.066 ns，
 接口缺脚仍是登记的那 6 项，SHA256
@@ -187,6 +196,7 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   `engine/pix` 25/25（研究探针、单元、乒乓、B1~B4 真实通路、跨命令写后读），
   `engine/ctrl` 4/4（159 向量端到端、D1~D16 定向、两个注错见红），
   `engine/frame` 16/16（十一整帧 CRC 对 golden、SW6 两帧、定时从机性能、SLVERR 注错），
+  `engine/tex` 6/6、`engine/band` 17/17（真实全部数据面、状态/排空/参数、八个变异），
   Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
   改了 `sw/` 下走新构建的程序（`gfx2dGame`、`cup3d`、`assetTest` 等）还要过 `sw/README.md` 里的两套构建、
   主机侧单元测试与 `tools/check/check_sw_layers.sh`；改了 `gfx2dGame`、`lib/gfx` 的执行器或素材还要过

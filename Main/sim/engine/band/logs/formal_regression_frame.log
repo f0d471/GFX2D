@@ -1,0 +1,58 @@
+导出整帧用例（SW3 金标准与 SW6 场景 A）：
+  用例导出完成。
+
+十一个整帧金标准（内存对软件执行器 + CRC 对 golden.txt）：
+    FRAME cycles=126897 rd_burst=1 rd_beat=4 wr_burst=480 wr_beat=76800 pixel=307200 key=0 cmd=1 mem_bad=0
+  frame0: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=2643 rd_burst=65 rd_beat=1028 wr_burst=64 wr_beat=1024 pixel=4096 key=0 cmd=1 mem_bad=0
+  frame1: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=2643 rd_burst=65 rd_beat=1028 wr_burst=64 wr_beat=1024 pixel=4096 key=2048 cmd=1 mem_bad=0
+  frame2: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=4302 rd_burst=129 rd_beat=2052 wr_burst=64 wr_beat=1024 pixel=4096 key=0 cmd=1 mem_bad=0
+  frame3: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=4302 rd_burst=129 rd_beat=2052 wr_burst=64 wr_beat=1024 pixel=4096 key=0 cmd=1 mem_bad=0
+  frame4: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=7425 rd_burst=129 rd_beat=2054 wr_burst=144 wr_beat=2624 pixel=10496 key=0 cmd=2 mem_bad=0
+  frame5: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=132156 rd_burst=481 rd_beat=76804 wr_burst=480 wr_beat=76800 pixel=307200 key=0 cmd=1 mem_bad=0
+  frame6: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=4302 rd_burst=129 rd_beat=2052 wr_burst=64 wr_beat=1024 pixel=4096 key=0 cmd=1 mem_bad=0
+  frame7: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=4611 rd_burst=129 rd_beat=1616 wr_burst=128 wr_beat=1672 pixel=6432 key=0 cmd=3 mem_bad=0
+  frame8: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=27753 rd_burst=2 rd_beat=18 wr_burst=340 wr_beat=15600 pixel=62400 key=0 cmd=7 mem_bad=0
+  frame9: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=2691 rd_burst=65 rd_beat=1028 wr_burst=64 wr_beat=1088 pixel=4096 key=0 cmd=1 mem_bad=0
+  frame10: RESULT: PASS (frame, software executor golden)
+
+SW6 场景 A 两帧：
+    FRAME cycles=178713 rd_burst=1428 rd_beat=9045 wr_burst=2667 wr_beat=90905 pixel=356864 key=0 cmd=101 mem_bad=0
+  sw6a_f0: RESULT: PASS (frame, software executor golden)
+    FRAME cycles=178653 rd_burst=1428 rd_beat=9089 wr_burst=2667 wr_beat=90824 pixel=356864 key=0 cmd=101 mem_bad=0
+  sw6a_f1: RESULT: PASS (frame, software executor golden)
+
+性能（定时从机，16 颗 16×16 ALPHA）：
+    FRAME cycles=17874 rd_burst=514 rd_beat=2466 wr_burst=256 wr_beat=1216 pixel=4096 key=0 cmd=16 mem_bad=0
+    SPRITES busy=17861 per_bullet=1116
+  sprites_timed: RESULT: PASS (frame, software executor golden)
+
+注错构建（从机把帧缓冲设成 SLVERR 窗口，期望见红）：
+    FRAME cycles=126891 rd_burst=1 rd_beat=4 wr_burst=480 wr_beat=76800 pixel=307200 key=0 cmd=0 mem_bad=76800
+  inject_slverr: RESULT: FAIL (BUS_WRITE confirmed)
+
+帧缓冲 CRC（sw 第 03 章 3.6 节口径，对 golden.txt）：
+CRC 00 fill-screen: 9cd34cb7 PASS
+CRC 01 blit-copy: bc9be6ff PASS
+CRC 02 blit-key: 084d6bb2 PASS
+CRC 03 blit-alpha-pm: 0b14ce03 PASS
+CRC 04 blit-alpha-straight: 5b4feb8d PASS
+CRC 05 blit-add: cfcef0ee PASS
+CRC 06 fill-const: f50e8644 PASS
+CRC 07 blit-mul: 46667f89 PASS
+CRC 08 blit-clip-partial: 0fd9dcaf PASS
+CRC 09 set-clip-state: a07324ee PASS
+CRC 10 copy-argb-high-byte: 8843eb2f PASS
+CRC OK: 11/11
+  CRC: PASS
+
+SIM OK: 16/16 checks as expected

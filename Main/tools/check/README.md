@@ -2,6 +2,7 @@
 
 | 文件 | 用途 | 什么时候跑 |
 | --- | --- | --- |
+| `check_g2_band.py` | G2 正式数据面：软件执行器金标准与 ASan/UBSan、真实全部核/协议/参数、八个定向变异；独立综合准备/采集、主综合复核、板测身份与功能登记 | 默认由 band/run.sh 跑 17 项；综合用 --prepare-syn/--collect-syn、--collect-main；新板测用 --record-board，未变产物不重复登记 |
 | `localize_paths.py` | 展开、还原厂商生成物里的绝对路径；扫描整个仓库里的机器专属路径 | 克隆后 `--apply`；提交前 `--restore` 再 `--check` |
 | `regs_gen.py` | D51 的寄存器数字单一真源，生成 `rtl/engine/engine_regs_offsets.vh` 与供 BSP 驱动使用的 `sw/bsp/include/gfx_regs.h` | 改寄存器偏移或位号后重生成；提交前在 `Main/` 下运行 `python3 tools/check/regs_gen.py --check` |
 | `g1_research.py` | G1 前期研究：完整 APB 地址集合、热集布局、四 bank RAM 端口实验、软件金标准对真实像素路径的同步读延迟与 valid 变异；`--prepare-syn` 生成隔离 RAM 工程；`--record-board` 核对本次 B6 板测产物身份 | WSL 中从仓库根运行 `python3 Main/tools/check/g1_research.py`；范围与原始证据见 [tex/README](../../sim/engine/tex/README.md) |

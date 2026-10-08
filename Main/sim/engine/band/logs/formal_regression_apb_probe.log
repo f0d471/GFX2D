@@ -1,0 +1,4 @@
+normal: RESULT: PASS (86 checks)
+inject_addr_trunc: RESULT: FAIL (5 errors in 86 checks)
+inject_data_trunc: RESULT: FAIL (35 errors in 86 checks)
+SIM OK: 3/3 cases as expected

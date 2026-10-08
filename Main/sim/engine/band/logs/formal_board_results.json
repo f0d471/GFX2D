@@ -1,0 +1,11 @@
+{
+  "crc_pairs": 22,
+  "ddr_cycles_per_sprite": 1182.75,
+  "tex_cycles_per_sprite": 657.5625,
+  "tex_read_bursts": 258,
+  "fifo_min": 335,
+  "underflow": 0,
+  "functional_pass": true,
+  "identity_manifest": "formal_artifacts.json",
+  "scope": "legacy board regression, not BAND board performance"
+}

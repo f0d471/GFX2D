@@ -250,7 +250,7 @@ module tb_engine_geom;
         .clk(clk), .rst(rst),
         .start(start), .op(op), .eq(eq), .key_en(key_en), .key_w5(key_w5),
         .const_w4(const_w4), .c(c), .sfmt(sfmt),
-        .src_base(src_base), .src_w(src_w), .src_h(src_h), .src_slog2(src_slog2),
+        .src_base(src_base), .band_enable(1'b0), .band_y0(16'd0), .src_w(src_w), .src_h(src_h), .src_slog2(src_slog2),
         .src_tex(1'b0),
         .dst_base(dst_base), .dst_w(dst_w), .dst_h(dst_h), .dst_slog2(dst_slog2),
         .src_x(src_x), .src_y(src_y), .dst_x(dst_x), .dst_y(dst_y),

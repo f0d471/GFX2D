@@ -46,7 +46,7 @@ module syn_engine_geom (
         .const_w4({lfsr[120:97], lfsr[7:0]}),
         .c(lfsr[31:24]),
         .sfmt(lfsr[16:13]),
-        .src_base({lfsr[119:96], 8'h00}),
+        .src_base({lfsr[119:96], 8'h00}), .band_enable(1'b0), .band_y0(16'd0), .src_tex(1'b0),
         .src_w(lfsr[25:10]),
         .src_h(lfsr[41:26]),
         .src_slog2(lfsr[45:41]),

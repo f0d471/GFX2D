@@ -1,0 +1,8 @@
+PHASE strip=0 height=32 load=8507 exec=4863 flush=8557
+PHASE strip=1 height=32 load=8478 exec=53 flush=8492
+PHASE strip=2 height=32 load=8447 exec=1133 flush=8438
+PHASE TOTAL height=32 load=25432 exec=6049 flush=25487
+BAND FORMAL cycles=56974 fragments=17 rows=258 AR=227 AW=96 fd=128/1 early=1 preload=21
+PATH stats commands=17 read=517 write=258 stalls=0 mem_bad=0 errors=0
+RESULT: PASS (B1-B4, software executor golden)
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/tb_engine_band_path.v:343: $finish called at 692870000 (1ps)

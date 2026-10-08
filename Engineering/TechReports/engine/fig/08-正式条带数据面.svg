@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="840" viewBox="0 0 1240 840">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto-start-reverse"><path d="M0 0L8 4L0 8Z" fill="#222"/></marker>
+    <marker id="g" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#888"/></marker>
+  </defs>
+  <rect width="1240" height="840" fill="white"/>
+  <g font-family="Microsoft YaHei, sans-serif" fill="#222" font-size="16">
+    <text x="40" y="40" font-size="24">G2 正式数据面：直接控制验证已连通，主帧控制接续归 G3</text>
+    <g stroke="#888" stroke-width="1.5" stroke-dasharray="7 5" fill="white">
+      <rect x="40" y="75" width="1160" height="85"/>
+    </g>
+    <text x="60" y="105" fill="#777">engine_top / u_cmd / engine_regs：条带循环、表面槽、ABI v2、CAPS.BAND（G3）</text>
+    <text x="60" y="137" fill="#777">当前主工程：band_enable / band_start / band_flush = 0；下图实线为 G2 直接测试台已验证的数据面</text>
+    <g stroke="#222" fill="white" stroke-width="1.5">
+      <rect x="40" y="245" width="210" height="150"/>
+      <rect x="310" y="270" width="205" height="185"/>
+      <rect x="590" y="195" width="610" height="420"/>
+      <rect x="615" y="245" width="175" height="130"/>
+      <rect x="615" y="425" width="175" height="135"/>
+      <rect x="850" y="235" width="325" height="160"/>
+      <rect x="850" y="455" width="325" height="115"/>
+      <rect x="40" y="525" width="210" height="95"/>
+      <rect x="850" y="675" width="325" height="85"/>
+    </g>
+    <text x="58" y="277">u_geom / engine_geom</text>
+    <text x="58" y="310">全局坐标 ∩ 条带 y 区间</text>
+    <text x="58" y="342">STRIP_H = 16</text>
+    <text x="58" y="374">仅目的置 rd/wr_band</text>
+    <text x="325" y="302">u_pix / engine_pix</text>
+    <text x="325" y="338">源/目的两半行缓冲</text>
+    <text x="325" y="374">engine_blend × 12</text>
+    <text x="325" y="410">四像素，I3 恒 ready</text>
+    <text x="610" y="221">u_mover / engine_mover（ENABLE_BAND = 1）</text>
+    <text x="628" y="276">读仲裁 / I3 mux</text>
+    <text x="628" y="309">DDR / TEX / BAND</text>
+    <text x="628" y="342">单像素流所有者</text>
+    <text x="628" y="456">写路由 / W 掩码</text>
+    <text x="628" y="490">I4 像素 bit31</text>
+    <text x="628" y="525">raw 前缀排空</text>
+    <text x="866" y="266">g_band.u_band / engine_band</text>
+    <text x="866" y="300">640 × STRIP_H × 32 位</text>
+    <text x="866" y="334">四路 32 位，2048 + 512 词</text>
+    <text x="866" y="370">LOAD → EXEC → FLUSH；紧凑索引</text>
+    <text x="868" y="486">axi_dma_rd / axi_dma_wr</text>
+    <text x="868" y="519">128 位，最大 192 拍/突发</text>
+    <text x="868" y="551">真实响应收尾，软取消不复位核</text>
+    <text x="57" y="556">u_tex / engine_tex</text>
+    <text x="57" y="588" font-size="13">APB 32 位装载，128 位源读</text>
+    <text x="866" y="706">u_ram / axi_ram_model</text>
+    <text x="866" y="739">DDR：背景、目的、普通源、命令</text>
+    <g fill="none" stroke="#222" marker-end="url(#a)">
+      <path d="M250 255H275V230H702V245" stroke-width="1.2"/>
+      <path d="M250 350H310" stroke-width="1.2"/>
+      <path d="M615 309H515" stroke-width="3"/>
+      <path d="M515 425H615" stroke-width="3"/>
+      <path d="M850 309H790" stroke-width="3"/>
+      <path d="M790 490H821V366H850" stroke-width="3"/>
+      <path d="M145 525V475H555V350H615" stroke-width="3"/>
+      <path d="M790 280H812V414H905V455" stroke-width="1.2"/>
+      <path d="M790 535H850" stroke-width="3"/>
+      <path d="M1015 455V395" stroke-width="3" marker-start="url(#a)"/>
+      <path d="M1015 570V675" stroke-width="3" marker-start="url(#a)"/>
+    </g>
+    <text x="280" y="220" font-size="13">I2 描述符 / rd_band / wr_band</text>
+    <text x="267" y="341" font-size="13">I5</text>
+    <text x="530" y="297" font-size="13">I3 128</text>
+    <text x="530" y="414" font-size="13">I4 128</text>
+    <text x="1035" y="432" font-size="13">raw 128 / 请求 / 状态</text>
+    <text x="1035" y="648" font-size="13">AXI 128 / 响应</text>
+    <g stroke="#888" fill="none" stroke-width="1.5" stroke-dasharray="7 5" marker-end="url(#g)">
+      <path d="M140 160V245"/>
+      <path d="M1090 160V235"/>
+    </g>
+    <text x="155" y="184" fill="#777" font-size="13">band_enable / y0</text>
+    <text x="805" y="183" fill="#777" font-size="13">start / flush / 配置 / 完成</text>
+    <text x="40" y="684">I5 row_free[1:0] 仍表示 pix 两半；BAND 相位独占另计。</text>
+    <text x="40" y="716">cancel：停本地供流 → 排已接受 DMA → EMPTY。</text>
+    <text x="40" y="790" font-size="14">图例：黑实线＝正式数据面已接；灰虚线＝G3 控制未接；粗线＝128 位数据；细线＝描述符/控制。</text>
+    <text x="40" y="818" font-size="14">本图为 G2 数据面连接边界；主 bit 的不可达 BAND 存储已被裁剪，实测资源与周期见正文。</text>
+  </g>
+</svg>

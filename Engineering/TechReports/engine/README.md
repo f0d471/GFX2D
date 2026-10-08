@@ -27,7 +27,7 @@ B1～B6 的章号与批号相同。
 | 06 | [顶层集成与上板](06-顶层集成与上板.md) | B6，2026-10-02 完成开发并独立复核，2026-10-03 验收归档。顶层 S1、第 0 页 APB 和中断 B 接入引擎，探针撤下；整帧仿真 16/16，含十一帧金标准、SW6 两帧、计数器对账及总线错误注错。整机四步 PASS：36009 XLR、105 RAM、16 DSP，setup +1.067 / hold +0.026 ns。板上重编程序验证十一帧 CRC、32 位 `LIST_COUNT`、定向命令、性能与扫描水位，正常版及注错版 `engineTest` 均 `fail 0`；缓存一致性三构建结果符合预期，`displayTest` 与 memTest 回归通过。告警来源与资源差额的证据边界见正文。配图 `fig/06-顶层集成与上板.svg` |
 | 07 | [片上纹理](07-片上纹理前期研究.md) | G1，2026-10-08 已验收归档。前期研究、APB 四页与源空间传播、正式 TEX、DDR 请求重叠与像素流隔离、状态/排空、驱动与游戏；6/6 正式仿真、依赖回归、单独与整机综合、22 个板上 CRC、657.375 周期/颗与真实 N_max；游戏 360 帧同帧对拍、失败路径及验收复核 |
 
-| 08 | [条带缓冲前期研究](08-条带缓冲前期研究.md) | G2 研究。代码级借鉴、逻辑 stride 到紧凑地址、分相端口复用、逐像素掩码、五种 RAM 综合与 36 块推荐组织、真实 geom/pix 的 246/260 周期取样、校准 DMA 的 fill/flush 与中途排空、现行 G1 板上基线；正式 BAND 未开发 |
+| 08 | [条带缓冲](08-条带缓冲前期研究.md) | G2 待验收。研究来源/地址/端口/五组 RAM/周期，正式 BAND/mover/geom、17 项验证、原始写回与 FIFO 前缀排空、三相 3248/EXEC/3136、独立 36 RAM/+3.579/+0.035ns、整机原能力板测及全部试错；帧控制与 N_max 归 G3/G4 |
 
 ## 判据与工具
 
@@ -47,7 +47,7 @@ B1～B6 的章号与批号相同。
 | `Main/sim/engine/geom/probe_geom.v`、`tb_probe_geom.v` | B3 前期研究的研究探针与逐拍测试台，保留为回归 |
 | `Main/sim/engine/geom/syn/` | 两个单独综合工程：研究探针与入库实现各一份 |
 | `Main/rtl/engine/engine_pix.v` | B4 的计算阵列与片上缓存，接口 I3、I4、I5 与 `row_free[1:0]` |
-| `Main/sim/engine/pix/run.sh` | B4 的仿真总入口：研究探针 9 项 + `run_formal.sh` 16 项，25/25 |
+| `Main/sim/engine/pix/run.sh` | B4 的仿真总入口：研究探针 9 项 + `run_formal.sh` 17 项，25/25 |
 | `Main/sim/engine/pix/tb_engine_pix.v`、`tb_engine_pix_pipe.v`、`tb_engine_path.v` | B4 的三个测试台：一行一行的单元、乒乓与流水（行与行之间不等）、B1~B4 真实通路 |
 | `Main/sim/engine/pix/syn/` | 两个单独综合工程：研究探针与入库实现各一份 |
 | `Main/rtl/engine/engine_top.v`/`engine_regs.v`/`engine_cmd.v` | B5 的顶层、寄存器层与命令层，接口是层间契约 I1、I2、I7、I8 |

@@ -1,0 +1,6 @@
+normal: RESULT: PASS
+inject_flip: RESULT: FAIL (18 errors)
+inject_hang: RESULT: FAIL (118 errors)
+inject_maxlen: RESULT: FAIL (37 errors)
+inject_timeout: RESULT: FAIL (116 errors)
+SIM OK: 5/5 cases as expected

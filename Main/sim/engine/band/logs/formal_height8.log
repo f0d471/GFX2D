@@ -1,0 +1,17 @@
+PHASE strip=0 height=8 load=2095 exec=53 flush=2150
+PHASE strip=1 height=8 load=2144 exec=893 flush=2115
+PHASE strip=2 height=8 load=2100 exec=2557 flush=2177
+PHASE strip=3 height=8 load=2127 exec=1814 flush=2129
+PHASE strip=4 height=8 load=2091 exec=53 flush=2194
+PHASE strip=5 height=8 load=2102 exec=53 flush=2124
+PHASE strip=6 height=8 load=2140 exec=53 flush=2073
+PHASE strip=7 height=8 load=2136 exec=53 flush=2088
+PHASE strip=8 height=8 load=2161 exec=53 flush=2127
+PHASE strip=9 height=8 load=2105 exec=53 flush=2110
+PHASE strip=10 height=8 load=2055 exec=53 flush=2148
+PHASE strip=11 height=8 load=2119 exec=1126 flush=2110
+PHASE TOTAL height=8 load=25375 exec=6814 flush=25545
+BAND FORMAL cycles=57758 fragments=41 rows=258 AR=227 AW=96 fd=128/1 early=1 preload=21
+PATH stats commands=41 read=517 write=258 stalls=0 mem_bad=0 errors=0
+RESULT: PASS (B1-B4, software executor golden)
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/tb_engine_band_path.v:343: $finish called at 700710000 (1ps)

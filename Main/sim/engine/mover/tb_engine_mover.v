@@ -154,7 +154,9 @@ module tb_engine_mover;
     ) dut (
         .clk(clk), .rst(rst),
         .rd_addr(rd_addr), .rd_bytes(rd_bytes), .rd_buf(rd_buf), .rd_cidx(rd_cidx),
-        .rd_tex(1'b0),
+        .rd_tex(1'b0), .rd_band(1'b0), .wr_band(1'b0), .band_start(1'b0), .band_flush(1'b0),
+        .band_bg_base(32'd0), .band_dst_base(32'd0), .band_bg_slog2(5'd12), .band_dst_slog2(5'd12),
+        .band_y0(16'd0), .band_frame_height(16'd480),
         .rd_valid(rd_valid), .rd_ready(rd_ready),
         .tx_addr(), .tx_bytes(), .tx_buf(), .tx_cidx(), .tx_valid(),
         .tx_ready(1'b1), .tx_busy(1'b0),

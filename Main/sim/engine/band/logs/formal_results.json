@@ -1,0 +1,423 @@
+{
+  "unit": {
+    "expected": "PASS",
+    "evidence": null,
+    "passed": true
+  },
+  "control": {
+    "expected": "PASS",
+    "evidence": null,
+    "passed": true
+  },
+  "drain_mask": {
+    "expected": "FAIL",
+    "evidence": "DRAIN_MEMORY",
+    "passed": true
+  },
+  "raw_mask": {
+    "expected": "FAIL",
+    "evidence": "MEM_MISMATCH",
+    "passed": true
+  },
+  "path_random": {
+    "expected": "PASS",
+    "evidence": null,
+    "passed": true,
+    "phases": [
+      {
+        "strip": 0,
+        "height": 16,
+        "load": 4247,
+        "exec": 893,
+        "flush": 4255
+      },
+      {
+        "strip": 1,
+        "height": 16,
+        "load": 4141,
+        "exec": 4114,
+        "flush": 4280
+      },
+      {
+        "strip": 2,
+        "height": 16,
+        "load": 4239,
+        "exec": 53,
+        "flush": 4230
+      },
+      {
+        "strip": 3,
+        "height": 16,
+        "load": 4244,
+        "exec": 53,
+        "flush": 4217
+      },
+      {
+        "strip": 4,
+        "height": 16,
+        "load": 4247,
+        "exec": 53,
+        "flush": 4223
+      },
+      {
+        "strip": 5,
+        "height": 16,
+        "load": 4224,
+        "exec": 1117,
+        "flush": 4273
+      }
+    ],
+    "total_cycles": 57115
+  },
+  "path_timed": {
+    "expected": "PASS",
+    "evidence": null,
+    "passed": true,
+    "phases": [
+      {
+        "strip": 0,
+        "height": 16,
+        "load": 3248,
+        "exec": 893,
+        "flush": 3136
+      },
+      {
+        "strip": 1,
+        "height": 16,
+        "load": 3248,
+        "exec": 6513,
+        "flush": 3136
+      },
+      {
+        "strip": 2,
+        "height": 16,
+        "load": 3248,
+        "exec": 53,
+        "flush": 3136
+      },
+      {
+        "strip": 3,
+        "height": 16,
+        "load": 3248,
+        "exec": 53,
+        "flush": 3136
+      },
+      {
+        "strip": 4,
+        "height": 16,
+        "load": 3248,
+        "exec": 53,
+        "flush": 3136
+      },
+      {
+        "strip": 5,
+        "height": 16,
+        "load": 3248,
+        "exec": 960,
+        "flush": 3136
+      }
+    ],
+    "total_cycles": 46841
+  },
+  "path_overlap": {
+    "expected": "PASS",
+    "evidence": null,
+    "passed": true,
+    "phases": [
+      {
+        "strip": 0,
+        "height": 16,
+        "load": 4247,
+        "exec": 893,
+        "flush": 4255
+      },
+      {
+        "strip": 1,
+        "height": 16,
+        "load": 4141,
+        "exec": 4114,
+        "flush": 4280
+      },
+      {
+        "strip": 2,
+        "height": 16,
+        "load": 4239,
+        "exec": 53,
+        "flush": 4230
+      },
+      {
+        "strip": 3,
+        "height": 16,
+        "load": 4244,
+        "exec": 53,
+        "flush": 4217
+      },
+      {
+        "strip": 4,
+        "height": 16,
+        "load": 4247,
+        "exec": 53,
+        "flush": 4223
+      },
+      {
+        "strip": 5,
+        "height": 16,
+        "load": 4224,
+        "exec": 1050,
+        "flush": 4259
+      }
+    ],
+    "total_cycles": 57034
+  },
+  "path_seed7": {
+    "expected": "PASS",
+    "evidence": null,
+    "passed": true,
+    "phases": [
+      {
+        "strip": 0,
+        "height": 16,
+        "load": 4114,
+        "exec": 893,
+        "flush": 4312
+      },
+      {
+        "strip": 1,
+        "height": 16,
+        "load": 4237,
+        "exec": 4125,
+        "flush": 4317
+      },
+      {
+        "strip": 2,
+        "height": 16,
+        "load": 4231,
+        "exec": 53,
+        "flush": 4324
+      },
+      {
+        "strip": 3,
+        "height": 16,
+        "load": 4223,
+        "exec": 53,
+        "flush": 4331
+      },
+      {
+        "strip": 4,
+        "height": 16,
+        "load": 4243,
+        "exec": 53,
+        "flush": 4147
+      },
+      {
+        "strip": 5,
+        "height": 16,
+        "load": 4121,
+        "exec": 1116,
+        "flush": 4344
+      }
+    ],
+    "total_cycles": 57249
+  },
+  "empty": {
+    "expected": "PASS",
+    "evidence": null,
+    "passed": true,
+    "phases": [
+      {
+        "strip": 0,
+        "height": 16,
+        "load": 4247,
+        "exec": 2,
+        "flush": 4299
+      },
+      {
+        "strip": 1,
+        "height": 16,
+        "load": 4170,
+        "exec": 2,
+        "flush": 4269
+      },
+      {
+        "strip": 2,
+        "height": 16,
+        "load": 4212,
+        "exec": 2,
+        "flush": 4300
+      },
+      {
+        "strip": 3,
+        "height": 16,
+        "load": 4208,
+        "exec": 2,
+        "flush": 4316
+      },
+      {
+        "strip": 4,
+        "height": 16,
+        "load": 4188,
+        "exec": 2,
+        "flush": 4253
+      },
+      {
+        "strip": 5,
+        "height": 16,
+        "load": 4169,
+        "exec": 2,
+        "flush": 4220
+      }
+    ],
+    "total_cycles": 50875
+  },
+  "height8": {
+    "expected": "PASS",
+    "evidence": null,
+    "passed": true,
+    "phases": [
+      {
+        "strip": 0,
+        "height": 8,
+        "load": 2095,
+        "exec": 53,
+        "flush": 2150
+      },
+      {
+        "strip": 1,
+        "height": 8,
+        "load": 2144,
+        "exec": 893,
+        "flush": 2115
+      },
+      {
+        "strip": 2,
+        "height": 8,
+        "load": 2100,
+        "exec": 2557,
+        "flush": 2177
+      },
+      {
+        "strip": 3,
+        "height": 8,
+        "load": 2127,
+        "exec": 1814,
+        "flush": 2129
+      },
+      {
+        "strip": 4,
+        "height": 8,
+        "load": 2091,
+        "exec": 53,
+        "flush": 2194
+      },
+      {
+        "strip": 5,
+        "height": 8,
+        "load": 2102,
+        "exec": 53,
+        "flush": 2124
+      },
+      {
+        "strip": 6,
+        "height": 8,
+        "load": 2140,
+        "exec": 53,
+        "flush": 2073
+      },
+      {
+        "strip": 7,
+        "height": 8,
+        "load": 2136,
+        "exec": 53,
+        "flush": 2088
+      },
+      {
+        "strip": 8,
+        "height": 8,
+        "load": 2161,
+        "exec": 53,
+        "flush": 2127
+      },
+      {
+        "strip": 9,
+        "height": 8,
+        "load": 2105,
+        "exec": 53,
+        "flush": 2110
+      },
+      {
+        "strip": 10,
+        "height": 8,
+        "load": 2055,
+        "exec": 53,
+        "flush": 2148
+      },
+      {
+        "strip": 11,
+        "height": 8,
+        "load": 2119,
+        "exec": 1126,
+        "flush": 2110
+      }
+    ],
+    "total_cycles": 57758
+  },
+  "height32": {
+    "expected": "PASS",
+    "evidence": null,
+    "passed": true,
+    "phases": [
+      {
+        "strip": 0,
+        "height": 32,
+        "load": 8507,
+        "exec": 4863,
+        "flush": 8557
+      },
+      {
+        "strip": 1,
+        "height": 32,
+        "load": 8478,
+        "exec": 53,
+        "flush": 8492
+      },
+      {
+        "strip": 2,
+        "height": 32,
+        "load": 8447,
+        "exec": 1133,
+        "flush": 8438
+      }
+    ],
+    "total_cycles": 56974
+  },
+  "pixel_mask": {
+    "expected": "FAIL",
+    "evidence": "MEM_MISMATCH",
+    "passed": true
+  },
+  "flush_address": {
+    "expected": "FAIL",
+    "evidence": "MEM_MISMATCH",
+    "passed": true
+  },
+  "address_stride": {
+    "expected": "FAIL",
+    "evidence": "MEM_MISMATCH",
+    "passed": true
+  },
+  "band_clip": {
+    "expected": "FAIL",
+    "evidence": "BAND_ERROR|READ_ERROR|WRITE_ERROR",
+    "passed": true
+  },
+  "early_flush": {
+    "expected": "FAIL",
+    "evidence": "EARLY_FLUSH_ACCEPTED",
+    "passed": true
+  },
+  "flow_wait": {
+    "expected": "FAIL",
+    "evidence": "BAND_FLOW_COLLISION",
+    "passed": true
+  }
+}

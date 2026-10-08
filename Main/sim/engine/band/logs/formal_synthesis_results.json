@@ -1,0 +1,14 @@
+{
+  "xlr": 1638,
+  "ram": 36,
+  "dsp": 0,
+  "setup_ns": 3.579,
+  "hold_ns": 0.035,
+  "ram_read_width_counts": {
+    "4": 12,
+    "16": 4,
+    "20": 4,
+    "5": 16
+  },
+  "scope": "formal engine_band plus variable observation wrapper; not full SoC or enabled BAND"
+}

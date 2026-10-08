@@ -15,6 +15,11 @@
 //      上一个描述符的最后几拍被算成下一个的——静默错数据，总线侧的判据抓不到。
 //   4. 复位排空与超时（D17、D19、D29、D30）：见下。
 //
+// G2 增量：ENABLE_BAND=1 时例化单条带数据面，背景/原始写回复用 DMA，
+// 目的本地读写保持 I3/I4 与完成上下文。DDR 请求可提前，像素输出等 BAND 流收尾。
+// 原始 flush 不解释像素 bit31；取消按已入写核 FIFO 的合法前缀在 AXI 出口清 WSTRB，
+// 因为写核整拍不保留输入 keep。loaded 的空闲 EXEC 不算超时在途。
+//
 // 排空（D17、D29）。控制层复位或软复位时拉高 drain_req（电平），搬运层进排空态：
 //   读方向把自己的 s_axis_read_data_tready 恒置 1，把在途那一笔的数据吃到 tlast 丢掉；
 //   写方向自己按「描述符拍数 − 已送拍数」往写核的流里灌哑拍，像素标记位全打「不写」，
@@ -85,7 +90,9 @@
 module engine_mover #(
     parameter integer AXI_MAX_BURST_LEN = 192,
     // 超时门限 T 的位宽：控制层给的 tmo_limit 最宽这么多位，4096 要 13 位
-    parameter integer TMO_WIDTH = 13
+    parameter integer TMO_WIDTH = 13,
+    parameter integer ENABLE_BAND = 0,
+    parameter integer BAND_STRIP_H = 16
 )(
     input  wire                  clk,
     input  wire                  rst,          // 搬运层复位，顶层接 ~ddr_rstn
@@ -96,6 +103,7 @@ module engine_mover #(
     input  wire [1:0]            rd_buf,       // 落到哪块行缓冲
     input  wire [3:0]            rd_cidx,      // 命令索引（D19 的错误归属）
     input  wire                  rd_tex,       // 源在片上 TEX（G1）：描述符入口选路
+    input  wire                  rd_band,      // G2：目的在 BAND；ENABLE_BAND=0 时忽略
     input  wire                  rd_valid,
     output wire                  rd_ready,
 
@@ -142,6 +150,7 @@ module engine_mover #(
     input  wire [11:0]           wr_bytes,
     input  wire [3:0]            wr_cidx,
     input  wire                  wr_last_row,  // 本命令的最后一行
+    input  wire                  wr_band,      // G2：像素结果写入 BAND
     input  wire                  wr_valid,
     output wire                  wr_ready,
 
@@ -150,6 +159,15 @@ module engine_mover #(
     input  wire [15:0]           ws_tkeep,     // 写流没有 tlast 口：本层按描述符拍数打（D48，见文件头）
     input  wire                  ws_tvalid,
     output wire                  ws_tready,
+
+    // G2 直接控制口；G3 再接帧级循环，直通构型明确绑 0。
+    input wire band_start, band_flush,
+    output wire band_start_ready, band_flush_ready,
+    input wire [31:0] band_bg_base, band_dst_base,
+    input wire [4:0] band_bg_slog2, band_dst_slog2,
+    input wire [15:0] band_y0, band_frame_height,
+    output wire band_loaded, band_flushed, band_active, band_busy, band_error,
+    output wire [3:0] band_error_code,
 
     // ---- I7：状态（搬运层 → 控制层）----
     output wire                  rd_stat_valid, // 一拍脉冲，负载同拍有效
@@ -204,10 +222,66 @@ module engine_mover #(
     // 上下文寄存器（D31）
     // =====================================================================
     reg         rd_ctx_cmd;      // 在途读描述符的来源：0 像素读、1 命令取数
+    reg         rd_ctx_bg, wr_ctx_flush;
+    reg         rd_busy, wr_busy;
+    wire        drain_hold;
     reg  [1:0]  rd_ctx_buf;
     reg  [3:0]  rd_ctx_cidx;
     reg  [3:0]  wr_ctx_cidx;
     reg         wr_ctx_last_row;
+
+    wire rd_is_band=ENABLE_BAND ? rd_band : 1'b0;
+    wire wr_is_band=ENABLE_BAND ? wr_band : 1'b0;
+    wire b_start_ready,b_flush_ready,b_loading,b_flushing,b_rbusy,b_wbusy;
+    wire b_start_fire=band_start && band_start_ready;
+    wire b_flush_fire=band_flush && band_flush_ready;
+    wire b_xfer=b_loading || b_flushing || (band_busy && !band_active);
+    wire b_bus_idle=!rd_busy && !wr_busy && !tx_busy;
+    assign band_start_ready=b_start_ready && b_bus_idle && !drain_hold;
+    assign band_flush_ready=b_flush_ready && b_bus_idle && !drain_hold;
+    wire [31:0] b_rd_addr,b_wr_addr;
+    wire [11:0] b_rd_bytes,b_wr_bytes;
+    wire b_rd_valid,b_rd_ready,b_wr_valid,b_wr_ready;
+    wire [127:0] b_wdata,b_rsdata;
+    wire b_wvalid,b_wready,b_rsvalid,b_rslast,b_rstat,b_rerr,b_wstat,b_werr,b_wlast;
+    wire [1:0] b_rsbuf,b_rstatbuf;
+    wire [3:0] b_rcidx,b_wcidx;
+    wire b_rready,b_wready_desc,b_wsready,b_rfire,b_wfire,b_rstat_ready,b_wstat_ready;
+    generate if(ENABLE_BAND!=0) begin : g_band
+        engine_band #(.STRIP_H(BAND_STRIP_H)) u_band(
+            .clk(clk),.rst(rst),.cancel(drain_hold),.err_clr(err_clr),
+            .start(b_start_fire),.start_ready(b_start_ready),.flush(b_flush_fire),.flush_ready(b_flush_ready),
+            .bg_base(band_bg_base),.dst_base(band_dst_base),
+            .bg_slog2(band_bg_slog2),.dst_slog2(band_dst_slog2),
+            .strip_y0(band_y0),.frame_height(band_frame_height),
+            .loaded(band_loaded),.flushed(band_flushed),.active(band_active),.busy(band_busy),
+            .loading(b_loading),.flushing(b_flushing),.error(band_error),.error_code(band_error_code),
+            .dma_rd_addr(b_rd_addr),.dma_rd_bytes(b_rd_bytes),.dma_rd_valid(b_rd_valid),.dma_rd_ready(b_rd_ready),
+            .dma_rdata(core_rs_tdata),.dma_rvalid(core_rs_tvalid && rd_ctx_bg),.dma_rlast(core_rs_tlast),.dma_rready(),
+            .dma_rd_done(rd_stat_v && rd_ctx_bg),.dma_rd_error(rd_err_r),
+            .dma_wr_addr(b_wr_addr),.dma_wr_bytes(b_wr_bytes),.dma_wr_valid(b_wr_valid),.dma_wr_ready(b_wr_ready),
+            .dma_wdata(b_wdata),.dma_wvalid(b_wvalid),.dma_wready(b_wready),
+            .dma_wr_done(wr_stat_v && wr_ctx_flush),.dma_wr_error(wr_err_r),.dma_idle(b_bus_idle),
+            .rd_addr(rd_addr),.rd_bytes(rd_bytes),.rd_buf(rd_buf),.rd_cidx(rd_cidx),.rd_valid(b_rfire),.rd_ready(b_rready),
+            .rs_data(b_rsdata),.rs_valid(b_rsvalid),.rs_last(b_rslast),.rs_buf(b_rsbuf),
+            .rd_stat_valid(b_rstat),.rd_stat_error(b_rerr),.rd_stat_cidx(b_rcidx),.rd_stat_buf(b_rstatbuf),
+            .rd_stat_ready(b_rstat_ready),.rd_busy(b_rbusy),
+            .wr_addr(wr_addr),.wr_bytes(wr_bytes),.wr_cidx(wr_cidx),.wr_last_row(wr_last_row),
+            .wr_valid(b_wfire),.wr_ready(b_wready_desc),.ws_data(ws_tdata),.ws_keep(ws_tkeep),
+            .ws_valid(ws_tvalid && b_wbusy && !drain_hold),.ws_ready(b_wsready),
+            .wr_stat_valid(b_wstat),.wr_stat_error(b_werr),.wr_stat_cidx(b_wcidx),.wr_stat_last_row(b_wlast),
+            .wr_stat_ready(b_wstat_ready),.wr_busy(b_wbusy));
+    end else begin : g_no_band
+        assign b_start_ready=0;assign b_flush_ready=0;
+        assign band_loaded=0;assign band_flushed=0;assign band_active=0;assign band_busy=0;
+        assign band_error=0;assign band_error_code=0;assign b_loading=0;assign b_flushing=0;
+        assign b_rbusy=0;assign b_wbusy=0;assign b_rd_addr=0;assign b_wr_addr=0;
+        assign b_rd_bytes=0;assign b_wr_bytes=0;assign b_rd_valid=0;assign b_wr_valid=0;
+        assign b_wdata=0;assign b_wvalid=0;assign b_rsdata=0;assign b_rsvalid=0;assign b_rslast=0;
+        assign b_rstat=0;assign b_rerr=0;assign b_wstat=0;assign b_werr=0;assign b_wlast=0;
+        assign b_rsbuf=0;assign b_rstatbuf=0;assign b_rcidx=0;assign b_wcidx=0;
+        assign b_rready=0;assign b_wready_desc=0;assign b_wsready=0;
+    end endgenerate
 
     // =====================================================================
     // 复位排空状态机（D17、D29）
@@ -223,7 +297,7 @@ module engine_mover #(
     always @(posedge clk) begin
         if (rst)                                   draining <= 1'b0;
         else if (drain_enter)                      draining <= 1'b1;
-        else if (draining && !rd_busy && !wr_busy && !tx_busy)
+        else if (draining && !rd_busy && !wr_busy && !tx_busy && !band_busy)
                                                    draining <= 1'b0;
     end
 
@@ -234,9 +308,9 @@ module engine_mover #(
 
     // 挡新提交：排空态里，以及请求还举着的每一拍
 `ifdef INJ_DRAIN_LEVEL
-    wire        drain_hold = draining;                 // 注错：只在排空态里挡提交
+    assign      drain_hold = draining;                 // 注错：只在排空态里挡提交
 `else
-    wire        drain_hold = draining || drain_req;
+    assign      drain_hold = draining || drain_req;
 `endif
 
 `ifdef INJ_DRAIN_BYPASS
@@ -249,13 +323,12 @@ module engine_mover #(
 `endif
 
     assign      drain_busy = draining;
-    assign      drain_done = draining && !rd_busy && !wr_busy && !tx_busy;
+    assign      drain_done = draining && !rd_busy && !wr_busy && !tx_busy && !band_busy;
 
     // =====================================================================
     // 读侧：仲裁（D8、D32）与门控（D3 规矩 2）
     // =====================================================================
     wire        rd_core_ready;   // 读核描述符口 ready
-    reg         rd_busy;
     reg         rd_status_seen;
     reg         rd_stream_done;
     reg         rd_err_r;
@@ -268,22 +341,28 @@ module engine_mover #(
     wire        rd_gate_done = (rd_status_seen && rd_stream_done);
 `endif
     // 排空期间挡新提交。TEX 流在途时可预发 DDR 请求，但 I3 保持单流所有者。
-    wire        rd_block     = (rd_busy && !rd_gate_done) || drain_hold;
+    wire        rd_block     = (rd_busy && !rd_gate_done) || drain_hold || b_xfer || b_start_fire || b_flush_fire;
     wire        rd_open      = !rd_block;
 
     // 仲裁（G1）：命令取数仍优先于像素读；像素读按 rd_tex 在描述符入口选路。
     // TEX 在 DDR 读流收尾后才开始；DDR 可提前取目的，返回流先停在 DMA FIFO。
     // 待 TEX 数据与状态收尾后才交给 I3，防止共享行写指针在源/目的间交错。
-    wire        rd_pick_fd    = fd_valid;
-    wire        rd_pick_tex   = !fd_valid && rd_valid && rd_tex;
-    wire        rd_fire       = rd_core_ready && rd_open && (fd_valid || (rd_valid && !rd_tex));
-    wire        tx_fire       = tx_ready && rd_open && rd_pick_tex && !rd_busy;
+    wire        rd_pick_bg    = b_rd_valid;
+    wire        rd_pick_fd    = !rd_pick_bg && fd_valid;
+    wire        rd_pick_tex   = !fd_valid && rd_valid && rd_tex && !rd_is_band;
+    wire        bg_open       = !drain_hold && (!rd_busy || rd_gate_done);
+    wire        rd_fire       = rd_core_ready && (rd_pick_bg ? bg_open :
+                               (rd_open && (fd_valid || (rd_valid && !rd_tex && !rd_is_band))));
+    wire        tx_fire       = tx_ready && rd_open && rd_pick_tex && !rd_busy && !b_rbusy;
+    assign      b_rfire       = b_rready && rd_open && !fd_valid && rd_valid && rd_is_band && !rd_busy && !tx_busy;
+    assign      b_rd_ready    = rd_core_ready && bg_open;
     assign      fd_ready      = rd_core_ready && rd_open;
     assign      rd_ready      = rd_open && !fd_valid &&
-                                (rd_tex ? (tx_ready && !rd_busy) : rd_core_ready);
+                                (rd_is_band ? (b_rready && !rd_busy && !tx_busy) :
+                                 (rd_tex ? (tx_ready && !rd_busy && !b_rbusy) : rd_core_ready));
 
-    wire [31:0] dsc_addr      = rd_pick_fd ? fd_addr  : rd_addr;
-    wire [11:0] dsc_bytes     = rd_pick_fd ? fd_bytes : rd_bytes;
+    wire [31:0] dsc_addr      = rd_pick_bg ? b_rd_addr : (rd_pick_fd ? fd_addr : rd_addr);
+    wire [11:0] dsc_bytes     = rd_pick_bg ? b_rd_bytes : (rd_pick_fd ? fd_bytes : rd_bytes);
 
     // TEX 描述符出口：地址截到窗口内使用（越界是 cmd 检查的责任）
     assign      tx_addr       = rd_addr[13:0];
@@ -297,20 +376,27 @@ module engine_mover #(
     wire [15:0]  core_rs_tkeep;
     wire         core_rs_tlast, core_rs_tvalid, core_rs_tready;
 `ifdef INJ_TX_NOWAIT
-    wire        tx_data_blocks = 1'b0;                 // 注错：去掉目的流等待
+    wire        tex_data_blocks = 1'b0;                 // 注错：去掉目的流等待
 `else
-    wire        tx_data_blocks = tx_busy;
+    wire        tex_data_blocks = tx_busy;
 `endif
-    wire        core_rs_pix   = core_rs_tvalid && !rd_ctx_cmd && !rd_drain_help && !tx_data_blocks;
+`ifdef INJ_BAND_FLOW_WAIT
+    wire        band_data_blocks=1'b0;
+`else
+    wire        band_data_blocks=b_rbusy;
+`endif
+    wire        tx_data_blocks = tex_data_blocks || band_data_blocks;
+    wire        core_rs_pix   = core_rs_tvalid && !rd_ctx_cmd && !rd_ctx_bg && !rd_drain_help && !tx_data_blocks;
     wire        tex_rs_pix    = tx_rs_tvalid && !drain_hold;
+    wire        band_rs_pix   = b_rsvalid && !drain_hold;
     assign      core_rs_tready = rd_drain_help ? 1'b1
-                               : (rd_ctx_cmd ? fs_tready : (rs_tready && !tx_data_blocks));
-    assign      rs_tvalid      = core_rs_pix || tex_rs_pix;
+                               : (rd_ctx_bg ? 1'b1 : (rd_ctx_cmd ? fs_tready : (rs_tready && !tx_data_blocks)));
+    assign      rs_tvalid      = core_rs_pix || tex_rs_pix || band_rs_pix;
     assign      fs_tvalid      = core_rs_tvalid &&  rd_ctx_cmd && !rd_drain_help;
-    assign      rs_tdata       = tex_rs_pix ? tx_rs_tdata : core_rs_tdata;
-    assign      rs_tkeep       = tex_rs_pix ? 16'hFFFF    : core_rs_tkeep;
-    assign      rs_tlast       = tex_rs_pix ? tx_rs_tlast : core_rs_tlast;
-    assign      rs_buf         = tex_rs_pix ? tx_rs_buf   : rd_ctx_buf;
+    assign      rs_tdata       = band_rs_pix ? b_rsdata : (tex_rs_pix ? tx_rs_tdata : core_rs_tdata);
+    assign      rs_tkeep       = (tex_rs_pix || band_rs_pix) ? 16'hFFFF : core_rs_tkeep;
+    assign      rs_tlast       = band_rs_pix ? b_rslast : (tex_rs_pix ? tx_rs_tlast : core_rs_tlast);
+    assign      rs_buf         = band_rs_pix ? b_rsbuf : (tex_rs_pix ? tx_rs_buf : rd_ctx_buf);
     assign      fs_tdata       = core_rs_tdata;
     assign      fs_tkeep       = core_rs_tkeep;
     assign      fs_tlast       = core_rs_tlast;
@@ -331,6 +417,7 @@ module engine_mover #(
             rd_err_r       <= 1'b0;
             rd_stat_v      <= 1'b0;
             rd_ctx_cmd     <= 1'b0;
+            rd_ctx_bg      <= 1'b0;
             rd_ctx_buf     <= 2'd0;
             rd_ctx_cidx    <= 4'd0;
         end else begin
@@ -339,6 +426,7 @@ module engine_mover #(
                 rd_status_seen <= 1'b0;
                 rd_stream_done <= 1'b0;
                 rd_ctx_cmd     <= rd_pick_fd;
+                rd_ctx_bg      <= rd_pick_bg;
                 rd_ctx_buf     <= rd_pick_fd ? 2'd0 : rd_buf;
                 rd_ctx_cidx    <= rd_pick_fd ? fd_cidx : rd_cidx;
             end else if (rd_busy && rd_gate_done) begin
@@ -358,35 +446,44 @@ module engine_mover #(
 
     // 状态：读核/取数的状态（延后一拍）与 TEX 的状态合并成一路。
     // 单所有者保证两者不同拍；TEX 本地读没有错误来源，err 恒 0。
-    assign rd_stat_valid = rd_stat_v || tx_stat_valid;
-    assign rd_stat_err   = rd_stat_v && rd_err_r;
-    assign rd_stat_cidx  = rd_stat_v ? rd_ctx_cidx : tx_stat_cidx;
-    assign rd_stat_buf   = rd_stat_v ? rd_ctx_buf  : tx_stat_buf;
-    assign rd_stat_fetch = rd_stat_v && rd_ctx_cmd;   // TEX 状态恒属像素读
+    wire legacy_rd_stat=rd_stat_v && !rd_ctx_bg;
+    assign rd_stat_valid = legacy_rd_stat || tx_stat_valid || b_rstat;
+    assign rd_stat_err   = legacy_rd_stat ? rd_err_r : (tx_stat_valid ? 1'b0 : b_rerr);
+    assign rd_stat_cidx  = legacy_rd_stat ? rd_ctx_cidx : (tx_stat_valid ? tx_stat_cidx : b_rcidx);
+    assign rd_stat_buf   = legacy_rd_stat ? rd_ctx_buf : (tx_stat_valid ? tx_stat_buf : b_rstatbuf);
+    assign rd_stat_fetch = legacy_rd_stat && rd_ctx_cmd;
     // DDR 状态无反压口；本地状态遇到同拍 DDR 状态时保留到下一拍。
-    assign tx_stat_ready = !rd_stat_v;
+    assign tx_stat_ready = !legacy_rd_stat;
+    assign b_rstat_ready = !legacy_rd_stat && !tx_stat_valid;
 
     // =====================================================================
     // 写侧：门控与排空补拍（D3 规矩 2、D29）
     // =====================================================================
     wire        wr_core_ready;   // 写核描述符口 ready
     wire        wr_data_ready;   // 写核写流 ready
-    reg         wr_busy;
     reg         wr_status_seen;
     reg         wr_err_r;
     reg         wr_stat_v;
     reg  [11:0] wr_beats_total;
     reg  [11:0] wr_beats_sent;
+    reg [11:0] wr_bus_beats,raw_stop_after;
+    reg raw_stop_valid;
 
 `ifdef INJ_NO_GATE_WR
     wire        wr_gate_done = 1'b1;                   // 注错：去掉写门控
 `else
     wire        wr_gate_done = wr_status_seen;
 `endif
-    wire        wr_block     = (wr_busy && !wr_gate_done) || drain_hold;
+    wire        wr_block     = (wr_busy && !wr_gate_done) || drain_hold || b_xfer || b_start_fire || b_flush_fire || b_wbusy;
     wire        wr_open      = !wr_block;
-    wire        wr_fire      = wr_core_ready && wr_open && wr_valid;
-    assign      wr_ready     = wr_core_ready && wr_open;
+    wire        flush_open   = !drain_hold && (!wr_busy || wr_gate_done);
+    wire        wr_fire      = wr_core_ready && (b_wr_valid ? flush_open : (wr_open && wr_valid && !wr_is_band));
+    assign      b_wr_ready   = wr_core_ready && flush_open;
+    assign      b_wfire      = wr_valid && wr_is_band && b_wready_desc && !wr_busy && !drain_hold && !b_start_fire && !b_flush_fire;
+    assign      wr_ready     = wr_is_band ? (b_wready_desc && !wr_busy && !drain_hold && !b_start_fire && !b_flush_fire)
+                                         : (wr_core_ready && wr_open);
+    wire [31:0] write_desc_addr=b_wr_valid ? b_wr_addr : wr_addr;
+    wire [11:0] write_desc_bytes=b_wr_valid ? b_wr_bytes : wr_bytes;
 
     wire [3:0]   wr_status_tag;
     wire [11:0]  wr_status_len;
@@ -398,18 +495,37 @@ module engine_mover #(
     // 排空补拍：欠多少拍补多少拍，像素标记位全打「不写」。
     // tlast 正常写流与排空同一个式子：剩下的最后一拍（D48）
     wire [11:0]  wr_beats_left  = wr_beats_total - wr_beats_sent;
-    wire         ws_core_tvalid = wr_drain_help ? (wr_beats_left != 12'd0) : ws_tvalid;
+    wire         ws_core_tvalid = wr_drain_help ? (wr_beats_left != 12'd0) :
+                                  (wr_ctx_flush ? b_wvalid : (ws_tvalid && !b_wbusy));
 `ifdef INJ_NO_TLAST
     // 注错：正常写流不打 tlast，只有排空哑拍打
     wire         ws_core_tlast  = wr_drain_help ? (wr_beats_left == 12'd1) : 1'b0;
 `else
     wire         ws_core_tlast  = (wr_beats_left == 12'd1);
 `endif
-    wire [127:0] ws_core_tdata  = wr_drain_help ? {4{32'h8000_0000}} : ws_tdata;
-    wire [15:0]  ws_core_tkeep  = wr_drain_help ? 16'hFFFF : ws_tkeep;
-    assign       ws_tready      = wr_drain_help ? 1'b0 : wr_data_ready;
+    wire [127:0] ws_core_tdata  = wr_drain_help ? {4{32'h8000_0000}} : (wr_ctx_flush ? b_wdata : ws_tdata);
+    // 写核整拍路径不保留输入 keep；BAND 取消掩码必须在 AXI 出口按前缀施加。
+    wire [15:0]  ws_core_tkeep  = wr_drain_help ? 16'hFFFF :
+                                  (wr_ctx_flush ? 16'hFFFF : ws_tkeep);
+    assign       ws_tready      = drain_hold ? 1'b0 : (b_wbusy ? b_wsready : (wr_ctx_flush ? 1'b0 : wr_data_ready));
+    assign       b_wready       = wr_ctx_flush && !wr_drain_help && wr_data_ready;
 
     wire         ws_core_fire   = ws_core_tvalid && wr_data_ready;
+    always @(posedge clk) begin
+        if(rst) begin wr_bus_beats<=0;raw_stop_after<=0;raw_stop_valid<=0;end
+        else begin
+            if(wr_fire) begin wr_bus_beats<=0;raw_stop_valid<=0;end
+            else if(m_axi_wvalid && m_axi_wready) wr_bus_beats<=wr_bus_beats+1'b1;
+            if(drain_enter && wr_busy && wr_ctx_flush) begin
+                raw_stop_valid<=1;raw_stop_after<=wr_beats_sent;
+            end
+        end
+    end
+`ifdef INJ_BAND_DRAIN_MASK
+    wire raw_drain_kill=1'b0;
+`else
+    wire raw_drain_kill=wr_ctx_flush && raw_stop_valid && wr_bus_beats>=raw_stop_after;
+`endif
 
     always @(posedge clk) begin
         if (rst) begin
@@ -421,14 +537,16 @@ module engine_mover #(
             wr_beats_sent  <= 12'd0;
             wr_ctx_cidx    <= 4'd0;
             wr_ctx_last_row<= 1'b0;
+            wr_ctx_flush   <= 1'b0;
         end else begin
             if (wr_fire) begin
                 wr_busy         <= 1'b1;
                 wr_status_seen  <= 1'b0;
-                wr_beats_total  <= wr_bytes >> 4;
+                wr_beats_total  <= write_desc_bytes >> 4;
                 wr_beats_sent   <= 12'd0;
                 wr_ctx_cidx     <= wr_cidx;
                 wr_ctx_last_row <= wr_last_row;
+                wr_ctx_flush    <= b_wr_valid;
             end else if (wr_busy && wr_gate_done) begin
                 wr_busy <= 1'b0;
             end
@@ -443,10 +561,12 @@ module engine_mover #(
         end
     end
 
-    assign wr_stat_valid    = wr_stat_v;
-    assign wr_stat_err      = wr_err_r;
-    assign wr_stat_cidx     = wr_ctx_cidx;
-    assign wr_stat_last_row = wr_ctx_last_row;
+    wire legacy_wr_stat=wr_stat_v && !wr_ctx_flush;
+    assign wr_stat_valid    = legacy_wr_stat || b_wstat;
+    assign wr_stat_err      = legacy_wr_stat ? wr_err_r : b_werr;
+    assign wr_stat_cidx     = legacy_wr_stat ? wr_ctx_cidx : b_wcidx;
+    assign wr_stat_last_row = legacy_wr_stat ? wr_ctx_last_row : b_wlast;
+    assign b_wstat_ready    = !legacy_wr_stat;
 
     // =====================================================================
     // 超时（D19、D30）：只报告、不放弃
@@ -459,16 +579,19 @@ module engine_mover #(
     wire wr_axi_hs = (m_axi_awvalid && m_axi_awready) || (m_axi_wvalid && m_axi_wready)
                   || (m_axi_bvalid && m_axi_bready);
     wire rd_hs     = rd_fire || tx_fire || rs_fire || tx_rs_tvalid
-                   || rd_status_valid || tx_stat_valid || rd_axi_hs;
-    wire wr_hs     = wr_fire || ws_core_fire || wr_status_valid || wr_axi_hs;
+                   || rd_status_valid || tx_stat_valid || rd_axi_hs || b_rfire || b_rsvalid || b_rstat;
+    wire wr_hs     = wr_fire || ws_core_fire || wr_status_valid || wr_axi_hs || b_wfire ||
+                     (ws_tvalid && b_wsready && b_wbusy) || b_wstat;
+    wire any_read_busy=rd_busy || tx_busy || b_rbusy || b_loading;
+    wire any_write_busy=wr_busy || b_wbusy || b_flushing;
 
-    wire rd_over   = (rd_busy || tx_busy) && (rd_tmo >= tmo_limit);
-    wire wr_over   = wr_busy && (wr_tmo >= tmo_limit);
+    wire rd_over   = any_read_busy && (rd_tmo >= tmo_limit);
+    wire wr_over   = any_write_busy && (wr_tmo >= tmo_limit);
     wire rd_over_evt = rd_over && !rd_tmo_rep;
     wire wr_over_evt = wr_over && !wr_tmo_rep;
 
     always @(posedge clk) begin
-        if (rst || err_clr || (!rd_busy && !tx_busy) || rd_hs) begin
+        if (rst || err_clr || !any_read_busy || rd_hs) begin
             rd_tmo <= {TMO_WIDTH{1'b0}};
         end else if (!rd_over) begin
             rd_tmo <= rd_tmo + 1'b1;
@@ -476,7 +599,7 @@ module engine_mover #(
     end
 
     always @(posedge clk) begin
-        if (rst || err_clr || !wr_busy || wr_hs) begin
+        if (rst || err_clr || !any_write_busy || wr_hs) begin
             wr_tmo <= {TMO_WIDTH{1'b0}};
         end else if (!wr_over) begin
             wr_tmo <= wr_tmo + 1'b1;
@@ -484,12 +607,12 @@ module engine_mover #(
     end
 
     always @(posedge clk) begin
-        if (rst || err_clr || (!rd_busy && !tx_busy))     rd_tmo_rep <= 1'b0;
+        if (rst || err_clr || !any_read_busy)     rd_tmo_rep <= 1'b0;
         else if (rd_over)                                 rd_tmo_rep <= 1'b1;
     end
 
     always @(posedge clk) begin
-        if (rst || err_clr || !wr_busy)     wr_tmo_rep <= 1'b0;
+        if (rst || err_clr || !any_write_busy)     wr_tmo_rep <= 1'b0;
         else if (wr_over)                   wr_tmo_rep <= 1'b1;
     end
 
@@ -535,7 +658,7 @@ module engine_mover #(
         .LEN_WIDTH(12), .TAG_WIDTH(4), .ENABLE_SG(0), .ENABLE_UNALIGNED(0)
     ) u_wr (
         .clk(clk), .rst(rst),
-        .s_axis_write_desc_addr(wr_addr), .s_axis_write_desc_len(wr_bytes),
+        .s_axis_write_desc_addr(write_desc_addr), .s_axis_write_desc_len(write_desc_bytes),
         .s_axis_write_desc_tag(4'd0),
         .s_axis_write_desc_valid(wr_fire), .s_axis_write_desc_ready(wr_core_ready),
         .m_axis_write_desc_status_len(wr_status_len), .m_axis_write_desc_status_tag(wr_status_tag),
@@ -572,10 +695,18 @@ module engine_mover #(
         assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];
         assign m_axi_wdata[32*gp+24 +: 8] = core_wdata[32*gp+24 +: 8];
 `else
+`ifdef INJ_BAND_RAW_MASK
         wire kill = core_wdata[32*gp + 31];
+`else
+        wire kill = raw_drain_kill || (!wr_ctx_flush && core_wdata[32*gp + 31]);
+`endif
         assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4] & {4{~kill}};
         assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];
+`ifdef INJ_BAND_RAW_MASK
         assign m_axi_wdata[32*gp+24 +: 8] = 8'h00;
+`else
+        assign m_axi_wdata[32*gp+24 +: 8] = wr_ctx_flush ? core_wdata[32*gp+24 +:8] : 8'h00;
+`endif
 `endif
     end
     endgenerate

@@ -18,6 +18,7 @@
         <efx:design_file name="../../rtl/engine/engine_blend.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_pix.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_geom.v" version="default" library="default" />
+        <efx:design_file name="../../rtl/engine/engine_band.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_mover.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_regs.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_cmd.v" version="default" library="default" />
