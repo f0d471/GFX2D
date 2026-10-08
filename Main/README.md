@@ -13,6 +13,9 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 最薄 rx_cal hold +0.009 ns；新 bit 的 DDR/TEX 22 CRC 与错误/压力板测通过，
 验收复核已逐值重跑并登记 sim/engine/band/logs/acceptance_review.json。
 主帧控制仍接 0、CAPS.BAND=0，BAND 的主工程 RAM 被裁剪，整机条带功能归 G3。
+G3 前期研究已完成（分桶分布与取数模型在 `tools/check/g3_research.py`，
+条带等价对拍原型在 `sim/engine/stripctl/`），D60 修订与 D61 表头布局
+两项定案后开工正式 RTL。
 本批产物清单在 sim/engine/band/logs/formal_artifacts.json；过程见
 [engine 第 08 章](../Engineering/TechReports/engine/08-条带缓冲.md)。
 下面 B6/G1 的资源表保留各自历史测量口径。

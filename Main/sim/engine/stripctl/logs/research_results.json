@@ -1,0 +1,205 @@
+{
+ "distribution": {
+  "16x16_sh16_n896": {
+   "flat_cmds": 1015,
+   "tiled_cmds": 2327,
+   "amplification": 2.293,
+   "peak_bucket": 89,
+   "peak_headroom": 935,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "16x16_sh16_n1055": {
+   "flat_cmds": 1177,
+   "tiled_cmds": 2628,
+   "amplification": 2.233,
+   "peak_bucket": 101,
+   "peak_headroom": 923,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "16x16_sh16_n2000": {
+   "flat_cmds": 2121,
+   "tiled_cmds": 4420,
+   "amplification": 2.084,
+   "peak_bucket": 166,
+   "peak_headroom": 858,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "16x16_sh16_n3000": {
+   "flat_cmds": 3117,
+   "tiled_cmds": 6276,
+   "amplification": 2.013,
+   "peak_bucket": 235,
+   "peak_headroom": 789,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "16x16_sh32_n896": {
+   "flat_cmds": 1019,
+   "tiled_cmds": 1636,
+   "amplification": 1.605,
+   "peak_bucket": 127,
+   "peak_headroom": 897,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "16x16_sh32_n1055": {
+   "flat_cmds": 1177,
+   "tiled_cmds": 1859,
+   "amplification": 1.579,
+   "peak_bucket": 145,
+   "peak_headroom": 879,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "16x16_sh32_n2000": {
+   "flat_cmds": 2117,
+   "tiled_cmds": 3233,
+   "amplification": 1.527,
+   "peak_bucket": 228,
+   "peak_headroom": 796,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "16x16_sh32_n3000": {
+   "flat_cmds": 3107,
+   "tiled_cmds": 4671,
+   "amplification": 1.503,
+   "peak_bucket": 364,
+   "peak_headroom": 660,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "8x8_sh16_n1365": {
+   "flat_cmds": 1491,
+   "tiled_cmds": 2553,
+   "amplification": 1.712,
+   "peak_bucket": 101,
+   "peak_headroom": 923,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "8x8_sh16_n3000": {
+   "flat_cmds": 3106,
+   "tiled_cmds": 4882,
+   "amplification": 1.572,
+   "peak_bucket": 181,
+   "peak_headroom": 843,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "8x8_sh16_n5000": {
+   "flat_cmds": 5101,
+   "tiled_cmds": 7677,
+   "amplification": 1.505,
+   "peak_bucket": 290,
+   "peak_headroom": 734,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "8x8_sh32_n1365": {
+   "flat_cmds": 1486,
+   "tiled_cmds": 2043,
+   "amplification": 1.375,
+   "peak_bucket": 158,
+   "peak_headroom": 866,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "8x8_sh32_n3000": {
+   "flat_cmds": 3110,
+   "tiled_cmds": 3928,
+   "amplification": 1.263,
+   "peak_bucket": 292,
+   "peak_headroom": 732,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "8x8_sh32_n5000": {
+   "flat_cmds": 5107,
+   "tiled_cmds": 6386,
+   "amplification": 1.25,
+   "peak_bucket": 452,
+   "peak_headroom": 572,
+   "empty_buckets": 0,
+   "overflow_flat_limit": null
+  },
+  "overflow_limit_sh16": {
+   "const_cmds_per_bucket": 26,
+   "max_sprites_uniform": 15191,
+   "region_cmds": 1024
+  },
+  "overflow_limit_sh32": {
+   "const_cmds_per_bucket": 30,
+   "max_sprites_uniform": 9988,
+   "region_cmds": 1024
+  }
+ },
+ "fetch_model": {
+  "16x16_sh16_n896": {
+   "direct_batches": 64,
+   "strip_batches": 161,
+   "batch_overhead": 97,
+   "direct_model_cycles": 6191.6,
+   "strip_model_cycles": 15515.0,
+   "cycle_overhead": 9323.4,
+   "note": "命令取数只占引擎帧预算的小头；主开销仍是 G2 的两相 191520"
+  },
+  "16x16_sh16_n1055": {
+   "direct_batches": 74,
+   "strip_batches": 179,
+   "batch_overhead": 105,
+   "direct_model_cycles": 7159.0,
+   "strip_model_cycles": 17256.4,
+   "cycle_overhead": 10097.4,
+   "note": "命令取数只占引擎帧预算的小头；主开销仍是 G2 的两相 191520"
+  },
+  "16x16_sh16_n2000": {
+   "direct_batches": 133,
+   "strip_batches": 292,
+   "batch_overhead": 159,
+   "direct_model_cycles": 12866.9,
+   "strip_model_cycles": 28188.4,
+   "cycle_overhead": 15321.5,
+   "note": "命令取数只占引擎帧预算的小头；主开销仍是 G2 的两相 191520"
+  },
+  "16x16_sh16_n3000": {
+   "direct_batches": 195,
+   "strip_batches": 406,
+   "batch_overhead": 211,
+   "direct_model_cycles": 18864.9,
+   "strip_model_cycles": 39217.1,
+   "cycle_overhead": 20352.2,
+   "note": "命令取数只占引擎帧预算的小头；主开销仍是 G2 的两相 191520"
+  },
+  "8x8_sh16_n1365": {
+   "direct_batches": 94,
+   "strip_batches": 175,
+   "batch_overhead": 81,
+   "direct_model_cycles": 9093.9,
+   "strip_model_cycles": 16869.4,
+   "cycle_overhead": 7775.5,
+   "note": "命令取数只占引擎帧预算的小头；主开销仍是 G2 的两相 191520"
+  },
+  "8x8_sh16_n3000": {
+   "direct_batches": 195,
+   "strip_batches": 321,
+   "batch_overhead": 126,
+   "direct_model_cycles": 18864.9,
+   "strip_model_cycles": 30993.9,
+   "cycle_overhead": 12129.0,
+   "note": "命令取数只占引擎帧预算的小头；主开销仍是 G2 的两相 191520"
+  },
+  "8x8_sh16_n5000": {
+   "direct_batches": 319,
+   "strip_batches": 497,
+   "batch_overhead": 178,
+   "direct_model_cycles": 30861.1,
+   "strip_model_cycles": 48020.8,
+   "cycle_overhead": 17159.6,
+   "note": "命令取数只占引擎帧预算的小头；主开销仍是 G2 的两相 191520"
+  }
+ }
+}

@@ -108,7 +108,9 @@ E8 的缓存对比原计划与它搭车生成一次 IP，现在 E1 不再重新�
 G1 与 G2 于 2026-10-08 先后验收归档，研究、正式实现、仿真、综合与板测及验收复核分别归入
 [engine 第 07 章](../TechReports/engine/07-片上纹理.md)与
 [engine 第 08 章](../TechReports/engine/08-条带缓冲.md)；
-G2 含 17 项正式验证、独立 36 RAM 综合与新 bit 的 DDR/TEX 兼容性板测。G3/G4 未开工。
+G2 含 17 项正式验证、独立 36 RAM 综合与新 bit 的 DDR/TEX 兼容性板测。
+G3 前期研究完成（[engine 第 09 章](../TechReports/engine/09-条带控制与ABIv2.md)），
+D60 修订与 D61 表头布局待定案，正式 RTL 未开工；G4 未开工。
 
 1. 会进网表的改动攒起来一次做、一次编译。每次改动都会扰动布局，
    `core_clk` 的 hold 余量只有 0.026 ns，每次都要重新核对 setup 与 hold。
