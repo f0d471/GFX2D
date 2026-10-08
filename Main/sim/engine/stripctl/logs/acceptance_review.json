@@ -1,6 +1,6 @@
 {
   "date": "2026-10-09",
-  "status": "待验收",
+  "status": "验收通过",
   "scope": "G3 implementation, audit, software, simulation, synthesis and additional JTAG diagnostics; G4 game/N_max excluded",
   "decisions": {
     "D60": "API clip absorption; raw strip SET_CLIP/END forbidden",
@@ -91,5 +91,13 @@
     "Flash not written",
     "Local untracked report work preserved"
   ],
-  "source_commit": "implementation commit pending"
+  "source_commit": "90e61c5",
+  "review": {
+    "raw_logs_reconciled": true,
+    "software_and_rtl_source_unchanged_since_implementation_commit": true,
+    "criteria_completed": true,
+    "source_document_diff_check": "PASS; byte-preserved raw vendor logs/reports excluded",
+    "game_restored_from_existing_flash": true,
+    "archive": "TechReports engine 09; Todo removed after committed pending state"
+  }
 }

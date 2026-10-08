@@ -25,7 +25,7 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 
 `engine/band/` 是 G2 正式数据面验证，默认 `run.sh` 共 17 项：9 正常、8 定向变异。
 真实全部数据面核对软件金标准，含状态/取消/超时/重试、空条带和 8/16/32 行参数。
-研究探针仍由 `python3 Main/tools/check/g2_research.py` 独立复现。主帧级 BAND 未启用。
+研究探针仍由 `python3 Main/tools/check/g2_research.py` 独立复现。G3 已启用主帧级 BAND，完整控制验证见 engine/stripctl。
 端口、资源、周期与边界见 [band/README](engine/band/README.md)。
 
 | `engine/stripctl/` | G3 完整条带控制、生产分桶和软件执行器 | 两套各 10000 张、软件错误边界、16/32 行完整帧、FETCH/总线/排空/复位、4 软件与 3 RTL 变异；入口 `tools/check/check_g3_stripctl.py`，证据见目录 README |
