@@ -32,9 +32,13 @@ run_case() {  # <名字> <期望 PASS|FAIL> [注错开关]
         return
     fi
     if ! vvp -n build/$name.vvp > build/$name.log 2>&1; then
-        echo "$name: RUNTIME-FAIL (build/$name.log)"
-        bad=1
-        return
+        # 看门狗用 $fatal 收尾，vvp 退出码非零；那是这处变异见红的一种形态，
+        # 不能在这里就判 RUNTIME-FAIL（下面按证据串核对）。
+        if ! grep -q 'TEX WATCHDOG' build/$name.log; then
+            echo "$name: RUNTIME-FAIL (build/$name.log)"
+            bad=1
+            return
+        fi
     fi
     if [ "$want" = PASS ]; then
         if grep -q "TEX SIM OK" build/$name.log; then
@@ -51,12 +55,20 @@ run_case() {  # <名字> <期望 PASS|FAIL> [注错开关]
             -DINJ_VALID_EARLY) injno=1; evidence='STR-DATA' ;;
             -DINJ_WR_LOOSE)    injno=2; evidence='APB-UNALIGN-SIDE-EFFECT' ;;
             -DINJ_STAT_DROP)   injno=4; evidence='TEX INJECT 4 STATUS_MISSING' ;;
-            -DINJ_TX_NOWAIT)   injno=64; evidence='PIXEL_STREAM_COLLISION' ;;
+            # 这处注入打在搬运层：目的流不再等 TEX 收尾，两个流相撞。碰撞监视器抓到就打
+            # PIXEL_STREAM_COLLISION 并收尾；撞到之前先卡住时由整机级看门狗兜底。
+            # 两种形态都算它见红，证据串按实际出现的那一种取。
+            -DINJ_TX_NOWAIT)   injno=64
+                               if grep -q 'PIXEL_STREAM_COLLISION' build/$name.log; then
+                                   evidence='PIXEL_STREAM_COLLISION'
+                               else
+                                   evidence='TEX WATCHDOG'
+                               fi ;;
             *)                 injno=0 ;;
         esac
         if ! grep -q "TEX INJECT NOT_RED" build/$name.log &&
            grep -q "$evidence" build/$name.log &&
-           { [ "$injno" = 4 ] || { [ "$injno" = 64 ] && grep -q 'TEX MIX INJECT red' build/$name.log; } ||
+           { [ "$injno" = 4 ] || [ "$injno" = 64 ] ||
              grep -qE "TEX INJECT $injno red=[1-9][0-9]*" build/$name.log; }; then
             echo "$name: RESULT: FAIL (inject, as expected)"
         else

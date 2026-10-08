@@ -66,14 +66,16 @@
 //
 // 层间接口（总览 2.4 节）：I2 描述符进、I3 读流出、I4 写流进、I7 状态与排空/超时进出。
 //
-// 仿真注错口（0 是正式配置，综合时是常量、对应分支会被优化掉），
-// 位定义与 sim/engine/mover/run.sh 的用例一一对应：
-//   位 0 (1)   去掉读门控：读核一 ready 就放下一个描述符
-//   位 1 (2)   带内掩码旁路：wstrb 与 X 字节直通上总线
-//   位 2 (4)   排空旁路：排空期不帮忙收/补，直接等两个方向自己空
-//   位 3 (8)   去掉写门控：写核一 ready 就放下一个描述符
-//   位 4 (16)  排空按电平重进：drain_done 之后 drain_req 还高就再进排空，且只在排空态里挡提交
-//   位 5 (32)  正常写流不打 tlast（只有排空哑拍打），即 D48 之前「靠计算阵列给 tlast」而它没给
+// 注错（变异测试）：本文件是干净形态，七处变异各包在 `ifdef 内。
+// 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
+// 编译开关与 sim/engine/mover/run.sh 的用例一一对应，一次只开一个：
+//   INJ_NO_GATE_RD   去掉读门控：读核一 ready 就放下一个描述符
+//   INJ_MASK_BYPASS  带内掩码旁路：wstrb 与 X 字节直通上总线
+//   INJ_DRAIN_BYPASS 排空旁路：排空期不帮忙收/补，直接等两个方向自己空
+//   INJ_NO_GATE_WR   去掉写门控：写核一 ready 就放下一个描述符
+//   INJ_DRAIN_LEVEL  排空按电平重进：drain_done 之后 drain_req 还高就再进排空，且只在排空态里挡提交
+//   INJ_NO_TLAST     正常写流不打 tlast（只有排空哑拍打），即 D48 之前「靠计算阵列给 tlast」而它没给
+//   INJ_TX_NOWAIT    去掉目的流等待，长行用例必须抓到流碰撞
 //
 // 设计依据、定案 D3/D12/D16/D17/D19/D29~D32 与实测数据见
 // Engineering/TechReports/engine/02-AXI事务层.md；写流 tlast 由本层打是 B4 定的 D48。
@@ -83,9 +85,7 @@
 module engine_mover #(
     parameter integer AXI_MAX_BURST_LEN = 192,
     // 超时门限 T 的位宽：控制层给的 tmo_limit 最宽这么多位，4096 要 13 位
-    parameter integer TMO_WIDTH = 13,
-    // 仿真注错口，见文件头；综合时是常量。
-    parameter integer INJECT = 0
+    parameter integer TMO_WIDTH = 13
 )(
     input  wire                  clk,
     input  wire                  rst,          // 搬运层复位，顶层接 ~ddr_rstn
@@ -214,8 +214,11 @@ module engine_mover #(
     // =====================================================================
     reg draining;
     reg drain_served;        // 这一次请求已经完成过，等 drain_req 撤下才清
-    wire drain_level_inj = (INJECT & 16) != 0;
-    wire drain_enter     = drain_req && !draining && (!drain_served || drain_level_inj);
+`ifdef INJ_DRAIN_LEVEL
+    wire drain_enter     = drain_req && !draining;     // 注错：drain_done 之后仍按电平重进
+`else
+    wire drain_enter     = drain_req && !draining && !drain_served;
+`endif
 
     always @(posedge clk) begin
         if (rst)                                   draining <= 1'b0;
@@ -230,11 +233,20 @@ module engine_mover #(
     end
 
     // 挡新提交：排空态里，以及请求还举着的每一拍
-    wire        drain_hold = draining || (drain_req && !drain_level_inj);
+`ifdef INJ_DRAIN_LEVEL
+    wire        drain_hold = draining;                 // 注错：只在排空态里挡提交
+`else
+    wire        drain_hold = draining || drain_req;
+`endif
 
-    wire        drain_bypass = (INJECT & 4) != 0;
-    wire        rd_drain_help = draining && rd_busy && !drain_bypass;
-    wire        wr_drain_help = draining && wr_busy && !drain_bypass;
+`ifdef INJ_DRAIN_BYPASS
+    // 注错：排空期不帮忙收/补，直接等两个方向自己空
+    wire        rd_drain_help = 1'b0;
+    wire        wr_drain_help = 1'b0;
+`else
+    wire        rd_drain_help = draining && rd_busy;
+    wire        wr_drain_help = draining && wr_busy;
+`endif
 
     assign      drain_busy = draining;
     assign      drain_done = draining && !rd_busy && !wr_busy && !tx_busy;
@@ -249,8 +261,12 @@ module engine_mover #(
     reg         rd_err_r;
     reg         rd_stat_v;
 
-    // 门控条件：状态脉冲已捕获且读流 tlast 已握手；注错位 0 去掉它
-    wire        rd_gate_done = ((INJECT & 1) != 0) ? 1'b1 : (rd_status_seen && rd_stream_done);
+    // 门控条件：状态脉冲已捕获且读流 tlast 已握手
+`ifdef INJ_NO_GATE_RD
+    wire        rd_gate_done = 1'b1;                   // 注错：去掉读门控
+`else
+    wire        rd_gate_done = (rd_status_seen && rd_stream_done);
+`endif
     // 排空期间挡新提交。TEX 流在途时可预发 DDR 请求，但 I3 保持单流所有者。
     wire        rd_block     = (rd_busy && !rd_gate_done) || drain_hold;
     wire        rd_open      = !rd_block;
@@ -277,11 +293,14 @@ module engine_mover #(
     assign      tx_valid      = tx_fire;
 
     // I3 的源流先于目的流，命令流另走 fs；上下文各带各的。
-    // INJECT 位 6（64）去掉目的流等待，长行用例必须抓到流碰撞。
     wire [127:0] core_rs_tdata;
     wire [15:0]  core_rs_tkeep;
     wire         core_rs_tlast, core_rs_tvalid, core_rs_tready;
-    wire        tx_data_blocks = tx_busy && ((INJECT & 64) == 0);
+`ifdef INJ_TX_NOWAIT
+    wire        tx_data_blocks = 1'b0;                 // 注错：去掉目的流等待
+`else
+    wire        tx_data_blocks = tx_busy;
+`endif
     wire        core_rs_pix   = core_rs_tvalid && !rd_ctx_cmd && !rd_drain_help && !tx_data_blocks;
     wire        tex_rs_pix    = tx_rs_tvalid && !drain_hold;
     assign      core_rs_tready = rd_drain_help ? 1'b1
@@ -359,7 +378,11 @@ module engine_mover #(
     reg  [11:0] wr_beats_total;
     reg  [11:0] wr_beats_sent;
 
-    wire        wr_gate_done = ((INJECT & 8) != 0) ? 1'b1 : wr_status_seen;
+`ifdef INJ_NO_GATE_WR
+    wire        wr_gate_done = 1'b1;                   // 注错：去掉写门控
+`else
+    wire        wr_gate_done = wr_status_seen;
+`endif
     wire        wr_block     = (wr_busy && !wr_gate_done) || drain_hold;
     wire        wr_open      = !wr_block;
     wire        wr_fire      = wr_core_ready && wr_open && wr_valid;
@@ -376,8 +399,12 @@ module engine_mover #(
     // tlast 正常写流与排空同一个式子：剩下的最后一拍（D48）
     wire [11:0]  wr_beats_left  = wr_beats_total - wr_beats_sent;
     wire         ws_core_tvalid = wr_drain_help ? (wr_beats_left != 12'd0) : ws_tvalid;
-    wire         ws_core_tlast  = ((INJECT & 32) != 0 && !wr_drain_help) ? 1'b0
-                                                                          : (wr_beats_left == 12'd1);
+`ifdef INJ_NO_TLAST
+    // 注错：正常写流不打 tlast，只有排空哑拍打
+    wire         ws_core_tlast  = wr_drain_help ? (wr_beats_left == 12'd1) : 1'b0;
+`else
+    wire         ws_core_tlast  = (wr_beats_left == 12'd1);
+`endif
     wire [127:0] ws_core_tdata  = wr_drain_help ? {4{32'h8000_0000}} : ws_tdata;
     wire [15:0]  ws_core_tkeep  = wr_drain_help ? 16'hFFFF : ws_tkeep;
     assign       ws_tready      = wr_drain_help ? 1'b0 : wr_data_ready;
@@ -538,11 +565,18 @@ module engine_mover #(
     genvar gp;
     generate
     for (gp = 0; gp < 4; gp = gp + 1) begin : g_wrap
-        wire kill = ((INJECT & 2) == 0) && core_wdata[32*gp + 31];
+`ifdef INJ_MASK_BYPASS
+        // 注错：带内掩码旁路，wstrb 与 X 字节直通上总线
+        wire kill = 1'b0;
+        assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4];
+        assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];
+        assign m_axi_wdata[32*gp+24 +: 8] = core_wdata[32*gp+24 +: 8];
+`else
+        wire kill = core_wdata[32*gp + 31];
         assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4] & {4{~kill}};
         assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];
-        assign m_axi_wdata[32*gp+24 +: 8] = ((INJECT & 2) == 0) ? 8'h00
-                                                                : core_wdata[32*gp+24 +: 8];
+        assign m_axi_wdata[32*gp+24 +: 8] = 8'h00;
+`endif
     end
     endgenerate
 

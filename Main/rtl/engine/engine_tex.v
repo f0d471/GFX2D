@@ -23,11 +23,13 @@
 // 描述符恰好一笔的纪律由几何层保证（跨 4KB 已拆段）；本模块把地址截到窗口内
 // 使用，越界描述符是上游检查（engine_cmd 的 TEX 结构两条）的责任。
 //
-// 仿真注错口（综合时常量，对应分支被优化掉）：
-//   位 0 (1)  valid 提前一级：valid 与 data 错拍（研究变异的正式版，
-//             全路径内存比对必须见红）
-//   位 1 (2)  未对齐 APB 写放行（未对齐拒绝用例必须见红）
-//   位 2 (4)  状态脉冲吞掉（所有走 TEX 的用例挂看门狗，必须见红）
+// 注错（变异测试）：本文件是干净形态，三处变异各包在 `ifdef 内。
+// 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
+// 编译开关与 sim/engine/tex/run.sh 的用例一一对应，一次只开一个：
+//   INJ_VALID_EARLY  valid 提前一级：valid 与 data 错拍（研究变异的正式版，
+//                    全路径内存比对必须见红）
+//   INJ_WR_LOOSE     未对齐 APB 写放行（未对齐拒绝用例必须见红）
+//   INJ_STAT_DROP    状态脉冲吞掉（所有走 TEX 的用例挂看门狗，必须见红）
 //
 // 设计依据：引擎 P3 总览 D57、engine 第 07 章（前期研究与定义修正）；
 // RAM 组织与块数（四 bank 16 块）的实验证据在同章 3.5 节。
@@ -35,7 +37,6 @@
 `default_nettype none
 
 module engine_tex #(
-    parameter integer INJECT = 0,
     parameter integer READ_LATENCY = 1
 )(
     input  wire        clk,
@@ -72,9 +73,6 @@ module engine_tex #(
     output wire [1:0]   stat_buf,
     output wire         busy          // 描述符在途（受理起到状态握手止）
 );
-    localparam integer INJ_VALID_EARLY = ((INJECT & 1) != 0);
-    localparam integer INJ_WR_LOOSE    = ((INJECT & 2) != 0);
-    localparam integer INJ_STAT_DROP   = ((INJECT & 4) != 0);
 
     // =====================================================================
     // APB 译码
@@ -83,7 +81,11 @@ module engine_tex #(
     wire       apb_wr_acc   = apb_access && pwrite;
     wire       apb_rd_setup = psel && !penable && !pwrite;
     wire       apb_aligned  = (paddr[1:0] == 2'b00);
-    wire       apb_wr_en    = apb_wr_acc && (apb_aligned || INJ_WR_LOOSE);
+`ifdef INJ_WR_LOOSE
+    wire       apb_wr_en    = apb_wr_acc;              // 注错：未对齐写也放行
+`else
+    wire       apb_wr_en    = apb_wr_acc && apb_aligned;
+`endif
     wire       apb_rd_req   = apb_rd_setup && apb_aligned;
     wire [9:0] apb_row      = paddr[13:4];
     wire [1:0] apb_wsel     = paddr[3:2];
@@ -151,16 +153,24 @@ module engine_tex #(
             l1 <= l0;
 
             if (stat_r && stat_ready) stat_r <= 1'b0;
-            if (!INJ_STAT_DROP && rs_tvalid && rs_tlast) stat_r <= 1'b1;
+`ifdef INJ_STAT_DROP
+            // 注错：状态脉冲吞掉
+`else
+            if (rs_tvalid && rs_tlast) stat_r <= 1'b1;
+`endif
         end
     end
 
     // RAM 自带同步输出级；可选 q1 只用于二拍配置。
     assign rs_tdata  = READ_LATENCY == 1 ? bank_q : q1;
-    assign rs_tvalid = INJ_VALID_EARLY ? (READ_LATENCY == 1 ? issue : v0)
-                                     : (READ_LATENCY == 1 ? v0 : v1);
-    assign rs_tlast  = INJ_VALID_EARLY ? (READ_LATENCY == 1 ? (issue && left == 1) : l0)
-                                     : (READ_LATENCY == 1 ? l0 : l1);
+`ifdef INJ_VALID_EARLY
+    // 注错：valid/last 提前一级，与 data 错拍
+    assign rs_tvalid = (READ_LATENCY == 1) ? issue : v0;
+    assign rs_tlast  = (READ_LATENCY == 1) ? (issue && left == 1) : l0;
+`else
+    assign rs_tvalid = (READ_LATENCY == 1) ? v0 : v1;
+    assign rs_tlast  = (READ_LATENCY == 1) ? l0 : l1;
+`endif
     assign rs_buf    = ctx_buf;
     assign stat_valid = stat_r;
     assign stat_cidx  = ctx_cidx;
