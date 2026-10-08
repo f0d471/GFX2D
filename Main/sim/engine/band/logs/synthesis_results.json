@@ -1,0 +1,68 @@
+{
+  "compact_masked": {
+    "xlr": 175,
+    "dut_xlr": 0,
+    "ram": 64,
+    "dsp": 0,
+    "setup_ns": 6.506,
+    "hold_ns": 0.026,
+    "scope": "standalone research RAM and variable-observation wrapper, not full BAND/SoC",
+    "ram_read_width_counts": {
+      "2": 64
+    }
+  },
+  "compact_wide": {
+    "xlr": 176,
+    "dut_xlr": 2,
+    "ram": 64,
+    "dsp": 0,
+    "setup_ns": 7.042,
+    "hold_ns": 0.028,
+    "scope": "standalone research RAM and variable-observation wrapper, not full BAND/SoC",
+    "ram_read_width_counts": {
+      "2": 64
+    }
+  },
+  "padded_masked": {
+    "xlr": 173,
+    "dut_xlr": 0,
+    "ram": 64,
+    "dsp": 0,
+    "setup_ns": 7.123,
+    "hold_ns": 0.026,
+    "scope": "standalone research RAM and variable-observation wrapper, not full BAND/SoC",
+    "ram_read_width_counts": {
+      "2": 64
+    }
+  },
+  "segmented_masked": {
+    "xlr": 273,
+    "dut_xlr": 3,
+    "ram": 36,
+    "dsp": 0,
+    "setup_ns": 6.746,
+    "hold_ns": 0.026,
+    "scope": "standalone research RAM and variable-observation wrapper, not full BAND/SoC",
+    "ram_read_width_counts": {
+      "16": 4,
+      "20": 4,
+      "5": 16,
+      "4": 12
+    }
+  },
+  "segmented_wide": {
+    "xlr": 271,
+    "dut_xlr": 5,
+    "ram": 33,
+    "dsp": 0,
+    "setup_ns": 6.545,
+    "hold_ns": 0.026,
+    "scope": "standalone research RAM and variable-observation wrapper, not full BAND/SoC",
+    "ram_read_width_counts": {
+      "20": 6,
+      "4": 2,
+      "5": 24,
+      "8": 1
+    }
+  }
+}

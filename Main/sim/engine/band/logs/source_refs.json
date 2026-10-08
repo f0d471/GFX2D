@@ -1,0 +1,32 @@
+{
+  "access_date": "2026-10-08",
+  "scope": "code-level design study only; upstream RTL is not copied into production or linked into research simulations",
+  "references": [
+    {
+      "project": "RasterIX",
+      "commit": "9269a01c9bd4c3342bfa70ef8e3cdd751c15c6d0",
+      "license": "GPL-3.0-or-later",
+      "files": [
+        "rtl/RasterIX/InternalFramebufferRam.v",
+        "rtl/RasterIX/InternalFramebufferCommandHandler.v"
+      ],
+      "url": "https://github.com/ToNi3141/RasterIX/tree/9269a01c9bd4c3342bfa70ef8e3cdd751c15c6d0/rtl/RasterIX",
+      "studied": "phase-based port selection, mask preservation, synchronous read-sideband delay, held output/skid state during commit"
+    },
+    {
+      "project": "verilog-axi",
+      "commit": "516bd5dadc3365b7f9e225d2af8fe0b8d804fe53",
+      "license": "MIT",
+      "files": ["rtl/axi_ram.v"],
+      "url": "https://github.com/alexforencich/verilog-axi/blob/516bd5dadc3365b7f9e225d2af8fe0b8d804fe53/rtl/axi_ram.v",
+      "studied": "independent read/write channels, masked memory assignment, output-valid retention and optional output pipeline"
+    },
+    {
+      "project": "Efinix",
+      "version": "Quantum Titanium Primitives UG v4.2, July 2026",
+      "url": "https://www.efinixinc.com/docs/efinity-quantum-ti-primitives-ug-v4.2.pdf",
+      "pages": "24-28 and 32-36 (printed page numbers)",
+      "studied": "RAM width/depth modes, synchronous read latency, same-address collision restrictions"
+    }
+  ]
+}

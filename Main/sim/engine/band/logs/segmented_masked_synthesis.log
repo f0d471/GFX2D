@@ -1,0 +1,8 @@
+Running: efx_run_map.py segmented_masked --family Titanium --device Ti60F225 --project_xml E:\Workspace\Efinix\Main\sim\engine\band\build\segmented_masked\segmented_masked.xml --output_dir outflow --work_dir work_syn_segmented_masked --opt root=syn_probe_band_ram --opt veri_options=verilog_mode=verilog_2k,vhdl_mode=vhdl_2008 work-dir=work_syn_segmented_masked write_efx_verilog=on
+   map :	PASS 
+Running: efx_run_pt_unified.py segmented_masked Titanium Ti60F225 --output_dir outflow --timing_model I3 --project_xml segmented_masked.xml
+   interface :	PASS 
+Running: efx_run_pnr.py segmented_masked --prj E:\Workspace\Efinix\Main\sim\engine\band\build\segmented_masked\segmented_masked.xml --family Titanium --device Ti60F225 --timing_model I3 --output_dir outflow --work_dir work_pnr_segmented_masked --opt sdc_file=segmented_masked.sdc
+   pnr :	PASS 
+Running: efx_run_pgm.py segmented_masked --family Titanium --device Ti60F225 --output_dir outflow --work_dir work_pnr_segmented_masked --opt mode=active width=1 enable_roms=smart spi_low_power_mode=on io_weak_pullup=on oscillator_clock_divider=DIV8 bitstream_compression=on enable_external_master_clock=off active_capture_clk_edge=negedge jtag_usercode=0xFFFFFFFF release_tri_then_reset=on four_byte_addressing=off
+   pgm :	PASS 

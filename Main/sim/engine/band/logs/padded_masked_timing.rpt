@@ -1,0 +1,1180 @@
+
+Efinix Static Timing Analysis Report
+Version: 2026.1.132
+Date: Thu Oct  8 14:55:12 2026
+
+Copyright (C) 2013 - 2026 Efinix, Inc. All rights reserved.
+
+Top-level Entity Name: padded_masked
+
+SDC Filename: padded_masked.sdc
+
+Timing Model: I3
+	process : typical
+	temperature : -40C to 100C
+	voltage : 0.95 +/-30mV
+	speedgrade : 3
+	technology : t16ff
+	status : final
+
+---------- Table of Contents (begin) ----------
+   1. Clock Frequency Summary
+   2. Clock Relationship Summary
+   3. Path Details for Max Critical Paths
+   4. Path Details for Min Critical Paths
+---------- Table of Contents (end) ------------
+
+---------- 1. Clock Frequency Summary (begin) ----------
+
+User target constrained clocks
+ Clock Name  Period (ns)  Frequency (MHz)   Waveform      Targets
+    clk         10.000        100.000     {0.000 5.000}    {clk}
+
+Maximum possible analyzed clocks frequency
+ Clock Name  Period (ns)  Frequency (MHz)     Edge
+    clk         2.877        347.584         (R-R)
+
+Geomean max period: 2.877
+
+---------- Clock Frequency Summary (end) ---------------
+
+---------- 2. Clock Relationship Summary (begin) ----------
+
+Setup (Max) Clock Relationship
+  Launch Clock    Capture Clock   Constraint (ns)     Slack (ns)          Edge
+      clk              clk             10.000           7.123            (R-R)
+
+Hold (Min) Clock Relationship
+  Launch Clock    Capture Clock   Constraint (ns)     Slack (ns)          Edge
+      clk              clk             0.000            0.026            (R-R)
+
+NOTE: Values are in nanoseconds.
+
+---------- Clock Relationship Summary (end) ---------------
+
+---------- 3. Path Details for Max Critical Paths (begin) ----------
+
+################################################################################
+Path Detail Report (clk vs clk)
+################################################################################
+
+
+++++ Path 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : dut/masked.lane[2].mem__D$j12|RCLK  
+Path End      : obs_3~FF_rt_8|D                     
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 7.123 (required time - arrival time)
+Delay         : 1.387                               
+
+Logic Level             : 2
+Non-global nets on path : 3
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.751
+--------------------------------------
+End-of-path arrival time       : 4.879
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.126             0.126             265       (111,0)  
+clk                                 net            2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:36, Y:122
+dut/masked.lane[2].mem__D$j12|RCLK  EFX_RAM10      0.000             2.128             265       (147,122)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+dut/masked.lane[2].mem__D$j12|RDATA[0]  EFX_RAM10      1.361             1.361              2        (147,122)
+q[84]                                   net            0.509             1.870              2        (147,122)
+   Routing elements:
+      Manhattan distance of X:25, Y:9
+LUT__685|in[3]                          EFX_LUT4       0.061             1.931              2        (122,113)
+LUT__685|out                            EFX_LUT4       0.000             1.931              2        (122,113)
+n298                                    net            0.756             2.687              2        (122,113)
+   Routing elements:
+      Manhattan distance of X:33, Y:17
+LUT__689|in[0]                          EFX_LUT4       0.061             2.748              2        (155,130)
+LUT__689|out                            EFX_LUT4       0.000             2.748              2        (155,130)
+n302                                    net            0.000             2.748              2        (155,130)
+obs_3~FF_rt_8|D                         EFX_FF         0.003             2.751              2        (155,130)
+
+Capture Clock Path
+      name         model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================
+clk                  input        0.000             0.000               0       (111,0)  
+clk                  input        0.126             0.126             265       (111,0)  
+clk                  net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:44, Y:130
+obs_3~FF_rt_8|CLK    EFX_FF       0.000             2.128             265       (155,130)
+
+++++ Path 2 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : dut/masked.lane[2].mem__D$n12|RCLK  
+Path End      : obs_3~FF_rt_8|D                     
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 7.197 (required time - arrival time)
+Delay         : 1.313                               
+
+Logic Level             : 2
+Non-global nets on path : 3
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.677
+--------------------------------------
+End-of-path arrival time       : 4.805
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.126             0.126             265       (111,0)  
+clk                                 net            2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:75, Y:142
+dut/masked.lane[2].mem__D$n12|RCLK  EFX_RAM10      0.000             2.128             265       (186,142)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+dut/masked.lane[2].mem__D$n12|RDATA[1]  EFX_RAM10      1.361             1.361              2        (186,142)
+q[93]                                   net            0.460             1.821              2        (186,142)
+   Routing elements:
+      Manhattan distance of X:24, Y:10
+LUT__688|in[0]                          EFX_LUT4       0.063             1.884              2        (162,152)
+LUT__688|out                            EFX_LUT4       0.000             1.884              2        (162,152)
+n301                                    net            0.729             2.613              2        (162,152)
+   Routing elements:
+      Manhattan distance of X:7, Y:22
+LUT__689|in[3]                          EFX_LUT4       0.061             2.674              2        (155,130)
+LUT__689|out                            EFX_LUT4       0.000             2.674              2        (155,130)
+n302                                    net            0.000             2.674              2        (155,130)
+obs_3~FF_rt_8|D                         EFX_FF         0.003             2.677              2        (155,130)
+
+Capture Clock Path
+      name         model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================
+clk                  input        0.000             0.000               0       (111,0)  
+clk                  input        0.126             0.126             265       (111,0)  
+clk                  net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:44, Y:130
+obs_3~FF_rt_8|CLK    EFX_FF       0.000             2.128             265       (155,130)
+
+++++ Path 3 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : dut/masked.lane[0].mem__D$l12|RCLK  
+Path End      : obs_3~FF_rt_2|D                     
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 7.214 (required time - arrival time)
+Delay         : 1.296                               
+
+Logic Level             : 2
+Non-global nets on path : 3
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.660
+--------------------------------------
+End-of-path arrival time       : 4.788
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.126             0.126             265       (111,0)  
+clk                                 net            2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:75, Y:222
+dut/masked.lane[0].mem__D$l12|RCLK  EFX_RAM10      0.000             2.128             265       (186,222)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+dut/masked.lane[0].mem__D$l12|RDATA[0]  EFX_RAM10      1.361             1.361              2        (186,222)
+q[24]                                   net            0.558             1.919              2        (186,222)
+   Routing elements:
+      Manhattan distance of X:64, Y:5
+LUT__656|in[3]                          EFX_LUT4       0.061             1.980              2        (122,227)
+LUT__656|out                            EFX_LUT4       0.000             1.980              2        (122,227)
+n269                                    net            0.616             2.596              2        (122,227)
+   Routing elements:
+      Manhattan distance of X:24, Y:9
+LUT__658|in[2]                          EFX_LUT4       0.061             2.657              2        (146,218)
+LUT__658|out                            EFX_LUT4       0.000             2.657              2        (146,218)
+n271                                    net            0.000             2.657              2        (146,218)
+obs_3~FF_rt_2|D                         EFX_FF         0.003             2.660              2        (146,218)
+
+Capture Clock Path
+      name         model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================
+clk                  input        0.000             0.000               0       (111,0)  
+clk                  input        0.126             0.126             265       (111,0)  
+clk                  net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:35, Y:218
+obs_3~FF_rt_2|CLK    EFX_FF       0.000             2.128             265       (146,218)
+
+++++ Path 4 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : dut/masked.lane[2].mem__D$h12|RCLK  
+Path End      : obs_3~FF_rt_8|D                     
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 7.234 (required time - arrival time)
+Delay         : 1.276                               
+
+Logic Level             : 2
+Non-global nets on path : 3
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.640
+--------------------------------------
+End-of-path arrival time       : 4.768
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0        (111,0) 
+clk                                 input          0.126             0.126             265        (111,0) 
+clk                                 net            2.002             2.128             265        (111,0) 
+   Routing elements:
+      Manhattan distance of X:6, Y:82
+dut/masked.lane[2].mem__D$h12|RCLK  EFX_RAM10      0.000             2.128             265        (117,82)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+dut/masked.lane[2].mem__D$h12|RDATA[1]  EFX_RAM10      1.361             1.361              2        (117,82) 
+q[81]                                   net            0.398             1.759              2        (117,82) 
+   Routing elements:
+      Manhattan distance of X:5, Y:31
+LUT__685|in[2]                          EFX_LUT4       0.061             1.820              2        (122,113)
+LUT__685|out                            EFX_LUT4       0.000             1.820              2        (122,113)
+n298                                    net            0.756             2.576              2        (122,113)
+   Routing elements:
+      Manhattan distance of X:33, Y:17
+LUT__689|in[0]                          EFX_LUT4       0.061             2.637              2        (155,130)
+LUT__689|out                            EFX_LUT4       0.000             2.637              2        (155,130)
+n302                                    net            0.000             2.637              2        (155,130)
+obs_3~FF_rt_8|D                         EFX_FF         0.003             2.640              2        (155,130)
+
+Capture Clock Path
+      name         model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================
+clk                  input        0.000             0.000               0       (111,0)  
+clk                  input        0.126             0.126             265       (111,0)  
+clk                  net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:44, Y:130
+obs_3~FF_rt_8|CLK    EFX_FF       0.000             2.128             265       (155,130)
+
+++++ Path 5 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : dut/masked.lane[2].mem__D$h12|RCLK  
+Path End      : obs_3~FF_rt_8|D                     
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 7.247 (required time - arrival time)
+Delay         : 1.263                               
+
+Logic Level             : 2
+Non-global nets on path : 3
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.627
+--------------------------------------
+End-of-path arrival time       : 4.755
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0        (111,0) 
+clk                                 input          0.126             0.126             265        (111,0) 
+clk                                 net            2.002             2.128             265        (111,0) 
+   Routing elements:
+      Manhattan distance of X:6, Y:82
+dut/masked.lane[2].mem__D$h12|RCLK  EFX_RAM10      0.000             2.128             265        (117,82)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+dut/masked.lane[2].mem__D$h12|RDATA[0]  EFX_RAM10      1.361             1.361              2        (117,82) 
+q[80]                                   net            0.385             1.746              2        (117,82) 
+   Routing elements:
+      Manhattan distance of X:5, Y:31
+LUT__685|in[1]                          EFX_LUT4       0.061             1.807              2        (122,113)
+LUT__685|out                            EFX_LUT4       0.000             1.807              2        (122,113)
+n298                                    net            0.756             2.563              2        (122,113)
+   Routing elements:
+      Manhattan distance of X:33, Y:17
+LUT__689|in[0]                          EFX_LUT4       0.061             2.624              2        (155,130)
+LUT__689|out                            EFX_LUT4       0.000             2.624              2        (155,130)
+n302                                    net            0.000             2.624              2        (155,130)
+obs_3~FF_rt_8|D                         EFX_FF         0.003             2.627              2        (155,130)
+
+Capture Clock Path
+      name         model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================
+clk                  input        0.000             0.000               0       (111,0)  
+clk                  input        0.126             0.126             265       (111,0)  
+clk                  net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:44, Y:130
+obs_3~FF_rt_8|CLK    EFX_FF       0.000             2.128             265       (155,130)
+
+++++ Path 6 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[22]~FF|CLK                       
+Path End      : dut/masked.lane[0].mem__D$b12|RADDR[6]
+Launch Clock  : clk (RISE)                            
+Capture Clock : clk (RISE)                            
+Slack         : 7.266 (required time - arrival time)  
+Delay         : 2.446                                 
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.608
+--------------------------------------
+End-of-path arrival time       : 4.736
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.126             0.126             265       (111,0)  
+clk                net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:91, Y:128
+stim[22]~FF|CLK    EFX_FF       0.000             2.128             265       (202,128)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+stim[22]~FF|Q                           EFX_FF         0.130             0.130              67       (202,128)
+stim[22]                                net            2.446             2.576              67       (202,128)
+   Routing elements:
+      Manhattan distance of X:1, Y:74
+dut/masked.lane[0].mem__D$b12|RADDR[6]  EFX_RAM10      0.032             2.608              67       (201,202)
+
+Capture Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.126             0.126             265       (111,0)  
+clk                                 net            2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:90, Y:202
+dut/masked.lane[0].mem__D$b12|RCLK  EFX_RAM10      0.000             2.128             265       (201,202)
+
+++++ Path 7 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[5]~FF|CLK                        
+Path End      : dut/masked.lane[3].mem__D$j12|WADDR[1]
+Launch Clock  : clk (RISE)                            
+Capture Clock : clk (RISE)                            
+Slack         : 7.266 (required time - arrival time)  
+Delay         : 2.453                                 
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.608
+--------------------------------------
+End-of-path arrival time       : 4.736
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+     name       model name   delay (ns)  cumulative delay (ns) pins on net    location
+========================================================================================
+clk               input        0.000             0.000               0       (111,0)  
+clk               input        0.126             0.126             265       (111,0)  
+clk               net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:51, Y:186
+stim[5]~FF|CLK    EFX_FF       0.000             2.128             265       (162,186)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+stim[5]~FF|Q                            EFX_FF         0.130             0.130              67       (162,186)
+stim[5]                                 net            2.453             2.583              67       (162,186)
+   Routing elements:
+      Manhattan distance of X:24, Y:64
+dut/masked.lane[3].mem__D$j12|WADDR[1]  EFX_RAM10      0.025             2.608              67       (186,122)
+
+Capture Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.126             0.126             265       (111,0)  
+clk                                 net            2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:75, Y:122
+dut/masked.lane[3].mem__D$j12|WCLK  EFX_RAM10      0.000             2.128             265       (186,122)
+
+++++ Path 8 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[22]~FF|CLK                      
+Path End      : dut/masked.lane[1].mem__D$12|RADDR[6]
+Launch Clock  : clk (RISE)                           
+Capture Clock : clk (RISE)                           
+Slack         : 7.309 (required time - arrival time) 
+Delay         : 2.403                                
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.565
+--------------------------------------
+End-of-path arrival time       : 4.693
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.126             0.126             265       (111,0)  
+clk                net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:91, Y:128
+stim[22]~FF|CLK    EFX_FF       0.000             2.128             265       (202,128)
+
+Data Path
+                name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+===============================================================================================================
+stim[22]~FF|Q                          EFX_FF         0.130             0.130              67       (202,128)
+stim[22]                               net            2.403             2.533              67       (202,128)
+   Routing elements:
+      Manhattan distance of X:31, Y:74
+dut/masked.lane[1].mem__D$12|RADDR[6]  EFX_RAM10      0.032             2.565              67       (171,202)
+
+Capture Clock Path
+              name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================================
+clk                                input          0.000             0.000               0       (111,0)  
+clk                                input          0.126             0.126             265       (111,0)  
+clk                                net            2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:60, Y:202
+dut/masked.lane[1].mem__D$12|RCLK  EFX_RAM10      0.000             2.128             265       (171,202)
+
+++++ Path 9 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : dut/masked.lane[2].mem__D$m12|RCLK  
+Path End      : obs_3~FF_rt_9|D                     
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 7.310 (required time - arrival time)
+Delay         : 1.200                               
+
+Logic Level             : 2
+Non-global nets on path : 3
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.564
+--------------------------------------
+End-of-path arrival time       : 4.692
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.126             0.126             265       (111,0)  
+clk                                 net            2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:90, Y:102
+dut/masked.lane[2].mem__D$m12|RCLK  EFX_RAM10      0.000             2.128             265       (201,102)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+dut/masked.lane[2].mem__D$m12|RDATA[0]  EFX_RAM10      1.361             1.361              2        (201,102)
+q[90]                                   net            0.569             1.930              2        (201,102)
+   Routing elements:
+      Manhattan distance of X:11, Y:31
+LUT__692|in[2]                          EFX_LUT4       0.061             1.991              2        (190,133)
+LUT__692|out                            EFX_LUT4       0.000             1.991              2        (190,133)
+n305                                    net            0.509             2.500              2        (190,133)
+   Routing elements:
+      Manhattan distance of X:35, Y:14
+LUT__694|in[2]                          EFX_LUT4       0.061             2.561              2        (155,147)
+LUT__694|out                            EFX_LUT4       0.000             2.561              2        (155,147)
+n307                                    net            0.000             2.561              2        (155,147)
+obs_3~FF_rt_9|D                         EFX_FF         0.003             2.564              2        (155,147)
+
+Capture Clock Path
+      name         model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================
+clk                  input        0.000             0.000               0       (111,0)  
+clk                  input        0.126             0.126             265       (111,0)  
+clk                  net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:44, Y:147
+obs_3~FF_rt_9|CLK    EFX_FF       0.000             2.128             265       (155,147)
+
+++++ Path 10 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[7]~FF|CLK                        
+Path End      : dut/masked.lane[2].mem__D$d12|WADDR[3]
+Launch Clock  : clk (RISE)                            
+Capture Clock : clk (RISE)                            
+Slack         : 7.312 (required time - arrival time)  
+Delay         : 2.407                                 
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 2.562
+--------------------------------------
+End-of-path arrival time       : 4.690
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+     name       model name   delay (ns)  cumulative delay (ns) pins on net    location
+========================================================================================
+clk               input        0.000             0.000               0       (111,0)  
+clk               input        0.126             0.126             265       (111,0)  
+clk               net          2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:51, Y:189
+stim[7]~FF|CLK    EFX_FF       0.000             2.128             265       (162,189)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+stim[7]~FF|Q                            EFX_FF         0.130             0.130              67       (162,189)
+stim[7]                                 net            2.407             2.537              67       (162,189)
+   Routing elements:
+      Manhattan distance of X:45, Y:47
+dut/masked.lane[2].mem__D$d12|WADDR[3]  EFX_RAM10      0.025             2.562              67       (117,142)
+
+Capture Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.126             0.126             265       (111,0)  
+clk                                 net            2.002             2.128             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:6, Y:142
+dut/masked.lane[2].mem__D$d12|WCLK  EFX_RAM10      0.000             2.128             265       (117,142)
+
+---------- Path Details for Max Critical Paths (end) ---------------
+
+---------- 4. Path Details for Min Critical Paths (begin) ----------
+
+################################################################################
+Path Detail Report (clk vs clk)
+################################################################################
+
+
+++++ Path 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[60]~FF|CLK                       
+Path End      : dut/masked.lane[1].mem__D$n12|WDATA[0]
+Launch Clock  : clk (RISE)                            
+Capture Clock : clk (RISE)                            
+Slack         : 0.026 (arrival time - required time)  
+Delay         : 0.135                                 
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.096
+--------------------------------------
+End-of-path arrival time       : 1.299
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.070             0.070             265       (111,0)  
+clk                net          1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:35, Y:222
+stim[60]~FF|CLK    EFX_FF       0.000             1.203             265       (146,222)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+stim[60]~FF|Q                           EFX_FF          0.072            0.072              3        (146,222)
+stim[60]                                net             0.135            0.207              3        (146,222)
+   Routing elements:
+      Manhattan distance of X:1, Y:0
+dut/masked.lane[1].mem__D$n12|WDATA[0]  EFX_RAM10      -0.111            0.096              3        (147,222)
+
+Capture Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.070             0.070             265       (111,0)  
+clk                                 net            1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:36, Y:222
+dut/masked.lane[1].mem__D$n12|WCLK  EFX_RAM10      0.000             1.203             265       (147,222)
+
+++++ Path 2 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[95]~FF|CLK                      
+Path End      : dut/masked.lane[2].mem__D$o1|WDATA[1]
+Launch Clock  : clk (RISE)                           
+Capture Clock : clk (RISE)                           
+Slack         : 0.029 (arrival time - required time) 
+Delay         : 0.138                                
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.099
+--------------------------------------
+End-of-path arrival time       : 1.302
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.070             0.070             265       (111,0)  
+clk                net          1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:19, Y:143
+stim[95]~FF|CLK    EFX_FF       0.000             1.203             265       (130,143)
+
+Data Path
+                name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+===============================================================================================================
+stim[95]~FF|Q                          EFX_FF          0.072            0.072              3        (130,143)
+stim[95]                               net             0.138            0.210              3        (130,143)
+   Routing elements:
+      Manhattan distance of X:2, Y:1
+dut/masked.lane[2].mem__D$o1|WDATA[1]  EFX_RAM10      -0.111            0.099              3        (132,142)
+
+Capture Clock Path
+              name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================================
+clk                                input          0.000             0.000               0       (111,0)  
+clk                                input          0.070             0.070             265       (111,0)  
+clk                                net            1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:21, Y:142
+dut/masked.lane[2].mem__D$o1|WCLK  EFX_RAM10      0.000             1.203             265       (132,142)
+
+++++ Path 3 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[62]~FF|CLK                      
+Path End      : dut/masked.lane[1].mem__D$o1|WDATA[0]
+Launch Clock  : clk (RISE)                           
+Capture Clock : clk (RISE)                           
+Slack         : 0.059 (arrival time - required time) 
+Delay         : 0.168                                
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.129
+--------------------------------------
+End-of-path arrival time       : 1.332
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.070             0.070             265       (111,0)  
+clk                net          1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:51, Y:182
+stim[62]~FF|CLK    EFX_FF       0.000             1.203             265       (162,182)
+
+Data Path
+                name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+===============================================================================================================
+stim[62]~FF|Q                          EFX_FF          0.072            0.072              3        (162,182)
+stim[62]                               net             0.168            0.240              3        (162,182)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+dut/masked.lane[1].mem__D$o1|WDATA[0]  EFX_RAM10      -0.111            0.129              3        (156,182)
+
+Capture Clock Path
+              name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================================
+clk                                input          0.000             0.000               0       (111,0)  
+clk                                input          0.070             0.070             265       (111,0)  
+clk                                net            1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:45, Y:182
+dut/masked.lane[1].mem__D$o1|WCLK  EFX_RAM10      0.000             1.203             265       (156,182)
+
+++++ Path 4 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[97]~FF|CLK                     
+Path End      : dut/masked.lane[3].mem__D$2|WDATA[1]
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.061 (arrival time - required time)
+Delay         : 0.170                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.131
+--------------------------------------
+End-of-path arrival time       : 1.334
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.070             0.070             265       (111,0)  
+clk                net          1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:44, Y:103
+stim[97]~FF|CLK    EFX_FF       0.000             1.203             265       (155,103)
+
+Data Path
+                name                  model name   delay (ns)  cumulative delay (ns) pins on net    location
+==============================================================================================================
+stim[97]~FF|Q                         EFX_FF          0.072            0.072              3        (155,103)
+stim[97]                              net             0.170            0.242              3        (155,103)
+   Routing elements:
+      Manhattan distance of X:8, Y:1
+dut/masked.lane[3].mem__D$2|WDATA[1]  EFX_RAM10      -0.111            0.131              3        (147,102)
+
+Capture Clock Path
+              name                model name   delay (ns)  cumulative delay (ns) pins on net    location
+==========================================================================================================
+clk                               input          0.000             0.000               0       (111,0)  
+clk                               input          0.070             0.070             265       (111,0)  
+clk                               net            1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:36, Y:102
+dut/masked.lane[3].mem__D$2|WCLK  EFX_RAM10      0.000             1.203             265       (147,102)
+
+++++ Path 5 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[19]~FF|CLK                      
+Path End      : dut/masked.lane[1].mem__D$o1|RADDR[3]
+Launch Clock  : clk (RISE)                           
+Capture Clock : clk (RISE)                           
+Slack         : 0.079 (arrival time - required time) 
+Delay         : 0.172                                
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.149
+--------------------------------------
+End-of-path arrival time       : 1.352
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.070             0.070             265       (111,0)  
+clk                net          1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:51, Y:194
+stim[19]~FF|CLK    EFX_FF       0.000             1.203             265       (162,194)
+
+Data Path
+                name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+===============================================================================================================
+stim[19]~FF|Q                          EFX_FF          0.072            0.072              67       (162,194)
+stim[19]                               net             0.172            0.244              67       (162,194)
+   Routing elements:
+      Manhattan distance of X:6, Y:12
+dut/masked.lane[1].mem__D$o1|RADDR[3]  EFX_RAM10      -0.095            0.149              67       (156,182)
+
+Capture Clock Path
+              name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================================
+clk                                input          0.000             0.000               0       (111,0)  
+clk                                input          0.070             0.070             265       (111,0)  
+clk                                net            1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:45, Y:182
+dut/masked.lane[1].mem__D$o1|RCLK  EFX_RAM10      0.000             1.203             265       (156,182)
+
+++++ Path 6 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[122]~FF|CLK                      
+Path End      : dut/masked.lane[3].mem__D$m12|WDATA[0]
+Launch Clock  : clk (RISE)                            
+Capture Clock : clk (RISE)                            
+Slack         : 0.081 (arrival time - required time)  
+Delay         : 0.190                                 
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.151
+--------------------------------------
+End-of-path arrival time       : 1.354
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+      name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+==========================================================================================
+clk                 input        0.000             0.000               0       (111,0)  
+clk                 input        0.070             0.070             265       (111,0)  
+clk                 net          1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:44, Y:107
+stim[122]~FF|CLK    EFX_FF       0.000             1.203             265       (155,107)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+stim[122]~FF|Q                          EFX_FF          0.072            0.072              3        (155,107)
+stim[122]                               net             0.190            0.262              3        (155,107)
+   Routing elements:
+      Manhattan distance of X:1, Y:5
+dut/masked.lane[3].mem__D$m12|WDATA[0]  EFX_RAM10      -0.111            0.151              3        (156,102)
+
+Capture Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.070             0.070             265       (111,0)  
+clk                                 net            1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:45, Y:102
+dut/masked.lane[3].mem__D$m12|WCLK  EFX_RAM10      0.000             1.203             265       (156,102)
+
+++++ Path 7 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[82]~FF|CLK                     
+Path End      : stim[83]~FF|D                       
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.097 (arrival time - required time)
+Delay         : 0.095                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.167
+--------------------------------------
+End-of-path arrival time       : 1.370
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0        (111,0) 
+clk                input        0.070             0.070             265        (111,0) 
+clk                net          1.133             1.203             265        (111,0) 
+   Routing elements:
+      Manhattan distance of X:44, Y:86
+stim[82]~FF|CLK    EFX_FF       0.000             1.203             265        (155,86)
+
+Data Path
+    name       model name   delay (ns)  cumulative delay (ns) pins on net    location
+=======================================================================================
+stim[82]~FF|Q    EFX_FF       0.072             0.072              3         (155,86)
+stim[82]         net          0.095             0.167              3         (155,86)
+   Routing elements:
+      Manhattan distance of X:0, Y:2
+stim[83]~FF|D    EFX_FF       0.000             0.167              3         (155,84)
+
+Capture Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0        (111,0) 
+clk                input        0.070             0.070             265        (111,0) 
+clk                net          1.133             1.203             265        (111,0) 
+   Routing elements:
+      Manhattan distance of X:44, Y:84
+stim[83]~FF|CLK    EFX_FF       0.000             1.203             265        (155,84)
+
+++++ Path 8 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[59]~FF|CLK                       
+Path End      : dut/masked.lane[1].mem__D$m12|WDATA[1]
+Launch Clock  : clk (RISE)                            
+Capture Clock : clk (RISE)                            
+Slack         : 0.097 (arrival time - required time)  
+Delay         : 0.206                                 
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.167
+--------------------------------------
+End-of-path arrival time       : 1.370
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.070             0.070             265       (111,0)  
+clk                net          1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:35, Y:223
+stim[59]~FF|CLK    EFX_FF       0.000             1.203             265       (146,223)
+
+Data Path
+                 name                   model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================================
+stim[59]~FF|Q                           EFX_FF          0.072            0.072              3        (146,223)
+stim[59]                                net             0.206            0.278              3        (146,223)
+   Routing elements:
+      Manhattan distance of X:14, Y:1
+dut/masked.lane[1].mem__D$m12|WDATA[1]  EFX_RAM10      -0.111            0.167              3        (132,222)
+
+Capture Clock Path
+               name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+============================================================================================================
+clk                                 input          0.000             0.000               0       (111,0)  
+clk                                 input          0.070             0.070             265       (111,0)  
+clk                                 net            1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:21, Y:222
+dut/masked.lane[1].mem__D$m12|WCLK  EFX_RAM10      0.000             1.203             265       (132,222)
+
+++++ Path 9 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[80]~FF|CLK                     
+Path End      : stim[81]~FF|D                       
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.097 (arrival time - required time)
+Delay         : 0.095                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.167
+--------------------------------------
+End-of-path arrival time       : 1.370
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0        (111,0) 
+clk                input        0.070             0.070             265        (111,0) 
+clk                net          1.133             1.203             265        (111,0) 
+   Routing elements:
+      Manhattan distance of X:44, Y:87
+stim[80]~FF|CLK    EFX_FF       0.000             1.203             265        (155,87)
+
+Data Path
+    name       model name   delay (ns)  cumulative delay (ns) pins on net    location
+=======================================================================================
+stim[80]~FF|Q    EFX_FF       0.072             0.072              3         (155,87)
+stim[80]         net          0.095             0.167              3         (155,87)
+   Routing elements:
+      Manhattan distance of X:0, Y:2
+stim[81]~FF|D    EFX_FF       0.000             0.167              3         (155,85)
+
+Capture Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0        (111,0) 
+clk                input        0.070             0.070             265        (111,0) 
+clk                net          1.133             1.203             265        (111,0) 
+   Routing elements:
+      Manhattan distance of X:44, Y:85
+stim[81]~FF|CLK    EFX_FF       0.000             1.203             265        (155,85)
+
+++++ Path 10 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : stim[70]~FF|CLK                     
+Path End      : stim[71]~FF|D                       
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.097 (arrival time - required time)
+Delay         : 0.095                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.167
+--------------------------------------
+End-of-path arrival time       : 1.370
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.070             0.070             265       (111,0)  
+clk                net          1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:44, Y:160
+stim[70]~FF|CLK    EFX_FF       0.000             1.203             265       (155,160)
+
+Data Path
+    name       model name   delay (ns)  cumulative delay (ns) pins on net    location
+=======================================================================================
+stim[70]~FF|Q    EFX_FF       0.072             0.072              3        (155,160)
+stim[70]         net          0.095             0.167              3        (155,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:2
+stim[71]~FF|D    EFX_FF       0.000             0.167              3        (155,158)
+
+Capture Clock Path
+     name        model name   delay (ns)  cumulative delay (ns) pins on net    location
+=========================================================================================
+clk                input        0.000             0.000               0       (111,0)  
+clk                input        0.070             0.070             265       (111,0)  
+clk                net          1.133             1.203             265       (111,0)  
+   Routing elements:
+      Manhattan distance of X:44, Y:158
+stim[71]~FF|CLK    EFX_FF       0.000             1.203             265       (155,158)
+
+---------- Path Details for Min Critical Paths (end) ---------------
+

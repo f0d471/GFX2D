@@ -1,0 +1,69 @@
+{
+  "definitions": {
+    "pixel_width": 32,
+    "width": 640,
+    "strip_h": 16,
+    "bytes": 40960,
+    "words128": 2560,
+    "frame_strips": 30,
+    "mapped_beats": 76800,
+    "logical_stride": 4096,
+    "compact_row_bytes": 2560,
+    "pixel_phase_i3_min_cycles_16x16": 128,
+    "nominal_frame_background_bursts": 960,
+    "warning": "960 excludes command fetch and non-TEX source reads; RAM block count requires mapping"
+  },
+  "pixel_path": {
+    "sprites": 16,
+    "size": "16x16",
+    "strips": 6,
+    "render_exec_cycles": 4160,
+    "cycles_per_sprite": 260.0,
+    "fragments": 32,
+    "rows": 256,
+    "collision": 0,
+    "variants": {
+      "aligned": {
+        "cycles": 3936,
+        "fragments": 16,
+        "rows": 256,
+        "collision": 0,
+        "golden": "TEX-SPRITES: records=17 pixels=4096 written=4096 key=0 oob=0"
+      },
+      "keyed_partial_stall": {
+        "cycles": 4212,
+        "fragments": 24,
+        "rows": 256,
+        "collision": 0,
+        "golden": "TEX-SPRITES: records=17 pixels=3904 written=3124 key=780 oob=0",
+        "colored_key": 1075843080,
+        "mask_mutation_red": true
+      }
+    },
+    "memory_bytes_compared": 524288,
+    "scope": "real geom/pix/blend; local source/BAND proxy; fill/flush not timed here; no command fetch/SoC/scan"
+  },
+  "dma": {
+    "fill_cycles": 3249,
+    "flush_cycles": 3152,
+    "read_bursts": 16,
+    "write_bursts": 16,
+    "flush_stalls": 160,
+    "words128": 2560,
+    "memory_bytes_compared": 524288,
+    "drain_cycles": 195,
+    "drain_prefix_words": 10,
+    "drain_done_seen": true,
+    "wlast_errors": 0,
+    "ram_segmented": true,
+    "frame_30_strip_fixed_cycles": 192030,
+    "scope": "real mover/DMA/calibrated DDR model; single BAND RAM; producer stops at soft drain; no SoC/scan"
+  },
+  "model": {
+    "fill_estimate_cycles": 3211.8933333333334,
+    "flush_estimate_cycles": 3102.6666666666665,
+    "fill_difference_percent": 1.155289507331081,
+    "flush_difference_percent": 1.5900300816501955,
+    "note": "calibrated sequential descriptor model; no command fetch/SoC/HDMI contention"
+  }
+}

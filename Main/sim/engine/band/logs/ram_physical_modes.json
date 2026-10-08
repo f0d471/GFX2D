@@ -1,0 +1,23 @@
+{
+  "compact_masked": {
+    "2": 64
+  },
+  "compact_wide": {
+    "2": 64
+  },
+  "padded_masked": {
+    "2": 64
+  },
+  "segmented_masked": {
+    "16": 4,
+    "20": 4,
+    "5": 16,
+    "4": 12
+  },
+  "segmented_wide": {
+    "20": 6,
+    "4": 2,
+    "5": 24,
+    "8": 1
+  }
+}

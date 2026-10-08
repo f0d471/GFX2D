@@ -1,0 +1,10 @@
+{
+  "ddr_cycles_per_sprite": 1182.625,
+  "tex_cycles_per_sprite": 656.875,
+  "tex_ddr_read_bursts": 258,
+  "crc_pairs": 22,
+  "fifo_min": 338,
+  "underflow": 0,
+  "source_manifest": "board_artifacts.json",
+  "scope": "current G1 baseline, not BAND board acceptance"
+}

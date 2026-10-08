@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-08",
+  "scope": "G2 preliminary research complete; formal implementation not started",
+  "local_links": 492,
+  "broken_links": 0,
+  "architecture_svg_rendered": true,
+  "production_source_changed": false,
+  "flash_written": false,
+  "full_9208_replay_run": false,
+  "research_checks": 11,
+  "source_reference_count": 3,
+  "ram_synthesis_variants": 5,
+  "dependencies": {
+    "geom": "27/27",
+    "mover": "17/17",
+    "pix": "25/25"
+  },
+  "baseline_board_results": "board_results.json",
+  "results": "research_results.json",
+  "synthesis": "synthesis_results.json",
+  "colored_key_mask_mutation": true,
+  "checks": {
+    "ram_normal": "as expected",
+    "ram_segmented": "as expected",
+    "ram_bad_mask": "as expected",
+    "ram_bad_address": "as expected",
+    "band_path": "as expected",
+    "band_path_bad_address": "as expected",
+    "band_aligned": "as expected",
+    "band_keyed_partial_stall": "as expected",
+    "band_local_bad_mask": "as expected",
+    "band_dma": "as expected",
+    "band_dma_bad_address": "as expected"
+  }
+}

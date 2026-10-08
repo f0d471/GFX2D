@@ -1,0 +1,7 @@
+RAM-DATA addr=0
+RAM-DATA addr=1
+RAM-DATA addr=2
+RAM-DATA addr=3
+RAM words=2560 full_reads=6400 masked_writes=2560 concurrent=1280 errors=3072
+RESULT: FAIL
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/tb_probe_band_ram.v:67: $finish called at 204820000 (1ps)

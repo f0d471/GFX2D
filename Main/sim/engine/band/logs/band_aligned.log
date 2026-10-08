@@ -1,0 +1,6 @@
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/band/build/aligned.v:186: $readmemh(build/aligned.cmd.hex): Not enough words in the file for the requested range [0:95].
+BAND EXEC cycles=3936 fragments=16 rows=256 collision=0
+PERF cycles=3942 commands=16
+PATH stats commands=16 read=512 write=256 stalls=0 mem_bad=0 errors=0
+RESULT: PASS (B1-B4, software executor golden)
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/build/aligned.v:242: $finish called at 39670000 (1ps)

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "source_commit": "b762f3eee908bef1e64a4826a55c92d89680c3bc",
+  "scope": "G2 research baseline; current G1 hardware, freshly rebuilt engineTest; no BAND, Flash unchanged",
+  "artifacts": [
+    {
+      "name": "bit",
+      "path": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+      "bytes": 2378772,
+      "sha256": "c41f25182088895cad2c5b21e868d232350d33850f7470b5cc80fe69a9a0dfec"
+    },
+    {
+      "name": "engineTest",
+      "path": "Main/sw/apps/test/engineTest/build_g2_research/engineTest-O2.bin",
+      "bytes": 49002,
+      "sha256": "9e6555528875ca9f3a69d9a26bacf5781a2039594d94ad66fa29e9f9e0023d37"
+    }
+  ],
+  "consumer_log": "g2_board_baseline.log",
+  "functional_pass": true
+}

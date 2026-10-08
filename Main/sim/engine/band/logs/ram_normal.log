@@ -1,0 +1,3 @@
+RAM words=2560 full_reads=6400 masked_writes=2560 concurrent=1280 errors=0
+RESULT: PASS
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/tb_probe_band_ram.v:67: $finish called at 204820000 (1ps)

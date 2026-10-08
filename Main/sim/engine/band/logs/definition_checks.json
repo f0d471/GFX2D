@@ -1,0 +1,14 @@
+{
+  "pixel_width": 32,
+  "width": 640,
+  "strip_h": 16,
+  "bytes": 40960,
+  "words128": 2560,
+  "frame_strips": 30,
+  "mapped_beats": 76800,
+  "logical_stride": 4096,
+  "compact_row_bytes": 2560,
+  "pixel_phase_i3_min_cycles_16x16": 128,
+  "nominal_frame_background_bursts": 960,
+  "warning": "960 excludes command fetch and non-TEX source reads; RAM block count requires mapping"
+}

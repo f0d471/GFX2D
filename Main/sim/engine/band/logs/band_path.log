@@ -1,0 +1,6 @@
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/band/build/tb_band_path.v:186: $readmemh(build/hot16.cmd.hex): Not enough words in the file for the requested range [0:95].
+BAND EXEC cycles=4160 fragments=32 rows=256 collision=0
+PERF cycles=4166 commands=32
+PATH stats commands=32 read=512 write=256 stalls=0 mem_bad=0 errors=0
+RESULT: PASS (B1-B4, software executor golden)
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/build/tb_band_path.v:242: $finish called at 41910000 (1ps)

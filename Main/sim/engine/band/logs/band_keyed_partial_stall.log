@@ -1,0 +1,6 @@
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/band/build/keyed_partial_stall.v:186: $readmemh(build/keyed_partial_stall.cmd.hex): Not enough words in the file for the requested range [0:95].
+BAND EXEC cycles=4212 fragments=24 rows=256 collision=0
+PERF cycles=4218 commands=24
+PATH stats commands=24 read=512 write=256 stalls=152 mem_bad=0 errors=0
+RESULT: PASS (B1-B4, software executor golden)
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/build/keyed_partial_stall.v:242: $finish called at 42430000 (1ps)

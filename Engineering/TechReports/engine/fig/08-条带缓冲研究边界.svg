@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="850" viewBox="0 0 1500 850">
+<defs>
+  <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#222"/></marker>
+  <marker id="future" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#777"/></marker>
+</defs>
+<rect width="1500" height="850" fill="white"/>
+<g font-family="Microsoft YaHei,Arial,sans-serif" fill="#111">
+<text x="45" y="45" font-size="29">G2 条带缓冲前期研究：接入与证据边界</text>
+<text x="45" y="78" font-size="19">计算代理与 DMA 搬运分别取样；正式 engine_band 与生产片上路由尚未实现</text>
+<rect x="45" y="105" width="900" height="320" fill="none" stroke="#222" stroke-width="1.5"/>
+<text x="65" y="137" font-size="21">计算实验：tb_band_path（生成），软件执行器金标准</text>
+<rect x="75" y="180" width="220" height="105" fill="none" stroke="#222" stroke-width="2"/>
+<text x="185" y="217" text-anchor="middle" font-size="20">engine_geom</text>
+<text x="185" y="248" text-anchor="middle" font-size="18">全局坐标 / clip_y</text>
+<rect x="375" y="180" width="260" height="105" fill="none" stroke="#222" stroke-width="2"/>
+<text x="505" y="212" text-anchor="middle" font-size="20">engine_pix</text>
+<text x="505" y="241" text-anchor="middle" font-size="18">engine_blend ×12</text>
+<text x="505" y="268" text-anchor="middle" font-size="17">两半行缓冲 / row_free</text>
+<rect x="720" y="180" width="195" height="190" fill="none" stroke="#19754c" stroke-width="2"/>
+<text x="817" y="211" text-anchor="middle" font-size="20">probe_band_local</text>
+<text x="817" y="248" text-anchor="middle" font-size="17">源代理 / BAND 数组</text>
+<text x="817" y="282" text-anchor="middle" font-size="17">4096 → 2560 行映射</text>
+<text x="817" y="316" text-anchor="middle" font-size="17">bit31 / 写反压</text>
+<text x="817" y="349" text-anchor="middle" font-size="17">非正式控制器</text>
+<path d="M295 232 H375" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="334" y="217" text-anchor="middle" font-size="16">边带</text>
+<path d="M185 285 V335 H720" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="425" y="324" text-anchor="middle" font-size="17">读写描述符</text>
+<path d="M720 227 H635" fill="none" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="677" y="210" text-anchor="middle" font-size="16">I3 / 128</text>
+<path d="M635 269 H720" fill="none" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="677" y="299" text-anchor="middle" font-size="16">I4 / 128</text>
+<text x="75" y="397" font-size="17">fill / flush 在本测试台仅拷贝边界，不计时；源与目的单 I3，100 MHz</text>
+
+<rect x="45" y="460" width="900" height="300" fill="none" stroke="#222" stroke-width="1.5"/>
+<text x="65" y="495" font-size="21">搬运实验：tb_probe_band_dma（生成），E4 校准从机</text>
+<rect x="75" y="545" width="220" height="125" fill="none" stroke="#19754c" stroke-width="2"/>
+<text x="185" y="577" text-anchor="middle" font-size="20">probe_band_ram</text>
+<text x="185" y="610" text-anchor="middle" font-size="18">2048+512 词分段</text>
+<text x="185" y="643" text-anchor="middle" font-size="18">128 位 / 一读一写</text>
+<rect x="370" y="535" width="265" height="145" fill="none" stroke="#222" stroke-width="2"/>
+<text x="502" y="568" text-anchor="middle" font-size="20">engine_mover</text>
+<text x="502" y="603" text-anchor="middle" font-size="18">axi_dma_rd / wr</text>
+<text x="502" y="638" text-anchor="middle" font-size="18">原核 / 排空协议</text>
+<rect x="720" y="545" width="195" height="125" fill="none" stroke="#222" stroke-width="2"/>
+<text x="817" y="579" text-anchor="middle" font-size="20">axi_ram_model</text>
+<text x="817" y="616" text-anchor="middle" font-size="18">128 位 AXI</text>
+<text x="817" y="650" text-anchor="middle" font-size="18">TIMED 校准模式</text>
+<path d="M295 575 H370" fill="none" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+<path d="M370 640 H295" fill="none" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="332" y="557" text-anchor="middle" font-size="16">flush</text>
+<text x="332" y="665" text-anchor="middle" font-size="16">fill</text>
+<path d="M635 605 H720" fill="none" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="677" y="587" text-anchor="middle" font-size="16">AXI</text>
+<text x="75" y="724" font-size="17">同步输出保持到 ready；停止供流后补不写哑拍，等待事务收尾</text>
+
+<rect x="1010" y="180" width="440" height="225" fill="none" stroke="#777" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="1230" y="218" text-anchor="middle" fill="#777" font-size="23">下一轮正式实现</text>
+<text x="1230" y="260" text-anchor="middle" fill="#777" font-size="20">engine_band</text>
+<text x="1230" y="300" text-anchor="middle" fill="#777" font-size="19">生产 mover / geom 的片上路由</text>
+<text x="1230" y="342" text-anchor="middle" fill="#777" font-size="19">统一状态、错误、复位与排空</text>
+<text x="1230" y="380" text-anchor="middle" fill="#777" font-size="18">未进入主工程 / 未启用 BAND 能力</text>
+<path d="M945 275 H1010" fill="none" stroke="#777" stroke-width="1.5" stroke-dasharray="8 6" marker-end="url(#future)"/>
+<path d="M945 605 H978 V350 H1010" fill="none" stroke="#777" stroke-width="1.5" stroke-dasharray="8 6" marker-end="url(#future)"/>
+<rect x="1010" y="480" width="440" height="205" fill="none" stroke="#222" stroke-width="1.5"/>
+<text x="1230" y="520" text-anchor="middle" font-size="21">板上基线验证</text>
+<text x="1230" y="563" text-anchor="middle" font-size="19">现行 G1 bit + 新编 engineTest</text>
+<text x="1230" y="603" text-anchor="middle" font-size="19">JTAG / UART / DDR 程序装载</text>
+<text x="1230" y="646" text-anchor="middle" font-size="18">BAND 尚未上板，Flash 未改</text>
+<text x="45" y="804" font-size="18">图例：黑框为现有通路；绿框为研究探针；实线为已接实验，粗线为数据；灰色虚线为待实施。</text>
+</g>
+</svg>

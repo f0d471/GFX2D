@@ -1,0 +1,12 @@
+BAND DMA fill=3249 flush=3152 ar=16 aw=16 words=2560 stalls=160
+BAND DRAIN cycles=195 prefix=10 seen=1 wlast_errors=0
+DMA-MEM addr=00020000
+DMA-MEM addr=00020010
+DMA-MEM addr=00020020
+DMA-MEM addr=00020030
+DMA-MEM addr=00020040
+DMA-MEM addr=00020050
+DMA-MEM addr=00020060
+BAND DMA errors=2576
+RESULT: FAIL
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/build/tb_probe_band_dma.v:180: $finish called at 66120000 (1ps)

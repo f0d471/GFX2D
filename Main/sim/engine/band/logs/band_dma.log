@@ -1,0 +1,5 @@
+BAND DMA fill=3249 flush=3152 ar=16 aw=16 words=2560 stalls=160
+BAND DRAIN cycles=195 prefix=10 seen=1 wlast_errors=0
+BAND DMA errors=0
+RESULT: PASS
+/mnt/e/Workspace/Efinix/Main/sim/engine/band/build/tb_probe_band_dma.v:180: $finish called at 66120000 (1ps)
