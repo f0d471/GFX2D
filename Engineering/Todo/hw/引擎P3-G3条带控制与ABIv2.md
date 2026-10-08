@@ -54,7 +54,7 @@
 | `Main/sw/lib/gfx` | 分桶构造（每弹 O(1)，`dst_y>>log2(STRIP_H)` 定桶，跨桶复制裁剪命令）；软件执行器条带模式；区溢出报错 |
 | `Main/sw`（PC 侧） | 等价模糊测试：随机条带表 vs 直通逐像素比对 |
 | `sim/engine/ctrl/` | 条带循环用例；159 向量机制扩条带表 |
-| `Engineering/Todo/hw/引擎P3-G1片上纹理.md` 产物的驱动 | 驱动按模式位配置引擎，装载与提交流程串起 |
+| `Main/sw/bsp/ti60/gfx_engine.c` | 在 G1 驱动上按模式位配置引擎，装载与提交流程串起 |
 
 ## 5 判据
 

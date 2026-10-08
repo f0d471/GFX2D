@@ -1,6 +1,8 @@
 {
   "date": "2026-10-08",
   "baseline_commit": "fc41a8d",
+  "status": "accepted",
+  "implementation_commit": "84c99ef",
   "scope": "G1 implementation acceptance; saved synthesis and board evidence reviewed; no new synthesis, board run or Flash write",
   "simulation": {
     "tex": {"passed": 6, "total": 6, "log": "acceptance_tex.log"},
@@ -36,7 +38,10 @@
   "documentation": {
     "local_links_before_archive": 472,
     "broken_links_before_archive": 0,
+    "local_links_after_archive": 470,
+    "broken_links_after_archive": 0,
     "g1_whitespace": true,
+    "whitespace_scope": "source and documentation; raw tool logs and reports preserve original formatting",
     "architecture_svg_rendered": true,
     "known_workspace_path_findings": 7,
     "path_findings_scope": "pre-existing Deliverables report files; excluded from G1 change"
