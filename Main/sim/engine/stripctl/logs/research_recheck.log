@@ -1,0 +1,6 @@
+direct vs strip: 1000/1000 scenes byte-identical (0 skipped)
+mutation M1: RED as expected
+mutation M2: RED as expected
+mutation M3: RED as expected
+mutation M4: RED as expected
+RESULT: PASS (1000 scenes + 4 mutations as expected)

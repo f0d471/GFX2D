@@ -130,7 +130,7 @@ module ec_fields(
 endmodule
 
 // =====================================================================
-module engine_cmd (
+module engine_cmd #(parameter integer STRIP_H = 16) (
     input  wire        clk,
     input  wire        rst,           // 控制层复位（soc_system_reset），同步
 
@@ -138,6 +138,17 @@ module engine_cmd (
     input  wire        kick,          // 一拍：DOORBELL 受理
     input  wire [31:0] list_base,
     input  wire [31:0] list_count,
+    input wire band_mode,
+    input wire [31:0] lstrips, strip_log2, band_surfs,
+    output wire band_enable, band_start, band_flush, band_abort,
+    output reg [31:0] band_bg_base, band_dst_base,
+    output reg [4:0] band_bg_slog2, band_dst_slog2,
+    output wire [15:0] band_y0,
+    output reg [15:0] band_frame_height,
+    input wire band_start_ready, band_flush_ready, band_loaded, band_flushed,
+    input wire band_busy, band_error,
+    input wire [3:0] band_error_code,
+    input wire drain_done,
     input  wire        soft_rst,      // 电平：软复位请求举着，立即弃单回空闲
     output wire        busy,          // 已受理的命令表在跑（含收尾排空）
     output reg         err_set,       // 一拍：错误三元组同拍有效
@@ -239,7 +250,8 @@ module engine_cmd (
     // 逐条回退 off ≤30 加 2 拍也 ≤31，自然回卷等价 (off+tot) mod 32）
     wire [4:0]  cbuf_walo = rq_off + fe_tot[4:0];
     wire [5:0]  cbuf_wa   = {rq_half, cbuf_walo};
-    wire [5:0]  cbuf_ra   = {half, k[3:0], rd_word};
+    wire [5:0] cbuf_ra = (st == S_HADDR || st == S_HWAIT || st == S_HREAD)
+                      ? {3'd0, hdr_beat} : {half, k[3:0], rd_word};
 
     always @(posedge clk) begin
         if (fs_fire) cbuf[cbuf_wa] <= fs_tdata;
@@ -370,12 +382,29 @@ module engine_cmd (
     // =====================================================================
     // 主状态机
     // =====================================================================
-    localparam [3:0] S_IDLE   = 4'd0,  S_FETCH  = 4'd1,  S_RD0  = 4'd2,  S_RD1   = 4'd3,
-                     S_RUN    = 4'd4,  S_ISSUE  = 4'd5,  S_ACTIVE = 4'd6, S_ADV = 4'd7,
-                     S_SWITCH = 4'd8,  S_PERW   = 4'd9,  S_PER_WAIT = 4'd10,
-                     S_TERM   = 4'd12, S_EXEC = 4'd13,
-                     S_RD2    = 4'd14;
-    reg [3:0]  st;
+    localparam [4:0] S_IDLE=0, S_FETCH=1, S_RD0=2, S_RD1=3, S_RUN=4,
+        S_ISSUE=5, S_ACTIVE=6, S_ADV=7, S_SWITCH=8, S_PERW=9, S_PER_WAIT=10,
+        S_TERM=12, S_EXEC=13, S_RD2=14, S_CFG=15, S_HDR=16, S_HADDR=17,
+        S_HWAIT=18, S_HREAD=19, S_BNEXT=20, S_BSTART=21, S_BLOAD=22,
+        S_BFLUSH=23, S_BWAIT=24, S_CFG_WAIT=25, S_DISPATCH=26;
+    reg [4:0] st;
+    reg bmode, cfg_phase, cfg_bad_q;
+    reg [4:0] chk_q;
+    reg [4:0] strip_id;
+    reg [5:0] strips_r;
+    reg [3:0] bg_id, dst_id;
+    reg [31:0] table_base, counts [0:31];
+    reg [2:0] hdr_beat;
+    assign band_enable = bmode && busy_r;
+    assign band_y0 = {11'd0, strip_id} * STRIP_H;
+    assign band_start = st == S_BSTART && !soft_rst;
+    assign band_flush = st == S_BFLUSH && !soft_rst;
+    assign band_abort = st == S_TERM && pend_err && bmode &&
+                        !active && !geom_busy && !fe_busy_any;
+    wire [31:0] global_k = bmode ? {17'd0, strip_id, 10'd0} + k : k;
+    wire [31:0] global_bi = bmode ? {17'd0, strip_id, 10'd0} + bi : bi;
+    wire [31:0] global_nbi = bmode ? {17'd0, strip_id, 10'd0} + n_bi : n_bi;
+
     reg        busy_r;
     reg [31:0] base_r;
     reg [31:0] count_r;
@@ -417,8 +446,8 @@ module engine_cmd (
     wire [3:0]   c_srcid  = cmd_full[19:16];
     wire [3:0]   c_dstid  = cmd_full[23:20];
 
-    assign surf_ra_id = c_srcid;
-    assign surf_rb_id = c_dstid;
+    assign surf_ra_id = cfg_phase ? bg_id : c_srcid;
+    assign surf_rb_id = cfg_phase ? dst_id : c_dstid;
 
     wire is_fill_c = (c_op == OP_FILL);
     wire is_blit_c = (c_op == OP_BLIT);
@@ -470,6 +499,31 @@ module engine_cmd (
                   && ($signed(dy18 + {2'b00, oh}) > $signed(sy18));
 
     // 优先链（注错位 0：对调 space/format 两步，验收必须见红）
+    // v2 表面反馈不能因分桶而改变读到的画面；按完整 backing 区间拒绝别名。
+    wire [47:0] src_end = {16'd0,surf_ra_w0} +
+        (({32'd0,surf_ra_w1[31:16]}-48'd1) << surf_ra_w2[4:0]) +
+        {30'd0,surf_ra_w1[15:0],2'd0};
+    wire [47:0] dst_end = {16'd0,band_dst_base} +
+        (({32'd0,band_frame_height}-48'd1) << band_dst_slog2) + 48'd2560;
+    wire feedback_bad = bmode && is_blit_c && src_space_c == 0 &&
+        {16'd0,surf_ra_w0} < dst_end && {16'd0,band_dst_base} < src_end;
+    wire local_bad = bmode && ((c_op == OP_CLIP) || (c_op == OP_END) ||
+        ((is_fill_c || is_blit_c) && (c_dstid != dst_id ||
+         w0[95] || w0[95:80] >= STRIP_H ||
+         ({1'b0,w0[95:80]} + {1'b0,w0[127:112]}) > STRIP_H)));
+    wire [47:0] cfg_bg_end = {16'd0,surf_ra_w0} +
+        (({32'd0,surf_ra_w1[31:16]}-48'd1) << surf_ra_w2[4:0]) + 48'd2560;
+    wire [47:0] cfg_dst_end = {16'd0,surf_rb_w0} +
+        (({32'd0,surf_rb_w1[31:16]}-48'd1) << surf_rb_w2[4:0]) + 48'd2560;
+    wire cfg_alias_bad = {16'd0,surf_ra_w0}<cfg_dst_end &&
+        {16'd0,surf_rb_w0}<cfg_bg_end &&
+        (surf_ra_w0 != surf_rb_w0 || surf_ra_w2[4:0] != surf_rb_w2[4:0]);
+    wire cfg_bad = !src_ok_c || !dst_ok_c || surf_ra_w0[3:0]!=0 || surf_rb_w0[3:0]!=0 ||
+        surf_ra_w1[15:0]!=640 || surf_rb_w1[15:0]!=640 ||
+        surf_ra_w1[31:16]!=surf_rb_w1[31:16] ||
+        {16'd0,surf_rb_w1[31:16]} != strips_r*STRIP_H ||
+        surf_rb_w1[31:16]>480 || surf_ra_w2[9:8]!=0 || surf_rb_w2[9:8]!=0 ||
+        surf_ra_w2[15:12]!=0 || surf_rb_w2[15:12]!=0 || cfg_alias_bad;
     wire [4:0] v_norm = !op_ok_c    ? {1'b1, EC_ERR_BAD_OPCODE}
                       : f_bad_c     ? {1'b1, EC_ERR_BAD_FIELD}
                       : eq_bad_c    ? {1'b1, EC_ERR_BAD_EQUATION}
@@ -478,7 +532,8 @@ module engine_cmd (
                       : sp_bad_c    ? {1'b1, EC_ERR_BAD_SPACE}
                       : fmt_bad_c   ? {1'b1, EC_ERR_BAD_FORMAT}
                       : premult_bad ? {1'b1, EC_ERR_BAD_PREMULT}
-                      : ovl_bad_c   ? {1'b1, EC_ERR_OVERLAP}
+                      : (ovl_bad_c || feedback_bad) ? {1'b1, EC_ERR_OVERLAP}
+                      : local_bad ? {1'b1, EC_ERR_BAD_FIELD}
                       :               {1'b0, EC_ERR_OK};
     wire [4:0] v_swap = !op_ok_c    ? {1'b1, EC_ERR_BAD_OPCODE}
                       : f_bad_c     ? {1'b1, EC_ERR_BAD_FIELD}
@@ -520,6 +575,9 @@ module engine_cmd (
     always @(posedge clk) begin
         if (rst || soft_rst) begin
             st <= S_IDLE; busy_r <= 1'b0;
+            bmode<=0;cfg_phase<=0;cfg_bad_q<=0;chk_q<=0;strip_id<=0;strips_r<=0;bg_id<=0;dst_id<=0;hdr_beat<=0;
+            band_bg_base<=0;band_dst_base<=0;band_bg_slog2<=0;band_dst_slog2<=0;
+            band_frame_height<=0;
             err_set <= 1'b0; done_set <= 1'b0; commit <= 1'b0;
             start <= 1'b0; active <= 1'b0;
             bi <= 32'd0; k <= 32'd0; bn <= 5'd0; half <= 1'b0; per <= 1'b0;
@@ -553,7 +611,19 @@ module engine_cmd (
                     busy_r  <= 1'b1;
                     base_r  <= list_base;
                     count_r <= list_count;
-                    if (list_count == 32'd0) begin
+                    bmode <= (band_mode === 1'b1);
+                    cfg_phase <= (band_mode === 1'b1);
+                    strip_id <= 0;
+                    strips_r <= lstrips[5:0];
+                    bg_id <= band_surfs[7:4]; dst_id <= band_surfs[3:0];
+                    table_base <= list_base;
+                    if (band_mode === 1'b1) begin
+                        if (list_base[14:0]!=0 || lstrips==0 || lstrips>30 ||
+                            strip_log2!=$clog2(STRIP_H) || band_surfs[31:8]!=0 ||
+                            ({1'b0,list_base}+((lstrips+33'd1)<<15))>33'h100000000) begin
+                            pend_err<=1;err_code<=EC_ERR_BAD_FIELD;err_index<=0;err_tag<=0;st<=S_TERM;
+                        end else st<=S_CFG;
+                    end else if (list_count == 32'd0) begin
                         pend_done <= 1'b1;              // COUNT=0：直接成功
                         st        <= S_TERM;
                     end else if (list_base[4:0] != 5'd0) begin
@@ -588,7 +658,7 @@ module engine_cmd (
                     // 取数方向超过门限：只报告不放弃；迟到响应到达后 S_TERM 收尾
                     pend_err  <= 1'b1;
                     err_code  <= EC_ERR_TIMEOUT;
-                    err_index <= bi;
+                    err_index <= global_bi;
                     err_tag   <= 32'd0;
                     st        <= S_TERM;
                 end else if (fe_done && fe_owner == 2'd0) begin
@@ -596,7 +666,7 @@ module engine_cmd (
                     if (fe_err) begin
                         err_set   <= 1'b1;              // 注错：关掉逐条回退
                         err_code  <= EC_ERR_FETCH;
-                        err_index <= bi;
+                        err_index <= global_bi;
                         err_tag   <= 32'd0;
                         st        <= S_TERM;
                     end else if (fe_err) begin
@@ -653,18 +723,19 @@ module engine_cmd (
                 end
 
                 // ------------------------------------------------ 判定与就地处理
-                S_RUN: begin
+                S_RUN: begin chk_q<=chk;st<=S_DISPATCH;end
+                S_DISPATCH: begin
                     if ({1'b0, k} >= {1'b0, bi} + {1'b0, bn}) begin
                         // 记录没有取到（地址空间截断）：逻辑执行需要它，报 FETCH
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_FETCH;
-                        err_index <= k;
+                        err_index <= global_k;
                         err_tag   <= 32'd0;
                         st        <= S_TERM;
-                    end else if (chk[4]) begin
+                    end else if (chk_q[4]) begin
                         pend_err  <= 1'b1;
-                        err_code  <= chk[3:0];
-                        err_index <= k;
+                        err_code  <= chk_q[3:0];
+                        err_index <= global_k;
                         err_tag   <= w1[127:96];
                         st        <= S_TERM;
                     end else begin
@@ -716,13 +787,17 @@ module engine_cmd (
                     i1_src_x   <= $signed(w0[47:32]);
                     i1_src_y   <= $signed(w0[63:48]);
                     i1_dst_x   <= $signed(w0[79:64]);
-                    i1_dst_y   <= $signed(w0[95:80]);
+                    `ifdef INJ_STRIP_LOCAL_Y
+                    i1_dst_y <= $signed(w0[95:80]);
+`else
+                    i1_dst_y <= bmode ? $signed(w0[95:80] + band_y0) : $signed(w0[95:80]);
+`endif
                     i1_w       <= w0[111:96];
                     i1_h       <= w0[127:112];
-                    i1_clip_x0 <= clip_x0;
-                    i1_clip_y0 <= clip_y0;
-                    i1_clip_x1 <= clip_x1;
-                    i1_clip_y1 <= clip_y1;
+                    i1_clip_x0 <= bmode ? 16'sd0 : clip_x0;
+                    i1_clip_y0 <= bmode ? 16'sd0 : clip_y0;
+                    i1_clip_x1 <= bmode ? 16'sd639 : clip_x1;
+                    i1_clip_y1 <= bmode ? 16'sd479 : clip_y1;
                     i1_cidx    <= k[3:0];
                     start      <= 1'b1;
                     active     <= 1'b1;
@@ -735,7 +810,7 @@ module engine_cmd (
                     if (wr_stat_valid && wr_stat_err) begin
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_BUS_WRITE;
-                        err_index <= k;
+                        err_index <= global_k;
                         err_tag   <= tag_cur;
                         // 末行的写状态本身就是完成回报：错误与完成同拍时也要撤 active，
                         // 否则 S_TERM 等一个已经来过的 last_row，永远收不了尾
@@ -745,13 +820,13 @@ module engine_cmd (
                     end else if (rd_stat_valid && rd_stat_err && !rd_stat_fetch) begin
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_BUS_READ;
-                        err_index <= k;
+                        err_index <= global_k;
                         err_tag   <= tag_cur;
                         st        <= S_TERM;
                     end else if (tmo_evt) begin
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_TIMEOUT;
-                        err_index <= k;
+                        err_index <= global_k;
                         err_tag   <= tag_cur;
                         st        <= S_TERM;
                     end else if ((wr_stat_valid && wr_stat_last_row)
@@ -775,8 +850,8 @@ module engine_cmd (
                 // ------------------------------------------------ 批切换
                 S_SWITCH: begin
                     if ({1'b0, bi} + {1'b0, bn} >= {1'b0, count_r}) begin
-                        pend_done <= 1'b1;                  // 表尾：正常完成
-                        st        <= S_TERM;
+                        if(bmode) st<=S_BFLUSH;
+                        else begin pend_done<=1'b1;st<=S_TERM;end
                     end else if (per) begin
                         // 逐条回退消耗完失败批：整批取下一批，回到批量模式。
                         // k 在 S_ADV 已推进到 bi+bn = 下一批的批首。
@@ -833,7 +908,7 @@ module engine_cmd (
 `ifdef INJ_NO_FB
                         pend_err  <= 1'b1;      // 注错：关掉逐条回退
                         err_code  <= EC_ERR_FETCH;
-                        err_index <= n_bi;
+                        err_index <= global_nbi;
                         err_tag   <= 32'd0;
                         st        <= S_TERM;
 `else
@@ -847,7 +922,7 @@ module engine_cmd (
                 S_PERW: if (!k_ok) begin
                     pend_err  <= 1'b1;                      // 越过地址空间：报 FETCH
                     err_code  <= EC_ERR_FETCH;
-                    err_index <= k;
+                    err_index <= global_k;
                     err_tag   <= 32'd0;
                     st        <= S_TERM;
                 end else if (fe_ready) begin
@@ -864,19 +939,81 @@ module engine_cmd (
                 S_PER_WAIT: if (tmo_evt) begin
                     pend_err  <= 1'b1;
                     err_code  <= EC_ERR_TIMEOUT;
-                    err_index <= k;
+                    err_index <= global_k;
                     err_tag   <= 32'd0;
                     st        <= S_TERM;
                 end else if (fe_done && fe_owner == 2'd0) begin
                     if (fe_err) begin
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_FETCH;
-                        err_index <= k;
+                        err_index <= global_k;
                         err_tag   <= 32'd0;
                         st        <= S_TERM;
                     end else begin
                         st <= S_EXEC;
                     end
+                end
+
+                // G3：表头和条带相位，跨条带不预取；正常 flush 后才开放下一段。
+                S_CFG: begin cfg_bad_q<=cfg_bad;st<=S_CFG_WAIT;end
+                S_CFG_WAIT: begin
+                    if(cfg_bad_q) begin
+                        pend_err<=1;err_code<=EC_ERR_BAD_SURFACE;err_index<=0;err_tag<=0;st<=S_TERM;
+                    end else begin
+                        cfg_phase<=0;
+                        band_bg_base<=surf_ra_w0;band_dst_base<=surf_rb_w0;
+                        band_bg_slog2<=surf_ra_w2[4:0];band_dst_slog2<=surf_rb_w2[4:0];
+                        band_frame_height<=surf_rb_w1[31:16];
+                        rq_addr<=table_base;rq_n<=4;rq_half<=0;rq_off<=0;rq_ctx<=0;rq_pf<=0;
+                        fe_start_q<=1;st<=S_HDR;
+                    end
+                end
+                S_HDR: if(tmo_evt) begin
+                    pend_err<=1;err_code<=EC_ERR_TIMEOUT;err_index<=0;err_tag<=0;st<=S_TERM;
+                end else if(fe_done) begin
+                    if(fe_err) begin pend_err<=1;err_code<=EC_ERR_FETCH;err_index<=0;err_tag<=0;st<=S_TERM;end
+                    else begin hdr_beat<=0;st<=S_HADDR;end
+                end
+                S_HADDR: st<=S_HWAIT;
+                S_HWAIT: st<=S_HREAD;
+                S_HREAD: begin
+                    for(i=0;i<4;i=i+1) counts[{hdr_beat,2'b00}+i]<=cbuf_rdata[32*i +:32];
+                    if(hdr_beat==7) st<=S_BNEXT;
+                    else begin hdr_beat<=hdr_beat+1'b1;st<=S_HADDR;end
+                end
+                S_BNEXT: begin
+                    if(counts[strip_id]>1024) begin
+                        pend_err<=1;err_code<=EC_ERR_BAD_FIELD;err_index<={17'd0,strip_id,10'd0};
+                        err_tag<=0;st<=S_TERM;
+                    end else begin
+                        `ifdef INJ_STRIP_HEADER_OFFSET
+                        base_r<=table_base+{27'd0,strip_id}*32768;
+`else
+                        base_r<=table_base+({27'd0,strip_id}+32'd1)*32768;
+`endif
+                        count_r<=counts[strip_id];bi<=0;k<=0;half<=0;per<=0;nst<=N_IDLE;
+                        st<=S_BSTART;
+                    end
+                end
+                S_BSTART: if(band_start_ready) st<=S_BLOAD;
+                S_BLOAD: if(band_error || tmo_evt) begin
+                    pend_err<=1;err_code<=tmo_evt ? EC_ERR_TIMEOUT : EC_ERR_BUS_READ;
+                    err_index<={17'd0,strip_id,10'd0};err_tag<=0;st<=S_TERM;
+                end else if(band_loaded) begin
+                    if(count_r==0) st<=S_BFLUSH;
+                    else begin
+                        bn<=calc_n(base_r,0,count_r);rq_addr<=base_r;
+                        rq_n<=calc_n(base_r,0,count_r);rq_half<=0;rq_off<=0;rq_ctx<=0;rq_pf<=0;
+                        fe_start_q<=1;st<=S_FETCH;
+                    end
+                end
+                S_BFLUSH: if(band_flush_ready) st<=S_BWAIT;
+                S_BWAIT: if(band_error || tmo_evt) begin
+                    pend_err<=1;err_code<=tmo_evt ? EC_ERR_TIMEOUT : EC_ERR_BUS_WRITE;
+                    err_index<={17'd0,strip_id,10'd0};err_tag<=0;st<=S_TERM;
+                end else if(band_flushed) begin
+                    if({1'b0,strip_id}+6'd1==strips_r) begin pend_done<=1;st<=S_TERM;end
+                    else begin strip_id<=strip_id+1'b1;st<=S_BNEXT;end
                 end
 
                 // ------------------------------------------------ 收尾
@@ -886,7 +1023,8 @@ module engine_cmd (
                     if ((wr_stat_valid && wr_stat_last_row)
                      || (geom_cmd_done && geom_done_cidx == k[3:0]))
                         active <= 1'b0;
-                    if (!active && !fe_busy_any && !geom_busy) begin
+                    if (!active && !fe_busy_any && !geom_busy &&
+                        (!bmode || (pend_err ? drain_done : !band_busy))) begin
                         err_set  <= pend_err;
                         done_set <= pend_done;
                         pend_err <= 1'b0;

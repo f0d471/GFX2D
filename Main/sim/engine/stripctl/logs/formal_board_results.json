@@ -1,0 +1,20 @@
+{
+  "scope": "JTAG diagnostics and v1/TEX compatibility; no game BAND N_max or Flash write",
+  "strip_frame_crc": "73069421",
+  "strip_fail": 0,
+  "legacy_fail": 0,
+  "scan_min_words": 336,
+  "scan_underflow": 0,
+  "invalid_clip_error": [
+    2,
+    1024,
+    "cafe005a"
+  ],
+  "capacity_error": [
+    2,
+    1024,
+    0
+  ],
+  "recovery_and_mode_restore": "PASS",
+  "artifacts": "board_artifacts.json"
+}

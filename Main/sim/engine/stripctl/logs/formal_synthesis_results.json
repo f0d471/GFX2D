@@ -1,0 +1,20 @@
+{
+  "standalone": {
+    "xlr": 21622,
+    "ram": 88,
+    "dsp": 12,
+    "setup_ns": 0.191,
+    "hold_ns": 0.026,
+    "minimum_slack_ns": 0.026,
+    "own_width_warnings": 0
+  },
+  "main": {
+    "xlr": 41476,
+    "ram": 163,
+    "dsp": 16,
+    "setup_ns": 0.756,
+    "hold_ns": 0.026,
+    "minimum_slack_ns": 0.026,
+    "own_width_warnings": 0
+  }
+}

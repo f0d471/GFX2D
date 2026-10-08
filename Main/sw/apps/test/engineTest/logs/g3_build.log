@@ -1,0 +1,4 @@
+CC lib/gfx/strip.c
+LD build_g3/engineTest-O2.elf
+Memory region         Used Size  Region Size  %age Used
+             ram:      163168 B      4092 KB      3.89%

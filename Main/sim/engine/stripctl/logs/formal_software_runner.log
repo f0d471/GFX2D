@@ -1,0 +1,15 @@
+test_strips_compile: verified
+formal_fuzz: verified
+test_errors_compile: verified
+formal_errors: verified
+test_strips_release_compile: verified
+formal_fuzz_release: verified
+inj_strip_drop_compile: verified
+formal_inj_strip_drop: verified
+inj_strip_clip_compile: verified
+formal_inj_strip_clip: verified
+inj_strip_order_compile: verified
+formal_inj_strip_order: verified
+inj_strip_noflush_compile: verified
+formal_inj_strip_noflush: verified
+G3 FORMAL PASS

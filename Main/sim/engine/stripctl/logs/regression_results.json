@@ -1,0 +1,108 @@
+{
+  "hdmi": {
+    "exit": 0,
+    "tail": [
+      "inject_hbp: RESULT: FAIL errors=1001 frames=0 pixels=307200",
+      "inject_noinv: RESULT: FAIL errors=1001 frames=0 pixels=0",
+      "SIM OK: 3/3 cases as expected"
+    ]
+  },
+  "apb_probe": {
+    "exit": 0,
+    "tail": [
+      "inject_addr_trunc: RESULT: FAIL (5 errors in 86 checks)",
+      "inject_data_trunc: RESULT: FAIL (35 errors in 86 checks)",
+      "SIM OK: 3/3 cases as expected"
+    ]
+  },
+  "display": {
+    "exit": 0,
+    "tail": [
+      "display/inj_swap_now: RESULT: FAIL errors=1 checks=9 fields=12",
+      "display/image_full: SKIPPED（要整帧跑就 FULL=1 bash run.sh）",
+      "SIM OK"
+    ]
+  },
+  "axi_probe": {
+    "exit": 0,
+    "tail": [
+      "inject_maxlen: RESULT: FAIL (37 errors)",
+      "inject_timeout: RESULT: FAIL (116 errors)",
+      "SIM OK: 5/5 cases as expected"
+    ]
+  },
+  "axi_mux_guard": {
+    "exit": 0,
+    "tail": [
+      "inject_wlast: RESULT: FAIL (写方向：proto_err=0 wlast_err=1 scan_timeout=0 S2 写=0 最大等待=20000 阈值=700)",
+      "inject_wlast: FAIL 由 wlast_err 引起，协议检查生效",
+      "SIM OK: 17/17 checks as expected"
+    ]
+  },
+  "engine/blend": {
+    "exit": 0,
+    "tail": [
+      "  inject_copy_dst: RESULT: FAIL",
+      "  inject_x_no_en: RESULT: FAIL",
+      "SIM OK: 9/9 cases as expected"
+    ]
+  },
+  "engine/mover": {
+    "exit": 0,
+    "tail": [
+      "从机定时模式:",
+      "  slave_timed: RESULT: PASS",
+      "SIM OK: 17/17 checks as expected"
+    ]
+  },
+  "engine/geom": {
+    "exit": 0,
+    "tail": [
+      "  inj_norf: 行缓冲替身的「开在占用的那一半上」引起",
+      "",
+      "SIM OK: 27/27 checks as expected"
+    ]
+  },
+  "engine/pix": {
+    "exit": 0,
+    "tail": [
+      "  path_hazard_nowait: RESULT: FAIL (B1-B4 integration)",
+      "SIM OK: 16/16 RTL checks as expected",
+      "SIM OK: 25/25 checks as expected"
+    ]
+  },
+  "engine/ctrl": {
+    "exit": 0,
+    "tail": [
+      "  inject_nofb: RESULT: FAIL (9 errors)",
+      "",
+      "SIM OK: 4/4 checks as expected"
+    ]
+  },
+  "engine/frame": {
+    "exit": 0,
+    "tail": [
+      "  CRC: PASS",
+      "",
+      "SIM OK: 16/16 checks as expected"
+    ],
+    "recheck": "Updated CAPS.BAND expectation; pixel and protocol checks unchanged"
+  },
+  "engine/tex": {
+    "exit": 0,
+    "tail": [
+      "inj_stat: RESULT: FAIL (inject, as expected)",
+      "inj_stream: RESULT: FAIL (inject, as expected)",
+      "SIM OK: 6 checks as expected"
+    ],
+    "recheck": "Updated CAPS.BAND expectation; pixel and protocol checks unchanged"
+  },
+  "engine/band": {
+    "exit": 0,
+    "tail": [
+      "flow_wait: RESULT: FAIL (as expected)",
+      "G2 FORMAL OK: 17 checks as expected",
+      "SIM OK: 17 formal checks as expected"
+    ]
+  }
+}

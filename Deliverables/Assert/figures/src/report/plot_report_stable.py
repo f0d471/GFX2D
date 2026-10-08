@@ -1,3 +1,6 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[5]
 import csv
 import matplotlib
 matplotlib.use("Agg")
@@ -6,7 +9,7 @@ matplotlib.rcParams["axes.unicode_minus"] = False
 import matplotlib.pyplot as plt
 
 BLUE, INK, GRAY = "#4A7FD0", "#1D2733", "#87929E"
-LOG = r"E:\Workspace\Efinix\Main\sw\apps\game\gfx2dGame\logs\sw9_perf_hw_k896_60s.log"
+LOG = ROOT / "Main/sw/apps/game/gfx2dGame/logs/sw9_perf_hw_k896_60s.log"
 
 hdr, rows = None, []
 with open(LOG, newline="", encoding="utf-8", errors="replace") as f:
@@ -48,5 +51,5 @@ ax.legend(h1 + h2, l1 + l2, fontsize=10, frameon=False, loc="lower right")
 ax.set_title("固定负载 K896 连续 60 秒逐秒实测：全部窗口低于帧预算，仅首秒 59/60",
              fontsize=11.5, color=INK, pad=8)
 
-fig.savefig(r"E:\Workspace\Efinix\Deliverables\Assert\figures\report\rep_stable.png")
+fig.savefig(ROOT / "Deliverables/Assert/figures/report/rep_stable.png")
 print("ok rep_stable")

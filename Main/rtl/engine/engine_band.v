@@ -98,6 +98,9 @@ module engine_band #(
     reg [11:0] flush_issued;
     reg flush_out_valid;
     reg r_reading, w_writing;
+    reg rd_pending, wr_pending;
+    reg [31:0] rd_addr_q, wr_addr_q;
+    reg [11:0] rd_bytes_q, wr_bytes_q;
     reg [11:0] read_left, write_left;
     reg [AW-1:0] read_index, write_index;
     reg read_v, read_l;
@@ -140,6 +143,8 @@ module engine_band #(
     assign dma_wdata=ram_q;
     assign dma_wvalid=(phase==FLUSH_DATA) && flush_out_valid && !cancel;
 
+    // 本地描述符先寄存一拍，再检查/转换；pending 计入 busy，flush 不得越过。
+    // 该寄存切断 geom 的分段地址加法与 BAND 地址检查的跨模块组合长路径。
     // 完整描述符先检查再截断；逻辑 padding 不占 BAND 容量。
     function desc_ok;
         input [31:0] a;
@@ -166,14 +171,14 @@ module engine_band #(
             local_index=idx[AW-1:0];
         end
     endfunction
-    assign rd_busy=r_reading || read_v || rd_stat_valid;
-    assign wr_busy=w_writing || wr_stat_valid;
+    assign rd_busy=rd_pending || r_reading || read_v || rd_stat_valid;
+    assign wr_busy=wr_pending || w_writing || wr_stat_valid;
     assign rd_ready=active && !rd_busy && !cancel && !flush_fire;
     assign wr_ready=active && !wr_busy && !cancel && !flush_fire;
     wire local_rd_fire=rd_valid && rd_ready;
     wire local_wr_fire=wr_valid && wr_ready;
-    wire local_rd_bad=local_rd_fire && !desc_ok(rd_addr,rd_bytes);
-    wire local_wr_bad=local_wr_fire && !desc_ok(wr_addr,wr_bytes);
+    wire local_rd_bad=rd_pending && !desc_ok(rd_addr_q,rd_bytes_q);
+    wire local_wr_bad=wr_pending && !desc_ok(wr_addr_q,wr_bytes_q);
     wire read_issue=active && r_reading && read_left!=0 && !cancel;
     wire flush_issue=(phase==FLUSH_DATA) && (!flush_out_valid || dma_wready) &&
                      flush_issued<ROW_WORDS && !cancel;
@@ -225,6 +230,7 @@ module engine_band #(
 
     always @(posedge clk) begin
         if(rst || cancel) begin
+            rd_pending<=0;wr_pending<=0;rd_addr_q<=0;wr_addr_q<=0;rd_bytes_q<=0;wr_bytes_q<=0;
             r_reading<=0;read_v<=0;read_l<=0;read_left<=0;read_index<=0;read_buf<=0;
             rd_stat_valid<=0;rd_stat_error<=0;rd_stat_cidx<=0;rd_stat_buf<=0;
             w_writing<=0;write_left<=0;write_index<=0;
@@ -232,20 +238,26 @@ module engine_band #(
         end else begin
             read_v<=read_issue;read_l<=read_issue && read_left==1;
             if(local_rd_fire) begin
+                rd_addr_q<=rd_addr;rd_bytes_q<=rd_bytes;rd_pending<=1;
                 read_buf<=rd_buf;rd_stat_buf<=rd_buf;rd_stat_cidx<=rd_cidx;
-                rd_stat_error<=!desc_ok(rd_addr,rd_bytes);
-                if(desc_ok(rd_addr,rd_bytes)) begin
-                    r_reading<=1;read_left<=rd_bytes>>4;read_index<=local_index(rd_addr);
+            end
+            if(rd_pending) begin
+                rd_pending<=0;rd_stat_error<=!desc_ok(rd_addr_q,rd_bytes_q);
+                if(desc_ok(rd_addr_q,rd_bytes_q)) begin
+                    r_reading<=1;read_left<=rd_bytes_q>>4;read_index<=local_index(rd_addr_q);
                 end else rd_stat_valid<=1;
             end
             if(read_issue) begin read_index<=read_index+1'b1;read_left<=read_left-1'b1;end
             if(read_v && read_l) begin r_reading<=0;rd_stat_valid<=1;end
             if(rd_stat_valid && rd_stat_ready) rd_stat_valid<=0;
             if(local_wr_fire) begin
+                wr_addr_q<=wr_addr;wr_bytes_q<=wr_bytes;wr_pending<=1;
                 wr_stat_cidx<=wr_cidx;wr_stat_last_row<=wr_last_row;
-                wr_stat_error<=!desc_ok(wr_addr,wr_bytes);
-                if(desc_ok(wr_addr,wr_bytes)) begin
-                    w_writing<=1;write_left<=wr_bytes>>4;write_index<=local_index(wr_addr);
+            end
+            if(wr_pending) begin
+                wr_pending<=0;wr_stat_error<=!desc_ok(wr_addr_q,wr_bytes_q);
+                if(desc_ok(wr_addr_q,wr_bytes_q)) begin
+                    w_writing<=1;write_left<=wr_bytes_q>>4;write_index<=local_index(wr_addr_q);
                 end else wr_stat_valid<=1;
             end
             if(pixel_write) begin

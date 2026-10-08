@@ -16,6 +16,9 @@
 #define GFX_LIST_BASE          0x020
 #define GFX_LIST_COUNT          0x024
 #define GFX_DOORBELL          0x028
+#define GFX_LSTRIPS          0x02C
+#define GFX_STRIP_H          0x030
+#define GFX_BAND_SURF          0x034
 #define GFX_SURF(s, w)   (0x040 + ((s) * 12) + ((w) * 4))  /* s=0..15, w=0..2 */
 #define GFX_PERF(i)      (0x100 + (i) * 4)
 
@@ -54,12 +57,13 @@
 #define GFX_CAPS_INDEX8_S   7
 #define GFX_CAPS_LANES_M   0x00000F00u
 #define GFX_CAPS_LANES_S   8
-#define GFX_CAPS_VALUE   0x0000044Fu
+#define GFX_CAPS_VALUE   0x0000046Fu
 
 /* CTRL 位（SOFT_RST/CNT_CLR 写 1 自清，读恒 0） */
 #define GFX_CTRL_EN     (1u << 0)
 #define GFX_CTRL_SOFT_RST     (1u << 1)
 #define GFX_CTRL_CNT_CLR     (1u << 2)
+#define GFX_CTRL_BAND     (1u << 3)
 
 /* STATUS 位与错误码字段 */
 #define GFX_STATUS_BUSY   (1u << 0)

@@ -12,7 +12,7 @@ bad=0
 
 gcc -O2 -std=c11 -Wall -Wextra -Werror -I../../../tools/check -I../../../sw/lib \
     -o build/dump ../../../tools/check/pix_cases_dump.c \
-    ../../../sw/lib/gfx/list.c ../../../sw/lib/gfx/check.c \
+    ../../../sw/lib/gfx/list.c ../../../sw/lib/gfx/strip.c ../../../sw/lib/gfx/check.c \
     ../../../sw/lib/gfx/exec_sw.c ../../../sw/lib/gfx/cases.c \
     ../../../sw/lib/core/format.c || exit 1
 ./build/dump --tex-sprites build/tex_sprites > build/dump.log || exit 1

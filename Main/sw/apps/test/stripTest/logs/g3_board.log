@@ -1,0 +1,39 @@
+# COM11 @ 115200 8N1, opened 01:49:02
+stripTest G3
+reset ok
+CAPS ok
+TEX upload ok
+direct build ok
+direct software ok
+strip begin ok
+strip build ok
+register dst ok
+register DDR ok
+register TEX ok
+submit ok
+error 0/0/00000000
+frame finish ok
+# --- 程序已加载，以下才是它的输出 ---
+CRC hw=73069421 sw=73069421
+same frame and padding ok
+perf read ok
+PERF cmd/rd/wr/rdbeat/wrbeat/busy 330,22976,4080,1156,480,80028,76800,20603,272509
+empty submit ok
+error 0/0/00000000
+empty finish ok
+empty unchanged ok
+invalid submit ok
+error 2/1024/cafe005a
+invalid triple ok
+capacity submit ok
+error 2/1024/00000000
+capacity triple ok
+recovery submit ok
+error 0/0/00000000
+recovery finish ok
+direct mode restore ok
+direct mode finish ok
+fail 0
+done
+
+# closed 01:49:07, 654 bytes

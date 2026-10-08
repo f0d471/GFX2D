@@ -25,7 +25,7 @@
 `default_nettype none
 `include "engine_regs_offsets.vh"
 
-module engine_regs (
+module engine_regs #(parameter integer STRIP_H = 16) (
     input  wire        clk,
     input  wire        rst,            // 控制层复位（soc_system_reset），同步、高有效
 
@@ -49,6 +49,8 @@ module engine_regs (
     output wire        kick,           // 一拍：DOORBELL 受理（cmd 锁存 LIST_*）
     output wire [31:0] list_base,
     output wire [31:0] list_count,
+    output wire band_mode,
+    output wire [31:0] lstrips, strip_log2, band_surfs,
     input  wire        soft_rst_done,  // 一拍：搬运层排空完成
     output wire        soft_rst_pending, // 电平：软复位请求举着（顶层 OR 进 drain_req）
 
@@ -84,6 +86,12 @@ module engine_regs (
 
     // ---------------------------------------------------------------- 寄存器
     reg         ctrl_en;
+    reg ctrl_band;
+    reg [31:0] lstrips_r, strip_log2_r, band_surfs_r;
+    assign band_mode = ctrl_band;
+    assign lstrips = lstrips_r;
+    assign strip_log2 = strip_log2_r;
+    assign band_surfs = band_surfs_r;
     reg         soft_pending;
     reg [31:0]  list_base_r;
     reg [31:0]  list_count_r;
@@ -119,11 +127,13 @@ module engine_regs (
                    || (paddr == EC_REG_IRQ_EN)|| (paddr == EC_REG_IRQ_STAT)
                    || (paddr == EC_REG_ERROR_INDEX) || (paddr == EC_REG_ERROR_TAG)
                    || (paddr == EC_REG_LIST_BASE)   || (paddr == EC_REG_LIST_COUNT)
-                   || surf_addr || perf_addr;
+                   || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
+                   || (paddr == EC_REG_BAND_SURF) || surf_addr || perf_addr;
     wire wr_mapped = (paddr == EC_REG_CTRL) || (paddr == EC_REG_IRQ_EN)
                    || (paddr == EC_REG_IRQ_STAT) || (paddr == EC_REG_LIST_BASE)
                    || (paddr == EC_REG_LIST_COUNT) || (paddr == EC_REG_DOORBELL)
-                   || surf_addr;
+                   || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
+                   || (paddr == EC_REG_BAND_SURF) || surf_addr;
     // APB 主机在 ACCESS 的结束边沿采样 PSLVERR；同一边沿才置寄存器会晚一拍。
     assign pslverr = access && (pwrite ? (!wr_mapped || (wr_door && !door_accepted))
                                      : !rd_mapped);
@@ -196,7 +206,7 @@ module engine_regs (
         case (paddr)
             EC_REG_ID:          rdata_mux = EC_ID_VALUE;
             EC_REG_CAPS:        rdata_mux = caps_value;
-            EC_REG_CTRL:        rdata_mux = {28'd0, 3'd0, ctrl_en};
+            EC_REG_CTRL:        rdata_mux = {28'd0, ctrl_band, 2'd0, ctrl_en};
             EC_REG_STATUS:      rdata_mux = status_value;
             EC_REG_IRQ_EN:      rdata_mux = {30'd0, irq_en_r};
             EC_REG_IRQ_STAT:    rdata_mux = {30'd0, irq_stat};
@@ -204,6 +214,9 @@ module engine_regs (
             EC_REG_ERROR_TAG:   rdata_mux = err_tag_r;
             EC_REG_LIST_BASE:   rdata_mux = list_base_r;
             EC_REG_LIST_COUNT:  rdata_mux = list_count_r;
+            EC_REG_LSTRIPS: rdata_mux = lstrips_r;
+            EC_REG_STRIP_H: rdata_mux = strip_log2_r;
+            EC_REG_BAND_SURF: rdata_mux = band_surfs_r;
             default:            rdata_mux = (paddr >= EC_REG_PERF0) ? perf_rd : surf_rd_word;
         endcase
     end
@@ -213,6 +226,10 @@ module engine_regs (
     always @(posedge clk) begin
         if (rst) begin
             ctrl_en      <= 1'b0;
+            ctrl_band <= 1'b0;
+            lstrips_r <= 480/STRIP_H;
+            strip_log2_r <= $clog2(STRIP_H);
+            band_surfs_r <= 0;
             soft_pending <= 1'b0;
             list_base_r  <= 32'd0;
             list_count_r <= 32'd0;
@@ -239,6 +256,7 @@ module engine_regs (
             // 写
             if (wr_ctrl) begin
                 ctrl_en <= pwdata[EC_CTRL_EN_BIT];
+                ctrl_band <= pwdata[EC_CTRL_BAND_BIT];
                 if (cnt_clr)
                     for (i = 0; i < EC_PERF_COUNT; i = i + 1) perf[i] <= 32'd0;
                 if (pwdata[EC_CTRL_SOFT_RST_BIT] && !soft_pending)
@@ -251,6 +269,12 @@ module engine_regs (
                 list_base_r <= pwdata;
             end else if (wr_access && paddr == EC_REG_LIST_COUNT) begin
                 list_count_r <= pwdata;
+            end else if (wr_access && paddr == EC_REG_LSTRIPS) begin
+                lstrips_r <= pwdata;
+            end else if (wr_access && paddr == EC_REG_STRIP_H) begin
+                strip_log2_r <= pwdata;
+            end else if (wr_access && paddr == EC_REG_BAND_SURF) begin
+                band_surfs_r <= pwdata;
             end else if (surf_wr_sel) begin
                 case (surf_word_sel)
                     2'd0:    surf_w0[surf_slot_id]  <= pwdata;

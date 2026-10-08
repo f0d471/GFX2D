@@ -62,7 +62,7 @@ def golden():
                      '#endif\n    if(gfx_list_end(&list)!=0) return 2;\n'
                      '    m.dev_base = 0; m.host = buf; m.bytes = MEM_BYTES;\n    m.tex_host = texbuf;')
     p=BUILD/'golden.c';p.write_text(src,encoding='utf-8')
-    files=[MAIN/'sw/lib'/x for x in ('gfx/list.c','gfx/check.c','gfx/exec_sw.c','gfx/cases.c','core/format.c')]
+    files=[MAIN/'sw/lib'/x for x in ('gfx/list.c','gfx/strip.c','gfx/check.c','gfx/exec_sw.c','gfx/cases.c','core/format.c')]
     for name,defs in [('scene',[]),('empty',['-DG2_EMPTY'])]:
         argv=['gcc','-O1','-g','-std=c11','-Wall','-Wextra','-Werror','-fsanitize=address,undefined',*defs,
               '-I'+str(MAIN/'tools/check'),'-I'+str(MAIN/'sw/lib'),'-o',str(BUILD/'dump'),str(p),*[str(x) for x in files]]

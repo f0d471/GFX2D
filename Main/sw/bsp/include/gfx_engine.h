@@ -79,6 +79,12 @@ int        gfx_engine_tex_read(void *dst, uint32_t offset, uint32_t bytes);
    结束）。返回 GFX_ENG_OK 只表示提交被受理，执行结果经 gfx_engine_wait() 读。 */
 int        gfx_engine_submit(uint32_t list_base, uint32_t list_count);
 
+/* 提交 ABI v2 表：表按 32 KiB 对齐，条带数 1..30、log2 3/4/5。
+   背景/目的槽与参数写入对应寄存器；高度必须匹配当前 RTL 构型。
+   首错或桶溢出的构造表由调用方拒绝，驱动不扫描 DDR 命令表。 */
+int gfx_engine_submit_strips(uint32_t list_base, uint32_t lstrips,
+                              uint32_t strip_log2, uint32_t bg_id, uint32_t dst_id);
+
 /* 等当前提交结束（DONE/ERR 置位且引擎回空闲，D54），读错误三元组。
    出参可以为 NULL（不关心那一项）。返回值是驱动层状态；引擎报错时返回
    GFX_ENG_OK 且 *err_code 非 0，判别要看出参。 */

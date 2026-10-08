@@ -18,6 +18,7 @@
 ******************************************************************************/
 
 #include "gfx/gfx.h"
+#include <string.h>
 
 /* spec 第 01 章 3.4 节定稿的 V 顺序：两项先相加，再一次 ÷255 舍入，最后 clamp。
    中间量用 uint32_t，两项之和上限 130050 需要 17 位，C 里自然满足；
@@ -285,7 +286,7 @@ static int fail(exec_sw_error *err, int code, uint32_t index, uint32_t tag)
     return code;
 }
 
-int exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
+static int run_core(const gfx_mem *source_m, exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
                 const gfx_cmd *list, uint32_t list_count, uint32_t readable_count,
                 exec_sw_stats *st, exec_sw_error *err)
 {
@@ -351,7 +352,7 @@ int exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
         if (!surf_in_window(m, &t->s[dstid]))
             return fail(err, GFX_E_BAD_SURFACE, idx, c->w[7]);
         if (op == GFX_OP_BLIT) {
-            swin = surf_window(m, &t->s[srcid], &sv);
+            swin = surf_window(source_m, &t->s[srcid], &sv);
             if (swin == 0 || !surf_in_window(swin, &t->s[srcid]))
                 return fail(err, GFX_E_BAD_SURFACE, idx, c->w[7]);
         }
@@ -428,4 +429,69 @@ int exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
     }
 
     return GFX_OK;                              /* COUNT 耗尽也是正常结束 */
+}
+
+int exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
+                const gfx_cmd *list, uint32_t list_count, uint32_t readable_count,
+                exec_sw_stats *st, exec_sw_error *err)
+{
+    return run_core(m,es,t,m,list,list_count,readable_count,st,err);
+}
+
+int exec_sw_run_strips(const gfx_surface_table *t, const gfx_mem *m,
+                       const void *table, uint32_t readable_bytes,
+                       const gfx_strip_config *cfg, void *scratch, uint32_t scratch_bytes,
+                       exec_sw_stats *st, exec_sw_error *err)
+{
+    uint32_t s,k,y,sh;
+    int e;
+    const uint32_t *counts=table;
+    const gfx_surf_raw *bg,*dst;
+    gfx_surface_table shadow;
+    gfx_mem local;
+    exec_sw_state es;
+    if(err) *err=(exec_sw_error){GFX_OK,0u,0u};
+    e=gfx_strip_config_check(t,cfg);
+    if(e) return fail(err,e,0u,0u);
+    sh=1u<<cfg->strip_log2;
+    if(!m || !scratch || ((uintptr_t)scratch&3u) || scratch_bytes<(4096u*sh))
+        return fail(err,GFX_E_BAD_SURFACE,0u,0u);
+    if(!table || ((uintptr_t)table&3u) || readable_bytes<128u)
+        return fail(err,GFX_E_FETCH,0u,0u);
+    bg=&t->s[cfg->bg_id];dst=&t->s[cfg->dst_id];
+    if(!surf_in_window(m,bg) || !surf_in_window(m,dst))
+        return fail(err,GFX_E_BAD_SURFACE,0u,0u);
+    shadow=*t;
+    shadow.s[cfg->dst_id].base=0u;
+    shadow.s[cfg->dst_id].dim=(sh<<16)|640u;
+    shadow.s[cfg->dst_id].ctrl=0x8000000Cu;
+    local=(gfx_mem){0u,scratch,scratch_bytes,0,0u};
+    exec_sw_reset(&es);
+    for(s=0;s<cfg->lstrips;s++) {
+        uint32_t off=(s+1u)*GFX_STRIP_REGION_BYTES;
+        const gfx_cmd *bucket=(const gfx_cmd *)(const void *)((const uint8_t *)table+off);
+        if(counts[s]>GFX_STRIP_CAP)return fail(err,GFX_E_BAD_FIELD,s*GFX_STRIP_CAP,0u);
+        for(y=0;y<sh;y++)
+            memcpy((uint8_t *)scratch+y*4096u,dev_ptr(m,gfx_addr_of(bg,0,(int32_t)(s*sh+y))),2560u);
+        for(k=0;k<counts[s];k++) {
+            exec_sw_error local_err;
+            uint32_t idx=s*GFX_STRIP_CAP+k;
+            if(off+k*32u+32u>readable_bytes) return fail(err,GFX_E_FETCH,idx,0u);
+            e=gfx_strip_cmd_check(t,cfg,&bucket[k]);
+            if(e)return fail(err,e,idx,bucket[k].w[7]);
+#ifdef INJ_STRIP_ORDER
+            const gfx_cmd *c=&bucket[counts[s]-k-1u];
+#else
+            const gfx_cmd *c=&bucket[k];
+#endif
+            e=run_core(m,&es,&shadow,&local,c,1u,1u,st,&local_err);
+            if(e)return fail(err,e,idx,c->w[7]);
+        }
+#ifndef INJ_STRIP_NOFLUSH
+        for(y=0;y<sh;y++)
+            memcpy(dev_ptr(m,gfx_addr_of(dst,0,(int32_t)(s*sh+y))),
+                   (const uint8_t *)scratch+y*4096u,2560u);
+#endif
+    }
+    return GFX_OK;
 }

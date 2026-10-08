@@ -1,3 +1,6 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[5]
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -39,5 +42,5 @@ ax.set_axisbelow(True)
 ax.tick_params(labelsize=9)
 ax.legend(fontsize=10, frameon=False, loc="upper right", bbox_to_anchor=(1.0, 1.14), ncol=2)
 
-fig.savefig(r"E:\Workspace\Efinix\Deliverables\Assert\figures\report\rep_fps.png")
+fig.savefig(ROOT / "Deliverables/Assert/figures/report/rep_fps.png")
 print("ok rep_fps")

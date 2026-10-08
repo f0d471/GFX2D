@@ -812,9 +812,9 @@ module tb_engine_top;
         end
         apb_rd(12'h004, caps_rd);
         checks = checks + 1;
-        if (caps_rd !== 32'h0000_044f) begin
+        if (caps_rd !== 32'h0000_046f) begin
             errors = errors + 1;
-            $display("CAPS-FAIL got=%08x exp=0000044f", caps_rd);
+            $display("CAPS-FAIL got=%08x exp=0000046f", caps_rd);
         end
 
         parse_vectors;

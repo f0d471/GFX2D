@@ -1,0 +1,4 @@
+CC lib/gfx/strip.c
+LD build/stripTest-O2.elf
+Memory region         Used Size  Region Size  %age Used
+             ram:      131936 B      4092 KB      3.15%

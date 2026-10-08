@@ -1,0 +1,26 @@
+RUN hdmi
+hdmi: 0 SIM OK: 3/3 cases as expected
+RUN apb_probe
+apb_probe: 0 SIM OK: 3/3 cases as expected
+RUN display
+display: 0 SIM OK
+RUN axi_probe
+axi_probe: 0 SIM OK: 5/5 cases as expected
+RUN axi_mux_guard
+axi_mux_guard: 0 SIM OK: 17/17 checks as expected
+RUN engine/blend
+engine/blend: 0 SIM OK: 9/9 cases as expected
+RUN engine/mover
+engine/mover: 0 SIM OK: 17/17 checks as expected
+RUN engine/geom
+engine/geom: 0 SIM OK: 27/27 checks as expected
+RUN engine/pix
+engine/pix: 0 SIM OK: 25/25 checks as expected
+RUN engine/ctrl
+engine/ctrl: 0 SIM OK: 4/4 checks as expected
+RUN engine/frame
+engine/frame: 1 SIM FAIL: 14/2 项不符合期望
+RUN engine/tex
+engine/tex: 1 SIM FAIL
+RUN engine/band
+engine/band: 0 SIM OK: 17 formal checks as expected

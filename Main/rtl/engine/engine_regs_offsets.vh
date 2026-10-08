@@ -15,6 +15,9 @@ localparam [11:0] EC_REG_ERROR_TAG = 12'h01C;
 localparam [11:0] EC_REG_LIST_BASE = 12'h020;
 localparam [11:0] EC_REG_LIST_COUNT = 12'h024;
 localparam [11:0] EC_REG_DOORBELL = 12'h028;
+localparam [11:0] EC_REG_LSTRIPS = 12'h02C;
+localparam [11:0] EC_REG_STRIP_H = 12'h030;
+localparam [11:0] EC_REG_BAND_SURF = 12'h034;
 localparam [11:0] EC_REG_SURF0 = 12'h040;
 localparam [11:0] EC_REG_PERF0 = 12'h100;
 
@@ -55,7 +58,7 @@ localparam EC_CAPS_TINT_W  = 1;
 localparam EC_CAPS_TINT_VALUE = 0;
 localparam EC_CAPS_BAND_LO = 5;
 localparam EC_CAPS_BAND_W  = 1;
-localparam EC_CAPS_BAND_VALUE = 0;
+localparam EC_CAPS_BAND_VALUE = 1;
 localparam EC_CAPS_TEX_LO = 6;
 localparam EC_CAPS_TEX_W  = 1;
 localparam EC_CAPS_TEX_VALUE = 1;
@@ -65,12 +68,13 @@ localparam EC_CAPS_INDEX8_VALUE = 0;
 localparam EC_CAPS_LANES_LO = 8;
 localparam EC_CAPS_LANES_W  = 4;
 localparam EC_CAPS_LANES_VALUE = 4;
-localparam [31:0] EC_CAPS_VALUE = 32'h0000044F;
+localparam [31:0] EC_CAPS_VALUE = 32'h0000046F;
 
 // CTRL 位位号（SOFT_RST/CNT_CLR 写 1 自清）
 localparam EC_CTRL_EN_BIT = 0;
 localparam EC_CTRL_SOFT_RST_BIT = 1;
 localparam EC_CTRL_CNT_CLR_BIT = 2;
+localparam EC_CTRL_BAND_BIT = 3;
 
 // STATUS 位位号与错误码字段
 localparam EC_STATUS_BUSY_BIT = 0;

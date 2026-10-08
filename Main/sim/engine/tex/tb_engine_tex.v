@@ -600,7 +600,7 @@ module tb_engine_tex #(
         apb_rd(16'h0000, id);
         if (id !== 32'h4746_5801) begin errors = errors + 1; $display("ID-FAIL %08x", id); end
         apb_rd(16'h0004, caps);
-        if (caps !== 32'h0000_044F) begin errors = errors + 1; $display("CAPS-FAIL %08x", caps); end
+        if (caps !== 32'h0000_046F) begin errors = errors + 1; $display("CAPS-FAIL %08x", caps); end
 
         for (i = 0; i < CASE_WORDS; i = i + 1) u_ram.mem[i] = init_mem[i];
         upload_tex;

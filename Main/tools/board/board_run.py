@@ -314,6 +314,12 @@ def main():
     pgm = os.path.join(efinity, "pgm", "bin", "ftdi_pgm.bat") if efinity else None
     bit = args.bit or os.path.join(MAIN, "fpga", "gfx2d_ti60", "outflow", "gfx2d_ti60.bit")
     log = args.log or os.path.join(os.environ.get("TEMP", "."), "board_run.log")
+    if (args.bin or args.flash_boot) and not args.dry_run:
+        try:
+            os.makedirs(os.path.dirname(os.path.abspath(log)), exist_ok=True)
+        except OSError as e:
+            print("ERROR: 无法准备串口日志目录：%s" % e, file=sys.stderr)
+            return 2
     load_cmds = ["reset halt", "load_image {%s} %s bin" % (os.path.abspath(args.bin or "").replace("\\", "/"), args.addr),
                  "resume %s" % args.addr, "shutdown"]
 

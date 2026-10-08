@@ -172,7 +172,7 @@ def pixel_experiments():
     source=replace_once(source,'if (gfx_blit(&list, 3, 0, 0, 0, 0, 95, 640, 1,\n                 GFX_EQ_ALPHA, 0u, 0, 0u) != 0 || gfx_list_end(&list) != 0)',
                         'if (gfx_list_end(&list) != 0)')
     (BUILD/'band_cases.c').write_text(source,encoding='utf-8')
-    cfiles=[MAIN/'sw/lib'/p for p in ('gfx/list.c','gfx/check.c','gfx/exec_sw.c','gfx/cases.c','core/format.c')]
+    cfiles=[MAIN/'sw/lib'/p for p in ('gfx/list.c','gfx/strip.c','gfx/check.c','gfx/exec_sw.c','gfx/cases.c','core/format.c')]
     cc=['gcc','-O1','-g','-std=c11','-Wall','-Wextra','-Werror','-fsanitize=address,undefined',
         '-I'+str(MAIN/'tools/check'),'-I'+str(MAIN/'sw/lib'),'-o',BUILD/'dump',BUILD/'band_cases.c',*cfiles]
     subprocess.run([str(x) for x in cc],check=True)

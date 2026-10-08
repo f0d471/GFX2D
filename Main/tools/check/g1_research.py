@@ -126,7 +126,7 @@ def main():
     export = BUILD / 'pix_cases_dump'
     run('export_compile', ['gcc', '-O2', '-std=c11', '-Wall', '-Wextra', '-Werror',
         '-I' + str(lib), '-o', export, MAIN / 'tools/check/pix_cases_dump.c',
-        *[lib / p for p in ['gfx/list.c', 'gfx/check.c', 'gfx/exec_sw.c',
+        *[lib / p for p in ['gfx/list.c','gfx/strip.c', 'gfx/check.c', 'gfx/exec_sw.c',
                             'gfx/cases.c', 'core/format.c']]])
     run('export', [export, '--sprites', BUILD / 'sprites'])
     rtl = MAIN / 'rtl'

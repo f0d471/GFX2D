@@ -43,6 +43,16 @@ int  gfx_cmd_check(const gfx_surface_table *t, const gfx_cmd *c);
 /* 调试用：把一条命令写成一行文本，返回写进去的字符数（不含结尾的 0）。 */
 uint32_t gfx_cmd_decode(const gfx_cmd *c, char *buf, uint32_t cap);
 
+/* ABI v2 的提交配置；背景/目的必须是等高的 640 宽 DDR XRGB 表面。
+   高度 = lstrips << strip_log2，strip_log2 为 3/4/5。
+   BAND 是内部路径，表面 space 仍为 DDR；源不得与目的 backing 区间相交。 */
+typedef struct {
+    uint32_t lstrips, strip_log2, bg_id, dst_id;
+} gfx_strip_config;
+int gfx_strip_config_check(const gfx_surface_table *t, const gfx_strip_config *cfg);
+int gfx_strip_cmd_check(const gfx_surface_table *t, const gfx_strip_config *cfg,
+                        const gfx_cmd *c);
+
 /* --- 构造层 ------------------------------------------------------------- */
 
 typedef struct {
@@ -53,11 +63,23 @@ typedef struct {
     int                      first_error;    /* sticky：首个非零返回值 */
     uint32_t                 rejected;       /* 被拒绝的追加次数 */
     uint32_t                 overflow;       /* 因表满被拒的次数 */
+    uint8_t                 *strip_table;    /* NULL 为 v1；v2 表头是计数数组 */
+    gfx_strip_config         strips;
+    gfx_rect                 build_clip;
     int                      ended;          /* 已经追加过 END */
 } gfx_list;
 
 void gfx_list_begin(gfx_list *l, gfx_cmd *buf, uint32_t cap,
                     const gfx_surface_table *t);
+
+/* 条带模式绑定调用方提供的定长表，初始化表头计数；不写 END。
+   SET_CLIP API 在构造时吸收，默认全屏；跨帧持续裁剪由调用方显式传入。
+   分桶追加有原子性：任何桶溢出都不改该次调用的任何桶，first_error 拒绝提交。
+   不自动分帧（混合顺序与背景语义不能靠拆帧保持）。 */
+int gfx_list_begin_strips(gfx_list *l, void *table, uint32_t bytes,
+                           const gfx_surface_table *t, const gfx_strip_config *cfg,
+                           const gfx_rect *initial_clip);
+int gfx_strip_append(gfx_list *l, const gfx_cmd *c);
 
 /* 五个追加函数的返回值口径一致：
      0            已追加
@@ -143,6 +165,15 @@ void exec_sw_reset(exec_sw_state *es);
 int  exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
                  const gfx_cmd *list, uint32_t list_count, uint32_t readable_count,
                  exec_sw_stats *st, exec_sw_error *err);
+
+/* 执行 ABI v2 表；readable_bytes 给出宿主取数上界。
+   scratch 为独占软件 BAND 影子，至少 (4096 << strip_log2) 字节，4 字节对齐。
+   每桶 LOAD→局部命令→FLUSH，失败桶不写回；错误 index = strip*1024 + k。
+   源读取始终使用原始 m，clip 状态不受条带执行改变。 */
+int exec_sw_run_strips(const gfx_surface_table *t, const gfx_mem *m,
+                       const void *table, uint32_t readable_bytes,
+                       const gfx_strip_config *cfg, void *scratch, uint32_t scratch_bytes,
+                       exec_sw_stats *st, exec_sw_error *err);
 
 /* 把统计清零。 */
 void exec_sw_stats_clear(exec_sw_stats *st);

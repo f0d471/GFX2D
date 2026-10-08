@@ -61,6 +61,12 @@
 #define GFX_BUILD_CLOSED    (-2)
 #define GFX_BUILD_BAD_ARG   (-3)
 
+/* ABI v2：表头独占首个 32 KiB 段，各桶 1024 条，最多 30 桶。 */
+#define GFX_STRIP_REGION_BYTES 32768u
+#define GFX_STRIP_CAP 1024u
+#define GFX_STRIP_MAX 30u
+#define GFX_STRIP_TABLE_BYTES 1048576u
+
 /* 游戏区。裁剪的四者求交里有它一项，spec 第 01 章 3.6 节。 */
 #define GFX_SCREEN_W        640
 #define GFX_SCREEN_H        480

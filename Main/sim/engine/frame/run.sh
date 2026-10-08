@@ -38,7 +38,7 @@ $RTL/vendor/verilog-axi/axi_dma_wr.v $RTL/../sim/axi_probe/axi_ram_model.v"
 echo "导出整帧用例（SW3 金标准与 SW6 场景 A）："
 if ! gcc -O2 -std=c11 -Wall -Wextra -Werror -I"$LIB" \
         -o "$BUILD/pix_cases_dump" "$CHK/pix_cases_dump.c" \
-        "$LIB/gfx/list.c" "$LIB/gfx/check.c" "$LIB/gfx/exec_sw.c" \
+        "$LIB/gfx/list.c" "$LIB/gfx/strip.c" "$LIB/gfx/check.c" "$LIB/gfx/exec_sw.c" \
         "$LIB/gfx/cases.c" "$LIB/core/format.c"; then
     echo "RESULT: SETUP-ERROR (pix_cases_dump 编不过)"; exit 1
 fi
@@ -48,14 +48,14 @@ done
 if ! gcc -O2 -std=c11 -Wall -Wextra -Werror -I"$LIB" -I../../../sw/bsp/include -I"$GAME/src/game" \
         -o "$BUILD/sw6_frames_dump" "$CHK/sw6_frames_dump.c" \
         "$GAME/src/game/sw6_scene_a.c" \
-        "$LIB/gfx/list.c" "$LIB/gfx/check.c" "$LIB/gfx/exec_sw.c" \
+        "$LIB/gfx/list.c" "$LIB/gfx/strip.c" "$LIB/gfx/check.c" "$LIB/gfx/exec_sw.c" \
         "$LIB/core/format.c" "$LIB/core/xorshift32.c"; then
     echo "RESULT: SETUP-ERROR (sw6_frames_dump 编不过)"; exit 1
 fi
 "$BUILD/sw6_frames_dump" "$BUILD/sw6/sw6a_f0" "$BUILD/sw6/sw6a_f1" > /dev/null
 gcc -O2 -std=c11 -Wall -Wextra -Werror -I"$LIB" -o "$BUILD/sprites_dump" \
     "$CHK/pix_cases_dump.c" \
-    "$LIB/gfx/list.c" "$LIB/gfx/check.c" "$LIB/gfx/exec_sw.c" \
+    "$LIB/gfx/list.c" "$LIB/gfx/strip.c" "$LIB/gfx/check.c" "$LIB/gfx/exec_sw.c" \
     "$LIB/gfx/cases.c" "$LIB/core/format.c"
 "$BUILD/sprites_dump" --sprites "$BUILD/sprites" > /dev/null
 echo "  用例导出完成。"

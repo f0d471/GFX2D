@@ -59,7 +59,7 @@ Windows 上没有 python 时用 WSL 调用：`wsl -e python3 Main/tools/check/lo
 
 ```
 python3 Main/tools/check/localize_paths.py --restore   本机路径还原成占位符
-python3 Main/tools/check/localize_paths.py --check     扫描机器专属的绝对路径
+python3 Main/tools/check/localize_paths.py --check --tracked   暂存后检查进入版本库的路径
 ```
 
 改了 RTL 或程序，还要跑两个仿真与一次 Efinity 编译，判据见

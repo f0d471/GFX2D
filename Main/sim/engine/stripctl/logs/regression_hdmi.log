@@ -1,0 +1,4 @@
+normal: RESULT: PASS frames=2 pixels=614400
+inject_hbp: RESULT: FAIL errors=1001 frames=0 pixels=307200
+inject_noinv: RESULT: FAIL errors=1001 frames=0 pixels=0
+SIM OK: 3/3 cases as expected

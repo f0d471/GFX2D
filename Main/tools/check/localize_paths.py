@@ -8,7 +8,7 @@
     python3 tools/check/localize_paths.py --restore    本机路径 -> 占位符
     python3 tools/check/localize_paths.py --check      扫描整个仓库，发现机器专属路径就报错
 
-三种模式都不接受额外参数，目录由本脚本的位置推出。
+--check 可加 --tracked 限定 Git 已登记文件（含暂存新增文件）；目录由本脚本的位置推出。
 占位符代表的是 `Main/` 的路径（历史原因叫 __REPO_ROOT__）；`--check` 扫的是整个 git 仓库。
 """
 
@@ -16,6 +16,7 @@ import argparse
 import os
 import re
 import sys
+import subprocess
 
 MAIN = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ROOT = os.path.dirname(MAIN)          # git 仓库根，--check 从这里扫
@@ -136,9 +137,19 @@ def walk():
                 yield rel, path
 
 
-def check():
+def check(tracked_only=False):
     hits = []
+    tracked = None
+    if tracked_only:
+        p = subprocess.run(["git", "-c", "safe.directory=" + ROOT.replace("\\", "/"),
+                            "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True)
+        if p.returncode:
+            print("无法读取 Git 文件清单：" + p.stderr)
+            return 1
+        tracked = set(p.stdout.split("\0"))
     for rel, path in walk():
+        if tracked is not None and rel not in tracked:
+            continue
         if rel in ALLOW:
             continue
         if rel.startswith(SKIP_PREFIXES) and rel[len("Main/"):] not in TARGETS:
@@ -168,12 +179,15 @@ def main():
     group.add_argument("--apply", action="store_true", help="占位符展开成本机路径")
     group.add_argument("--restore", action="store_true", help="本机路径还原成占位符")
     group.add_argument("--check", action="store_true", help="扫描机器专属路径")
+    parser.add_argument("--tracked", action="store_true", help="仅 --check：检查 Git 已登记文件，含暂存新增文件")
     args = parser.parse_args()
+    if args.tracked and not args.check:
+        parser.error("--tracked 只与 --check 一起使用")
     if args.apply:
         return substitute(True)
     if args.restore:
         return substitute(False)
-    return check()
+    return check(args.tracked)
 
 
 if __name__ == "__main__":

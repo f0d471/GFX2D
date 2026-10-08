@@ -24,7 +24,7 @@ BIN="${TMPDIR:-/tmp}/geom_cases_dump.$$"
 mkdir -p "$(dirname "$OUT")"
 gcc -O2 -Wall -Isw/lib -o "$BIN" \
     tools/check/geom_cases_dump.c \
-    sw/lib/gfx/cases.c sw/lib/gfx/list.c sw/lib/gfx/check.c sw/lib/core/format.c
+    sw/lib/gfx/cases.c sw/lib/gfx/list.c sw/lib/gfx/strip.c sw/lib/gfx/check.c sw/lib/core/format.c
 
 "$BIN" > "$OUT"
 rm -f "$BIN"

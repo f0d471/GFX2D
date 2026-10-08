@@ -36,6 +36,9 @@ static int append(gfx_list *l, gfx_cmd *c)
         return reject(l, GFX_BUILD_FULL);
     }
 
+    if (l->strip_table != 0)
+        return gfx_strip_append(l, c);
+
     c->w[7] = l->used;                          /* 默认标签就是零基索引 */
 
     code = gfx_cmd_check(l->t, c);
@@ -140,6 +143,7 @@ void gfx_list_begin(gfx_list *l, gfx_cmd *buf, uint32_t cap,
     l->rejected    = 0u;
     l->overflow    = 0u;
     l->ended       = 0;
+    l->strip_table = 0;
 }
 
 int gfx_nop(gfx_list *l)
@@ -231,6 +235,14 @@ uint32_t gfx_blit_run(gfx_list *l, const gfx_blit_tmpl *t,
         return 0u;
     if (pos == 0)
         return 0u;
+
+    if (l->strip_table != 0) {
+        for (i = 0u; i < n; i++)
+            if (gfx_blit(l, t->src, pos[i].sx, pos[i].sy, t->dst, pos[i].dx, pos[i].dy,
+                         t->w, t->h, t->eq, t->c, t->key_en, t->key) == GFX_OK)
+                appended++;
+        return appended;
+    }
 
     /* 模板里能不能无损编码：不能的话每一条都是 BAD_ARG，与 gfx_blit() 逐条的结果相同 */
     targ_ok = surf_id_ok(t->src) && surf_id_ok(t->dst) && t->eq >= 0 && t->eq <= 15

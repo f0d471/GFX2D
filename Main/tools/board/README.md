@@ -51,7 +51,7 @@ set PYTHONHOME=<EFINITY>\python311
 | `--no-program` | 跳过烧比特流。默认烧 `Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit`，`--bit` 换别的 |
 | `--port` | 串口号，默认 `COM11`（`doc/开发环境.md` 第 11 节的参考值） |
 | `--stop-on` | 收到该文本就结束采集；没收到时退出码为 1。**只从 `load_image` + `resume` 之后开始匹配**，取程序末尾的标记（见下面第 4 条坑） |
-| `--log` | 串口日志存哪，默认 `%TEMP%\board_run.log` |
+| `--log` | 串口日志存哪，默认 `%TEMP%\board_run.log`；采集前自动创建父目录，创建失败在烧写前返回环境错误 |
 | `--addr` | 加载地址，默认 `0x1000` |
 | `--dry-run` | 只打印将执行的步骤 |
 

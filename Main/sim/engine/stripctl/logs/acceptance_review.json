@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-09",
+  "status": "待验收",
+  "scope": "G3 implementation, audit, software, simulation, synthesis and additional JTAG diagnostics; G4 game/N_max excluded",
+  "decisions": {
+    "D60": "API clip absorption; raw strip SET_CLIP/END forbidden",
+    "D61": "32 KiB header segment then uniform 1024-command buckets"
+  },
+  "preconditions": [
+    "No DDR source/destination feedback",
+    "Background/destination exact alias or disjoint backing",
+    "Local y restored at I1",
+    "Atomic overflow refusal; no automatic split"
+  ],
+  "evidence": {
+    "formal_results": "formal_results.json",
+    "synthesis": "formal_synthesis_results.json",
+    "board": "formal_board_results.json",
+    "regression": "regression_results.json",
+    "g2_data_plane": "g2_recheck/formal_results.json",
+    "artifacts": "board_artifacts.json"
+  },
+  "results": {
+    "software": {
+      "scenes_sanitized": 10000,
+      "scenes_release": 10000,
+      "skipped": 0,
+      "production_mutations_red": 4
+    },
+    "rtl16": {
+      "checks": 29376,
+      "errors": 0,
+      "frame_word_differences": 0
+    },
+    "rtl32": {
+      "checks": 36293,
+      "errors": 0,
+      "frame_word_differences": 0
+    },
+    "rtl_mutations_red": 3,
+    "regression_suites": 13,
+    "g2_formal_checks": 17,
+    "software_error_checks": 50,
+    "main": {
+      "xlr": 41476,
+      "ram": 163,
+      "dsp": 16,
+      "setup_ns": 0.756,
+      "hold_ns": 0.026,
+      "minimum_slack_ns": 0.026,
+      "own_width_warnings": 0
+    },
+    "standalone": {
+      "xlr": 21622,
+      "ram": 88,
+      "dsp": 12,
+      "setup_ns": 0.191,
+      "hold_ns": 0.026,
+      "minimum_slack_ns": 0.026,
+      "own_width_warnings": 0
+    },
+    "board": {
+      "scope": "JTAG diagnostics and v1/TEX compatibility; no game BAND N_max or Flash write",
+      "strip_frame_crc": "73069421",
+      "strip_fail": 0,
+      "legacy_fail": 0,
+      "scan_min_words": 336,
+      "scan_underflow": 0,
+      "invalid_clip_error": [
+        2,
+        1024,
+        "cafe005a"
+      ],
+      "capacity_error": [
+        2,
+        1024,
+        0
+      ],
+      "recovery_and_mode_restore": "PASS",
+      "artifacts": "board_artifacts.json"
+    }
+  },
+  "repository_checks": {
+    "regs_gen": "PASS",
+    "tracked_paths": "PASS",
+    "source_document_diff_check": "PASS",
+    "sdk_and_g2_history": "unchanged"
+  },
+  "limitations": [
+    "G4 game BAND backend, continuous N_max and cache comparison pending",
+    "Flash not written",
+    "Local untracked report work preserved"
+  ],
+  "source_commit": "implementation commit pending"
+}

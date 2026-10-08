@@ -3,10 +3,11 @@
 | 文件 | 用途 | 什么时候跑 |
 | --- | --- | --- |
 | `check_g2_band.py` | G2 正式数据面：软件执行器金标准与 ASan/UBSan、真实全部核/协议/参数、八个定向变异；独立综合准备/采集、主综合复核、板测身份与功能登记 | 默认由 band/run.sh 跑 17 项；综合用 --prepare-syn/--collect-syn、--collect-main；新板测用 --record-board，未变产物不重复登记 |
-| `localize_paths.py` | 展开、还原厂商生成物里的绝对路径；扫描整个仓库里的机器专属路径 | 克隆后 `--apply`；提交前 `--restore` 再 `--check` |
+| `localize_paths.py` | 展开、还原厂商生成物里的绝对路径；扫描整个仓库里的机器专属路径 | 克隆后 `--apply`；提交前暂存源码，`--restore` 再 `--check --tracked`；全目录检查用 `--check` |
 | `regs_gen.py` | D51 的寄存器数字单一真源，生成 `rtl/engine/engine_regs_offsets.vh` 与供 BSP 驱动使用的 `sw/bsp/include/gfx_regs.h` | 改寄存器偏移或位号后重生成；提交前在 `Main/` 下运行 `python3 tools/check/regs_gen.py --check` |
 | `g1_research.py` | G1 前期研究：完整 APB 地址集合、热集布局、四 bank RAM 端口实验、软件金标准对真实像素路径的同步读延迟与 valid 变异；`--prepare-syn` 生成隔离 RAM 工程；`--record-board` 核对本次 B6 板测产物身份 | WSL 中从仓库根运行 `python3 Main/tools/check/g1_research.py`；范围与原始证据见 [tex/README](../../sim/engine/tex/README.md) |
 | `g2_research.py` | G2 前期研究：紧凑映射、RAM 掩码/分段、真实 geom/pix 代理、DMA 三相与排空；隔离 RAM 工程与原始报告；板测基线复核 | 从仓库根运行 `python3 Main/tools/check/g2_research.py`；`--prepare-syn`/`--collect-syn` 与 `--check-board` 用法见 [band/README](../../sim/engine/band/README.md) |
+| `check_g3_stripctl.py` | G3 正式生产库对拍、错误三元组、完整 engine_top 与软件/RTL 变异；综合和板测采集 | 仓库根运行 `python3 Main/tools/check/check_g3_stripctl.py`；16/32 行同表，sanitizer/普通构建各 10000 张；`--collect-syn`/`--collect-board` 只采集；见 [stripctl/README](../../sim/engine/stripctl/README.md) |
 | `g3_research.py` | G3 前期研究：按游戏几何口径重放条带分桶（16/32 行对照、峰值桶、区容量溢出边界）与直通/条带取数批模型 | 从仓库根运行 `python3 Main/tools/check/g3_research.py`；`--json` 落摘要，判据与证据见 [stripctl/README](../../sim/engine/stripctl/README.md) |
 | `check_g1_logs.py` | G1 外部验收：22 个固定负载 CRC、性能/水位、真实 N_max、360 帧游戏同帧、后端切换和 CRC 失败回退 | G1 归档时；`--board-only` 只检查固定负载 |
 | `test_game_control.py` | 离线核对三个后端、CSV 弹数、确认后的连续切换和目标缺失时停止 | 控制协议改动后；不打开 GUI/串口 |

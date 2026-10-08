@@ -188,9 +188,26 @@ int gfx_engine_submit(uint32_t list_base, uint32_t list_count)
         (eng_rd(GFX_CTRL) & GFX_CTRL_EN) == 0u)
         return GFX_ENG_E_REJECT;    /* 忙、排空或 EN=0 时 DOORBELL 均会被拒收 */
 
+    eng_wr(GFX_CTRL, GFX_CTRL_EN); /* 旧入口显式选直通，允许模式往返。 */
     eng_wr(GFX_LIST_BASE, list_base);
     eng_wr(GFX_LIST_COUNT, list_count); /* D53：寄存器与命令层都是完整 32 位 */
     eng_wr(GFX_DOORBELL, 1u);
+    return GFX_ENG_OK;
+}
+
+int gfx_engine_submit_strips(uint32_t list_base, uint32_t lstrips,
+                              uint32_t strip_log2, uint32_t bg_id, uint32_t dst_id)
+{
+    if(!gfx_engine_present())return GFX_ENG_E_ABSENT;
+    if(!(eng_rd(GFX_CAPS)&GFX_CAPS_BAND_M))return GFX_ENG_E_CAPS;
+    if((list_base&0x7FFFu)!=0u)return GFX_ENG_E_ALIGN;
+    if(!lstrips || lstrips>30u || strip_log2<3u || strip_log2>5u || bg_id>15u || dst_id>15u ||
+       (uint64_t)list_base+((uint64_t)lstrips+1u)*32768u>0x100000000ull)return GFX_ENG_E_ARG;
+    if(eng_rd(GFX_STATUS)&(GFX_STATUS_BUSY|GFX_STATUS_DRAINING))return GFX_ENG_E_REJECT;
+    eng_wr(GFX_LSTRIPS,lstrips);eng_wr(GFX_STRIP_H,strip_log2);
+    eng_wr(GFX_BAND_SURF,(bg_id<<4)|dst_id);
+    eng_wr(GFX_CTRL,GFX_CTRL_EN|GFX_CTRL_BAND);
+    eng_wr(GFX_LIST_BASE,list_base);eng_wr(GFX_LIST_COUNT,0u);eng_wr(GFX_DOORBELL,1u);
     return GFX_ENG_OK;
 }
 
@@ -242,6 +259,6 @@ int gfx_engine_perf_clear(void)
 {
     if (!gfx_engine_present())
         return GFX_ENG_E_ABSENT;
-    eng_wr(GFX_CTRL, GFX_CTRL_EN | GFX_CTRL_CNT_CLR);
+    eng_wr(GFX_CTRL, (eng_rd(GFX_CTRL) & (GFX_CTRL_EN|GFX_CTRL_BAND)) | GFX_CTRL_CNT_CLR);
     return GFX_ENG_OK;
 }

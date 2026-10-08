@@ -1,3 +1,6 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[5]
 import re
 import matplotlib
 matplotlib.use("Agg")
@@ -6,7 +9,7 @@ import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = ["Microsoft YaHei"]
 plt.rcParams["axes.unicode_minus"] = False
 
-LOG = r"E:\Workspace\Efinix\Main\sw\apps\game\gfx2dGame\logs\sw9_perf_hw_nmax.log"
+LOG = ROOT / "Main/sw/apps/game/gfx2dGame/logs/sw9_perf_hw_nmax.log"
 BLUE, RED, GOLD, GRAY, INK = "#4A7FD0", "#E8546B", "#A37A1C", "#87929E", "#1D2733"
 
 pat = re.compile(
@@ -62,5 +65,5 @@ handles = [Line2D([], [], marker="o", ls="", color=BLUE, label="该档通过（1
            Line2D([], [], color=GOLD, ls="--", label="确认档（3600 场无掉帧）")]
 axes[0].legend(handles=handles, fontsize=9.5, frameon=False, loc="lower right")
 
-fig.savefig(r"E:\Workspace\Efinix\Deliverables\Assert\figures\report\rep_nmax.png")
+fig.savefig(ROOT / "Deliverables/Assert/figures/report/rep_nmax.png")
 print("ok rep_nmax")

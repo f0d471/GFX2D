@@ -7,17 +7,13 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 
 ## 现在的状态
 
-2026-10-08 G2 正式条带数据面已验收归档：17 项正式验证符合预期，独立
-1638 XLR/36 RAM/0 DSP、setup/hold +3.579/+0.035 ns。当前 outflow 为本批新
-整机接线构建，37426 XLR/121 RAM/16 DSP，core setup/hold +0.551/+0.026 ns，
-最薄 rx_cal hold +0.009 ns；新 bit 的 DDR/TEX 22 CRC 与错误/压力板测通过，
-验收复核已逐值重跑并登记 sim/engine/band/logs/acceptance_review.json。
-主帧控制仍接 0、CAPS.BAND=0，BAND 的主工程 RAM 被裁剪，整机条带功能归 G3。
-G3 前期研究已完成（分桶分布与取数模型在 `tools/check/g3_research.py`，
-条带等价对拍原型在 `sim/engine/stripctl/`），D60 修订与 D61 表头布局
-两项定案后开工正式 RTL。
-本批产物清单在 sim/engine/band/logs/formal_artifacts.json；过程见
-[engine 第 08 章](../Engineering/TechReports/engine/08-条带缓冲.md)。
+2026-10-09 G3 已实现帧级 BAND：ABI v2 条带表、生产分桶与软件执行器、
+寄存器与驱动、错误排空和模式往返。主 SoC 41476 XLR/163 RAM/16 DSP，
+core setup/hold +0.756/+0.026 ns，CAPS.BAND=1。软件两套各 1 万张与
+16/32 行完整 RTL 同帧对拍通过；真实条带 CRC、错误恢复和旧 engineTest
+兼容性均 fail 0。正式证据及复现入口见
+[engine 第 09 章](../Engineering/TechReports/engine/09-条带控制与ABIv2.md)。
+G4 的游戏条带接入、N_max 与 16 KiB cache 对照尚未验收，Flash 没有改写。
 下面 B6/G1 的资源表保留各自历史测量口径。
 
 | 部分 | 状态 |
@@ -26,7 +22,7 @@ G3 前期研究已完成（分桶分布与取数模型在 `tools/check/g3_resear
 | DDR3 上的第二个 AXI 主机 | `Axi_Mux` 已接入；S1 当前连接 B6 渲染引擎。256 拍突发上限及读写固定开销是接入前的探针测量，见 platform 第 03 章 |
 | HDMI 输出 640x480@60 | 当前从 DDR3 帧缓冲经扫描 FIFO 输出，双缓冲与场边界切换已上板验证；早期八色竖条为历史基线 |
 | 程序从 Flash 引导（512KB 镜像） | 已上板验证，两个 CRC 与对照组都符合预期 |
-| APB 寄存器通路 | B6 当前第 0 页连接引擎寄存器；板上回读 `ID=0x47465801`、`CAPS=0x0000040F` 与 `LIST_BASE`。早期探针寄存器测试为历史基线 |
+| APB 寄存器通路 | B6 当前第 0 页连接引擎寄存器；板上回读 `ID=0x47465801`、`CAPS=0x0000046F`（G3）与 `LIST_BASE`。早期探针寄存器测试为历史基线 |
 | Cache 一致性（E3） | 已上板实测并验收（2026-09-18）：外部主机改写后 CPU 读到旧值，失效之后读到新值；共享区约定放宽为「读回前必须失效」，失效要晚于外部写入完成。判据 `sw/apps/test/cacheCoherencyTest`、机理实验 `sw/apps/probe/cacheMechTest`，见 `../Engineering/TechReports/platform/05-CPU数据缓存与第二个主机写入的一致性.md` |
 | 像素规格（E7 §2.1） | 已定稿并已确认（2026-09-18）：写进 `doc/赛题二总体设计.md` 3.5 节，舍入、位宽、舍入顺序与预乘量化误差有穷举校验（`tools/check/check_round255.c`）。修正版 `execSwTest` 三次在板上对齐 SW3 十一个整帧 CRC、均 `fail 0`；详见 `../Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md` |
 | 命令语义规格（SW2） | **已定稿、确认并复核闭环（2026-09-20）**：v1 为 DDR 直通、XRGB 目的，不实现 tint；新增 ARGB8888_STRAIGHT；重叠 BLIT 报错；字段矩阵、COUNT/END、错误优先级和副作用写入 `doc/赛题二总体设计.md` 3.4 节及 `../Engineering/TechReports/spec/02-命令语义.md`。九组一致性用例落成 159 条向量（ABI 1），校验工具 `tools/check/check_cmd_semantics.py` 全部通过六项注错和交换格式回读；五项语义选择已定案，多命令表、FETCH、保留位与零面积边界已补齐 |
@@ -190,7 +186,7 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   重新生成后要逐条恢复。
 - **不写绝对路径**：文档用 `doc/开发环境.md` 第 1 节的占位符，
   生成物里必须写路径的几个文件用 `tools/check/localize_paths.py` 展开。
-  提交前跑一次 `--restore` 与 `--check`。
+  提交前暂存源码，跑一次 `--restore` 与 `--check --tracked`；不入库的本机工作资料可另用全目录 `--check`。
 - **判据要能注错见红**：每个仿真除了正常用例，必须有把逻辑改错后会 FAIL 的用例，
   否则不算验证过。
 - **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，`axi_mux_guard` 17/17，
@@ -201,7 +197,7 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   `engine/ctrl` 4/4（159 向量端到端、D1~D16 定向、两个注错见红），
   `engine/frame` 16/16（十一整帧 CRC 对 golden、SW6 两帧、定时从机性能、SLVERR 注错），
   `engine/tex` 6/6、`engine/band` 17/17（真实全部数据面、状态/排空/参数、八个变异），
-  Efinity 编译四步 PASS 且无负 slack，`--check` 通过。
+  Efinity 编译四步 PASS 且无负 slack，`--check --tracked` 与寄存器真源检查通过。
   改了 `sw/` 下走新构建的程序（`gfx2dGame`、`cup3d`、`assetTest` 等）还要过 `sw/README.md` 里的两套构建、
   主机侧单元测试与 `tools/check/check_sw_layers.sh`；改了 `gfx2dGame`、`lib/gfx` 的执行器或素材还要过
   `tools/check/check_sw6_demo.sh`（十项，含四个方程的注错见红与 Sanitizer）；改了 `lib/core/fixmath`、正弦表、

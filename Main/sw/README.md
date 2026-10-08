@@ -701,3 +701,20 @@ E7 的归档报告里引了它。**瓶颈在光栅不在访存**：着色只占 
 `board_cycles()` 是 32 位回绕的，100MHz 下 2^32 个周期只有 42.9 秒（`bsp/include/board.h` 写明了），
 而本程序一帧就要五百万个周期，900 帧是 45 亿——首尾相减会回绕成一个小得离谱的数
 （实际踩到过，报出 439 fps），32 位的累加器同样存不下。
+
+## stripTest 与 ABI v2（G3）
+
+lib/gfx 的 begin_strips 绑定 1 MiB 定长表并吸收 SET_CLIP，软件条带执行器
+按 LOAD/EXEC/FLUSH 重放；旧直通 API 继续可用。构造错误必须拒绝提交。
+Ti60 驱动新增 gfx_engine_submit_strips，旧 submit 显式选直通。完整约束见
+spec 第 02 章 3.9 节；正式对拍入口为 tools/check/check_g3_stripctl.py。
+
+~~~text
+make -C sw/apps/test/stripTest RISCV_BIN=<RISCV_BIN>
+~~~
+
+产物 build/stripTest-O2.bin；期望：同帧与 padding CRC 相同、空桶不改画面、
+SET_CLIP 错误 2/1024/cafe005a、容量错误 2/1024/0、错误后再提交与返回直通
+均 ok，末行 fail 0/done。原始串口在该应用 logs/g3_board.log；
+新 bit 的 engineTest 兼容性在 engineTest/logs/g3_compatibility.log。
+该程序使用 JTAG，不写 Flash；游戏条带后端与 N_max 属 G4。

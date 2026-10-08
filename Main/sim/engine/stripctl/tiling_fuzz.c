@@ -20,9 +20,9 @@
 *           M4 每桶执行后不把 BAND 写回帧。
 *
 * 用法（WSL，仓库根）：
-*   gcc -std=c11 -I Main/sw -fsanitize=address,undefined -g \
+*   gcc -std=c11 -I Main/sw/lib -fsanitize=address,undefined -g \
 *       Main/sim/engine/stripctl/tiling_fuzz.c \
-*       Main/sw/lib/gfx/check.c Main/sw/lib/gfx/list.c Main/sw/lib/gfx/exec_sw.c \
+*       Main/sw/lib/gfx/check.c Main/sw/lib/gfx/list.c Main/sw/lib/gfx/strip.c Main/sw/lib/gfx/exec_sw.c \
 *       Main/sw/lib/core/format.c -o Main/sim/engine/stripctl/build/tiling_fuzz
 *   Main/sim/engine/stripctl/build/tiling_fuzz            # 正常 1000 张 + 4 变异
 *   ... --json                                            # 另存 fuzz_results.json
@@ -187,6 +187,7 @@ static int run_direct(const gfx_surface_table *t, const call_t *calls, uint32_t 
         for (i = 0u; i < l.used; i++)
             printf("[direct] #%u op=%u w2=%08x w3=%08x\n",
                    i, cmds[i].w[0] & 0xFFu, cmds[i].w[2], cmds[i].w[3]);
+    exec_sw_stats_clear(&st);
     exec_sw_reset(&es);
     es.clip.x0 = 0; es.clip.y0 = 0;
     es.clip.x1 = SCREEN_W - 1; es.clip.y1 = SCREEN_H - 1;
@@ -281,8 +282,8 @@ static int run_strips(gfx_surface_table *t, const call_t *calls, uint32_t n,
     }
 
     /* 逐桶 BAND 执行：装入→执行→写回；M2 打乱桶内序，M4 不写回。
-       BAND 影子表面基址随条带滑动：桶命令保留全帧绝对 y，硬件对应
-       band_start 锁存 strip_y0 后在端点转局部行；软件影子用窗口基址等价表达。 */
+       桶表使用局部 y，软件影子使用固定基址；正式 G3 在 I1 提交前
+       加 strip_y0，几何层和 BAND 端点继续使用全帧地址。 */
     for (s = 0; s < N_STRIPS; s++) {
         uint8_t *band = mem.host + BAND_BASE;
         uint8_t *row  = mem.host + FB_BASE + (uint32_t)s * STRIP_H * STRIDE;
@@ -299,6 +300,7 @@ static int run_strips(gfx_surface_table *t, const call_t *calls, uint32_t n,
         exec_sw_reset(&es);
         es.clip.x0 = 0; es.clip.y0 = 0;
         es.clip.x1 = SCREEN_W - 1; es.clip.y1 = SCREEN_H - 1;
+        exec_sw_stats_clear(&st);
         if (cnt != 0u) {
             rc_s = exec_sw_run(&es, t, &mem, tbl, cnt, cnt, &st, &err);
             if (rc_s != 0)

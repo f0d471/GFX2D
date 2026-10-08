@@ -45,7 +45,7 @@ module syn_engine_top(input wire clk, input wire rst, output reg [127:0] obs);
 
     engine_top u_dut (
         .clk(clk), .rst_ctrl(rst), .rst_ddr_n(~rst),
-        .paddr(paddr), .psel(psel), .penable(penable), .pwrite(pwrite),
+        .paddr({lfsr[191:188],paddr}), .psel(psel), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(prdata), .pready(pready), .pslverr(pslverr),
         .m_axi_araddr(m_axi_araddr), .m_axi_arlen(m_axi_arlen),
         .m_axi_arsize(m_axi_arsize), .m_axi_arburst(m_axi_arburst),

@@ -23,7 +23,7 @@
 ```
 
 依赖该目录缓存的 python-docx / PIL / matplotlib / fitz（随龙芯项目部署，离线可用）。
-PDF 预览与验收：LibreOfficePortable（`E:\Software`）headless 转 PDF，
+PDF 预览与验收：LibreOfficePortable（安装目录按本机配置）headless 转 PDF，
 fitz 按 100 dpi 出 PNG 逐页目视。文档无 Word COM，不使用目录域；
 正文标题用内置 Heading 样式，便于评审方在自己的 Word/WPS 里自行生成目录。
 

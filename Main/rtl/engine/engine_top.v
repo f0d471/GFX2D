@@ -34,6 +34,7 @@
 module engine_top #(
     // 注错（变异测试）：各子模块的变异由 `ifdef INJ_xxx 选择 compile 输入，
     // 见 Main/doc/开发环境.md 0.3 节，本层不再透传注错参数。
+    parameter integer STRIP_H = 16,
     parameter integer TEX_READ_LATENCY = 1
 )(
     input  wire        clk,           // core_clk，100 MHz，与 SoC、DDR3 控制器同域
@@ -93,6 +94,13 @@ module engine_top #(
     wire        kick;
     wire [31:0] list_base;
     wire [31:0] list_count;
+    wire band_perf_rd, band_perf_wr;
+    wire band_mode, band_enable, band_start, band_flush, band_abort;
+    wire [31:0] lstrips, strip_log2, band_surfs, band_bg_base, band_dst_base;
+    wire [4:0] band_bg_slog2, band_dst_slog2;
+    wire [15:0] band_y0, band_frame_height;
+    wire band_start_ready, band_flush_ready, band_loaded, band_flushed, band_busy, band_error;
+    wire [3:0] band_error_code;
     wire        cmd_busy;
     wire        err_set, done_set, commit, suppress_writes;
     wire [3:0]  err_code;
@@ -194,10 +202,16 @@ module engine_top #(
     // PERF 汇聚（I8）。G1：读事件只计真实 DDR 描述符与命令取数，TEX 读不计入。
     wire [3:0] perf_key_lanes_w;
     wire       perf_key_valid_w;
-    wire perf_rdb = (g_rd_valid && g_rd_ready && !g_rd_tex) || (fd_valid && fd_ready);
+    `ifdef INJ_STRIP_PERF
+    wire perf_rdb = (g_rd_valid && g_rd_ready && !g_rd_tex)
+`else
+    wire perf_rdb = (g_rd_valid && g_rd_ready && !g_rd_tex && !g_rd_band)
+`endif || (fd_valid && fd_ready) ||
+                    band_perf_rd;
     wire [11:0] perf_rdb_beats = (fd_valid && fd_ready) ? {4'b0, fd_bytes[11:4]}
-                                                        : g_rd_beats;
-    wire perf_wrb = (g_wr_valid && g_wr_ready);
+                                                        : band_perf_rd ? 12'd160 : g_rd_beats;
+    wire perf_wrb = (g_wr_valid && g_wr_ready && !g_wr_band) ||
+                    band_perf_wr;
     wire perf_wait = (m_axi_arvalid && !m_axi_arready)
                   || (m_axi_rvalid  && !m_axi_rready)
                   || (m_axi_awvalid && !m_axi_awready)
@@ -216,7 +230,7 @@ module engine_top #(
     // =====================================================================
     // 寄存器层
     // =====================================================================
-    engine_regs u_regs (
+    engine_regs #(.STRIP_H(STRIP_H)) u_regs (
         .clk(clk), .rst(rst_ctrl),
         .paddr(paddr[11:0]), .psel(psel && apb_hit_regs), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(regs_prdata), .pready(regs_pready), .pslverr(regs_pslverr),
@@ -224,13 +238,14 @@ module engine_top #(
         .err_set(err_set), .err_code(err_code), .err_index(err_index), .err_tag(err_tag),
         .done_set(done_set),
         .kick(kick), .list_base(list_base), .list_count(list_count),
+        .band_mode(band_mode), .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
         .soft_rst_done(drain_done), .soft_rst_pending(soft_pending),
         .irq_b(irq_b),
         .perf_cmd(commit),
         .perf_pixel_en(sb_valid && sb_ready), .perf_pixel_npx(sb_npx),
         .perf_key_en(perf_key_valid_w), .perf_key_lanes(perf_key_lanes_w),
         .perf_rdb(perf_rdb), .perf_rdb_beats(perf_rdb_beats),
-        .perf_wrb(perf_wrb), .perf_wrb_beats(g_wr_beats),
+        .perf_wrb(perf_wrb), .perf_wrb_beats(band_perf_wr ? 12'd160 : g_wr_beats),
         .perf_wait(perf_wait), .perf_busy(cmd_busy),
         .surf_ra_id(surf_ra_id), .surf_rb_id(surf_rb_id),
         .surf_ra_w0(surf_ra_w0), .surf_ra_w1(surf_ra_w1), .surf_ra_w2(surf_ra_w2),
@@ -240,10 +255,19 @@ module engine_top #(
     // =====================================================================
     // 命令层
     // =====================================================================
-    engine_cmd u_cmd (
+    engine_cmd #(.STRIP_H(STRIP_H)) u_cmd (
         .clk(clk), .rst(rst_ctrl),
         .kick(kick), .list_base(list_base), .list_count(list_count),
+        .band_mode(band_mode), .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
         .soft_rst(soft_pending),
+        .band_enable(band_enable), .band_start(band_start), .band_flush(band_flush), .band_abort(band_abort),
+        .band_bg_base(band_bg_base), .band_dst_base(band_dst_base),
+        .band_bg_slog2(band_bg_slog2), .band_dst_slog2(band_dst_slog2),
+        .band_y0(band_y0), .band_frame_height(band_frame_height),
+        .band_start_ready(band_start_ready), .band_flush_ready(band_flush_ready),
+        .band_loaded(band_loaded), .band_flushed(band_flushed),
+        .band_busy(band_busy), .band_error(band_error), .band_error_code(band_error_code),
+        .drain_done(drain_done),
         .busy(cmd_busy),
         .err_set(err_set), .err_code(err_code),
         .err_index(err_index), .err_tag(err_tag),
@@ -286,14 +310,14 @@ module engine_top #(
     // =====================================================================
     // 几何层
     // =====================================================================
-    engine_geom #(.MAX_BEATS(192)) u_geom (
+    engine_geom #(.MAX_BEATS(192), .STRIP_H(STRIP_H)) u_geom (
         .clk(clk), .rst(rst_ctrl),
         .start(geom_start),
         .op(i1_op), .eq(i1_eq), .key_en(i1_key_en),
         .key_w5(i1_key), .const_w4(i1_w4), .c(i1_c), .sfmt(i1_sfmt),
         .src_base(i1_src_base), .src_w(i1_src_w), .src_h(i1_src_h),
         .src_slog2(i1_src_slog2), .src_tex(i1_src_tex),
-        .band_enable(1'b0), .band_y0(16'd0),
+        .band_enable(band_enable), .band_y0(band_y0),
         .dst_base(i1_dst_base), .dst_w(i1_dst_w), .dst_h(i1_dst_h),
         .dst_slog2(i1_dst_slog2),
         .src_x(i1_src_x), .src_y(i1_src_y), .dst_x(i1_dst_x), .dst_y(i1_dst_y),
@@ -337,19 +361,20 @@ module engine_top #(
     // =====================================================================
     // 搬运层（AXI 事务层）
     // =====================================================================
-    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13), .ENABLE_BAND(1)) u_mover (
+    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13), .ENABLE_BAND(1), .BAND_STRIP_H(STRIP_H)) u_mover (
+        .band_perf_rd(band_perf_rd), .band_perf_wr(band_perf_wr),
         .clk(clk), .rst(mover_rst),
         .rd_addr(g_rd_addr), .rd_bytes(g_rd_bytes), .rd_buf(g_rd_buf),
         .rd_cidx(g_rd_cidx), .rd_tex(g_rd_tex),
         .rd_band(g_rd_band), .wr_band(g_wr_band),
-        // G2 数据面已接入；G3 再提供帧级控制与能力位，当前明确禁用。
-        .band_start(1'b0), .band_flush(1'b0),
-        .band_start_ready(), .band_flush_ready(),
-        .band_bg_base(32'd0), .band_dst_base(32'd0),
-        .band_bg_slog2(5'd12), .band_dst_slog2(5'd12),
-        .band_y0(16'd0), .band_frame_height(16'd480),
-        .band_loaded(), .band_flushed(), .band_active(), .band_busy(),
-        .band_error(), .band_error_code(),
+        // G3 帧级控制：LOAD/EXEC/FLUSH 三相。
+        .band_start(band_start), .band_flush(band_flush),
+        .band_start_ready(band_start_ready), .band_flush_ready(band_flush_ready),
+        .band_bg_base(band_bg_base), .band_dst_base(band_dst_base),
+        .band_bg_slog2(band_bg_slog2), .band_dst_slog2(band_dst_slog2),
+        .band_y0(band_y0), .band_frame_height(band_frame_height),
+        .band_loaded(band_loaded), .band_flushed(band_flushed), .band_active(), .band_busy(band_busy),
+        .band_error(band_error), .band_error_code(band_error_code),
         .rd_valid(g_rd_valid), .rd_ready(g_rd_ready),
         .tx_addr(tx_addr), .tx_bytes(tx_bytes), .tx_buf(tx_buf), .tx_cidx(tx_cidx),
         .tx_valid(tx_valid), .tx_ready(tx_ready),
@@ -372,7 +397,7 @@ module engine_top #(
         .rd_stat_cidx(rd_stat_cidx), .rd_stat_buf(),
         .wr_stat_valid(wr_stat_valid), .wr_stat_err(wr_stat_err),
         .wr_stat_cidx(wr_stat_cidx), .wr_stat_last_row(wr_stat_last_row),
-        .drain_req(rst_ctrl || soft_pending),
+        .drain_req(rst_ctrl || soft_pending || band_abort),
         .drain_busy(), .drain_done(drain_done),
         .tmo_limit(EC_TMO_RESET),
         .err_clr(kick),

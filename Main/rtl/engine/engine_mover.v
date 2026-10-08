@@ -94,6 +94,7 @@ module engine_mover #(
     parameter integer ENABLE_BAND = 0,
     parameter integer BAND_STRIP_H = 16
 )(
+    output wire band_perf_rd, band_perf_wr,
     input  wire                  clk,
     input  wire                  rst,          // 搬运层复位，顶层接 ~ddr_rstn
 
@@ -356,6 +357,8 @@ module engine_mover #(
     wire        tx_fire       = tx_ready && rd_open && rd_pick_tex && !rd_busy && !b_rbusy;
     assign      b_rfire       = b_rready && rd_open && !fd_valid && rd_valid && rd_is_band && !rd_busy && !tx_busy;
     assign      b_rd_ready    = rd_core_ready && bg_open;
+    assign band_perf_rd = b_rd_valid && b_rd_ready;
+    assign band_perf_wr = b_wr_valid && b_wr_ready;
     assign      fd_ready      = rd_core_ready && rd_open;
     assign      rd_ready      = rd_open && !fd_valid &&
                                 (rd_is_band ? (b_rready && !rd_busy && !tx_busy) :

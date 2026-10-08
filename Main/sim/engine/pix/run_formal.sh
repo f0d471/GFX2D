@@ -69,7 +69,7 @@ run_case pipe_inj_core  tb_engine_pix_pipe FAIL "$PIPE" -DINJ_CORE_NOEN -DREADY_
 
 if ! gcc -O2 -std=c11 -Wall -Wextra -Werror -I../../../sw/lib \
     -o build/pix_cases_dump ../../../tools/check/pix_cases_dump.c \
-    ../../../sw/lib/gfx/list.c ../../../sw/lib/gfx/check.c \
+    ../../../sw/lib/gfx/list.c ../../../sw/lib/gfx/strip.c ../../../sw/lib/gfx/check.c \
     ../../../sw/lib/gfx/exec_sw.c ../../../sw/lib/gfx/cases.c \
     ../../../sw/lib/core/format.c >build/export.compile.log 2>&1 || \
    ! build/pix_cases_dump build/directed >build/export.log 2>&1; then

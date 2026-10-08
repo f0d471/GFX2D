@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-09",
+  "scope": "Final G3 source: volatile JTAG diagnostics, no Flash write",
+  "artifacts": [
+    {
+      "path": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+      "bytes": 2458029,
+      "sha256": "4230e4f3e473158380f033716a7bfb9b40a86ed38a0323a35b6e42162ad6cc82"
+    },
+    {
+      "path": "Main/sw/apps/test/stripTest/build/stripTest-O2.bin",
+      "bytes": 48866,
+      "sha256": "e876ba4f154a80f81c71d1c89c8b982b9cee648fe790b1f93ff987031ba5981a"
+    },
+    {
+      "path": "Main/sw/apps/test/engineTest/build_g3/engineTest-O2.bin",
+      "bytes": 53954,
+      "sha256": "17bf3ca60377b6a184d519b1bbfd9f1fe489a4db94177dc5d8c23c24a80dacb6"
+    }
+  ]
+}
