@@ -1,8 +1,8 @@
 # G2 BAND 数据面验证与前期研究
 
-正式数据面已实现、待验收，默认 `run.sh` 为正式验证。主帧控制仍未启用，
+正式数据面已实现并于 2026-10-08 验收归档，默认 `run.sh` 为正式验证。主帧控制仍未启用，
 研究探针与历史证据继续保留。过程与解释归入
-[engine 第 08 章](../../../../Engineering/TechReports/engine/08-条带缓冲前期研究.md)。
+[engine 第 08 章](../../../../Engineering/TechReports/engine/08-条带缓冲.md)。
 
 ## 正式复现
 
@@ -105,4 +105,4 @@ python3 Main/tools/check/g2_research.py --collect-syn
 
 构建物使用忽略的 `build/`，可复用研究源码与原始结果保留在本目录。
 正式 G2 判据和接续范围见
-[G2 条目](../../../../Engineering/Todo/hw/引擎P3-G2条带缓冲.md)。
+正式 G2 判据与证据见 [engine 第 08 章](../../../../Engineering/TechReports/engine/08-条带缓冲.md)。

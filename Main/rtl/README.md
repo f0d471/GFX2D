@@ -36,12 +36,12 @@
 引擎 P1 按层分六批（B1~B6），层间接口契约见
 [engine 第 00 章第三节](../../Engineering/TechReports/engine/00-P1路线与层间契约.md)。
 G1 在此基础启用 TEX profile，接口、验证与板测见
-[第 07 章](../../Engineering/TechReports/engine/07-片上纹理前期研究.md)。
+[第 07 章](../../Engineering/TechReports/engine/07-片上纹理.md)。
 
 | 文件 | 说明 |
 | --- | --- |
 | `engine_tex.v` | G1：16 KiB 四 bank scratchpad，32 位 APB 装载/读回，128 位同步读流，读延迟可选 1/2 拍；状态保持到 ready。cmd/geom 传 src_tex/rd_tex，mover 允许 DDR 请求提前而保持 I3 单流顺序；已进 SoC 网表 |
-| `engine_band.v` | G2 数据面：640×16×32 位，四路掩码、2048+512 分段、36 RAM；三相、紧凑映射、本地状态、同址读优先和取消。mover 目的路由与 geom 条带求交已实现，帧级控制仍接 0、CAPS.BAND=0；17 项验证和独立综合通过，待验收。过程与边界见 [第 08 章](../../Engineering/TechReports/engine/08-条带缓冲前期研究.md) |
+| `engine_band.v` | G2 数据面：640×16×32 位，四路掩码、2048+512 分段、36 RAM；三相、紧凑映射、本地状态、同址读优先和取消。mover 目的路由与 geom 条带求交已实现，帧级控制仍接 0、CAPS.BAND=0；17 项验证和独立综合通过，2026-10-08 已验收。过程与边界见 [第 08 章](../../Engineering/TechReports/engine/08-条带缓冲.md) |
 | `engine_blend.v` | B1：单通道混合核。源/目的/`a`/`c` 各 8 位与方程号 3 位进去，8 位出来，固定延迟 `L = 3`（D24）。六个方程都写成 `x = base × 255 + m1 × m2`，每通道一个推断出来的 `EFX_DSP48`；`base × 255` 用移位相减。B4 的 `engine_pix.v` 例化 12 个实例，B6 已随引擎接入整机网表 |
 | `engine_mover.v` | B2：搬运层（AXI 事务层）。引擎唯一的 AXI 主机，接 `Axi_Mux` 的 S1。里面是 `vendor/verilog-axi/` 的两个核（参数见 D3）、读侧仲裁（命令取数优先，D8）、每方向一笔在途的门控（D3 规矩 2、D12）、W 通道带内掩码（D16）、复位排空（D17、D29；一次请求只完成一次，请求举着期间不收新提交）与超时（D19、D30）。读方向的「完成」是**状态脉冲已捕获且读流 `tlast` 已握手**（D32：读核的状态可以早于末拍握手 1~55 拍，只看状态会让上下文错位）。整块挂搬运层复位（顶层接 `~ddr_rstn`）。B5 的 `engine_top.v` 已例化，B6 已接入 SoC 网表 |
 | `engine_geom.v` | B3：几何层。接一条过了十步检查的 FILL 或 BLIT（I1），五者求交、逐行迭代（每行 4 拍）、按 16 字节对齐的覆盖区间发读源、读目的、写目的的描述符（不跨 4KB、不超过 192 拍，I2），每行先发一条边带（I5）；`rd_buf = {源/目的, 行号最低位}`，每一行开始之前查 `row_free[行号最低位]`（D41）；零面积命令回一拍 `cmd_done`（D38）。B5 的 `engine_top.v` 已例化，B6 已接入 SoC 网表 |

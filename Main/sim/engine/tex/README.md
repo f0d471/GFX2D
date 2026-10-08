@@ -1,7 +1,7 @@
 # G1 TEX 验证与研究
 
 正式实现为 `rtl/engine/engine_tex.v`，已接入引擎与 SoC。规格、研究、修复和板测见
-[engine 第 07 章](../../../../Engineering/TechReports/engine/07-片上纹理前期研究.md)。
+[engine 第 07 章](../../../../Engineering/TechReports/engine/07-片上纹理.md)。
 
 ## 正式验证
 

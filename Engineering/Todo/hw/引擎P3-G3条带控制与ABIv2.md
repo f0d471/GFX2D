@@ -49,6 +49,7 @@
 | --- | --- |
 | `rtl/engine/engine_cmd.v` | 条带循环：S_IDLE 锁存条带参数→读表头计数→逐条带取数/执行→G2 flush 握手→S_TERM；空条带快路径 |
 | `rtl/engine/engine_regs.v` | `LSTRIPS`/`STRIP_H`/CTRL 模式位译码；`CAPS.BAND` 置 1 |
+| `rtl/engine/engine_top.v` | 启用帧级 BAND 时 PERF 读事件在 `!g_rd_tex` 外再加 `!g_rd_band`，目的片上读不得虚计进 DDR 读计数（G2 验收复核新列，engine 第 08 章第六节） |
 | `Main/tools/check/regs_gen.py` | 真源表扩展，重生成 `.vh` 与 `gfx_regs.h` |
 | `Engineering/TechReports/spec/02-命令语义.md` | v2 条带实例列表（space=0/1/2、SET_CLIP 限定、错误码映射、桶内序论证） |
 | `Main/sw/lib/gfx` | 分桶构造（每弹 O(1)，`dst_y>>log2(STRIP_H)` 定桶，跨桶复制裁剪命令）；软件执行器条带模式；区溢出报错 |

@@ -5,7 +5,7 @@
 </defs>
 <rect width="1500" height="850" fill="white"/>
 <g font-family="Microsoft YaHei,Arial,sans-serif" fill="#111">
-<text x="45" y="45" font-size="29">G2 条带缓冲前期研究：接入与证据边界</text>
+<text x="45" y="45" font-size="29">G2 条带缓冲：接入与证据边界</text>
 <text x="45" y="78" font-size="19">计算代理与 DMA 搬运分别取样；正式 engine_band 与生产片上路由尚未实现</text>
 <rect x="45" y="105" width="900" height="320" fill="none" stroke="#222" stroke-width="1.5"/>
 <text x="65" y="137" font-size="21">计算实验：tb_band_path（生成），软件执行器金标准</text>

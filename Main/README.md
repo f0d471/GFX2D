@@ -7,13 +7,14 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 
 ## 现在的状态
 
-2026-10-08 G2 正式条带数据面已完成、待验收：17 项正式验证符合预期，独立
+2026-10-08 G2 正式条带数据面已验收归档：17 项正式验证符合预期，独立
 1638 XLR/36 RAM/0 DSP、setup/hold +3.579/+0.035 ns。当前 outflow 为本批新
 整机接线构建，37426 XLR/121 RAM/16 DSP，core setup/hold +0.551/+0.026 ns，
-最薄 rx_cal hold +0.009 ns；新 bit 的 DDR/TEX 22 CRC 与错误/压力板测通过。
+最薄 rx_cal hold +0.009 ns；新 bit 的 DDR/TEX 22 CRC 与错误/压力板测通过，
+验收复核已逐值重跑并登记 sim/engine/band/logs/acceptance_review.json。
 主帧控制仍接 0、CAPS.BAND=0，BAND 的主工程 RAM 被裁剪，整机条带功能归 G3。
 本批产物清单在 sim/engine/band/logs/formal_artifacts.json；过程见
-[engine 第 08 章](../Engineering/TechReports/engine/08-条带缓冲前期研究.md)。
+[engine 第 08 章](../Engineering/TechReports/engine/08-条带缓冲.md)。
 下面 B6/G1 的资源表保留各自历史测量口径。
 
 | 部分 | 状态 |

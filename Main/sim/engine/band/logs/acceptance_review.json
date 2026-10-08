@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-08",
+  "baseline_commit": "a151bf4",
+  "status": "accepted",
+  "implementation_commit": "73c94ab",
+  "scope": "G2 research and dataplane acceptance; full re-run in WSL plus board re-run on the registered formal bit; no new synthesis, Flash write or 9208 replay",
+  "simulation": {
+    "band_formal": {"passed": 17, "total": 17, "note": "9 normal PASS + 8 mutations FAIL as expected", "entry": "Main/sim/engine/band/run.sh"},
+    "research": {"passed": 11, "total": 11, "entry": "Main/tools/check/g2_research.py"},
+    "geom": {"passed": 27, "total": 27},
+    "mover": {"passed": 17, "total": 17, "note": "requires EFINITY_HOME for EFX_SRL8 model"},
+    "pix": {"passed": 25, "total": 25},
+    "twelve_suites": "formal_regression_*.log all SIM OK; display default scope"
+  },
+  "values_reproduced": {
+    "exec_proxy_cycles_per_sprite": [246, 260],
+    "fill_flush_cycles": [3249, 3152],
+    "drain": {"cycles": 195, "prefix_words": 10, "wlast_errors": 0},
+    "model_deviation_percent": [1.16, 1.59],
+    "formal_two_phase_per_strip": 6384,
+    "strip_load_exec_flush": [3248, 8525, 3136]
+  },
+  "synthesis": {
+    "mode": "saved reports cross-checked; no new run",
+    "standalone": {"xlr": 1638, "ram": 36, "dsp": 0, "setup_ns": 3.579, "hold_ns": 0.035},
+    "main": {"xlr": 37426, "ram": 121, "dsp": 16, "rx_cal_hold_ns": 0.009},
+    "register_generation": "regs_gen --check passed"
+  },
+  "artifact_identity": {
+    "manifest": "formal_artifacts.json",
+    "bit_sha256_matched": true,
+    "engineTest_bin_sha256_matched": true
+  },
+  "board": {
+    "re_run": true,
+    "checker": "tools/board/board_run.py --bin engineTest build_g2_formal --stop-on done",
+    "result": "22 CRC + six error triplets + stress fail 0 / done, exit 0",
+    "perf_busy_per_sprite": 1184.625,
+    "perf_tex_per_sprite": 657.375,
+    "watermark": 338,
+    "note": "PERF/watermark deltas vs 1182.75/657.5625/335 are run jitter; 1176-byte log identical otherwise",
+    "log": "acceptance_board.log"
+  },
+  "rtl_review": [
+    "engine_band three-phase FSM, bit31 mask, X-byte clearing, cancel waiting dma_idle consistent with chapter 3.10",
+    "mover FIFO-prefix WSTRB gating on raw flush exit; timeout excludes idle EXEC; I3 single-owner gates hold",
+    "geom strip intersection keeps global source translation; rd_band/wr_band only on destination; I5 row_free untouched",
+    "main top ENABLE_BAND=1 with start/flush/geom band_enable tied 0; CAPS.BAND stays 0"
+  ],
+  "new_items": [
+    "G3 must extend PERF read filtering to exclude g_rd_band once frame-level BAND is enabled (chapter 6)"
+  ],
+  "retained_boundaries": [
+    "BAND board CRC/N_max evidence belongs to G4 per D56",
+    "rx_cal_clk hold +0.009 ns remains a watch item",
+    "Flash unchanged, 9208-frame replay deferred"
+  ]
+}
