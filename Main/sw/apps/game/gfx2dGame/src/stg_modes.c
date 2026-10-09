@@ -202,6 +202,99 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
         *census = cc;
     o->cyc_build = board_cycles() - t0;             /* 组帧含普查自查 */
 
+#if defined(GFX2D_STRIP_RESEARCH) && GFX2D_STRIP_RESEARCH
+    /* G4 研究探针：同一份游戏状态第二遍组 v2 条带表，只统计不执行。
+       16 行 30 桶与 32 行 15 桶各一遍，桶峰值读表头计数数组。
+       输出列：rcsv,u1,u2,pk16,cyc2,u3,pk32,cyc3,err2,err3,eqok；
+       err=两遍各自的 rejected+overflow+first_error 异常，eqok=1 表示
+       条带组帧的 by_eq 与直通一致。两遍都要 err 全 0、eqok=1。 */
+    {
+        static gfx_cmd  stbl[32768];                /* 1 MiB，一张定长 v2 表（D61） */
+        gfx_list        s2;
+        stg_frame_stats st2;
+        gfx_strip_config rcfg;
+        core_out        ro;
+        char            rbuf[128];
+        uint32_t        t1, t2, u1, u2, u3, pk16, pk32, i;
+        uint32_t        e2, e3;
+        int             eqok;
+
+        u1 = l.used;
+        rcfg.bg_id = (uint32_t)dst;
+        rcfg.dst_id = (uint32_t)dst;
+
+        t1 = board_cycles();
+        rcfg.lstrips = 30u;
+        rcfg.strip_log2 = 4u;
+        e2 = 1u;
+        u2 = 0u;
+        pk16 = 0u;
+        if (gfx_list_begin_strips(&s2, stbl, (uint32_t)sizeof stbl, ctx->tab,
+                                  &rcfg, 0) == 0 &&
+            stg_game_compose(&s_game, &s2, &cfg, live, &st2) == 0) {
+            u2 = s2.used;
+            e2 = s2.rejected + s2.overflow + (s2.first_error != GFX_OK);
+            for (i = 0u; i < 30u; i++) {
+                uint32_t c = ((const uint32_t *)(const void *)stbl)[i];
+                if (c > pk16)
+                    pk16 = c;
+            }
+        }
+        t1 = board_cycles() - t1;
+
+        {
+            uint32_t u3b = 0u;
+
+            t2 = board_cycles();
+            rcfg.lstrips = 15u;
+            rcfg.strip_log2 = 5u;
+            e3 = 1u;
+            pk32 = 0u;
+            if (gfx_list_begin_strips(&s2, stbl, (uint32_t)sizeof stbl, ctx->tab,
+                                      &rcfg, 0) == 0 &&
+                stg_game_compose(&s_game, &s2, &cfg, live, &st2) == 0) {
+                u3b = s2.used;
+                e3 = s2.rejected + s2.overflow + (s2.first_error != GFX_OK);
+                for (i = 0u; i < 15u; i++) {
+                    uint32_t c = ((const uint32_t *)(const void *)stbl)[i];
+                    if (c > pk32)
+                        pk32 = c;
+                }
+            }
+            t2 = board_cycles() - t2;
+            u3 = u3b;
+        }
+
+        eqok = 1;
+        for (i = 0u; i <= GFX_EQ_MAX; i++)
+            if (st2.by_eq[i] != o->st.by_eq[i])
+                eqok = 0;
+        core_out_init(&ro, rbuf, (uint32_t)sizeof rbuf);
+        core_out_str(&ro, "rcsv,");
+        core_out_u32(&ro, u1);
+        core_out_str(&ro, ",");
+        core_out_u32(&ro, u2);
+        core_out_str(&ro, ",");
+        core_out_u32(&ro, pk16);
+        core_out_str(&ro, ",");
+        core_out_u32(&ro, t1);
+        core_out_str(&ro, ",");
+        core_out_u32(&ro, u3);
+        core_out_str(&ro, ",");
+        core_out_u32(&ro, pk32);
+        core_out_str(&ro, ",");
+        core_out_u32(&ro, t2);
+        core_out_str(&ro, ",");
+        core_out_u32(&ro, e2);
+        core_out_str(&ro, ",");
+        core_out_u32(&ro, e3);
+        core_out_str(&ro, ",");
+        core_out_u32(&ro, (uint32_t)eqok);
+        core_out_str(&ro, "\r\n");
+        board_puts(rbuf);
+    }
+#endif
+
     o->presented_dst = -1;
     if (renderer_pipeline_enabled(ctx->hw)) {
         rc = renderer_pipeline_step(&l, dst, &xs, &o->cyc_exec,
