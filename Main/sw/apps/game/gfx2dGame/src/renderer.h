@@ -3,6 +3,17 @@
 
 #include <stdint.h>
 #include "gfx/gfx.h"
+#include "gfx/census.h"
+
+#ifndef GFX2D_STRIP_LOG2
+#define GFX2D_STRIP_LOG2 4
+#endif
+
+/* 后端 3 使用 ABI v2；其余后端保留直通表。cap 的单位仍为 gfx_cmd。 */
+int renderer_list_begin(int hw, gfx_list *list, gfx_cmd *buf, uint32_t cap,
+                         const gfx_surface_table *tab, int dst);
+int renderer_list_census(const gfx_surface_table *tab, const gfx_list *list,
+                          gfx_census *census);
 
 /* 同一份命令表的两位执行者。PC 的 hw 标签沿 SW8 判据仍用软件模拟；
    RV32 的 hw 才会提交到 B6 引擎。 */
@@ -19,6 +30,7 @@ int renderer_pipeline_step(const gfx_list *list, int dst, exec_sw_stats *done_st
 int renderer_pipeline_flush(int *presented);
 int renderer_compare_shadow(int dst, int shadow, const gfx_surface_table *tab,
                             const gfx_mem *mem, exec_sw_state *es,
-                            exec_sw_error *err, const gfx_list *list);
+                            exec_sw_error *err, const gfx_list *list,
+                            const exec_sw_stats *expected);
 
 #endif

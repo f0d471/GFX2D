@@ -1,0 +1,11 @@
+CASE-FAIL code=         1 idx=         0 tag=00000098 expected=         0/         0/00000000 st=00000018
+PIXEL-FAIL y=          0 word=          0 got=2c07e2bd98734e2904dfba95704b2601 exp=0002040a0002040a0002040a0002040a
+PIXEL-FAIL y=          0 word=          1 got=7c57320de8c39e79542f0ae5c09b7651 exp=0002040a0002040a0002040a0002040a
+PIXEL-FAIL y=          0 word=          2 got=cca7825d3813eec9a47f5a3510ebc6a1 exp=0002040a0002040a0002040a0013394e
+PIXEL-FAIL y=          0 word=          3 got=1cf7d2ad88633e19f4cfaa85603b16f1 exp=0005131900040e150003090f0002040a
+PERF-FAIL rd=        19 ar=         19 wr=         0 aw=          0
+G3 FRAME SH=         16 diff=      76800 cmd_reads=          3 pixel_reads=         16 writes=          0 DDR_beats=      2632
+PIXEL-COUNT-FAIL got=         0/         0 want=    668174/     13893
+G4 game frame checks=       4357 errors=          4
+RESULT: FAIL
+/mnt/e/Workspace/Efinix/Main/sim/engine/g4/tb_g4_frame.v:238: $finish called at 169595000 (1ps)

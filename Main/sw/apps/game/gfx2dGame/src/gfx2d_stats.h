@@ -76,6 +76,7 @@ int  stats_want_sample(const stats_state *s);
 /* 抽样：普查一张命令表（由调用方给的表面表与记录），连同执行器统计与其它量记下。 */
 void stats_sample_list(stats_state *s, const gfx_surface_table *t, const gfx_cmd *list, uint32_t used,
                        const stats_sample *other);
+void stats_sample_counted(stats_state *s, const gfx_census *cc, const stats_sample *other);
 
 /* 一帧结束：帧时间进窗口与直方图；满 60 场就出一行（ovf_now 是敌弹池溢出计数的当前值）。 */
 void stats_frame(stats_state *s, uint32_t ft_cyc, uint32_t cpu_cyc,

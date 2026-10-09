@@ -1,0 +1,14 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   6858 bytes written at address 0x00001000
+   downloaded 6858 bytes in 0.360887s (18.558 KiB/s)
+=== 等串口采集结束（上限 120 秒）
+--- 串口输出（E:\Workspace\Efinix\Main\sim\engine\g4\logs\ddrBurstProbe_guard.log）---
+# COM11 @ 115200 8N1, opened 17:00:30
+# --- 程序已加载，以下才是它的输出 ---
+ddrBurstProbe unavailable: S1 probe removed; use pre-B6 bitstream
+fail 1
+done
+
+# closed 17:00:40, 81 bytes

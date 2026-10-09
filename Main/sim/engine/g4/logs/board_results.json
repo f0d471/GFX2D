@@ -1,0 +1,48 @@
+{
+  "samples_4k": {
+    "frames": 17,
+    "full_replay": false,
+    "differences": 0
+  },
+  "samples_16k": {
+    "frames": 17,
+    "full_replay": false,
+    "differences": 0
+  },
+  "replay_4k": {
+    "frames": 9208,
+    "full_replay": true,
+    "differences": 0
+  },
+  "cache_coherency_4k": {
+    "fail": 0
+  },
+  "cache_coherency_16k": {
+    "fail": 0
+  },
+  "strip_diagnostics_16k": {
+    "fail": 0
+  },
+  "backend_switch": {
+    "sequence": [
+      "sw",
+      "hw",
+      "hw-tex",
+      "hw-strip"
+    ],
+    "errors": 0
+  },
+  "mutations": {
+    "game_crc_red": 10,
+    "cache_invalidation_red": 4,
+    "cache_false_red_rejected": 4,
+    "retired_probe_expected_absence": true
+  },
+  "sw7_regression": {
+    "fail": 0
+  },
+  "sw8_regression": {
+    "fail": 0
+  },
+  "artifact_registry": "Main/sim/engine/g4/logs/artifacts.json"
+}

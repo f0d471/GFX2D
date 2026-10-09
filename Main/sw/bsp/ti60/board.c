@@ -333,7 +333,7 @@ void board_wait_frame(void)
     }
 }
 
-#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+#if (defined(G1_TEX_COMPARE) && G1_TEX_COMPARE) || (defined(G4_STRIP_COMPARE) && G4_STRIP_COMPARE)
 int board_begin_compare(void)
 {
     uint32_t field, start;

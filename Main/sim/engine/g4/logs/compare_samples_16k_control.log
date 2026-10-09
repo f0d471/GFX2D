@@ -1,0 +1,61 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   125078 bytes written at address 0x00001000
+   downloaded 125078 bytes in 5.741283s (21.275 KiB/s)
+=== 等串口采集结束（上限 420 秒）
+--- 串口输出（E:\Workspace\Efinix\Main\sim\engine\g4\logs\compare_samples_16k.log）---
+# COM11 @ 115200 8N1, opened 16:50:09
+gfx2dGame STG
+# --- 程序已加载，以下才是它的输出 ---
+pak 2840320 b370ba0a
+compare tex ready; scan pattern
+seg 0 READY
+compare 0 sw 97d09cae hw 97d09cae
+g 0 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 97d09cae
+seg 120 STAGE
+compare 600 sw cb977254 hw cb977254
+g 600 1 1 pool 13 18 8 act 13 17 0 8 1 life 3 bomb 3 score 1000 graze 0 crc cb977254
+compare 1200 sw 51ef4488 hw 51ef4488
+g 1200 1 1 pool 28 18 0 act 28 18 4 0 1 life 3 bomb 3 score 1320 graze 2 crc 51ef4488
+compare 1800 sw 645b6fc6 hw 645b6fc6
+g 1800 1 1 pool 18 20 17 act 1 20 2 13 1 life 3 bomb 3 score 1920 graze 12 crc 645b6fc6
+seg 1860 BOSS
+seg 1934 SPELL 1 RING+AIM
+compare 2400 sw b4793381 hw b4793381
+g 2400 1 3 pool 78 15 0 act 75 15 1 0 1 life 3 bomb 3 score 2090 graze 19 crc b4793381
+seg 2757 SPELL 2 SPIRAL
+compare 3000 sw 0ef34007 hw 0ef34007
+g 3000 1 4 pool 239 16 0 act 235 15 1 0 1 life 3 bomb 3 score 12140 graze 24 crc 0ef34007
+compare 3600 sw ac509f01 hw ac509f01
+g 3600 1 4 pool 281 22 0 act 269 22 1 0 1 life 3 bomb 3 score 12350 graze 45 crc ac509f01
+compare 4200 sw e0776955 hw e0776955
+g 4200 1 4 pool 291 17 0 act 280 15 1 0 1 life 3 bomb 3 score 12590 graze 69 crc e0776955
+seg 4647 SPELL 3 FAN+RAIN
+compare 4800 sw 0a7b1f11 hw 0a7b1f11
+g 4800 1 5 pool 77 17 0 act 77 17 1 0 1 life 3 bomb 3 score 12800 graze 90 crc 0a7b1f11
+compare 5400 sw 408cb841 hw 408cb841
+g 5400 1 5 pool 207 16 0 act 207 16 1 0 1 life 3 bomb 3 score 13240 graze 134 crc 408cb841
+compare 6000 sw 67a6c3b8 hw 67a6c3b8
+g 6000 1 5 pool 192 22 0 act 190 22 1 0 1 life 3 bomb 3 score 13700 graze 180 crc 67a6c3b8
+seg 6537 FINAL OVERLOAD
+compare 6600 sw 2e25e0ca hw 2e25e0ca
+g 6600 1 6 pool 0 20 0 act 0 20 1 0 1 life 3 bomb 3 score 14180 graze 228 crc 2e25e0ca
+compare 7200 sw 08e2b03e hw 08e2b03e
+g 7200 1 6 pool 1109 18 0 act 1093 18 1 0 2 life 3 bomb 3 score 14880 graze 298 crc 08e2b03e
+compare 7800 sw acaa9f34 hw acaa9f34
+g 7800 1 6 pool 1658 22 0 act 1642 22 1 0 1 life 3 bomb 3 score 16510 graze 461 crc acaa9f34
+compare 8400 sw 1f8e883e hw 1f8e883e
+g 8400 1 6 pool 2050 22 0 act 2027 20 1 0 1 life 3 bomb 1 score 17770 graze 587 crc 1f8e883e
+compare 9000 sw 6b2493d7 hw 6b2493d7
+g 9000 1 6 pool 2692 22 0 act 2659 22 1 0 1 life 2 bomb 3 score 21060 graze 916 crc 6b2493d7
+seg 9027 CLEAR
+clear 9027 score 21280 graze 938 lives 2 bombs 3
+compare 9207 sw 937c83c9 hw 937c83c9
+seg 9207 READY
+g 9207 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 937c83c9
+end frames 9208 hits 4 over 0
+fail 0
+done
+
+# closed 16:50:48, 2503 bytes

@@ -1,0 +1,18 @@
+{
+  "game_frame": {
+    "expected": "RESULT: PASS",
+    "observed": "RESULT: PASS"
+  },
+  "game_bad_local_y": {
+    "expected": "RESULT: FAIL",
+    "observed": "RESULT: FAIL"
+  },
+  "game_bad_header": {
+    "expected": "RESULT: FAIL",
+    "observed": "RESULT: FAIL"
+  },
+  "game_bad_perf": {
+    "expected": "RESULT: FAIL",
+    "observed": "RESULT: FAIL"
+  }
+}

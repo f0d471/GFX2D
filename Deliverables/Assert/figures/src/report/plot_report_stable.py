@@ -20,19 +20,20 @@ with open(LOG, newline="", encoding="utf-8", errors="replace") as f:
             hdr = row
         elif row[0] == "csv":
             rows.append(row)
-ft = [int(r[hdr.index("ft_max")]) / 1e6 for r in rows]
+CYCLES_PER_MS = 100_000  # 100 MHz：1 ms = 100000 周期。
+ft = [int(r[hdr.index("ft_max")]) / CYCLES_PER_MS for r in rows]
 nact = [int(r[hdr.index("n_active")]) for r in rows]
-BUDGET = 1_666_667 / 1e6
+BUDGET = 1_666_667 / CYCLES_PER_MS
 
 fig, ax = plt.subplots(figsize=(7.2, 3.2), dpi=200)
 fig.subplots_adjust(left=0.09, right=0.90, top=0.86, bottom=0.17)
 ax.plot(range(len(ft)), ft, "-", color=BLUE, lw=1.4, marker="o", ms=2.5,
         label="该秒最长帧时间（左轴）")
 ax.axhline(BUDGET, color="#E8546B", lw=1.1, ls="--")
-ax.text(59, BUDGET + 0.012, "16.67 ms 帧预算", fontsize=10, color="#B23A48", ha="right")
-ax.set_xlabel("上电后经过时间（秒）", fontsize=11)
+ax.text(59, BUDGET + 0.12, "16.67 ms 帧预算", fontsize=10, color="#B23A48", ha="right")
+ax.set_xlabel("测量窗口时间（秒）", fontsize=11)
 ax.set_ylabel("该秒最长帧时间（ms）", fontsize=11)
-ax.set_ylim(0.6, 1.78)
+ax.set_ylim(6, 17.8)
 ax.spines[["top"]].set_visible(False)
 ax.grid(axis="y", color="#E3E6EA", lw=0.7)
 ax.set_axisbelow(True)

@@ -171,9 +171,6 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     const uint32_t   idx = (dst == STG_SLOT_FB1) ? 1u : 0u;
     gfx_list         l;
     stg_draw_cfg     cfg;
-#if !SW9_PERF || !GFX2D_PRESS_CLOCK
-    gfx_census_state cs;
-#endif
     gfx_census       cc;
     exec_sw_stats    xs;
 #if !SW9_PERF || !GFX2D_PRESS_CLOCK
@@ -182,7 +179,10 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     int              rc;
     uint32_t         t0 = board_cycles();
 
-    gfx_list_begin(&l, ctx->cmds[idx], ctx->cap[idx], ctx->tab);
+    if (renderer_list_begin(ctx->hw, &l, ctx->cmds[idx], ctx->cap[idx], ctx->tab, dst) != GFX_OK) {
+        say_err("list begin", 0u);
+        return;
+    }
     stg_modes_draw_cfg(&cfg, dst);
     if (stg_game_compose(&s_game, &l, &cfg, live, &o->st) != 0)
         say_err("compose", 0u);
@@ -191,11 +191,10 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
 
     gfx_census_clear(&cc);
 #if !SW9_PERF || !GFX2D_PRESS_CLOCK
-    gfx_census_reset(&cs);
-    if (gfx_census_run(&cs, ctx->tab, l.buf, l.used, &cc) != 0)
+    if (renderer_list_census(ctx->tab, &l, &cc) != 0)
         say_err("census", 0u);
     for (e = 0u; e <= GFX_EQ_MAX; e++)
-        if (cc.cmd_by_eq[e] != o->st.by_eq[e])
+        if (l.strip_table == NULL && cc.cmd_by_eq[e] != o->st.by_eq[e])
             say_err("census eq", e);
 #endif
     if (census != NULL)
@@ -219,6 +218,7 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
         uint32_t        e2, e3;
         int             eqok;
 
+        eqok = 1;
         u1 = l.used;
         rcfg.bg_id = (uint32_t)dst;
         rcfg.dst_id = (uint32_t)dst;
@@ -232,6 +232,8 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
         if (gfx_list_begin_strips(&s2, stbl, (uint32_t)sizeof stbl, ctx->tab,
                                   &rcfg, 0) == 0 &&
             stg_game_compose(&s_game, &s2, &cfg, live, &st2) == 0) {
+            for (i = 0u; i <= GFX_EQ_MAX; i++)
+                if (st2.by_eq[i] != o->st.by_eq[i]) eqok = 0;
             u2 = s2.used;
             e2 = s2.rejected + s2.overflow + (s2.first_error != GFX_OK);
             for (i = 0u; i < 30u; i++) {
@@ -265,7 +267,6 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
             u3 = u3b;
         }
 
-        eqok = 1;
         for (i = 0u; i <= GFX_EQ_MAX; i++)
             if (st2.by_eq[i] != o->st.by_eq[i])
                 eqok = 0;

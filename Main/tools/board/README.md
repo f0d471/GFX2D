@@ -184,3 +184,20 @@ python3 Main/tools/board/make_flash_image.py --app <程序.bin> [--out <镜像.h
 实测（2026-09-23，6.047 MiB 镜像）：擦除 32 秒、写入 34 秒、读回校验 23 秒，末尾 `Flash verify successful`。
 写完之后 FPGA 停在桥接镜像上；再按上面的 `--flash-boot` 烧一次自己的比特流，
 SoC 复位后就会从 Flash 启动。
+
+## G4 板测矩阵
+
+run_g4_matrix.py 在 Windows/Efinity Python 下串行调用 board_run.py：
+16k-follow 为候选同帧/S1/条带诊断/地址回绕；16k-cache 为候选缓存回归与
+旧探针不可用诊断；4k-perf 恢复主线后测同位流 TEX、S1、游戏和缓存注错；
+replay 完成四后端切换、缓存正常/失效注错/反例并跑完整 9208 帧条带回放。
+
+先用 check/check_g4_integration.py --build-target 构建对应程序，并用
+--register 登记即将部署的对象；16KB 构型由 soc/make_cache_variant.py 生成。
+stripTest 与 ddrAliasTest 使用各自 makefile 构建。矩阵在各阶段首项显式
+加载所对应 bit，后续应用复用当前配置。原始串口与控制日志在
+Main/sim/engine/g4/logs/；失败不继续下一项，不以进程退出码代替 fail/done。
+
+控制面板支持 SW、HW/DDR、HW/TEX、HW/STRIP 四个反馈名；每次切换等待
+板上确认，最多四次请求，旧固件不支持目标后端时停止。输入脚本等待
+mode 2 enter 后再计时，不能在启动素材装载期间把多次按键合并成一次。

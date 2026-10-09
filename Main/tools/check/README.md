@@ -455,3 +455,22 @@ M12 在本机约 7 分钟、M14 约 10 分钟，全套约 20 多分钟；`SW8_SK
 | M17i | 只给一份没有搜索的日志：`plot_stats.py` 必须报 `figures 2 missing 1`、退出码非 0、不出搜索轨迹图 |
 
 编译产物落临时目录，不动 `sw/build_host`。全部通过时末尾是 `fail 0` 与 `done`，退出码 0。
+
+## G4 整机复现
+
+check_g4_integration.py 从生产游戏和素材构建证据：--host 运行完整
+9208 帧 v1/v2 对拍与 1 万张批量构造差分；--rtl 运行真实游戏整帧和三变异；
+--performance 复核三档 N_max 与 S1 扫描，--samples / --replay 复核已有板测，
+--replay-progress 只检查正在采集的完整前缀，不据此通过最终回放验收。
+
+~~~text
+RISCV_BIN=<RISCV_BIN> python3 Main/tools/check/check_g4_integration.py --build-target
+python3 Main/tools/check/check_g4_integration.py --host --rtl
+python3 Main/tools/check/check_g4_integration.py --performance
+~~~
+
+--build-target 在 WSL 构建同帧、回放、两种后端 N_max、S1、交互与注错程序，
+并构建缓存正常/失效注错/反例自检。--target-suffix 可追加独立 OBJDIR 后缀，
+复现时避免覆盖已登记的板测对象。--register 接收实际部署文件，身份集中
+写入 sim/engine/g4/logs/artifacts.json，按大小和修改时间缓存摘要。
+g4_game_dump.c 是生产游戏的 RTL 工件导出器，由 --rtl 编译调用。

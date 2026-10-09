@@ -1,0 +1,25 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   47658 bytes written at address 0x00001000
+   downloaded 47658 bytes in 2.577627s (18.056 KiB/s)
+=== 等串口采集结束（上限 120 秒）
+--- 串口输出（E:\Workspace\Efinix\Main\sim\engine\g4\logs\cache_coherency_4k.log）---
+# COM11 @ 115200 8N1, opened 17:17:58
+# --- 程序已加载，以下才是它的输出 ---
+cacheCoherencyTest B6
+IDENT ok
+ got=00c0def1P ok
+ got=c0de00a1A1 ok
+ got=c0de00a1A2 ok
+ got=00c0def1A3 ok
+ got=c0de00a2A1 ok
+ got=c0de00a2A2 ok
+ got=00c0def1A3 ok
+ got=00c0def1B ok
+ got=00c0def1C ok
+D ok
+fail 0
+done
+
+# closed 17:18:07, 216 bytes

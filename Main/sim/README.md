@@ -112,3 +112,7 @@ DDR3 控制器与官方的 `axi_interconnect_beta` 是加密 RTL，SoC 网表里
 用到它的测试台必须把 `wlast_err` 非零判为失败：只打印不计错，会让一个把写通路弄死锁的主机替身看起来像「CPU 被饿死」。
 
 产物在各子目录的 `build/` 下，不进版本库。
+
+G4 的真实游戏整帧与同板证据在 [engine/g4](engine/g4/README.md)：
+check_g4_integration.py --rtl 使用 8 MiB 随机反压模型，检查 TEX/BAND、
+整帧可见区与 padding、DDR/PERF，并要求三种变异见红。

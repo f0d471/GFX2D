@@ -435,6 +435,13 @@ static int stage_inject(void)
 void main()
 {
     int fail = 0;
+    /* B6 起 S1 探针撤下；先读仍有效的第 0 页，避免访问旧页触发总线错误后静默停住。 */
+    if (*(volatile uint32_t *)(uintptr_t)0xF8100000u == 0x47465801u) {
+        wait_ms(8000u); /* 使诊断落在 board_run 的加载分界之后。 */
+        bsp_printf("ddrBurstProbe unavailable: S1 probe removed; use pre-B6 bitstream\r\n");
+        bsp_printf("fail 1\r\ndone\r\n");
+        return;
+    }
     bsp_printf("ddrBurstProbe\r\n");
     fail += stage_ident();
     fail += stage_cross();

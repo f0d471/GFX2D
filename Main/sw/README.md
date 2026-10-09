@@ -718,3 +718,18 @@ SET_CLIP 错误 2/1024/cafe005a、容量错误 2/1024/0、错误后再提交与�
 均 ok，末行 fail 0/done。原始串口在该应用 logs/g3_board.log；
 新 bit 的 engineTest 兼容性在 engineTest/logs/g3_compatibility.log。
 该程序使用 JTAG，不写 Flash；游戏条带后端与 N_max 属 G4。
+
+## G4 当前游戏后端
+
+模式 2/3 支持 GFX2D_START_BACKEND=0/1/2/3，依次为软件、直通 DDR、
+直通 TEX、条带 STRIP；运行时切换先收尾在途表。模式 1 的基础 Demo
+保持直通命令。renderer 统一 v1/v2 提交、软件影子与按桶普查，构造拒绝
+或溢出时不提交部分表。板上复现与性能边界见 engine 第 10 章。
+
+缓存回归的准备序列已改为按地址失效后别名写/装行，适用于 1/4 路；
+ddrBurstProbe 仍要求 B6 前的 S1 探针 bit，当前引擎 bit 会明确 fail 1/done
+退出。不得将这项不可用诊断计作突发验证。
+
+lib/gfx/strip_internal.h 仅供构造层内部使用：gfx_blit_run 完成模板或
+逐条检查后调用已校验追加入口，仍执行 v2 裁剪、反馈与原子容量检查。
+批量/逐条的字节、计数与错误差分由 sim/engine/g4/test_batch.c 验证。

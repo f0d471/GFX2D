@@ -77,6 +77,7 @@
 #define STRESS_N    64u
 
 static int fails = 0;
+static uint32_t armed_old;
 
 static void ok_line(const char *what, const char *verdict)
 {
@@ -124,9 +125,15 @@ static void judge(const char *what, uint32_t got, uint32_t expect_new,
                   uint32_t injectable)
 {
     put_hex(got);
+    if (got != V_NEW && got != armed_old) {
+        ok_line(what, "FAIL (unexpected value)");
+        fails++;
+        return;
+    }
     if (!injectable) {
-        ok_line(what, (got == V_NEW) == (expect_new != 0u) ? "ok" : "FAIL");
-        if ((got == V_NEW) != (expect_new != 0u))
+        const uint32_t want = expect_new ? V_NEW : armed_old;
+        ok_line(what, got == want ? "ok" : "FAIL");
+        if (got != want)
             fails++;
         return;
     }
@@ -240,20 +247,14 @@ static uint32_t read_inv_addr(const volatile uint32_t *p)
     return v;
 }
 
-/* CPU 把旧值写进 DDR 并读一次（装行）。返回读到的值，恒等于旧值。
-   三步与探针版「读数序列」第 0~2 步等价：
-   0 读 a^0x2000_0000（行号相同、标签不同）把被观测行换掉——上一轮 A3 失效后
-     读回的新值还留在这一行里，不换掉它会遮住别名写，装进缓存的就是新值
-     （本轮实测：省掉这一步时第二遍的 A1/A2 全部读回上一轮的新值）；
-   1 经**别名地址**（翻转 bit28，同一颗粒地址、不同缓存标签，E2 实测）把 DDR
-     置成旧值。被观测行不能用 CPU 直写（直写后失效行为与探针基线对不上）；
-   2 读被观测地址：缓存未命中，从 DDR 装进这一行（旧值）。 */
+/* 先按地址失效被观测行的全部 way，再经 DDR 别名写入旧值，最后装入原标签。
+   不以单个异标签读充当驱逐，因此 4KB/1 路与 16KB/4 路使用同一条准备序列。 */
 static uint32_t arm_line(uint32_t addr, uint32_t old)
 {
-    uint32_t evict;
-
-    evict = *(volatile uint32_t *)(uintptr_t)(addr ^ 0x20000000u);
-    *(volatile uint32_t *)(uintptr_t)(addr ^ 0x10000000u) = old | (evict & 0u);
+    /* 单个异标签读只会占多路缓存的另一 way，不能保证移除上一轮的新值。 */
+    board_dcache_invalidate_range((const void *)(uintptr_t)addr, 4u);
+    armed_old = old;
+    *(volatile uint32_t *)(uintptr_t)(addr ^ 0x10000000u) = old;
     return *(volatile uint32_t *)(uintptr_t)addr;
 }
 

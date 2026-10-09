@@ -1,0 +1,4 @@
+G3 FRAME SH=         16 diff=          0 cmd_reads=        207 pixel_reads=       2801 writes=        480 DDR_beats=     95376
+G4 game frame checks=      40782 errors=          0
+RESULT: PASS
+/mnt/e/Workspace/Efinix/Main/sim/engine/g4/tb_g4_frame.v:238: $finish called at 8547345000 (1ps)

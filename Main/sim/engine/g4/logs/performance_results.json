@@ -1,0 +1,111 @@
+{
+  "strip_4k": {
+    "16x16": {
+      "n_max": 424,
+      "knob": 384,
+      "ft_max": 1367750,
+      "ft_p99": 1367187
+    },
+    "8x8": {
+      "n_max": 505,
+      "knob": 464,
+      "ft_max": 1393819,
+      "ft_p99": 1393229
+    },
+    "diag": {
+      "fifo_min": 323,
+      "samples": 24045,
+      "zero": 0,
+      "under": 0,
+      "irqA": 24557,
+      "irqB": 24045,
+      "faults": 0,
+      "swap_retry": 0
+    },
+    "log": "Main/sim/engine/g4/logs/nmax_strip_4k.log"
+  },
+  "strip_16k": {
+    "16x16": {
+      "n_max": 479,
+      "knob": 432,
+      "ft_max": 1352346,
+      "ft_p99": 1352346
+    },
+    "8x8": {
+      "n_max": 597,
+      "knob": 544,
+      "ft_max": 1405655,
+      "ft_p99": 1405655
+    },
+    "diag": {
+      "fifo_min": 321,
+      "samples": 25120,
+      "zero": 0,
+      "under": 0,
+      "irqA": 25982,
+      "irqB": 25120,
+      "faults": 0,
+      "swap_retry": 0
+    },
+    "log": "Main/sim/engine/g4/logs/nmax_strip_16k.log"
+  },
+  "tex_4k": {
+    "16x16": {
+      "n_max": 1891,
+      "knob": 1648,
+      "ft_max": 1637398,
+      "ft_p99": 1637398
+    },
+    "8x8": {
+      "n_max": 2237,
+      "knob": 1984,
+      "ft_max": 1252198,
+      "ft_p99": 1250000
+    },
+    "diag": {
+      "fifo_min": 331,
+      "samples": 27642,
+      "zero": 0,
+      "under": 0,
+      "irqA": 29037,
+      "irqB": 27642,
+      "faults": 0,
+      "swap_retry": 0
+    },
+    "log": "Main/sim/engine/g4/logs/nmax_tex_4k.log"
+  },
+  "s1_4k": {
+    "frames": 1835,
+    "fields": 3602,
+    "drops": 1767,
+    "fps": 30.56635202665186,
+    "diag": {
+      "fifo_min": 326,
+      "samples": 1835,
+      "zero": 0,
+      "under": 0,
+      "irqA": 4035,
+      "irqB": 1835,
+      "faults": 0,
+      "swap_retry": 0
+    },
+    "log": "Main/sim/engine/g4/logs/s1_strip_4k.log"
+  },
+  "s1_16k": {
+    "frames": 1837,
+    "fields": 3602,
+    "drops": 1765,
+    "fps": 30.599666851749028,
+    "diag": {
+      "fifo_min": 325,
+      "samples": 1837,
+      "zero": 0,
+      "under": 0,
+      "irqA": 4019,
+      "irqB": 1837,
+      "faults": 0,
+      "swap_retry": 0
+    },
+    "log": "Main/sim/engine/g4/logs/s1_strip_16k.log"
+  }
+}

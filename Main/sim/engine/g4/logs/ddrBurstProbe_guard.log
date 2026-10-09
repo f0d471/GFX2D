@@ -1,0 +1,7 @@
+# COM11 @ 115200 8N1, opened 17:00:30
+# --- 程序已加载，以下才是它的输出 ---
+ddrBurstProbe unavailable: S1 probe removed; use pre-B6 bitstream
+fail 1
+done
+
+# closed 17:00:40, 81 bytes

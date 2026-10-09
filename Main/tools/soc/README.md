@@ -42,3 +42,18 @@ cmd /c "call <EFINITY>\bin\setup.bat && python Main\tools\soc\ipm_gen_soc.py --p
 - **工程要与 bootloader hex 在同一个盘。** `settings.json` 的 `HexFile_Path` 指向 `Main/sdk/tool/bootloader/`，
   复制工程放在别的盘上时生成器的 `relpath` 跨盘报错。复制工程放在仓库外、与仓库同一个盘的目录里。
   `HexFile_Path` 必须先用 `localize_paths.py --apply` 展开，还是占位符时脚本直接报错。
+
+## 缓存候选复制工程
+
+make_cache_variant.py 复制当前工程，重定位 RTL 引用，调用 ipm_gen_soc.py
+覆盖 DCacheSize/DCACHEWAY；不修改主线 IP 或 SDK。默认候选为
+Main/sim/engine/g4/build/cache16/gfx2d_ti60，16KB/4 路。
+
+~~~text
+cmd /c "call <EFINITY>\bin\setup.bat && python Main\tools\soc\make_cache_variant.py --build"
+~~~
+
+--dry-run 复制并验证参数，不生成 IP；--output 可指定另一个空复制目录。
+已有候选目录默认拒绝重写，确需重建时显式给 --overwrite，重建后按新的
+传输边界重新登记部署产物。--build 运行四步并保存 outflow/g4_synthesis.log，
+资源时序由 check_g4_integration.py --synthesis <工程> --tag <标签> 收集。

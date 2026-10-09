@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""离线核对控制面板的三个后端、CSV 弹数和确认后的连续切换，不开 GUI/串口。"""
+"""离线核对控制面板的四个后端、CSV 弹数和确认后的连续切换，不开 GUI/串口。"""
 import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'board'))
@@ -19,9 +19,13 @@ panel.send_action=lambda keys: sent.append(keys) or True
 panel.notify=lambda message: None
 panel.process_line('backend hw-tex frame 20')
 assert sent==[64] and panel.pending_backend=='sw'
-panel.process_line('backend sw frame 21')
+panel.process_line('backend hw-strip frame 21')
+assert sent==[64,64] and panel.pending_backend=='sw'
+panel.process_line('backend sw frame 22')
 assert panel.pending_backend is None
-panel.pending_backend='hw-tex'; panel.pending_steps=3
+panel.pending_backend='hw-tex'; panel.pending_steps=4
 panel.process_line('backend hw frame 22')
-assert panel.pending_backend is None and sent==[64]
+assert panel.pending_backend is None and sent==[64,64]
+state.consume('csv,1,game,hw-strip,60,0,101,91,0,60000')
+assert state.backend=='hw-strip' and state.bullets==91
 print('Control panel: TEX CSV, bullet count, confirmed transitions and unsupported target OK')

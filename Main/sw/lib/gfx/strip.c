@@ -1,5 +1,6 @@
 /* ABI v2 定长条带表：裁剪吸收、保序分桶与执行时的纯检查。 */
 #include "gfx/gfx.h"
+#include "strip_internal.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -69,15 +70,13 @@ int gfx_list_begin_strips(gfx_list *l, void *table, uint32_t bytes,
     for(i=0;i<32u;i++) ((uint32_t *)table)[i]=0;
     return GFX_OK;
 }
-int gfx_strip_append(gfx_list *l,const gfx_cmd *c)
+int gfx_strip_append_checked(gfx_list *l,const gfx_cmd *c)
 {
     uint32_t *counts=(uint32_t *)(void *)l->strip_table;
     uint32_t op=gfx_op(c),sh=1u<<l->strips.strip_log2,s,s0,s1;
     gfx_rect r;
-    int e=gfx_cmd_check(l->t,c);
     int32_t dx=gfx_s16(c->w[2]),dy=gfx_s16(c->w[2]>>16);
     int32_t sx=gfx_s16(c->w[1]),sy=gfx_s16(c->w[1]>>16);
-    if(e) return rejected(l,e); /* 零面积也不能跳过字段/表面检查。 */
     if(op==GFX_OP_SET_CLIP) {
         int32_t x=gfx_s16(c->w[1]),y=gfx_s16(c->w[1]>>16);
         l->build_clip=(gfx_rect){x,y,x+(int32_t)gfx_u16(c->w[3])-1,
@@ -144,4 +143,11 @@ int gfx_strip_append(gfx_list *l,const gfx_cmd *c)
         bucket[counts[s]++]=out;l->used++;
     }
     return GFX_OK;
+}
+
+int gfx_strip_append(gfx_list *l,const gfx_cmd *c)
+{
+    const int e = gfx_cmd_check(l->t,c);
+    if(e) return rejected(l,e); /* 零面积也不能跳过字段/表面检查。 */
+    return gfx_strip_append_checked(l,c);
 }

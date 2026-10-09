@@ -1,0 +1,18 @@
+# COM11 @ 115200 8N1, opened 16:58:19
+# --- 程序已加载，以下才是它的输出 ---
+cacheCoherencyTest B6
+IDENT ok
+ got=00c0def1P ok
+ got=c0de00a1A1 ok
+ got=c0de00a1A2 ok
+ got=00c0def1A3 ok
+ got=00c0def1A1 FAIL
+ got=00c0def1A2 FAIL
+ got=00c0def1A3 ok
+ got=00c0def1B ok
+ got=00c0def1C ok
+D ok
+fail 2
+done
+
+# closed 16:58:28, 220 bytes

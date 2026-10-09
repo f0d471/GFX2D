@@ -1,0 +1,14 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   6722 bytes written at address 0x00001000
+   downloaded 6722 bytes in 0.352252s (18.636 KiB/s)
+=== 等串口采集结束（上限 120 秒）
+--- 串口输出（E:\Workspace\Efinix\Main\sim\engine\g4\logs\ddrBurstProbe_16k.log）---
+# COM11 @ 115200 8N1, opened 16:52:09
+ddrBurstProbe
+# --- 程序已加载，以下才是它的输出 ---
+
+# closed 16:54:09, 15 bytes
+ERROR: 120 秒内没有收到 'done'
+       （加载前板子自启动打了 15 字节，那一段不参与匹配；--stop-on 要取程序末尾的标记）

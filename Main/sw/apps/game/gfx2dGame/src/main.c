@@ -80,11 +80,11 @@ static uint32_t          s_cmd_cap[2];
 static sw6_scene_a       s_a;
 static sw6_scene_b       s_b;
 static uint32_t          s_fail;
-static uint32_t          s_backend;       /* 0 软件，1 硬件/DDR，2 硬件/TEX（G1）；PC 的非 0 仍模拟软件 */
+static uint32_t          s_backend;       /* 0 软件，1 硬件/DDR，2 硬件/TEX，3 硬件/STRIP */
 static int               s_tex_ready;     /* 热集已装载并 CRC 自校验通过（G1，HW/TEX 可用） */
 static int               s_tex_on;        /* 表面表的热集槽当前处于 TEX 覆盖层之下 */
 #if !SW6_MODE_JUDGE || SW9_PERF
-static uint32_t          s_backend_fps[3], s_backend_fps_valid[3];
+static uint32_t          s_backend_fps[4], s_backend_fps_valid[4];
 #endif
 
 /* 上一帧最终的统计与三段耗时：HUD 显示的就是它们 */
@@ -497,8 +497,8 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
 #if SW9_PERF
         hud.sw_fps       = s_backend_fps[0];
         hud.sw_fps_valid = (int)s_backend_fps_valid[0];
-        hud.hw_fps       = s_backend_fps[s_backend == 2u ? 2u : 1u];
-        hud.hw_fps_valid = (int)s_backend_fps_valid[s_backend == 2u ? 2u : 1u];
+        hud.hw_fps       = s_backend_fps[s_backend ? s_backend : 1u];
+        hud.hw_fps_valid = (int)s_backend_fps_valid[s_backend ? s_backend : 1u];
 #else
         /* 只有一个窗口，实测值按当前后端归栏；判据只走软件，HUD 与 SW6 期望日志不变 */
         hud.sw_fps       = s_sw_fps;
@@ -661,8 +661,8 @@ static int run_judge(void)
 #ifndef GFX2D_START_BACKEND
 #define GFX2D_START_BACKEND 0
 #endif
-#if GFX2D_START_BACKEND != 0 && GFX2D_START_BACKEND != 1 && GFX2D_START_BACKEND != 2
-#error "GFX2D_START_BACKEND 只认 0（软件）、1（硬件/DDR）或 2（硬件/TEX）"
+#if GFX2D_START_BACKEND < 0 || GFX2D_START_BACKEND > 3
+#error "GFX2D_START_BACKEND 只认 0（软件）、1（硬件/DDR）、2（硬件/TEX）或 3（硬件/STRIP）"
 #endif
 #if GFX2D_START_MODE < 1 || GFX2D_START_MODE > 3
 #error "GFX2D_START_MODE 只认 1、2、3"
@@ -721,7 +721,7 @@ static const struct {
 };
 static uint32_t s_tex_off[3];       /* 各热集槽在 TEX 窗口内的字节偏移 */
 static uint32_t s_tex_ddr[3];       /* 各热集槽的 DDR 基址（恢复其它后端用） */
-#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+#if (defined(G1_TEX_COMPARE) && G1_TEX_COMPARE) || (defined(G4_STRIP_COMPARE) && G4_STRIP_COMPARE)
 static uint32_t s_tex_shadow[4096]; /* 对拍专用的连续影子；性能构建不分配或复制 */
 #endif
 
@@ -771,13 +771,13 @@ static int boot_tex(void)
             return -1;
         s_tex_off[i] = off;
         s_tex_ddr[i] = asset_dev + e.offset;
-#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+#if (defined(G1_TEX_COMPARE) && G1_TEX_COMPARE) || (defined(G4_STRIP_COMPARE) && G4_STRIP_COMPARE)
         memcpy((uint8_t *)s_tex_shadow + off,
                (const void *)(uintptr_t)(asset_dev + e.offset),bytes);
 #endif
         off += bytes;
     }
-#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+#if (defined(G1_TEX_COMPARE) && G1_TEX_COMPARE) || (defined(G4_STRIP_COMPARE) && G4_STRIP_COMPARE)
     s_mem.tex_host=(uint8_t *)s_tex_shadow;
     s_mem.tex_bytes=sizeof s_tex_shadow;
 #endif
@@ -814,7 +814,12 @@ static int tex_overlay(int on)
 static int backend_apply(uint32_t backend)
 {
     // 演示模式使用 SW6 的另一套槽位，不能覆盖成 STG 的热集槽。
-    const int want = (backend == 2u && s_mode != 1u);
+    const int want = (backend >= 2u && s_mode != 1u);
+
+#ifndef __riscv
+    if (backend == 3u)
+        return 0;
+#endif
 
     if (!want)
         return s_tex_on ? tex_overlay(0) : 0;
@@ -924,7 +929,7 @@ static void mode_enter(uint32_t m)
         else
             stg_mode_press_enter();
     }
-    if (s_backend == 2u && backend_apply(2u) != 0) {
+    if (s_backend >= 2u && backend_apply(s_backend) != 0) {
         board_puts("tex err 覆盖层失败，退回 HW/DDR\r\n");
         s_backend = 1u;
     }
@@ -996,8 +1001,8 @@ static uint32_t mode_frame(uint32_t keys, int entering)
         }
         live.sw_fps       = s_backend_fps[0];
         live.sw_fps_valid = (int)s_backend_fps_valid[0];
-        live.hw_fps       = s_backend_fps[s_backend == 2u ? 2u : 1u];
-        live.hw_fps_valid = (int)s_backend_fps_valid[s_backend == 2u ? 2u : 1u];
+        live.hw_fps       = s_backend_fps[s_backend ? s_backend : 1u];
+        live.hw_fps_valid = (int)s_backend_fps_valid[s_backend ? s_backend : 1u];
         live.seg_text     = 0;
         if (s_mode == 2u)
             stg_mode_game_frame(&ctx, dst, keys, &live, &s_mout);
@@ -1115,7 +1120,19 @@ static void sample_frame(void)
             s_fail++;
     }
 #endif
-    stats_sample_list(&s_stats, &s_tab, s_cmds[idx], used, &smp);
+    if (s_backend == 3u && s_mode != 1u) {
+        gfx_list view;
+        gfx_census cc;
+        gfx_list_begin(&view, s_cmds[idx], s_cmd_cap[idx], &s_tab);
+        view.strip_table = (uint8_t *)(void *)s_cmds[idx];
+        view.strips = (gfx_strip_config){480u >> GFX2D_STRIP_LOG2,
+                                         GFX2D_STRIP_LOG2, idx, idx};
+        view.used = used;
+        if (renderer_list_census(&s_tab, &view, &cc) != 0)
+            s_fail++;
+        stats_sample_counted(&s_stats, &cc, &smp);
+    } else
+        stats_sample_list(&s_stats, &s_tab, s_cmds[idx], used, &smp);
 }
 
 static int run_modes(void)
@@ -1141,8 +1158,12 @@ static int run_modes(void)
     s_tex_ready = 0;
 #endif
     s_backend = (uint32_t)GFX2D_START_BACKEND;
-    if (s_backend == 2u && !s_tex_ready)
+    if (s_backend >= 2u && !s_tex_ready)
+#ifdef __riscv
         s_backend = 1u;         /* 装载失败或宿主无引擎：退回 HW/DDR */
+#else
+        s_backend = (s_backend == 3u) ? 3u : 1u; /* 宿主条带后端执行软件 v2。 */
+#endif
     s_swj_n   = 0u;
 #if SW9_PERF
     s_diag_min = 0xFFFFFFFFu;
@@ -1192,11 +1213,11 @@ static int run_modes(void)
             next = s_mode % 3u + 1u;
         if ((pressed & BOARD_KEY_SWAP) || (ev & STG_CHORD_SWAP)) {
             int presented;
-            uint32_t nb = s_backend + 1u;           /* 软件→硬件/DDR→硬件/TEX→软件 */
+            uint32_t nb = s_backend + 1u;           /* 软件→DDR→TEX→STRIP→软件 */
 
-            if (nb >= 3u)
+            if (nb >= 4u)
                 nb = 0u;
-            if (nb == 2u && !s_tex_ready)
+            if (nb >= 2u && !s_tex_ready)
                 nb = 0u;                            /* 热集没装载成功：跳过 HW/TEX */
             if (renderer_pipeline_flush(&presented) != 0) {
                 board_puts("engine flush err\r\n");
@@ -1216,7 +1237,8 @@ static int run_modes(void)
             core_out_init(&o, buf, (uint32_t)sizeof buf);
             core_out_str(&o, s_backend == 0u ? "backend sw frame "
                              : (s_backend == 1u ? "backend hw frame "
-                                                : "backend hw-tex frame "));
+                             : (s_backend == 2u ? "backend hw-tex frame "
+                                                : "backend hw-strip frame ")));
             core_out_u32(&o, total);
             core_out_str(&o, "\r\n");
             log_line(buf);
@@ -1351,11 +1373,16 @@ static int run_stg(void)
     ctx.cap[0]  = s_cmd_cap[0];
     ctx.cap[1]  = s_cmd_cap[1];
 #if defined(SW9_REPLAY_HW) && SW9_REPLAY_HW
-    ctx.hw = 1;
+    ctx.hw =
+#if defined(G4_STRIP_RENDER) && G4_STRIP_RENDER
+        3;
+#else
+        1;
+#endif
 #else
     ctx.hw = 0;
 #endif
-#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+#if (defined(G1_TEX_COMPARE) && G1_TEX_COMPARE) || (defined(G4_STRIP_COMPARE) && G4_STRIP_COMPARE)
     if (boot_tex() != 0) {
         board_puts("compare tex load err\r\n");
         sw6_log_end(s_fail+1u); return 1;
@@ -1366,6 +1393,16 @@ static int run_stg(void)
         sw6_log_end(s_fail+1u); return 1;
     }
     board_puts("compare tex ready; scan pattern\r\n");
+#endif
+#if defined(__riscv) && defined(G4_STRIP_RENDER) && G4_STRIP_RENDER
+    if (boot_tex() != 0) {
+        board_puts("replay tex load err\r\n");
+        sw6_log_end(s_fail + 1u); return 1;
+    }
+    s_tex_ready = 1;
+    if (backend_apply(2u) != 0) {
+        sw6_log_end(s_fail + 1u); return 1;
+    }
 #endif
     if (renderer_prepare(ctx.hw, &s_tab) != 0) {
         board_puts("engine prepare err\r\n");

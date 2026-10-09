@@ -21,7 +21,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
+#if (defined(G1_TEX_COMPARE) && G1_TEX_COMPARE) || (defined(G4_STRIP_COMPARE) && G4_STRIP_COMPARE)
 /* 同帧诊断选择彩条并等一场，两个帧缓冲均不参与扫描，帧时钟继续运行。 */
 int board_begin_compare(void);
 #endif

@@ -1,0 +1,49 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   2538 bytes written at address 0x00001000
+   downloaded 2538 bytes in 0.136041s (18.219 KiB/s)
+=== 等串口采集结束（上限 120 秒）
+--- 串口输出（E:\Workspace\Efinix\Main\sim\engine\g4\logs\ddrAliasTest_16k.log）---
+# COM11 @ 115200 8N1, opened 16:52:07
+ddrAliasTest
+LOW k=0 addr=0x0c800001 expect=80 got=80 ok
+LOW k=1 addr=0x0c800002 expect=81 got=81 ok
+LOW k=2 addr=0x0c800004 expect=82 got=82 ok
+LOW k=3 addr=0x0c800008 expect=83 got=83 ok
+LOW k=4 addr=0x0c800010 expect=84 got=84 ok
+# --- 程序已加载，以下才是它的输出 ---
+LOW k=5 addr=0x0c800020 expect=85 got=85 ok
+LOW k=6 addr=0x0c800040 expect=86 got=86 ok
+LOW k=7 addr=0x0c800080 expect=87 got=87 ok
+LOW k=8 addr=0x0c800100 expect=88 got=88 ok
+LOW k=9 addr=0x0c800200 expect=89 got=89 ok
+LOW k=10 addr=0x0c800400 expect=8a got=8a ok
+LOW k=11 addr=0x0c800800 expect=8b got=8b ok
+LOW k=12 addr=0x0c801000 expect=8c got=8c ok
+LOW k=13 addr=0x0c802000 expect=8d got=8d ok
+LOW k=14 addr=0x0c804000 expect=8e got=8e ok
+LOW k=15 addr=0x0c808000 expect=8f got=8f ok
+LOW k=16 addr=0x0c810000 expect=90 got=90 ok
+LOW k=17 addr=0x0c820000 expect=91 got=91 ok
+LOW k=18 addr=0x0c840000 expect=92 got=92 ok
+LOW k=19 addr=0x0c880000 expect=93 got=93 ok
+LOW k=20 addr=0x0c900000 expect=94 got=94 ok
+LOW k=21 addr=0x0ca00000 expect=95 got=95 ok
+LOW k=22 addr=0x0cc00000 expect=96 got=96 ok
+LOW k=23 addr=0x0c000000 expect=97 got=97 ok
+LOW k=24 addr=0x0d800000 expect=98 got=98 ok
+LOW k=25 addr=0x0e800000 expect=99 got=99 ok
+LOW k=26 addr=0x08800000 expect=9a got=9a ok
+LOW k=27 addr=0x04800000 expect=9b got=9b ok
+LOW k=-1 addr=0x0c800000 expect=5a got=5a ok
+HIGH k=28 addr=0x1c800000 expect=dc got=dc ok
+HIGH k=29 addr=0x2c800000 expect=dd got=dd ok
+HIGH k=30 addr=0x4c800000 expect=de got=de ok
+HIGH k=31 addr=0x8c800000 expect=df got=df ok
+CACHE_NOEVICT k=0 addr=0x0d000000 expect=11 got=11 ok
+CACHE_EVICT k=0 addr=0x0d000000 expect=22 got=22 ok
+base 0x0c800000 fail 0
+done
+
+# closed 16:52:09, 1664 bytes

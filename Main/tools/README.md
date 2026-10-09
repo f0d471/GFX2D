@@ -40,3 +40,7 @@ Efinity 自带的 `python.exe` 在 `python311\bin\` 下而标准库在 `python31
 - 判断成功要有正面证据（输出里的成功标记、字节数、`done`），不能只看子进程的退出码：
   厂商脚本出错时也可能返回 0，见 `board/README.md`。
 - 判据脚本要带注错：把一处改错，判据必须报 FAIL，只跑正常用例说明不了判据在检查东西。
+
+G4 复现入口：check/check_g4_integration.py（宿主、RTL、板测构建与证据核验）、
+board/run_g4_matrix.py（串行板测）、soc/make_cache_variant.py（独立缓存构型）、
+stats/plot_g4.py（实测对照图）；各子目录 README 登记参数。

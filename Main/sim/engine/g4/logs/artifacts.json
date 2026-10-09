@@ -1,0 +1,107 @@
+{
+  "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit": {
+    "size": 2458029,
+    "mtime_ns": 1791534228353635000,
+    "sha256": "6dc5a6b515ba76d620a06e0c804563c0e2bae1e86f7278fc5548d0a17cabe481"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_g4_compare_samples/gfx2dGame-O2.bin": {
+    "size": 125078,
+    "mtime_ns": 1791534470632598300,
+    "sha256": "dee3ea9d74d7e46221122e4a992a99aa6ddb8f8eb825d38b31aaf9781520c9d7"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_g4_replay/gfx2dGame-O2.bin": {
+    "size": 124486,
+    "mtime_ns": 1791534476498062800,
+    "sha256": "2fc81a8459e133130ecd0601ec00dce72207a656f4b88b7b7f2ea3362e101d20"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_g4_nmax/gfx2dGame-O2-perf.bin": {
+    "size": 91998,
+    "mtime_ns": 1791534480466217500,
+    "sha256": "820c7140d4c9500f2029481380508359db477b289463bffa11f182fb36971ffd"
+  },
+  "Main/sim/engine/g4/build/cache16/gfx2d_ti60/outflow/gfx2d_ti60.bit": {
+    "size": 2488080,
+    "mtime_ns": 1791535017916100600,
+    "sha256": "2f5f12309399310cb1bf66cf2f46626bd83ea95e65f186a7573a016d42a153c7"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_g4_nmax_tex/gfx2dGame-O2-perf.bin": {
+    "size": 91998,
+    "mtime_ns": 1791535387704790800,
+    "sha256": "945b8f17830f5b6adb9efec5908eddd1780abce53bd1f71165333682de9dff27"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_g4_s1/gfx2dGame-O2-perf.bin": {
+    "size": 92030,
+    "mtime_ns": 1791535394602532200,
+    "sha256": "9f9ae8779c82c501b1acad1e59d5237ad253825295d81fc6f384afc806109f9f"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_g4_game/gfx2dGame-O2-perf.bin": {
+    "size": 92198,
+    "mtime_ns": 1791535401474740000,
+    "sha256": "956ebef2dd5b19ee45eab48acf17a081c7d062943704b8f0dc0588a0c77fc910"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_g4_inject/gfx2dGame-O2-inject.bin": {
+    "size": 125270,
+    "mtime_ns": 1791535408513441200,
+    "sha256": "05b8ed54ef23babce9143410eac6abfbb5764f53be8c53660b5797d922c60fdc"
+  },
+  "Main/sw/apps/probe/ddrAliasTest/build/ddrAliasTest.bin": {
+    "size": 2538,
+    "mtime_ns": 1791535555833379000,
+    "sha256": "63db2b19dc6c4a3ae8d118a4994645ed8594e54c38ed7b45ae9b1a4e6b00d573"
+  },
+  "Main/sw/apps/probe/ddrBurstProbe/build/ddrBurstProbe.bin": {
+    "size": 6858,
+    "mtime_ns": 1791536260660857200,
+    "sha256": "3d7803720ac63f5982f94e46dbc4c0091b20c1064e2c71443c7bc2f8ada06d4e"
+  },
+  "Main/sw/apps/test/stripTest/build/stripTest-O2.bin": {
+    "size": 48866,
+    "mtime_ns": 1791527013024981300,
+    "sha256": "e876ba4f154a80f81c71d1c89c8b982b9cee648fe790b1f93ff987031ba5981a"
+  },
+  "Main/sw/apps/test/cacheCoherencyTest/build_g4/cacheCoherencyTest-O2.bin": {
+    "size": 47650,
+    "mtime_ns": 1791536258836248100,
+    "sha256": "e32a6018228c85d24d8342fb9aed1b3e492c0648addbf76eb17036f90b6a9c70"
+  },
+  "Main/sw/apps/test/cacheCoherencyTest/build_g4_fixed/cacheCoherencyTest-O2.bin": {
+    "size": 47658,
+    "mtime_ns": 1791536414245377500,
+    "sha256": "1ca6653c9d467732bd63aef98527ebe7c73adeaa7f098b7c9ad06dd7abdee094"
+  },
+  "Main/sw/apps/test/cacheCoherencyTest/build_g4_inject/cacheCoherencyTest-O2-inject.bin": {
+    "size": 47658,
+    "mtime_ns": 1791536500496535700,
+    "sha256": "d3cf4704225edd155146b4389ec8450034e80e4809cb8c47ac487a928f56375d"
+  },
+  "Main/sw/apps/test/cacheCoherencyTest/build_g4_selftest/cacheCoherencyTest-O2-inject.bin": {
+    "size": 47682,
+    "mtime_ns": 1791536503972522900,
+    "sha256": "2859a22c363ff91682fe556821837251524fb4078f39a98ffc5ff1ea942fc796"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_g4_interactive_toolcheck/gfx2dGame-O2-perf.bin": {
+    "size": 92182,
+    "mtime_ns": 1791539001945160700,
+    "sha256": "83c8107c7bb0970a3d909387344496fa3069367f6ac3a18e723d3e7c88100060"
+  },
+  "Deliverables/Report/gfx2d\u6280\u672f\u62a5\u544a.docx": {
+    "size": 2606897,
+    "mtime_ns": 1791540080746174400,
+    "sha256": "fd6d92e29c53ad93533328634acb426914473b5331068647c80c632018f6797d"
+  },
+  "Deliverables/Report/gfx2d\u6280\u672f\u62a5\u544a.pdf": {
+    "size": 3323944,
+    "mtime_ns": 1791547861252637800,
+    "sha256": "4ee81d93d85f6bb333993c0488cb0572e4eeebefe19b7df036b733c56ce069df"
+  },
+  "Deliverables/Slides/gfx2d\u9879\u76ee\u8bb2\u89e3.pptx": {
+    "size": 1829649,
+    "mtime_ns": 1791547783431428800,
+    "sha256": "cdc1096570c1e3bc1180a33d8bc44d4c83e492b9a207e4920c0add5990ead6bb"
+  },
+  "Deliverables/Slides/gfx2d\u9879\u76ee\u8bb2\u89e3-20261009.pdf": {
+    "size": 1961230,
+    "mtime_ns": 1791547861275877600,
+    "sha256": "0fd492ae57f5889fb4fd873bbb1850c9a0577c710de1e64130d09c425aed5025"
+  }
+}

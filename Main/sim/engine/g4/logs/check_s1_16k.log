@@ -1,0 +1,1 @@
+PASS: frames=1837 fields=3602 drops=1765 rows=60 fps_milli=[30000,59000] diag fifo_min 325 samples 1837 zero 0 under 0 irqA 4019 irqB 1837 faults 0 swap_retry 0

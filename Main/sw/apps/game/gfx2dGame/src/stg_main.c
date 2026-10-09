@@ -358,7 +358,6 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
     gfx_list         l;
     stg_draw_cfg     cfg;
     stg_hud_live     live;
-    gfx_census_state cs;
     gfx_census       cc;
     exec_sw_stats    xs;
     const stg_active *a = &go->st.act;
@@ -370,7 +369,17 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
 
     stg_game_step(&s_game, keys);
 
-    gfx_list_begin(&l, ctx->cmds[idx], ctx->cap[idx], ctx->tab);
+    rc = renderer_list_begin(
+#if (defined(G4_STRIP_COMPARE) && G4_STRIP_COMPARE) || (defined(G4_STRIP_RENDER) && G4_STRIP_RENDER)
+                             3,
+#else
+                             ctx->hw,
+#endif
+                             &l, ctx->cmds[idx], ctx->cap[idx], ctx->tab, dst);
+    if (rc != GFX_OK) {
+        say_err("list begin", frame, (uint32_t)rc);
+        return;
+    }
     stg_modes_draw_cfg(&cfg, dst);
     live_hud(&live);
     if (stg_game_compose(&s_game, &l, &cfg, &live, &go->st) != 0)
@@ -385,12 +394,10 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
 #endif
 
     /* 普查从命令表另数一遍：每个方程的条数等于组帧记下的，且按类对得上 */
-    gfx_census_reset(&cs);
-    gfx_census_clear(&cc);
-    if (gfx_census_run(&cs, ctx->tab, l.buf, l.used, &cc) != 0)
+    if (renderer_list_census(ctx->tab, &l, &cc) != 0)
         say_err("census", frame, 0u);
     for (e = 0u; e <= GFX_EQ_MAX; e++)
-        if (cc.cmd_by_eq[e] != go->st.by_eq[e])
+        if (l.strip_table == NULL && cc.cmd_by_eq[e] != go->st.by_eq[e])
             say_err("census eq", frame, e);
     if (go->st.by_eq[GFX_EQ_ADD] != a->pbullet + a->particle)
         say_err("class add", frame, go->st.by_eq[GFX_EQ_ADD]);
@@ -417,7 +424,7 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
         char buf[96];
         core_out out;
         if (renderer_compare_shadow(dst, shadow, ctx->tab, ctx->mem, ctx->es,
-                                    ctx->err, &l) != 0)
+                                    ctx->err, &l, &xs) != 0)
             say_err("compare engine", frame, 0u);
         hw_crc = stg_modes_frame_crc(board_fb(shadow));
         core_out_init(&out, buf, (uint32_t)sizeof buf);
@@ -614,10 +621,21 @@ static int run(const stg_main_ctx *ctx)
 #endif
     say_game_seg(0u, s_game.seg);
     for (frame = 0u; frame < STG_GAME_FRAME_LIMIT; frame++) {
+#if defined(G4_SAMPLE_STEP) && G4_SAMPLE_STEP > 0
+        const int sample = frame % G4_SAMPLE_STEP == 0u || frame + 1u == s_rv.frames;
+        if (sample)
+            game_frame(ctx, frame, judge_keys(frame), &go);
+        else
+            stg_game_step(&s_game, judge_keys(frame));
+#else
         game_frame(ctx, frame, judge_keys(frame), &go);
+#endif
         if ((s_game.ev & STG_EV_SEG) != 0u)
             say_game_seg(frame, s_game.seg);
-        say_game(frame, &go);
+#if defined(G4_SAMPLE_STEP) && G4_SAMPLE_STEP > 0
+        if (sample)
+#endif
+            say_game(frame, &go);
 #if STG_JUDGE_REPLAY
         if ((s_game.ev & STG_EV_HIT) != 0u)
             hits++;

@@ -6,7 +6,7 @@
 const path = require("path");
 const pptxgen = require("pptxgenjs");
 const { applyTheme } = require(path.join(
-  process.env.SKILL_DIR || "C:/Users/14297/.zcode/skills/pptx",
+  process.env.SKILL_DIR,
   "scripts", "apply_theme.js"));
 
 const HERE = __dirname;
@@ -129,9 +129,9 @@ function caption(slide, text, x, y, w) {
     { x: 0.92, y: 3.78, w: 11.5, h: 0.4, fontFace: FONT, fontSize: 12.5,
       color: "8FA8C4", margin: 0, isTextBox: true });
   const stats = [
-    ["60 FPS", "硬件后端稳态帧率"],
+    ["60 FPS", "普通游戏短测帧率"],
     ["24×", "对纯软件渲染加速"],
-    ["1014 / 1365", "N_max：16×16 与 8×8"],
+    ["1891 / 2237", "N_max：16×16 与 8×8"],
     ["0 掉帧", "3600 场确认"],
   ];
   stats.forEach(([n, l], i) => {
@@ -176,7 +176,7 @@ function caption(slide, text, x, y, w) {
     ["软件", "MYRIAD 弹幕游戏 + PC/板上双目标平台"],
     ["闭环", "六项要求全部实现并上板实测"],
     ["等价", "同帧 CRC 证明软硬逐像素一致"],
-    ["极限", "N_max 1014 / 1365 颗，3600 场零掉帧"],
+    ["极限", "N_max 1891 / 2237 颗，3600 场零掉帧"],
   ];
   const runs = [];
   resp.forEach(([k, v], i) => {
@@ -195,14 +195,14 @@ function caption(slide, text, x, y, w) {
   const s = pres.addSlide({ masterName: "CONTENT" });
   pageTitle(s, "结果总览");
   sectionTag(s, "01 · 赛题与结果");
-  statCard(s, 0.55, 1.45, 3.0, 2.1, "60 FPS", "硬件后端稳态",
-    "同命令表纯软件 2.5 FPS");
+  statCard(s, 0.55, 1.45, 3.0, 2.1, "60 FPS", "普通游戏短测",
+    "SW9 软件对照 2.5 FPS");
   statCard(s, 3.75, 1.45, 3.0, 2.1, "24×", "软硬件加速比",
     "真实游戏负载，板上实测");
-  statCard(s, 6.95, 1.45, 3.0, 2.1, "1014/1365", "N_max（颗）",
-    "16×16 与 8×8 弹型，60 FPS 下");
-  statCard(s, 10.15, 1.45, 2.63, 2.1, "59.2%", "XLR 占用",
-    "DSP 仅 10.0%，RAM 41.0%");
+  statCard(s, 6.95, 1.45, 3.0, 2.1, "1891/2237", "直通 / TEX N_max",
+    "条带4KB：424/505；CPU受限");
+  statCard(s, 10.15, 1.45, 2.63, 2.1, "68.2%", "XLR 占用",
+    "DSP 10.0%，RAM 63.7%");
   s.addShape("roundRect", { x: 0.55, y: 3.95, w: 12.23, h: 1.5,
     rectRadius: 0.06, fill: { color: CARD }, line: { color: LINE, width: 0.75 } });
   s.addText([
@@ -212,8 +212,8 @@ function caption(slide, text, x, y, w) {
   ], { x: 0.85, y: 4.14, w: 11.6, h: 1.1, fontFace: FONT, fontSize: 13,
     valign: "middle", margin: 0, isTextBox: true, lineSpacingMultiple: 1.25 });
   s.addText([
-    { text: "交付链　", options: { bold: true, color: BLUE, breakLine: false } },
-    { text: "素材打包 → Flash 镜像合成 → 应用区写入与独立读回校验 → 断电重启自启动，全部在板上验证。",
+    { text: "Flash 交付链（SW9）　", options: { bold: true, color: BLUE, breakLine: false } },
+    { text: "已完成镜像合成、应用写入、读回与自启动；本轮 G4 通过 JTAG 验证，未更新 Flash。",
       options: { color: INK } },
   ], { x: 0.85, y: 5.75, w: 11.6, h: 0.9, fontFace: FONT, fontSize: 13,
     valign: "middle", margin: 0, isTextBox: true, lineSpacingMultiple: 1.25 });
@@ -258,7 +258,7 @@ function caption(slide, text, x, y, w) {
   const cells = [
     ["场消隐锁存", "SWAP_REQ 只在消隐期生效，机制上排除撕裂"],
     ["可对账", "SWAP_COUNT 与场数对账，掉帧有客观定义"],
-    ["实时性", "扫描 FIFO 512 拍深，最低水位 327 拍、欠载恒为 0"],
+    ["实时性", "扫描 FIFO 512 拍；G4 最低 321 拍（含候选），欠载 0"],
   ];
   cells.forEach(([k, v], i) => {
     const x = 0.55 + i * 4.18;
@@ -379,7 +379,7 @@ function caption(slide, text, x, y, w) {
   pageTitle(s, "实测：硬件加速 24 倍");
   sectionTag(s, "05 · 性能实测");
   figure(s, path.join(FIG, "rep_fps.png"), 0.55, 1.6, 8.6, 3.81);
-  caption(s, "同一负载下纯软件渲染与硬件加速渲染的实测帧率", 0.55, 5.5, 8.6);
+  caption(s, "SW9 历史普通游戏与同 K 压力档帧率；S1 软件存量未稳态", 0.55, 5.5, 8.6);
   s.addShape("roundRect", { x: 9.5, y: 1.6, w: 3.28, h: 3.81, rectRadius: 0.06,
     fill: { color: DEEP } });
   s.addText([
@@ -401,7 +401,7 @@ function caption(slide, text, x, y, w) {
   ], { x: 9.78, y: 1.85, w: 2.72, h: 3.3, fontFace: FONT, valign: "top",
     margin: 0, isTextBox: true, lineSpacingMultiple: 1.2 });
   bullets(s, [
-    ["口径", "帧率 = 场数 − 切换数，与 HUD 显示一致；掉帧判据为帧时间超过 16.67 ms"],
+    ["口径", "掉帧 = 场数 − 呈现次数；帧率 = 呈现帧数 / 秒；确认档逐场零掉帧"],
     ["HUD", "屏上同屏显示软/硬两路帧率，一键切换后端——赛题「实时对比」的直接回应"],
   ], { x: 0.55, y: 5.95, w: 12.23, h: 1.0, fontSize: 12.5 });
 }
@@ -409,15 +409,15 @@ function caption(slide, text, x, y, w) {
 // P14 N_max
 {
   const s = pres.addSlide({ masterName: "CONTENT" });
-  pageTitle(s, "实测：N_max 自动搜索");
+  pageTitle(s, "实测：后端与缓存对照");
   sectionTag(s, "05 · 性能实测");
-  figure(s, path.join(FIG, "rep_nmax.png"), 1.72, 1.38, 9.9, 4.16);
-  caption(s, "真实时钟下 N_max 的自动搜索轨迹（倍增到首次失败，再二分收敛）",
+  figure(s, path.join(FIG, "rep_g4_nmax.png"), 1.72, 1.38, 9.9, 4.16);
+  caption(s, "直通 / TEX 与条带使用同位流；两档条带缓存使用同一份程序",
     1.72, 5.6, 9.9);
   bullets(s, [
-    ["判据", "掉帧 = 帧时间超过 16.67 ms；候选档以 3600 场（60 秒）确认"],
-    ["结果", "16×16：1014 颗（旋钮 896）；8×8：1365 颗（旋钮 1216）；全程 FIFO 欠载为 0"],
-    ["对照", "同负载纯软件后端连初始 64 颗档都无法维持一场一帧"],
+    ["判据", "确认档 3600 场且逐场零掉帧；按实际场数与呈现次数对账"],
+    ["结果", "TEX：1891/2237；条带 4KB：424/505；16KB 候选：479/597；扫描欠载 0"],
+    ["对照", "条带引擎正确执行，但 CPU 构造成本使整机吞吐下降；16KB 增益约 13%/18%"],
   ], { x: 1.72, y: 5.95, w: 9.9, h: 1.0, fontSize: 12 });
 }
 
@@ -427,10 +427,10 @@ function caption(slide, text, x, y, w) {
   pageTitle(s, "实测：稳态与余量");
   sectionTag(s, "05 · 性能实测");
   figure(s, path.join(FIG, "rep_stable.png"), 1.57, 1.45, 10.2, 4.53);
-  caption(s, "固定负载 K896（约 1014 颗活动弹）连续 60 秒的逐秒帧时间与活动弹数",
+  caption(s, "P1 历史固定档 K896（约 1014 颗活动弹）连续 60 秒记录",
     1.57, 6.03, 10.2);
   bullets(s, [
-    ["稳态", "爬坡约 4 秒后帧时间稳定在 1.63 ms，距 16.67 ms 预算约 10 倍余量"],
+    ["稳态", "P1 爬坡后约 16.3 ms，接近 16.67 ms 预算；帧周期与引擎忙周期分开报告"],
     ["一致性", "60 秒内仅首秒 59/60，其余 59 个窗口全部 60/60，无累积劣化"],
   ], { x: 1.57, y: 6.4, w: 10.2, h: 0.9, fontSize: 12 });
 }
@@ -453,7 +453,7 @@ function caption(slide, text, x, y, w) {
     ["屏上实时对比软/硬帧率", "HUD 同屏两路帧率，一键切换后端", "60 FPS 对 2.5 FPS（约 24 倍）"],
     ["硬件 Alpha 混合（DSP）", "12 个 DSP 混合核，预乘主路径", "ALPHA 预乘 8,421,376 组穷举一致"],
     ["Color Keying", "按源格式整字色键，命中跳写", "KEY_SKIP 计数器对账"],
-    ["高负载 Demo 冲精灵极限", "真实弹幕游戏 + 自动 N_max 搜索", "1014 / 1365 颗；3600 场零掉帧"],
+    ["高负载 Demo 冲精灵极限", "真实弹幕游戏 + 自动 N_max 搜索", "1891 / 2237 颗；3600 场零掉帧"],
   ].map(r => r.map(c => ({ text: c, options: { color: INK } })));
   s.addTable([header].concat(rows), {
     x: 0.55, y: 1.32, w: 12.23, colW: [3.2, 4.6, 4.43],
@@ -473,10 +473,10 @@ function caption(slide, text, x, y, w) {
     text: t, options: { bold: true, color: WHITE, fill: { color: BLUE } },
   }));
   const rows = [
-    ["XLR 逻辑单元", "16151", "36009", "59.2%"],
-    ["片上 RAM（10 Kbit/块）", "65", "105", "41.0%"],
+    ["XLR 逻辑单元", "16151", "41476", "68.2%"],
+    ["片上 RAM（10 Kbit/块）", "65", "163", "63.7%"],
     ["DSP", "4", "16", "10.0%"],
-    ["core_clk setup 余量", "+3.405 ns", "+1.067 ns", "无违例"],
+    ["core_clk setup 余量", "+3.405 ns", "+0.756 ns", "无违例"],
   ].map(r => r.map(c => ({ text: c, options: { color: INK } })));
   s.addTable([header].concat(rows), {
     x: 0.55, y: 1.5, w: 7.3, colW: [2.5, 1.5, 1.8, 1.5],
@@ -486,7 +486,7 @@ function caption(slide, text, x, y, w) {
   });
   bullets(s, [
     ["增量对应", "新增 12 个 DSP 与 12 个混合核一一对应"],
-    ["新增 RAM", "扫描 FIFO 与引擎读写缓冲，与预算一致"],
+    ["新增 RAM", "TEX 16 块、BAND 36 块；16KB 缓存候选整机 181 块"],
     ["余量", "DSP 占用 10%，为画面扩展留出空间"],
     ["编译", "Efinity 2026.1 四步全过，无时序违例"],
   ], { x: 8.35, y: 1.7, w: 4.43, h: 4.5, fontSize: 12.5 });
@@ -516,7 +516,7 @@ function caption(slide, text, x, y, w) {
   });
   s.addText([
     { text: "可扩展　", options: { bold: true, color: BLUE, breakLine: false } },
-    { text: "混合方程表可加行、tint 字段已定义、INDEX8 与调色板页已保留；行跨参数化，720p 只需更换像素时钟；条带缓冲地址空间可支撑第二执行模式，将每帧固定事务数与精灵数量解耦。",
+    { text: "混合方程表可扩展；提高分辨率需同步修改扫描时序、内存布局与条带参数并复测预算。条带已与软件对拍，下一步优化 CPU 构造，以同板 N_max 判断收益。",
       options: { color: INK } },
   ], { x: 0.55, y: 5.5, w: 12.23, h: 1.1, fontFace: FONT, fontSize: 12.5,
     valign: "middle", margin: 0, isTextBox: true, lineSpacingMultiple: 1.25 });

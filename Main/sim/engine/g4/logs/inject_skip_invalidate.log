@@ -1,0 +1,31 @@
+# COM11 @ 115200 8N1, opened 17:10:32
+gfx2dGame STG
+# --- 程序已加载，以下才是它的输出 ---
+pak 2840320 b370ba0a
+compare tex ready; scan pattern
+seg 0 READY
+compare 0 sw 97d09cae hw 8a14cc61
+g 0 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 97d09cae
+compare 1 sw 984faf18 hw 8a958b20
+g 1 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 984faf18
+compare 2 sw bf66b282 hw b0c19319
+g 2 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc bf66b282
+compare 3 sw 79276f52 hw 76804ec9
+g 3 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 79276f52
+compare 4 sw ec4844cb hw e3ef6550
+g 4 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc ec4844cb
+compare 5 sw 4e611aaf hw 41c63b34
+g 5 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 4e611aaf
+compare 6 sw 336a6371 hw 3ccd42ea
+g 6 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 336a6371
+compare 7 sw 45e20be2 hw 4a452a79
+g 7 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 45e20be2
+compare 8 sw 48c95625 hw 476e77be
+g 8 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 48c95625
+compare 9 sw bc9ca316 hw b33b828d
+g 9 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc bc9ca316
+end frames 10 hits 0 over 0
+fail 0
+done
+
+# closed 17:10:54, 1246 bytes

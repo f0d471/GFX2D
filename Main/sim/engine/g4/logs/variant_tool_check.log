@@ -1,0 +1,13 @@
+工程       : E:\Workspace\Efinix\Main\sim\engine\g4\build\variant_tool_check\gfx2d_ti60（Titanium Ti60F225）
+IP 版本    : 3.4.0 -> 3.4.0
+覆盖       : DCacheSize=16384 DCACHEWAY=4
+设置的用户参数 152 项
+settings 里有、新版本里没有（忽略）：无
+settings 里是自动参数（由 IP 重新推导）：无
+新版本的用户参数取默认值：
+    无
+文件集     : generator source script embedded_sw
+同步软件包 : 不同步（软件包留在 embedded_sw/）
+validate_ip 通过
+--dry-run，不生成
+cache variant parameters validated; no IP build

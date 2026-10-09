@@ -1,11 +1,45 @@
 /******************************************************************************
-* @file renderer.c: 同一张命令表的软件与 B6 硬件执行入口
+* @file renderer.c: v1 直通与 v2 条带的软硬件执行入口
 ******************************************************************************/
 
 #include "renderer.h"
 #include "board.h"
 #include "stg_main.h"
 #include "core/format.h"
+
+int renderer_list_begin(int hw, gfx_list *list, gfx_cmd *buf, uint32_t cap,
+                         const gfx_surface_table *tab, int dst)
+{
+    if (hw == 3) {
+        const gfx_strip_config cfg = {480u >> GFX2D_STRIP_LOG2,
+                                      GFX2D_STRIP_LOG2, (uint32_t)dst, (uint32_t)dst};
+        if (cap > UINT32_MAX / sizeof *buf)
+            return GFX_BUILD_BAD_ARG;
+        return gfx_list_begin_strips(list, buf, cap * (uint32_t)sizeof *buf, tab, &cfg, NULL);
+    }
+    gfx_list_begin(list, buf, cap, tab);
+    return GFX_OK;
+}
+
+int renderer_list_census(const gfx_surface_table *tab, const gfx_list *list,
+                          gfx_census *census)
+{
+    gfx_census_state cs;
+    uint32_t s, total = 0u;
+    gfx_census_reset(&cs);
+    gfx_census_clear(census);
+    if (list->strip_table == NULL)
+        return gfx_census_run(&cs, tab, list->buf, list->used, census);
+    for (s = 0u; s < list->strips.lstrips; s++) {
+        const uint32_t n = ((const uint32_t *)(const void *)list->strip_table)[s];
+        const gfx_cmd *bucket = (const gfx_cmd *)(const void *)(list->strip_table +
+                                (s + 1u) * GFX_STRIP_REGION_BYTES);
+        if (n > GFX_STRIP_CAP || gfx_census_run(&cs, tab, bucket, n, census) != 0)
+            return -1;
+        total += n;
+    }
+    return total == list->used ? 0 : -1;
+}
 
 #ifdef __riscv
 #include "gfx_engine.h"
@@ -14,6 +48,17 @@ static int s_pending;
 static int s_pending_dst;
 static uint32_t s_pending_event, s_pending_start;
 static uint32_t s_perf_cmd, s_perf_pix, s_perf_key;
+
+static int submit_list(const gfx_list *list)
+{
+    if (list->first_error || list->rejected || list->overflow)
+        return GFX_ENG_E_ARG;
+    if (list->strip_table != NULL)
+        return gfx_engine_submit_strips((uint32_t)(uintptr_t)list->strip_table,
+                                        list->strips.lstrips, list->strips.strip_log2,
+                                        list->strips.bg_id, list->strips.dst_id);
+    return gfx_engine_submit((uint32_t)(uintptr_t)list->buf, list->used);
+}
 
 /* 引擎一次只执行一张表，相邻两次完成之间的 PERF 增量就是那一张表的计数，
    所以每次完成都要取一次，丢掉一次下一张就会算成两张。
@@ -114,7 +159,7 @@ int renderer_pipeline_step(const gfx_list *list, int dst, exec_sw_stats *done_st
         return -1;
     s_pending_event = board_irq_engine_events();
     s_pending_start = board_cycles();
-    if (gfx_engine_submit((uint32_t)(uintptr_t)list->buf, list->used) != GFX_ENG_OK) {
+    if (submit_list(list) != GFX_ENG_OK) {
         engine_error(-2, 0u, 0u);
         return -1;
     }
@@ -184,7 +229,7 @@ int renderer_run(int hw, const gfx_surface_table *tab, const gfx_mem *mem,
         uint32_t code = 0u, index = 0u, tag = 0u;
 
         exec_sw_stats_clear(st);
-        rc = gfx_engine_submit((uint32_t)(uintptr_t)list->buf, list->used);
+        rc = submit_list(list);
         if (rc != GFX_ENG_OK)
             goto hw_fail;
         while (board_irq_engine_events() == event0) {
@@ -216,7 +261,15 @@ hw_fail:
     (void)hw;
 #endif
     exec_sw_stats_clear(st);
-    rc = exec_sw_run(es, tab, mem, list->buf, list->used, list->used, st, err);
+    if (list->first_error || list->rejected || list->overflow)
+        rc = GFX_BUILD_BAD_ARG;
+    else if (list->strip_table != NULL) {
+        static uint32_t scratch[32768];
+        rc = exec_sw_run_strips(tab, mem, list->strip_table,
+                                (list->strips.lstrips + 1u) * GFX_STRIP_REGION_BYTES,
+                                &list->strips, scratch, sizeof scratch, st, err);
+    } else
+        rc = exec_sw_run(es, tab, mem, list->buf, list->used, list->used, st, err);
     *cycles = board_cycles() - t0;
     return rc;
 }
@@ -236,7 +289,8 @@ int renderer_perf_read(uint32_t values[9])
 /* 诊断路径：软件按原表画 dst；硬件临时将同一槽映射到另一面执行同一命令表。 */
 int renderer_compare_shadow(int dst, int shadow, const gfx_surface_table *tab,
                             const gfx_mem *mem, exec_sw_state *es,
-                            exec_sw_error *err, const gfx_list *list)
+                            exec_sw_error *err, const gfx_list *list,
+                            const exec_sw_stats *expected)
 {
 #ifdef __riscv
     const gfx_surf_raw *orig = &tab->s[dst];
@@ -260,13 +314,18 @@ int renderer_compare_shadow(int dst, int shadow, const gfx_surface_table *tab,
                                    gfx_surf_format(orig));
     if (rc != GFX_OK || restore != GFX_ENG_OK)
         return -1;
+    if (st.pixel_total != expected->pixel_total - expected->src_oob ||
+        st.key_skip != expected->key_skip || st.pixel_written != expected->pixel_written) {
+        board_puts("compare PERF mismatch\r\n");
+        return -1;
+    }
 #ifndef INJECT_SW9_SKIP_INVALIDATE
     board_dcache_invalidate_all();
 #endif
     return 0;
 #else
     (void)dst; (void)shadow; (void)tab; (void)mem;
-    (void)es; (void)err; (void)list;
+    (void)es; (void)err; (void)list; (void)expected;
     return -1;
 #endif
 }

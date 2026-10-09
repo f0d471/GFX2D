@@ -49,3 +49,10 @@ wsl -e python3 Main/tools/stats/plot_stats.py --out Deliverables/Assert/figures/
 由 `render.sh` 以 2 倍像素导出。方程的颜色与 `profile.html` 一致：COPY 蓝 `#4A7FD0`、ALPHA 绿 `#2E7D4F`、ADD 金 `#A37A1C`、CONST 红 `#E8546B`。
 这组颜色在 `#FAFAF7` 上金与绿相邻那一对的色盲区分度在 6~8 之间，所以堆叠条的每段都带直接标注（放得下时）与 2 像素间隙，图例常在。
 搜索轨迹图里通过与掉帧除了颜色还靠形状区分（实心点、空心叉）。
+
+## G4 报告图
+
+plot_g4.py 使用 matplotlib，从 G4 的 performance_results.json 与 SW9
+历史原始日志生成 rep_g4_nmax.png/SVG，区分 P1 历史、当前同位流后端
+和同程序缓存对照。先运行 check_g4_integration.py --performance，再用
+带 matplotlib 的 Python 运行本脚本；不手改图上的数字。

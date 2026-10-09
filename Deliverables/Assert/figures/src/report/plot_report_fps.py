@@ -14,7 +14,7 @@ INK = "#1D2733"
 fig, ax = plt.subplots(figsize=(7.0, 3.1), dpi=200)
 fig.subplots_adjust(left=0.09, right=0.97, top=0.86, bottom=0.16)
 
-groups = ["普通游戏（模式 2）", "压力负载 S1（约 2030 活动弹）"]
+groups = ["普通游戏（模式 2）", "压力档 S1（同 K1744）"]
 sw = [2.5, 2.1]
 hw = [60.0, 30.6]
 x = [0, 1]
@@ -27,7 +27,7 @@ ax.bar_label(b2, fmt="%.1f", fontsize=10, color=INK, padding=2)
 
 ax.annotate("约 24 倍", xy=(0.16, 55), fontsize=11, color=INK, ha="center",
             bbox=dict(boxstyle="round,pad=0.25", fc="#EDF3FB", ec="#4A7FD0", lw=0.8))
-ax.annotate("约 15 倍", xy=(0.84, 36), fontsize=11, color=INK, ha="center",
+ax.annotate("软件存量未稳态", xy=(0.84, 36), fontsize=11, color=INK, ha="center",
             bbox=dict(boxstyle="round,pad=0.25", fc="#EDF3FB", ec="#4A7FD0", lw=0.8))
 ax.axhline(60, color="#67BA4A", lw=1.0, ls="--")
 ax.text(1.46, 61.5, "60 FPS", fontsize=10, color="#2E7D4F", ha="right")

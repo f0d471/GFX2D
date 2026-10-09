@@ -13,6 +13,7 @@
 ******************************************************************************/
 
 #include "gfx/gfx.h"
+#include "strip_internal.h"
 
 /* 追加被拒时记下首错与计数。被拒的调用不写缓冲区，也不占记录索引，
    所以后面成功记录的 w7 仍然等于它在表里的零基索引。 */
@@ -236,14 +237,6 @@ uint32_t gfx_blit_run(gfx_list *l, const gfx_blit_tmpl *t,
     if (pos == 0)
         return 0u;
 
-    if (l->strip_table != 0) {
-        for (i = 0u; i < n; i++)
-            if (gfx_blit(l, t->src, pos[i].sx, pos[i].sy, t->dst, pos[i].dx, pos[i].dy,
-                         t->w, t->h, t->eq, t->c, t->key_en, t->key) == GFX_OK)
-                appended++;
-        return appended;
-    }
-
     /* 模板里能不能无损编码：不能的话每一条都是 BAD_ARG，与 gfx_blit() 逐条的结果相同 */
     targ_ok = surf_id_ok(t->src) && surf_id_ok(t->dst) && t->eq >= 0 && t->eq <= 15
            && size_ok(t->w) && size_ok(t->h) && (t->key_en == 0 || t->key_en == 1);
@@ -304,6 +297,13 @@ uint32_t gfx_blit_run(gfx_list *l, const gfx_blit_tmpl *t,
         code = per_item ? gfx_cmd_check(l->t, &rec) : tcode;
         if (code != GFX_OK) {
             (void)reject(l, code);
+            continue;
+        }
+
+        if (l->strip_table != 0) {
+            /* 保留模板校验复用；每条仍经过 v2 裁剪、源反馈与原子容量检查。 */
+            if (gfx_strip_append_checked(l, &rec) == GFX_OK)
+                appended++;
             continue;
         }
 
