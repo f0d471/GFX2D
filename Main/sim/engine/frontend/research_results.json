@@ -1,0 +1,600 @@
+{
+  "scope": "Host command counts and observational regressions of existing G4 board CSV; no new board performance claim",
+  "source_commit": "7808d6b32cdeac60011d97f680e387c618721b43",
+  "host_compiler": "gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+  "board_regression_caveat": "All non-warming, non-overflow windows, including failed search levels; not controlled same-state microbenchmarks",
+  "board_regressions": {
+    "strip_4k": {
+      "source": "Main/sim/engine/g4/logs/nmax_strip_4k.log",
+      "by_kind": {
+        "16": {
+          "cyc_logic": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 607.0,
+            "intercept": 40987.743,
+            "slope": 149.302,
+            "r_squared": 0.970698
+          },
+          "cyc_build": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 607.0,
+            "intercept": 934957.23,
+            "slope": 634.766,
+            "r_squared": 0.996909
+          },
+          "cpu_avg_cyc": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 607.0,
+            "intercept": 990018.385,
+            "slope": 778.331,
+            "r_squared": 0.991611
+          },
+          "engine_busy_avg_cyc": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 607.0,
+            "intercept": 485136.265,
+            "slope": 305.925,
+            "r_squared": 0.992578
+          },
+          "cmd": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 607.0,
+            "intercept": 786.141,
+            "slope": 1.919,
+            "r_squared": 0.998791
+          }
+        },
+        "8": {
+          "cyc_logic": {
+            "windows": 166,
+            "x_min": 29.0,
+            "x_max": 599.0,
+            "intercept": 38447.279,
+            "slope": 168.108,
+            "r_squared": 0.983536
+          },
+          "cyc_build": {
+            "windows": 166,
+            "x_min": 29.0,
+            "x_max": 599.0,
+            "intercept": 929817.355,
+            "slope": 563.075,
+            "r_squared": 0.995564
+          },
+          "cpu_avg_cyc": {
+            "windows": 166,
+            "x_min": 29.0,
+            "x_max": 599.0,
+            "intercept": 979976.346,
+            "slope": 727.702,
+            "r_squared": 0.946443
+          },
+          "engine_busy_avg_cyc": {
+            "windows": 166,
+            "x_min": 29.0,
+            "x_max": 599.0,
+            "intercept": 482168.885,
+            "slope": 139.245,
+            "r_squared": 0.952232
+          },
+          "cmd": {
+            "windows": 166,
+            "x_min": 29.0,
+            "x_max": 599.0,
+            "intercept": 786.649,
+            "slope": 1.413,
+            "r_squared": 0.989835
+          }
+        }
+      }
+    },
+    "strip_16k": {
+      "source": "Main/sim/engine/g4/logs/nmax_strip_16k.log",
+      "by_kind": {
+        "16": {
+          "cyc_logic": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 606.0,
+            "intercept": 31141.482,
+            "slope": 146.575,
+            "r_squared": 0.985135
+          },
+          "cyc_build": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 606.0,
+            "intercept": 910452.654,
+            "slope": 599.243,
+            "r_squared": 0.997961
+          },
+          "cpu_avg_cyc": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 606.0,
+            "intercept": 960184.365,
+            "slope": 729.051,
+            "r_squared": 0.99268
+          },
+          "engine_busy_avg_cyc": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 606.0,
+            "intercept": 485571.654,
+            "slope": 307.512,
+            "r_squared": 0.993382
+          },
+          "cmd": {
+            "windows": 235,
+            "x_min": 29.0,
+            "x_max": 606.0,
+            "intercept": 784.794,
+            "slope": 1.923,
+            "r_squared": 0.999329
+          }
+        },
+        "8": {
+          "cyc_logic": {
+            "windows": 190,
+            "x_min": 29.0,
+            "x_max": 1175.0,
+            "intercept": 31757.597,
+            "slope": 155.906,
+            "r_squared": 0.989803
+          },
+          "cyc_build": {
+            "windows": 190,
+            "x_min": 29.0,
+            "x_max": 1175.0,
+            "intercept": 904963.081,
+            "slope": 528.918,
+            "r_squared": 0.998413
+          },
+          "cpu_avg_cyc": {
+            "windows": 190,
+            "x_min": 29.0,
+            "x_max": 1175.0,
+            "intercept": 947837.391,
+            "slope": 686.839,
+            "r_squared": 0.974955
+          },
+          "engine_busy_avg_cyc": {
+            "windows": 190,
+            "x_min": 29.0,
+            "x_max": 1175.0,
+            "intercept": 482345.287,
+            "slope": 140.051,
+            "r_squared": 0.977238
+          },
+          "cmd": {
+            "windows": 190,
+            "x_min": 29.0,
+            "x_max": 1175.0,
+            "intercept": 786.401,
+            "slope": 1.412,
+            "r_squared": 0.996462
+          }
+        }
+      }
+    },
+    "tex_4k": {
+      "source": "Main/sim/engine/g4/logs/nmax_tex_4k.log",
+      "by_kind": {
+        "16": {
+          "cyc_logic": {
+            "windows": 206,
+            "x_min": 29.0,
+            "x_max": 2403.0,
+            "intercept": 29065.432,
+            "slope": 145.31,
+            "r_squared": 0.998021
+          },
+          "cyc_build": {
+            "windows": 206,
+            "x_min": 29.0,
+            "x_max": 2403.0,
+            "intercept": 380947.913,
+            "slope": 187.476,
+            "r_squared": 0.998691
+          },
+          "cpu_avg_cyc": {
+            "windows": 206,
+            "x_min": 29.0,
+            "x_max": 2403.0,
+            "intercept": 443820.503,
+            "slope": 330.641,
+            "r_squared": 0.998304
+          },
+          "engine_busy_avg_cyc": {
+            "windows": 206,
+            "x_min": 29.0,
+            "x_max": 2403.0,
+            "intercept": 329906.942,
+            "slope": 683.889,
+            "r_squared": 0.998409
+          },
+          "cmd": {
+            "windows": 206,
+            "x_min": 29.0,
+            "x_max": 2403.0,
+            "intercept": 211.798,
+            "slope": 1.003,
+            "r_squared": 0.999998
+          }
+        },
+        "8": {
+          "cyc_logic": {
+            "windows": 269,
+            "x_min": 0.0,
+            "x_max": 2352.0,
+            "intercept": 29830.6,
+            "slope": 144.541,
+            "r_squared": 0.998307
+          },
+          "cyc_build": {
+            "windows": 269,
+            "x_min": 0.0,
+            "x_max": 2352.0,
+            "intercept": 373437.008,
+            "slope": 206.271,
+            "r_squared": 0.999297
+          },
+          "cpu_avg_cyc": {
+            "windows": 269,
+            "x_min": 0.0,
+            "x_max": 2352.0,
+            "intercept": 443728.158,
+            "slope": 345.54,
+            "r_squared": 0.995223
+          },
+          "engine_busy_avg_cyc": {
+            "windows": 269,
+            "x_min": 0.0,
+            "x_max": 2352.0,
+            "intercept": 322593.734,
+            "slope": 351.047,
+            "r_squared": 0.996589
+          },
+          "cmd": {
+            "windows": 269,
+            "x_min": 0.0,
+            "x_max": 2352.0,
+            "intercept": 209.848,
+            "slope": 1.003,
+            "r_squared": 0.999998
+          }
+        }
+      }
+    }
+  },
+  "game_census": [
+    {
+      "active": 2,
+      "total_v1": 206.908,
+      "total_v2": 778.617,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 0,
+      "ebullet_v2": 0,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 114,
+      "hud_v2": 271,
+      "kind": 16,
+      "knob": 0,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.988441
+    },
+    {
+      "active": 449.392,
+      "total_v1": 660.3,
+      "total_v2": 1641.142,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 447.392,
+      "ebullet_v2": 850.525,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 120,
+      "hud_v2": 283,
+      "kind": 16,
+      "knob": 384,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.476264
+    },
+    {
+      "active": 1195.35,
+      "total_v1": 1408.258,
+      "total_v2": 3064.933,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 1193.35,
+      "ebullet_v2": 2269.317,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 122,
+      "hud_v2": 288,
+      "kind": 16,
+      "knob": 1024,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.256651
+    },
+    {
+      "active": 1925.225,
+      "total_v1": 2139.133,
+      "total_v2": 4453.758,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 1923.225,
+      "ebullet_v2": 3657.142,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 123,
+      "hud_v2": 289,
+      "kind": 16,
+      "knob": 1648,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.176843
+    },
+    {
+      "active": 2034.308,
+      "total_v1": 2248.217,
+      "total_v2": 4660.55,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 2032.308,
+      "ebullet_v2": 3863.933,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 123,
+      "hud_v2": 289,
+      "kind": 16,
+      "knob": 1744,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.168997
+    },
+    {
+      "active": 2796.142,
+      "total_v1": 3010.05,
+      "total_v2": 6109.217,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 2794.142,
+      "ebullet_v2": 5312.6,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 123,
+      "hud_v2": 289,
+      "kind": 16,
+      "knob": 2400,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.128923
+    },
+    {
+      "active": 3262.35,
+      "total_v1": 3476.258,
+      "total_v2": 6996.483,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 3260.35,
+      "ebullet_v2": 6199.867,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 123,
+      "hud_v2": 289,
+      "kind": 16,
+      "knob": 2800,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.112573
+    },
+    {
+      "active": 2,
+      "total_v1": 206.908,
+      "total_v2": 778.617,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 0,
+      "ebullet_v2": 0,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 114,
+      "hud_v2": 271,
+      "kind": 8,
+      "knob": 0,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.988441
+    },
+    {
+      "active": 441.7,
+      "total_v1": 652.608,
+      "total_v2": 1406.408,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 439.7,
+      "ebullet_v2": 615.792,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 120,
+      "hud_v2": 283,
+      "kind": 8,
+      "knob": 384,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.555754
+    },
+    {
+      "active": 1174.933,
+      "total_v1": 1387.842,
+      "total_v2": 2440.283,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 1172.933,
+      "ebullet_v2": 1644.667,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 122,
+      "hud_v2": 288,
+      "kind": 8,
+      "knob": 1024,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.322347
+    },
+    {
+      "active": 1892.508,
+      "total_v1": 2106.417,
+      "total_v2": 3445.5,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 1890.508,
+      "ebullet_v2": 2648.883,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 123,
+      "hud_v2": 289,
+      "kind": 8,
+      "knob": 1648,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.228593
+    },
+    {
+      "active": 1999.583,
+      "total_v1": 2213.492,
+      "total_v2": 3595.467,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 1997.583,
+      "ebullet_v2": 2798.85,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 123,
+      "hud_v2": 289,
+      "kind": 8,
+      "knob": 1744,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.219058
+    },
+    {
+      "active": 2748.458,
+      "total_v1": 2962.367,
+      "total_v2": 4645.325,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 2746.458,
+      "ebullet_v2": 3848.708,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 123,
+      "hud_v2": 289,
+      "kind": 8,
+      "knob": 2400,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.16955
+    },
+    {
+      "active": 3206.7,
+      "total_v1": 3420.608,
+      "total_v2": 5287.317,
+      "bg_v1": 88.908,
+      "bg_v2": 498.617,
+      "actors_v1": 2,
+      "actors_v2": 9,
+      "pbullet_v1": 0,
+      "pbullet_v2": 0,
+      "ebullet_v1": 3204.7,
+      "ebullet_v2": 4490.7,
+      "particle_v1": 0,
+      "particle_v2": 0,
+      "overlay_v1": 0,
+      "overlay_v2": 0,
+      "hud_v1": 123,
+      "hud_v2": 289,
+      "kind": 8,
+      "knob": 2800,
+      "samples": 120,
+      "all_bg_hud_removed_fraction": 0.148963
+    }
+  ],
+  "observer_equivalence": "1680 states x flat/strip; full command buffers, counts, errors and frame stats equal to unmodified production compose"
+}

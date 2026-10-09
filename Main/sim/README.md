@@ -116,3 +116,7 @@ DDR3 控制器与官方的 `axi_interconnect_beta` 是加密 RTL，SoC 网表里
 G4 的真实游戏整帧与同板证据在 [engine/g4](engine/g4/README.md)：
 check_g4_integration.py --rtl 使用 8 MiB 随机反压模型，检查 TEX/BAND、
 整帧可见区与 padding、DDR/PERF，并要求三种变异见红。
+
+绘制前端的方案研究在 [engine/frontend](engine/frontend/README.md)：
+1680 份真实状态的阶段记录计数与生产构造观察点等价，以及既有 G4 CSV 的分型回归。
+目前没有新增前端 RTL、板测或性能验收结果。

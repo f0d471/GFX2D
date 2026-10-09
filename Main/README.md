@@ -20,7 +20,9 @@ core setup/hold +0.756/+0.026 ns，CAPS.BAND=1。软件两套各 1 万张与
 16/32 行完整 RTL 同帧对拍通过；真实条带 CRC、错误恢复和旧 engineTest
 兼容性均 fail 0。正式证据及复现入口见
 [engine 第 09 章](../Engineering/TechReports/engine/09-条带控制与ABIv2.md)。
-G4 的游戏条带接入、N_max 与 16 KiB cache 对照尚未验收，Flash 没有改写。
+G4 的游戏条带接入、N_max 与 16 KiB cache 对照已于 2026-10-09 验收归档。
+构造与提交接续见 [绘制前端 F 系列](../Engineering/Todo/sw/绘制前端总览.md)，
+方案决策 D64～D76 已归档，F1～F6 正式优化未开工。Flash 没有改写。
 下面 B6/G1 的资源表保留各自历史测量口径。
 
 | 部分 | 状态 |

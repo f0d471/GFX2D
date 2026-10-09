@@ -1,0 +1,33 @@
+{
+  "scope": "Archived decision study D64-D76 and implementation specifications; no implementation acceptance",
+  "reviewedAt": "2026-10-09T17:23:29.235Z",
+  "baselineCommit": "7808d6b32cdeac60011d97f680e387c618721b43",
+  "checks": {
+    "localMarkdownLinks": 183,
+    "brokenLinks": 0,
+    "decisionRange": [
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76
+    ],
+    "archivedDecisionChapter": true,
+    "implementationDetailsInDecisionChapter": false,
+    "oldPlaceholderRemoved": true,
+    "productionFilesChanged": [],
+    "proposedRegisterOffsetsUnique": true,
+    "diagramRenderedAndVisuallyReviewed": true
+  },
+  "researchEvidence": "research_results.json",
+  "hostStates": 1680,
+  "hostConstructModes": 2
+}
