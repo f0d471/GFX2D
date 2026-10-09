@@ -306,4 +306,4 @@ Main/sim/engine/stripctl/logs/acceptance_review.json。
 
 G4 的真实游戏条带接入、长时间同帧对拍、扫描争用矩阵、N_max 搜索、
 16 KiB cache 对照和作品材料数字更新仍未验收。本章板测是诊断场景，
-不能替代游戏整帧吞吐、持续 60 FPS 或 G4 战役。Flash 内容没有因 G3 改写。
+不能替代游戏整帧吞吐、持续 60 FPS 或 G4 实测。Flash 内容没有因 G3 改写。
