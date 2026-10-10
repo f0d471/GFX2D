@@ -1,0 +1,19 @@
+# COM11 @ 115200 8N1, opened 19:10:38
+f4Bench start
+scene=scene00_mode0 n=207 segs=22 verify=172
+# --- 程序已加载，以下才是它的输出 ---
+round0 base=42523 inst=46695 bmin=39675 imin=45590 bmax=42533 imax=46699
+round1 base=42671 inst=46590 bmin=39675 imin=45588 bmax=42682 imax=46594
+round2 base=42671 inst=46590 bmin=39675 imin=45588 bmax=42684 imax=46594
+scene=scene04_mode0 n=2529 segs=23 verify=2494
+round0 base=309049 inst=589150 bmin=308294 imin=589021 bmax=309158 imax=589269
+round1 base=309049 inst=589150 bmin=308294 imin=589021 bmax=309158 imax=589269
+round2 base=309051 inst=589150 bmin=308294 imin=589021 bmax=309375 imax=589269
+scene=scene14_mode0 n=2895 segs=26 verify=2860
+round0 base=354473 inst=669582 bmin=354167 imin=669413 bmax=354475 imax=669583
+round1 base=354474 inst=669582 bmin=354175 imin=669413 bmax=354475 imax=669583
+round2 base=354474 inst=669582 bmin=354175 imin=669413 bmax=354475 imax=669583
+crc=0=0=0=0=0=0
+done
+
+# closed 19:11:47, 867 bytes

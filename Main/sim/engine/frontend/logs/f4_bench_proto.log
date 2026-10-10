@@ -1,0 +1,20 @@
+# COM11 @ 115200 8N1, opened 19:05:23
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+f4Bench start
+scene=scene00_mode0 n=207 segs=22 verify=172
+round0 base=43200 inst=74904 bmin=40034 imin=74765 bmax=43321 imax=75099
+round1 base=43200 inst=74904 bmin=40035 imin=74765 bmax=43321 imax=75099
+round2 base=43200 inst=74904 bmin=40035 imin=74765 bmax=43321 imax=75099
+scene=scene04_mode0 n=2529 segs=23 verify=2494
+round0 base=313212 inst=689353 bmin=312742 imin=689330 bmax=313214 imax=689354
+round1 base=313212 inst=689353 bmin=312742 imin=689330 bmax=313214 imax=689354
+round2 base=313212 inst=689353 bmin=312742 imin=689330 bmax=313214 imax=689354
+scene=scene14_mode0 n=2895 segs=26 verify=2860
+round0 base=359076 inst=779506 bmin=358642 imin=778873 bmax=359161 imax=779509
+round1 base=359075 inst=779506 bmin=358622 imin=778873 bmax=359148 imax=779509
+round2 base=359075 inst=779506 bmin=358622 imin=778873 bmax=359148 imax=779509
+crc=0=0=0=0=0=0
+done
+
+# closed 19:06:34, 884 bytes

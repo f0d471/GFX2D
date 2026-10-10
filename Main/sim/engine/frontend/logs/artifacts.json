@@ -168,5 +168,10 @@
     "size": 104670,
     "mtime_ns": 1791622932301395800,
     "sha256": "ed9aa0593129007a43619d625bb7ad385ef68e709fdd89b121fbdd6fce1f90ca"
+  },
+  "Main/sw/apps/probe/f4Bench/build_f4/f4Bench-O2.bin": {
+    "size": 240334,
+    "mtime_ns": 1791631259126716600,
+    "sha256": "32eb6ea2abba5169c5d31987e393dadeffc55829502799e4ac62401913a66633"
   }
 }

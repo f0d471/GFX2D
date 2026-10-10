@@ -87,6 +87,9 @@ planned+模板；5 为 B1 底色缓存，6 为 B2 动态 prepass，7/8/9 分别�
 | `logs/perf_pipeline_*.log`、`production_results.json` | 最终生产流水 TEX/STRIP/prepass 各 1200 帧；一型一次复测，不等于 N_max 或冻结三次 A/B。旧 perf_* 是串行研究快照 |
 | `logs/switch_uart.log`、`surface_guard_4k.log`、`prepass_failure_pipeline.log` | 正常 UART 三模式四后端、忙态 SURF 保护、故意 prepass 错误 60 帧零交换；旧 switch.log 超时不属于通过证据 |
 | `logs/board_results.json` | 队列完成后的逐消费者判定，不用程序退出码替代功能条件 |
+| `f4_instance_analysis.py`、`f4_instance_stats.json` | F4 研究轮：17 组 v1 输入的合包统计（共享状态键连续区间、XY4/XYUV8、字节压缩），保守口径 |
+| `f4_inst_proto.c` | F4 宿主对拍器：构造+独立展开逐字对拍与边界样例；核心实现在 `sw/apps/probe/f4Bench/src/f4_core.c`（与板测共用） |
+| `logs/f4_bench_proto*.log` | F4 板上三路径测量（base/inst/instb），G4 4KB 主线 bit 纯构造；proto1/2 为过程轮，proto4 为正式值 |
 | `logs/board_queue.log`、`main_bit_restore.log` | 队列结束与 16KB 对照后主线位流恢复的原始输出 |
 | `logs/interactive_restore.log`、`interactive_restore_summary.json` | 注错结束后恢复当前正常 TEX 交互版；8 个启动窗口 59～60 fps、drop 最大 1，仅为短观察 |
 
@@ -102,7 +105,8 @@ planned+模板；5 为 B1 底色缓存，6 为 B2 动态 prepass，7/8/9 分别�
 
 F1 过程在 [engine 第 12 章](../../../../Engineering/TechReports/engine/12-绘制前端成本分解.md)，
 F2 在 [sw 第 09 章](../../../../Engineering/TechReports/sw/09-背景面与绘制阶段.md)，
-F3 在 [sw 第 10 章](../../../../Engineering/TechReports/sw/10-保序分桶与模板复用.md)。
+F3 在 [sw 第 10 章](../../../../Engineering/TechReports/sw/10-保序分桶与模板复用.md)，
+F4 开工前研究在 [engine 第 13 章](../../../../Engineering/TechReports/engine/13-绘制前端实例命令研究.md)。
 原方案研究的 `research_results.json`、`spec_review.json` 与
 `probe_frontend.c` 保留，来源与决策见 engine 第 11 章；它们不作为新增板测证明。
 

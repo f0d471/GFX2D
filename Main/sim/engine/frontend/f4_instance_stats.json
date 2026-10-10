@@ -1,0 +1,325 @@
+[
+ {
+  "blits": 172,
+  "runs": 23,
+  "xy4": {
+   "packets": 12,
+   "instances": 34
+  },
+  "xyuv8": {
+   "packets": 11,
+   "instances": 138
+  },
+  "bytes_orig": 5504,
+  "bytes_inst_cons": 1976,
+  "ratio_cons": 0.359,
+  "inst_share": 1.0,
+  "scene": 0,
+  "records": 207,
+  "non_blit": 35
+ },
+ {
+  "blits": 622,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 457
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 165
+  },
+  "bytes_orig": 19904,
+  "bytes_inst_cons": 3916,
+  "ratio_cons": 0.1967,
+  "inst_share": 1.0,
+  "scene": 1,
+  "records": 657,
+  "non_blit": 35
+ },
+ {
+  "blits": 1382,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 1215
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 167
+  },
+  "bytes_orig": 44224,
+  "bytes_inst_cons": 6964,
+  "ratio_cons": 0.1575,
+  "inst_share": 1.0,
+  "scene": 2,
+  "records": 1417,
+  "non_blit": 35
+ },
+ {
+  "blits": 2108,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 1940
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 168
+  },
+  "bytes_orig": 67456,
+  "bytes_inst_cons": 9872,
+  "ratio_cons": 0.1463,
+  "inst_share": 1.0,
+  "scene": 3,
+  "records": 2143,
+  "non_blit": 35
+ },
+ {
+  "blits": 2494,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 2326
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 168
+  },
+  "bytes_orig": 79808,
+  "bytes_inst_cons": 11416,
+  "ratio_cons": 0.143,
+  "inst_share": 1.0,
+  "scene": 4,
+  "records": 2529,
+  "non_blit": 35
+ },
+ {
+  "blits": 2980,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 2812
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 168
+  },
+  "bytes_orig": 95360,
+  "bytes_inst_cons": 13360,
+  "ratio_cons": 0.1401,
+  "inst_share": 1.0,
+  "scene": 5,
+  "records": 3015,
+  "non_blit": 35
+ },
+ {
+  "blits": 172,
+  "runs": 23,
+  "xy4": {
+   "packets": 12,
+   "instances": 34
+  },
+  "xyuv8": {
+   "packets": 11,
+   "instances": 138
+  },
+  "bytes_orig": 5504,
+  "bytes_inst_cons": 1976,
+  "ratio_cons": 0.359,
+  "inst_share": 1.0,
+  "scene": 6,
+  "records": 207,
+  "non_blit": 35
+ },
+ {
+  "blits": 614,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 449
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 165
+  },
+  "bytes_orig": 19648,
+  "bytes_inst_cons": 3884,
+  "ratio_cons": 0.1977,
+  "inst_share": 1.0,
+  "scene": 7,
+  "records": 649,
+  "non_blit": 35
+ },
+ {
+  "blits": 1367,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 1200
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 167
+  },
+  "bytes_orig": 43744,
+  "bytes_inst_cons": 6904,
+  "ratio_cons": 0.1578,
+  "inst_share": 1.0,
+  "scene": 8,
+  "records": 1402,
+  "non_blit": 35
+ },
+ {
+  "blits": 2079,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 1911
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 168
+  },
+  "bytes_orig": 66528,
+  "bytes_inst_cons": 9756,
+  "ratio_cons": 0.1466,
+  "inst_share": 1.0,
+  "scene": 9,
+  "records": 2114,
+  "non_blit": 35
+ },
+ {
+  "blits": 2449,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 2281
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 168
+  },
+  "bytes_orig": 78368,
+  "bytes_inst_cons": 11236,
+  "ratio_cons": 0.1434,
+  "inst_share": 1.0,
+  "scene": 10,
+  "records": 2484,
+  "non_blit": 35
+ },
+ {
+  "blits": 2934,
+  "runs": 24,
+  "xy4": {
+   "packets": 8,
+   "instances": 2766
+  },
+  "xyuv8": {
+   "packets": 16,
+   "instances": 168
+  },
+  "bytes_orig": 93888,
+  "bytes_inst_cons": 13176,
+  "ratio_cons": 0.1403,
+  "inst_share": 1.0,
+  "scene": 11,
+  "records": 2969,
+  "non_blit": 35
+ },
+ {
+  "blits": 162,
+  "runs": 22,
+  "xy4": {
+   "packets": 11,
+   "instances": 33
+  },
+  "xyuv8": {
+   "packets": 11,
+   "instances": 129
+  },
+  "bytes_orig": 5184,
+  "bytes_inst_cons": 1868,
+  "ratio_cons": 0.3603,
+  "inst_share": 1.0,
+  "scene": 12,
+  "records": 197,
+  "non_blit": 35
+ },
+ {
+  "blits": 394,
+  "runs": 27,
+  "xy4": {
+   "packets": 10,
+   "instances": 168
+  },
+  "xyuv8": {
+   "packets": 17,
+   "instances": 226
+  },
+  "bytes_orig": 12608,
+  "bytes_inst_cons": 3344,
+  "ratio_cons": 0.2652,
+  "inst_share": 1.0,
+  "scene": 13,
+  "records": 429,
+  "non_blit": 35
+ },
+ {
+  "blits": 2860,
+  "runs": 27,
+  "xy4": {
+   "packets": 9,
+   "instances": 1542
+  },
+  "xyuv8": {
+   "packets": 18,
+   "instances": 1318
+  },
+  "bytes_orig": 91520,
+  "bytes_inst_cons": 17576,
+  "ratio_cons": 0.192,
+  "inst_share": 1.0,
+  "scene": 14,
+  "records": 2895,
+  "non_blit": 35
+ },
+ {
+  "blits": 2164,
+  "runs": 24,
+  "xy4": {
+   "packets": 7,
+   "instances": 2001
+  },
+  "xyuv8": {
+   "packets": 17,
+   "instances": 163
+  },
+  "bytes_orig": 69248,
+  "bytes_inst_cons": 10076,
+  "ratio_cons": 0.1455,
+  "inst_share": 1.0,
+  "scene": 15,
+  "records": 2199,
+  "non_blit": 35
+ },
+ {
+  "blits": 162,
+  "runs": 22,
+  "xy4": {
+   "packets": 10,
+   "instances": 24
+  },
+  "xyuv8": {
+   "packets": 12,
+   "instances": 138
+  },
+  "bytes_orig": 5184,
+  "bytes_inst_cons": 1904,
+  "ratio_cons": 0.3673,
+  "inst_share": 1.0,
+  "scene": 16,
+  "records": 197,
+  "non_blit": 35
+ }
+]

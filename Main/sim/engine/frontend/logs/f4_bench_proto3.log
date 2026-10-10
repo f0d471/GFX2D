@@ -1,0 +1,8 @@
+# COM11 @ 115200 8N1, opened 19:14:49
+f4Bench start
+scene=scene00_mode0 n=207 segs=22 verify=172 vbatch=4294967293
+crc=0=0=0=0=0=0=0=0=0
+done
+# --- 程序已加载，以下才是它的输出 ---
+
+# closed 19:19:49, 104 bytes

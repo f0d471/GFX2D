@@ -1,0 +1,19 @@
+# COM11 @ 115200 8N1, opened 19:20:59
+f4Bench start
+scene=scene00_mode0 n=207 segs=22 verify=172 vbatch=172
+# --- 程序已加载，以下才是它的输出 ---
+round0 base=43953 inst=46808 instb=17004
+round1 base=43953 inst=46808 instb=17005
+round2 base=43953 inst=46808 instb=17005
+scene=scene04_mode0 n=2529 segs=23 verify=2494 vbatch=2494
+round0 base=320379 inst=587443 instb=168506
+round1 base=320378 inst=587443 instb=168506
+round2 base=320378 inst=587443 instb=168506
+scene=scene14_mode0 n=2895 segs=26 verify=2860 vbatch=2860
+round0 base=367634 inst=669986 instb=227503
+round1 base=367635 inst=669987 instb=227503
+round2 base=367635 inst=669987 instb=227503
+crc=0=0=0=0=0=0=0=0=0
+done
+
+# closed 19:22:18, 602 bytes
