@@ -1,10 +1,9 @@
 # 绘制前端：研究、实现与复现
 
-本次阶段完成范围与未执行的采用验证见 [2026-10-10 阶段记录](STAGE-2026-10-10.md)。
-
 本目录收录 F1 成本测量、F2 背景面/pass 和 F3 planned/模板的独立判据与原始
-证据。软件已实现，板测复核中；候选默认关闭，正确性、净收益、采用分别登记。
-接口规格见 [绘制前端总览](../../../../Engineering/Todo/sw/绘制前端总览.md)。
+证据。软件已实现，板测队列完整通过，条目待验收；候选默认关闭，正确性、
+净收益、采用分别登记。接口规格见
+[绘制前端总览](../../../../Engineering/Todo/sw/绘制前端总览.md)。
 
 正式代码在 `Main/sw/lib/gfx/frame.h/.c`、`strip_plan.c`、
 `apps/game/gfx2dGame/src/frontend_game.c` 与 `apps/probe/frontendBench/`。
