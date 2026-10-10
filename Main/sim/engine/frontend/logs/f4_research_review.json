@@ -1,0 +1,85 @@
+{
+  "totals": {
+    "blits": 25115,
+    "logical_scalar_bytes": 803680,
+    "logical_inst_bytes": 129204,
+    "padded_inst_bytes": 131120,
+    "singletons": 59,
+    "multi_run_blits": 25056,
+    "logical_ratio": 0.16076547879753136,
+    "padded_ratio": 0.16314951224367907,
+    "multi_share": 0.9976508062910611
+  },
+  "selected": [
+    {
+      "bytes_inst_padded": 2112,
+      "singleton_blits": 6,
+      "multi_run_blits": 166,
+      "multi_share": 0.9651,
+      "blits": 172,
+      "runs": 23,
+      "xy4": {
+        "packets": 12,
+        "instances": 34
+      },
+      "xyuv8": {
+        "packets": 11,
+        "instances": 138
+      },
+      "bytes_orig": 5504,
+      "bytes_inst_cons": 1976,
+      "ratio_cons": 0.359,
+      "inst_share": 1,
+      "scene": 0,
+      "records": 207,
+      "non_blit": 35
+    },
+    {
+      "bytes_inst_padded": 11520,
+      "singleton_blits": 3,
+      "multi_run_blits": 2491,
+      "multi_share": 0.9988,
+      "blits": 2494,
+      "runs": 24,
+      "xy4": {
+        "packets": 8,
+        "instances": 2326
+      },
+      "xyuv8": {
+        "packets": 16,
+        "instances": 168
+      },
+      "bytes_orig": 79808,
+      "bytes_inst_cons": 11416,
+      "ratio_cons": 0.143,
+      "inst_share": 1,
+      "scene": 4,
+      "records": 2529,
+      "non_blit": 35
+    },
+    {
+      "bytes_inst_padded": 17696,
+      "singleton_blits": 3,
+      "multi_run_blits": 2857,
+      "multi_share": 0.999,
+      "blits": 2860,
+      "runs": 27,
+      "xy4": {
+        "packets": 9,
+        "instances": 1542
+      },
+      "xyuv8": {
+        "packets": 18,
+        "instances": 1318
+      },
+      "bytes_orig": 91520,
+      "bytes_inst_cons": 17576,
+      "ratio_cons": 0.192,
+      "inst_share": 1,
+      "scene": 14,
+      "records": 2895,
+      "non_blit": 35
+    }
+  ],
+  "scope": "analysis covers BLIT-only maximal shared-state runs; host prototype preserves scalar controls and uses a different mixed-layout split"
+}

@@ -89,7 +89,13 @@ def summarize(tag, detail, n_blit):
     bytes_inst = 32 * (pack4 + pack8) + 4 * inst4 + 8 * inst8
     # 激进口径：非 fixed 区间按源坐标连续段细分，同源连续子段独立成 XY4 包
     split_pack4 = split_inst4 = split_pack8 = split_inst8 = 0
+    padded=sum(32+((d["len"]*(4 if d["fixed_src"] else 8)+15)//16)*16 for d in detail)
+    singleton=sum(d["len"] for d in detail if d["len"]==1)
     return {
+        "bytes_inst_padded":padded,
+        "singleton_blits":singleton,
+        "multi_run_blits":n_blit-singleton,
+        "multi_share":round((n_blit-singleton)/n_blit,4) if n_blit else None,
         "blits": n_blit,
         "runs": len(detail),
         "xy4": {"packets": pack4, "instances": inst4},

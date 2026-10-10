@@ -1,0 +1,1 @@
+PASS: three generated C arrays byte-identical to frozen input bins; strict C compile passed

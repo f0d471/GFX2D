@@ -1,5 +1,9 @@
 [
  {
+  "bytes_inst_padded": 2112,
+  "singleton_blits": 6,
+  "multi_run_blits": 166,
+  "multi_share": 0.9651,
   "blits": 172,
   "runs": 23,
   "xy4": {
@@ -19,6 +23,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 4032,
+  "singleton_blits": 3,
+  "multi_run_blits": 619,
+  "multi_share": 0.9952,
   "blits": 622,
   "runs": 24,
   "xy4": {
@@ -38,6 +46,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 7072,
+  "singleton_blits": 3,
+  "multi_run_blits": 1379,
+  "multi_share": 0.9978,
   "blits": 1382,
   "runs": 24,
   "xy4": {
@@ -57,6 +69,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 9968,
+  "singleton_blits": 3,
+  "multi_run_blits": 2105,
+  "multi_share": 0.9986,
   "blits": 2108,
   "runs": 24,
   "xy4": {
@@ -76,6 +92,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 11520,
+  "singleton_blits": 3,
+  "multi_run_blits": 2491,
+  "multi_share": 0.9988,
   "blits": 2494,
   "runs": 24,
   "xy4": {
@@ -95,6 +115,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 13456,
+  "singleton_blits": 3,
+  "multi_run_blits": 2977,
+  "multi_share": 0.999,
   "blits": 2980,
   "runs": 24,
   "xy4": {
@@ -114,6 +138,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 2112,
+  "singleton_blits": 6,
+  "multi_run_blits": 166,
+  "multi_share": 0.9651,
   "blits": 172,
   "runs": 23,
   "xy4": {
@@ -133,6 +161,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 4000,
+  "singleton_blits": 3,
+  "multi_run_blits": 611,
+  "multi_share": 0.9951,
   "blits": 614,
   "runs": 24,
   "xy4": {
@@ -152,6 +184,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 7008,
+  "singleton_blits": 3,
+  "multi_run_blits": 1364,
+  "multi_share": 0.9978,
   "blits": 1367,
   "runs": 24,
   "xy4": {
@@ -171,6 +207,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 9856,
+  "singleton_blits": 3,
+  "multi_run_blits": 2076,
+  "multi_share": 0.9986,
   "blits": 2079,
   "runs": 24,
   "xy4": {
@@ -190,6 +230,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 11328,
+  "singleton_blits": 3,
+  "multi_run_blits": 2446,
+  "multi_share": 0.9988,
   "blits": 2449,
   "runs": 24,
   "xy4": {
@@ -209,6 +253,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 13280,
+  "singleton_blits": 3,
+  "multi_run_blits": 2931,
+  "multi_share": 0.999,
   "blits": 2934,
   "runs": 24,
   "xy4": {
@@ -228,6 +276,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 2000,
+  "singleton_blits": 5,
+  "multi_run_blits": 157,
+  "multi_share": 0.9691,
   "blits": 162,
   "runs": 22,
   "xy4": {
@@ -247,6 +299,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 3472,
+  "singleton_blits": 3,
+  "multi_run_blits": 391,
+  "multi_share": 0.9924,
   "blits": 394,
   "runs": 27,
   "xy4": {
@@ -266,6 +322,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 17696,
+  "singleton_blits": 3,
+  "multi_run_blits": 2857,
+  "multi_share": 0.999,
   "blits": 2860,
   "runs": 27,
   "xy4": {
@@ -285,6 +345,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 10176,
+  "singleton_blits": 1,
+  "multi_run_blits": 2163,
+  "multi_share": 0.9995,
   "blits": 2164,
   "runs": 24,
   "xy4": {
@@ -304,6 +368,10 @@
   "non_blit": 35
  },
  {
+  "bytes_inst_padded": 2032,
+  "singleton_blits": 5,
+  "multi_run_blits": 157,
+  "multi_share": 0.9691,
   "blits": 162,
   "runs": 22,
   "xy4": {

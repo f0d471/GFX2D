@@ -28,7 +28,7 @@
 #ifndef GFX2D_GFX_CENSUS_H
 #define GFX2D_GFX_CENSUS_H
 
-#include "gfx/gfx_abi.h"
+#include "gfx/gfx.h"
 
 #define GFX_CENSUS_EQ_N     6u      /* COPY ALPHA ADD CONST MUL ALPHA_STRAIGHT */
 
@@ -53,6 +53,10 @@ void     gfx_census_clear(gfx_census *c);
    正常返回 0；遇到不认识的操作码或方程号越界时停在那一条、返回 -1（已计的保留）。 */
 int      gfx_census_run(gfx_census_state *cs, const gfx_surface_table *t,
                         const gfx_cmd *list, uint32_t list_count, gfx_census *c);
+
+int gfx_census_run_instances(gfx_census_state *cs,const gfx_surface_table *t,
+                              const gfx_cmd *list,uint32_t count,
+                              const gfx_instance_view *views,uint32_t view_count,gfx_census *c);
 
 /* 两个合计：与执行器的 cmd、pixel_total 对账用。 */
 uint32_t gfx_census_cmd_total(const gfx_census *c);

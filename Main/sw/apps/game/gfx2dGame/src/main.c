@@ -1124,13 +1124,18 @@ static void sample_frame(void)
             s_fail++;
     }
 #endif
-    if (s_backend == 3u && s_mode != 1u) {
+    if (s_mode != 1u && (s_backend == 3u || s_mout.instances)) {
         gfx_list view;
         gfx_census cc;
         gfx_list_begin(&view, s_cmds[idx], s_cmd_cap[idx], &s_tab);
-        view.strip_table = (uint8_t *)(void *)s_cmds[idx];
-        view.strips = (gfx_strip_config){480u >> GFX2D_STRIP_LOG2,
-                                         GFX2D_STRIP_LOG2, idx, idx};
+        if(s_backend==3u) {
+            view.strip_table = (uint8_t *)(void *)s_cmds[idx];
+            view.strips = (gfx_strip_config){480u >> GFX2D_STRIP_LOG2,
+                                             GFX2D_STRIP_LOG2, idx, idx};
+        } else {
+            view.instances=s_mout.instances;
+            view.instance_generation=s_mout.instance_generation;
+        }
         view.used = used;
 #if GFX_FRONTEND_BACKGROUND
         view.frame=s_mout.frame_plan;

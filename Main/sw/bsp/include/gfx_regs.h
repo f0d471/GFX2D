@@ -19,6 +19,7 @@
 #define GFX_LSTRIPS          0x02C
 #define GFX_STRIP_H          0x030
 #define GFX_BAND_SURF          0x034
+#define GFX_ERROR_INSTANCE          0x038
 #define GFX_SURF(s, w)   (0x040 + ((s) * 12) + ((w) * 4))  /* s=0..15, w=0..2 */
 #define GFX_PERF(i)      (0x100 + (i) * 4)
 
@@ -32,7 +33,8 @@
 #define GFX_PERF_WR_BEAT     6
 #define GFX_PERF_WAIT_DDR     7
 #define GFX_PERF_BUSY     8
-#define GFX_PERF_COUNT   9
+#define GFX_PERF_INSTANCE     9
+#define GFX_PERF_COUNT   10
 
 /* ID 与版本 */
 #define GFX_ID_VALUE     0x47465801u  /* "GFX" << 8 | 版本 */
@@ -57,7 +59,9 @@
 #define GFX_CAPS_INDEX8_S   7
 #define GFX_CAPS_LANES_M   0x00000F00u
 #define GFX_CAPS_LANES_S   8
-#define GFX_CAPS_VALUE   0x0000046Fu
+#define GFX_CAPS_INST_M   0x00001000u
+#define GFX_CAPS_INST_S   12
+#define GFX_CAPS_VALUE   0x0000146Fu
 
 /* CTRL 位（SOFT_RST/CNT_CLR 写 1 自清，读恒 0） */
 #define GFX_CTRL_EN     (1u << 0)

@@ -30,7 +30,13 @@ int frontend_verify(const gfx_list *l,const gfx_mem *m,const exec_sw_stats *hw,
     }
     if(l->strip_table)
         rc=exec_sw_run_strips(&tab,m,l->strip_table,GFX_STRIP_TABLE_BYTES,&l->strips,scratch,sizeof scratch,&expected,&er);
-    else {exec_sw_reset(&es);rc=exec_sw_run(&es,&tab,m,l->buf,l->used,l->used,&expected,&er);}
+    else {
+        exec_sw_reset(&es);
+        if(l->instances) {
+            const gfx_instance_arena *a=l->instances;gfx_instance_view view={a->host,a->dev_base,a->used};
+            rc=exec_sw_run_instances(&es,&tab,m,l->buf,l->used,l->used,&view,1,&expected,&er,0,0);
+        } else rc=exec_sw_run(&es,&tab,m,l->buf,l->used,l->used,&expected,&er);
+    }
     if(rc)return 2;
     board_dcache_invalidate_all();
     *hw_crc=face_crc(m,original);*sw_crc=face_crc(m,shadow);

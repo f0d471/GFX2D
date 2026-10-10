@@ -149,7 +149,7 @@ def run_openocd(ocd, cfg, workspace, cmds, timeout=90):
 
 
 def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result,
-                  forward_input=False, input_script=None, script_after=None):
+                  forward_input=False, input_script=None, script_after=None, stop_line=None):
     """先开串口再让主线程去加载程序；读到的内容边读边写文件。
 
     `armed` 是主线程在 load_image + resume 之后置位的事件。它之前收到的字节
@@ -214,7 +214,10 @@ def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result,
                     f.write(s)
                 f.flush()
                 text += s
-                if stop_on and match_from is not None and stop_on in text[match_from:]:
+                window = text[match_from:] if match_from is not None else ""
+                line_hit = stop_line is not None and any(
+                    line.rstrip("\r") == stop_line for line in window.split("\n")[:-1])
+                if match_from is not None and ((stop_on and stop_on in window) or line_hit):
                     result["stopped"] = True
                     break
             f.write("\n# closed %s, %d bytes\n" % (time.strftime("%H:%M:%S"), nbytes))
@@ -259,7 +262,9 @@ def main():
     ap.add_argument("--input-script-after", default=None,
                     help="诊断输入在本次程序串口输出包含此文本后才开始计时")
     ap.add_argument("--seconds", type=int, default=60, help="串口采集时长上限")
-    ap.add_argument("--stop-on", default=None, help="收到该文本就结束采集；没收到时退出码为 1")
+    ending = ap.add_mutually_exclusive_group()
+    ending.add_argument("--stop-on", default=None, help="收到该子串就结束采集；没收到时退出码为 1")
+    ending.add_argument("--stop-line", default=None, help="收到完整一行才结束；用于区分 done 与 nmax done")
     ap.add_argument("--log", default=None, help="串口日志路径，默认 %%TEMP%%/board_run.log")
     ap.add_argument("--jtag-url", default="ftdi://0x0403:0x6011:0:ff/1",
                     help="下载器 URL，默认板载 FT4232H 的通道 B")
@@ -334,7 +339,7 @@ def main():
         th = threading.Thread(target=serial_worker, daemon=True,
                               args=(args.port, args.baud, log, args.seconds,
                                     args.stop_on, ready, armed, result, args.forward_input, script,
-                                    args.input_script_after))
+                                    args.input_script_after, args.stop_line))
         th.start()
         ready.wait(timeout=10)
         if result.get("error"):
@@ -375,8 +380,8 @@ def main():
         elif not result.get("bytes"):
             print("ERROR: 串口 0 字节。先查串口号（--list-ports）、比特流是否已加载", file=sys.stderr)
             rc = 1
-        elif args.stop_on and not result.get("stopped"):
-            print("ERROR: %d 秒内没有收到 %r" % (args.seconds, args.stop_on), file=sys.stderr)
+        elif (args.stop_on or args.stop_line) and not result.get("stopped"):
+            print("ERROR: %d 秒内没有收到 %r" % (args.seconds, args.stop_line or args.stop_on), file=sys.stderr)
             rc = 1
         return rc
 
@@ -437,7 +442,7 @@ def main():
     th = threading.Thread(target=serial_worker, daemon=True,
                           args=(args.port, args.baud, log, args.seconds,
                           args.stop_on, ready, armed, result, args.forward_input, script,
-                          args.input_script_after))
+                          args.input_script_after, args.stop_line))
     th.start()
     ready.wait(timeout=10)
     if result.get("error"):
@@ -474,8 +479,8 @@ def main():
     elif not result.get("bytes"):
         print("ERROR: 串口 0 字节。先查串口号（--list-ports）、比特流是否已加载", file=sys.stderr)
         rc = 1
-    elif args.stop_on and not result.get("stopped"):
-        print("ERROR: %d 秒内没有收到 %r" % (args.seconds, args.stop_on), file=sys.stderr)
+    elif (args.stop_on or args.stop_line) and not result.get("stopped"):
+        print("ERROR: %d 秒内没有收到 %r" % (args.seconds, args.stop_line or args.stop_on), file=sys.stderr)
         if result.get("pre_load_bytes"):
             print("       （加载前板子自启动打了 %d 字节，那一段不参与匹配；"
                   "--stop-on 要取程序末尾的标记）" % result["pre_load_bytes"],

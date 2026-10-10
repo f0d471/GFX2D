@@ -67,7 +67,10 @@ static int diff_scene(f4_builder *b, const gfx_cmd *in, uint32_t n,
             if (in[i].w[7] != i)
                 return -5;
             /* 身份还原：第 k 颗 BLIT 的 (pkg,inst) 必须落在包流范围内 */
-            if (ids[k].pkg >= b->used)
+            if (ids[i].pkg >= b->used ||
+                gfx_op(&b->stream[ids[i].pkg]) != F4_OP_BLIT_INST ||
+                ids[i].inst >= b->stream[ids[i].pkg].w[2] ||
+                b->stream[ids[i].pkg].w[7] != ids[i].pkg)
                 return -6;
             k++;
         } else if (memcmp(o, &in[i], sizeof(gfx_cmd)) != 0) {
@@ -90,7 +93,8 @@ static int boundary_cases(void)
     int rc;
 
     memset(&b, 0, sizeof b);
-    b.stream = malloc(sizeof(gfx_cmd) * (F4_INST_MAX + 8));
+    static gfx_cmd boundary_stream[F4_INST_MAX+8];
+    b.stream = boundary_stream;
     b.cap = F4_INST_MAX + 8;
     b.arena = arena;
     b.arena_bytes = ARENA_MAX;
@@ -152,6 +156,16 @@ static int boundary_cases(void)
         if (f4_expand(&bad, 1, arena, ARENA_MAX, expand, 8, NULL) != -2)
             return 10;
     }
+    if(f4_append_inst(&b,GFX_OP_BLIT,0,f4_pack_pair(1,1),INT32_MAX,INT32_MIN,0,0)!=GFX_BUILD_BAD_ARG)
+        return 14;
+    /* DMA 对齐与完整末拍边界必须独立拒绝。 */
+    {
+        gfx_cmd p={{F4_OP_BLIT_INST,4u,1u,0u,0u,4u,0u,0u}};
+        if(f4_expand(&p,1,arena,16,expand,8,NULL)!=-2)return 11;
+        p.w[1]=0u;
+        if(f4_expand(&p,1,arena,4,expand,8,NULL)!=-3)return 12;
+        if(f4_expand(&p,1,arena,16,expand,8,NULL)!=1)return 13;
+    }
     return 0;
 }
 
@@ -159,12 +173,19 @@ int main(int argc, char **argv)
 {
     static gfx_cmd *expand;
     static f4_id *ids;
-    uint8_t *arena = malloc(ARENA_MAX);
+    uint8_t *arena;
+    int result=0;
     f4_builder b;
     if (argc < 2) {
         fputs("usage: f4_inst_proto <sceneNN_mode0.bin>... | --boundary\n", stderr);
         return 2;
     }
+    if (strcmp(argv[1], "--boundary") == 0) {
+        int rc = boundary_cases();
+        printf("boundary %s (rc=%d)\n", rc == 0 ? "PASS" : "FAIL", rc);
+        return rc;
+    }
+    arena=malloc(ARENA_MAX);
     expand = malloc(sizeof(gfx_cmd) * STREAM_MAX);
     ids = malloc(sizeof(f4_id) * STREAM_MAX);
     memset(&b, 0, sizeof b);
@@ -172,23 +193,19 @@ int main(int argc, char **argv)
     b.cap = STREAM_MAX;
     b.arena = arena;
     b.arena_bytes = ARENA_MAX;
-    if (strcmp(argv[1], "--boundary") == 0) {
-        int rc = boundary_cases();
-        printf("boundary %s (rc=%d)\n", rc == 0 ? "PASS" : "FAIL", rc);
-        return rc;
-    }
+    if(!arena || !expand || !ids || !b.stream){result=1;goto cleanup;}
     for (int a = 1; a < argc; a++) {
         uint32_t n = 0;
         gfx_cmd *in = load_v1(argv[a], &n);
         int rc;
         if (!in) {
             printf("%s LOAD-FAIL\n", argv[a]);
-            return 1;
+            result=1;goto cleanup;
         }
         rc = diff_scene(&b, in, n, expand, ids, STREAM_MAX);
         if (rc != 0) {
             printf("%s DIFF rc=%d\n", argv[a], rc);
-            return 1;
+            free(in);result=1;goto cleanup;
         }
         {
             uint32_t bytes_orig = 32u * n;
@@ -202,5 +219,7 @@ int main(int argc, char **argv)
         }
         free(in);
     }
-    return 0;
+cleanup:
+    free(arena);free(expand);free(ids);free(b.stream);
+    return result;
 }

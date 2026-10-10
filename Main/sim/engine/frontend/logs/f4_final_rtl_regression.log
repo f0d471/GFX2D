@@ -1,0 +1,15 @@
+F4 RTL PASS cases=144 DDR/TEX equations=6 XY4/XYUV8 N=0/1/15/16/17/31
+F4 MUTATION detected STRIDE
+F4 MUTATION detected XYUV
+F4 MUTATION detected STATE
+F4 MUTATION detected SKIP
+F4 MUTATION detected OWNER
+F4 MUTATION detected EARLY_DONE
+F4 PROTOCOL PASS stride_cross4k
+F4 PROTOCOL PASS overlap_identity
+F4 PROTOCOL PASS array_bus_error
+F4 PROTOCOL PASS array_timeout
+F4 PROTOCOL PASS bad_packet
+F4 PROTOCOL PASS reset_recovery
+F4 PROTOCOL PASS prefetch_timeout_identity
+F4 CHECK PASS

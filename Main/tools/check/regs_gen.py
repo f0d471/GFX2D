@@ -32,12 +32,13 @@ LCNT    = 0x024
 DOORBELL= 0x028
 LSTRIPS = 0x02C
 STRIP_H = 0x030
+ERROR_INSTANCE = 0x038
 BAND_SURF = 0x034
 SURF0   = 0x040            # SURF[s] 字 w：SURF0 + 12*s + 4*w，s=0..15，w=0..2
 PERF0   = 0x100            # PERF[i]：PERF0 + 4*i，i 见 PERF_NAMES
 
 PERF_NAMES = ["CMD", "PIXEL", "KEY_SKIP", "RD_BURST", "WR_BURST",
-              "RD_BEAT", "WR_BEAT", "WAIT_DDR", "BUSY"]
+              "RD_BEAT", "WR_BEAT", "WAIT_DDR", "BUSY", "INSTANCE"]
 
 # ID = ASCII "GFX" (0x474658) 左移 8 位 | 版本号 1
 ID_VALUE   = 0x47465801
@@ -50,7 +51,7 @@ CAPS_FIELDS = [("KEY", 0, 1, 1), ("ALPHA_PM", 1, 1, 1),
                ("ALPHA_ST", 2, 1, 1), ("MUL", 3, 1, 1),
                ("TINT", 4, 1, 0), ("BAND", 5, 1, 1),
                ("TEX", 6, 1, 1), ("INDEX8", 7, 1, 0),
-               ("LANES", 8, 4, 4)]
+               ("LANES", 8, 4, 4), ("INST", 12, 1, 1)]
 CAPS_VALUE = sum(value << lo for _, lo, _, value in CAPS_FIELDS)
 
 # TEX 装载窗口（v1-TEX profile，G1 的 D57）：APB Slave0 的第 4~7 页，
@@ -92,7 +93,7 @@ def gen_vh():
                  ("REG_ERROR_INDEX", ERR_IDX), ("REG_ERROR_TAG", ERR_TAG),
                  ("REG_LIST_BASE", LBASE), ("REG_LIST_COUNT", LCNT),
                  ("REG_DOORBELL", DOORBELL), ("REG_LSTRIPS", LSTRIPS),
-                 ("REG_STRIP_H", STRIP_H), ("REG_BAND_SURF", BAND_SURF), ("REG_SURF0", SURF0), ("REG_PERF0", PERF0)]:
+                 ("REG_STRIP_H", STRIP_H), ("REG_BAND_SURF", BAND_SURF), ("REG_ERROR_INSTANCE", ERROR_INSTANCE), ("REG_SURF0", SURF0), ("REG_PERF0", PERF0)]:
         a(f"localparam [11:0] EC_{n} = 12'h{o:03X};")
     a("")
     a("// 表面表与性能计数器的下标")
@@ -157,7 +158,7 @@ def gen_h():
                  ("IRQ_EN", IRQ_EN), ("IRQ_STAT", IRQ_ST), ("ERROR_INDEX", ERR_IDX),
                  ("ERROR_TAG", ERR_TAG), ("LIST_BASE", LBASE), ("LIST_COUNT", LCNT),
                  ("DOORBELL", DOORBELL), ("LSTRIPS", LSTRIPS),
-                 ("STRIP_H", STRIP_H), ("BAND_SURF", BAND_SURF)]:
+                 ("STRIP_H", STRIP_H), ("BAND_SURF", BAND_SURF), ("ERROR_INSTANCE", ERROR_INSTANCE)]:
         a(f"#define GFX_{n}          0x{o:03X}")
     a(f"#define GFX_SURF(s, w)   (0x{SURF0:03X} + ((s) * 12) + ((w) * 4))  /* s=0..15, w=0..2 */")
     a(f"#define GFX_PERF(i)      (0x{PERF0:03X} + (i) * 4)")

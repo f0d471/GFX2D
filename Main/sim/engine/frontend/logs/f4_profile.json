@@ -1,0 +1,33 @@
+{
+  "scalar": {
+    "fetch_cycles": 0,
+    "decode_cycles": 0,
+    "geometry_cycles": 775,
+    "pixel_output_beats": 80,
+    "cycles": 1830,
+    "rd_burst": 32,
+    "rd_beat": 198,
+    "wr_burst": 27,
+    "wr_beat": 80,
+    "pixel": 231,
+    "key": 0,
+    "cmd": 64,
+    "mem_bad": 0
+  },
+  "instances": {
+    "fetch_cycles": 250,
+    "decode_cycles": 496,
+    "geometry_cycles": 716,
+    "pixel_output_beats": 80,
+    "cycles": 1926,
+    "rd_burst": 31,
+    "rd_beat": 110,
+    "wr_burst": 27,
+    "wr_beat": 80,
+    "pixel": 231,
+    "key": 0,
+    "cmd": 4,
+    "mem_bad": 0
+  },
+  "scope": "TIMED full-engine fixture, identical initial/expected pixels; stage intervals can overlap; not board cycle decomposition"
+}

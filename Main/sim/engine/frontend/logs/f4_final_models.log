@@ -1,0 +1,4 @@
+F4 BOUNDARY PASS split=65535+4465 atomic=arg/closed/arena overlap=checked stride=12 cross4k padding=checked
+F4 HOST PASS frames=10000 equations=6 layouts=2 DDR/TEX clip_epochs=2 independent_scalar_pixels=equal
+F4 LEASE PASS double_buffer=independent busy_reuse=rejected stale_generation=rejected release_after_consumer=ok
+F4 CHECK PASS

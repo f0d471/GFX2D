@@ -52,6 +52,8 @@ typedef struct {
     stg_frame_stats st;         /* 组帧的计数 */
     uint32_t        list_idx;   /* 这一帧用的是哪一张命令表（0、1） */
     uint32_t        used;       /* 命令表的条数 */
+    gfx_instance_arena *instances;
+    uint32_t instance_generation;
     exec_sw_stats   xs;         /* 执行器的统计 */
     uint32_t        cyc_logic, cyc_build, cyc_exec;     /* 推进、组帧、执行三段的周期数 */
     uint32_t        t_present;  /* 发出呈现请求前一刻的 board_cycles()：帧时间的终点（sw 第 07 章 3.4 节，不含等场） */

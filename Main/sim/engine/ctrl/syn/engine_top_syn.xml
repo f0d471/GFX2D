@@ -9,6 +9,7 @@
         <efx:design_file name="../../../../rtl/engine/engine_top.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_regs.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_cmd.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/engine_inst.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_geom.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_pix.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_blend.v" version="default" library="default" />

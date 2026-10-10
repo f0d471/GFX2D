@@ -290,7 +290,7 @@ static uint64_t run_batch(f4_builder *b, const f4_seg *s, uint32_t nseg, uint32_
 
 int main(void)
 {
-    uint32_t s;
+    uint32_t s,failed=0;
     crc32_init();
     board_puts("f4Bench start\n");
     for (s = 0; s < f4_scene_count; s++) {
@@ -316,8 +316,7 @@ int main(void)
         field(" verify=", (uint32_t)vk);
         field(" vbatch=", (uint32_t)vb);
         board_puts("\n");
-        if (vk < 0 || vb < 0)
-            break;
+        if (vk < 0 || vb < 0) {failed++;break;}
 
         for (round = 0; round < ROUNDS; round++) {
             base_sum[round] = run_baseline(segs, nseg, pos, round);
@@ -336,6 +335,6 @@ int main(void)
     board_puts("crc");
     for (s = 0; s < ROUNDS * 3u; s++)
         field("=", crcs[s]);
-    board_puts("\ndone\n");
-    return 0;
+    board_puts("\n");field("fail ",failed);board_puts("\ndone\n");
+    return (int)failed;
 }

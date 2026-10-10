@@ -16,6 +16,24 @@
 #ifndef GFX_FRONTEND_BACKGROUND
 #define GFX_FRONTEND_BACKGROUND 0
 #endif
+#ifndef GFX_FRONTEND_INST
+#define GFX_FRONTEND_INST 0
+#endif
+static gfx_instance_arena s_instances[2];
+static gfx_lease s_instance_leases[2];
+static void instance_release(gfx_instance_arena *a,uint32_t generation)
+{
+    uint32_t i;
+    for(i=0;i<2;i++)if(a==&s_instances[i] && s_instance_leases[i].owner==generation)
+        s_instance_leases[i].owner=0;
+}
+static int instance_owned(const gfx_list *l)
+{
+    uint32_t i;
+    for(i=0;i<2;i++)if(l->instances==&s_instances[i])
+        return s_instance_leases[i].owner==l->instance_generation && l->instances->generation==l->instance_generation;
+    return 1; /* 显式外部 arena 的 lease 由调用方持有。 */
+}
 static gfx_strip_workspace s_workspace[2];
 static gfx_geometry_cache s_geometry[2];
 static gfx_surface_table s_build_tab[2];
@@ -47,6 +65,25 @@ int renderer_list_begin(int hw, gfx_list *list, gfx_cmd *buf, uint32_t cap,
         return rc;
     }
     gfx_list_begin(list, buf, cap, tab);
+    if(GFX_FRONTEND_INST && hw) {
+        int capable=1;
+#ifdef __riscv
+        uint32_t caps=0;
+        capable=gfx_engine_caps_read(&caps)==0 && (caps&GFX_CAPS_INST_M);
+#endif
+        if(capable) {
+            uint32_t idx=buf==(gfx_cmd *)board_region(REGION_CMDLIST_B).ptr?1u:0u;
+            board_mem shared=board_region(REGION_SHARED);
+            uint32_t offset=0x400000u+idx*0x80000u,generation=s_instances[idx].generation+1u;
+            if(s_instance_leases[idx].owner)return GFX_BUILD_FULL;
+            if(!generation)generation++;
+            s_instance_leases[idx]=(gfx_lease){g_mem_regions[REGION_SHARED].offset+offset,0x80000u,generation,generation};
+            s_instances[idx]=(gfx_instance_arena){(uint8_t *)shared.ptr+offset,
+                g_mem_regions[REGION_SHARED].offset+offset,0x80000u,0u,generation};
+            list->instances=&s_instances[idx];
+            list->instance_generation=generation;
+        }
+    }
     return GFX_OK;
 }
 
@@ -71,6 +108,11 @@ int renderer_list_census(const gfx_surface_table *tab, const gfx_list *list,
         return 0;
     }
 #endif
+    if(list->instances) {
+        const gfx_instance_arena *a=list->instances;
+        const gfx_instance_view view={a->host,a->dev_base,a->used};
+        return gfx_census_run_instances(&cs,tab,list->buf,list->used,&view,1u,census);
+    }
     if (list->strip_table == NULL)
         return gfx_census_run(&cs, tab, list->buf, list->used, census);
     for (s = 0u; s < list->strips.lstrips; s++) {
@@ -88,6 +130,8 @@ int renderer_list_census(const gfx_surface_table *tab, const gfx_list *list,
 #include "gfx_engine.h"
 #include "gfx_regs.h"
 static int s_pending;
+static gfx_instance_arena *s_pending_instance;
+static uint32_t s_pending_generation;
 static int s_pending_dst;
 static uint32_t s_pending_event, s_pending_start;
 static uint32_t s_perf_cmd, s_perf_pix, s_perf_key;
@@ -100,7 +144,7 @@ static int s_pipeline_front=-1;
 
 static int submit_list(const gfx_list *list)
 {
-    if (list->first_error || list->rejected || list->overflow)
+    if (list->first_error || list->rejected || list->overflow || !instance_owned(list))
         return GFX_ENG_E_ARG;
     if(!list->ended || (list->planned&&!list->planned->sealed))return GFX_ENG_E_ARG;
     if (list->strip_table != NULL)
@@ -181,10 +225,14 @@ static int pending_finish(exec_sw_stats *st, uint32_t *cycles, int *presented,
             *ready_time = board_cycles();
             *cycles = *ready_time - s_pending_start;
             engine_error(-1, 0u, 0u);
+            if(!gfx_engine_soft_reset())instance_release(s_pending_instance,s_pending_generation);
             return -1;
         }
     }
     rc = gfx_engine_wait(&code, &index, &tag);
+    if(rc==GFX_ENG_OK) {
+        instance_release(s_pending_instance,s_pending_generation);s_pending_instance=NULL;
+    }
     *ready_time = board_cycles();  /* 此刻以前是 CPU 与引擎并行的工作，不含等场 */
     *cycles = *ready_time - s_pending_start;
 #if SW9_PERF
@@ -300,9 +348,12 @@ int renderer_pipeline_step(const gfx_list *list, int dst, exec_sw_stats *done_st
     }
     s_pending_plan=NULL;
 #endif
+    s_pending_instance=list->instances;
+    s_pending_generation=list->instance_generation;
     s_pending_event = board_irq_engine_events();
     s_pending_start = board_cycles();
     if (submit_list(list) != GFX_ENG_OK) {
+        instance_release(s_pending_instance,s_pending_generation);
         engine_error(-2, 0u, 0u);
         return -1;
     }
@@ -339,6 +390,8 @@ int renderer_prepare(int hw, const gfx_surface_table *tab)
         return -1;             /* 切换前必须显式 flush，不能复位仍在途的命令表 */
     if (gfx_engine_soft_reset() != GFX_ENG_OK)
         return -1;
+    for(i=0;i<2u;i++)s_instance_leases[i].owner=0u;
+    s_pending_instance=NULL;s_pending_generation=0u;
 #if SW9_PERF
     if(s_pipeline_front!=-2)s_pipeline_front=-1;
 #endif
@@ -397,6 +450,7 @@ int renderer_run(int hw, const gfx_surface_table *tab, const gfx_mem *mem,
         if (rc != GFX_ENG_OK)
             goto hw_fail;
         *cycles = board_cycles() - t0;
+        instance_release(list->instances,list->instance_generation);
         perf_take(st);
         err->code = (int)code;
         err->index = index;
@@ -405,6 +459,8 @@ int renderer_run(int hw, const gfx_surface_table *tab, const gfx_mem *mem,
             engine_error((int)code, index, tag);
         return (int)code;
 hw_fail:
+        if(rc!=GFX_ENG_E_TIMEOUT || !gfx_engine_soft_reset())
+            instance_release(list->instances,list->instance_generation);
         err->code = rc;
         err->index = 0u;
         err->tag = 0u;
@@ -416,7 +472,7 @@ hw_fail:
     (void)hw;
 #endif
     exec_sw_stats_clear(st);
-    if (list->first_error || list->rejected || list->overflow)
+    if (list->first_error || list->rejected || list->overflow || !instance_owned(list))
         rc = GFX_BUILD_BAD_ARG;
     else if (!list->ended || (list->planned&&!list->planned->sealed))
         rc=GFX_BUILD_BAD_ARG;
@@ -425,9 +481,14 @@ hw_fail:
         rc = exec_sw_run_strips(tab, mem, list->strip_table,
                                 (list->strips.lstrips + 1u) * GFX_STRIP_REGION_BYTES,
                                 &list->strips, scratch, sizeof scratch, st, err);
+    } else if(list->instances) {
+        const gfx_instance_arena *a=list->instances;
+        const gfx_instance_view view={a->host,a->dev_base,a->used};
+        rc=exec_sw_run_instances(es,tab,mem,list->buf,list->used,list->used,&view,1u,st,err,NULL,NULL);
     } else
         rc = exec_sw_run(es, tab, mem, list->buf, list->used, list->used, st, err);
     *cycles = board_cycles() - t0;
+    instance_release(list->instances,list->instance_generation);
     return rc;
 }
 

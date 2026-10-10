@@ -250,8 +250,9 @@ int gfx_engine_perf_read(uint32_t *values, uint32_t n)
         return GFX_ENG_E_ARG;
     if (n != 0u && values == NULL)
         return GFX_ENG_E_ARG;
+    uint32_t supported=(eng_rd(GFX_CAPS)&GFX_CAPS_INST_M)?GFX_PERF_COUNT:9u;
     for (i = 0u; i < n; i++)
-        values[i] = eng_rd(GFX_PERF(i));
+        values[i] = i<supported?eng_rd(GFX_PERF(i)):0u;
     return GFX_ENG_OK;
 }
 
@@ -260,5 +261,13 @@ int gfx_engine_perf_clear(void)
     if (!gfx_engine_present())
         return GFX_ENG_E_ABSENT;
     eng_wr(GFX_CTRL, (eng_rd(GFX_CTRL) & (GFX_CTRL_EN|GFX_CTRL_BAND)) | GFX_CTRL_CNT_CLR);
+    return GFX_ENG_OK;
+}
+
+int gfx_engine_error_instance_read(uint32_t *instance)
+{
+    if(!instance)return GFX_ENG_E_ARG;
+    if(!gfx_engine_present())return GFX_ENG_E_ABSENT;
+    *instance=(eng_rd(GFX_CAPS)&GFX_CAPS_INST_M)?eng_rd(GFX_ERROR_INSTANCE):UINT32_MAX;
     return GFX_ENG_OK;
 }

@@ -179,7 +179,16 @@ uint32_t stg_draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cf
             uint32_t k = stg_pool_draw(p, kind, &g, clip, &cursor, pos, STG_DRAW_CHUNK);
 
             if (k != 0u) {
-                const uint32_t ok = gfx_blit_run(l, &t, pos, k);
+                uint32_t ok;
+                if(l->instances) {
+                    gfx_instance_desc desc={.shared=t,.layout=GFX_INSTANCE_XY4,
+                        .fixed_sx=pos[0].sx,.fixed_sy=pos[0].sy};
+                    uint32_t j;
+                    for(j=1;j<k;j++)if(pos[j].sx!=pos[0].sx || pos[j].sy!=pos[0].sy) {
+                        desc.layout=GFX_INSTANCE_XYUV8;desc.fixed_sx=0;desc.fixed_sy=0;break;
+                    }
+                    ok=gfx_instances_append(l,&desc,pos,k,l->instances)==0?k:0u;
+                } else ok=gfx_blit_run(l,&t,pos,k);
 
                 done += ok;
                 if (by_eq != 0)

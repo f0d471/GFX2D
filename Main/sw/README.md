@@ -743,3 +743,14 @@ ddrBurstProbe 仍要求 B6 前的 S1 探针 bit，当前引擎 bit 会明确 fai
 lib/gfx/strip_internal.h 仅供构造层内部使用：gfx_blit_run 完成模板或
 逐条检查后调用已校验追加入口，仍执行 v2 裁剪、反馈与原子容量检查。
 批量/逐条的字节、计数与错误差分由 sim/engine/g4/test_batch.c 验证。
+
+
+## 通用实例 profile
+
+lib/gfx/instances.c 提供批量实例构造、显式数组 view 执行与提交前标量展开。
+游戏池绘制按共享状态和 XY4/XYUV8 布局调用；renderer 的双帧 arena 持有
+ generation/owner，完成或成功排空后回收。直通实例通过 GFX_FRONTEND_INST 选择，
+能力缺失时在构造前选择原标量批入口，旧 v1/TEX/v2 接口保持兼容。
+apps/test/instanceTest 在新位流检查 122 组 CRC/PERF 和 70000 实例拆包，在旧
+CAPS 位流检查先展开、保留逻辑身份再提交的 fallback。实现和采用结论见
+[engine 第 13 章](../../Engineering/TechReports/engine/13-通用实例命令.md)。

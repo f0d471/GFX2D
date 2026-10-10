@@ -182,6 +182,7 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     uint32_t         t0 = board_cycles();
 
     o->presented_dst=-1;o->cyc_build=0;o->cyc_exec=0;o->crc=0;o->used=0;
+    o->instances=NULL;o->instance_generation=0;
     exec_sw_stats_clear(&o->xs);
 #if GFX_FRONTEND_BACKGROUND
     o->frame_plan=NULL;
@@ -195,6 +196,7 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
         say_err("compose", 0u);
         return;
     }
+    o->instances=l.instances;o->instance_generation=l.instance_generation;
     if (l.rejected != 0u || l.overflow != 0u || o->st.rejected != 0u) {
         say_err("list rejected/overflow", l.rejected + l.overflow + o->st.rejected);
         return;

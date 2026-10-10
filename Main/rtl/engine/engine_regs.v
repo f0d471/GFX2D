@@ -45,6 +45,8 @@ module engine_regs #(parameter integer STRIP_H = 16) (
     input  wire [3:0]  err_code,
     input  wire [31:0] err_index,
     input  wire [31:0] err_tag,
+    input wire [31:0] err_instance,
+    input wire perf_instance,
     input  wire        done_set,       // 一拍：整表正常完成
     output wire        kick,           // 一拍：DOORBELL 受理（cmd 锁存 LIST_*）
     output wire [31:0] list_base,
@@ -97,7 +99,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
     reg [31:0]  list_count_r;
     reg         st_done, st_err;
     reg [3:0]   err_code_r;
-    reg [31:0]  err_index_r, err_tag_r;
+    reg [31:0]  err_index_r, err_tag_r, err_instance_r;
     reg [1:0]   irq_en_r;
     reg [1:0]   irq_stat;
 
@@ -126,6 +128,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
                    || (paddr == EC_REG_CTRL)  || (paddr == EC_REG_STATUS)
                    || (paddr == EC_REG_IRQ_EN)|| (paddr == EC_REG_IRQ_STAT)
                    || (paddr == EC_REG_ERROR_INDEX) || (paddr == EC_REG_ERROR_TAG)
+                   || (paddr == EC_REG_ERROR_INSTANCE)
                    || (paddr == EC_REG_LIST_BASE)   || (paddr == EC_REG_LIST_COUNT)
                    || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
                    || (paddr == EC_REG_BAND_SURF) || surf_addr || perf_addr;
@@ -212,6 +215,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
             EC_REG_IRQ_STAT:    rdata_mux = {30'd0, irq_stat};
             EC_REG_ERROR_INDEX: rdata_mux = err_index_r;
             EC_REG_ERROR_TAG:   rdata_mux = err_tag_r;
+            EC_REG_ERROR_INSTANCE:rdata_mux=err_instance_r;
             EC_REG_LIST_BASE:   rdata_mux = list_base_r;
             EC_REG_LIST_COUNT:  rdata_mux = list_count_r;
             EC_REG_LSTRIPS: rdata_mux = lstrips_r;
@@ -238,6 +242,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
             err_code_r   <= 4'd0;
             err_index_r  <= 32'd0;
             err_tag_r    <= 32'd0;
+            err_instance_r<=32'hffffffff;
             irq_en_r     <= 2'd0;
             irq_stat     <= 2'd0;
             prdata       <= 32'd0;
@@ -292,6 +297,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
                 err_code_r   <= 4'd0;
                 err_index_r  <= 32'd0;
                 err_tag_r    <= 32'd0;
+            err_instance_r<=32'hffffffff;
                 for (i = 0; i < 16; i = i + 1)
                     if (surf_w2w[i][31])
                         surf_w2w[i] <= surf_w2w[i] & 32'h7FFF_FFFF;
@@ -304,6 +310,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
                 err_code_r  <= 4'd0;
                 err_index_r <= 32'd0;
                 err_tag_r   <= 32'd0;
+                err_instance_r<=32'hffffffff;
             end
 
             // 命令层事件
@@ -312,6 +319,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
                 err_code_r  <= err_code;
                 err_index_r <= err_index;
                 err_tag_r   <= err_tag;
+                err_instance_r<=err_instance;
                 irq_stat[EC_IRQ_ERROR_BIT] <= 1'b1;
             end
             if (done_set) begin
@@ -320,6 +328,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
             end
 
             // PERF 计数（D20：引擎空闲时 PIXEL/WAIT/BUSY 自然不动）
+            if (perf_instance === 1'b1)perf[EC_PERF_INSTANCE]<=perf[EC_PERF_INSTANCE]+32'd1;
             if (perf_cmd)      perf[EC_PERF_CMD]      <= perf[EC_PERF_CMD] + 32'd1;
             if (perf_pixel_en) perf[EC_PERF_PIXEL]    <= perf[EC_PERF_PIXEL] + {21'd0, perf_pixel_npx};
             if (perf_key_en)   perf[EC_PERF_KEY_SKIP] <= perf[EC_PERF_KEY_SKIP] + pc4(key_lanes);

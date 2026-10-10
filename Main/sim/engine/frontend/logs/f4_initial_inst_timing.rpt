@@ -1,0 +1,2312 @@
+
+Efinix Static Timing Analysis Report
+Version: 2026.1.132
+Date: Sat Oct 10 20:23:25 2026
+
+Copyright (C) 2013 - 2026 Efinix, Inc. All rights reserved.
+
+Top-level Entity Name: engine_inst_syn
+
+SDC Filename: engine_inst_syn.sdc
+
+Timing Model: I3
+	process : typical
+	temperature : -40C to 100C
+	voltage : 0.95 +/-30mV
+	speedgrade : 3
+	technology : t16ff
+	status : final
+
+---------- Table of Contents (begin) ----------
+   1. Clock Frequency Summary
+   2. Clock Relationship Summary
+   3. Path Details for Max Critical Paths
+   4. Path Details for Min Critical Paths
+---------- Table of Contents (end) ------------
+
+---------- 1. Clock Frequency Summary (begin) ----------
+
+User target constrained clocks
+ Clock Name  Period (ns)  Frequency (MHz)   Waveform      Targets
+    clk         10.000        100.000     {0.000 5.000}    {clk}
+
+Maximum possible analyzed clocks frequency
+ Clock Name  Period (ns)  Frequency (MHz)     Edge
+    clk         6.338        157.778         (R-R)
+
+Geomean max period: 6.338
+
+---------- Clock Frequency Summary (end) ---------------
+
+---------- 2. Clock Relationship Summary (begin) ----------
+
+Setup (Max) Clock Relationship
+  Launch Clock    Capture Clock   Constraint (ns)     Slack (ns)          Edge
+      clk              clk             10.000           3.662            (R-R)
+
+Hold (Min) Clock Relationship
+  Launch Clock    Capture Clock   Constraint (ns)     Slack (ns)          Edge
+      clk              clk             0.000            0.029            (R-R)
+
+NOTE: Values are in nanoseconds.
+
+---------- Clock Relationship Summary (end) ---------------
+
+---------- 3. Path Details for Max Critical Paths (begin) ----------
+
+################################################################################
+Path Detail Report (clk vs clk)
+################################################################################
+
+
+++++ Path 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                model name   delay (ns)  cumulative delay (ns) pins on net    location
+==========================================================================================================
+r[65]~FF|Q                        EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                             net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                   EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                     EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                             net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                   EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                     EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                             net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                   EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                     EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                             net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                   EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                     EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                             net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                   EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                     EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                      net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]       EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[6]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[6]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[6]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]        EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                       net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0              EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO              EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                 net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI              EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO              EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                 net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI              EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O               EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                       net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                   EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                     EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                       net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1              EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO              EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                 net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI              EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO              EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                 net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI              EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO              EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                 net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI              EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO              EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                 net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI              EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO              EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                 net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI              EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO              EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                 net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI              EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO              EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                 net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI              EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO              EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                 net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI              EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO              EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                 net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI              EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO              EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                 net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI              EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO              EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                 net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI              EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO              EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                 net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI              EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O               EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                       net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D         EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+++++ Path 2 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                model name   delay (ns)  cumulative delay (ns) pins on net    location
+==========================================================================================================
+r[65]~FF|Q                        EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                             net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                   EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                     EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                             net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                   EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                     EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                             net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                   EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                     EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                             net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                   EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                     EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                             net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                   EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                     EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                      net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]       EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[8]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[8]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[8]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]        EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                       net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0              EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO              EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                 net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI              EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO              EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                 net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI              EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O               EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                       net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                   EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                     EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                       net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1              EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO              EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                 net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI              EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO              EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                 net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI              EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO              EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                 net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI              EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO              EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                 net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI              EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO              EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                 net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI              EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO              EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                 net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI              EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO              EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                 net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI              EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO              EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                 net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI              EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO              EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                 net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI              EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO              EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                 net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI              EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO              EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                 net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI              EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO              EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                 net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI              EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O               EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                       net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D         EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+++++ Path 3 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                model name   delay (ns)  cumulative delay (ns) pins on net    location
+==========================================================================================================
+r[65]~FF|Q                        EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                             net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                   EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                     EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                             net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                   EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                     EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                             net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                   EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                     EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                             net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                   EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                     EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                             net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                   EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                     EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                      net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]       EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[5]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[5]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[5]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]        EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                       net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0              EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO              EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                 net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI              EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO              EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                 net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI              EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O               EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                       net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                   EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                     EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                       net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1              EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO              EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                 net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI              EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO              EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                 net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI              EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO              EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                 net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI              EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO              EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                 net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI              EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO              EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                 net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI              EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO              EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                 net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI              EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO              EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                 net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI              EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO              EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                 net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI              EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO              EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                 net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI              EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO              EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                 net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI              EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO              EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                 net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI              EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO              EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                 net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI              EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O               EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                       net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D         EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+++++ Path 4 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================================
+r[65]~FF|Q                         EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                              net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                    EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                      EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                              net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                    EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                      EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                              net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                    EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                      EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                              net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                    EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                      EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                              net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                    EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                      EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                       net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]        EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[45]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[45]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[45]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]         EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                        net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0               EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO               EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                  net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI               EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO               EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                  net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI               EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O                EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                        net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                    EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                      EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                        net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1               EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO               EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                  net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI               EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO               EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                  net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI               EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO               EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                  net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI               EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO               EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                  net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI               EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO               EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                  net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI               EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO               EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                  net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI               EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO               EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                  net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI               EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO               EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                  net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI               EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO               EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                  net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI               EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO               EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                  net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI               EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO               EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                  net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI               EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO               EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                  net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI               EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O                EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                        net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D          EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+++++ Path 5 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                model name   delay (ns)  cumulative delay (ns) pins on net    location
+==========================================================================================================
+r[65]~FF|Q                        EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                             net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                   EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                     EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                             net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                   EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                     EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                             net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                   EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                     EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                             net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                   EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                     EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                             net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                   EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                     EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                      net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]       EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[4]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[4]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[4]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]        EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                       net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0              EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO              EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                 net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI              EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO              EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                 net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI              EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O               EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                       net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                   EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                     EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                       net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1              EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO              EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                 net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI              EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO              EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                 net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI              EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO              EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                 net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI              EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO              EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                 net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI              EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO              EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                 net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI              EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO              EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                 net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI              EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO              EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                 net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI              EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO              EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                 net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI              EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO              EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                 net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI              EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO              EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                 net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI              EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO              EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                 net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI              EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO              EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                 net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI              EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O               EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                       net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D         EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+++++ Path 6 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================================
+r[65]~FF|Q                         EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                              net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                    EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                      EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                              net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                    EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                      EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                              net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                    EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                      EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                              net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                    EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                      EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                              net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                    EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                      EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                       net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]        EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[47]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[47]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[47]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]         EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                        net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0               EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO               EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                  net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI               EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO               EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                  net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI               EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O                EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                        net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                    EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                      EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                        net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1               EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO               EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                  net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI               EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO               EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                  net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI               EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO               EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                  net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI               EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO               EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                  net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI               EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO               EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                  net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI               EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO               EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                  net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI               EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO               EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                  net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI               EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO               EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                  net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI               EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO               EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                  net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI               EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO               EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                  net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI               EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO               EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                  net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI               EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO               EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                  net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI               EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O                EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                        net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D          EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+++++ Path 7 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================================
+r[65]~FF|Q                         EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                              net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                    EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                      EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                              net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                    EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                      EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                              net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                    EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                      EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                              net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                    EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                      EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                              net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                    EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                      EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                       net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]        EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[44]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[44]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[44]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]         EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                        net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0               EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO               EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                  net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI               EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO               EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                  net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI               EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O                EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                        net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                    EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                      EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                        net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1               EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO               EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                  net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI               EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO               EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                  net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI               EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO               EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                  net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI               EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO               EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                  net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI               EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO               EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                  net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI               EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO               EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                  net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI               EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO               EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                  net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI               EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO               EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                  net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI               EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO               EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                  net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI               EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO               EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                  net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI               EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO               EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                  net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI               EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO               EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                  net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI               EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O                EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                        net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D          EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+++++ Path 8 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                 model name   delay (ns)  cumulative delay (ns) pins on net    location
+===========================================================================================================
+r[65]~FF|Q                         EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                              net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                    EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                      EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                              net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                    EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                      EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                              net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                    EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                      EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                              net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                    EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                      EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                              net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                    EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                      EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                       net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]        EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[46]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[46]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[46]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]         EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                        net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0               EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO               EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                  net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI               EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO               EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                  net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI               EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O                EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                        net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                    EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                      EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                        net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1               EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO               EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                  net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI               EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO               EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                  net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI               EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO               EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                  net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI               EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO               EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                  net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI               EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO               EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                  net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI               EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO               EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                  net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI               EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO               EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                  net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI               EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO               EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                  net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI               EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO               EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                  net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI               EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO               EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                  net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI               EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO               EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                  net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI               EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO               EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                  net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI               EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O                EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                        net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D          EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+++++ Path 9 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                model name   delay (ns)  cumulative delay (ns) pins on net    location
+==========================================================================================================
+r[65]~FF|Q                        EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                             net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                   EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                     EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                             net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                   EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                     EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                             net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                   EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                     EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                             net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                   EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                     EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                             net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                   EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                     EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                      net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]       EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[7]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[7]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[7]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]        EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                       net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0              EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO              EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                 net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI              EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO              EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                 net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI              EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O               EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                       net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                   EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                     EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                       net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1              EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO              EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                 net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI              EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO              EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                 net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI              EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO              EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                 net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI              EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO              EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                 net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI              EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO              EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                 net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI              EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO              EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                 net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI              EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO              EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                 net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI              EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO              EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                 net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI              EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO              EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                 net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI              EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO              EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                 net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI              EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO              EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                 net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI              EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO              EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                 net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI              EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O               EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                       net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D         EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+++++ Path 10 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[65]~FF|CLK                        
+Path End      : u_inst/array_end[32]~FF|D           
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 3.662 (required time - arrival time)
+Delay         : 6.079                               
+
+Logic Level             : 24
+Non-global nets on path : 25
+Global nets on path     :  0
+
+Launch Clock Path Delay        : 2.128
++ Clock To Q + Data Path Delay : 6.212
+--------------------------------------
+End-of-path arrival time       : 8.340
+
+Constraint                     : 10.000
++ Capture Clock Path Delay     :  2.128
+- Clock Uncertainty            :  0.126
+---------------------------------------
+End-of-path required time      : 12.002
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.126             0.126             636        (111,0) 
+clk             net          2.002             2.128             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:13, Y:130
+r[65]~FF|CLK    EFX_FF       0.000             2.128             636        (98,130)
+
+Data Path
+              name                model name   delay (ns)  cumulative delay (ns) pins on net    location
+==========================================================================================================
+r[65]~FF|Q                        EFX_FF         0.130             0.130               8       (98,130) 
+r[65]                             net            0.512             0.642               8       (98,130) 
+   Routing elements:
+      Manhattan distance of X:3, Y:3
+LUT__3518|in[1]                   EFX_LUT4       0.061             0.703               8       (95,133) 
+LUT__3518|out                     EFX_LUT4       0.000             0.703               6       (95,133) 
+n1693                             net            0.190             0.893               6       (95,133) 
+   Routing elements:
+      Manhattan distance of X:5, Y:3
+LUT__3528|in[1]                   EFX_LUT4       0.063             0.956               6       (90,130) 
+LUT__3528|out                     EFX_LUT4       0.000             0.956               5       (90,130) 
+n1697                             net            0.101             1.057               5       (90,130) 
+   Routing elements:
+      Manhattan distance of X:0, Y:3
+LUT__3532|in[3]                   EFX_LUT4       0.063             1.120               5       (90,127) 
+LUT__3532|out                     EFX_LUT4       0.000             1.120               3       (90,127) 
+n1698                             net            0.120             1.240               3       (90,127) 
+   Routing elements:
+      Manhattan distance of X:3, Y:0
+LUT__3534|in[1]                   EFX_LUT4       0.063             1.303               3       (93,127) 
+LUT__3534|out                     EFX_LUT4       0.000             1.303               4       (93,127) 
+n1699                             net            0.520             1.823               4       (93,127) 
+   Routing elements:
+      Manhattan distance of X:4, Y:3
+LUT__3537|in[2]                   EFX_LUT4       0.061             1.884               4       (97,130) 
+LUT__3537|out                     EFX_LUT4       0.000             1.884              52       (97,130) 
+u_inst/n8343                      net            0.680             2.564              52       (97,130) 
+   Routing elements:
+      Manhattan distance of X:1, Y:8
+u_inst/mult_86_pp_0x0|A[17]       EFX_DSP48      1.152             3.716              52       (96,122) 
+u_inst/mult_86_pp_0x0|CASCOUT[9]  EFX_DSP48      0.000             3.716               2       (96,122) 
+u_inst/mult_86_pp_0x0_co[9]       net            0.000             3.716               2       (96,122) 
+   Routing elements:
+      Manhattan distance of X:0, Y:20
+u_inst/mult_86_pp_1x0|CASCIN[9]   EFX_DSP48      1.036             4.752               2       (96,142) 
+u_inst/mult_86_pp_1x0|O[0]        EFX_DSP48      0.000             4.752               2       (96,142) 
+u_inst/n718                       net            0.344             5.096               2       (96,142) 
+   Routing elements:
+      Manhattan distance of X:1, Y:7
+u_inst/add_88/i19|I0              EFX_ADD        0.052             5.148               2       (97,149) 
+u_inst/add_88/i19|CO              EFX_ADD        0.000             5.148               2       (97,149) 
+u_inst/add_88/n38                 net            0.000             5.148               2       (97,149) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i20|CI              EFX_ADD        0.024             5.172               2       (97,150) 
+u_inst/add_88/i20|CO              EFX_ADD        0.000             5.172               2       (97,150) 
+u_inst/add_88/n40                 net            0.000             5.172               2       (97,150) 
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_88/i21|CI              EFX_ADD        0.097             5.269               2       (97,151) 
+u_inst/add_88/i21|O               EFX_ADD        0.000             5.269               2       (97,151) 
+u_inst/n756                       net            0.234             5.503               2       (97,151) 
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+LUT__4147|in[1]                   EFX_LUT4       0.061             5.564               2       (103,151)
+LUT__4147|out                     EFX_LUT4       0.000             5.564               2       (103,151)
+u_inst/n790                       net            0.227             5.791               2       (103,151)
+   Routing elements:
+      Manhattan distance of X:6, Y:0
+u_inst/add_90/i21|I1              EFX_ADD        0.057             5.848               2       (109,151)
+u_inst/add_90/i21|CO              EFX_ADD        0.000             5.848               2       (109,151)
+u_inst/add_90/n42                 net            0.000             5.848               2       (109,151)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i22|CI              EFX_ADD        0.024             5.872               2       (109,152)
+u_inst/add_90/i22|CO              EFX_ADD        0.000             5.872               2       (109,152)
+u_inst/add_90/n44                 net            0.000             5.872               2       (109,152)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i23|CI              EFX_ADD        0.024             5.896               2       (109,153)
+u_inst/add_90/i23|CO              EFX_ADD        0.000             5.896               2       (109,153)
+u_inst/add_90/n46                 net            0.000             5.896               2       (109,153)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i24|CI              EFX_ADD        0.024             5.920               2       (109,154)
+u_inst/add_90/i24|CO              EFX_ADD        0.000             5.920               2       (109,154)
+u_inst/add_90/n48                 net            0.000             5.920               2       (109,154)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i25|CI              EFX_ADD        0.024             5.944               2       (109,155)
+u_inst/add_90/i25|CO              EFX_ADD        0.000             5.944               2       (109,155)
+u_inst/add_90/n50                 net            0.000             5.944               2       (109,155)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i26|CI              EFX_ADD        0.024             5.968               2       (109,156)
+u_inst/add_90/i26|CO              EFX_ADD        0.000             5.968               2       (109,156)
+u_inst/add_90/n52                 net            0.000             5.968               2       (109,156)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i27|CI              EFX_ADD        0.024             5.992               2       (109,157)
+u_inst/add_90/i27|CO              EFX_ADD        0.000             5.992               2       (109,157)
+u_inst/add_90/n54                 net            0.000             5.992               2       (109,157)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i28|CI              EFX_ADD        0.024             6.016               2       (109,158)
+u_inst/add_90/i28|CO              EFX_ADD        0.000             6.016               2       (109,158)
+u_inst/add_90/n56                 net            0.000             6.016               2       (109,158)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i29|CI              EFX_ADD        0.024             6.040               2       (109,159)
+u_inst/add_90/i29|CO              EFX_ADD        0.000             6.040               2       (109,159)
+u_inst/add_90/n58                 net            0.000             6.040               2       (109,159)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i30|CI              EFX_ADD        0.024             6.064               2       (109,160)
+u_inst/add_90/i30|CO              EFX_ADD        0.000             6.064               2       (109,160)
+u_inst/add_90/n60                 net            0.000             6.064               2       (109,160)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i31|CI              EFX_ADD        0.024             6.088               2       (109,161)
+u_inst/add_90/i31|CO              EFX_ADD        0.000             6.088               2       (109,161)
+u_inst/add_90/n62                 net            0.000             6.088               2       (109,161)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i32|CI              EFX_ADD        0.024             6.112               2       (109,162)
+u_inst/add_90/i32|CO              EFX_ADD        0.000             6.112               2       (109,162)
+u_inst/add_90/n64                 net            0.000             6.112               2       (109,162)
+   Routing elements:
+      Manhattan distance of X:0, Y:1
+u_inst/add_90/i33|CI              EFX_ADD        0.097             6.209               2       (109,163)
+u_inst/add_90/i33|O               EFX_ADD        0.000             6.209               2       (109,163)
+u_inst/n813                       net            0.000             6.209               2       (109,163)
+u_inst/array_end[32]~FF|D         EFX_FF         0.003             6.212               2       (109,163)
+
+Capture Clock Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+clk                            input        0.000             0.000               0       (111,0)  
+clk                            input        0.126             0.126             636       (111,0)  
+clk                            net          2.002             2.128             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:2, Y:163
+u_inst/array_end[32]~FF|CLK    EFX_FF       0.000             2.128             636       (109,163)
+
+---------- Path Details for Max Critical Paths (end) ---------------
+
+---------- 4. Path Details for Min Critical Paths (begin) ----------
+
+################################################################################
+Path Detail Report (clk vs clk)
+################################################################################
+
+
+++++ Path 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[118]~FF|CLK                       
+Path End      : u_inst/bank3__D$1|WDATA[12]         
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.029 (arrival time - required time)
+Delay         : 0.138                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.099
+--------------------------------------
+End-of-path arrival time       : 1.302
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name       model name   delay (ns)  cumulative delay (ns) pins on net    location
+=======================================================================================
+clk              input        0.000             0.000               0        (111,0) 
+clk              input        0.070             0.070             636        (111,0) 
+clk              net          1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:12, Y:154
+r[118]~FF|CLK    EFX_FF       0.000             1.203             636        (99,154)
+
+Data Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+r[118]~FF|Q                  EFX_FF          0.072            0.072              3        (99,154) 
+r[118]                       net             0.138            0.210              3        (99,154) 
+   Routing elements:
+      Manhattan distance of X:3, Y:12
+u_inst/bank3__D$1|WDATA[12]  EFX_RAM10      -0.111            0.099              3        (102,142)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0       (111,0)  
+clk                     input          0.070             0.070             636       (111,0)  
+clk                     net            1.133             1.203             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:9, Y:142
+u_inst/bank3__D$1|WCLK  EFX_RAM10      0.000             1.203             636       (102,142)
+
+++++ Path 2 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[80]~FF|CLK                        
+Path End      : u_inst/bank2__D$2|WDATA[6]          
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.029 (arrival time - required time)
+Delay         : 0.138                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.099
+--------------------------------------
+End-of-path arrival time       : 1.302
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.070             0.070             636        (111,0) 
+clk             net          1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:12, Y:128
+r[80]~FF|CLK    EFX_FF       0.000             1.203             636        (99,128)
+
+Data Path
+           name             model name   delay (ns)  cumulative delay (ns) pins on net    location
+====================================================================================================
+r[80]~FF|Q                  EFX_FF          0.072            0.072              6        (99,128) 
+r[80]                       net             0.138            0.210              6        (99,128) 
+   Routing elements:
+      Manhattan distance of X:3, Y:6
+u_inst/bank2__D$2|WDATA[6]  EFX_RAM10      -0.111            0.099              6        (102,122)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0       (111,0)  
+clk                     input          0.070             0.070             636       (111,0)  
+clk                     net            1.133             1.203             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:9, Y:122
+u_inst/bank2__D$2|WCLK  EFX_RAM10      0.000             1.203             636       (102,122)
+
+++++ Path 3 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[73]~FF|CLK                        
+Path End      : u_inst/bank2__D$2|WDATA[19]         
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.029 (arrival time - required time)
+Delay         : 0.138                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.099
+--------------------------------------
+End-of-path arrival time       : 1.302
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.070             0.070             636        (111,0) 
+clk             net          1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:12, Y:141
+r[73]~FF|CLK    EFX_FF       0.000             1.203             636        (99,141)
+
+Data Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+r[73]~FF|Q                   EFX_FF          0.072            0.072              6        (99,141) 
+r[73]                        net             0.138            0.210              6        (99,141) 
+   Routing elements:
+      Manhattan distance of X:3, Y:19
+u_inst/bank2__D$2|WDATA[19]  EFX_RAM10      -0.111            0.099              6        (102,122)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0       (111,0)  
+clk                     input          0.070             0.070             636       (111,0)  
+clk                     net            1.133             1.203             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:9, Y:122
+u_inst/bank2__D$2|WCLK  EFX_RAM10      0.000             1.203             636       (102,122)
+
+++++ Path 4 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[120]~FF|CLK                       
+Path End      : u_inst/bank3__D$1|WDATA[15]         
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.029 (arrival time - required time)
+Delay         : 0.138                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.099
+--------------------------------------
+End-of-path arrival time       : 1.302
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name       model name   delay (ns)  cumulative delay (ns) pins on net    location
+=======================================================================================
+clk              input        0.000             0.000               0        (111,0) 
+clk              input        0.070             0.070             636        (111,0) 
+clk              net          1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:12, Y:157
+r[120]~FF|CLK    EFX_FF       0.000             1.203             636        (99,157)
+
+Data Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+r[120]~FF|Q                  EFX_FF          0.072            0.072              3        (99,157) 
+r[120]                       net             0.138            0.210              3        (99,157) 
+   Routing elements:
+      Manhattan distance of X:3, Y:15
+u_inst/bank3__D$1|WDATA[15]  EFX_RAM10      -0.111            0.099              3        (102,142)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0       (111,0)  
+clk                     input          0.070             0.070             636       (111,0)  
+clk                     net            1.133             1.203             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:9, Y:142
+u_inst/bank3__D$1|WCLK  EFX_RAM10      0.000             1.203             636       (102,142)
+
+++++ Path 5 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[24]~FF|CLK                        
+Path End      : u_inst/bank0__D$1|WDATA[15]         
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.033 (arrival time - required time)
+Delay         : 0.142                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.103
+--------------------------------------
+End-of-path arrival time       : 1.306
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.070             0.070             636        (111,0) 
+clk             net          1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:22, Y:157
+r[24]~FF|CLK    EFX_FF       0.000             1.203             636        (89,157)
+
+Data Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+r[24]~FF|Q                   EFX_FF          0.072            0.072              4         (89,157)
+r[24]                        net             0.142            0.214              4         (89,157)
+   Routing elements:
+      Manhattan distance of X:2, Y:15
+u_inst/bank0__D$1|WDATA[15]  EFX_RAM10      -0.111            0.103              4         (87,142)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0        (111,0) 
+clk                     input          0.070             0.070             636        (111,0) 
+clk                     net            1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:24, Y:142
+u_inst/bank0__D$1|WCLK  EFX_RAM10      0.000             1.203             636        (87,142)
+
+++++ Path 6 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[85]~FF|CLK                        
+Path End      : u_inst/bank2__D$1|WDATA[11]         
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.076 (arrival time - required time)
+Delay         : 0.185                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.146
+--------------------------------------
+End-of-path arrival time       : 1.349
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.070             0.070             636        (111,0) 
+clk             net          1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:22, Y:128
+r[85]~FF|CLK    EFX_FF       0.000             1.203             636        (89,128)
+
+Data Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+r[85]~FF|Q                   EFX_FF          0.072            0.072              6         (89,128)
+r[85]                        net             0.185            0.257              6         (89,128)
+   Routing elements:
+      Manhattan distance of X:2, Y:6
+u_inst/bank2__D$1|WDATA[11]  EFX_RAM10      -0.111            0.146              6         (87,122)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0        (111,0) 
+clk                     input          0.070             0.070             636        (111,0) 
+clk                     net            1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:24, Y:122
+u_inst/bank2__D$1|WCLK  EFX_RAM10      0.000             1.203             636        (87,122)
+
+++++ Path 7 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[113]~FF|CLK                       
+Path End      : u_inst/bank3__D$2|WDATA[7]          
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.076 (arrival time - required time)
+Delay         : 0.185                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.146
+--------------------------------------
+End-of-path arrival time       : 1.349
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name       model name   delay (ns)  cumulative delay (ns) pins on net    location
+=======================================================================================
+clk              input        0.000             0.000               0       (111,0)  
+clk              input        0.070             0.070             636       (111,0)  
+clk              net          1.133             1.203             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:4, Y:104
+r[113]~FF|CLK    EFX_FF       0.000             1.203             636       (115,104)
+
+Data Path
+           name             model name   delay (ns)  cumulative delay (ns) pins on net    location
+====================================================================================================
+r[113]~FF|Q                 EFX_FF          0.072            0.072              3        (115,104)
+r[113]                      net             0.185            0.257              3        (115,104)
+   Routing elements:
+      Manhattan distance of X:2, Y:2
+u_inst/bank3__D$2|WDATA[7]  EFX_RAM10      -0.111            0.146              3        (117,102)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0       (111,0)  
+clk                     input          0.070             0.070             636       (111,0)  
+clk                     net            1.133             1.203             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:6, Y:102
+u_inst/bank3__D$2|WCLK  EFX_RAM10      0.000             1.203             636       (117,102)
+
+++++ Path 8 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[21]~FF|CLK                        
+Path End      : u_inst/bank0__D$1|WDATA[11]         
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.077 (arrival time - required time)
+Delay         : 0.186                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.147
+--------------------------------------
+End-of-path arrival time       : 1.350
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.070             0.070             636        (111,0) 
+clk             net          1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:22, Y:148
+r[21]~FF|CLK    EFX_FF       0.000             1.203             636        (89,148)
+
+Data Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+r[21]~FF|Q                   EFX_FF          0.072            0.072              4         (89,148)
+r[21]                        net             0.186            0.258              4         (89,148)
+   Routing elements:
+      Manhattan distance of X:2, Y:6
+u_inst/bank0__D$1|WDATA[11]  EFX_RAM10      -0.111            0.147              4         (87,142)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0        (111,0) 
+clk                     input          0.070             0.070             636        (111,0) 
+clk                     net            1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:24, Y:142
+u_inst/bank0__D$1|WCLK  EFX_RAM10      0.000             1.203             636        (87,142)
+
+++++ Path 9 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[16]~FF|CLK                        
+Path End      : u_inst/bank0__D$2|WDATA[6]          
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.081 (arrival time - required time)
+Delay         : 0.190                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.151
+--------------------------------------
+End-of-path arrival time       : 1.354
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0       (111,0)  
+clk             input        0.070             0.070             636       (111,0)  
+clk             net          1.133             1.203             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:10, Y:103
+r[16]~FF|CLK    EFX_FF       0.000             1.203             636       (101,103)
+
+Data Path
+           name             model name   delay (ns)  cumulative delay (ns) pins on net    location
+====================================================================================================
+r[16]~FF|Q                  EFX_FF          0.072            0.072              4        (101,103)
+r[16]                       net             0.190            0.262              4        (101,103)
+   Routing elements:
+      Manhattan distance of X:1, Y:1
+u_inst/bank0__D$2|WDATA[6]  EFX_RAM10      -0.111            0.151              4        (102,102)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0       (111,0)  
+clk                     input          0.070             0.070             636       (111,0)  
+clk                     net            1.133             1.203             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:9, Y:102
+u_inst/bank0__D$2|WCLK  EFX_RAM10      0.000             1.203             636       (102,102)
+
+++++ Path 10 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Path Begin    : r[2]~FF|CLK                         
+Path End      : u_inst/bank0__D$2|WDATA[12]         
+Launch Clock  : clk (RISE)                          
+Capture Clock : clk (RISE)                          
+Slack         : 0.081 (arrival time - required time)
+Delay         : 0.190                               
+
+Logic Level             : 0
+Non-global nets on path : 1
+Global nets on path     : 0
+
+Launch Clock Path Delay        : 1.203
++ Clock To Q + Data Path Delay : 0.151
+--------------------------------------
+End-of-path arrival time       : 1.354
+
+Constraint                     : 0.000
++ Capture Clock Path Delay     : 1.203
++ Clock Uncertainty            : 0.070
+--------------------------------------
+End-of-path required time      : 1.273
+
+Launch Clock Path
+    name      model name   delay (ns)  cumulative delay (ns) pins on net    location
+======================================================================================
+clk             input        0.000             0.000               0        (111,0) 
+clk             input        0.070             0.070             636        (111,0) 
+clk             net          1.133             1.203             636        (111,0) 
+   Routing elements:
+      Manhattan distance of X:12, Y:119
+r[2]~FF|CLK     EFX_FF       0.000             1.203             636        (99,119)
+
+Data Path
+           name              model name   delay (ns)  cumulative delay (ns) pins on net    location
+=====================================================================================================
+r[2]~FF|Q                    EFX_FF          0.072            0.072              4        (99,119) 
+r[2]                         net             0.190            0.262              4        (99,119) 
+   Routing elements:
+      Manhattan distance of X:3, Y:17
+u_inst/bank0__D$2|WDATA[12]  EFX_RAM10      -0.111            0.151              4        (102,102)
+
+Capture Clock Path
+         name           model name   delay (ns)  cumulative delay (ns) pins on net    location
+================================================================================================
+clk                     input          0.000             0.000               0       (111,0)  
+clk                     input          0.070             0.070             636       (111,0)  
+clk                     net            1.133             1.203             636       (111,0)  
+   Routing elements:
+      Manhattan distance of X:9, Y:102
+u_inst/bank0__D$2|WCLK  EFX_RAM10      0.000             1.203             636       (102,102)
+
+---------- Path Details for Min Critical Paths (end) ---------------
+

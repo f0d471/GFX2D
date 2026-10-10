@@ -22,6 +22,7 @@
         <efx:design_file name="../../rtl/engine/engine_mover.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_regs.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_cmd.v" version="default" library="default" />
+        <efx:design_file name="../../rtl/engine/engine_inst.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_tex.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_top.v" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/verilog-axi/axi_dma_rd.v" version="default" library="default" />

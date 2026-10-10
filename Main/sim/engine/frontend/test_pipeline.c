@@ -10,8 +10,8 @@
 /* 实际 renderer 的异步协议模型；设备解释器独立消费表，不做性能结论。 */
 static gfx_surface_table device,captured;
 static gfx_mem memory;
-static uint32_t ticks,events,perf[9],wait_ticks,swaps;
-static int busy,front=1,next_front=1,is_strips;
+static uint32_t ticks,events,perf[GFX_PERF_COUNT],wait_ticks,swaps;
+static int busy,front=1,next_front=1,is_strips,reset_error;
 static const gfx_cmd *commands;
 static const void *table;
 static uint32_t count,ecode,eindex,etag;
@@ -37,7 +37,8 @@ board_mem board_region(board_region_id id){return (board_mem){(void *)(uintptr_t
 uint32_t *board_fb(int i){return (uint32_t *)(uintptr_t)g_mem_regions[REGION_FB0+i].offset;}
 int board_present_request(int i,uint32_t *ticket){need(!busy,"present before DONE");next_front=i;*ticket=swaps;return 0;}
 int board_present_wait(uint32_t ticket){need(ticket==swaps,"wrong present ticket");ticks+=1666667u;front=next_front;swaps++;return 0;}
-int gfx_engine_soft_reset(void){need(!busy,"reset while active");gfx_surface_reset(&device);memset(perf,0,sizeof perf);return 0;}
+int gfx_engine_caps_read(uint32_t *caps){*caps=GFX_CAPS_VALUE;return 0;}
+int gfx_engine_soft_reset(void){need(!busy,"reset while active");if(reset_error)return GFX_ENG_E_TIMEOUT;gfx_surface_reset(&device);memset(perf,0,sizeof perf);return 0;}
 int gfx_engine_surf_set_space(int id,uint32_t base,uint32_t w,uint32_t h,uint32_t stride,uint32_t space,uint32_t format)
 {gfx_surface s={base,(uint16_t)w,(uint16_t)h,(uint8_t)stride,(uint8_t)space,(uint8_t)format};if(busy)return GFX_ENG_E_REJECT;return gfx_surface_set(&device,id,&s);}
 int gfx_engine_submit(uint32_t base,uint32_t n)
@@ -81,6 +82,21 @@ int main(void)
         need(!gfx_frame_arena_add(&arena,g_mem_regions[REGION_FB0+i].offset,0x400000u,1),"dst arena");
     }
     {gfx_surface_table empty={0};need(!renderer_prepare(3,&empty),"prepare");}
+#ifdef F4_LEASE_RESET_TEST
+    {
+        gfx_surface_table empty={0};gfx_list old,again;gfx_cmd *p=board_region(REGION_CMDLIST_A).ptr;
+        need(!renderer_list_begin(2,&old,p,32768,&empty,0)&&old.instances,"instance lease begin");
+        reset_error=1;need(renderer_prepare(2,&empty)!=0,"failed reset accepted");
+        need(renderer_list_begin(2,&again,p,32768,&empty,0)==GFX_BUILD_FULL,"failed drain released lease");
+        reset_error=0;need(!renderer_prepare(2,&empty),"reset recovery");
+        need(!renderer_list_begin(2,&again,p,32768,&empty,0),"drained lease not recovered");
+        need(old.instance_generation!=again.instance_generation,"reset generation reused");
+        need(!gfx_list_end(&again),"recovered list end");
+        exec_sw_state es;exec_sw_error er;exec_sw_stats xs;uint32_t cyc;exec_sw_reset(&es);
+        need(!renderer_run(0,&empty,&memory,&es,&er,&again,&xs,&cyc),"recovered arena consumer");
+        puts("F4 LEASE RESET PASS failed_drain=held later_successful_reset=released generation=renewed");
+    }
+#endif
     for(i=0;i<64;i++) {
         uint32_t before;gfx_frame_plan extra;
         if(i==1)arena.next_ticket=UINT32_MAX;

@@ -126,6 +126,8 @@ module engine_mover #(
     input  wire                  tx_busy,       // TEX 描述符在途（受理起到状态脉冲止）
 
     // ---- I7：命令取数描述符（控制层 → 搬运层），优先于像素读 ----
+    input wire fd_instance,
+    output wire fs_instance, rd_stat_instance,
     input  wire [31:0]           fd_addr,
     input  wire [11:0]           fd_bytes,
     input  wire [3:0]            fd_cidx,     // 描述符上下文低 4 位；批量取数时取批首，不是每条记录的索引
@@ -222,7 +224,8 @@ module engine_mover #(
     // =====================================================================
     // 上下文寄存器（D31）
     // =====================================================================
-    reg         rd_ctx_cmd;      // 在途读描述符的来源：0 像素读、1 命令取数
+    reg rd_ctx_instance;
+    reg         rd_ctx_cmd;      // 在途读描述符的来源：0 像素读、1 FD；F4 再由 rd_ctx_instance 区分命令/实例
     reg         rd_ctx_bg, wr_ctx_flush;
     reg         rd_busy, wr_busy;
     wire        drain_hold;
@@ -420,6 +423,7 @@ module engine_mover #(
             rd_err_r       <= 1'b0;
             rd_stat_v      <= 1'b0;
             rd_ctx_cmd     <= 1'b0;
+            rd_ctx_instance<=0;
             rd_ctx_bg      <= 1'b0;
             rd_ctx_buf     <= 2'd0;
             rd_ctx_cidx    <= 4'd0;
@@ -429,6 +433,7 @@ module engine_mover #(
                 rd_status_seen <= 1'b0;
                 rd_stream_done <= 1'b0;
                 rd_ctx_cmd     <= rd_pick_fd;
+                rd_ctx_instance<=rd_pick_fd && (fd_instance === 1'b1);
                 rd_ctx_bg      <= rd_pick_bg;
                 rd_ctx_buf     <= rd_pick_fd ? 2'd0 : rd_buf;
                 rd_ctx_cidx    <= rd_pick_fd ? fd_cidx : rd_cidx;
@@ -455,6 +460,13 @@ module engine_mover #(
     assign rd_stat_cidx  = legacy_rd_stat ? rd_ctx_cidx : (tx_stat_valid ? tx_stat_cidx : b_rcidx);
     assign rd_stat_buf   = legacy_rd_stat ? rd_ctx_buf : (tx_stat_valid ? tx_stat_buf : b_rstatbuf);
     assign rd_stat_fetch = legacy_rd_stat && rd_ctx_cmd;
+`ifdef INJ_INST_OWNER
+    assign fs_instance=1'b0;
+    assign rd_stat_instance=1'b0;
+`else
+    assign fs_instance=rd_ctx_instance;
+    assign rd_stat_instance=legacy_rd_stat && rd_ctx_instance;
+`endif
     // DDR 状态无反压口；本地状态遇到同拍 DDR 状态时保留到下一拍。
     assign tx_stat_ready = !legacy_rd_stat;
     assign b_rstat_ready = !legacy_rd_stat && !tx_stat_valid;

@@ -36,7 +36,8 @@ int  gfx_surface_struct_ok(const gfx_surface_table *t, uint32_t id);
 
 /* --- 记录校验 ----------------------------------------------------------- */
 
-/* 规范条款 §5 十步里的第二至第十步，返回 spec 错误码。
+/* 标量 v1/TEX 的规范条款 §5 第二至第十步；v1-I 包用 gfx_instance_packet_check。
+   返回 spec 错误码。
    不看命令表状态，也不看 clip，所以构造层与执行器可以共用。 */
 int  gfx_cmd_check(const gfx_surface_table *t, const gfx_cmd *c);
 
@@ -77,6 +78,7 @@ typedef struct {
     gfx_geometry_entry *active;
 } gfx_geometry_cache;
 struct gfx_frame_plan;
+struct gfx_instance_arena;
 int gfx_strip_config_check(const gfx_surface_table *t, const gfx_strip_config *cfg);
 int gfx_strip_cmd_check(const gfx_surface_table *t, const gfx_strip_config *cfg,
                         const gfx_cmd *c);
@@ -94,6 +96,8 @@ typedef struct {
     uint8_t                 *strip_table;    /* NULL 为 v1；v2 表头是计数数组 */
     gfx_strip_config         strips;
     gfx_rect                 build_clip;
+    uint32_t instance_generation;
+    struct gfx_instance_arena *instances;  /* NULL 使用标量直通 */
     int                      ended;          /* 已经追加过 END */
     gfx_strip_workspace     *planned;        /* NULL 保持即时物化 */
     gfx_geometry_cache      *geometry;       /* NULL 使用原几何算法 */
@@ -161,6 +165,32 @@ typedef struct {
 uint32_t gfx_blit_run(gfx_list *l, const gfx_blit_tmpl *t,
                       const gfx_blit_pos *pos, uint32_t n);
 
+/* v1-I 的数组由本帧独占，完成或排空后方可复用。 */
+typedef struct gfx_instance_arena {
+    uint8_t *host;
+    uint32_t dev_base, bytes, used, generation;
+} gfx_instance_arena;
+typedef struct {
+    gfx_blit_tmpl shared;
+    uint32_t layout;
+    int32_t fixed_sx, fixed_sy;
+} gfx_instance_desc;
+typedef struct {
+    const uint8_t *host;
+    uint32_t dev_base, bytes;
+} gfx_instance_view;
+typedef struct { uint32_t packet, instance; } gfx_instance_id;
+int gfx_instances_append(gfx_list *list, const gfx_instance_desc *desc,
+                         const gfx_blit_pos *pos, uint32_t count,
+                         gfx_instance_arena *arena);
+int gfx_instance_packet_check(const gfx_surface_table *t, const gfx_cmd *c);
+int gfx_instance_at(const gfx_cmd *c, const gfx_instance_view *views,
+                    uint32_t view_count, uint32_t index, gfx_cmd *scalar);
+/* 提交前展开；先全量检查容量与数组，不留下部分输出。 */
+int gfx_instances_expand(const gfx_surface_table *t, const gfx_cmd *in, uint32_t count,
+                          const gfx_instance_view *views, uint32_t view_count,
+                          gfx_cmd *out, gfx_instance_id *ids, uint32_t cap, uint32_t *used);
+
 /* --- 软件执行器 --------------------------------------------------------- */
 
 /* 跨提交的状态。SET_CLIP 的框持续到下一条 SET_CLIP 或软复位，
@@ -202,6 +232,13 @@ void exec_sw_reset(exec_sw_state *es);
 int  exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
                  const gfx_cmd *list, uint32_t list_count, uint32_t readable_count,
                  exec_sw_stats *st, exec_sw_error *err);
+
+/* 显式只读数组 view；旧执行入口继续只解释 v1 标量。 */
+int exec_sw_run_instances(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
+                           const gfx_cmd *list, uint32_t count, uint32_t readable_count,
+                           const gfx_instance_view *views, uint32_t view_count,
+                           exec_sw_stats *st, exec_sw_error *err,
+                           uint32_t *error_instance, uint32_t *instances);
 
 /* 执行 ABI v2 表；readable_bytes 给出宿主取数上界。
    scratch 为独占软件 BAND 影子，至少 (4096 << strip_log2) 字节，4 字节对齐。

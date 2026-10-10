@@ -201,3 +201,8 @@ Main/sim/engine/g4/logs/；失败不继续下一项，不以进程退出码代�
 控制面板支持 SW、HW/DDR、HW/TEX、HW/STRIP 四个反馈名；每次切换等待
 板上确认，最多四次请求，旧固件不支持目标后端时停止。输入脚本等待
 mode 2 enter 后再计时，不能在启动素材装载期间把多次按键合并成一次。
+
+
+采集完整测试结束时可用 --stop-line done，只匹配已收到换行的完整一行，
+不会在 nmax done 提前退出。--stop-on 保留子串含义，两者互斥。分块读取判据
+在 sim/engine/frontend/test_board_stop_line.py，覆盖 done 行跨两个读取块的情况。

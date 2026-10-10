@@ -282,6 +282,7 @@ static const char *op_name(uint32_t op)
     case GFX_OP_NOP:      return "NOP";
     case GFX_OP_FILL:     return "FILL";
     case GFX_OP_BLIT:     return "BLIT";
+    case GFX_OP_BLIT_INST:return "BLIT_INST";
     case GFX_OP_SET_CLIP: return "SET_CLIP";
     case GFX_OP_BAND:     return "BAND";
     case GFX_OP_END:      return "END";
@@ -347,6 +348,20 @@ uint32_t gfx_cmd_decode(const gfx_cmd *c, char *buf, uint32_t cap)
             core_out_str(&o, " c=");
             core_out_u32(&o, gfx_c(c));
         }
+    } else if (gfx_op(c) == GFX_OP_BLIT_INST) {
+        core_out_str(&o," base=");core_out_hex32(&o,c->w[1]);
+        core_out_str(&o," count=");core_out_u32(&o,c->w[2]);
+        core_out_str(&o," layout=");core_out_u32(&o,(c->w[5]>>16)&3u);
+        core_out_str(&o," stride=");core_out_u32(&o,c->w[5]&65535u);
+        core_out_str(&o," fixed=");out_i32(&o,gfx_s16(c->w[6]));
+        core_out_str(&o,",");out_i32(&o,gfx_s16(c->w[6]>>16));
+        core_out_str(&o," wh=");core_out_u32(&o,gfx_u16(c->w[3]));
+        core_out_str(&o,"x");core_out_u32(&o,gfx_u16(c->w[3]>>16));
+        core_out_str(&o," src=");core_out_u32(&o,gfx_src(c));
+        core_out_str(&o," dst=");core_out_u32(&o,gfx_dst(c));
+        core_out_str(&o," eq=");core_out_str(&o,eq_name(gfx_eq(c)));
+        if(gfx_key(c)){core_out_str(&o," key=");core_out_hex32(&o,c->w[4]);}
+        if(gfx_eq(c)==GFX_EQ_CONST){core_out_str(&o," c=");core_out_u32(&o,gfx_c(c));}
     } else if (gfx_op(c) == GFX_OP_SET_CLIP) {
         core_out_str(&o, " at=");
         out_i32(&o, gfx_s16(c->w[1]));

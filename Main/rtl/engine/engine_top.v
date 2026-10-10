@@ -104,7 +104,8 @@ module engine_top #(
     wire        cmd_busy;
     wire        err_set, done_set, commit, suppress_writes;
     wire [3:0]  err_code;
-    wire [31:0] err_index, err_tag;
+    wire [31:0] err_index, err_tag, err_instance;
+    wire perf_instance,fd_instance,fs_instance,rd_stat_instance;
 
     // 搬运层（I7）
     wire [31:0] fd_addr;
@@ -119,7 +120,7 @@ module engine_top #(
     wire [3:0]  rd_stat_cidx;
     wire        wr_stat_valid, wr_stat_err, wr_stat_last_row;
     wire [3:0]  wr_stat_cidx;
-    wire        tmo_evt;
+    wire        tmo_evt, tmo_dir;
 
     // TEX 装载窗口（G1，第 4~7 页）与片上读流
     wire [31:0] regs_prdata;
@@ -235,7 +236,7 @@ module engine_top #(
         .paddr(paddr[11:0]), .psel(psel && apb_hit_regs), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(regs_prdata), .pready(regs_pready), .pslverr(regs_pslverr),
         .cmd_busy(cmd_busy),
-        .err_set(err_set), .err_code(err_code), .err_index(err_index), .err_tag(err_tag),
+        .err_set(err_set), .err_code(err_code), .err_index(err_index), .err_tag(err_tag), .err_instance(err_instance), .perf_instance(perf_instance),
         .done_set(done_set),
         .kick(kick), .list_base(list_base), .list_count(list_count),
         .band_mode(band_mode), .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
@@ -270,7 +271,7 @@ module engine_top #(
         .drain_done(drain_done),
         .busy(cmd_busy),
         .err_set(err_set), .err_code(err_code),
-        .err_index(err_index), .err_tag(err_tag),
+        .err_index(err_index), .err_tag(err_tag), .err_instance(err_instance), .perf_instance(perf_instance),
         .done_set(done_set), .commit(commit),
         .suppress_writes(suppress_writes),
         .surf_ra_id(surf_ra_id), .surf_rb_id(surf_rb_id),
@@ -279,6 +280,7 @@ module engine_top #(
         .surf_rb_w0(surf_rb_w0), .surf_rb_w1(surf_rb_w1),
         .surf_rb_w2(surf_rb_w2),
         .fd_addr(fd_addr), .fd_bytes(fd_bytes), .fd_cidx(fd_cidx),
+        .fd_instance(fd_instance), .fs_instance(fs_instance), .rd_stat_instance(rd_stat_instance),
         .fd_valid(fd_valid), .fd_ready(fd_ready),
         .fs_tdata(fs_tdata), .fs_tlast(fs_tlast), .fs_tvalid(fs_tvalid),
         .fs_tready(fs_tready), .fs_cidx(fs_cidx),
@@ -287,7 +289,7 @@ module engine_top #(
         .rd_stat_cidx(rd_stat_cidx),
         .wr_stat_valid(wr_stat_valid), .wr_stat_err(wr_stat_err),
         .wr_stat_cidx(wr_stat_cidx), .wr_stat_last_row(wr_stat_last_row),
-        .tmo_evt(tmo_evt),
+        .tmo_evt(tmo_evt), .tmo_instance(fs_instance && !tmo_dir),
         .start(geom_start),
         .i1_op(i1_op), .i1_eq(i1_eq), .i1_key_en(i1_key_en),
         .i1_key(i1_key), .i1_w4(i1_w4), .i1_c(i1_c), .i1_sfmt(i1_sfmt),
@@ -383,6 +385,7 @@ module engine_top #(
         .tx_stat_valid(tx_stat_valid), .tx_stat_ready(tx_stat_ready), .tx_stat_cidx(tx_stat_cidx),
         .tx_stat_buf(tx_stat_buf), .tx_busy(tx_busy),
         .fd_addr(fd_addr), .fd_bytes(fd_bytes), .fd_cidx(fd_cidx),
+        .fd_instance(fd_instance), .fs_instance(fs_instance), .rd_stat_instance(rd_stat_instance),
         .fd_valid(fd_valid), .fd_ready(fd_ready),
         .rs_tdata(rs_tdata), .rs_tkeep(rs_tkeep), .rs_tlast(rs_tlast),
         .rs_tvalid(rs_tvalid), .rs_tready(rs_tready), .rs_buf(rs_buf),
@@ -401,7 +404,7 @@ module engine_top #(
         .drain_busy(), .drain_done(drain_done),
         .tmo_limit(EC_TMO_RESET),
         .err_clr(kick),
-        .tmo_evt(tmo_evt), .tmo_dir(),
+        .tmo_evt(tmo_evt), .tmo_dir(tmo_dir),
         .m_axi_araddr(m_axi_araddr), .m_axi_arlen(m_axi_arlen),
         .m_axi_arsize(m_axi_arsize), .m_axi_arburst(m_axi_arburst),
         .m_axi_arvalid(m_axi_arvalid), .m_axi_arready(m_axi_arready),

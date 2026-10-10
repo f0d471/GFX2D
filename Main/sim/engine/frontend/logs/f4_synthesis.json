@@ -1,0 +1,88 @@
+{
+  "inst": {
+    "xlr": 1364,
+    "ram": 2,
+    "dsp": 1,
+    "slacks": [
+      {
+        "clock": "clk",
+        "slack": 3.763
+      },
+      {
+        "clock": "clk",
+        "slack": 0.026
+      }
+    ]
+  },
+  "main": {
+    "xlr": 43956,
+    "ram": 165,
+    "dsp": 19,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "slack": 0.588
+      },
+      {
+        "clock": "sdram_clk",
+        "slack": 0.408
+      },
+      {
+        "clock": "rx_cal_clk",
+        "slack": 0.243
+      },
+      {
+        "clock": "tx_cal_clk",
+        "slack": 0.157
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "slack": 0.293
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "slack": 34.095
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "slack": 95.627
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "slack": 50.318
+      },
+      {
+        "clock": "core_clk",
+        "slack": 0.026
+      },
+      {
+        "clock": "sdram_clk",
+        "slack": 0.033
+      },
+      {
+        "clock": "rx_cal_clk",
+        "slack": 0.029
+      },
+      {
+        "clock": "tx_cal_clk",
+        "slack": 0.101
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "slack": 0.035
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "slack": 0.092
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "slack": 0.097
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "slack": 48.658
+      }
+    ]
+  }
+}

@@ -142,7 +142,7 @@ def check(tracked_only=False):
     tracked = None
     if tracked_only:
         p = subprocess.run(["git", "-c", "safe.directory=" + ROOT.replace("\\", "/"),
-                            "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True)
+                            "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
         if p.returncode:
             print("无法读取 Git 文件清单：" + p.stderr)
             return 1

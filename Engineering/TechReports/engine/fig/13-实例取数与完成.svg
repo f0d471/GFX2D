@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="700" viewBox="0 0 1280 700">
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#376fa8"/></marker><style>text{font-family:"Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#243747}.title{font-size:26px;font-weight:600}.label{font-size:18px;font-weight:600}.small{font-size:16px}.box{fill:#edf4fc;stroke:#376fa8;stroke-width:2}.old{fill:#f4f6f8;stroke:#798998;stroke-width:2;stroke-dasharray:7 5}.data{fill:none;stroke:#376fa8;stroke-width:2.5;marker-end:url(#a)}.ctrl{fill:none;stroke:#798998;stroke-width:2;marker-end:url(#a)}</style></defs>
+<rect width="1280" height="700" fill="white"/>
+<text x="50" y="48" class="title">v1-I 实例取数、画序与完成</text>
+<rect x="50" y="120" width="240" height="120" rx="8" class="box"/>
+<text x="70" y="151" class="label">CPU 批入口</text><text x="70" y="180" class="small">整包预检后写入</text><text x="70" y="205" class="small">双帧 generation / owner</text>
+<rect x="350" y="85" width="240" height="85" rx="8" class="box"/><text x="370" y="116" class="label">32 B packet 表</text><text x="370" y="145" class="small">共享状态、数组地址、数量</text>
+<rect x="350" y="220" width="240" height="100" rx="8" class="box"/><text x="370" y="252" class="label">只读实例 arena</text><text x="370" y="280" class="small">XY4 / XYUV8 + padding</text><text x="370" y="303" class="small">每包 16 B 对齐</text>
+<path d="M290 150H320V128H350" class="data"/><path d="M290 210H320V270H350" class="data"/>
+<rect x="675" y="155" width="230" height="110" rx="8" class="box"/><text x="695" y="188" class="label">共用 DMA 读核</text><text x="695" y="217" class="small">受理时锁存 owner</text><text x="695" y="243" class="small">数据与状态同源回送</text>
+<path d="M590 128H635V185H675" class="data"/><path d="M590 270H635V235H675" class="data"/>
+<rect x="965" y="85" width="260" height="90" rx="8" class="box"/><text x="985" y="118" class="label">command → FE / cbuf</text><text x="985" y="147" class="small">包级检查、保存共享上下文</text>
+<rect x="965" y="245" width="260" height="100" rx="8" class="box"/><text x="985" y="277" class="label">instance → engine_inst</text><text x="985" y="306" class="small">1 KiB 单缓存，独立 2 RAM</text><text x="985" y="330" class="small">跨页拆分，读错单拍定位</text>
+<path d="M905 185H935V130H965" class="data"/><path d="M905 235H935V292H965" class="data"/>
+<rect x="675" y="410" width="260" height="105" rx="8" class="box"/><text x="695" y="442" class="label">逐实例检查 → I1</text><text x="695" y="470" class="small">坐标、状态、clip、完整身份</text><text x="695" y="495" class="small">ready 前 bundle 保持</text>
+<path d="M1225 130H1250V380H805V410" class="ctrl"/><path d="M1095 345V463H935" class="data"/>
+<rect x="180" y="410" width="300" height="105" rx="8" class="old"/><text x="200" y="442" class="label">原几何 / 搬运 / 像素通路</text><text x="200" y="470" class="small">前一实例像素完成后才推进</text><text x="200" y="495" class="small">像素方程与乘法器保持</text>
+<path d="M675 462H480" class="data"/><text x="510" y="448" class="small">合法时 INSTANCE +1</text>
+<rect x="360" y="565" width="625" height="80" rx="8" class="box"/><text x="380" y="597" class="label">全部 DMA 与写响应收尾 → DONE / ERR / IRQ</text><text x="380" y="625" class="small">ERROR_INDEX + ERROR_TAG + ERROR_INSTANCE；随后回收本帧资源</text>
+<path d="M330 515V605H360" class="ctrl"/><path d="M805 515V565" class="ctrl"/>
+<text x="50" y="678" class="small">蓝线：输入与数据　灰线：上下文与完成　虚框：沿用的像素执行通路</text>
+</svg>

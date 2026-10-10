@@ -13,6 +13,7 @@ uint32_t frontend_consume(const gfx_list *l)
         for(s=0;s<l->strips.lstrips;s++)
             crc32_update(&c,l->strip_table+(s+1u)*GFX_STRIP_REGION_BYTES,n[s]*32u);
     }
+    if(l->instances)crc32_update(&c,l->instances->host,l->instances->used);
     return crc32_end(&c);
 }
 #ifndef __riscv

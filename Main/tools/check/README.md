@@ -480,3 +480,15 @@ python3 Main/tools/check/check_g4_integration.py --performance
 复现时避免覆盖已登记的板测对象。--register 接收实际部署文件，身份集中
 写入 sim/engine/g4/logs/artifacts.json，按大小和修改时间缓存摘要。
 g4_game_dump.c 是生产游戏的 RTL 工件导出器，由 --rtl 编译调用。
+
+
+## F4 通用实例
+
+check_f4_instances.py 在 WSL 运行，提供 --models、--rtl、--mutations、--protocols、
+--lease、--v2 与 --legacy。独立像素金标准、完整引擎、错误排空与过期 lease
+判据及日志见 [frontend README](../../sim/engine/frontend/README.md)。
+run_f4_board.py 在 Windows 的 Efinity Python 下重建与串行采集；部署 BIN 与 bit
+集中登记在 f4_artifacts.json。板测不写 Flash，结束条件使用完整 done 行。
+
+F4 的 --research 提供研究工具与输入回环复现，--profile 提供 TIMED 阶段诊断，
+--collect 从原始证据严格生成唯一汇总 f4_results.json。

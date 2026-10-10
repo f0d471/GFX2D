@@ -6,7 +6,7 @@
 
 /* 坐标必须可无损转成 int16；靠截断制造可提交的错误坐标在本契约里是构造失败。
    单分支形式：v+32768 折回无符号后越界值必然大于 65535。 */
-static int coord_i16(int32_t v) { return (uint32_t)(v + 32768) <= 65535u; }
+static int coord_i16(int32_t v) { return ((uint32_t)v + 32768u) <= 65535u; }
 
 void f4_init(f4_builder *b, gfx_cmd *stream, uint32_t cap,
              uint8_t *arena, uint32_t arena_bytes)
@@ -39,6 +39,11 @@ static void f4_seal(f4_builder *b)
     if (b->open == F4_NO_OPEN)
         return;
     b->stream[b->open].w[2] = b->count;    /* instance_count 封包时回填一次 */
+    /* 数组的末拍在已预留的 16 B padding 内，续包基址也保持 16 B 对齐。 */
+    while (b->arena_used & 15u) {
+        *(uint32_t *)(void *)(b->arena+b->arena_used)=0u;
+        b->arena_used+=4u;
+    }
     if (b->layout == F4_LAYOUT_XY4)
         b->packets4++;
     else
@@ -102,7 +107,8 @@ int f4_append_inst(f4_builder *b, uint32_t w0_nonop, uint32_t key, uint32_t wh,
             return GFX_BUILD_FULL;
         b->to_xyuv8++;
     }
-    if (b->arena_used + entry_bytes > b->arena_bytes)
+    entry_bytes=(b->layout==F4_LAYOUT_XY4)?4u:8u;
+    if ((((uint64_t)b->arena_used + entry_bytes + 15u)&~(uint64_t)15u) > b->arena_bytes)
         return GFX_BUILD_FULL;
     /* stride 与 entry_bytes 都是 4 的倍数，合法布局下 arena 内偏移恒 4B 对齐；
        展开器与硬件取数按同一布局读。 */
@@ -135,14 +141,14 @@ int f4_append_batch(f4_builder *b, uint32_t w0_nonop, uint32_t key, uint32_t wh,
         return GFX_BUILD_BAD_ARG;
     if (layout == F4_LAYOUT_XYUV8 && (fixed_sx != 0 || fixed_sy != 0))
         return GFX_BUILD_BAD_ARG;
+    if (!coord_i16(fixed_sx) || !coord_i16(fixed_sy) || (n && !pos))
+        return GFX_BUILD_BAD_ARG;
     if (n == 0) {
-        /* 合法零实例包仍占一个包位，共享状态先过一遍 */
-        if (b->open == F4_NO_OPEN || b->cur_w0 != ((w0_nonop & ~0xFFu) | F4_OP_BLIT_INST)
-            || b->cur_key != key || b->cur_wh != wh || b->open_epoch != b->epoch)
-            return GFX_BUILD_BAD_ARG;
-        return GFX_OK;
+        f4_seal(b);
+        if (f4_open(b,w0_nonop,key,wh,layout,fixed_sx,fixed_sy))return GFX_BUILD_FULL;
+        f4_seal(b);return GFX_OK;
     }
-    if (b->arena_used + entry_bytes * n > b->arena_bytes)
+    if ((((uint64_t)b->arena_used+(uint64_t)entry_bytes*n+15u)&~(uint64_t)15u)>b->arena_bytes)
         return GFX_BUILD_FULL;
     if (b->open == F4_NO_OPEN
         || b->cur_w0 != ((w0_nonop & ~0xFFu) | F4_OP_BLIT_INST)
@@ -161,6 +167,8 @@ int f4_append_batch(f4_builder *b, uint32_t w0_nonop, uint32_t key, uint32_t wh,
             if (f4_open(b, w0_nonop, key, wh, layout, fixed_sx, fixed_sy) != 0)
                 return GFX_BUILD_FULL;
         }
+        if ((((uint64_t)b->arena_used+entry_bytes+15u)&~(uint64_t)15u)>b->arena_bytes)
+            return GFX_BUILD_FULL;
         if (!coord_i16(p->dx) || !coord_i16(p->dy))
             return GFX_BUILD_BAD_ARG;
         if (layout == F4_LAYOUT_XY4) {
@@ -240,7 +248,7 @@ long f4_expand(const gfx_cmd *stream, uint32_t n_stream,
                 return -1;
             out[used] = *p;
             if (ids)
-                ids[used] = (f4_id){ i, 0 };
+                ids[used] = (f4_id){ i, UINT32_MAX };
             used++;
             continue;
         }
@@ -254,7 +262,7 @@ long f4_expand(const gfx_cmd *stream, uint32_t n_stream,
             int32_t fsx = 0, fsy = 0;
             if (layout > 1u || (stride & 3u) != 0 || stride < entry || stride > 256u)
                 return -2;
-            if (count > F4_INST_MAX)
+            if ((base & 15u) || count > F4_INST_MAX)
                 return -2;
             if (layout == F4_LAYOUT_XY4) {
                 fsx = gfx_s16(p->w[6]);
@@ -265,7 +273,7 @@ long f4_expand(const gfx_cmd *stream, uint32_t n_stream,
             /* 数组长度按 64 位口径，基址加长度不得超出 arena */
             if (count != 0) {
                 uint64_t bytes = (uint64_t)(count - 1) * stride + entry;
-                if (base > arena_bytes || bytes > arena_bytes - base)
+                if (base > arena_bytes || ((bytes+15u)&~(uint64_t)15u) > arena_bytes - base)
                     return -3;
             }
             for (k = 0; k < count; k++) {

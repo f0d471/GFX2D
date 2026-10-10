@@ -9,3 +9,6 @@
 
 # G4 原始串口与厂商综合报告保留行尾填充，代码和文档仍检查空白。
 Main/sim/engine/g4/logs/** -whitespace
+
+# F4 原始串口与厂商报告保留行尾对齐，源码和文档仍检查空白。
+Main/sim/engine/frontend/logs/f4_* -whitespace

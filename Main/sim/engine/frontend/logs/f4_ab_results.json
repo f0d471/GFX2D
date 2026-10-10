@@ -1,0 +1,427 @@
+[
+  {
+    "scene": 0,
+    "base": {
+      "mode": 0,
+      "build": 351271.64444444445,
+      "execute": 310397.3333333333,
+      "gpu_busy": 308532,
+      "records": 207,
+      "packet_bytes": 6624,
+      "visible": 0,
+      "logical": 204
+    },
+    "instances": {
+      "mode": 10,
+      "build": 351300.0111111111,
+      "execute": 310340.6666666667,
+      "gpu_busy": 308461,
+      "records": 207,
+      "packet_bytes": 6624,
+      "visible": 0,
+      "logical": 204
+    },
+    "build_ratio": 1.0000807542171857,
+    "gpu_ratio": 0.99976987800293
+  },
+  {
+    "scene": 1,
+    "base": {
+      "mode": 0,
+      "build": 453200.4888888889,
+      "execute": 610594,
+      "gpu_busy": 608807.3333333334,
+      "records": 657,
+      "packet_bytes": 21024,
+      "visible": 444,
+      "logical": 654
+    },
+    "instances": {
+      "mode": 10,
+      "build": 446553.85555555555,
+      "execute": 607835,
+      "gpu_busy": 606030.3333333334,
+      "records": 217,
+      "packet_bytes": 6944,
+      "visible": 444,
+      "logical": 654
+    },
+    "build_ratio": 0.9853340111136488,
+    "gpu_ratio": 0.995438622618431
+  },
+  {
+    "scene": 2,
+    "base": {
+      "mode": 0,
+      "build": 603675.6333333334,
+      "execute": 1119467.3333333333,
+      "gpu_busy": 1117821.3333333333,
+      "records": 1417,
+      "packet_bytes": 45344,
+      "visible": 1202,
+      "logical": 1414
+    },
+    "instances": {
+      "mode": 10,
+      "build": 582458.3222222222,
+      "execute": 1111856.3333333333,
+      "gpu_busy": 1110204,
+      "records": 225,
+      "packet_bytes": 7200,
+      "visible": 1202,
+      "logical": 1414
+    },
+    "build_ratio": 0.9648531265143916,
+    "gpu_ratio": 0.9931855538034702
+  },
+  {
+    "scene": 3,
+    "base": {
+      "mode": 0,
+      "build": 749366.2444444444,
+      "execute": 1602124,
+      "gpu_busy": 1600604.6666666667,
+      "records": 2143,
+      "packet_bytes": 68576,
+      "visible": 1927,
+      "logical": 2140
+    },
+    "instances": {
+      "mode": 10,
+      "build": 713643.2444444444,
+      "execute": 1590176.6666666667,
+      "gpu_busy": 1588652,
+      "records": 232,
+      "packet_bytes": 7424,
+      "visible": 1927,
+      "logical": 2140
+    },
+    "build_ratio": 0.9523290510283341,
+    "gpu_ratio": 0.9925324054617692
+  },
+  {
+    "scene": 4,
+    "base": {
+      "mode": 0,
+      "build": 823801.2666666666,
+      "execute": 1854642.3333333333,
+      "gpu_busy": 1853123.6666666667,
+      "records": 2529,
+      "packet_bytes": 80928,
+      "visible": 2313,
+      "logical": 2526
+    },
+    "instances": {
+      "mode": 10,
+      "build": 780649.6666666666,
+      "execute": 1840325,
+      "gpu_busy": 1838816.6666666667,
+      "records": 235,
+      "packet_bytes": 7520,
+      "visible": 2313,
+      "logical": 2526
+    },
+    "build_ratio": 0.9476189200647827,
+    "gpu_ratio": 0.9922795222696956
+  },
+  {
+    "scene": 5,
+    "base": {
+      "mode": 0,
+      "build": 917079.2111111111,
+      "execute": 2181883,
+      "gpu_busy": 2180370,
+      "records": 3015,
+      "packet_bytes": 96480,
+      "visible": 2799,
+      "logical": 3012
+    },
+    "instances": {
+      "mode": 10,
+      "build": 864087.7111111111,
+      "execute": 2164956.3333333335,
+      "gpu_busy": 2163447,
+      "records": 238,
+      "packet_bytes": 7616,
+      "visible": 2799,
+      "logical": 3012
+    },
+    "build_ratio": 0.9422170960174784,
+    "gpu_ratio": 0.992238473286644
+  },
+  {
+    "scene": 6,
+    "base": {
+      "mode": 0,
+      "build": 351275.41111111105,
+      "execute": 310338.3333333333,
+      "gpu_busy": 308465,
+      "records": 207,
+      "packet_bytes": 6624,
+      "visible": 0,
+      "logical": 204
+    },
+    "instances": {
+      "mode": 10,
+      "build": 351307.4111111111,
+      "execute": 310388,
+      "gpu_busy": 308513,
+      "records": 207,
+      "packet_bytes": 6624,
+      "visible": 0,
+      "logical": 204
+    },
+    "build_ratio": 1.000091096612481,
+    "gpu_ratio": 1.0001556092263304
+  },
+  {
+    "scene": 7,
+    "base": {
+      "mode": 0,
+      "build": 452398.5444444444,
+      "execute": 460704.3333333333,
+      "gpu_busy": 458850.3333333333,
+      "records": 649,
+      "packet_bytes": 20768,
+      "visible": 436,
+      "logical": 646
+    },
+    "instances": {
+      "mode": 10,
+      "build": 445550.5,
+      "execute": 458332,
+      "gpu_busy": 456498,
+      "records": 217,
+      "packet_bytes": 6944,
+      "visible": 436,
+      "logical": 646
+    },
+    "build_ratio": 0.9848628061948034,
+    "gpu_ratio": 0.9948734191468388
+  },
+  {
+    "scene": 8,
+    "base": {
+      "mode": 0,
+      "build": 601957.3888888889,
+      "execute": 712997.6666666666,
+      "gpu_busy": 711222,
+      "records": 1402,
+      "packet_bytes": 44864,
+      "visible": 1187,
+      "logical": 1399
+    },
+    "instances": {
+      "mode": 10,
+      "build": 581010.6555555555,
+      "execute": 705813.6666666666,
+      "gpu_busy": 704044.6666666666,
+      "records": 225,
+      "packet_bytes": 7200,
+      "visible": 1187,
+      "logical": 1399
+    },
+    "build_ratio": 0.9652022988338136,
+    "gpu_ratio": 0.9899084486512884
+  },
+  {
+    "scene": 9,
+    "base": {
+      "mode": 0,
+      "build": 744350.6999999998,
+      "execute": 949274.3333333334,
+      "gpu_busy": 947649.6666666666,
+      "records": 2114,
+      "packet_bytes": 67648,
+      "visible": 1898,
+      "logical": 2111
+    },
+    "instances": {
+      "mode": 10,
+      "build": 708741.7333333334,
+      "execute": 938524,
+      "gpu_busy": 936883.3333333334,
+      "records": 231,
+      "packet_bytes": 7392,
+      "visible": 1898,
+      "logical": 2111
+    },
+    "build_ratio": 0.9521610355620456,
+    "gpu_ratio": 0.9886389098080902
+  },
+  {
+    "scene": 10,
+    "base": {
+      "mode": 0,
+      "build": 816850.7111111111,
+      "execute": 1073889.6666666667,
+      "gpu_busy": 1072210,
+      "records": 2484,
+      "packet_bytes": 79488,
+      "visible": 2268,
+      "logical": 2481
+    },
+    "instances": {
+      "mode": 10,
+      "build": 774056.1777777778,
+      "execute": 1060407.3333333333,
+      "gpu_busy": 1058745.6666666667,
+      "records": 234,
+      "packet_bytes": 7488,
+      "visible": 2268,
+      "logical": 2481
+    },
+    "build_ratio": 0.9476103371751705,
+    "gpu_ratio": 0.98744244753049
+  },
+  {
+    "scene": 11,
+    "base": {
+      "mode": 0,
+      "build": 912358.8777777777,
+      "execute": 1236061.3333333333,
+      "gpu_busy": 1234442,
+      "records": 2969,
+      "packet_bytes": 95008,
+      "visible": 2753,
+      "logical": 2966
+    },
+    "instances": {
+      "mode": 10,
+      "build": 860524.7444444444,
+      "execute": 1219544,
+      "gpu_busy": 1217920.3333333333,
+      "records": 238,
+      "packet_bytes": 7616,
+      "visible": 2753,
+      "logical": 2966
+    },
+    "build_ratio": 0.9431866838851998,
+    "gpu_ratio": 0.9866160851083593
+  },
+  {
+    "scene": 12,
+    "base": {
+      "mode": 0,
+      "build": 335589.0888888889,
+      "execute": 313651.6666666667,
+      "gpu_busy": 311746.3333333333,
+      "records": 197,
+      "packet_bytes": 6304,
+      "visible": 0,
+      "logical": 194
+    },
+    "instances": {
+      "mode": 10,
+      "build": 335672.30000000005,
+      "execute": 313696,
+      "gpu_busy": 311807,
+      "records": 197,
+      "packet_bytes": 6304,
+      "visible": 0,
+      "logical": 194
+    },
+    "build_ratio": 1.000247955353336,
+    "gpu_ratio": 1.0001946026630626
+  },
+  {
+    "scene": 13,
+    "base": {
+      "mode": 0,
+      "build": 429702.1666666667,
+      "execute": 485392.6666666667,
+      "gpu_busy": 483540.6666666667,
+      "records": 429,
+      "packet_bytes": 13728,
+      "visible": 195,
+      "logical": 426
+    },
+    "instances": {
+      "mode": 10,
+      "build": 430304.4111111111,
+      "execute": 484399,
+      "gpu_busy": 482563,
+      "records": 219,
+      "packet_bytes": 7008,
+      "visible": 195,
+      "logical": 426
+    },
+    "build_ratio": 1.0014015392315012,
+    "gpu_ratio": 0.9979781087009572
+  },
+  {
+    "scene": 14,
+    "base": {
+      "mode": 0,
+      "build": 1453766.6444444444,
+      "execute": 2499791,
+      "gpu_busy": 2498300.6666666665,
+      "records": 2895,
+      "packet_bytes": 92640,
+      "visible": 2659,
+      "logical": 2892
+    },
+    "instances": {
+      "mode": 10,
+      "build": 1396325.0444444446,
+      "execute": 2484426.6666666665,
+      "gpu_busy": 2482924.6666666665,
+      "records": 238,
+      "packet_bytes": 7616,
+      "visible": 2659,
+      "logical": 2892
+    },
+    "build_ratio": 0.9604877438758742,
+    "gpu_ratio": 0.9938454165244589
+  },
+  {
+    "scene": 15,
+    "base": {
+      "mode": 0,
+      "build": 1387688.8,
+      "execute": 990611,
+      "gpu_busy": 988914,
+      "records": 2199,
+      "packet_bytes": 70368,
+      "visible": 0,
+      "logical": 2196
+    },
+    "instances": {
+      "mode": 10,
+      "build": 1349120.4222222222,
+      "execute": 979233.6666666666,
+      "gpu_busy": 977558.6666666666,
+      "records": 225,
+      "packet_bytes": 7200,
+      "visible": 0,
+      "logical": 2196
+    },
+    "build_ratio": 0.9722067528556995,
+    "gpu_ratio": 0.9885173702330704
+  },
+  {
+    "scene": 16,
+    "base": {
+      "mode": 0,
+      "build": 335791.2111111111,
+      "execute": 313718.3333333333,
+      "gpu_busy": 311842.6666666667,
+      "records": 197,
+      "packet_bytes": 6304,
+      "visible": 0,
+      "logical": 194
+    },
+    "instances": {
+      "mode": 10,
+      "build": 335942.0777777778,
+      "execute": 313699,
+      "gpu_busy": 311823.3333333333,
+      "records": 197,
+      "packet_bytes": 6304,
+      "visible": 0,
+      "logical": 194
+    },
+    "build_ratio": 1.0004492871215047,
+    "gpu_ratio": 0.9999380029245516
+  }
+]

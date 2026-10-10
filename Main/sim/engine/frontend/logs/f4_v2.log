@@ -1,0 +1,3 @@
+usage: check_g3_stripctl.py [-h] [--collect-syn] [--collect-board]
+                            [--rtl-only] [--software-only]
+check_g3_stripctl.py: error: unrecognized arguments: --host --sim

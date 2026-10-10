@@ -29,6 +29,9 @@ void frontend_detail_end(uint32_t stage,uint32_t start)
 #ifndef FRONTEND_LAST
 #define FRONTEND_LAST 17u
 #endif
+#ifndef FRONTEND_MODE_MASK
+#define FRONTEND_MODE_MASK 0x7FFu
+#endif
 #ifndef FRONTEND_MODE_FIRST
 #define FRONTEND_MODE_FIRST 0u
 #endif
@@ -115,7 +118,7 @@ static void measure(uint32_t id,uint32_t mode,uint32_t repeat)
     uint64_t exec_total=0,pre_total=0,band_total=0;uint32_t exec_max=0,perf_start[9]={0},perf_end[9]={0};
     board_mem shared=board_region(REGION_SHARED);
     uint8_t *workspace=(uint8_t *)shared.ptr+0x40000u;
-    const int bg_mode=mode==5u?1:mode>=6u?2:0;
+    const int bg_mode=mode==5u?1:(mode>=6u&&mode<=9u)?2:0;
     const int planned=mode==2u||mode==4u||mode==7u||mode==9u;
     const int templ=mode==3u||mode==4u||mode==8u||mode==9u;
 #ifdef FRONTEND_VERIFY
@@ -132,7 +135,15 @@ static void measure(uint32_t id,uint32_t mode,uint32_t repeat)
         .refs=(uint32_t *)(void *)(workspace+0x180000u),.ref_cap=30720};
     for(i=0;i<FRONTEND_ITERATIONS+8u;i++) {
         start=board_cycles();
-        if(mode==0u)gfx_list_begin(&l,mem.ptr,32768,&tab);
+        if(mode==0u || mode==10u) {
+            gfx_list_begin(&l,mem.ptr,32768,&tab);
+            if(mode==10u) {
+                static gfx_instance_arena ia;
+                ia=(gfx_instance_arena){(uint8_t *)shared.ptr+0x400000u,
+                    g_mem_regions[REGION_SHARED].offset+0x400000u,0x80000u,0u,repeat+1u};
+                l.instances=&ia;
+            }
+        }
         else if(planned?gfx_list_begin_strips_planned(&l,mem.ptr,mem.size,&tab,&cfg,0,&work):
                         gfx_list_begin_strips(&l,mem.ptr,mem.size,&tab,&cfg,0)){fails++;return;}
         if(templ&&gfx_list_geometry(&l,&geometry)){fails++;return;}
@@ -164,6 +175,14 @@ static void measure(uint32_t id,uint32_t mode,uint32_t repeat)
         } else if(l.frame&&gfx_frame_release(l.frame,l.frame->ticket)){fails++;return;}
     }
     crc=frontend_consume(&l);if(crc!=expected)fails++;
+    if(mode==10u) {
+        uint32_t pk4=0,pk8=0,in4=0,in8=0,k;
+        for(k=0;k<l.used;k++)if(gfx_op(&l.buf[k])==GFX_OP_BLIT_INST) {
+            if(l.buf[k].w[5]&(1u<<16)){pk8++;in8+=l.buf[k].w[2];}else{pk4++;in4+=l.buf[k].w[2];}
+        }
+        board_puts("finst");field(id);field(repeat);field(l.instances->used);
+        field(pk4);field(in4);field(pk8);field(in8);board_puts("\n");
+    }
     if(FRONTEND_EXECUTE)renderer_perf_read(perf_end);
 #ifdef FRONTEND_VERIFY
     {
@@ -252,7 +271,7 @@ int main(void)
     }
     board_puts("fh,scene,mode,repeat,n,total_hi,total_lo,p50,p99,max,visible_enemy,records,bytes,errors,crc,exec_avg,exec_max,pre_avg,band_avg,gpu_busy_avg,logical_draws,eq_copy,eq_alpha,eq_add,eq_const,eq_mul,eq_st,plan_items,refs,template_hits,template_misses\n");
     for(id=FRONTEND_FIRST;id<FRONTEND_LAST;id++)if(FRONTEND_SCENE_MASK&(1u<<id))
-        {scene(id);for(r=0;r<3u;r++)for(m=FRONTEND_MODE_FIRST;m<FRONTEND_MODE_LAST;m++)measure(id,m,r);}
+        {scene(id);for(r=0;r<3u;r++)for(m=FRONTEND_MODE_FIRST;m<FRONTEND_MODE_LAST;m++)if(FRONTEND_MODE_MASK&(1u<<m))measure(id,m,r);}
     {uint32_t frame=0,low=0,zero=0,under=0;
      board_display_diag(&frame,&low,&zero,&under);board_puts("fdiag");field(frame);field(low);field(zero);field(under);field(board_irq_faults());board_puts("\n");}
     board_puts("fail ");number(fails);board_puts("\ndone\n");

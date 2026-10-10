@@ -11,7 +11,7 @@ SIM=MAIN/'sim/engine/stripctl'
 BUILD=SIM/'build'
 LOGS=SIM/'logs'
 LIB=[MAIN/'sw/lib'/p for p in ('gfx/list.c','gfx/strip.c','gfx/strip_plan.c','gfx/check.c','gfx/exec_sw.c','core/format.c')]
-RTL=[MAIN/'rtl/engine'/p for p in ('engine_top.v','engine_regs.v','engine_cmd.v','engine_geom.v','engine_pix.v','engine_blend.v','engine_mover.v','engine_tex.v','engine_band.v')]
+RTL=[MAIN/'rtl/engine'/p for p in ('engine_top.v','engine_regs.v','engine_cmd.v','engine_inst.v','engine_geom.v','engine_pix.v','engine_blend.v','engine_mover.v','engine_tex.v','engine_band.v')]
 RTL += [MAIN/'rtl/vendor/verilog-axi'/p for p in ('axi_dma_rd.v','axi_dma_wr.v')]
 RTL += [MAIN/'sim/axi_probe/axi_ram_model.v']
 

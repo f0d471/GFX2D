@@ -94,6 +94,8 @@ int        gfx_engine_wait(uint32_t *err_code, uint32_t *err_index, uint32_t *er
    累计，引擎空闲时不动；按帧做差在调用方做（D20）。 */
 int        gfx_engine_perf_read(uint32_t *values, uint32_t n);
 
+int gfx_engine_error_instance_read(uint32_t *instance);
+
 /* 计数器清零（CTRL.CNT_CLR，写 1 自清）。 */
 int        gfx_engine_perf_clear(void);
 

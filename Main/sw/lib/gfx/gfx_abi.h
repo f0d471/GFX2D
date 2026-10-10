@@ -22,6 +22,10 @@
 #define GFX_OP_BLIT         2u
 #define GFX_OP_SET_CLIP     3u
 #define GFX_OP_BAND         4u
+#define GFX_OP_BLIT_INST    5u
+#define GFX_INSTANCE_MAX   65535u
+#define GFX_INSTANCE_XY4   0u
+#define GFX_INSTANCE_XYUV8 1u
 #define GFX_OP_END          0xFFu
 
 /* 混合方程（w0[11:8]），系数表见设计文档 3.5 节与 spec 第 01 章 3.4 节。 */

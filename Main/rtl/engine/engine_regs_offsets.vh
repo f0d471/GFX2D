@@ -18,12 +18,13 @@ localparam [11:0] EC_REG_DOORBELL = 12'h028;
 localparam [11:0] EC_REG_LSTRIPS = 12'h02C;
 localparam [11:0] EC_REG_STRIP_H = 12'h030;
 localparam [11:0] EC_REG_BAND_SURF = 12'h034;
+localparam [11:0] EC_REG_ERROR_INSTANCE = 12'h038;
 localparam [11:0] EC_REG_SURF0 = 12'h040;
 localparam [11:0] EC_REG_PERF0 = 12'h100;
 
 // 表面表与性能计数器的下标
 localparam [4:0]  EC_SURF_SLOTS = 5'd16;
-localparam [3:0]  EC_PERF_COUNT = 4'd9;
+localparam [3:0]  EC_PERF_COUNT = 4'd10;
 
 // 性能计数器下标（0x100 + 4*i）
 localparam [3:0] EC_PERF_CMD = 4'd0;
@@ -35,6 +36,7 @@ localparam [3:0] EC_PERF_RD_BEAT = 4'd5;
 localparam [3:0] EC_PERF_WR_BEAT = 4'd6;
 localparam [3:0] EC_PERF_WAIT_DDR = 4'd7;
 localparam [3:0] EC_PERF_BUSY = 4'd8;
+localparam [3:0] EC_PERF_INSTANCE = 4'd9;
 
 // ID 与版本
 localparam [31:0] EC_ID_VALUE = 32'h47465801;
@@ -68,7 +70,10 @@ localparam EC_CAPS_INDEX8_VALUE = 0;
 localparam EC_CAPS_LANES_LO = 8;
 localparam EC_CAPS_LANES_W  = 4;
 localparam EC_CAPS_LANES_VALUE = 4;
-localparam [31:0] EC_CAPS_VALUE = 32'h0000046F;
+localparam EC_CAPS_INST_LO = 12;
+localparam EC_CAPS_INST_W  = 1;
+localparam EC_CAPS_INST_VALUE = 1;
+localparam [31:0] EC_CAPS_VALUE = 32'h0000146F;
 
 // CTRL 位位号（SOFT_RST/CNT_CLR 写 1 自清）
 localparam EC_CTRL_EN_BIT = 0;

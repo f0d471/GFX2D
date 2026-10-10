@@ -40,6 +40,7 @@ G1 在此基础启用 TEX profile，接口、验证与板测见
 
 | 文件 | 说明 |
 | --- | --- |
+| `engine_inst.v` | F4：v1-I 直通实例展开，单个 256×32 坐标缓存、2 RAM，显式 DMA owner、跨 4 KiB 取数和首失败实例定位；已进入整机网表，过程见 [第 13 章](../../Engineering/TechReports/engine/13-通用实例命令.md) |
 | `engine_tex.v` | G1：16 KiB 四 bank scratchpad，32 位 APB 装载/读回，128 位同步读流，读延迟可选 1/2 拍；状态保持到 ready。cmd/geom 传 src_tex/rd_tex，mover 允许 DDR 请求提前而保持 I3 单流顺序；已进 SoC 网表 |
 | `engine_band.v` | G2 数据面：640×16×32 位，四路掩码、2048+512 分段、36 RAM；三相、紧凑映射、本地状态、同址读优先和取消。mover 目的路由与 geom 条带求交已实现，G3 已接帧级控制、CAPS.BAND=1，描述符入口寄存一拍；17 项验证和独立综合通过，2026-10-08 已验收。过程与边界见 [第 08 章](../../Engineering/TechReports/engine/08-条带缓冲.md) |
 | `engine_blend.v` | B1：单通道混合核。源/目的/`a`/`c` 各 8 位与方程号 3 位进去，8 位出来，固定延迟 `L = 3`（D24）。六个方程都写成 `x = base × 255 + m1 × m2`，每通道一个推断出来的 `EFX_DSP48`；`base × 255` 用移位相减。B4 的 `engine_pix.v` 例化 12 个实例，B6 已随引擎接入整机网表 |

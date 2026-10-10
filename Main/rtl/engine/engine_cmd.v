@@ -166,6 +166,10 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     input  wire [31:0] surf_rb_w0, surf_rb_w1, surf_rb_w2,
 
     // ---- 搬运层：命令取数（I7）----
+    output wire fd_instance,
+    input wire fs_instance, rd_stat_instance, tmo_instance,
+    output reg [31:0] err_instance,
+    output reg perf_instance,
     output wire [31:0] fd_addr,
     output wire [11:0] fd_bytes,
     output wire [3:0]  fd_cidx,
@@ -179,7 +183,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
 
     // ---- 搬运层：状态与超时（I7）----
     input  wire        rd_stat_valid,
-    input  wire        rd_stat_fetch,  // 显式来源：1 = 命令取数（G1）
+    input  wire        rd_stat_fetch,  // 显式来源：1 = FD；F4 另按 rd_stat_instance 分流
     input  wire        rd_stat_err,
     input  wire [3:0]  rd_stat_cidx,
     input  wire        wr_stat_valid,
@@ -245,7 +249,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     // =====================================================================
     reg [127:0] cbuf [0:63];
     reg [127:0] cbuf_rdata;
-    wire        fs_fire = fs_tvalid && fs_tready;
+    wire        fs_fire = fs_tvalid && fs_tready && !(fs_instance === 1'b1);
     // 槽位 = 半区 ×32 + 批内拍号（rq_off+fe_tot 逐字定义在 5 位内：批 ≤32 拍、
     // 逐条回退 off ≤30 加 2 拍也 ≤31，自然回卷等价 (off+tot) mod 32）
     wire [4:0]  cbuf_walo = rq_off + fe_tot[4:0];
@@ -314,18 +318,39 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     // 原来写成 {27'd0, rq_n1, 5'd0}（拼接和 37 位）再截回 32 位，数值一样但报 VERI-WARNING 截断。
     wire [31:0] rq_a1    = rq_addr + {22'd0, rq_n1, 5'd0};
 
-    assign fd_addr   = (fe_d == 2'd0) ? rq_addr : rq_a1;
-    assign fd_bytes  = {7'd0, (fe_d == 2'd0) ? rq_n1 : (rq_n - rq_n1)} << 5;
-    assign fd_cidx   = rq_ctx;
-    assign fd_valid  = (fe_st == F_ISSUE) && !soft_rst;
-    assign fs_tready = (fe_st == F_POLL) && !soft_rst;
+    wire inst_fd_valid,inst_fd_ready,inst_fs_ready,inst_busy,inst_valid,inst_error;
+    wire [31:0] inst_fd_addr,inst_xy,inst_uv,inst_next_id;
+    wire [11:0] inst_fd_bytes;
+    wire [3:0] inst_fd_cidx,inst_error_code;
+    reg inst_go,inst_active;
+    reg [31:0] inst_id;
+    reg [15:0] inst_count;
+    reg [255:0] inst_packet;
+    wire command_owner=fe_st==F_ISSUE;
+    assign fd_instance=!command_owner && inst_fd_valid;
+    assign inst_fd_ready=fd_ready && !command_owner;
+    engine_inst u_inst(.clk(clk),.rst(rst||soft_rst),.cancel(pend_err||soft_rst),.go(inst_go),
+        .base(inst_packet[63:32]),.count(inst_packet[79:64]),.stride(inst_packet[168:160]),
+        .layout(inst_packet[176]),.fixed_uv(inst_packet[223:192]),.context_id(k[3:0]),
+        .busy(inst_busy),.fd_addr(inst_fd_addr),.fd_bytes(inst_fd_bytes),.fd_cidx(inst_fd_cidx),
+        .fd_valid(inst_fd_valid),.fd_ready(inst_fd_ready),.fs_data(fs_tdata),
+        .fs_valid(fs_tvalid && (fs_instance === 1'b1)),.fs_last(fs_tlast),.fs_cidx(fs_cidx),
+        .fs_ready(inst_fs_ready),.stat_valid(rd_stat_valid && (rd_stat_instance === 1'b1)),
+        .stat_error(rd_stat_err),.stat_cidx(rd_stat_cidx),.valid(inst_valid),
+        .ready(st==S_INEXT && !inst_error),.xy(inst_xy),.uv(inst_uv),.instance_id(inst_next_id),
+        .error(inst_error),.error_code(inst_error_code));
+    assign fd_addr = command_owner ? ((fe_d == 2'd0) ? rq_addr : rq_a1) : inst_fd_addr;
+    assign fd_bytes = command_owner ? ({7'd0,(fe_d==0)?rq_n1:(rq_n-rq_n1)}<<5) : inst_fd_bytes;
+    assign fd_cidx = command_owner ? rq_ctx : inst_fd_cidx;
+    assign fd_valid = (command_owner || inst_fd_valid) && !soft_rst;
+    assign fs_tready = ((fs_instance === 1'b1) ? inst_fs_ready : (fe_st==F_POLL)) && !soft_rst;
     wire fe_done     = (fe_st == F_PULSE);      // 一拍，负载 fe_err
     wire fe_busy_any = (fe_st != F_IDLE);
     assign fe_cidx_err = fe_cidx_err_r;
 
     // 当前描述符收尾：最后一拍已握手且状态已见（先后都支持）；状态必须带取数来源
     wire bd_cnt_hit = ({1'b0, fe_bd_rcv} + 6'd1 == {1'b0, fe_bd_exp});
-    wire fe_stat_in = rd_stat_valid && rd_stat_fetch;
+    wire fe_stat_in = rd_stat_valid && rd_stat_fetch && !(rd_stat_instance === 1'b1);
     wire desc_done  = (fs_fire && bd_cnt_hit && (fe_stat || fe_stat_in))
                    || (fe_stat_in && !fs_fire && ({1'b0, fe_bd_rcv} == {1'b0, fe_bd_exp}));
 
@@ -386,7 +411,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         S_ISSUE=5, S_ACTIVE=6, S_ADV=7, S_SWITCH=8, S_PERW=9, S_PER_WAIT=10,
         S_TERM=12, S_EXEC=13, S_RD2=14, S_CFG=15, S_HDR=16, S_HADDR=17,
         S_HWAIT=18, S_HREAD=19, S_BNEXT=20, S_BSTART=21, S_BLOAD=22,
-        S_BFLUSH=23, S_BWAIT=24, S_CFG_WAIT=25, S_DISPATCH=26;
+        S_BFLUSH=23, S_BWAIT=24, S_CFG_WAIT=25, S_DISPATCH=26, S_INEXT=27;
     reg [4:0] st;
     reg bmode, cfg_phase, cfg_bad_q;
     reg [4:0] chk_q;
@@ -450,12 +475,25 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     assign surf_rb_id = cfg_phase ? dst_id : c_dstid;
 
     wire is_fill_c = (c_op == OP_FILL);
-    wire is_blit_c = (c_op == OP_BLIT);
+    wire is_inst_c = c_op==8'h05;
+    wire is_blit_c = (c_op == OP_BLIT) || is_inst_c;
     wire op_ok_c   = (c_op == OP_NOP) || is_fill_c || is_blit_c
                    || (c_op == OP_CLIP) || (c_op == OP_END);
 
-    wire f_bad_c;
-    ec_fields u_fields(.cmd(cmd_full), .bad(f_bad_c));
+    wire scalar_f_bad, f_bad_c;
+    ec_fields u_fields(.cmd(cmd_full),.bad(scalar_f_bad));
+    wire [15:0] inst_stride=cmd_full[175:160];
+    wire [1:0] inst_layout=cmd_full[177:176];
+    wire [24:0] inst_length=(cmd_full[79:64]==0)?25'd0:
+        ({9'd0,cmd_full[79:64]}-25'd1)*{16'd0,inst_stride[8:0]}+(inst_layout==0?25'd4:25'd8);
+    wire [32:0] inst_limit={1'b0,cmd_full[63:32]}+(({8'd0,inst_length}+33'd15)&~33'd15);
+    wire inst_fields_bad=cmd_full[15:13]!=0 || cmd_full[63:32]%16!=0 ||
+        cmd_full[95:80]!=0 || inst_layout>1 || cmd_full[191:178]!=0 ||
+        inst_stride<(inst_layout==0?16'd4:16'd8) || inst_stride>256 || inst_stride[1:0]!=0 ||
+        (inst_layout==1 && cmd_full[223:192]!=0) ||
+        (!cmd_full[12] && cmd_full[159:128]!=0) ||
+        (c_eq!=3 && cmd_full[31:24]!=0) || inst_limit>33'h100000000;
+    assign f_bad_c=is_inst_c?inst_fields_bad:scalar_f_bad;
     wire eq_bad_c = (c_eq > 4'd5);
 
     wire src_ok_c, dst_ok_c;
@@ -491,7 +529,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     wire [17:0] sy18 = {{2{cmd_full[63]}}, cmd_full[63:48]};
     wire [17:0] dx18 = {{2{cmd_full[79]}}, cmd_full[79:64]};
     wire [17:0] dy18 = {{2{cmd_full[95]}}, cmd_full[95:80]};
-    wire ovl_bad_c = is_blit_c && (c_srcid == c_dstid)
+    wire ovl_bad_c = (c_op==OP_BLIT) && (c_srcid == c_dstid)
                   && (ow != 16'd0) && (oh != 16'd0)
                   && ($signed(sx18 + {2'b00, ow}) > $signed(dx18))
                   && ($signed(dx18 + {2'b00, ow}) > $signed(sx18))
@@ -524,7 +562,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         {16'd0,surf_rb_w1[31:16]} != strips_r*STRIP_H ||
         surf_rb_w1[31:16]>480 || surf_ra_w2[9:8]!=0 || surf_rb_w2[9:8]!=0 ||
         surf_ra_w2[15:12]!=0 || surf_rb_w2[15:12]!=0 || cfg_alias_bad;
-    wire [4:0] v_norm = !op_ok_c    ? {1'b1, EC_ERR_BAD_OPCODE}
+    wire [4:0] v_norm = (!op_ok_c || (bmode && is_inst_c))    ? {1'b1, EC_ERR_BAD_OPCODE}
                       : f_bad_c     ? {1'b1, EC_ERR_BAD_FIELD}
                       : eq_bad_c    ? {1'b1, EC_ERR_BAD_EQUATION}
                       : src_bad_c   ? {1'b1, EC_ERR_BAD_SURFACE}
@@ -575,6 +613,8 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     always @(posedge clk) begin
         if (rst || soft_rst) begin
             st <= S_IDLE; busy_r <= 1'b0;
+            inst_go<=0;inst_active<=0;inst_id<=0;inst_count<=0;inst_packet<=0;
+            err_instance<=32'hffffffff;perf_instance<=0;
             bmode<=0;cfg_phase<=0;cfg_bad_q<=0;chk_q<=0;strip_id<=0;strips_r<=0;bg_id<=0;dst_id<=0;hdr_beat<=0;
             band_bg_base<=0;band_dst_base<=0;band_bg_slog2<=0;band_dst_slog2<=0;
             band_frame_height<=0;
@@ -593,6 +633,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
             commit     <= 1'b0;
             start      <= 1'b0;
             fe_start_q <= 1'b0;
+            inst_go<=0;perf_instance<=0;
 
             // 预取请求等 FE 空闲再发（S_FETCH/S_SWITCH 出口那一拍 FE 可能还在 F_PULSE）
             if (pf_armed && fe_ready) begin
@@ -608,6 +649,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
             case (st)
                 // ------------------------------------------------ IDLE
                 S_IDLE: if (kick) begin
+                    inst_active<=0;err_instance<=32'hffffffff;
                     busy_r  <= 1'b1;
                     base_r  <= list_base;
                     count_r <= list_count;
@@ -735,11 +777,17 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end else if (chk_q[4]) begin
                         pend_err  <= 1'b1;
                         err_code  <= chk_q[3:0];
+                        err_instance<=inst_active?inst_id:32'hffffffff;
                         err_index <= global_k;
                         err_tag   <= w1[127:96];
                         st        <= S_TERM;
                     end else begin
                         case (c_op)
+                            8'h05: begin
+                                if(w0[95:64]==0)begin commit<=1;st<=S_ADV;end
+                                else begin inst_packet<=cmd_full;inst_count<=w0[79:64];
+                                           inst_active<=1;inst_go<=1;st<=S_INEXT;end
+                            end
                             OP_NOP: begin
                                 commit <= 1'b1;
                                 st     <= S_ADV;
@@ -763,6 +811,22 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                             end
                             default: st <= S_ISSUE;         // FILL/BLIT
                         endcase
+                    end
+                end
+
+                S_INEXT: begin
+                    if(inst_error || tmo_evt)begin
+                        pend_err<=1;err_code<=tmo_evt?EC_ERR_TIMEOUT:inst_error_code;
+                        err_index<=global_k;err_tag<=inst_packet[255:224];
+                        err_instance<=inst_next_id;st<=S_TERM;
+                    end else if(inst_valid)begin
+`ifdef INJ_INST_XYUV
+                        w0<={inst_packet[127:96],inst_uv,inst_xy,inst_packet[31:8],8'h02};
+`else
+                        w0<={inst_packet[127:96],inst_xy,inst_uv,inst_packet[31:8],8'h02};
+`endif
+                        w1<={inst_packet[255:224],32'd0,inst_packet[159:128],32'd0};
+                        inst_id<=inst_next_id;st<=S_RUN;
                     end
                 end
 
@@ -800,6 +864,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     i1_clip_y1 <= bmode ? 16'sd479 : clip_y1;
                     i1_cidx    <= k[3:0];
                     start      <= 1'b1;
+                    perf_instance<=inst_active;
                     active     <= 1'b1;
                     tag_cur    <= w1[127:96];
                     st         <= S_ACTIVE;
@@ -807,11 +872,18 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
 
                 // ------------------------------------------------ 等活动命令完成
                 S_ACTIVE: begin
+`ifdef INJ_INST_EARLY_DONE
+                    if(inst_active && geom_busy)done_set<=1;
+`endif
+`ifdef INJ_INST_STATE
+                    if(inst_active)inst_packet[127:96]<=0;
+`endif
                     if (wr_stat_valid && wr_stat_err) begin
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_BUS_WRITE;
                         err_index <= global_k;
                         err_tag   <= tag_cur;
+                        err_instance<=inst_active?inst_id:32'hffffffff;
                         // 末行的写状态本身就是完成回报：错误与完成同拍时也要撤 active，
                         // 否则 S_TERM 等一个已经来过的 last_row，永远收不了尾
                         if (wr_stat_last_row)
@@ -822,24 +894,28 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                         err_code  <= EC_ERR_BUS_READ;
                         err_index <= global_k;
                         err_tag   <= tag_cur;
+                        err_instance<=inst_active?inst_id:32'hffffffff;
                         st        <= S_TERM;
                     end else if (tmo_evt) begin
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_TIMEOUT;
                         err_index <= global_k;
                         err_tag   <= tag_cur;
+                        err_instance<=inst_active?((tmo_instance === 1'b1)?inst_next_id:inst_id):32'hffffffff;
                         st        <= S_TERM;
-                    end else if ((wr_stat_valid && wr_stat_last_row)
+                    end else if (
+                               (wr_stat_valid && wr_stat_last_row)
                               || (geom_cmd_done && geom_done_cidx == k[3:0])) begin
                         // 非空命令的末行写状态 / 空命令的 cmd_done（D38）
-                        commit <= 1'b1;
-                        active <= 1'b0;
-                        st     <= S_ADV;
+                        active<=0;
+                        if(inst_active && inst_id+32'd1!={16'd0,inst_count})st<=S_INEXT;
+                        else begin commit<=1;st<=S_ADV;end
                     end
                 end
 
                 // ------------------------------------------------ 推进
                 S_ADV: begin
+                    inst_active<=0;
                     k <= k + 32'd1;
                     if ({1'b0, k} + 33'd1 >= {1'b0, bi} + {1'b0, bn})
                         st <= S_SWITCH;
@@ -1023,7 +1099,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     if ((wr_stat_valid && wr_stat_last_row)
                      || (geom_cmd_done && geom_done_cidx == k[3:0]))
                         active <= 1'b0;
-                    if (!active && !fe_busy_any && !geom_busy &&
+                    if (!active && !fe_busy_any && !inst_busy && !geom_busy &&
                         (!bmode || (pend_err ? drain_done : !band_busy))) begin
                         err_set  <= pend_err;
                         done_set <= pend_done;
