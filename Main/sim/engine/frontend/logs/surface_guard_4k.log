@@ -1,0 +1,10 @@
+# COM11 @ 115200 8N1, opened 14:17:36
+# --- 程序已加载，以下才是它的输出 ---
+frontend driver guard
+driver busy SURF rejected ok
+driver complete and drained ok
+driver idle SURF restore ok
+fail 0
+done
+
+# closed 14:17:43, 122 bytes

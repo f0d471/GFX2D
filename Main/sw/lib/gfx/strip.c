@@ -3,6 +3,15 @@
 #include "strip_internal.h"
 #include <stddef.h>
 #include <stdint.h>
+#ifdef GFX_FRONTEND_DETAIL
+extern uint32_t frontend_detail_clock(void);
+extern void frontend_detail_end(uint32_t stage,uint32_t start);
+#define DETAIL_BEGIN(v) uint32_t v=frontend_detail_clock()
+#define DETAIL_END(s,v) frontend_detail_end(s,v)
+#else
+#define DETAIL_BEGIN(v) ((void)0)
+#define DETAIL_END(s,v) ((void)0)
+#endif
 
 static uint64_t end_of(const gfx_surf_raw *s)
 {
@@ -31,8 +40,12 @@ int gfx_strip_config_check(const gfx_surface_table *t, const gfx_strip_config *c
 }
 static int feedback(const gfx_surface_table *t, const gfx_strip_config *cfg, const gfx_cmd *c)
 {
+#ifdef INJECT_STRIP_FEEDBACK_CHECK
+    (void)t;(void)cfg;(void)c;return 0;
+#else
     return gfx_op(c)==GFX_OP_BLIT && gfx_surf_space(&t->s[gfx_src(c)])==GFX_SPACE_DDR &&
            intersect(&t->s[gfx_src(c)],&t->s[cfg->dst_id]);
+#endif
 }
 int gfx_strip_cmd_check(const gfx_surface_table *t, const gfx_strip_config *cfg, const gfx_cmd *c)
 {
@@ -72,7 +85,7 @@ int gfx_list_begin_strips(gfx_list *l, void *table, uint32_t bytes,
 }
 int gfx_strip_append_checked(gfx_list *l,const gfx_cmd *c)
 {
-    uint32_t *counts=(uint32_t *)(void *)l->strip_table;
+    uint32_t *counts=l->planned ? l->planned->count : (uint32_t *)(void *)l->strip_table;
     uint32_t op=gfx_op(c),sh=1u<<l->strips.strip_log2,s,s0,s1;
     gfx_rect r;
     int32_t dx=gfx_s16(c->w[2]),dy=gfx_s16(c->w[2]>>16);
@@ -83,14 +96,18 @@ int gfx_strip_append_checked(gfx_list *l,const gfx_cmd *c)
                                    y+(int32_t)gfx_u16(c->w[3]>>16)-1};
         return GFX_OK;
     }
-    if(op==GFX_OP_END) return GFX_OK;
+    if(op==GFX_OP_END) return l->planned ? gfx_strip_plan_seal(l) : GFX_OK;
+    DETAIL_BEGIN(check_start);
     if(feedback(l->t,&l->strips,c)) return rejected(l,GFX_E_OVERLAP);
     if(op!=GFX_OP_NOP && gfx_dst(c)!=l->strips.dst_id) return rejected(l,GFX_E_BAD_FIELD);
+    DETAIL_END(0,check_start);
+    DETAIL_BEGIN(clip_start);
     if(op==GFX_OP_NOP) {s0=s1=0;r=(gfx_rect){0,0,0,0};}
     else {
         uint32_t w=gfx_u16(c->w[3]),h=gfx_u16(c->w[3]>>16);
         const gfx_surf_raw *d=&l->t->s[l->strips.dst_id];
         if(!w || !h) return GFX_OK;
+        if(l->geometry && gfx_geometry_full(l,c,&r)) goto clipped;
         r=(gfx_rect){dx,dy,dx+(int32_t)w-1,dy+(int32_t)h-1};
         if(r.x0<0)r.x0=0;
         if(r.y0<0)r.y0=0;
@@ -113,20 +130,31 @@ int gfx_strip_append_checked(gfx_list *l,const gfx_cmd *c)
             if(r.y1>ymax)r.y1=ymax;
             if(r.x0>r.x1 || r.y0>r.y1)return GFX_OK;
         }
+clipped:
         s0=(uint32_t)r.y0>>l->strips.strip_log2;
         s1=(uint32_t)r.y1>>l->strips.strip_log2;
     }
     /* 两遍只走被覆盖的桶：先检查容量，确保整次调用无部分追加。 */
     if(op==GFX_OP_BLIT && (sx+r.x0-dx>32767 || sy+r.y1-dy>32767))
         return rejected(l,GFX_BUILD_BAD_ARG);
+    DETAIL_END(1,clip_start);
+    DETAIL_BEGIN(cap_start);
     for(s=s0;s<=s1;s++) if(counts[s]>=GFX_STRIP_CAP) {
         l->overflow++;return rejected(l,GFX_BUILD_FULL);
     }
+    DETAIL_END(2,cap_start);
+    if(l->planned) return gfx_strip_plan_add(l,c,&r,s0,s1,dx,dy,sx,sy);
+    DETAIL_BEGIN(emit_start);
     for(s=s0;s<=s1;s++) {
         gfx_cmd out=*c;
         gfx_cmd *bucket=(gfx_cmd *)(void *)(l->strip_table+(s+1u)*GFX_STRIP_REGION_BYTES);
         int32_t y0=r.y0>(int32_t)(s*sh)?r.y0:(int32_t)(s*sh);
         int32_t y1=r.y1<(int32_t)((s+1u)*sh-1u)?r.y1:(int32_t)((s+1u)*sh-1u);
+        if(op!=GFX_OP_NOP && l->geometry && l->geometry->active) {
+            const gfx_geometry_entry *p=l->geometry->active;uint32_t j=s-s0;
+            uint32_t rows=j==0u?p->leading:j+1u==p->pieces?p->trailing:sh;
+            y0=r.y0+(int32_t)(j?p->leading+(j-1u)*sh:0u);y1=y0+(int32_t)rows-1;
+        }
         if(op!=GFX_OP_NOP) {
             out.w[2]=(uint32_t)r.x0 | ((uint32_t)(y0-(int32_t)(s*sh))<<16);
             out.w[3]=(uint32_t)(r.x1-r.x0+1) | ((uint32_t)(y1-y0+1)<<16);
@@ -140,14 +168,28 @@ int gfx_strip_append_checked(gfx_list *l,const gfx_cmd *c)
 #ifdef INJ_STRIP_CLIP
         out.w[2]++;
 #endif
-        bucket[counts[s]++]=out;l->used++;
+#ifdef GFX_FRONTEND_DETAIL_STORE
+        DETAIL_BEGIN(store_start);
+#endif
+#ifdef INJECT_STRIP_DROP_FIELD
+        {uint32_t k;for(k=0;k<7u;k++)bucket[counts[s]].w[k]=out.w[k];counts[s]++;}
+#else
+        bucket[counts[s]++]=out;
+#endif
+        l->used++;
+#ifdef GFX_FRONTEND_DETAIL_STORE
+        DETAIL_END(6,store_start);
+#endif
     }
+    DETAIL_END(3,emit_start);
     return GFX_OK;
 }
 
 int gfx_strip_append(gfx_list *l,const gfx_cmd *c)
 {
+    DETAIL_BEGIN(start);
     const int e = gfx_cmd_check(l->t,c);
+    DETAIL_END(4,start);
     if(e) return rejected(l,e); /* 零面积也不能跳过字段/表面检查。 */
     return gfx_strip_append_checked(l,c);
 }

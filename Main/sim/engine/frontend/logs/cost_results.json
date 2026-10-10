@@ -1,0 +1,4138 @@
+{
+  "f1_stages_4k": [
+    {
+      "scene": 0,
+      "mode": 0,
+      "phase": 0,
+      "cycles": 151397.33333333334,
+      "count": 89
+    },
+    {
+      "scene": 0,
+      "mode": 0,
+      "phase": 1,
+      "cycles": 9440.0,
+      "count": 2
+    },
+    {
+      "scene": 0,
+      "mode": 0,
+      "phase": 2,
+      "cycles": 1699.3333333333333,
+      "count": 0
+    },
+    {
+      "scene": 0,
+      "mode": 0,
+      "phase": 3,
+      "cycles": 1083.0,
+      "count": 0
+    },
+    {
+      "scene": 0,
+      "mode": 0,
+      "phase": 4,
+      "cycles": 1052.0,
+      "count": 0
+    },
+    {
+      "scene": 0,
+      "mode": 0,
+      "phase": 5,
+      "cycles": 242.0,
+      "count": 0
+    },
+    {
+      "scene": 0,
+      "mode": 0,
+      "phase": 6,
+      "cycles": 212457.66666666666,
+      "count": 114
+    },
+    {
+      "scene": 0,
+      "mode": 0,
+      "phase": 7,
+      "cycles": 1014.3333333333334,
+      "count": 1
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 0,
+      "cycles": 319931.0,
+      "count": 498
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 1,
+      "cycles": 14081.333333333334,
+      "count": 9
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 2,
+      "cycles": 1715.3333333333333,
+      "count": 0
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 3,
+      "cycles": 1059.3333333333333,
+      "count": 0
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 4,
+      "cycles": 1063.6666666666667,
+      "count": 0
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 5,
+      "cycles": 265.3333333333333,
+      "count": 0
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 6,
+      "cycles": 391173.0,
+      "count": 271
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 7,
+      "cycles": 1337.0,
+      "count": 0
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "phase": 0,
+      "cycles": 151470.66666666666,
+      "count": 89
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "phase": 1,
+      "cycles": 10561.0,
+      "count": 2
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "phase": 2,
+      "cycles": 1749.0,
+      "count": 0
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "phase": 3,
+      "cycles": 442321.3333333333,
+      "count": 2313
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "phase": 4,
+      "cycles": 1222.3333333333333,
+      "count": 0
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "phase": 5,
+      "cycles": 253.33333333333334,
+      "count": 0
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "phase": 6,
+      "cycles": 230061.66666666666,
+      "count": 123
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "phase": 7,
+      "cycles": 1011.0,
+      "count": 1
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 0,
+      "cycles": 320294.6666666667,
+      "count": 498
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 1,
+      "cycles": 14955.666666666666,
+      "count": 9
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 2,
+      "cycles": 1698.6666666666667,
+      "count": 0
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 3,
+      "cycles": 1600341.3333333333,
+      "count": 4391
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 4,
+      "cycles": 1240.0,
+      "count": 0
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 5,
+      "cycles": 275.3333333333333,
+      "count": 0
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 6,
+      "cycles": 421527.6666666667,
+      "count": 289
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 7,
+      "cycles": 1299.0,
+      "count": 0
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "phase": 0,
+      "cycles": 151555.0,
+      "count": 89
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "phase": 1,
+      "cycles": 10545.333333333334,
+      "count": 2
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "phase": 2,
+      "cycles": 1768.6666666666667,
+      "count": 0
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "phase": 3,
+      "cycles": 436000.3333333333,
+      "count": 2268
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "phase": 4,
+      "cycles": 1205.0,
+      "count": 0
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "phase": 5,
+      "cycles": 291.3333333333333,
+      "count": 0
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "phase": 6,
+      "cycles": 229900.33333333334,
+      "count": 123
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "phase": 7,
+      "cycles": 1017.0,
+      "count": 1
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 0,
+      "cycles": 320271.3333333333,
+      "count": 498
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 1,
+      "cycles": 14973.0,
+      "count": 9
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 2,
+      "cycles": 1699.3333333333333,
+      "count": 0
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 3,
+      "cycles": 1451283.6666666667,
+      "count": 3168
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 4,
+      "cycles": 1239.3333333333333,
+      "count": 0
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 5,
+      "cycles": 286.6666666666667,
+      "count": 0
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 6,
+      "cycles": 421548.0,
+      "count": 289
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 7,
+      "cycles": 1299.0,
+      "count": 0
+    }
+  ],
+  "f1_detail_4k": [
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 0,
+      "cycles": 62694.0,
+      "count": 204
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 1,
+      "cycles": 55609.0,
+      "count": 204
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 2,
+      "cycles": 63919.666666666664,
+      "count": 204
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 3,
+      "cycles": 143027.33333333334,
+      "count": 204
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 4,
+      "cycles": 249307.66666666666,
+      "count": 207
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 5,
+      "cycles": 0.0,
+      "count": 0
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 0,
+      "cycles": 301809.6666666667,
+      "count": 2526
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 1,
+      "cycles": 964335.3333333334,
+      "count": 2526
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 2,
+      "cycles": 584945.6666666666,
+      "count": 2526
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 3,
+      "cycles": 778034.0,
+      "count": 2526
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 4,
+      "cycles": 259798.0,
+      "count": 216
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 5,
+      "cycles": 32358.0,
+      "count": 19
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 0,
+      "cycles": 297574.0,
+      "count": 2481
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 1,
+      "cycles": 952608.6666666666,
+      "count": 2481
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 2,
+      "cycles": 570518.3333333334,
+      "count": 2481
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 3,
+      "cycles": 642151.0,
+      "count": 2481
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 4,
+      "cycles": 259782.0,
+      "count": 216
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 5,
+      "cycles": 30868.666666666668,
+      "count": 18
+    }
+  ],
+  "f1_store_4k": [
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 0,
+      "cycles": 66468.66666666667,
+      "count": 204
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 1,
+      "cycles": 54238.666666666664,
+      "count": 204
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 2,
+      "cycles": 66704.0,
+      "count": 204
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 3,
+      "cycles": 263959.0,
+      "count": 204
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 4,
+      "cycles": 233066.0,
+      "count": 207
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 5,
+      "cycles": 0.0,
+      "count": 0
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "phase": 6,
+      "cycles": 79873.33333333333,
+      "count": 778
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 0,
+      "cycles": 310624.6666666667,
+      "count": 2526
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 1,
+      "cycles": 1323866.6666666667,
+      "count": 2526
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 2,
+      "cycles": 586997.6666666666,
+      "count": 2526
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 3,
+      "cycles": 1602482.0,
+      "count": 2526
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 4,
+      "cycles": 242418.33333333334,
+      "count": 216
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 5,
+      "cycles": 31274.666666666668,
+      "count": 19
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "phase": 6,
+      "cycles": 534234.0,
+      "count": 5187
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 0,
+      "cycles": 310027.0,
+      "count": 2481
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 1,
+      "cycles": 1296359.3333333333,
+      "count": 2481
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 2,
+      "cycles": 561001.6666666666,
+      "count": 2481
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 3,
+      "cycles": 1269249.0,
+      "count": 2481
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 4,
+      "cycles": 242472.33333333334,
+      "count": 216
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 5,
+      "cycles": 29950.333333333332,
+      "count": 18
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "phase": 6,
+      "cycles": 407685.0,
+      "count": 3964
+    }
+  ],
+  "f1_stages_4k_totals": [
+    {
+      "scene": 0,
+      "mode": 0,
+      "avg": 381718.6976666667,
+      "probe_cycles": 20,
+      "avg_corrected": 381698.6976666667,
+      "spread": 9.867829068717952e-05,
+      "stable": true,
+      "p50": [
+        382561,
+        382528,
+        382561
+      ],
+      "p99": [
+        384190,
+        384190,
+        384134
+      ],
+      "max": [
+        384263,
+        384438,
+        384345
+      ],
+      "enemy": 0,
+      "records": 207,
+      "bytes": 6624,
+      "crc": 1890330705,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "avg": 736956.0803333333,
+      "probe_cycles": 20,
+      "avg_corrected": 736936.0803333333,
+      "spread": 0.0001091051361257105,
+      "stable": true,
+      "p50": [
+        737454,
+        737109,
+        737213
+      ],
+      "p99": [
+        741368,
+        741607,
+        741401
+      ],
+      "max": [
+        742237,
+        742275,
+        741806
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "avg": 841920.3323333333,
+      "probe_cycles": 20,
+      "avg_corrected": 841900.3323333333,
+      "spread": 1.6106200676358832e-05,
+      "stable": true,
+      "p50": [
+        841590,
+        841608,
+        841731
+      ],
+      "p99": [
+        846049,
+        845902,
+        845771
+      ],
+      "max": [
+        847198,
+        846426,
+        846538
+      ],
+      "enemy": 2313,
+      "records": 2529,
+      "bytes": 80928,
+      "crc": 536939581,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "avg": 2367978.7136666668,
+      "probe_cycles": 20,
+      "avg_corrected": 2367958.7136666668,
+      "spread": 2.719612638518473e-05,
+      "stable": true,
+      "p50": [
+        2368284,
+        2368325,
+        2368321
+      ],
+      "p99": [
+        2372059,
+        2372818,
+        2372825
+      ],
+      "max": [
+        2373682,
+        2373818,
+        2373749
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "avg": 835575.9263333334,
+      "probe_cycles": 20,
+      "avg_corrected": 835555.9263333334,
+      "spread": 5.8064285160671096e-05,
+      "stable": true,
+      "p50": [
+        835498,
+        835072,
+        835462
+      ],
+      "p99": [
+        839659,
+        839659,
+        839808
+      ],
+      "max": [
+        841009,
+        840315,
+        840983
+      ],
+      "enemy": 2268,
+      "records": 2484,
+      "bytes": 79488,
+      "crc": 3884669838,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "avg": 2218939.4646666665,
+      "probe_cycles": 20,
+      "avg_corrected": 2218919.4646666665,
+      "spread": 5.1563056481922107e-05,
+      "stable": true,
+      "p50": [
+        2219705,
+        2220009,
+        2219665
+      ],
+      "p99": [
+        2224114,
+        2224449,
+        2224142
+      ],
+      "max": [
+        2224845,
+        2224847,
+        2224847
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "f1_detail_4k_totals": [
+    {
+      "scene": 0,
+      "mode": 1,
+      "avg": 1013370.5526666666,
+      "probe_cycles": 20,
+      "avg_corrected": 1013350.5526666666,
+      "spread": 1.0875655327869e-05,
+      "stable": true,
+      "p50": [
+        1012436,
+        1012432,
+        1012395
+      ],
+      "p99": [
+        1018417,
+        1018189,
+        1018425
+      ],
+      "max": [
+        1018851,
+        1019525,
+        1019242
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "avg": 4920343.907333333,
+      "probe_cycles": 20,
+      "avg_corrected": 4920323.907333333,
+      "spread": 1.4858822616258942e-05,
+      "stable": true,
+      "p50": [
+        4920339,
+        4920164,
+        4920342
+      ],
+      "p99": [
+        4925207,
+        4925745,
+        4925803
+      ],
+      "max": [
+        4926485,
+        4927828,
+        4927701
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "avg": 4723402.829666667,
+      "probe_cycles": 20,
+      "avg_corrected": 4723382.829666667,
+      "spread": 9.88972537430148e-06,
+      "stable": true,
+      "p50": [
+        4722960,
+        4722890,
+        4723030
+      ],
+      "p99": [
+        4730546,
+        4730646,
+        4730532
+      ],
+      "max": [
+        4733535,
+        4733071,
+        4733312
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "f1_store_4k_totals": [
+    {
+      "scene": 0,
+      "mode": 1,
+      "avg": 1115050.5103333334,
+      "probe_cycles": 20,
+      "avg_corrected": 1115030.5103333334,
+      "spread": 8.240261342746972e-05,
+      "stable": true,
+      "p50": [
+        1113814,
+        1113761,
+        1113861
+      ],
+      "p99": [
+        1120472,
+        1120586,
+        1121061
+      ],
+      "max": [
+        1121676,
+        1121309,
+        1121823
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "avg": 6415707.562333333,
+      "probe_cycles": 20,
+      "avg_corrected": 6415687.562333333,
+      "spread": 3.0800195236900685e-05,
+      "stable": true,
+      "p50": [
+        6415469,
+        6415363,
+        6415368
+      ],
+      "p99": [
+        6422622,
+        6422622,
+        6422919
+      ],
+      "max": [
+        6424170,
+        6424175,
+        6426383
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "avg": 5992814.0123333335,
+      "probe_cycles": 20,
+      "avg_corrected": 5992794.0123333335,
+      "spread": 1.6574860990490848e-06,
+      "stable": true,
+      "p50": [
+        5992286,
+        5992343,
+        5992300
+      ],
+      "p99": [
+        5999705,
+        5999763,
+        5999554
+      ],
+      "max": [
+        6001242,
+        6002521,
+        6002521
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "f3_cpu_4k_totals": [
+    {
+      "scene": 0,
+      "mode": 0,
+      "avg": 372145.69766666665,
+      "probe_cycles": 20,
+      "avg_corrected": 372125.69766666665,
+      "spread": 5.579725078412543e-05,
+      "stable": true,
+      "p50": [
+        372819,
+        372838,
+        372823
+      ],
+      "p99": [
+        374654,
+        374644,
+        374521
+      ],
+      "max": [
+        375304,
+        375418,
+        375118
+      ],
+      "enemy": 0,
+      "records": 207,
+      "bytes": 6624,
+      "crc": 1890330705,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "avg": 753308.5466666667,
+      "probe_cycles": 20,
+      "avg_corrected": 753288.5466666667,
+      "spread": 5.6933161942732985e-05,
+      "stable": true,
+      "p50": [
+        754312,
+        754168,
+        754344
+      ],
+      "p99": [
+        757343,
+        757681,
+        757846
+      ],
+      "max": [
+        758302,
+        758235,
+        758649
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 0,
+      "mode": 2,
+      "avg": 755400.4986666668,
+      "probe_cycles": 20,
+      "avg_corrected": 755380.4986666668,
+      "spread": 5.0227513053631845e-05,
+      "stable": true,
+      "p50": [
+        755850,
+        755766,
+        755825
+      ],
+      "p99": [
+        759231,
+        759197,
+        759255
+      ],
+      "max": [
+        760311,
+        760311,
+        760392
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        204,
+        204,
+        204
+      ],
+      "refs": [
+        778,
+        778,
+        778
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 0,
+      "mode": 3,
+      "avg": 1488272.4716666667,
+      "probe_cycles": 20,
+      "avg_corrected": 1488252.4716666667,
+      "spread": 4.4056760244572285e-05,
+      "stable": true,
+      "p50": [
+        1487946,
+        1487942,
+        1487865
+      ],
+      "p99": [
+        1493238,
+        1494094,
+        1493710
+      ],
+      "max": [
+        1495609,
+        1494992,
+        1495138
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        54,
+        54,
+        54
+      ],
+      "template_misses": [
+        150,
+        150,
+        150
+      ]
+    },
+    {
+      "scene": 0,
+      "mode": 4,
+      "avg": 1515740.454,
+      "probe_cycles": 20,
+      "avg_corrected": 1515720.454,
+      "spread": 2.4699076404053835e-05,
+      "stable": true,
+      "p50": [
+        1515515,
+        1515495,
+        1515515
+      ],
+      "p99": [
+        1520953,
+        1521147,
+        1520817
+      ],
+      "max": [
+        1523073,
+        1522856,
+        1522560
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        204,
+        204,
+        204
+      ],
+      "refs": [
+        778,
+        778,
+        778
+      ],
+      "template_hits": [
+        54,
+        54,
+        54
+      ],
+      "template_misses": [
+        150,
+        150,
+        150
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "avg": 831878.0299999999,
+      "probe_cycles": 20,
+      "avg_corrected": 831858.0299999999,
+      "spread": 7.211301289501607e-05,
+      "stable": true,
+      "p50": [
+        831891,
+        831851,
+        831857
+      ],
+      "p99": [
+        836581,
+        836382,
+        836440
+      ],
+      "max": [
+        837272,
+        837596,
+        837596
+      ],
+      "enemy": 2313,
+      "records": 2529,
+      "bytes": 80928,
+      "crc": 536939581,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "avg": 2387996.8563333335,
+      "probe_cycles": 20,
+      "avg_corrected": 2387976.8563333335,
+      "spread": 6.309074499436134e-06,
+      "stable": true,
+      "p50": [
+        2388604,
+        2388639,
+        2388623
+      ],
+      "p99": [
+        2392879,
+        2393084,
+        2393408
+      ],
+      "max": [
+        2394609,
+        2393509,
+        2395482
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 2,
+      "avg": 3801733.681,
+      "probe_cycles": 20,
+      "avg_corrected": 3801713.681,
+      "spread": 7.568145687919984e-06,
+      "stable": true,
+      "p50": [
+        3802101,
+        3802189,
+        3802150
+      ],
+      "p99": [
+        3807218,
+        3806841,
+        3807016
+      ],
+      "max": [
+        3808893,
+        3808359,
+        3811669
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        2526,
+        2526,
+        2526
+      ],
+      "refs": [
+        5187,
+        5187,
+        5187
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 3,
+      "avg": 9028650.668,
+      "probe_cycles": 20,
+      "avg_corrected": 9028630.668,
+      "spread": 1.640546515962801e-05,
+      "stable": true,
+      "p50": [
+        9028556,
+        9028539,
+        9028778
+      ],
+      "p99": [
+        9036957,
+        9037331,
+        9037422
+      ],
+      "max": [
+        9039033,
+        9039597,
+        9039596
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        1320,
+        1320,
+        1320
+      ],
+      "template_misses": [
+        1036,
+        1036,
+        1036
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 4,
+      "avg": 10843247.902,
+      "probe_cycles": 20,
+      "avg_corrected": 10843227.902,
+      "spread": 1.4295726518099417e-05,
+      "stable": true,
+      "p50": [
+        10843434,
+        10843160,
+        10843316
+      ],
+      "p99": [
+        10852388,
+        10852933,
+        10853196
+      ],
+      "max": [
+        10855671,
+        10855243,
+        10856034
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        2526,
+        2526,
+        2526
+      ],
+      "refs": [
+        5187,
+        5187,
+        5187
+      ],
+      "template_hits": [
+        1320,
+        1320,
+        1320
+      ],
+      "template_misses": [
+        1036,
+        1036,
+        1036
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "avg": 826399.924,
+      "probe_cycles": 20,
+      "avg_corrected": 826379.924,
+      "spread": 3.794491625915647e-05,
+      "stable": true,
+      "p50": [
+        826450,
+        826465,
+        826572
+      ],
+      "p99": [
+        830764,
+        830650,
+        830771
+      ],
+      "max": [
+        831319,
+        832339,
+        832432
+      ],
+      "enemy": 2268,
+      "records": 2484,
+      "bytes": 79488,
+      "crc": 3884669838,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "avg": 2238998.038,
+      "probe_cycles": 20,
+      "avg_corrected": 2238978.038,
+      "spread": 3.284280871090221e-05,
+      "stable": true,
+      "p50": [
+        2240341,
+        2240299,
+        2240259
+      ],
+      "p99": [
+        2243887,
+        2243696,
+        2244051
+      ],
+      "max": [
+        2245757,
+        2244349,
+        2244608
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 2,
+      "avg": 3466359.307666667,
+      "probe_cycles": 20,
+      "avg_corrected": 3466339.307666667,
+      "spread": 4.437348117317374e-05,
+      "stable": true,
+      "p50": [
+        3466443,
+        3466547,
+        3466445
+      ],
+      "p99": [
+        3471331,
+        3471060,
+        3471262
+      ],
+      "max": [
+        3472867,
+        3472216,
+        3472555
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        2481,
+        2481,
+        2481
+      ],
+      "refs": [
+        3964,
+        3964,
+        3964
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 3,
+      "avg": 8930257.701666666,
+      "probe_cycles": 20,
+      "avg_corrected": 8930237.701666666,
+      "spread": 6.76813692336287e-06,
+      "stable": true,
+      "p50": [
+        8930692,
+        8930549,
+        8930441
+      ],
+      "p99": [
+        8938214,
+        8937658,
+        8938100
+      ],
+      "max": [
+        8941116,
+        8941906,
+        8939483
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        1343,
+        1343,
+        1343
+      ],
+      "template_misses": [
+        1060,
+        1060,
+        1060
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 4,
+      "avg": 10628696.269000001,
+      "probe_cycles": 20,
+      "avg_corrected": 10628676.269000001,
+      "spread": 3.462502054930384e-05,
+      "stable": true,
+      "p50": [
+        10628947,
+        10628742,
+        10628676
+      ],
+      "p99": [
+        10638083,
+        10638021,
+        10637832
+      ],
+      "max": [
+        10639799,
+        10640761,
+        10641263
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        2481,
+        2481,
+        2481
+      ],
+      "refs": [
+        3964,
+        3964,
+        3964
+      ],
+      "template_hits": [
+        1343,
+        1343,
+        1343
+      ],
+      "template_misses": [
+        1060,
+        1060,
+        1060
+      ]
+    }
+  ],
+  "f3_cpu_16k_totals": [
+    {
+      "scene": 0,
+      "mode": 0,
+      "avg": 330277.58933333337,
+      "probe_cycles": 20,
+      "avg_corrected": 330257.58933333337,
+      "spread": 0.00014027689468448922,
+      "stable": true,
+      "p50": [
+        330833,
+        330942,
+        330844
+      ],
+      "p99": [
+        332513,
+        332625,
+        332560
+      ],
+      "max": [
+        334992,
+        336407,
+        334303
+      ],
+      "enemy": 0,
+      "records": 207,
+      "bytes": 6624,
+      "crc": 1890330705,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "avg": 685854.1033333334,
+      "probe_cycles": 20,
+      "avg_corrected": 685834.1033333334,
+      "spread": 2.382026763715778e-05,
+      "stable": true,
+      "p50": [
+        686464,
+        686432,
+        686452
+      ],
+      "p99": [
+        689549,
+        689618,
+        689453
+      ],
+      "max": [
+        690105,
+        691386,
+        689802
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 0,
+      "mode": 2,
+      "avg": 666528.335,
+      "probe_cycles": 20,
+      "avg_corrected": 666508.335,
+      "spread": 0.00015682836917743764,
+      "stable": true,
+      "p50": [
+        666564,
+        666680,
+        666344
+      ],
+      "p99": [
+        670982,
+        671080,
+        671199
+      ],
+      "max": [
+        672991,
+        672118,
+        674717
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        204,
+        204,
+        204
+      ],
+      "refs": [
+        778,
+        778,
+        778
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 0,
+      "mode": 3,
+      "avg": 1392677.6509999998,
+      "probe_cycles": 20,
+      "avg_corrected": 1392657.6509999998,
+      "spread": 1.9813859481954643e-05,
+      "stable": true,
+      "p50": [
+        1392145,
+        1392141,
+        1392173
+      ],
+      "p99": [
+        1398548,
+        1398093,
+        1398104
+      ],
+      "max": [
+        1400131,
+        1398991,
+        1399791
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        54,
+        54,
+        54
+      ],
+      "template_misses": [
+        150,
+        150,
+        150
+      ]
+    },
+    {
+      "scene": 0,
+      "mode": 4,
+      "avg": 1425344.1143333334,
+      "probe_cycles": 20,
+      "avg_corrected": 1425324.1143333334,
+      "spread": 9.547346432611984e-05,
+      "stable": true,
+      "p50": [
+        1425121,
+        1424959,
+        1424973
+      ],
+      "p99": [
+        1431598,
+        1431637,
+        1432186
+      ],
+      "max": [
+        1433960,
+        1433102,
+        1434824
+      ],
+      "enemy": 0,
+      "records": 778,
+      "bytes": 24896,
+      "crc": 3821788059,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        204,
+        204,
+        204
+      ],
+      "plan_items": [
+        204,
+        204,
+        204
+      ],
+      "refs": [
+        778,
+        778,
+        778
+      ],
+      "template_hits": [
+        54,
+        54,
+        54
+      ],
+      "template_misses": [
+        150,
+        150,
+        150
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "avg": 749159.4366666666,
+      "probe_cycles": 20,
+      "avg_corrected": 749139.4366666666,
+      "spread": 6.654249636707475e-05,
+      "stable": true,
+      "p50": [
+        749046,
+        749177,
+        749273
+      ],
+      "p99": [
+        754697,
+        754360,
+        754372
+      ],
+      "max": [
+        756092,
+        755899,
+        756280
+      ],
+      "enemy": 2313,
+      "records": 2529,
+      "bytes": 80928,
+      "crc": 536939581,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "avg": 2274028.348333333,
+      "probe_cycles": 20,
+      "avg_corrected": 2274008.348333333,
+      "spread": 5.0971328995642595e-05,
+      "stable": true,
+      "p50": [
+        2274626,
+        2274560,
+        2274409
+      ],
+      "p99": [
+        2279260,
+        2279557,
+        2279270
+      ],
+      "max": [
+        2281208,
+        2281685,
+        2281149
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 2,
+      "avg": 3537540.7076666667,
+      "probe_cycles": 20,
+      "avg_corrected": 3537520.7076666667,
+      "spread": 2.4197553518344216e-05,
+      "stable": true,
+      "p50": [
+        3537763,
+        3537586,
+        3537634
+      ],
+      "p99": [
+        3547445,
+        3546157,
+        3546718
+      ],
+      "max": [
+        3550430,
+        3550335,
+        3549276
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        2526,
+        2526,
+        2526
+      ],
+      "refs": [
+        5187,
+        5187,
+        5187
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 3,
+      "avg": 7841756.984666667,
+      "probe_cycles": 20,
+      "avg_corrected": 7841736.984666667,
+      "spread": 2.978260902869068e-05,
+      "stable": true,
+      "p50": [
+        7841662,
+        7841512,
+        7841862
+      ],
+      "p99": [
+        7850515,
+        7850280,
+        7850192
+      ],
+      "max": [
+        7854650,
+        7854027,
+        7852955
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        1320,
+        1320,
+        1320
+      ],
+      "template_misses": [
+        1036,
+        1036,
+        1036
+      ]
+    },
+    {
+      "scene": 4,
+      "mode": 4,
+      "avg": 9695991.715000002,
+      "probe_cycles": 20,
+      "avg_corrected": 9695971.715000002,
+      "spread": 5.734858491903329e-06,
+      "stable": true,
+      "p50": [
+        9695706,
+        9695934,
+        9695643
+      ],
+      "p99": [
+        9707992,
+        9708195,
+        9708409
+      ],
+      "max": [
+        9713056,
+        9711159,
+        9714434
+      ],
+      "enemy": 2313,
+      "records": 5187,
+      "bytes": 165984,
+      "crc": 2493874712,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2526,
+        2526,
+        2526
+      ],
+      "plan_items": [
+        2526,
+        2526,
+        2526
+      ],
+      "refs": [
+        5187,
+        5187,
+        5187
+      ],
+      "template_hits": [
+        1320,
+        1320,
+        1320
+      ],
+      "template_misses": [
+        1036,
+        1036,
+        1036
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "avg": 743078.7973333333,
+      "probe_cycles": 20,
+      "avg_corrected": 743058.7973333333,
+      "spread": 6.542141764945095e-05,
+      "stable": true,
+      "p50": [
+        743024,
+        743047,
+        743257
+      ],
+      "p99": [
+        748339,
+        748028,
+        748117
+      ],
+      "max": [
+        750561,
+        749068,
+        749051
+      ],
+      "enemy": 2268,
+      "records": 2484,
+      "bytes": 79488,
+      "crc": 3884669838,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "avg": 2127014.9343333333,
+      "probe_cycles": 20,
+      "avg_corrected": 2126994.9343333333,
+      "spread": 2.1170212367379042e-05,
+      "stable": true,
+      "p50": [
+        2127591,
+        2127661,
+        2127583
+      ],
+      "p99": [
+        2132572,
+        2132801,
+        2132515
+      ],
+      "max": [
+        2133323,
+        2133559,
+        2133729
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 2,
+      "avg": 3256277.486666667,
+      "probe_cycles": 20,
+      "avg_corrected": 3256257.486666667,
+      "spread": 2.40077920802547e-05,
+      "stable": true,
+      "p50": [
+        3256381,
+        3256146,
+        3256281
+      ],
+      "p99": [
+        3263633,
+        3264151,
+        3263210
+      ],
+      "max": [
+        3266816,
+        3266120,
+        3265115
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        2481,
+        2481,
+        2481
+      ],
+      "refs": [
+        3964,
+        3964,
+        3964
+      ],
+      "template_hits": [
+        0,
+        0,
+        0
+      ],
+      "template_misses": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 3,
+      "avg": 7749160.621,
+      "probe_cycles": 20,
+      "avg_corrected": 7749140.621,
+      "spread": 1.571925425217909e-05,
+      "stable": true,
+      "p50": [
+        7749092,
+        7749192,
+        7749035
+      ],
+      "p99": [
+        7757672,
+        7757607,
+        7758444
+      ],
+      "max": [
+        7760848,
+        7761776,
+        7760069
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        0,
+        0,
+        0
+      ],
+      "refs": [
+        0,
+        0,
+        0
+      ],
+      "template_hits": [
+        1343,
+        1343,
+        1343
+      ],
+      "template_misses": [
+        1060,
+        1060,
+        1060
+      ]
+    },
+    {
+      "scene": 10,
+      "mode": 4,
+      "avg": 9505486.303666666,
+      "probe_cycles": 20,
+      "avg_corrected": 9505466.303666666,
+      "spread": 4.2740880746868836e-05,
+      "stable": true,
+      "p50": [
+        9505455,
+        9505242,
+        9505330
+      ],
+      "p99": [
+        9517103,
+        9516860,
+        9517532
+      ],
+      "max": [
+        9520654,
+        9520536,
+        9520554
+      ],
+      "enemy": 2268,
+      "records": 3964,
+      "bytes": 126848,
+      "crc": 4100831050,
+      "exec_avg": [
+        0,
+        0,
+        0
+      ],
+      "exec_max": [
+        0,
+        0,
+        0
+      ],
+      "pre_avg": [
+        0,
+        0,
+        0
+      ],
+      "band_avg": [
+        0,
+        0,
+        0
+      ],
+      "gpu_busy_avg": [
+        0,
+        0,
+        0
+      ],
+      "logical_draws": [
+        2481,
+        2481,
+        2481
+      ],
+      "plan_items": [
+        2481,
+        2481,
+        2481
+      ],
+      "refs": [
+        3964,
+        3964,
+        3964
+      ],
+      "template_hits": [
+        1343,
+        1343,
+        1343
+      ],
+      "template_misses": [
+        1060,
+        1060,
+        1060
+      ]
+    }
+  ],
+  "stage_ledger": [
+    {
+      "scene": 0,
+      "mode": 0,
+      "total_raw": 381718.6976666667,
+      "stage_sum_raw": 378385.6666666667,
+      "residual_raw": 3333.0310000000172,
+      "empty_probe_cycles": 20
+    },
+    {
+      "scene": 0,
+      "mode": 1,
+      "total_raw": 736956.0803333333,
+      "stage_sum_raw": 730626.0,
+      "residual_raw": 6330.080333333346,
+      "empty_probe_cycles": 20
+    },
+    {
+      "scene": 4,
+      "mode": 0,
+      "total_raw": 841920.3323333333,
+      "stage_sum_raw": 838650.3333333334,
+      "residual_raw": 3269.9989999999525,
+      "empty_probe_cycles": 20
+    },
+    {
+      "scene": 4,
+      "mode": 1,
+      "total_raw": 2367978.7136666668,
+      "stage_sum_raw": 2361632.333333333,
+      "residual_raw": 6346.380333333742,
+      "empty_probe_cycles": 20
+    },
+    {
+      "scene": 10,
+      "mode": 0,
+      "total_raw": 835575.9263333334,
+      "stage_sum_raw": 832283.0,
+      "residual_raw": 3292.9263333333656,
+      "empty_probe_cycles": 20
+    },
+    {
+      "scene": 10,
+      "mode": 1,
+      "total_raw": 2218939.4646666665,
+      "stage_sum_raw": 2212600.3333333335,
+      "residual_raw": 6339.1313333329745,
+      "empty_probe_cycles": 20
+    }
+  ],
+  "detail_ledger": [
+    {
+      "scene": 0,
+      "total_raw": 1115050.5103333334,
+      "parts_raw": {
+        "0": {
+          "scene": 0,
+          "mode": 1,
+          "phase": 0,
+          "cycles": 66468.66666666667,
+          "count": 204
+        },
+        "1": {
+          "scene": 0,
+          "mode": 1,
+          "phase": 1,
+          "cycles": 54238.666666666664,
+          "count": 204
+        },
+        "2": {
+          "scene": 0,
+          "mode": 1,
+          "phase": 2,
+          "cycles": 66704.0,
+          "count": 204
+        },
+        "3": {
+          "scene": 0,
+          "mode": 1,
+          "phase": 3,
+          "cycles": 263959.0,
+          "count": 204
+        },
+        "4": {
+          "scene": 0,
+          "mode": 1,
+          "phase": 4,
+          "cycles": 233066.0,
+          "count": 207
+        },
+        "5": {
+          "scene": 0,
+          "mode": 1,
+          "phase": 5,
+          "cycles": 0.0,
+          "count": 0
+        },
+        "6": {
+          "scene": 0,
+          "mode": 1,
+          "phase": 6,
+          "cycles": 79873.33333333333,
+          "count": 778
+        }
+      },
+      "emit_including_store_raw": 263959.0,
+      "store_raw": 79873.33333333333,
+      "emit_less_store_raw": 184085.6666666667,
+      "residual_raw": 430614.177,
+      "empty_probe_cycles": 20,
+      "note": "Store is nested in emit. Timed callbacks alter layout and add overhead; subtraction is not uninstrumented generation time."
+    },
+    {
+      "scene": 4,
+      "total_raw": 6415707.562333333,
+      "parts_raw": {
+        "0": {
+          "scene": 4,
+          "mode": 1,
+          "phase": 0,
+          "cycles": 310624.6666666667,
+          "count": 2526
+        },
+        "1": {
+          "scene": 4,
+          "mode": 1,
+          "phase": 1,
+          "cycles": 1323866.6666666667,
+          "count": 2526
+        },
+        "2": {
+          "scene": 4,
+          "mode": 1,
+          "phase": 2,
+          "cycles": 586997.6666666666,
+          "count": 2526
+        },
+        "3": {
+          "scene": 4,
+          "mode": 1,
+          "phase": 3,
+          "cycles": 1602482.0,
+          "count": 2526
+        },
+        "4": {
+          "scene": 4,
+          "mode": 1,
+          "phase": 4,
+          "cycles": 242418.33333333334,
+          "count": 216
+        },
+        "5": {
+          "scene": 4,
+          "mode": 1,
+          "phase": 5,
+          "cycles": 31274.666666666668,
+          "count": 19
+        },
+        "6": {
+          "scene": 4,
+          "mode": 1,
+          "phase": 6,
+          "cycles": 534234.0,
+          "count": 5187
+        }
+      },
+      "emit_including_store_raw": 1602482.0,
+      "store_raw": 534234.0,
+      "emit_less_store_raw": 1068248.0,
+      "residual_raw": 2318043.5623333333,
+      "empty_probe_cycles": 20,
+      "note": "Store is nested in emit. Timed callbacks alter layout and add overhead; subtraction is not uninstrumented generation time."
+    },
+    {
+      "scene": 10,
+      "total_raw": 5992814.0123333335,
+      "parts_raw": {
+        "0": {
+          "scene": 10,
+          "mode": 1,
+          "phase": 0,
+          "cycles": 310027.0,
+          "count": 2481
+        },
+        "1": {
+          "scene": 10,
+          "mode": 1,
+          "phase": 1,
+          "cycles": 1296359.3333333333,
+          "count": 2481
+        },
+        "2": {
+          "scene": 10,
+          "mode": 1,
+          "phase": 2,
+          "cycles": 561001.6666666666,
+          "count": 2481
+        },
+        "3": {
+          "scene": 10,
+          "mode": 1,
+          "phase": 3,
+          "cycles": 1269249.0,
+          "count": 2481
+        },
+        "4": {
+          "scene": 10,
+          "mode": 1,
+          "phase": 4,
+          "cycles": 242472.33333333334,
+          "count": 216
+        },
+        "5": {
+          "scene": 10,
+          "mode": 1,
+          "phase": 5,
+          "cycles": 29950.333333333332,
+          "count": 18
+        },
+        "6": {
+          "scene": 10,
+          "mode": 1,
+          "phase": 6,
+          "cycles": 407685.0,
+          "count": 3964
+        }
+      },
+      "emit_including_store_raw": 1269249.0,
+      "store_raw": 407685.0,
+      "emit_less_store_raw": 861564.0,
+      "residual_raw": 2283754.3456666665,
+      "empty_probe_cycles": 20,
+      "note": "Store is nested in emit. Timed callbacks alter layout and add overhead; subtraction is not uninstrumented generation time."
+    }
+  ]
+}

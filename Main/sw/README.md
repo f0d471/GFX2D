@@ -44,6 +44,7 @@ sw/
 
 | 程序 | 说明 |
 | --- | --- |
+| `apps/probe/frontendBench/` | F1～F3 真实游戏构造与受控访存基准。固定两型六档及通关录像状态；三次各 1000 帧，记录周期分位数、实际可见数、物理记录与有效字节 CRC；候选与执行开关、复现入口见 [frontend/README](../sim/engine/frontend/README.md) |
 | `apps/game/gfx2dGame/` | 基础 Demo（SW6，赛题基础要求 3）：场景 A 大量方块随机移动、场景 B 三张整屏图快速切换，每帧一条命令表交给软件执行器，双缓冲呈现。默认编**演示模式**（实时输入），`EXTRA_CFLAGS=-DSW6_JUDGE=1` 编**判据模式**（回放两段入库录像、逐帧打日志）。串起来跑的是 `Main/tools/check/check_sw6_demo.sh`。期望输出见下。另有 SW7 游戏本体的代码逐步放进 `src/game/stg_*`（A 批是实体池 `stg_pool`；B 批加了弹种表 `stg_kind`、发射器 `stg_emit`、五种弹型 `stg_pattern` 与弹幕场 `stg_field`），它们的主机测试在 `test/`，由 `Main/tools/check/check_sw7_game.sh` 编译运行；弹型判据的期望文件 `test/stg_patterns.txt` 由 `Main/tools/check/gen_stg_patterns.py` 生成。`EXTRA_CFLAGS=-DSTG_FIELD=<n>` 换成弹幕场的入口（1 演示、2 判据、3 `N_max` 搜索、4 游戏的判据入口），见下「弹幕场入口」。 |
 | `apps/game/cup3d/` | 纯软件 3D 光栅器在扫描输出的帧缓冲上转一只茶杯。三个用途：用真实负载量软件渲染的像素吞吐（E7 要的数）、让扫描输出跑在会动会遮挡的负载下、对外演示。320×240 光栅，1:1 贴在 640×480 的正中间。期望输出见下 |
 | `apps/test/bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
@@ -74,6 +75,15 @@ TechReports 旧章节的配图里仍是搬迁前的路径（配图画的是该�
 带 `logs/` 目录的程序，里面是与当前产物对应的上板原始日志（入库），文件名与 TechReport 里引用的一致。
 
 ## 编译两套
+
+绘制前端的软件候选位于 `lib/gfx/frame.h/.c` 与 `strip_plan.c`：前者定义
+最多三个 pass 的资源租约、依赖和完成边界；后者提供 planned/ref/seal 与
+几何模板。游戏适配在 `src/frontend_game.c`，选项默认关闭。
+STRIP 构建可独立设置 `GFX_FRONTEND_PLAN`、`GFX_FRONTEND_TEMPLATE`，以及
+`GFX_FRONTEND_BACKGROUND=1|2`（底色缓存/动态预合成）。候选保持 v1/v2
+字节接口；工作区与背景 A/B 各自独占，切模式/后端前收尾。
+正确性、成本和采用结论见 TechReports sw 第 09、10 章，复现命令由
+[`../sim/engine/frontend/README.md`](../sim/engine/frontend/README.md)维护。
 
 应用的 makefile 只写应用本身，平台由 `PLATFORM` 选（默认 `target`）：
 

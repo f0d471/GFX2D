@@ -14,6 +14,10 @@
 
 #include "gfx/gfx.h"
 #include "strip_internal.h"
+#ifdef GFX_FRONTEND_DETAIL
+extern uint32_t frontend_detail_clock(void);
+extern void frontend_detail_end(uint32_t stage,uint32_t start);
+#endif
 
 /* 追加被拒时记下首错与计数。被拒的调用不写缓冲区，也不占记录索引，
    所以后面成功记录的 w7 仍然等于它在表里的零基索引。 */
@@ -145,6 +149,9 @@ void gfx_list_begin(gfx_list *l, gfx_cmd *buf, uint32_t cap,
     l->overflow    = 0u;
     l->ended       = 0;
     l->strip_table = 0;
+    l->planned     = 0;
+    l->geometry    = 0;
+    l->frame       = 0;
 }
 
 int gfx_nop(gfx_list *l)
@@ -231,6 +238,9 @@ uint32_t gfx_blit_run(gfx_list *l, const gfx_blit_tmpl *t,
     gfx_cmd  rec;
     int      targ_ok, per_item = 0, tcode = GFX_OK;
     uint32_t i, appended = 0u;
+#ifdef GFX_FRONTEND_DETAIL
+    uint32_t template_start=frontend_detail_clock();
+#endif
 
     if (l == 0 || l->t == 0 || t == 0)
         return 0u;
@@ -262,6 +272,9 @@ uint32_t gfx_blit_run(gfx_list *l, const gfx_blit_tmpl *t,
         if (!per_item)
             tcode = gfx_cmd_check(l->t, &rec);
     }
+#ifdef GFX_FRONTEND_DETAIL
+    frontend_detail_end(5,template_start);
+#endif
 
     for (i = 0u; i < n; i++) {
         const gfx_blit_pos *p = &pos[i];

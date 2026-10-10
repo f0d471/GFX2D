@@ -8,7 +8,7 @@
 | [`soc/`](soc/README.md) | 重新生成 Sapphire SoC IP 与软件包 | `ipm_gen_soc.py` |
 | [`assets/`](assets/README.md) | 素材：占位 PNG 生成、游戏的霓虹几何素材生成、按 manifest 打成素材包并生成 `assets.h`、上游点阵字体转成字库文本 | `gen_placeholder.py`、`gen_stg_neon.py`、`gen_font_txt.py`、`pack_assets.py` |
 | [`check/`](check/README.md) | 提交前检查与规格校验：路径占位符、软件分层判据、像素舍入穷举、混合方程代入表、命令语义一致性向量、**引擎几何层的独立模型与整帧用例导出**、素材包、基础 Demo 的录像与日志、游戏本体的数值基础、实体池与弹型、通关录像的搜索、统计埋点的基础件与出图 | `localize_paths.py`、`check_sw_layers.sh`、`check_round255.c`、`check_subst.c`、`check_cmd_semantics.py`、`geom_model.py`、`geom_cases_dump.c`、`geom_cases_dump.sh`、`check_sw5_assets.sh`、`check_sw5_pak.py`、`check_sw6_demo.sh`、`check_sw6_log.py`、`gen_sw6_replay.py`、`check_sw7_game.sh`、`gen_sin_tab.py`、`gen_stg_patterns.py`、`gen_stg_clear.c`、`check_sw8_stats.sh`、`check_sw8_tx.c` |
-| [`stats/`](stats/README.md) | 统计日志出图：把模式框架的 CSV 与 `N_max` 搜索日志画成报告与幻灯片用的图的源码 | `plot_stats.py` |
+| [`stats/`](stats/README.md) | 统计日志出图：模式 CSV、`N_max` 与绘制前端成本/物理记录曲线 | `plot_stats.py`、`plot_g4.py`、`plot_frontend.py` |
 
 ## 用哪个解释器
 

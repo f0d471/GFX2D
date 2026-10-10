@@ -28,7 +28,7 @@ python3 Main/tools/check/g3_research.py --json
 mkdir -p Main/sim/engine/stripctl/build
 gcc -std=c11 -I Main/sw/lib -fsanitize=address,undefined -g \
     Main/sim/engine/stripctl/tiling_fuzz.c \
-    Main/sw/lib/gfx/check.c Main/sw/lib/gfx/list.c Main/sw/lib/gfx/strip.c \
+    Main/sw/lib/gfx/check.c Main/sw/lib/gfx/list.c Main/sw/lib/gfx/strip.c Main/sw/lib/gfx/strip_plan.c \
     Main/sw/lib/gfx/exec_sw.c Main/sw/lib/core/format.c \
     -o Main/sim/engine/stripctl/build/tiling_fuzz
 Main/sim/engine/stripctl/build/tiling_fuzz --json

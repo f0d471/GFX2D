@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="700" viewBox="0 0 1280 700">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#334155"/></marker></defs>
+<rect width="1280" height="700" fill="white"/>
+<g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" fill="#172554">
+<text x="40" y="48" font-size="23">gfx_frame_plan：预合成完成先于 BAND LOAD</text>
+<rect x="40" y="110" width="350" height="150" fill="#e8f1fb" stroke="#334155" stroke-width="1.5"/>
+<text x="56" y="141" font-size="18">frontend_game_compose</text>
+<text x="56" y="170" font-size="14">draw_background：保持内部画序</text>
+<text x="56" y="194" font-size="14">动态对象：保持原相对次序</text>
+<text x="56" y="218" font-size="14">HUD：活动数确定后构造</text>
+<text x="56" y="242" font-size="14">游戏区与 HUD 的 x 区间不相交</text>
+<rect x="470" y="110" width="350" height="150" fill="#e8f1fb" stroke="#334155" stroke-width="1.5"/>
+<text x="486" y="141" font-size="18">gfx_frame_plan</text>
+<text x="486" y="170" font-size="14">最多三个 pass，依赖指向前序</text>
+<text x="486" y="194" font-size="14">SURF 描述符快照与 generation</text>
+<text x="486" y="218" font-size="14">A / B 各自背景页与命令 lease</text>
+<text x="486" y="242" font-size="14">seal 失败不发布</text>
+<rect x="900" y="110" width="340" height="150" fill="#e8f1fb" stroke="#334155" stroke-width="1.5"/>
+<text x="916" y="141" font-size="18">renderer_submit_plan</text>
+<text x="916" y="170" font-size="14">拓扑序串行提交同一引擎</text>
+<text x="916" y="194" font-size="14">空闲时绑定本 pass 的 SURF</text>
+<text x="916" y="218" font-size="14">完成 ticket 匹配后进入下一 pass</text>
+<text x="916" y="242" font-size="14">错误先排空，再释放资源</text>
+<rect x="40" y="360" width="350" height="130" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+<text x="56" y="391" font-size="18">prepass / engine_top</text>
+<text x="56" y="420" font-size="14">v1 / TEX 背景和 HUD</text>
+<text x="56" y="444" font-size="14">写入本帧独占离屏面</text>
+<text x="56" y="468" font-size="14">全可见区初始化</text>
+<rect x="470" y="360" width="350" height="130" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+<text x="486" y="391" font-size="18">BAND / engine_top</text>
+<text x="486" y="420" font-size="14">从背景面 LOAD</text>
+<text x="486" y="444" font-size="14">执行动态 v2 稳定序列</text>
+<text x="486" y="468" font-size="14">FLUSH 到本帧 framebuffer</text>
+<rect x="900" y="360" width="340" height="130" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+<text x="916" y="391" font-size="18">board_present</text>
+<text x="916" y="420" font-size="14">整帧成功才请求交换</text>
+<text x="916" y="444" font-size="14">场边界完成后复用目标面</text>
+<text x="916" y="468" font-size="14">背景 lease 在完成后释放</text>
+<polyline points="390,185 470,185" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="410" y="167" font-size="14">构造</text>
+<polyline points="820,185 900,185" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="840" y="167" font-size="14">seal</text>
+<polyline points="1070,260 1070,305 215,305 215,360" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="600" y="292" font-size="14">提交 prepass</text>
+<polyline points="390,425 470,425" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="395" y="405" font-size="14">完成依赖</text>
+<polyline points="820,425 900,425" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="830" y="405" font-size="14">成功完成</text>
+<text x="40" y="570" font-size="15">B1 只缓存每个不相交区域的底色前缀；B2 每帧重画完整背景和 HUD。</text>
+<text x="40" y="597" font-size="15">同一引擎的两次执行不能并行；预合成、SURF 绑定和依赖空泡全部进入性能账。</text>
+<rect x="40" y="660" width="18" height="15" fill="#e8f1fb" stroke="#334155"/>
+<text x="68" y="673" font-size="13">蓝色：CPU 构造或检查</text>
+<rect x="320" y="660" width="18" height="15" fill="#f1f5f9" stroke="#334155"/>
+<text x="348" y="673" font-size="13">灰色：存储或引擎执行</text>
+<text x="700" y="673" font-size="13">实线箭头：调用或数据依赖</text></g></svg>

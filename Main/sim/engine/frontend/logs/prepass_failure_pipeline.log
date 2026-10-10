@@ -1,0 +1,196 @@
+# COM11 @ 115200 8N1, opened 14:24:05
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+engine err code 1 index 0 tag 0
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_buildengine err code 1 index 0 tag 0
+,cyc_exec,cyc_autengine err code 1 index 0 tag 0
+o,cmd_eq0,cmd_eq1,cmd_eq2engine err code 1 index 0 tag 0
+,cmd_eq3,cmd_eq4,engine err code 1 index 0 tag 0
+cmd_eq5,cmd_other,pix_eq0,engine err code 1 index 0 tag 0
+pix_eq1,pix_eq2,engine err code 1 index 0 tag 0
+pix_eq3,pix_eq4,pix_eq5,hengine err code 1 index 0 tag 0
+w_cmd_cum,hw_pixeengine err code 1 index 0 tag 0
+l_cum,hw_key_cum,hw_rd_buengine err code 1 index 0 tag 0
+rst_cum,hw_wr_burengine err code 1 index 0 tag 0
+st_cum,hw_rd_beat_cum,hw_engine err code 1 index 0 tag 0
+wr_beat_cum,hw_wengine err code 1 index 0 tag 0
+ait_cum,hw_busy_cum,pace,bengine err code 1 index 0 tag 0
+ottleneck,cpu_avengine err code 1 index 0 tag 0
+g_cyc,engine_busy_avg_cyc,engine err code 1 index 0 tag 0
+window_fields,fpengine err code 1 index 0 tag 0
+s_milli
+err census v 0
+eengine err code 1 index 0 tag 0
+rr exec v 429496engine err code 1 index 0 tag 0
+7295
+mode 2 enter frame 0engine err code 1 index 0 tag 0
+ crc skip pool 0engine err code 1 index 0 tag 0
+ 0 0 0 clip 0 0 639 479
+engine err code 1 index 0 tag 0
+err census v 0
+eengine err code 1 index 0 tag 0
+rr exec v 4294967295
+errengine err code 1 index 0 tag 0
+ census v 0
+err engine err code 1 index 0 tag 0
+exec v 4294967295
+err ceengine err code 1 index 0 tag 0
+nsus v 0
+err exeengine err code 1 index 0 tag 0
+c v 4294967295
+err censuengine err code 1 index 0 tag 0
+s v 0
+err exec vengine err code 1 index 0 tag 0
+ 4294967295
+err census vengine err code 1 index 0 tag 0
+ 0
+err exec v 42engine err code 1 index 0 tag 0
+94967295
+err census v 0engine err code 1 index 0 tag 0
+
+err exec v 4294engine err code 1 index 0 tag 0
+967295
+err census v 0
+erengine err code 1 index 0 tag 0
+r exec v 4294967engine err code 1 index 0 tag 0
+295
+err census v 0
+err eengine err code 1 index 0 tag 0
+xec v 4294967295engine err code 1 index 0 tag 0
+
+err census v 0
+err execengine err code 1 index 0 tag 0
+ v 4294967295
+eengine err code 1 index 0 tag 0
+rr census v 0
+err exec vengine err code 1 index 0 tag 0
+ 4294967295
+err engine err code 1 index 0 tag 0
+census v 0
+err exec v 42engine err code 1 index 0 tag 0
+94967295
+err cenengine err code 1 index 0 tag 0
+sus v 0
+err exec v 42949engine err code 1 index 0 tag 0
+67295
+err censusengine err code 1 index 0 tag 0
+ v 0
+err exec v 42949672engine err code 1 index 0 tag 0
+95
+err census v engine err code 1 index 0 tag 0
+0
+err exec v 4294967295engine err code 1 index 0 tag 0
+
+err census v 0
+engine err code 1 index 0 tag 0
+err exec v 4294967295
+erengine err code 1 index 0 tag 0
+r census v 0
+errengine err code 1 index 0 tag 0
+ exec v 4294967295
+err cengine err code 1 index 0 tag 0
+ensus v 0
+err exengine err code 1 index 0 tag 0
+ec v 4294967295
+err censengine err code 1 index 0 tag 0
+us v 0
+err exec engine err code 1 index 0 tag 0
+v 4294967295
+err census engine err code 1 index 0 tag 0
+v 0
+err exec v engine err code 1 index 0 tag 0
+4294967295
+err census v 0engine err code 1 index 0 tag 0
+
+err exec v 429engine err code 1 index 0 tag 0
+4967295
+err census v 0
+eengine err code 1 index 0 tag 0
+rr exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+err census v 0
+err exec v 4294967295
+csvsum,60,17,17,475793,475793,0,0
+diag fifo_min 512 samples 17 zero 1 under 61760 irqA 453 irqB 60 faults 0 swap_retry 0
+fail 120
+done
+
+# closed 14:24:19, 5061 bytes

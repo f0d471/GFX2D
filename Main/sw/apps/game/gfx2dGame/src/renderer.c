@@ -6,16 +6,45 @@
 #include "board.h"
 #include "stg_main.h"
 #include "core/format.h"
+#include "gfx_engine.h"
+#ifndef GFX_FRONTEND_PLAN
+#define GFX_FRONTEND_PLAN 0
+#endif
+#ifndef GFX_FRONTEND_TEMPLATE
+#define GFX_FRONTEND_TEMPLATE 0
+#endif
+#ifndef GFX_FRONTEND_BACKGROUND
+#define GFX_FRONTEND_BACKGROUND 0
+#endif
+static gfx_strip_workspace s_workspace[2];
+static gfx_geometry_cache s_geometry[2];
+static gfx_surface_table s_build_tab[2];
 
 int renderer_list_begin(int hw, gfx_list *list, gfx_cmd *buf, uint32_t cap,
                          const gfx_surface_table *tab, int dst)
 {
     if (hw == 3) {
         const gfx_strip_config cfg = {480u >> GFX2D_STRIP_LOG2,
-                                      GFX2D_STRIP_LOG2, (uint32_t)dst, (uint32_t)dst};
+                                      GFX2D_STRIP_LOG2, GFX_FRONTEND_BACKGROUND?15u:(uint32_t)dst, (uint32_t)dst};
+        const uint32_t idx=buf==(gfx_cmd *)board_region(REGION_CMDLIST_B).ptr?1u:0u;
+        int rc;
+        if(GFX_FRONTEND_BACKGROUND) {
+            const gfx_surface bg={g_mem_regions[REGION_OFFSCREEN].offset+idx*0x200000u,640,480,12,0,0};
+            s_build_tab[idx]=*tab;
+            if(gfx_surface_set(&s_build_tab[idx],15,&bg))return GFX_BUILD_BAD_ARG;
+            tab=&s_build_tab[idx];
+        }
         if (cap > UINT32_MAX / sizeof *buf)
             return GFX_BUILD_BAD_ARG;
-        return gfx_list_begin_strips(list, buf, cap * (uint32_t)sizeof *buf, tab, &cfg, NULL);
+        if(GFX_FRONTEND_PLAN) {
+            board_mem shared=board_region(REGION_SHARED);
+            uint8_t *p=(uint8_t *)shared.ptr+0x40000u+idx*0x1c0000u;
+            s_workspace[idx]=(gfx_strip_workspace){.items=(gfx_strip_plan_item *)(void *)p,.item_cap=32768u,
+                .refs=(uint32_t *)(void *)(p+0x180000u),.ref_cap=30720u};
+            rc=gfx_list_begin_strips_planned(list,buf,cap*32u,tab,&cfg,NULL,&s_workspace[idx]);
+        } else rc=gfx_list_begin_strips(list,buf,cap*32u,tab,&cfg,NULL);
+        if(!rc && GFX_FRONTEND_TEMPLATE)rc=gfx_list_geometry(list,&s_geometry[idx]);
+        return rc;
     }
     gfx_list_begin(list, buf, cap, tab);
     return GFX_OK;
@@ -28,6 +57,20 @@ int renderer_list_census(const gfx_surface_table *tab, const gfx_list *list,
     uint32_t s, total = 0u;
     gfx_census_reset(&cs);
     gfx_census_clear(census);
+#if GFX_FRONTEND_BACKGROUND || defined(FRONTEND_VERIFY)
+    if(list->frame) {
+        uint32_t i,e;
+        for(i=0;i<list->frame->count;i++) {
+            gfx_census one;const gfx_pass *p=&list->frame->pass[i];
+            if(p->draw->frame||renderer_list_census(&p->surfaces,p->draw,&one))return -1;
+            for(e=0;e<GFX_CENSUS_EQ_N;e++) {
+                census->cmd_by_eq[e]+=one.cmd_by_eq[e];census->pix_by_eq[e]+=one.pix_by_eq[e];
+            }
+            census->cmd_other+=one.cmd_other;
+        }
+        return 0;
+    }
+#endif
     if (list->strip_table == NULL)
         return gfx_census_run(&cs, tab, list->buf, list->used, census);
     for (s = 0u; s < list->strips.lstrips; s++) {
@@ -48,11 +91,18 @@ static int s_pending;
 static int s_pending_dst;
 static uint32_t s_pending_event, s_pending_start;
 static uint32_t s_perf_cmd, s_perf_pix, s_perf_key;
+#if SW9_PERF
+static gfx_frame_plan *s_pending_plan;
+static uint32_t s_pending_ticket,s_pending_band_start,s_pending_perf[9];
+static exec_sw_stats s_pending_pre;
+static int s_pipeline_front=-1;
+#endif
 
 static int submit_list(const gfx_list *list)
 {
     if (list->first_error || list->rejected || list->overflow)
         return GFX_ENG_E_ARG;
+    if(!list->ended || (list->planned&&!list->planned->sealed))return GFX_ENG_E_ARG;
     if (list->strip_table != NULL)
         return gfx_engine_submit_strips((uint32_t)(uintptr_t)list->strip_table,
                                         list->strips.lstrips, list->strips.strip_log2,
@@ -137,6 +187,25 @@ static int pending_finish(exec_sw_stats *st, uint32_t *cycles, int *presented,
     rc = gfx_engine_wait(&code, &index, &tag);
     *ready_time = board_cycles();  /* 此刻以前是 CPU 与引擎并行的工作，不含等场 */
     *cycles = *ready_time - s_pending_start;
+#if SW9_PERF
+    if(s_pending_plan) {
+        gfx_frame_plan *p=s_pending_plan;uint32_t last=p->count-1u,v[9],k;
+        exec_sw_stats band;
+        if(rc==GFX_ENG_OK)perf_take(&band);else exec_sw_stats_clear(&band);
+        p->pass[last].executed=band;p->pass[last].elapsed_cycles=*ready_time-s_pending_band_start;
+        if(gfx_engine_perf_read(v,9)==0)for(k=0;k<9u;k++)p->pass[last].perf[k]=v[k]-s_pending_perf[k];
+        if(st) {
+            *st=s_pending_pre;st->cmd+=band.cmd;st->records_read+=band.records_read;
+            st->pixel_total+=band.pixel_total;st->pixel_written+=band.pixel_written;
+            st->key_skip+=band.key_skip;st->src_oob+=band.src_oob;
+        }
+        if(gfx_frame_complete(p,last,rc?rc:(int)code,rc==GFX_ENG_OK))rc=rc?rc:(code?(int)code:GFX_ENG_E_ARG);
+        if(p->drained) {
+            int released=gfx_frame_release(p,s_pending_ticket);s_pending_plan=NULL;
+            if(!rc&&released)rc=released;
+        }
+    } else
+#endif
     if (rc == GFX_ENG_OK)
         perf_take(st);
     if (rc != GFX_ENG_OK || code != 0u) {
@@ -144,19 +213,93 @@ static int pending_finish(exec_sw_stats *st, uint32_t *cycles, int *presented,
         return -1;
     }
     if (board_present_request(s_pending_dst, &ticket) != 0 ||
-        board_present_wait(ticket) != 0)
+        board_present_wait(ticket) != 0) {
+#if SW9_PERF
+        s_pipeline_front=-2;
+#endif
         return -1;
+    }
+#if SW9_PERF
+    s_pipeline_front=s_pending_dst;
+#endif
     *presented = s_pending_dst;
     return 0;
 }
+#if SW9_PERF
+static int bind_pass(const gfx_pass *v)
+{
+    uint32_t j;
+    for(j=0;j<GFX_SURF_N;j++) {
+        const gfx_surf_raw *s=&v->surfaces.s[j];int rc;
+        if(!(s->ctrl&0x80000000u))continue;
+        rc=gfx_engine_surf_set_space((int)j,s->base,gfx_surf_width(s),gfx_surf_height(s),
+                                     gfx_surf_stride_log2(s),gfx_surf_space(s),gfx_surf_format(s));
+        if(rc)return rc;
+    }
+    return 0;
+}
+static int pipeline_frame_begin(const gfx_list *list,uint32_t *sync_cycles)
+{
+    gfx_frame_plan *p=list->frame;uint32_t start=board_cycles(),ticket=0,i,last;
+    int rc;exec_sw_state es;exec_sw_error err;
+    if(gfx_frame_publish(p,&ticket))return -1;
+    s_pending_start=start;exec_sw_stats_clear(&s_pending_pre);last=p->count-1u;
+    for(i=0;i<last;i++) {
+        gfx_pass *v=&p->pass[i];exec_sw_stats one;uint32_t before[9],after[9],elapsed,k,t0=board_cycles();
+        rc=gfx_engine_perf_read(before,9);if(rc)goto fail;
+        rc=bind_pass(v);if(rc)goto fail;
+        if(v->dependency!=GFX_PASS_NO_DEP&&p->pass[v->dependency].completion_ticket!=ticket){rc=GFX_BUILD_BAD_ARG;goto fail;}
+        exec_sw_reset(&es);rc=renderer_run(1,&v->surfaces,NULL,&es,&err,v->draw,&one,&elapsed);
+        v->elapsed_cycles=board_cycles()-t0;v->executed=one;
+        if(gfx_engine_perf_read(after,9)==0)for(k=0;k<9;k++)v->perf[k]=after[k]-before[k];
+        if(rc)goto fail;
+        rc=gfx_frame_complete(p,i,0,1);if(rc)goto fail;
+        s_pending_pre.cmd+=one.cmd;s_pending_pre.records_read+=one.records_read;
+        s_pending_pre.pixel_total+=one.pixel_total;s_pending_pre.pixel_written+=one.pixel_written;
+        s_pending_pre.key_skip+=one.key_skip;s_pending_pre.src_oob+=one.src_oob;
+    }
+    i=last;
+    if(p->pass[last].dependency!=GFX_PASS_NO_DEP&&p->pass[p->pass[last].dependency].completion_ticket!=ticket){rc=GFX_BUILD_BAD_ARG;goto fail;}
+    s_pending_band_start=board_cycles();rc=bind_pass(&p->pass[last]);if(rc)goto fail;
+    rc=gfx_engine_perf_read(s_pending_perf,9);if(rc)goto fail;
+    s_pending_event=board_irq_engine_events();rc=submit_list(p->pass[last].draw);if(rc)goto fail;
+    s_pending_plan=p;s_pending_ticket=ticket;*sync_cycles=board_cycles()-start;
+#ifdef INJECT_PIPELINE_EARLY_RELEASE
+    p->drained=1;gfx_frame_release(p,ticket);
+#endif
+    return 0;
+fail:
+    gfx_frame_complete(p,i,rc,rc!=GFX_ENG_E_TIMEOUT);
+    if(p->drained)gfx_frame_release(p,ticket);
+    return -1;
+}
+#endif
 #endif
 
 int renderer_pipeline_step(const gfx_list *list, int dst, exec_sw_stats *done_st,
                            uint32_t *exec_cycles, uint32_t *ready_time, int *presented)
 {
 #ifdef __riscv
-    if (pending_finish(done_st, exec_cycles, presented, ready_time) != 0)
+    if (pending_finish(done_st, exec_cycles, presented, ready_time) != 0) {
+#if SW9_PERF
+        if(list->frame&&!list->frame->published)gfx_frame_release(list->frame,list->frame->ticket);
+#endif
         return -1;
+    }
+#if SW9_PERF
+    if(list->frame) {
+        uint32_t sync;
+        if(s_pipeline_front==-2||dst==s_pipeline_front||dst<0||dst>=BOARD_FB_COUNT||
+           list->frame->pass[list->frame->count-1u].target.base!=g_mem_regions[REGION_FB0+dst].offset) {
+            if(!list->frame->published)gfx_frame_release(list->frame,list->frame->ticket);
+            engine_error(-3,0,0);return -1;
+        }
+        if(pipeline_frame_begin(list,&sync))return -1;
+        /* 同步 prepass/绑定计入帧预算；上一帧等场仍由原 ready 时刻排除。 */
+        *ready_time+=sync;s_pending_dst=dst;s_pending=1;return 0;
+    }
+    s_pending_plan=NULL;
+#endif
     s_pending_event = board_irq_engine_events();
     s_pending_start = board_cycles();
     if (submit_list(list) != GFX_ENG_OK) {
@@ -196,6 +339,9 @@ int renderer_prepare(int hw, const gfx_surface_table *tab)
         return -1;             /* 切换前必须显式 flush，不能复位仍在途的命令表 */
     if (gfx_engine_soft_reset() != GFX_ENG_OK)
         return -1;
+#if SW9_PERF
+    if(s_pipeline_front!=-2)s_pipeline_front=-1;
+#endif
     for (i = 0u; i < GFX_SURF_N; i++) {
         const gfx_surf_raw *s = &tab->s[i];
         if ((s->ctrl & 0x80000000u) == 0u)
@@ -222,6 +368,15 @@ int renderer_run(int hw, const gfx_surface_table *tab, const gfx_mem *mem,
 {
     const uint32_t t0 = board_cycles();
     int rc;
+    if(list->frame) {
+        uint32_t ticket;
+        rc=renderer_submit_plan(hw,list->frame,mem,es,err,st,cycles,&ticket);
+        if(list->frame->drained) {
+            int release=gfx_frame_release(list->frame,ticket);
+            if(!rc)rc=release;
+        }
+        return rc;
+    }
 
 #ifdef __riscv
     if (hw) {
@@ -263,6 +418,8 @@ hw_fail:
     exec_sw_stats_clear(st);
     if (list->first_error || list->rejected || list->overflow)
         rc = GFX_BUILD_BAD_ARG;
+    else if (!list->ended || (list->planned&&!list->planned->sealed))
+        rc=GFX_BUILD_BAD_ARG;
     else if (list->strip_table != NULL) {
         static uint32_t scratch[32768];
         rc = exec_sw_run_strips(tab, mem, list->strip_table,
@@ -272,6 +429,56 @@ hw_fail:
         rc = exec_sw_run(es, tab, mem, list->buf, list->used, list->used, st, err);
     *cycles = board_cycles() - t0;
     return rc;
+}
+
+int renderer_submit_plan(int hw,gfx_frame_plan *p,const gfx_mem *mem,
+                         exec_sw_state *es,exec_sw_error *err,exec_sw_stats *stats,
+                         uint32_t *cycles,uint32_t *ticket)
+{
+    uint32_t i,j,t0=board_cycles();int rc;
+    exec_sw_stats_clear(stats);*cycles=0;*ticket=0;
+    *err=(exec_sw_error){0,0,0};
+    if(gfx_frame_publish(p,ticket))return GFX_BUILD_BAD_ARG;
+    for(i=0;i<p->count;i++) {
+        gfx_pass *v=&p->pass[i];exec_sw_stats one;uint32_t elapsed,pass_start=board_cycles();
+#ifdef __riscv
+        uint32_t perf_before[9],perf_after[9],k;
+        if(hw) {
+            rc=gfx_engine_perf_read(perf_before,9);
+            if(rc){gfx_frame_complete(p,i,rc,1);return rc;}
+        }
+#endif
+        if(v->dependency!=GFX_PASS_NO_DEP&&p->pass[v->dependency].completion_ticket!=p->ticket) {
+            gfx_frame_complete(p,i,GFX_BUILD_BAD_ARG,1);return GFX_BUILD_BAD_ARG;
+        }
+#ifdef __riscv
+        if(hw)for(j=0;j<GFX_SURF_N;j++) {
+            const gfx_surf_raw *s=&v->surfaces.s[j];
+            if(!(s->ctrl&0x80000000u))continue;
+            rc=gfx_engine_surf_set_space((int)j,s->base,gfx_surf_width(s),gfx_surf_height(s),
+                                         gfx_surf_stride_log2(s),gfx_surf_space(s),gfx_surf_format(s));
+            if(rc){gfx_frame_complete(p,i,rc,1);return rc;}
+        }
+#else
+        (void)j;
+#endif
+        exec_sw_reset(es);
+        rc=renderer_run(hw,&v->surfaces,mem,es,err,v->draw,&one,&elapsed);
+        v->elapsed_cycles=board_cycles()-pass_start;
+        v->executed=one;
+#ifdef __riscv
+        if(hw) {
+            int pr=gfx_engine_perf_read(perf_after,9);
+            if(pr&&!rc)rc=pr;
+            if(!pr)for(k=0;k<9;k++)v->perf[k]=perf_after[k]-perf_before[k];
+        }
+#endif
+        if(rc){gfx_frame_complete(p,i,rc,rc!=GFX_ENG_E_TIMEOUT);*cycles=board_cycles()-t0;return rc;}
+        gfx_frame_complete(p,i,0,1);
+        stats->cmd+=one.cmd;stats->records_read+=one.records_read;stats->pixel_total+=one.pixel_total;
+        stats->pixel_written+=one.pixel_written;stats->key_skip+=one.key_skip;stats->src_oob+=one.src_oob;
+    }
+    *cycles=board_cycles()-t0;return 0;
 }
 
 int renderer_perf_read(uint32_t values[9])

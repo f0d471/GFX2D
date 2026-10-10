@@ -58,6 +58,9 @@ typedef struct {
     int             presented_dst; /* 流水线中本帧确认呈现的上一张图；-1 表示正在预热 */
     uint32_t        cyc_auto;   /* 自动驾驶（接管判断与选方向）的周期数；模式 3 为 0 */
     uint32_t        auto_on;    /* 这一帧由自动驾驶给按键 */
+#if GFX_FRONTEND_BACKGROUND
+    struct gfx_frame_plan *frame_plan; /* 本帧完整物理统计范围，含 prepass */
+#endif
 } stg_mode_out;
 
 /* 游戏的组帧配置：表面槽照 stg_slots.h，字库几何照 assets.h。STG_FIELD 入口也用它。 */

@@ -25,6 +25,7 @@
 
 #include "stg_slots.h"
 #include "renderer.h"
+#include "frontend_game.h"
 
 /* --- 状态 ---------------------------------------------------------------- */
 
@@ -99,6 +100,7 @@ uint32_t stg_modes_frame_crc(const uint32_t *fb)
 
 void stg_modes_reset(void)
 {
+    if(frontend_game_reset()) {s_fail++;return;}
 #ifdef INJECT_MODE_KEEP_POOL
     const uint32_t keep = s_game.f.pools.ebullet.n;     /* 注错：漏清敌弹池 */
 #endif
@@ -179,15 +181,27 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     int              rc;
     uint32_t         t0 = board_cycles();
 
+    o->presented_dst=-1;o->cyc_build=0;o->cyc_exec=0;o->crc=0;o->used=0;
+    exec_sw_stats_clear(&o->xs);
+#if GFX_FRONTEND_BACKGROUND
+    o->frame_plan=NULL;
+#endif
     if (renderer_list_begin(ctx->hw, &l, ctx->cmds[idx], ctx->cap[idx], ctx->tab, dst) != GFX_OK) {
         say_err("list begin", 0u);
         return;
     }
     stg_modes_draw_cfg(&cfg, dst);
-    if (stg_game_compose(&s_game, &l, &cfg, live, &o->st) != 0)
+    if (frontend_game_compose(&s_game, &l, &cfg, live, &o->st) != 0) {
         say_err("compose", 0u);
-    if (l.rejected != 0u || l.overflow != 0u || o->st.rejected != 0u)
+        return;
+    }
+    if (l.rejected != 0u || l.overflow != 0u || o->st.rejected != 0u) {
         say_err("list rejected/overflow", l.rejected + l.overflow + o->st.rejected);
+        return;
+    }
+#if GFX_FRONTEND_BACKGROUND
+    o->frame_plan=l.frame;
+#endif
 
     gfx_census_clear(&cc);
 #if !SW9_PERF || !GFX2D_PRESS_CLOCK
@@ -304,8 +318,14 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
         rc = renderer_run(ctx->hw, ctx->tab, ctx->mem, ctx->es, ctx->err,
                           &l, &xs, &o->cyc_exec);
     }
-    if (rc != GFX_OK)
+    if (rc != GFX_OK) {
         say_err("exec", (uint32_t)rc);
+#if GFX_FRONTEND_BACKGROUND
+        o->frame_plan=NULL;
+#endif
+        o->list_idx=idx;o->used=l.used;o->xs=xs;o->crc=0u;
+        return;
+    }
     o->list_idx = idx;
     o->used     = l.used;
     o->xs       = xs;

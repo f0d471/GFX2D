@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="700" viewBox="0 0 1280 700"><rect width="1280" height="700" fill="white"/><g font-family="Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="40.0" y="45.0" font-size="24" fill="#3E4A59" text-anchor="start" font-weight="400">F1：真实固定状态的原生产构造成本</text>
+<text x="335.0" y="92.0" font-size="21" fill="#3E4A59" text-anchor="middle" font-weight="400">16×16</text>
+<line x1="90.0" y1="510.0" x2="580.0" y2="510.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="516.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">0</text>
+<line x1="90.0" y1="445.0" x2="580.0" y2="445.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="451.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">0.5</text>
+<line x1="90.0" y1="380.0" x2="580.0" y2="380.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="386.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">1</text>
+<line x1="90.0" y1="315.0" x2="580.0" y2="315.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="321.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">1.5</text>
+<line x1="90.0" y1="250.0" x2="580.0" y2="250.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="256.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">2</text>
+<line x1="90.0" y1="185.0" x2="580.0" y2="185.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="191.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">2.5</text>
+<line x1="90.0" y1="120.0" x2="580.0" y2="120.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="126.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">3</text>
+<text x="90.0" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">0</text>
+<text x="253.3" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">1000</text>
+<text x="416.7" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">2000</text>
+<text x="580.0" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">3000</text>
+<line x1="90.0" y1="120.0" x2="90.0" y2="510.0" stroke="#334155" stroke-width="1.5"/>
+<line x1="90.0" y1="510.0" x2="580.0" y2="510.0" stroke="#334155" stroke-width="1.5"/>
+<text x="90.0" y="115.0" font-size="15" fill="#3E4A59" text-anchor="start" font-weight="400">百万周期 / 帧</text>
+<text x="335.0" y="567.0" font-size="16" fill="#3E4A59" text-anchor="middle" font-weight="400">实际可见敌弹</text>
+<line x1="90.0" y1="293.3" x2="580.0" y2="293.3" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 5"/>
+<polyline points="90.0,470.0 162.5,457.8 286.3,439.7 404.7,422.3 467.8,413.4 547.2,402.0" fill="none" stroke="#2563eb" stroke-width="2.5"/><circle cx="90.0" cy="470.0" r="4" fill="#2563eb"><title>K=0, enemy=0, cycles=307689.5</title></circle><circle cx="162.5" cy="457.8" r="4" fill="#2563eb"><title>K=384, enemy=444, cycles=401706.9</title></circle><circle cx="286.3" cy="439.7" r="4" fill="#2563eb"><title>K=1024, enemy=1202, cycles=540831.6</title></circle><circle cx="404.7" cy="422.3" r="4" fill="#2563eb"><title>K=1648, enemy=1927, cycles=674770.2</title></circle><circle cx="467.8" cy="413.4" r="4" fill="#2563eb"><title>K=1984, enemy=2313, cycles=742850.8</title></circle><circle cx="547.2" cy="402.0" r="4" fill="#2563eb"><title>K=2400, enemy=2799, cycles=830904.3</title></circle><polyline points="90.0,413.4 162.5,375.7 286.3,316.0 404.7,259.2 467.8,229.8 547.2,192.3" fill="none" stroke="#c2410c" stroke-width="2.5"/><circle cx="90.0" cy="413.4" r="4" fill="#c2410c"><title>K=0, enemy=0, cycles=742850.2</title></circle><circle cx="162.5" cy="375.7" r="4" fill="#c2410c"><title>K=384, enemy=444, cycles=1032926.9</title></circle><circle cx="286.3" cy="316.0" r="4" fill="#c2410c"><title>K=1024, enemy=1202, cycles=1492095.2</title></circle><circle cx="404.7" cy="259.2" r="4" fill="#c2410c"><title>K=1648, enemy=1927, cycles=1929066.6</title></circle><circle cx="467.8" cy="229.8" r="4" fill="#c2410c"><title>K=1984, enemy=2313, cycles=2155502.9</title></circle><circle cx="547.2" cy="192.3" r="4" fill="#c2410c"><title>K=2400, enemy=2799, cycles=2444102.4</title></circle><text x="955.0" y="92.0" font-size="21" fill="#3E4A59" text-anchor="middle" font-weight="400">8×8</text>
+<line x1="710.0" y1="510.0" x2="1200.0" y2="510.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="516.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">0</text>
+<line x1="710.0" y1="445.0" x2="1200.0" y2="445.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="451.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">0.5</text>
+<line x1="710.0" y1="380.0" x2="1200.0" y2="380.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="386.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">1</text>
+<line x1="710.0" y1="315.0" x2="1200.0" y2="315.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="321.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">1.5</text>
+<line x1="710.0" y1="250.0" x2="1200.0" y2="250.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="256.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">2</text>
+<line x1="710.0" y1="185.0" x2="1200.0" y2="185.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="191.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">2.5</text>
+<line x1="710.0" y1="120.0" x2="1200.0" y2="120.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="126.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">3</text>
+<text x="710.0" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">0</text>
+<text x="873.3" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">1000</text>
+<text x="1036.7" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">2000</text>
+<text x="1200.0" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">3000</text>
+<line x1="710.0" y1="120.0" x2="710.0" y2="510.0" stroke="#334155" stroke-width="1.5"/>
+<line x1="710.0" y1="510.0" x2="1200.0" y2="510.0" stroke="#334155" stroke-width="1.5"/>
+<text x="710.0" y="115.0" font-size="15" fill="#3E4A59" text-anchor="start" font-weight="400">百万周期 / 帧</text>
+<text x="955.0" y="567.0" font-size="16" fill="#3E4A59" text-anchor="middle" font-weight="400">实际可见敌弹</text>
+<line x1="710.0" y1="293.3" x2="1200.0" y2="293.3" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 5"/>
+<polyline points="710.0,470.0 781.2,457.9 903.9,439.8 1020.0,423.0 1080.4,414.2 1159.7,402.8" fill="none" stroke="#2563eb" stroke-width="2.5"/><circle cx="710.0" cy="470.0" r="4" fill="#2563eb"><title>K=0, enemy=0, cycles=307708.1</title></circle><circle cx="781.2" cy="457.9" r="4" fill="#2563eb"><title>K=384, enemy=436, cycles=400966.5</title></circle><circle cx="903.9" cy="439.8" r="4" fill="#2563eb"><title>K=1024, enemy=1187, cycles=540086.2</title></circle><circle cx="1020.0" cy="423.0" r="4" fill="#2563eb"><title>K=1648, enemy=1898, cycles=669591.6</title></circle><circle cx="1080.4" cy="414.2" r="4" fill="#2563eb"><title>K=1984, enemy=2268, cycles=737300.6</title></circle><circle cx="1159.7" cy="402.8" r="4" fill="#2563eb"><title>K=2400, enemy=2753, cycles=824992.3</title></circle><polyline points="710.0,413.4 781.2,378.8 903.9,323.9 1020.0,273.1 1080.4,246.6 1159.7,212.0" fill="none" stroke="#c2410c" stroke-width="2.5"/><circle cx="710.0" cy="413.4" r="4" fill="#c2410c"><title>K=0, enemy=0, cycles=742851.1</title></circle><circle cx="781.2" cy="378.8" r="4" fill="#c2410c"><title>K=384, enemy=436, cycles=1008877.7</title></circle><circle cx="903.9" cy="323.9" r="4" fill="#c2410c"><title>K=1024, enemy=1187, cycles=1431786.7</title></circle><circle cx="1020.0" cy="273.1" r="4" fill="#c2410c"><title>K=1648, enemy=1898, cycles=1822508.1</title></circle><circle cx="1080.4" cy="246.6" r="4" fill="#c2410c"><title>K=1984, enemy=2268, cycles=2026003.0</title></circle><circle cx="1159.7" cy="212.0" r="4" fill="#c2410c"><title>K=2400, enemy=2753, cycles=2292407.3</title></circle><line x1="90.0" y1="610.0" x2="130.0" y2="610.0" stroke="#2563eb" stroke-width="3"/>
+<text x="140.0" y="616.0" font-size="17" fill="#3E4A59" text-anchor="start" font-weight="400">v1 / TEX 直通构造</text>
+<line x1="480.0" y1="610.0" x2="520.0" y2="610.0" stroke="#c2410c" stroke-width="3"/>
+<text x="530.0" y="616.0" font-size="17" fill="#3E4A59" text-anchor="start" font-weight="400">原即时 v2 构造</text>
+<line x1="890.0" y1="610.0" x2="930.0" y2="610.0" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="940.0" y="616.0" font-size="17" fill="#3E4A59" text-anchor="start" font-weight="400">60 Hz 总周期预算</text>
+<text x="40.0" y="667.0" font-size="16" fill="#3E4A59" text-anchor="start" font-weight="400">首轮只测构造，三次各 1000 帧均值；低于参考线不代表整机达到 60 FPS。</text>
+</g></svg>

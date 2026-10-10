@@ -1,7 +1,172 @@
 {
+  "Main/sw/apps/probe/frontendBench/build_f1_memory_4k/frontendBench-O2.bin": {
+    "size": 95758,
+    "mtime_ns": 1791569018276808300,
+    "sha256": "76192f5a13ee5a42b2c478efdee92516fdb9bca861e724efc913879ebf8ae28d"
+  },
+  "Main/sw/apps/probe/frontendBench/build_f1_memory_v2_4k/frontendBench-O2.bin": {
+    "size": 95950,
+    "mtime_ns": 1791569153158622900,
+    "sha256": "35eac5bcf28c8b01ed4458eeb0702b522c34226c3739b3a3d0e7325021569e72"
+  },
   "Main/sw/apps/probe/frontendBench/build/frontendBench-O2.bin": {
     "size": 124430,
     "mtime_ns": 1791567723755079000,
     "sha256": "e841887cf1f5d29ef67a8ccb0bab104f0913496a496de9f1ece9b05e27e6ff23"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_prepass_board/gfx2dGame-O2.bin": {
+    "size": 133438,
+    "mtime_ns": 1791569198156190500,
+    "sha256": "364db0fda65ba2d814e801a665b74a16b1f14fb882efd3ba274f2899ad7ee37f"
+  },
+  "Main/sw/apps/probe/frontendBench/build_candidates_4k/frontendBench-O2.bin": {
+    "size": 137862,
+    "mtime_ns": 1791569602770551800,
+    "sha256": "f0ddf4cb6fd0b82435ab048c99b014d1e955281166f942253b61ff83320238e8"
+  },
+  "Main/sw/apps/probe/frontendBench/build_candidates_final_4k/frontendBench-O2.bin": {
+    "size": 138598,
+    "mtime_ns": 1791570237284182500,
+    "sha256": "f038a085b9dd3def22b8053ca88ef658a02c1799b45b0e8830b60628901b1710"
+  },
+  "Main/sw/apps/probe/frontendBench/build_all_outputs_4k/frontendBench-O2.bin": {
+    "size": 142382,
+    "mtime_ns": 1791603240904565800,
+    "sha256": "b5461950943bf28cf1d649f11850cb827fe454b0bf9fce00f91ae93b0ec2b89b"
+  },
+  "Main/sw/apps/probe/frontendBench/build_f1_sets_4k/frontendBench-O2.bin": {
+    "size": 99310,
+    "mtime_ns": 1791604732356672700,
+    "sha256": "be65ad388e3c9502f71c92029ac4194b98751269243c4bb7fdf610f130c0ad21"
+  },
+  "Main/sw/apps/probe/frontendBench/build_f1_sets_isolated_4k/frontendBench-O2.bin": {
+    "size": 99494,
+    "mtime_ns": 1791604900033269100,
+    "sha256": "05b7042645313adf1f754df7c5b1177bc896228d51d2532a7a3deb3554ceadf1"
+  },
+  "Main/sw/apps/probe/frontendBench/build_f1_stages_4k/frontendBench-O2.bin": {
+    "size": 140534,
+    "mtime_ns": 1791604915793007000,
+    "sha256": "08d9ed451477fc2b5139a39307752162517ebd5c8c2c40c7bd5dfb333f2d4101"
+  },
+  "Main/sw/apps/probe/frontendBench/build_f1_detail_4k/frontendBench-O2.bin": {
+    "size": 141334,
+    "mtime_ns": 1791605172338557200,
+    "sha256": "d0229afa9b60ee0db1ff84cd03624f63af1757910465e1fa50c9b19a3fe9b8ac"
+  },
+  "Main/sw/apps/probe/frontendBench/build_f3_cpu_4k/frontendBench-O2.bin": {
+    "size": 140022,
+    "mtime_ns": 1791605529387997300,
+    "sha256": "ad5c5a39fcbc7820f49d018493917636fba2308146131fe668e89176066eff82"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_samples_planned/gfx2dGame-O2.bin": {
+    "size": 135318,
+    "mtime_ns": 1791608915738106000,
+    "sha256": "1bdcbd49f585cf6ac3247980efa00320789e2d11c8f7dad5d7c53d6fdea1c4df"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_samples_template/gfx2dGame-O2.bin": {
+    "size": 135174,
+    "mtime_ns": 1791608951874536800,
+    "sha256": "aa77481b2376091820bf1ef4de7624daf875fde87e775c3953cbcf1fdfae7d95"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_samples_both/gfx2dGame-O2.bin": {
+    "size": 135342,
+    "mtime_ns": 1791608989765089500,
+    "sha256": "92a5257fc81ea9854a87ea764364c85bd710099aac58211b1838966510fb82f9"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_samples_static/gfx2dGame-O2.bin": {
+    "size": 135310,
+    "mtime_ns": 1791609025936458400,
+    "sha256": "0b341f70ff7ec90176bb5fd26daba0e7e87118236d480ebcf35529a7a1cc9a01"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_samples_prepass/gfx2dGame-O2.bin": {
+    "size": 135310,
+    "mtime_ns": 1791609060603904700,
+    "sha256": "87be872a242a9e0b4a3662711172bd3369f8dfe3fdd9d71452363e1b4eca0f65"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_samples_combo/gfx2dGame-O2.bin": {
+    "size": 135534,
+    "mtime_ns": 1791609096747736200,
+    "sha256": "430d2b605ce858fbecb037f89275cb5d1834963c998f0f9d35471b7c63104806"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_cache_bad/gfx2dGame-O2.bin": {
+    "size": 135358,
+    "mtime_ns": 1791609134809020400,
+    "sha256": "fa9eba384c672e61a8f93b8c45d7b0db06ffbbbcf96dc33a334b31aeb298c5fe"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_cache_good/gfx2dGame-O2.bin": {
+    "size": 135374,
+    "mtime_ns": 1791609169422389700,
+    "sha256": "4cdb0fdbaff27bc2ea2cc4ea06c5a72eed42bfec806c7fd911cf3fa28ce833de"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_perf_tex/gfx2dGame-O2-perf.bin": {
+    "size": 103046,
+    "mtime_ns": 1791609204339998800,
+    "sha256": "6f92f1ad17cd2f8573f64cde3938811ddeb45be151beedd9c79d768ccfaf3f0d"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_perf_strip/gfx2dGame-O2-perf.bin": {
+    "size": 103046,
+    "mtime_ns": 1791609270741869500,
+    "sha256": "96a240cac5772f82804460db18dc4667debdc1c1af46a9a8e588536568b5a1f2"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_perf_prepass/gfx2dGame-O2-perf.bin": {
+    "size": 103238,
+    "mtime_ns": 1791609359217772700,
+    "sha256": "503f2ec5b56ce1ccae669ed58781c1722cfb30590fed31f2fa9a8182e1077351"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_switch/gfx2dGame-O2-perf.bin": {
+    "size": 103598,
+    "mtime_ns": 1791609446933516800,
+    "sha256": "b4514ca82f13bbe6e846e3a83be170924629a9e53136fc37b95c42d3d90ef978"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_pipeline_compile/gfx2dGame-O2-perf.bin": {
+    "size": 104718,
+    "mtime_ns": 1791611167543431400,
+    "sha256": "54bb589bb55d0fd5cd70fd80f172e5be7f813a64c0e4fd6f0ebd973a2b86b1b4"
+  },
+  "Main/sw/apps/probe/frontendBench/build_f1_store_4k/frontendBench-O2.bin": {
+    "size": 141430,
+    "mtime_ns": 1791612608326021400,
+    "sha256": "f5afc2bfda36b39c9680471890a16868b7f10109c1b7d330d5ec4601f2e346fd"
+  },
+  "Main/sw/apps/probe/frontendBench/build_surface_guard_4k/frontendBench-O2.bin": {
+    "size": 99806,
+    "mtime_ns": 1791613055598859600,
+    "sha256": "0940a29e34e18dab5c03beee47e87b697e2d688a6467229ac1729e2b24ad9481"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_samples_strip/gfx2dGame-O2.bin": {
+    "size": 135142,
+    "mtime_ns": 1791613069700334300,
+    "sha256": "c1c12733443da3303d918c6cffaf01dfcb64d96594d6b5220b1deceb9dffbe6d"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_perf_pipeline_tex/gfx2dGame-O2-perf.bin": {
+    "size": 105214,
+    "mtime_ns": 1791613105271152900,
+    "sha256": "fad08daaf8d4409155f3a1b3bbd86d77b07db0203547db76439313c0465ab7d1"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_perf_pipeline_strip/gfx2dGame-O2-perf.bin": {
+    "size": 104814,
+    "mtime_ns": 1791613173255497300,
+    "sha256": "7c943edf4c0d40fa4a21ad57db3c7aa9df6cd3dfb5afa5eada46b67708e5e625"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_perf_pipeline_prepass/gfx2dGame-O2-perf.bin": {
+    "size": 105214,
+    "mtime_ns": 1791613262662682800,
+    "sha256": "74630b6d366854e83757adaf96100d8ecf8a0a724bc73b15eceab91bace01aa5"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_switch_uart/gfx2dGame-O2-perf.bin": {
+    "size": 105326,
+    "mtime_ns": 1791613351147111500,
+    "sha256": "288e08fd5fe2d66f94920c814d760aa45c28ed2c7e3b9f546f8d03c8a7d73084"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_prepass_failure_pipeline/gfx2dGame-O2-perf.bin": {
+    "size": 105118,
+    "mtime_ns": 1791613444564504900,
+    "sha256": "764d64b5b8015b3f1d0a2a352592bb962c9720442d54026a770ed30028d60024"
+  },
+  "Main/sw/apps/game/gfx2dGame/build_frontend_interactive/gfx2dGame-O2-perf.bin": {
+    "size": 104670,
+    "mtime_ns": 1791622932301395800,
+    "sha256": "ed9aa0593129007a43619d625bb7ad385ef68e709fdd89b121fbdd6fce1f90ca"
   }
 }

@@ -47,6 +47,7 @@
 
 #include "stg_main.h"
 #include "renderer.h"
+#include "frontend_game.h"
 
 #if STG_FIELD_MODE != 0
 
@@ -230,8 +231,10 @@ static void frame_run(const stg_main_ctx *ctx, uint32_t frame, frame_out *fo)
     t0 = board_cycles();
     rc = exec_sw_run(ctx->es, ctx->tab, ctx->mem, l.buf, l.used, l.used, &st, ctx->err);
     fo->cyc_exe = board_cycles() - t0;
-    if (rc != GFX_OK)
+    if (rc != GFX_OK) {
         say_err("exec", frame, (uint32_t)rc);
+        return;
+    }
 
     fo->crc = field_crc(board_fb(dst));
 
@@ -364,6 +367,7 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
     uint32_t         e;
     int              rc;
 
+    go->crc=0u;
     if (dst == s_shown)
         say_err("fb", frame, (uint32_t)dst);
 
@@ -382,10 +386,14 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
     }
     stg_modes_draw_cfg(&cfg, dst);
     live_hud(&live);
-    if (stg_game_compose(&s_game, &l, &cfg, &live, &go->st) != 0)
+    if (frontend_game_compose(&s_game, &l, &cfg, &live, &go->st) != 0) {
         say_err("compose", frame, 0u);
-    if (l.rejected != 0u || l.overflow != 0u || go->st.rejected != 0u)
+        return;
+    }
+    if (l.rejected != 0u || l.overflow != 0u || go->st.rejected != 0u) {
         say_err("list rejected/overflow", frame, l.rejected + l.overflow + go->st.rejected);
+        return;
+    }
 #if defined(G1_TEX_COMPARE) && G1_TEX_COMPARE
     for (e=0u;e<l.used;e++)
         if (gfx_op(&l.buf[e])==GFX_OP_BLIT &&
@@ -408,13 +416,26 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
 
     {
         uint32_t cyc;
+#if defined(__riscv) && defined(GFX_FRONTEND_CACHE_PROBE)
+        if(ctx->hw) {
+            volatile uint32_t *p=board_fb(dst);uint32_t x;
+            board_dcache_invalidate_all();
+            for(x=0;x<FB_WIDTH;x+=16u){p[x]=0xdeadbeefu;(void)p[x];}
+        }
+#endif
         rc = renderer_run(ctx->hw, ctx->tab, ctx->mem, ctx->es, ctx->err,
                           &l, &xs, &cyc);
     }
-    if (rc != GFX_OK)
+    if (rc != GFX_OK) {
         say_err("exec", frame, (uint32_t)rc);
+        return;
+    }
     if (ctx->hw)
+#ifndef GFX_FRONTEND_SKIP_INVALIDATE
         board_dcache_invalidate_all();
+#else
+        (void)0;
+#endif
     go->crc = stg_modes_frame_crc(board_fb(dst));
 
 #if defined(SW9_COMPARE) && SW9_COMPARE

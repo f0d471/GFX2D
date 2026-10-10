@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="700" viewBox="0 0 1280 700">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#334155"/></marker></defs>
+<rect width="1280" height="700" fill="white"/>
+<g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" fill="#172554">
+<text x="40" y="48" font-size="23">gfx_list_begin_strips_planned：先组织引用，再物化 ABI v2</text>
+<rect x="40" y="110" width="350" height="150" fill="#e8f1fb" stroke="#334155" stroke-width="1.5"/>
+<text x="56" y="141" font-size="18">gfx_strip_append_checked</text>
+<text x="56" y="170" font-size="14">参数与反馈检查仍在接受时执行</text>
+<text x="56" y="194" font-size="14">全局 clip / 源有效区求交</text>
+<text x="56" y="218" font-size="14">预检全部覆盖桶与 workspace</text>
+<text x="56" y="242" font-size="14">整次追加成功后才更新计数</text>
+<rect x="470" y="110" width="350" height="150" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+<text x="486" y="141" font-size="18">gfx_strip_workspace</text>
+<text x="486" y="170" font-size="14">Plan：48 B / 项，16 B 对齐</text>
+<text x="486" y="194" font-size="14">refs：u32 plan_id</text>
+<text x="486" y="218" font-size="14">counts / offsets / cursors：紧凑</text>
+<text x="486" y="242" font-size="14">零面积和裁出不占 Plan</text>
+<rect x="900" y="110" width="340" height="150" fill="#e8f1fb" stroke="#334155" stroke-width="1.5"/>
+<text x="916" y="141" font-size="18">gfx_strip_plan_seal</text>
+<text x="916" y="170" font-size="14">30 桶线性 exclusive scan</text>
+<text x="916" y="194" font-size="14">按 Plan 原序散写小引用</text>
+<text x="916" y="218" font-size="14">每桶引用是原输入稳定子序列</text>
+<text x="916" y="242" font-size="14">首错阻止发布</text>
+<rect x="40" y="360" width="350" height="130" fill="#e8f1fb" stroke="#334155" stroke-width="1.5"/>
+<text x="56" y="391" font-size="18">gfx_geometry_cache</text>
+<text x="56" y="420" font-size="14">8 项，显式上下文所有权</text>
+<text x="56" y="444" font-size="14">源位置、clip 与 generation 失效</text>
+<text x="56" y="468" font-size="14">首/中/尾模式；边界走完整求交</text>
+<rect x="470" y="360" width="350" height="130" fill="#e8f1fb" stroke="#334155" stroke-width="1.5"/>
+<text x="486" y="391" font-size="18">连续物化</text>
+<text x="486" y="420" font-size="14">按桶读取 refs / Plan</text>
+<text x="486" y="444" font-size="14">重建局部 y、源偏移和 w7</text>
+<text x="486" y="468" font-size="14">仍完整写入 32 B / 片段</text>
+<rect x="900" y="360" width="340" height="130" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+<text x="916" y="391" font-size="18">ABI v2 / engine_top</text>
+<text x="916" y="420" font-size="14">首段表头，1024 条 / 桶</text>
+<text x="916" y="444" font-size="14">ERROR_INDEX = s × 1024 + j</text>
+<text x="916" y="468" font-size="14">sealed 表才能提交</text>
+<polyline points="390,185 470,185" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="400" y="167" font-size="14">规范化</text>
+<polyline points="820,185 900,185" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="840" y="167" font-size="14">END</text>
+<polyline points="1070,260 1070,310 645,310 645,360" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="800" y="297" font-size="14">引用区间</text>
+<polyline points="390,425 470,425" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="395" y="405" font-size="14">可选几何</text>
+<polyline points="820,425 900,425" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="825" y="405" font-size="14">表头最后发布</text>
+<text x="40" y="570" font-size="15">原即时 gfx_list_begin_strips 保持可选；P1 / P2 / P3 分别消融。</text>
+<text x="40" y="597" font-size="15">Plan / refs 的写读成本和模板查找均计入构造时间；连续输出不预设性能收益。</text>
+<rect x="40" y="660" width="18" height="15" fill="#e8f1fb" stroke="#334155"/>
+<text x="68" y="673" font-size="13">蓝色：CPU 构造或检查</text>
+<rect x="320" y="660" width="18" height="15" fill="#f1f5f9" stroke="#334155"/>
+<text x="348" y="673" font-size="13">灰色：存储或引擎执行</text>
+<text x="700" y="673" font-size="13">实线箭头：调用或数据依赖</text></g></svg>

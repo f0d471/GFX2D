@@ -1,0 +1,14 @@
+START main_bit_start
+CAPTURED main_bit_start
+REUSE all_outputs_4k
+START f1_sets_4k
+CAPTURED f1_sets_4k
+FAIL: set mechanism matrix failed
+Traceback (most recent call last):
+  File "E:\Workspace\Efinix\Main\tools\check\validate_frontend_board.py", line 152, in <module>
+    try:main()
+        ^^^^^^
+  File "E:\Workspace\Efinix\Main\tools\check\validate_frontend_board.py", line 110, in main
+    if len(rows)!=72 or any(x[-1] for x in rows) or 'fail 0' not in text:raise RuntimeError('set mechanism matrix failed')
+                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: set mechanism matrix failed

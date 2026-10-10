@@ -1,0 +1,16 @@
+START all_outputs_4k
+CAPTURED all_outputs_4k
+FAIL: missing deployment boundary: E:\Workspace\Efinix\Main\sim\engine\frontend\logs\all_outputs_4k.log
+Traceback (most recent call last):
+  File "E:\Workspace\Efinix\Main\tools\check\validate_frontend_board.py", line 118, in <module>
+    probe('f3_cpu_4k',flags,5400)
+        ^^^^^^
+  File "E:\Workspace\Efinix\Main\tools\check\validate_frontend_board.py", line 75, in main
+    global RESUME,CACHE_ACTIVE
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Workspace\Efinix\Main\tools\check\validate_frontend_board.py", line 41, in probe
+    return ref['size']==st.st_size and ref['mtime_ns']==st.st_mtime_ns
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Workspace\Efinix\Main\tools\check\validate_frontend_board.py", line 18, in segment
+    
+RuntimeError: missing deployment boundary: E:\Workspace\Efinix\Main\sim\engine\frontend\logs\all_outputs_4k.log

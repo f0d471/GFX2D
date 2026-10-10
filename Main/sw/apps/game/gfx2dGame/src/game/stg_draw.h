@@ -88,5 +88,9 @@ typedef struct {
 /* 画一帧（含两条 SET_CLIP 与 END）。l 已经 END 或没绑表面表时返回 -1，st 清零；否则返回 0。 */
 int  stg_game_compose(const stg_game *g, gfx_list *l, const stg_draw_cfg *cfg,
                       const stg_hud_live *live, stg_frame_stats *st);
+/* 背景与 HUD 的目的面由调用方给出；static_base 只跳过已缓存的两块底色。 */
+int stg_game_compose_layers(const stg_game *g,gfx_list *dynamic,gfx_list *background,
+                            int bg_dst,int static_base,const stg_draw_cfg *cfg,
+                            const stg_hud_live *live,stg_frame_stats *st);
 
 #endif /* STG_DRAW_H */

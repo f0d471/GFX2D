@@ -1,0 +1,206 @@
+[
+  {
+    "scene": 0,
+    "mode": 0,
+    "records": 207,
+    "crc": 1890330705
+  },
+  {
+    "scene": 0,
+    "mode": 1,
+    "records": 778,
+    "crc": 3821788059
+  },
+  {
+    "scene": 1,
+    "mode": 0,
+    "records": 657,
+    "crc": 751932044
+  },
+  {
+    "scene": 1,
+    "mode": 1,
+    "records": 1636,
+    "crc": 1703034727
+  },
+  {
+    "scene": 2,
+    "mode": 0,
+    "records": 1417,
+    "crc": 1362826691
+  },
+  {
+    "scene": 2,
+    "mode": 1,
+    "records": 3084,
+    "crc": 2563419400
+  },
+  {
+    "scene": 3,
+    "mode": 0,
+    "records": 2143,
+    "crc": 1389243921
+  },
+  {
+    "scene": 3,
+    "mode": 1,
+    "records": 4458,
+    "crc": 4116434453
+  },
+  {
+    "scene": 4,
+    "mode": 0,
+    "records": 2529,
+    "crc": 536939581
+  },
+  {
+    "scene": 4,
+    "mode": 1,
+    "records": 5187,
+    "crc": 2493874712
+  },
+  {
+    "scene": 5,
+    "mode": 0,
+    "records": 3015,
+    "crc": 567961071
+  },
+  {
+    "scene": 5,
+    "mode": 1,
+    "records": 6109,
+    "crc": 3402461124
+  },
+  {
+    "scene": 6,
+    "mode": 0,
+    "records": 207,
+    "crc": 1890330705
+  },
+  {
+    "scene": 6,
+    "mode": 1,
+    "records": 778,
+    "crc": 3821788059
+  },
+  {
+    "scene": 7,
+    "mode": 0,
+    "records": 649,
+    "crc": 3367667494
+  },
+  {
+    "scene": 7,
+    "mode": 1,
+    "records": 1400,
+    "crc": 1049534369
+  },
+  {
+    "scene": 8,
+    "mode": 0,
+    "records": 1402,
+    "crc": 1644690216
+  },
+  {
+    "scene": 8,
+    "mode": 1,
+    "records": 2483,
+    "crc": 3090090016
+  },
+  {
+    "scene": 9,
+    "mode": 0,
+    "records": 2114,
+    "crc": 3019327047
+  },
+  {
+    "scene": 9,
+    "mode": 1,
+    "records": 3448,
+    "crc": 385513525
+  },
+  {
+    "scene": 10,
+    "mode": 0,
+    "records": 2484,
+    "crc": 3884669838
+  },
+  {
+    "scene": 10,
+    "mode": 1,
+    "records": 3964,
+    "crc": 4100831050
+  },
+  {
+    "scene": 11,
+    "mode": 0,
+    "records": 2969,
+    "crc": 3983540336
+  },
+  {
+    "scene": 11,
+    "mode": 1,
+    "records": 4639,
+    "crc": 1046545330
+  },
+  {
+    "scene": 12,
+    "mode": 0,
+    "records": 197,
+    "crc": 2159340307
+  },
+  {
+    "scene": 12,
+    "mode": 1,
+    "records": 756,
+    "crc": 1635309056
+  },
+  {
+    "scene": 13,
+    "mode": 0,
+    "records": 429,
+    "crc": 4249563770
+  },
+  {
+    "scene": 13,
+    "mode": 1,
+    "records": 1157,
+    "crc": 1423534458
+  },
+  {
+    "scene": 14,
+    "mode": 0,
+    "records": 2895,
+    "crc": 1283330061
+  },
+  {
+    "scene": 14,
+    "mode": 1,
+    "records": 5794,
+    "crc": 2177311659
+  },
+  {
+    "scene": 15,
+    "mode": 0,
+    "records": 2199,
+    "crc": 3820835219
+  },
+  {
+    "scene": 15,
+    "mode": 1,
+    "records": 3616,
+    "crc": 2978547250
+  },
+  {
+    "scene": 16,
+    "mode": 0,
+    "records": 197,
+    "crc": 2676498204
+  },
+  {
+    "scene": 16,
+    "mode": 1,
+    "records": 756,
+    "crc": 613583022
+  }
+]

@@ -1,0 +1,106 @@
+{
+  "same_frame": {
+    "groups": 510,
+    "states": 17,
+    "modes": 10,
+    "crc_perf_padding_bad": 0,
+    "diag": [
+      51988,
+      348,
+      0,
+      0,
+      0
+    ]
+  },
+  "sets": {
+    "groups": 36,
+    "bad": 0
+  },
+  "surface_guard": {
+    "busy_rejected": true,
+    "idle_restored": true
+  },
+  "strip": {
+    "samples": 17,
+    "mismatches": []
+  },
+  "planned": {
+    "samples": 17,
+    "mismatches": []
+  },
+  "template": {
+    "samples": 17,
+    "mismatches": []
+  },
+  "both": {
+    "samples": 17,
+    "mismatches": []
+  },
+  "static": {
+    "samples": 17,
+    "mismatches": []
+  },
+  "prepass": {
+    "samples": 17,
+    "mismatches": []
+  },
+  "combo": {
+    "samples": 17,
+    "mismatches": []
+  },
+  "cache_bad": {
+    "samples": 17,
+    "mismatches": [
+      0,
+      600,
+      1200,
+      1800,
+      2400,
+      3000,
+      3600,
+      4200,
+      4800,
+      5400,
+      6000,
+      6600,
+      7200,
+      7800,
+      8400,
+      9000,
+      9207
+    ]
+  },
+  "cache_good": {
+    "samples": 17,
+    "mismatches": []
+  },
+  "perf_tex": {
+    "complete": true
+  },
+  "perf_strip": {
+    "complete": true
+  },
+  "perf_prepass": {
+    "complete": true
+  },
+  "switch": {
+    "complete": true,
+    "backends": [
+      "hw",
+      "hw-strip",
+      "hw-tex",
+      "sw"
+    ],
+    "modes": [
+      "1",
+      "2",
+      "3"
+    ]
+  },
+  "prepass_failure": {
+    "expected_error": true,
+    "frames": 60,
+    "swaps": 0,
+    "fields": 17
+  }
+}

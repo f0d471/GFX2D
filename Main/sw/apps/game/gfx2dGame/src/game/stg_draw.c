@@ -11,6 +11,12 @@
 #include "stg_enemy.h"
 #include "stg_kind.h"
 #include "stg_stage.h"
+#ifdef GFX_FRONTEND_PROFILE
+extern void frontend_stage(uint32_t stage,const gfx_list *list);
+#define FRONTEND_STAGE(n,l) frontend_stage(n,l)
+#else
+#define FRONTEND_STAGE(n,l) ((void)0)
+#endif
 
 /* 组帧的上下文：命令表、配置与计数。 */
 typedef struct {
@@ -19,6 +25,7 @@ typedef struct {
     stg_frame_stats     *st;
     int                  dst;
     gfx_rect             clip;          /* 当前裁剪框（闭区间） */
+    int                  static_base;
 } dctx;
 
 static void count(dctx *d, int rc, int eq)
@@ -67,7 +74,8 @@ static void draw_background(dctx *d, const stg_bg *bg)
 {
     uint32_t k;
 
-    fill(d, 0, 0, STG_FIELD_W - 1, STG_FIELD_H - 1, STG_BG_ARGB, GFX_EQ_COPY, 0u);
+    if(!d->static_base)
+        fill(d, 0, 0, STG_FIELD_W - 1, STG_FIELD_H - 1, STG_BG_ARGB, GFX_EQ_COPY, 0u);
     for (k = 0u; k < STG_BG_HLINES; k++) {
         const int32_t y = stg_bg_hline_y(bg, k);
 
@@ -212,7 +220,8 @@ static void draw_hud(dctx *d, const stg_game *g, const stg_hud_live *live)
 {
     const stg_font *lab = &d->cfg->font_cyan;
 
-    fill(d, HUD_X0, 0, 639, 479, STG_HUD_BG, GFX_EQ_COPY, 0u);
+    if(!d->static_base)
+        fill(d, HUD_X0, 0, 639, 479, STG_HUD_BG, GFX_EQ_COPY, 0u);
     fill(d, HUD_X0, 0, HUD_X0 + 1, 479, STG_HUD_LINE, GFX_EQ_COPY, 0u);
     if (sprite(d, d->cfg->title_slot, 0, 0, HUD_X0, 4, STG_TITLE_W, STG_TITLE_H, GFX_EQ_ALPHA, 0))
         d->st->title++;
@@ -241,8 +250,9 @@ static void draw_hud(dctx *d, const stg_game *g, const stg_hud_live *live)
 
 /* --- 一帧 --------------------------------------------------------------------- */
 
-int stg_game_compose(const stg_game *g, gfx_list *l, const stg_draw_cfg *cfg,
-                     const stg_hud_live *live, stg_frame_stats *st)
+int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
+                            int bg_dst,int static_base,const stg_draw_cfg *cfg,
+                            const stg_hud_live *live,stg_frame_stats *st)
 {
     stg_frame_stats zero = { { 0u, 0u, 0u, 0u, 0u, 0u }, 0u, 0u, 0u, { 0u }, 0u };
     stg_active     *a = &st->act;
@@ -257,17 +267,30 @@ int stg_game_compose(const stg_game *g, gfx_list *l, const stg_draw_cfg *cfg,
     d.cfg = cfg;
     d.st  = st;
     d.dst = cfg->pool.dst;
+    d.static_base = static_base;
     stg_rect_field(&d.clip);
     stg_rect_screen(&screen);
 
     if (gfx_set_clip(l, d.clip) != 0)
         st->rejected++;
+    FRONTEND_STAGE(0,l);
+    if(background) {
+        d.l=background;d.dst=bg_dst;
+        if(gfx_set_clip(background,d.clip))st->rejected++;
+    }
     draw_background(&d, &g->bg);
+    if(static_base)st->by_eq[GFX_EQ_COPY]++;
+    d.l=l;d.dst=cfg->pool.dst;
+    FRONTEND_STAGE(1,l);
     draw_enemies(&d, g);
     draw_player(&d, g);
+    FRONTEND_STAGE(2,l);
     a->pbullet  = stg_draw_pool(&g->f.pools.pbullet, l, &cfg->pool, &d.clip, st->by_eq);
+    FRONTEND_STAGE(3,l);
     a->ebullet  = stg_draw_pool(&g->f.pools.ebullet, l, &cfg->pool, &d.clip, st->by_eq);
+    FRONTEND_STAGE(4,l);
     a->particle = stg_draw_pool(&g->f.pools.particle, l, &cfg->pool, &d.clip, st->by_eq);
+    FRONTEND_STAGE(5,l);
     a->total    = a->ebullet + a->pbullet + a->enemy + a->particle + a->player;
     draw_banner(&d, g);
     if (g->flash) {
@@ -275,11 +298,21 @@ int stg_game_compose(const stg_game *g, gfx_list *l, const stg_draw_cfg *cfg,
         st->flash = (st->by_eq[GFX_EQ_CONST] != 0u) ? 1u : 0u;
     }
 
+    FRONTEND_STAGE(6,l);
     if (gfx_set_clip(l, screen) != 0)
         st->rejected++;
     d.clip = screen;
+    if(background){d.l=background;d.dst=bg_dst;if(gfx_set_clip(background,screen))st->rejected++;}
     draw_hud(&d, g, live);
+    if(static_base)st->by_eq[GFX_EQ_COPY]++;
+    if(background&&gfx_list_end(background))st->rejected++;
+    FRONTEND_STAGE(7,l);
     if (gfx_list_end(l) != 0)
         st->rejected++;
+    FRONTEND_STAGE(8,l);
     return 0;
 }
+
+int stg_game_compose(const stg_game *g,gfx_list *l,const stg_draw_cfg *cfg,
+                     const stg_hud_live *live,stg_frame_stats *st)
+{return stg_game_compose_layers(g,l,0,0,0,cfg,live,st);}

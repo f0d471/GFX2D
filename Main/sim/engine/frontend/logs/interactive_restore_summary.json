@@ -1,0 +1,10 @@
+{
+  "observation_only": true,
+  "mode": "game",
+  "backend": "hw-tex",
+  "windows": 8,
+  "fps_min": 59,
+  "fps_max": 60,
+  "drop_max": 1,
+  "note": "Short startup observation; application continues. Not a complete fail/done acceptance or Nmax."
+}

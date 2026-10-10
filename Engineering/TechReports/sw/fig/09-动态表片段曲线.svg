@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="700" viewBox="0 0 1280 700"><rect width="1280" height="700" fill="white"/><g font-family="Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="40.0" y="45.0" font-size="24" fill="#3E4A59" text-anchor="start" font-weight="400">F2：固定输入下的动态表记录变化</text>
+<text x="335.0" y="92.0" font-size="21" fill="#3E4A59" text-anchor="middle" font-weight="400">16×16</text>
+<line x1="90.0" y1="510.0" x2="580.0" y2="510.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="516.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">0</text>
+<line x1="90.0" y1="432.0" x2="580.0" y2="432.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="438.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">20</text>
+<line x1="90.0" y1="354.0" x2="580.0" y2="354.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="360.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">40</text>
+<line x1="90.0" y1="276.0" x2="580.0" y2="276.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="282.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">60</text>
+<line x1="90.0" y1="198.0" x2="580.0" y2="198.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="204.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">80</text>
+<line x1="90.0" y1="120.0" x2="580.0" y2="120.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="126.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">100</text>
+<text x="90.0" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">0</text>
+<text x="168.4" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">384</text>
+<text x="299.1" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">1024</text>
+<text x="426.5" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">1648</text>
+<text x="495.1" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">1984</text>
+<text x="580.0" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">2400</text>
+<line x1="90.0" y1="120.0" x2="90.0" y2="510.0" stroke="#334155" stroke-width="1.5"/>
+<line x1="90.0" y1="510.0" x2="580.0" y2="510.0" stroke="#334155" stroke-width="1.5"/>
+<text x="90.0" y="115.0" font-size="15" fill="#3E4A59" text-anchor="start" font-weight="400">动态表片段减少 / %</text>
+<text x="335.0" y="567.0" font-size="16" fill="#3E4A59" text-anchor="middle" font-weight="400">K（固定输入控制参数）</text>
+<polyline points="90.0,479.9 168.4,495.7 299.1,502.4 426.5,504.8 495.1,505.5 580.0,506.2" fill="none" stroke="#2563eb" stroke-width="2.5"/><circle cx="90.0" cy="479.9" r="4" fill="#2563eb"><title>K=0, baseline=778, dynamic=718, reduction=7.712%</title></circle><circle cx="168.4" cy="495.7" r="4" fill="#2563eb"><title>K=384, baseline=1636, dynamic=1576, reduction=3.667%</title></circle><circle cx="299.1" cy="502.4" r="4" fill="#2563eb"><title>K=1024, baseline=3084, dynamic=3024, reduction=1.946%</title></circle><circle cx="426.5" cy="504.8" r="4" fill="#2563eb"><title>K=1648, baseline=4458, dynamic=4398, reduction=1.346%</title></circle><circle cx="495.1" cy="505.5" r="4" fill="#2563eb"><title>K=1984, baseline=5187, dynamic=5127, reduction=1.157%</title></circle><circle cx="580.0" cy="506.2" r="4" fill="#2563eb"><title>K=2400, baseline=6109, dynamic=6049, reduction=0.982%</title></circle><polyline points="90.0,124.5 168.4,323.8 299.1,410.6 426.5,441.2 495.1,450.8 580.0,459.8" fill="none" stroke="#c2410c" stroke-width="2.5"/><circle cx="90.0" cy="124.5" r="4" fill="#c2410c"><title>K=0, baseline=778, dynamic=9, reduction=98.843%</title></circle><circle cx="168.4" cy="323.8" r="4" fill="#c2410c"><title>K=384, baseline=1636, dynamic=855, reduction=47.738%</title></circle><circle cx="299.1" cy="410.6" r="4" fill="#c2410c"><title>K=1024, baseline=3084, dynamic=2298, reduction=25.486%</title></circle><circle cx="426.5" cy="441.2" r="4" fill="#c2410c"><title>K=1648, baseline=4458, dynamic=3671, reduction=17.654%</title></circle><circle cx="495.1" cy="450.8" r="4" fill="#c2410c"><title>K=1984, baseline=5187, dynamic=4400, reduction=15.173%</title></circle><circle cx="580.0" cy="459.8" r="4" fill="#c2410c"><title>K=2400, baseline=6109, dynamic=5322, reduction=12.883%</title></circle><text x="955.0" y="92.0" font-size="21" fill="#3E4A59" text-anchor="middle" font-weight="400">8×8</text>
+<line x1="710.0" y1="510.0" x2="1200.0" y2="510.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="516.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">0</text>
+<line x1="710.0" y1="432.0" x2="1200.0" y2="432.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="438.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">20</text>
+<line x1="710.0" y1="354.0" x2="1200.0" y2="354.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="360.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">40</text>
+<line x1="710.0" y1="276.0" x2="1200.0" y2="276.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="282.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">60</text>
+<line x1="710.0" y1="198.0" x2="1200.0" y2="198.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="204.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">80</text>
+<line x1="710.0" y1="120.0" x2="1200.0" y2="120.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="698.0" y="126.0" font-size="15" fill="#3E4A59" text-anchor="end" font-weight="400">100</text>
+<text x="710.0" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">0</text>
+<text x="788.4" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">384</text>
+<text x="919.1" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">1024</text>
+<text x="1046.5" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">1648</text>
+<text x="1115.1" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">1984</text>
+<text x="1200.0" y="536.0" font-size="15" fill="#3E4A59" text-anchor="middle" font-weight="400">2400</text>
+<line x1="710.0" y1="120.0" x2="710.0" y2="510.0" stroke="#334155" stroke-width="1.5"/>
+<line x1="710.0" y1="510.0" x2="1200.0" y2="510.0" stroke="#334155" stroke-width="1.5"/>
+<text x="710.0" y="115.0" font-size="15" fill="#3E4A59" text-anchor="start" font-weight="400">动态表片段减少 / %</text>
+<text x="955.0" y="567.0" font-size="16" fill="#3E4A59" text-anchor="middle" font-weight="400">K（固定输入控制参数）</text>
+<polyline points="710.0,479.9 788.4,493.3 919.1,500.6 1046.5,503.2 1115.1,504.1 1200.0,505.0" fill="none" stroke="#2563eb" stroke-width="2.5"/><circle cx="710.0" cy="479.9" r="4" fill="#2563eb"><title>K=0, baseline=778, dynamic=718, reduction=7.712%</title></circle><circle cx="788.4" cy="493.3" r="4" fill="#2563eb"><title>K=384, baseline=1400, dynamic=1340, reduction=4.286%</title></circle><circle cx="919.1" cy="500.6" r="4" fill="#2563eb"><title>K=1024, baseline=2483, dynamic=2423, reduction=2.416%</title></circle><circle cx="1046.5" cy="503.2" r="4" fill="#2563eb"><title>K=1648, baseline=3448, dynamic=3388, reduction=1.740%</title></circle><circle cx="1115.1" cy="504.1" r="4" fill="#2563eb"><title>K=1984, baseline=3964, dynamic=3904, reduction=1.514%</title></circle><circle cx="1200.0" cy="505.0" r="4" fill="#2563eb"><title>K=2400, baseline=4639, dynamic=4579, reduction=1.293%</title></circle><polyline points="710.0,124.5 788.4,292.4 919.1,386.5 1046.5,421.0 1115.1,432.6 1200.0,443.8" fill="none" stroke="#c2410c" stroke-width="2.5"/><circle cx="710.0" cy="124.5" r="4" fill="#c2410c"><title>K=0, baseline=778, dynamic=9, reduction=98.843%</title></circle><circle cx="788.4" cy="292.4" r="4" fill="#c2410c"><title>K=384, baseline=1400, dynamic=619, reduction=55.786%</title></circle><circle cx="919.1" cy="386.5" r="4" fill="#c2410c"><title>K=1024, baseline=2483, dynamic=1697, reduction=31.655%</title></circle><circle cx="1046.5" cy="421.0" r="4" fill="#c2410c"><title>K=1648, baseline=3448, dynamic=2661, reduction=22.825%</title></circle><circle cx="1115.1" cy="432.6" r="4" fill="#c2410c"><title>K=1984, baseline=3964, dynamic=3177, reduction=19.854%</title></circle><circle cx="1200.0" cy="443.8" r="4" fill="#c2410c"><title>K=2400, baseline=4639, dynamic=3852, reduction=16.965%</title></circle><line x1="90.0" y1="610.0" x2="130.0" y2="610.0" stroke="#2563eb" stroke-width="3"/>
+<text x="140.0" y="616.0" font-size="17" fill="#3E4A59" text-anchor="start" font-weight="400">B1：缓存底色前缀</text>
+<line x1="480.0" y1="610.0" x2="520.0" y2="610.0" stroke="#c2410c" stroke-width="3"/>
+<text x="530.0" y="616.0" font-size="17" fill="#3E4A59" text-anchor="start" font-weight="400">B2：完整动态预合成</text>
+<text x="40.0" y="667.0" font-size="16" fill="#3E4A59" text-anchor="start" font-weight="400">只比较 BAND 动态表；B2 仍新增 prepass 绘制、DDR 流量和完成依赖，记录减少不能替代周期收益。</text>
+</g></svg>

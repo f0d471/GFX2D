@@ -1,0 +1,16 @@
+make: Entering directory '/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/build/baseline_repro_nvi1d5hy/source/Main/sw/apps/probe/frontendBench'
+REPLAY apps/game/gfx2dGame/replay/sw6_a.g2dr
+REPLAY apps/game/gfx2dGame/replay/sw6_b.g2dr
+REPLAY apps/game/gfx2dGame/replay/stg_clear.g2dr
+CC lib/core/crc32.c
+CC lib/core/assetpak.c
+python3: can't open file '/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/build/baseline_repro_nvi1d5hy/source/Main/sw/apps/probe/frontendBench/../../../../tools/check/replay2c.py': [Errno 2] No such file or directory
+python3: can't open file '/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/build/baseline_repro_nvi1d5hy/source/Main/sw/apps/probe/frontendBench/../../../../tools/check/replay2c.py': [Errno 2] No such file or directory
+python3: can't open file '/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/build/baseline_repro_nvi1d5hy/source/Main/sw/apps/probe/frontendBench/../../../../tools/check/replay2c.py': [Errno 2] No such file or directory
+make: *** [../../../mk/target.mk:157: build/replay/sw6_a.h] Error 2
+make: *** Waiting for unfinished jobs....
+make: *** [../../../mk/target.mk:157: build/replay/sw6_b.h] Error 2
+make: *** [../../../mk/target.mk:157: build/replay/stg_clear.h] Error 2
+CC lib/core/entity.c
+CC lib/core/fixmath.c
+make: Leaving directory '/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/build/baseline_repro_nvi1d5hy/source/Main/sw/apps/probe/frontendBench'

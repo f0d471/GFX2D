@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include "gfx/gfx.h"
 #include "gfx/census.h"
+#include "gfx/frame.h"
+int renderer_submit_plan(int hw,gfx_frame_plan *plan,const gfx_mem *mem,
+                         exec_sw_state *es,exec_sw_error *err,exec_sw_stats *stats,
+                         uint32_t *cycles,uint32_t *ticket);
 
 #ifndef GFX2D_STRIP_LOG2
 #define GFX2D_STRIP_LOG2 4

@@ -49,6 +49,34 @@ uint32_t gfx_cmd_decode(const gfx_cmd *c, char *buf, uint32_t cap);
 typedef struct {
     uint32_t lstrips, strip_log2, bg_id, dst_id;
 } gfx_strip_config;
+/* F3 工作区由调用方独占；封表后直到完成前不得复用。 */
+typedef struct {
+    gfx_cmd cmd;
+    uint16_t first_strip, last_strip;
+    uint32_t logical_index, reserved[2];
+} gfx_strip_plan_item;
+_Static_assert(sizeof(gfx_strip_plan_item)==48u,"plan item layout");
+typedef struct {
+    gfx_strip_plan_item *items;
+    uint32_t item_cap;
+    uint32_t *refs;
+    uint32_t ref_cap;
+    uint32_t count[32],offset[32],cursor[32];
+    uint32_t items_used,refs_used;
+    int sealed;
+} gfx_strip_workspace;
+typedef struct {
+    uint32_t key[17];
+    uint32_t leading,trailing,pieces;
+    int valid;
+} gfx_geometry_entry;
+typedef struct {
+    gfx_geometry_entry entry[8];
+    uint32_t hits,misses;
+    uint32_t generation;
+    gfx_geometry_entry *active;
+} gfx_geometry_cache;
+struct gfx_frame_plan;
 int gfx_strip_config_check(const gfx_surface_table *t, const gfx_strip_config *cfg);
 int gfx_strip_cmd_check(const gfx_surface_table *t, const gfx_strip_config *cfg,
                         const gfx_cmd *c);
@@ -67,6 +95,9 @@ typedef struct {
     gfx_strip_config         strips;
     gfx_rect                 build_clip;
     int                      ended;          /* 已经追加过 END */
+    gfx_strip_workspace     *planned;        /* NULL 保持即时物化 */
+    gfx_geometry_cache      *geometry;       /* NULL 使用原几何算法 */
+    struct gfx_frame_plan   *frame;          /* 多 pass 提交上下文，应用显式绑定 */
 } gfx_list;
 
 void gfx_list_begin(gfx_list *l, gfx_cmd *buf, uint32_t cap,
@@ -80,6 +111,12 @@ int gfx_list_begin_strips(gfx_list *l, void *table, uint32_t bytes,
                            const gfx_surface_table *t, const gfx_strip_config *cfg,
                            const gfx_rect *initial_clip);
 int gfx_strip_append(gfx_list *l, const gfx_cmd *c);
+int gfx_list_begin_strips_planned(gfx_list *l, void *table, uint32_t bytes,
+                                 const gfx_surface_table *t, const gfx_strip_config *cfg,
+                                 const gfx_rect *clip, gfx_strip_workspace *workspace);
+/* 每张表显式绑定并清空缓存；命中仍检查当前坐标的全包含条件。 */
+int gfx_list_geometry(gfx_list *l, gfx_geometry_cache *cache);
+int gfx_list_geometry_generation(gfx_list *l,uint32_t generation);
 
 /* 五个追加函数的返回值口径一致：
      0            已追加

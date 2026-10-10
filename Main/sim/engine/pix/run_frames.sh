@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 mkdir -p build/frames
 gcc -O2 -std=c11 -Wall -Wextra -Werror -I../../../sw/lib \
     -o build/pix_cases_dump ../../../tools/check/pix_cases_dump.c \
-    ../../../sw/lib/gfx/list.c ../../../sw/lib/gfx/strip.c ../../../sw/lib/gfx/check.c \
+    ../../../sw/lib/gfx/list.c ../../../sw/lib/gfx/strip.c ../../../sw/lib/gfx/strip_plan.c ../../../sw/lib/gfx/check.c \
     ../../../sw/lib/gfx/exec_sw.c ../../../sw/lib/gfx/cases.c \
     ../../../sw/lib/core/format.c
 for i in {0..10}; do

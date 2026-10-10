@@ -2,6 +2,10 @@
 
 | 文件 | 用途 | 什么时候跑 |
 | --- | --- | --- |
+| `check_frontend.py` | F1～F3 的 sanitizer、成功封表/错误差分、独立像素、生产变异、完整宿主回放、异步流水与板测日志拒绝检查 | `--models --legacy --pipeline`；`--host flat strip planned template both static prepass combo`；`--summarize --production` 汇总成本和最终流水；单份板测用 `--board-log` 配合 `--modes` / `--scenes`，见 [frontend/README](../../sim/engine/frontend/README.md) |
+| `run_frontend_board.py` | Windows 调用 WSL 编译并用现有 board_run 做 JTAG/DDR 装载，集中登记部署 BIN | 指定 `--tag`、`--flags=...`；`--bit` 可复用候选 bit，默认不写 Flash；首次加载 bit 后可 `--no-program` |
+| `validate_frontend_board.py` | 顺序执行 F1～F3 的独立 CRC/PERF/padding、缓存与阶段计量、同 BIN 两缓存、采样、切换和失败回归 | Windows 的 Efinity Python 运行；可用 `--wait-log` 等已启动的成本矩阵结束；需独占 COM11/JTAG，日志入 frontend/logs |
+| `frontend_report_figures.py` | 从正式接口生成 F1～F3 的三张原生 SVG 架构图 | 报告接口或布局变更后运行；生成后渲染目检，PNG 放忽略 build/ |
 | `rebuild_frontend_baseline.py` | 从冻结源码及 `1e2cd8d` 隔离重建 F1 首轮，与唯一部署清单预期身份比较 | WSL 运行，可指定 `--riscv-prefix <RISCV_BIN>`；结果见 frontend/logs，临时源码结束后清理 |
 | `research_strip_frontend.py` | 绘制前端方案研究：既有 G4 CSV 的分型回归、1680 份真实状态的分阶段记录计数，观察版与未改生产构造的完整字节/记账对照 | 仓库根在 WSL 运行 `python3 Main/tools/check/research_strip_frontend.py`；摘要与范围见 [frontend/README](../../sim/engine/frontend/README.md)，不操作板卡 |
 | `check_g2_band.py` | G2 正式数据面：软件执行器金标准与 ASan/UBSan、真实全部核/协议/参数、八个定向变异；独立综合准备/采集、主综合复核、板测身份与功能登记 | 默认由 band/run.sh 跑 17 项；综合用 --prepare-syn/--collect-syn、--collect-main；新板测用 --record-board，未变产物不重复登记 |

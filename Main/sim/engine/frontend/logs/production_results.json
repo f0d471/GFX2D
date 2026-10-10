@@ -1,0 +1,185 @@
+{
+  "tex": {
+    "source": "Main/sim/engine/frontend/logs/perf_pipeline_tex.log",
+    "csvsum": [
+      1200,
+      2401,
+      1201,
+      1909235,
+      1909235,
+      39,
+      0
+    ],
+    "diagnostics": {
+      "fifo_min": 337,
+      "samples": 1200,
+      "zero": 0,
+      "under": 0,
+      "irqA": 3062,
+      "irqB": 1200,
+      "faults": 0,
+      "swap_retry": 0
+    },
+    "steady_rows": 37,
+    "discarded_rows": 2,
+    "mean": {
+      "n_bullet": 2309.4594594594596,
+      "cmd": 2520.3513513513512,
+      "pixel": 941111.4594594594,
+      "cyc_logic": 363884.7297297297,
+      "cyc_build": 1297722.4324324324,
+      "cyc_exec": 1909133.3783783785,
+      "cpu_avg_cyc": 1692486.054054054,
+      "engine_busy_avg_cyc": 1906825.945945946,
+      "fps_milli": 30000
+    },
+    "min": {
+      "n_bullet": 2281,
+      "cmd": 2492,
+      "pixel": 935164,
+      "cyc_logic": 352878,
+      "cyc_build": 1284741,
+      "cyc_exec": 1898283,
+      "cpu_avg_cyc": 1686537,
+      "engine_busy_avg_cyc": 1898234,
+      "fps_milli": 30000
+    },
+    "max": {
+      "n_bullet": 2327,
+      "cmd": 2538,
+      "pixel": 946070,
+      "cyc_logic": 373852,
+      "cyc_build": 1304082,
+      "cyc_exec": 1918992,
+      "cpu_avg_cyc": 1698693,
+      "engine_busy_avg_cyc": 1914212,
+      "fps_milli": 30000
+    },
+    "bottlenecks": [
+      "engine"
+    ],
+    "note": "One 1200-frame production run per backend, 16x16 K1984 after 1200-step prewarm; advancing states differ with pacing. Not a paired frozen-state comparison or Nmax confirmation."
+  },
+  "strip": {
+    "source": "Main/sim/engine/frontend/logs/perf_pipeline_strip.log",
+    "csvsum": [
+      1200,
+      3601,
+      2401,
+      3774253,
+      3774253,
+      60,
+      0
+    ],
+    "diagnostics": {
+      "fifo_min": 346,
+      "samples": 1200,
+      "zero": 0,
+      "under": 0,
+      "irqA": 4257,
+      "irqB": 1200,
+      "faults": 0,
+      "swap_retry": 0
+    },
+    "steady_rows": 58,
+    "discarded_rows": 2,
+    "mean": {
+      "n_bullet": 2309.7413793103447,
+      "cmd": 5181.568965517241,
+      "pixel": 941238.5,
+      "cyc_logic": 377863.4655172414,
+      "cyc_build": 3351221.9655172415,
+      "cyc_exec": 3787253.396551724,
+      "cpu_avg_cyc": 3725226.4482758623,
+      "engine_busy_avg_cyc": 1191456.1379310344,
+      "fps_milli": 20000
+    },
+    "min": {
+      "n_bullet": 2286,
+      "cmd": 5135,
+      "pixel": 935652,
+      "cyc_logic": 366679,
+      "cyc_build": 3327466,
+      "cyc_exec": 3752461,
+      "cpu_avg_cyc": 3710000,
+      "engine_busy_avg_cyc": 1188104,
+      "fps_milli": 20000
+    },
+    "max": {
+      "n_bullet": 2326,
+      "cmd": 5226,
+      "pixel": 946012,
+      "cyc_logic": 388940,
+      "cyc_build": 3371837,
+      "cyc_exec": 3815311,
+      "cpu_avg_cyc": 3738775,
+      "engine_busy_avg_cyc": 1195348,
+      "fps_milli": 20000
+    },
+    "bottlenecks": [
+      "cpu"
+    ],
+    "note": "One 1200-frame production run per backend, 16x16 K1984 after 1200-step prewarm; advancing states differ with pacing. Not a paired frozen-state comparison or Nmax confirmation."
+  },
+  "prepass": {
+    "source": "Main/sim/engine/frontend/logs/perf_pipeline_prepass.log",
+    "csvsum": [
+      1200,
+      3601,
+      2401,
+      3639148,
+      3639148,
+      60,
+      0
+    ],
+    "diagnostics": {
+      "fifo_min": 347,
+      "samples": 1200,
+      "zero": 0,
+      "under": 0,
+      "irqA": 4262,
+      "irqB": 2400,
+      "faults": 0,
+      "swap_retry": 0
+    },
+    "steady_rows": 58,
+    "discarded_rows": 2,
+    "mean": {
+      "n_bullet": 2309.7413793103447,
+      "cmd": 4610.931034482759,
+      "pixel": 941238.5,
+      "cyc_logic": 382327.4655172414,
+      "cyc_build": 2885700.706896552,
+      "cyc_exec": 3644947.7586206896,
+      "cpu_avg_cyc": 3268348.827586207,
+      "engine_busy_avg_cyc": 1220842.4310344828,
+      "fps_milli": 20000
+    },
+    "min": {
+      "n_bullet": 2286,
+      "cmd": 4565,
+      "pixel": 935652,
+      "cyc_logic": 369355,
+      "cyc_build": 2865298,
+      "cyc_exec": 3611262,
+      "cpu_avg_cyc": 3252448,
+      "engine_busy_avg_cyc": 1217318,
+      "fps_milli": 20000
+    },
+    "max": {
+      "n_bullet": 2326,
+      "cmd": 4657,
+      "pixel": 946012,
+      "cyc_logic": 389542,
+      "cyc_build": 2905802,
+      "cyc_exec": 3670209,
+      "cpu_avg_cyc": 3283547,
+      "engine_busy_avg_cyc": 1224528,
+      "fps_milli": 20000
+    },
+    "bottlenecks": [
+      "cpu"
+    ],
+    "note": "One 1200-frame production run per backend, 16x16 K1984 after 1200-step prewarm; advancing states differ with pacing. Not a paired frozen-state comparison or Nmax confirmation."
+  }
+}

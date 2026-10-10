@@ -1,0 +1,37 @@
+{
+  "strip": {
+    "text_rodata": 90168,
+    "data": 44974,
+    "bss": 978156
+  },
+  "planned": {
+    "text_rodata": 90344,
+    "data": 44974,
+    "bss": 978980
+  },
+  "template": {
+    "text_rodata": 90196,
+    "data": 44978,
+    "bss": 979532
+  },
+  "both": {
+    "text_rodata": 90364,
+    "data": 44978,
+    "bss": 980356
+  },
+  "static": {
+    "text_rodata": 90336,
+    "data": 44974,
+    "bss": 978540
+  },
+  "prepass": {
+    "text_rodata": 90336,
+    "data": 44974,
+    "bss": 978540
+  },
+  "combo": {
+    "text_rodata": 90556,
+    "data": 44978,
+    "bss": 980740
+  }
+}

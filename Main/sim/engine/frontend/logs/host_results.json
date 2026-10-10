@@ -1,0 +1,34 @@
+{
+  "host_flat": {
+    "frames": 9208,
+    "fail0": true
+  },
+  "host_strip": {
+    "frames": 9208,
+    "fail0": true
+  },
+  "host_planned": {
+    "frames": 9208,
+    "fail0": true
+  },
+  "host_template": {
+    "frames": 9208,
+    "fail0": true
+  },
+  "host_both": {
+    "frames": 9208,
+    "fail0": true
+  },
+  "host_static": {
+    "frames": 9208,
+    "fail0": true
+  },
+  "host_prepass": {
+    "frames": 9208,
+    "fail0": true
+  },
+  "host_combo": {
+    "frames": 9208,
+    "fail0": true
+  }
+}

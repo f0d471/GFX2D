@@ -80,7 +80,7 @@ def replay_progress(reference, actual):
 def host():
     import os
     libs = [MAIN / 'sw/lib' / x for x in
-            ('gfx/list.c', 'gfx/strip.c', 'gfx/check.c', 'core/format.c')]
+            ('gfx/list.c', 'gfx/strip.c', 'gfx/strip_plan.c', 'gfx/check.c', 'core/format.c')]
     run('batch_compile', ['gcc', '-std=c11', '-O1', '-g', '-Wall', '-Wextra', '-Werror',
                          '-fsanitize=address,undefined', '-I' + str(MAIN / 'sw/lib'),
                          SIM / 'test_batch.c', *libs, '-o', BUILD / 'test_batch'])

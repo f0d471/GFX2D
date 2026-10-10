@@ -6,11 +6,16 @@ SW8 统计埋点（[`../../../Engineering/TechReports/sw/07-演示模式与统�
 | 文件 | 用途 |
 | --- | --- |
 | `plot_stats.py` | 读日志里的 `csvh`、`csv`、`csvsum` 与 `nmax` 几种行，出三张图的 HTML+SVG 源码：按混合方程的像素占比、帧时间分布、`N_max` 搜索轨迹 |
+| `plot_frontend.py` | 读取 F1 原始基线摘要和 17 状态物理记录摘要，生成 TechReports 的构造周期及背景候选动态表片段曲线；不把宿主周期作性能 |
 
 只用标准库（WSL 的 python3 没有 matplotlib）。PC 的标准输出与板上 `board_run.py` 录下的串口日志都能读：
 行尾的 `\r`、`#` 开头的标记行与其它日志行都跳过。
 
 ## 用法
+
+绘制前端曲线在仓库根运行 `python3 Main/tools/stats/plot_frontend.py`，复用
+本目录既有标准库 SVG 函数。输入必须有完整 34 组基线和 170 组物理计数，
+缺组即失败；输出在 TechReports engine/sw 的 `fig/`，提交前渲染目检。
 
 ```
 wsl -e python3 Main/tools/stats/plot_stats.py --out Deliverables/Assert/figures/src [--prefix sw8_] [--ref-s1] \

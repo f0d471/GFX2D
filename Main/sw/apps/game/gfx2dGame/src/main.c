@@ -66,6 +66,7 @@
 #include "stg_modes.h"
 #include "stg_slots.h"
 #include "renderer.h"
+#include "frontend_game.h"
 #include <string.h>
 
 /* --- 全局状态（都是静态的，不用 malloc）--------------------------------- */
@@ -902,6 +903,9 @@ static stg_main_ctx mode_ctx(void)
 
 static void mode_enter(uint32_t m)
 {
+    if(frontend_game_reset()) {
+        board_puts("frontend lease busy\r\n");s_fail++;return;
+    }
     exec_sw_reset(&s_es);
     s_enter_clip  = s_es.clip;
     s_mode        = m;
@@ -1128,6 +1132,9 @@ static void sample_frame(void)
         view.strips = (gfx_strip_config){480u >> GFX2D_STRIP_LOG2,
                                          GFX2D_STRIP_LOG2, idx, idx};
         view.used = used;
+#if GFX_FRONTEND_BACKGROUND
+        view.frame=s_mout.frame_plan;
+#endif
         if (renderer_list_census(&s_tab, &view, &cc) != 0)
             s_fail++;
         stats_sample_counted(&s_stats, &cc, &smp);
@@ -1225,6 +1232,9 @@ static int run_modes(void)
             }
             if (presented >= 0)
                 s_shown = presented;
+            if(frontend_game_reset()) {
+                board_puts("frontend lease busy\r\n");s_fail++;continue;
+            }
             if (backend_apply(nb) != 0) {
                 nb = 1u;                            /* 覆盖层失败：退回 HW/DDR */
                 (void)backend_apply(nb);

@@ -1,0 +1,15 @@
+CC src/frontend_game.c
+CC src/gfx2d_stats.c
+CC src/main.c
+CC src/renderer.c
+CC src/stg_main.c
+CC src/stg_modes.c
+CC src/game/sw6_hud.c
+CC src/game/sw6_input.c
+CC src/game/sw6_report.c
+CC src/game/sw6_scene_a.c
+CC src/game/sw6_scene_b.c
+CC lib/gfx/strip.c
+CC bsp/memmap.c
+CC bsp/host/board.c
+LD build_frontend_combo/gfx2dGame
