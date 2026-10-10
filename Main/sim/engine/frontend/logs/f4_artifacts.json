@@ -10,24 +10,24 @@
     "sha256": "67bf2c29bf6540d0cb5fcfb61d013d8f50b9f6d91cd9163dff7ae503786cf3d0"
   },
   "Main/sw/apps/probe/frontendBench/build_f4_ab/frontendBench-O2.bin": {
-    "size": 148238,
-    "mtime_ns": 1791641098142228600,
-    "sha256": "f8e3e1d6e4fc52618e01ac9a869fada5de179f374a32bc5000c5f2cabbb2e413"
+    "size": 148886,
+    "mtime_ns": 1791646824050664800,
+    "sha256": "70b392a8db5ed4ab35787c2e57cbb60ee20564d8e9dc0feaf0520530da586cd9"
   },
   "Main/sw/apps/probe/frontendBench/build_f4_verify/frontendBench-O2.bin": {
-    "size": 150326,
-    "mtime_ns": 1791641103238408800,
-    "sha256": "ea9c15b1d557f9d70de1b874f971a04f6f36c72838d6bcdcc7d977867b2b4af3"
+    "size": 150974,
+    "mtime_ns": 1791646831127496800,
+    "sha256": "c18764e8d6115873067dee168d50777345bbf4fbea6db26c74765afb2e055b79"
   },
   "Main/sw/apps/game/gfx2dGame/build_f4_nmax_base/gfx2dGame-O2-perf.bin": {
-    "size": 111254,
-    "mtime_ns": 1791641113358960800,
-    "sha256": "81e8303590cafc7b1f7936f41834e27743ebef69cc93435a0a41e1bc0b40a641"
+    "size": 111902,
+    "mtime_ns": 1791648312450836000,
+    "sha256": "9c8935b14c6eaa8efb0b500a44c4fc058dbeccc602e0680bc552604fe8780f47"
   },
   "Main/sw/apps/game/gfx2dGame/build_f4_nmax_inst/gfx2dGame-O2-perf.bin": {
-    "size": 111534,
-    "mtime_ns": 1791641118185172300,
-    "sha256": "fdcdc18366d521b1da28d322c57e239eb471bc249f473e68cff07219c05f9425"
+    "size": 112182,
+    "mtime_ns": 1791646843360631400,
+    "sha256": "ed828694f1c430330af7770f26aaee80a4682d5def5dbfbe4cea0b0552745f9b"
   },
   "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit": {
     "size": 2507232,
@@ -154,16 +154,52 @@
       "mtime_ns": 1791640749010272500,
       "sha256": "ffd46fbe8432d839940f969b9a69012783b7d071891181163fcd68a75686a0db",
       "path": "Main/sw/apps/test/instanceTest/build_f4_fallback/instanceTest-O2.bin"
+    },
+    "d638ae1aa43c6ae3798e5f90ca94e6718fa23accf10c41997b1675afb396c3c7": {
+      "size": 245894,
+      "mtime_ns": 1791640753574659000,
+      "sha256": "d638ae1aa43c6ae3798e5f90ca94e6718fa23accf10c41997b1675afb396c3c7",
+      "path": "Main/sw/apps/probe/f4Bench/build_f4_research_fixed/f4Bench-O2.bin"
+    },
+    "f8e3e1d6e4fc52618e01ac9a869fada5de179f374a32bc5000c5f2cabbb2e413": {
+      "size": 148238,
+      "mtime_ns": 1791641098142228600,
+      "sha256": "f8e3e1d6e4fc52618e01ac9a869fada5de179f374a32bc5000c5f2cabbb2e413",
+      "path": "Main/sw/apps/probe/frontendBench/build_f4_ab/frontendBench-O2.bin"
+    },
+    "ea9c15b1d557f9d70de1b874f971a04f6f36c72838d6bcdcc7d977867b2b4af3": {
+      "size": 150326,
+      "mtime_ns": 1791641103238408800,
+      "sha256": "ea9c15b1d557f9d70de1b874f971a04f6f36c72838d6bcdcc7d977867b2b4af3",
+      "path": "Main/sw/apps/probe/frontendBench/build_f4_verify/frontendBench-O2.bin"
+    },
+    "2875b8510056563d22dc3172477d05001cc9fabac385232f252c5eb3cd90899f": {
+      "size": 111558,
+      "mtime_ns": 1791641107965729200,
+      "sha256": "2875b8510056563d22dc3172477d05001cc9fabac385232f252c5eb3cd90899f",
+      "path": "Main/sw/apps/game/gfx2dGame/build_f4_pressure_check/gfx2dGame-O2-perf.bin"
+    },
+    "fdcdc18366d521b1da28d322c57e239eb471bc249f473e68cff07219c05f9425": {
+      "size": 111534,
+      "mtime_ns": 1791641118185172300,
+      "sha256": "fdcdc18366d521b1da28d322c57e239eb471bc249f473e68cff07219c05f9425",
+      "path": "Main/sw/apps/game/gfx2dGame/build_f4_nmax_inst/gfx2dGame-O2-perf.bin"
+    },
+    "81e8303590cafc7b1f7936f41834e27743ebef69cc93435a0a41e1bc0b40a641": {
+      "size": 111254,
+      "mtime_ns": 1791641113358960800,
+      "sha256": "81e8303590cafc7b1f7936f41834e27743ebef69cc93435a0a41e1bc0b40a641",
+      "path": "Main/sw/apps/game/gfx2dGame/build_f4_nmax_base/gfx2dGame-O2-perf.bin"
     }
   },
   "Main/sw/apps/probe/f4Bench/build_f4_research_fixed/f4Bench-O2.bin": {
-    "size": 245894,
-    "mtime_ns": 1791640753574659000,
-    "sha256": "d638ae1aa43c6ae3798e5f90ca94e6718fa23accf10c41997b1675afb396c3c7"
+    "size": 246534,
+    "mtime_ns": 1791646816896577800,
+    "sha256": "1e8decb6421e4efd3fcf61d9c9588d209590b9382bf5c4467b95768be1b1d621"
   },
   "Main/sw/apps/game/gfx2dGame/build_f4_pressure_check/gfx2dGame-O2-perf.bin": {
-    "size": 111558,
-    "mtime_ns": 1791641107965729200,
-    "sha256": "2875b8510056563d22dc3172477d05001cc9fabac385232f252c5eb3cd90899f"
+    "size": 112206,
+    "mtime_ns": 1791646837219966900,
+    "sha256": "9058fc39f11d8b750ce571dc948b96db3eeb99a140759053cf0e5c8e70ffbc14"
   }
 }

@@ -1,5 +1,5 @@
-WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:221: $readmemh(/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/build/f4/fixtures/case66.cmd.hex): Not enough words in the file for the requested range [0:4095].
-WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:226: $readmemh(/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/build/f4/fixtures/case66.init.hex): Not enough words in the file for the requested range [0:8191].
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:229: $readmemh(/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/build/f4/fixtures/case66.cmd.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:234: $readmemh(/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/build/f4/fixtures/case66.init.hex): Not enough words in the file for the requested range [0:8191].
 INSTANCE mismatch count=32 want=62 err=4294967295 index=0 tag=0
 PERF-PIXEL got=133 want=231 (pixels=832 src_oob=601)
 MEM addr=00005010 got=ff605925ff571e42ff066045ff4e5f39 want=0073786a000273560033595aff4e5f39
@@ -10,6 +10,7 @@ MEM addr=00005050 got=00181d6400280d22006b3e3c00196308 want=00181d6400280d22006b
 MEM addr=00005080 got=00065c0600640f40ff2e4f2bff0e2915 want=002d281900505323ff2e4f2bff0e2915
 MEM addr=00005090 got=002e1a3100765f5f00616370005f1b2d want=004b553d003d0e2100073d1b006a1c0e
 MEM addr=000050a0 got=00650346000b440300321702007b3d25 want=00650346000b440300657f6000631723
+PROFILE fetch_cycles=189 decode_cycles=256 geometry_cycles=208 pixel_output_beats=44
 FRAME cycles=840 rd_burst=16 rd_beat=82 wr_burst=12 wr_beat=44 pixel=133 key=0 cmd=4 mem_bad=17
 RESULT: FAIL (frame)
-/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:391: $finish called at 18005000 (1ps)
+/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:401: $finish called at 18005000 (1ps)

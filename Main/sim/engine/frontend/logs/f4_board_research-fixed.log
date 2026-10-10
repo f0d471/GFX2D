@@ -1,20 +1,20 @@
-# COM11 @ 115200 8N1, opened 22:33:21
+# COM11 @ 115200 8N1, opened 23:40:54
 f4Bench start
 scene=scene00_mode0 n=207 segs=22 verify=172 vbatch=172
 # --- 程序已加载，以下才是它的输出 ---
-round0 base=62089 inst=49983 instb=19979
-round1 base=62089 inst=49983 instb=19979
-round2 base=62089 inst=49984 instb=19979
+round0 base=74336 inst=49689 instb=19888
+round1 base=74336 inst=49690 instb=19889
+round2 base=74336 inst=49689 instb=19889
 scene=scene04_mode0 n=2529 segs=23 verify=2494 vbatch=2494
-round0 base=333523 inst=579620 instb=196260
-round1 base=333525 inst=579620 instb=196260
-round2 base=333523 inst=579620 instb=196260
+round0 base=346047 inst=573022 instb=196275
+round1 base=346047 inst=573022 instb=196275
+round2 base=346047 inst=573026 instb=196275
 scene=scene14_mode0 n=2895 segs=26 verify=2860 vbatch=2860
-round0 base=382734 inst=657864 instb=256219
-round1 base=382653 inst=657864 instb=256219
-round2 base=382653 inst=657864 instb=256219
+round0 base=396794 inst=660415 instb=255859
+round1 base=396794 inst=660414 instb=255858
+round2 base=396794 inst=660414 instb=255858
 crc=0=0=0=0=0=0=0=0=0
 fail 0
 done
 
-# closed 22:34:41, 609 bytes
+# closed 23:42:15, 609 bytes
