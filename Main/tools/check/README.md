@@ -2,6 +2,7 @@
 
 | 文件 | 用途 | 什么时候跑 |
 | --- | --- | --- |
+| `rebuild_frontend_baseline.py` | 从冻结源码及 `1e2cd8d` 隔离重建 F1 首轮，与唯一部署清单预期身份比较 | WSL 运行，可指定 `--riscv-prefix <RISCV_BIN>`；结果见 frontend/logs，临时源码结束后清理 |
 | `research_strip_frontend.py` | 绘制前端方案研究：既有 G4 CSV 的分型回归、1680 份真实状态的分阶段记录计数，观察版与未改生产构造的完整字节/记账对照 | 仓库根在 WSL 运行 `python3 Main/tools/check/research_strip_frontend.py`；摘要与范围见 [frontend/README](../../sim/engine/frontend/README.md)，不操作板卡 |
 | `check_g2_band.py` | G2 正式数据面：软件执行器金标准与 ASan/UBSan、真实全部核/协议/参数、八个定向变异；独立综合准备/采集、主综合复核、板测身份与功能登记 | 默认由 band/run.sh 跑 17 项；综合用 --prepare-syn/--collect-syn、--collect-main；新板测用 --record-board，未变产物不重复登记 |
 | `localize_paths.py` | 展开、还原厂商生成物里的绝对路径；扫描整个仓库里的机器专属路径 | 克隆后 `--apply`；提交前暂存源码，`--restore` 再 `--check --tracked`；全目录检查用 `--check` |
