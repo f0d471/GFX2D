@@ -44,10 +44,118 @@ typedef struct {
 static f4_seg segs[SEG_CAP];
 
 static uint64_t base_sum[ROUNDS], inst_sum[ROUNDS], instb_sum[ROUNDS];
+static uint64_t bin_sum[ROUNDS];
 static uint32_t base_min[ROUNDS], base_max[ROUNDS];
 static uint32_t inst_min[ROUNDS], inst_max[ROUNDS];
 static uint32_t instb_min[ROUNDS], instb_max[ROUNDS];
-static uint32_t crcs[ROUNDS * 3u];
+/* F5 研究路径：软件模拟硬件 binner 的两遍遍历（COUNT/SNAPSHOT 与 SCATTER）。
+   逐条口径（每条绘制一个引用候选），与宿主 f5_pb_analysis.py 同语义：
+   clip 从全屏开始、SET_CLIP 截断到屏幕、目的窗口与源有效区求交后按
+   16 行条带计引用；COUNT 与 SCATTER 各完整重放一次输入流。 */
+#define PBREF_CAP (96u * 1024u)
+#define STRIP_H_B 16u
+#define LSTRIPS_B 30u
+
+static uint8_t pbref[PBREF_CAP];
+static uint32_t pbcounts[32];
+static uint32_t pbdirs[32];
+
+/* 一遍遍历：write=0 只计数（COUNT/SNAPSHOT），write=1 写引用（SCATTER）。
+   返回 SCATTER 写出的引用数。 */
+static uint32_t softbin_pass(const gfx_cmd *in, uint32_t n, int write)
+{
+    uint32_t i, s, written = 0;
+    uint32_t cursor[32];
+    int32_t cx0 = 0, cy0 = 0, cx1 = (int32_t)640 - 1, cy1 = (int32_t)480 - 1;
+    if (write) {
+        memset(cursor, 0, sizeof cursor);
+        memset(pbref, 0, sizeof pbref);
+    } else {
+        memset(pbcounts, 0, sizeof pbcounts);
+    }
+    for (i = 0; i < n; i++) {
+        const gfx_cmd *c = &in[i];
+        uint32_t op = gfx_op(c);
+        if (op == GFX_OP_END)
+            break;
+        if (op == GFX_OP_SET_CLIP) {
+            int32_t x = gfx_s16(c->w[1]), y = gfx_s16(c->w[1] >> 16);
+            cx0 = x > 0 ? x : 0;
+            cy0 = y > 0 ? y : 0;
+            cx1 = x + (int32_t)gfx_u16(c->w[3]) - 1;
+            cy1 = y + (int32_t)gfx_u16(c->w[3] >> 16) - 1;
+            if (cx1 > (int32_t)640 - 1) cx1 = (int32_t)640 - 1;
+            if (cy1 > (int32_t)480 - 1) cy1 = (int32_t)480 - 1;
+            continue;
+        }
+        if (op != GFX_OP_BLIT && op != GFX_OP_FILL)
+            continue;
+        {
+            uint32_t w = gfx_u16(c->w[3]), h = gfx_u16(c->w[3] >> 16);
+            int32_t dx = gfx_s16(c->w[2]), dy = gfx_s16(c->w[2] >> 16);
+            int32_t x0, x1, y0, y1;
+            if (!w || !h)
+                continue;
+            x0 = dx > 0 ? dx : 0;
+            y0 = dy > 0 ? dy : 0;
+            x1 = dx + (int32_t)w - 1;
+            y1 = dy + (int32_t)h - 1;
+            if (x1 > (int32_t)640 - 1) x1 = (int32_t)640 - 1;
+            if (y1 > (int32_t)480 - 1) y1 = (int32_t)480 - 1;
+            if (cx0 > x0) x0 = cx0;
+            if (cy0 > y0) y0 = cy0;
+            if (cx1 < x1) x1 = cx1;
+            if (cy1 < y1) y1 = cy1;
+            if ((int32_t)gfx_surf_height(&tab.s[gfx_dst(c)]) - 1 < y1)
+                y1 = (int32_t)gfx_surf_height(&tab.s[gfx_dst(c)]) - 1;
+            if (op == GFX_OP_BLIT) {
+                const gfx_surf_raw *ss = &tab.s[gfx_src(c)];
+                int32_t sx = gfx_s16(c->w[1]), sy = gfx_s16(c->w[1] >> 16);
+                int32_t xmin = dx - sx, ymin = dy - sy;
+                int32_t xmax = xmin + (int32_t)gfx_surf_width(ss) - 1;
+                int32_t ymax = ymin + (int32_t)gfx_surf_height(ss) - 1;
+                if (xmin > x0) x0 = xmin;
+                if (ymin > y0) y0 = ymin;
+                if (xmax < x1) x1 = xmax;
+                if (ymax < y1) y1 = ymax;
+            }
+            if (x0 > x1 || y0 > y1)
+                continue;
+            {
+                uint32_t s0 = (uint32_t)y0 / STRIP_H_B;
+                uint32_t s1 = (uint32_t)y1 / STRIP_H_B;
+                for (s = s0; s <= s1 && s < LSTRIPS_B; s++) {
+                    if (!write) {
+                        pbcounts[s]++;
+                        continue;
+                    }
+                    if (pbdirs[s] + (cursor[s] + 1u) * 8u > PBREF_CAP)
+                        continue;
+                    {
+                        uint8_t *r = pbref + pbdirs[s] + cursor[s] * 8u;
+                        r[0] = (uint8_t)i; r[1] = (uint8_t)(i >> 8);
+                        r[2] = (uint8_t)(i >> 16); r[3] = (uint8_t)(i >> 24);
+                        r[4] = 0xFFu; r[5] = 0xFFu; r[6] = 0xFFu; r[7] = 0xFFu;
+                        cursor[s]++;
+                        written++;
+                    }
+                }
+            }
+        }
+    }
+    return written;
+}
+
+static void softbin_prefix(void)
+{
+    uint32_t s, off = 0;
+    for (s = 0; s < LSTRIPS_B; s++) {
+        pbdirs[s] = off;
+        off += (pbcounts[s] * 8u + 15u) & ~15u;
+    }
+}
+
+static uint32_t crcs[ROUNDS * 4u];
 
 static void number(uint32_t v)
 {
@@ -221,7 +329,7 @@ static uint64_t run_baseline(const f4_seg *s, uint32_t nseg,
                 lo = cyc;
             if (cyc > hi)
                 hi = cyc;
-            crcs[round * 3u] ^= crc32_ieee(listbuf, 32u * used);
+            crcs[round * 4u] ^= crc32_ieee(listbuf, 32u * used);
         }
     }
     base_min[round] = lo;
@@ -246,7 +354,7 @@ static uint64_t run_inst(f4_builder *b, const gfx_cmd *in, uint32_t n, uint32_t 
                 lo = cyc;
             if (cyc > hi)
                 hi = cyc;
-            crcs[round * 3u + 1u] ^= crc32_ieee(b->stream, 32u * b->used)
+            crcs[round * 4u + 1u] ^= crc32_ieee(b->stream, 32u * b->used)
                                    ^ crc32_ieee(b->arena, b->arena_used);
         }
     }
@@ -279,7 +387,7 @@ static uint64_t run_batch(f4_builder *b, const f4_seg *s, uint32_t nseg, uint32_
                 lo = cyc;
             if (cyc > hi)
                 hi = cyc;
-            crcs[round * 3u + 2u] ^= crc32_ieee(b->stream, 32u * b->used)
+            crcs[round * 4u + 2u] ^= crc32_ieee(b->stream, 32u * b->used)
                                    ^ crc32_ieee(b->arena, b->arena_used);
         }
     }
@@ -288,9 +396,35 @@ static uint64_t run_batch(f4_builder *b, const f4_seg *s, uint32_t nseg, uint32_
     return sum;
 }
 
+static uint64_t run_softbin(const gfx_cmd *in, uint32_t n, uint32_t round)
+{
+    uint64_t sum = 0;
+    uint32_t lo = 0xFFFFFFFFu, hi = 0, it;
+    for (it = 0; it < F4_WARMUP + F4_ITERS; it++) {
+        uint32_t t0, cyc, w;
+        t0 = board_cycles();
+        softbin_pass(in, n, 0);
+        softbin_prefix();
+        w = softbin_pass(in, n, 1);
+        cyc = board_cycles() - t0;
+        if (it >= F4_WARMUP) {
+            sum += cyc;
+            if (cyc < lo)
+                lo = cyc;
+            if (cyc > hi)
+                hi = cyc;
+            crcs[round * 4u + 3u] ^= crc32_ieee(pbref, w * 8u)
+                                   ^ crc32_ieee((const uint8_t *)pbcounts,
+                                                sizeof pbcounts);
+        }
+    }
+
+    return sum;
+}
+
 int main(void)
 {
-    uint32_t s,failed=0;
+    uint32_t s,failed=0,mbin=0;
     crc32_init();
     board_puts("f4Bench start\n");
     for (s = 0; s < f4_scene_count; s++) {
@@ -318,10 +452,20 @@ int main(void)
         board_puts("\n");
         if (vk < 0 || vb < 0) {failed++;break;}
 
+        /* F5 软 binner 的引用数在计时外确认一次（与宿主模型交叉核对） */
+        softbin_pass(in, n, 0);
+        softbin_prefix();
+        {
+            uint32_t m = 0;
+            for (round = 0; round < LSTRIPS_B; round++)
+                m += pbcounts[round];
+            mbin = m;
+        }
         for (round = 0; round < ROUNDS; round++) {
             base_sum[round] = run_baseline(segs, nseg, pos, round);
             inst_sum[round] = run_inst(&builder, in, n, round);
             instb_sum[round] = run_batch(&builder, segs, nseg, round);
+            bin_sum[round] = run_softbin(in, n, round);
         }
         for (round = 0; round < ROUNDS; round++) {
             board_puts("round");
@@ -329,11 +473,14 @@ int main(void)
             field(" base=", (uint32_t)(base_sum[round] / F4_ITERS));
             field(" inst=", (uint32_t)(inst_sum[round] / F4_ITERS));
             field(" instb=", (uint32_t)(instb_sum[round] / F4_ITERS));
+            field(" bin=", (uint32_t)(bin_sum[round] / F4_ITERS));
             board_puts("\n");
         }
+        field(" mbin=", mbin);
+        board_puts("\n");
     }
     board_puts("crc");
-    for (s = 0; s < ROUNDS * 3u; s++)
+    for (s = 0; s < ROUNDS * 4u; s++)
         field("=", crcs[s]);
     board_puts("\n");field("fail ",failed);board_puts("\ndone\n");
     return (int)failed;

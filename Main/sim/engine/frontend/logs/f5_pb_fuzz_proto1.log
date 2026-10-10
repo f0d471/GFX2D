@@ -1,0 +1,7 @@
+正常：882 通过 / 118 容量跳过 / 0 失败（M 对账+像素逐字节）
+变异 clip_last   ：红
+变异 ref_reverse ：红
+变异 skip_inst   ：红
+变异 inst_scalar ：红
+变异 ready_early ：红
+变异 stale_pb    ：红

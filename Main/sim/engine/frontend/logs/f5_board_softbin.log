@@ -1,0 +1,24 @@
+# COM11 @ 115200 8N1, opened 01:41:07
+gfx2dGame MODES
+f4Bench start
+scene=scene00_mode0 n=207 segs=22 verify=172 vbatch=172
+# --- 程序已加载，以下才是它的输出 ---
+round0 base=80985 inst=48415 instb=23082 bin=236281
+round1 base=80986 inst=48415 instb=23082 bin=236281
+round2 base=80986 inst=48535 instb=23082 bin=236281
+ mbin=778
+scene=scene04_mode0 n=2529 segs=23 verify=2494 vbatch=2494
+round0 base=352721 inst=570800 instb=199280 bin=1483026
+round1 base=352721 inst=570775 instb=199280 bin=1483026
+round2 base=352721 inst=570775 instb=199280 bin=1483027
+ mbin=5187
+scene=scene14_mode0 n=2895 segs=26 verify=2860 vbatch=2860
+round0 base=404092 inst=656056 instb=259506 bin=1672989
+round1 base=404092 inst=656056 instb=259289 bin=1672989
+round2 base=404092 inst=656056 instb=259289 bin=1672989
+ mbin=5794
+crc=0=0=0=0=0=0=0=0=0=0=0=0
+fail 0
+done
+
+# closed 01:43:16, 769 bytes

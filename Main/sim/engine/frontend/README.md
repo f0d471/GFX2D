@@ -89,8 +89,11 @@ planned+模板；5 为 B1 底色缓存，6 为 B2 动态 prepass，7/8/9 分别�
 | `logs/switch_uart.log`、`surface_guard_4k.log`、`prepass_failure_pipeline.log` | 正常 UART 三模式四后端、忙态 SURF 保护、故意 prepass 错误 60 帧零交换；旧 switch.log 超时不属于通过证据 |
 | `logs/board_results.json` | 队列完成后的逐消费者判定，不用程序退出码替代功能条件 |
 | `f4_instance_analysis.py`、`f4_instance_stats.json` | F4 研究轮：17 组 v1 输入的合包统计（共享状态键连续区间、XY4/XYUV8、字节压缩），保守口径 |
+| `f5_pb_analysis.py`、`f5_pb_stats.json`、`logs/f5_pb_analysis_proto1.log` | F5 研究轮：17 组冻结输入的 PB v1 容量/引用/取数账；H=16 与生产 v2 表逐场景交叉验证（M、峰值桶），H=32 对照 |
+| `f5_pb_fuzz.c`、`logs/f5_pb_fuzz_proto1.log` | F5 宿主对拍原型：PB v1 构建+独立展开+像素对拍 1000 张，6 类变异见红；编译命令在文件头 |
 | `f4_inst_proto.c` | F4 宿主对拍器：构造+独立展开逐字对拍与边界样例；核心实现在 `sw/apps/probe/f4Bench/src/f4_core.c`（与板测共用） |
 | `logs/f4_bench_proto*.log` | F4 板上三路径测量（base/inst/instb），G4 4KB 主线 bit 纯构造；proto1/2 为过程轮，proto4 为未补 DMA padding 的研究值；修复值与生产收益另列 |
+| `logs/f5_board_softbin.log` | F5 研究板测（2026-10-11）：f4Bench 含 F5 的 `bin` 路径（软件两遍 binner）与 `mbin`（引用数，与宿主模型交叉核对）；部署 BIN 在 f4_artifacts.json 登记，F4 验收 BIN 旧 sha 已入 versions。F4 归档的 `f4_board_research-fixed.log` 未动，两轮 base/inst/instb 的差属跨轮热状态漂移（第 13 章 3.8 口径） |
 | `logs/board_queue.log`、`main_bit_restore.log` | 队列结束与 16KB 对照后主线位流恢复的原始输出 |
 | `logs/interactive_restore.log`、`interactive_restore_summary.json` | 注错结束后恢复当前正常 TEX 交互版；8 个启动窗口 59～60 fps、drop 最大 1，仅为短观察 |
 

@@ -190,12 +190,18 @@
       "mtime_ns": 1791641113358960800,
       "sha256": "81e8303590cafc7b1f7936f41834e27743ebef69cc93435a0a41e1bc0b40a641",
       "path": "Main/sw/apps/game/gfx2dGame/build_f4_nmax_base/gfx2dGame-O2-perf.bin"
+    },
+    "1e8decb6421e4efd3fcf61d9c9588d209590b9382bf5c4467b95768be1b1d621": {
+      "size": 246534,
+      "mtime_ns": 1791646816896577800,
+      "sha256": "1e8decb6421e4efd3fcf61d9c9588d209590b9382bf5c4467b95768be1b1d621",
+      "path": "Main/sw/apps/probe/f4Bench/build_f4_research_fixed/f4Bench-O2.bin"
     }
   },
   "Main/sw/apps/probe/f4Bench/build_f4_research_fixed/f4Bench-O2.bin": {
-    "size": 246534,
-    "mtime_ns": 1791646816896577800,
-    "sha256": "1e8decb6421e4efd3fcf61d9c9588d209590b9382bf5c4467b95768be1b1d621"
+    "size": 248230,
+    "mtime_ns": 1791654053726567300,
+    "sha256": "56e3df69602e0047b70778b5b3a78ffca181dc38493a7240dacc1ccf49ef011d"
   },
   "Main/sw/apps/game/gfx2dGame/build_f4_pressure_check/gfx2dGame-O2-perf.bin": {
     "size": 112206,
