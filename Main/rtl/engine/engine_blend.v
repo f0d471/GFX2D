@@ -61,13 +61,13 @@ module engine_blend (
 );
 
     // 级 1：判定，按方程选 base / m1 / m2 
-    reg  [8:0]        sel_base;
+    reg         [8:0] sel_base;
     reg  signed [8:0] sel_m1;
     reg  signed [8:0] sel_m2;
 
     always @(*) begin
         case (eq)
-            3'd0: begin              // COPY     Fs=255 Fd=0
+            3'd0: begin // COPY     Fs=255 Fd=0
 
 `ifdef INJ_COPY_DST // 注错：抄了 ADD 行，COPY 用到了 dst
                 sel_base = {1'b0, src} + {1'b0, dst}; 
@@ -78,17 +78,17 @@ module engine_blend (
                 sel_m1   = 9'sd0;
                 sel_m2   = 9'sd0;
             end
-            3'd1: begin              //  ALPHA    Fs=255 Fd=255-a
+            3'd1: begin //  ALPHA    Fs=255 Fd=255-a
                 sel_base = {1'b0, src};
                 sel_m1   = $signed({1'b0, dst});
                 sel_m2   = $signed({1'b0, (8'd255 - a)});
             end
-            3'd2: begin              // ADD      Fs=255 Fd=255
+            3'd2: begin // ADD      Fs=255 Fd=255
                 sel_base = {1'b0, src} + {1'b0, dst};
                 sel_m1   = 9'sd0;
                 sel_m2   = 9'sd0;
             end
-            3'd3: begin              // CONST    Fs=c   Fd=255-c
+            3'd3: begin // CONST    Fs=c   Fd=255-c
 
 `ifdef INJ_WRONG_EQ // 注错：base 与 m1 都取错，恒等不成立
                 sel_base = {1'b0, src};
@@ -100,12 +100,12 @@ module engine_blend (
 
                 sel_m2   = $signed({1'b0, c});
             end
-            3'd4: begin              // MUL      Fs=dst Fd=0
+            3'd4: begin // MUL      Fs=dst Fd=0
                 sel_base = 9'd0;
                 sel_m1   = $signed({1'b0, src});
                 sel_m2   = $signed({1'b0, dst});
             end
-            default: begin           // ALPHA 非预乘  Fs=a Fd=255-a
+            default: begin // ALPHA 非预乘  Fs=a Fd=255-a
                 sel_base = {1'b0, dst};
                 sel_m1   = $signed({1'b0, src}) - $signed({1'b0, dst});
                 sel_m2   = $signed({1'b0, a});

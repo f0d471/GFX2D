@@ -258,12 +258,12 @@ INFO     : Analyzing Verilog file 'E:\Workspace\Efinix\Main\rtl\hdmi\hdmi_tx.v' 
 INFO     : Analyzing Verilog file 'E:\Workspace\Efinix\Main\rtl\hdmi\color_bar_rgb.v' [VERI-1482]
 INFO     : Analyzing Verilog file 'E:\Workspace\Efinix\Main\rtl\hdmi\dvi_encoder.v' [VERI-1482]
 INFO     : Analyzing Verilog file 'E:\Workspace\Efinix\Main\rtl\hdmi\encode.v' [VERI-1482]
-INFO     : Analysis took 0.293149 seconds [FlowMsg::StageDuration]
-INFO     :     Analysis took 0.265625 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Analysis virtual memory usage: begin = 59.604 MB, end = 68.892 MB, delta = 9.288 MB [FlowMsg::VMUsage]
-INFO     :     Analysis peak virtual memory usage = 68.892 MB [FlowMsg::VMUsage::Peak]
-INFO     : Analysis resident set memory usage: begin = 64.016 MB, end = 77.456 MB, delta = 13.44 MB [FlowMsg::RSSUsage]
-INFO     :     Analysis peak resident set memory usage = 77.456 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Analysis took 0.9915183 seconds [FlowMsg::StageDuration]
+INFO     :     Analysis took 0.203125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Analysis virtual memory usage: begin = 59.668 MB, end = 68.956 MB, delta = 9.288 MB [FlowMsg::VMUsage]
+INFO     :     Analysis peak virtual memory usage = 68.956 MB [FlowMsg::VMUsage::Peak]
+INFO     : Analysis resident set memory usage: begin = 64.864 MB, end = 78.304 MB, delta = 13.44 MB [FlowMsg::RSSUsage]
+INFO     :     Analysis peak resident set memory usage = 78.304 MB [FlowMsg::RSSUsage::Peak]
 INFO     : ***** Ending Analysis ... *****
 INFO     : ***** Beginning Elaboration ... *****
 INFO     : E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v(38): compiling module 'gfx2d_top' [VERI-1018]
@@ -651,21 +651,21 @@ INFO     : E:\Workspace\Efinix\Main\rtl\hdmi\hdmi_tx.v(22): compiling module 'hd
 INFO     : E:\Workspace\Efinix\Main\rtl\hdmi\dvi_encoder.v(2): compiling module 'dvi_encoder' [VERI-1018]
 INFO     : E:\Workspace\Efinix\Main\rtl\hdmi\encode.v(46): compiling module 'encode' [VERI-1018]
 WARNING  : E:\Workspace\Efinix\Main\rtl\hdmi\encode.v(167): expression size 9 truncated to fit in target size 8 [VERI-1209]
-INFO     : Elaboration took 0.8472343 seconds [FlowMsg::StageDuration]
-INFO     :     Elaboration took 0.796875 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Elaboration virtual memory usage: begin = 68.892 MB, end = 314.124 MB, delta = 245.232 MB [FlowMsg::VMUsage]
-INFO     :     Elaboration peak virtual memory usage = 314.124 MB [FlowMsg::VMUsage::Peak]
-INFO     : Elaboration resident set memory usage: begin = 77.5 MB, end = 324.796 MB, delta = 247.296 MB [FlowMsg::RSSUsage]
-INFO     :     Elaboration peak resident set memory usage = 324.796 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Elaboration took 0.9592984 seconds [FlowMsg::StageDuration]
+INFO     :     Elaboration took 0.703125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Elaboration virtual memory usage: begin = 68.956 MB, end = 314.184 MB, delta = 245.228 MB [FlowMsg::VMUsage]
+INFO     :     Elaboration peak virtual memory usage = 314.184 MB [FlowMsg::VMUsage::Peak]
+INFO     : Elaboration resident set memory usage: begin = 78.348 MB, end = 327.592 MB, delta = 249.244 MB [FlowMsg::RSSUsage]
+INFO     :     Elaboration peak resident set memory usage = 327.592 MB [FlowMsg::RSSUsage::Peak]
 INFO     : ***** Ending Elaboration ... *****
 INFO     : ... Setting Synthesis Option: mode=speed
 INFO     : ***** Beginning Reading Mapping Library ... *****
-INFO     : Reading Mapping Library took 0.0098567 seconds [FlowMsg::StageDuration]
-INFO     :     Reading Mapping Library took 0.015625 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Reading Mapping Library virtual memory usage: begin = 314.124 MB, end = 314.124 MB, delta = 0 MB [FlowMsg::VMUsage]
-INFO     :     Reading Mapping Library peak virtual memory usage = 314.124 MB [FlowMsg::VMUsage::Peak]
-INFO     : Reading Mapping Library resident set memory usage: begin = 326.076 MB, end = 326.08 MB, delta = 0.004 MB [FlowMsg::RSSUsage]
-INFO     :     Reading Mapping Library peak resident set memory usage = 326.08 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Reading Mapping Library took 0.0095971 seconds [FlowMsg::StageDuration]
+INFO     :     Reading Mapping Library took 0 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Reading Mapping Library virtual memory usage: begin = 314.184 MB, end = 314.184 MB, delta = 0 MB [FlowMsg::VMUsage]
+INFO     :     Reading Mapping Library peak virtual memory usage = 314.184 MB [FlowMsg::VMUsage::Peak]
+INFO     : Reading Mapping Library resident set memory usage: begin = 328.872 MB, end = 328.876 MB, delta = 0.004 MB [FlowMsg::RSSUsage]
+INFO     :     Reading Mapping Library peak resident set memory usage = 328.876 MB [FlowMsg::RSSUsage::Peak]
 INFO     : ***** Ending Reading Mapping Library ... *****
 INFO     : ... Pre-synthesis checks begin
 WARNING  : Re-wiring to GND non-driven net/port 'pi_calib_done_r1' in module 'ddr_calibration_ini(tCK=2500,CLK_PERIOD=10000,DQ_WIDTH=16,DQS_WIDTH=2,nCL=6,tRFC=350000,RTT_WR="120")'. (E:\Workspace\Efinix\Main\rtl\vendor\ddr3_controller\phy_ctl\ddr_calibration_ini.v:1521) [EFX-0201]
@@ -930,7 +930,7 @@ INFO     : ... Hierarchical pre-synthesis "efx_fifo_wrapper(SYNC_CLK=0,MODE="FWF
 INFO     : ... Hierarchical pre-synthesis "ddr_phy_if(tCK=2500,nCL=6,BANK_WIDTH=3,DQ_WIDTH=16,DQS_WIDTH=2,DM_WIDTH=2)" begin
 INFO     : ... Hierarchical pre-synthesis "ddr_phy_if(tCK=2500,nCL=6,BANK_WIDTH=3,DQ_WIDTH=16,DQS_WIDTH=2,DM_WIDTH=2)" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "phy_ctl(DEBUG_WIDTH=57,CL=6,COL_WIDTH=10,DM_WIDTH=2,DQ_WIDTH=16,DQS_CNT_WIDTH=1,DQS_WIDTH=2,tRFC=350000,RANKS=1,ROW_WIDTH=14)" begin
-INFO     : ... Hierarchical pre-synthesis "phy_ctl(DEBUG_WIDTH=57,CL=6,COL_WIDTH=10,DM_WIDTH=2,DQ_WIDTH=16,DQS_CNT_WIDTH=1,DQS_WIDTH=2,tRFC=350000,RANKS=1,ROW_WIDTH=14)" end (Real time : 0s)
+INFO     : ... Hierarchical pre-synthesis "phy_ctl(DEBUG_WIDTH=57,CL=6,COL_WIDTH=10,DM_WIDTH=2,DQ_WIDTH=16,DQS_CNT_WIDTH=1,DQS_WIDTH=2,tRFC=350000,RANKS=1,ROW_WIDTH=14)" end (Real time : 1s)
 INFO     : ... Hierarchical pre-synthesis "SRLC32" begin
 INFO     : ... Hierarchical pre-synthesis "SRLC32" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "rank_cntrl(DQRD2DQWR_DLY=4,CL=6,nCK_PER_CLK=4,nFAW=14,nREFRESH_BANK=1,PERIODIC_RD_TIMER_DIV=5,RANK_BM_BV_WIDTH=4,RANK_WIDTH=1,RANKS=1,REFRESH_TIMER_DIV=37)" begin
@@ -1028,7 +1028,7 @@ INFO     : ... Hierarchical pre-synthesis "axi_mc_cmd_fsm(C_MC_RD_INST=1)" end (
 INFO     : ... Hierarchical pre-synthesis "axi_mc_ar_channel(C_AXI_ADDR_WIDTH=28,MC_AW=28,C_DATA_WIDTH=128,CK_RATIO=4,C_AXSIZE=3'b100)" begin
 INFO     : ... Hierarchical pre-synthesis "axi_mc_ar_channel(C_AXI_ADDR_WIDTH=28,MC_AW=28,C_DATA_WIDTH=128,CK_RATIO=4,C_AXSIZE=3'b100)" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "axi_mc_fifo(C_WIDTH=129,C_AWIDTH=5,C_DEPTH=32)" begin
-INFO     : ... Hierarchical pre-synthesis "axi_mc_fifo(C_WIDTH=129,C_AWIDTH=5,C_DEPTH=32)" end (Real time : 1s)
+INFO     : ... Hierarchical pre-synthesis "axi_mc_fifo(C_WIDTH=129,C_AWIDTH=5,C_DEPTH=32)" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "axi_mc_fifo(C_WIDTH=7,C_AWIDTH=5,C_DEPTH=30)" begin
 INFO     : ... Hierarchical pre-synthesis "axi_mc_fifo(C_WIDTH=7,C_AWIDTH=5,C_DEPTH=30)" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "axi_mc_r_channel(C_DATA_WIDTH=128,C_AXI_ADDR_WIDTH=28)" begin
@@ -1036,7 +1036,7 @@ INFO     : ... Hierarchical pre-synthesis "axi_mc_r_channel(C_DATA_WIDTH=128,C_A
 INFO     : ... Hierarchical pre-synthesis "axi_mc_cmd_arbiter(MC_AW=28)" begin
 INFO     : ... Hierarchical pre-synthesis "axi_mc_cmd_arbiter(MC_AW=28)" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "axi4_bus_ctl(AXI_AW=28,AXI_DW=128,MC_AW=28,MC_DW=128,CK_RATIO=4)" begin
-INFO     : ... Hierarchical pre-synthesis "axi4_bus_ctl(AXI_AW=28,AXI_DW=128,MC_AW=28,MC_DW=128,CK_RATIO=4)" end (Real time : 0s)
+INFO     : ... Hierarchical pre-synthesis "axi4_bus_ctl(AXI_AW=28,AXI_DW=128,MC_AW=28,MC_DW=128,CK_RATIO=4)" end (Real time : 1s)
 INFO     : ... Hierarchical pre-synthesis "ddr3_top" begin
 INFO     : ... Hierarchical pre-synthesis "ddr3_top" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "BufferCC_10_0bcf34ba82444129b7ab780fb63284f3" begin
@@ -1054,7 +1054,7 @@ INFO     : ... Hierarchical pre-synthesis "EfxCPUSp1_0bcf34ba82444129b7ab780fb63
 INFO     : ... Hierarchical pre-synthesis "EfxCPUSp2_0bcf34ba82444129b7ab780fb63284f3" begin
 INFO     : ... Hierarchical pre-synthesis "EfxCPUSp2_0bcf34ba82444129b7ab780fb63284f3" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "VexRiscv_0bcf34ba82444129b7ab780fb63284f3" begin
-INFO     : ... Hierarchical pre-synthesis "VexRiscv_0bcf34ba82444129b7ab780fb63284f3" end (Real time : 1s)
+INFO     : ... Hierarchical pre-synthesis "VexRiscv_0bcf34ba82444129b7ab780fb63284f3" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "BufferCC_13_0bcf34ba82444129b7ab780fb63284f3" begin
 INFO     : ... Hierarchical pre-synthesis "BufferCC_13_0bcf34ba82444129b7ab780fb63284f3" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "BufferCC_0bcf34ba82444129b7ab780fb63284f3" begin
@@ -1086,7 +1086,7 @@ INFO     : ... Hierarchical pre-synthesis "BufferCC_2_0bcf34ba82444129b7ab780fb6
 INFO     : ... Hierarchical pre-synthesis "BufferCC_3_0bcf34ba82444129b7ab780fb63284f3" begin
 INFO     : ... Hierarchical pre-synthesis "BufferCC_3_0bcf34ba82444129b7ab780fb63284f3" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "StreamFifoCC_0bcf34ba82444129b7ab780fb63284f3" begin
-INFO     : ... Hierarchical pre-synthesis "StreamFifoCC_0bcf34ba82444129b7ab780fb63284f3" end (Real time : 0s)
+INFO     : ... Hierarchical pre-synthesis "StreamFifoCC_0bcf34ba82444129b7ab780fb63284f3" end (Real time : 1s)
 INFO     : ... Hierarchical pre-synthesis "BufferCC_4_0bcf34ba82444129b7ab780fb63284f3" begin
 INFO     : ... Hierarchical pre-synthesis "BufferCC_4_0bcf34ba82444129b7ab780fb63284f3" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "BufferCC_6_0bcf34ba82444129b7ab780fb63284f3" begin
@@ -1165,11 +1165,11 @@ INFO     : ... Hierarchical pre-synthesis "ec_struct_ok" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "ec_fields" begin
 INFO     : ... Hierarchical pre-synthesis "ec_fields" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "engine_packet_check" begin
-INFO     : ... Hierarchical pre-synthesis "engine_packet_check" end (Real time : 0s)
+INFO     : ... Hierarchical pre-synthesis "engine_packet_check" end (Real time : 1s)
 INFO     : ... Hierarchical pre-synthesis "engine_bounds" begin
 INFO     : ... Hierarchical pre-synthesis "engine_bounds" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "engine_inst" begin
-INFO     : ... Hierarchical pre-synthesis "engine_inst" end (Real time : 1s)
+INFO     : ... Hierarchical pre-synthesis "engine_inst" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "engine_bin" begin
 INFO     : ... Hierarchical pre-synthesis "engine_bin" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "engine_pb_dma" begin
@@ -1200,7 +1200,7 @@ WARNING  : Mapping into logic memory block 'h_beats' (16 bits) (E:\Workspace\Efi
 WARNING  : Mapping into logic memory block 'h_src_need' (16 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:171) because size is too small (<=64) [EFX-0657]
 WARNING  : Mapping into logic memory block 'h_first_mask' (8 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:174) because size is too small (<=64) [EFX-0657]
 WARNING  : Mapping into logic memory block 'h_last_mask' (8 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:174) because size is too small (<=64) [EFX-0657]
-INFO     : ... Hierarchical pre-synthesis "engine_pix" end (Real time : 0s)
+INFO     : ... Hierarchical pre-synthesis "engine_pix" end (Real time : 1s)
 INFO     : ... Hierarchical pre-synthesis "engine_band" begin
 INFO     : ... Hierarchical pre-synthesis "engine_band" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "axi_dma_rd(AXI_DATA_WIDTH=128,AXI_ADDR_WIDTH=32,AXI_ID_WIDTH=4,AXI_MAX_BURST_LEN=192,AXIS_DATA_WIDTH=128,AXIS_KEEP_ENABLE=1,AXIS_USER_ENABLE=0,LEN_WIDTH=12,TAG_WIDTH=4)" begin
@@ -1213,11 +1213,11 @@ WARNING  : Mapping into logic memory block 'status_fifo_last' (32 bits) (E:\Work
 WARNING  : Mapping into logic memory block 'out_fifo_wlast' (32 bits) (E:\Workspace\Efinix\Main\rtl\vendor\verilog-axi\axi_dma_wr.v:904) because size is too small (<=64) [EFX-0657]
 INFO     : ... Hierarchical pre-synthesis "axi_dma_wr(AXI_DATA_WIDTH=128,AXI_ADDR_WIDTH=32,AXI_ID_WIDTH=4,AXI_MAX_BURST_LEN=192,AXIS_DATA_WIDTH=128,AXIS_KEEP_ENABLE=1,AXIS_USER_ENABLE=0,LEN_WIDTH=12,TAG_WIDTH=4)" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "engine_mover(ENABLE_BAND=1)" begin
-INFO     : ... Hierarchical pre-synthesis "engine_mover(ENABLE_BAND=1)" end (Real time : 1s)
+INFO     : ... Hierarchical pre-synthesis "engine_mover(ENABLE_BAND=1)" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "engine_tex" begin
 INFO     : ... Hierarchical pre-synthesis "engine_tex" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "engine_top" begin
-INFO     : ... Hierarchical pre-synthesis "engine_top" end (Real time : 2s)
+INFO     : ... Hierarchical pre-synthesis "engine_top" end (Real time : 3s)
 INFO     : ... Hierarchical pre-synthesis "axi_mux_guard" begin
 INFO     : ... Hierarchical pre-synthesis "axi_mux_guard" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "efx_fifo_ram_6ceb0421bf6b4ab2809a782952ee3915(FAMILY="TITANIUM",WDATA_WIDTH=128,RDATA_WIDTH=128,OUTPUT_REG=0,RAM_MUX_RATIO=1)" begin
@@ -1245,11 +1245,11 @@ INFO     : ... Hierarchical pre-synthesis "efx_fifo_wrapper(SYNC_CLK=0,DATA_WIDT
 INFO     : ... Hierarchical pre-synthesis "display_fifo" begin
 INFO     : ... Hierarchical pre-synthesis "display_fifo" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "display_fetch" begin
-INFO     : ... Hierarchical pre-synthesis "display_fetch" end (Real time : 1s)
+INFO     : ... Hierarchical pre-synthesis "display_fetch" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "color_bar_rgb(HS_POLORY=1'b0,VS_POLORY=1'b0,SYMBOL_WIDTH=8,SYMBOL_NUM=3,PAR_PIXEL_NUM=1,HFP=16,HST=96,HACT=640,HBP=48,VFP=10,VST=2,VACT=480,VBP=33,TEST_MODE=2'b10)" begin
 INFO     : ... Hierarchical pre-synthesis "color_bar_rgb(HS_POLORY=1'b0,VS_POLORY=1'b0,SYMBOL_WIDTH=8,SYMBOL_NUM=3,PAR_PIXEL_NUM=1,HFP=16,HST=96,HACT=640,HBP=48,VFP=10,VST=2,VACT=480,VBP=33,TEST_MODE=2'b10)" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "display_out" begin
-INFO     : ... Hierarchical pre-synthesis "display_out" end (Real time : 0s)
+INFO     : ... Hierarchical pre-synthesis "display_out" end (Real time : 1s)
 INFO     : ... Hierarchical pre-synthesis "display_top" begin
 INFO     : ... Hierarchical pre-synthesis "display_top" end (Real time : 0s)
 INFO     : ... Hierarchical pre-synthesis "Axi_Mux_Addr_Ctrl(AXI_CHANNEL_NUM=3)" begin
@@ -1287,13 +1287,13 @@ WARNING  : Mapping into logic memory block 'u_display/u_fetch/hist_gap' (384 bit
 WARNING  : Mapping into logic memory block 'u_display/u_fetch/hist_full' (384 bits) (E:\Workspace\Efinix\Main\rtl\display\display_fetch.v:186) because read port is not synchronous. [EFX-0657]
 WARNING  : Mapping into logic memory block 'u_display/u_fetch/hist_first' (384 bits) (E:\Workspace\Efinix\Main\rtl\display\display_fetch.v:185) because read port is not synchronous. [EFX-0657]
 INFO     : ... Clock Enable Synthesis Performed on 9526 flops.
-INFO     : ... Hierarchical pre-synthesis "gfx2d_top" end (Real time : 9s)
+INFO     : ... Hierarchical pre-synthesis "gfx2d_top" end (Real time : 10s)
 INFO     : ... Flat optimizations begin
-INFO     : ... Flat optimizations end (Real time : 0s)
+INFO     : ... Flat optimizations end (Real time : 1s)
 INFO     : ... Flat synthesis begin
 INFO     : ... Flat synthesis end (Real time : 0s)
 INFO     : ... Flat optimizations begin
-INFO     : ... Flat optimizations end (Real time : 1s)
+INFO     : ... Flat optimizations end (Real time : 0s)
 INFO     : ... Check and break combinational loops begin
 INFO     : ... Check and break combinational loops end (Real time : 0s)
 INFO     : ... Sequential Optimization begin
@@ -1305,12 +1305,12 @@ INFO     : ... Clock Network 'sdram_clk' with 149 loads will be considered for s
 INFO     : ... Clock Network 'tx_cal_clk' with 47 loads will be considered for sequential optimization.
 INFO     : ... Clock Network 'jtag_inst1_TCK' with 43 loads will be considered for sequential optimization.
 INFO     : ... Sequential Optimization deduced 4552 equivalent points.
-INFO     : ... Sequential Optimization end (Real time : 27s)
+INFO     : ... Sequential Optimization end (Real time : 28s)
 INFO     : ... Setup for logic synthesis begin
-INFO     : ... Setup for logic synthesis end (Real time : 1s)
+INFO     : ... Setup for logic synthesis end (Real time : 0s)
 INFO     : ... LUT mapping begin
 INFO     : ... LS, strategy: 3, nd: 38775, ed: 128447, lv: 24, pw: 69831.99
-INFO     : ... LUT mapping end (Real time : 53s)
+INFO     : ... LUT mapping end (Real time : 56s)
 INFO     : ... Post-synthesis Verific netlist creation begin
 INFO     : ... Post-synthesis Verific netlist creation end (Real time : 0s)
 INFO     : ... Postmap Retiming Optimization begin
@@ -1322,7 +1322,7 @@ INFO     : ... Clock Network 'sdram_clk~sdram_clk' with 149 loads will be consid
 INFO     : ... Clock Network 'tx_cal_clk~tx_cal_clk' with 47 loads will be considered for retiming optimization.
 INFO     : ... Clock Network 'jtag_inst1_TCK~jtag_inst1_TCK' with 43 loads will be considered for retiming optimization.
 INFO     : ... Performed 1 retime moves.
-INFO     : ... Postmap Retiming Optimization end (Real time : 7s)
+INFO     : ... Postmap Retiming Optimization end (Real time : 6s)
 INFO     : ***** Beginning VDB Netlist Checker ... *****
 WARNING  : E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v(79): Input/inout port jtag_inst1_DRCK is unconnected. Place and route may remove this unconnected port. [VDB-8003]
 WARNING  : E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v(80): Input/inout port jtag_inst1_RESET is unconnected. Place and route may remove this unconnected port. [VDB-8003]
@@ -1338,12 +1338,12 @@ WARNING  : Net u_soc/u_EfxSapphireSoc/system_cores_0_logic_cpu/IBusCachedPlugin_
 WARNING  : Net u_soc/u_EfxSapphireSoc/system_ddr_ddrLogic_cc_fifo/io_output_rsp_queue/popCC_popPtrPlus[0] is dangling. [VDB-8009]
 WARNING  : Net u_soc/u_EfxSapphireSoc/system_ddr_ddrLogic_cc_fifo/io_input_cmd_queue/popCC_popPtrPlus[0] is dangling. [VDB-8009]
 WARNING  : Found 13 warnings in the post-synthesis netlist.
-INFO     : VDB Netlist Checker took 0.085553 seconds [FlowMsg::StageDuration]
-INFO     :     VDB Netlist Checker took 0.15625 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : VDB Netlist Checker virtual memory usage: begin = 513.56 MB, end = 513.668 MB, delta = 0.108 MB [FlowMsg::VMUsage]
-INFO     :     VDB Netlist Checker peak virtual memory usage = 624.952 MB [FlowMsg::VMUsage::Peak]
-INFO     : VDB Netlist Checker resident set memory usage: begin = 533.388 MB, end = 533.564 MB, delta = 0.176 MB [FlowMsg::RSSUsage]
-INFO     :     VDB Netlist Checker peak resident set memory usage = 637.584 MB [FlowMsg::RSSUsage::Peak]
+INFO     : VDB Netlist Checker took 0.1009927 seconds [FlowMsg::StageDuration]
+INFO     :     VDB Netlist Checker took 0.125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : VDB Netlist Checker virtual memory usage: begin = 514.848 MB, end = 515 MB, delta = 0.152 MB [FlowMsg::VMUsage]
+INFO     :     VDB Netlist Checker peak virtual memory usage = 625.776 MB [FlowMsg::VMUsage::Peak]
+INFO     : VDB Netlist Checker resident set memory usage: begin = 537.356 MB, end = 537.576 MB, delta = 0.22 MB [FlowMsg::RSSUsage]
+INFO     :     VDB Netlist Checker peak resident set memory usage = 641.78 MB [FlowMsg::RSSUsage::Peak]
 INFO     : ***** Ending VDB Netlist Checker ... *****
 INFO     : Resource Summary 
 INFO     : ======================================= 
@@ -1357,12 +1357,12 @@ INFO     : =======================================
 INFO     : ... Post-Map Verilog Writer begin
 INFO     : Writing netlist 'gfx2d_top' to Verilog file 'outflow\gfx2d_ti60.map.v' [VDB-1030]
 INFO     : ... Post-Map Verilog Writer end (Real time : 1s)
-INFO     : The entire flow of EFX_MAP took 122.9113279 seconds [FlowMsg::StageDuration]
-INFO     :     The entire flow of EFX_MAP took 157.546875 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : The entire flow of EFX_MAP virtual memory usage: begin = 19.052 MB, end = 521.836 MB, delta = 502.784 MB [FlowMsg::VMUsage]
-INFO     :     The entire flow of EFX_MAP peak virtual memory usage = 624.952 MB [FlowMsg::VMUsage::Peak]
-INFO     : The entire flow of EFX_MAP resident set memory usage: begin = 19.72 MB, end = 539.504 MB, delta = 519.784 MB [FlowMsg::RSSUsage]
-INFO     :     The entire flow of EFX_MAP peak resident set memory usage = 637.584 MB [FlowMsg::RSSUsage::Peak]
+INFO     : The entire flow of EFX_MAP took 129.1830084 seconds [FlowMsg::StageDuration]
+INFO     :     The entire flow of EFX_MAP took 159.078125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : The entire flow of EFX_MAP virtual memory usage: begin = 19.132 MB, end = 521.04 MB, delta = 501.908 MB [FlowMsg::VMUsage]
+INFO     :     The entire flow of EFX_MAP peak virtual memory usage = 625.776 MB [FlowMsg::VMUsage::Peak]
+INFO     : The entire flow of EFX_MAP resident set memory usage: begin = 20.476 MB, end = 543.704 MB, delta = 523.228 MB [FlowMsg::RSSUsage]
+INFO     :     The entire flow of EFX_MAP peak resident set memory usage = 641.78 MB [FlowMsg::RSSUsage::Peak]
 Stage completed: map
 Running: efx_run_pt_unified.py gfx2d_ti60 Titanium Ti60F225 --output_dir outflow --timing_model I3 --project_xml gfx2d_ti60.xml
 Running: C:/Efinity/2026.1\python311\bin\python.exe C:\Efinity\2026.1\scripts\efx_run_pt_unified.py gfx2d_ti60 Titanium Ti60F225 --output_dir outflow --timing_model I3 --project_xml gfx2d_ti60.xml
@@ -1435,12 +1435,12 @@ INFO     : Netlist has 38614 luts, 20936 ffs and 6487 adders [PackerMsg::Netlist
 INFO     : Packed into 54236 clusters with 2.8023636(1.0355299) inputs(outputs) per cluster for a total of 151989(56163) inputs(outputs) [PackerMsg::ClusterPackingStatistics]
 INFO     : Packed into 54236 xlrs with 2.8023636(1.0355299) inputs(outputs) per xlr for a total of 151989(56163) inputs(outputs) [PackerMsg::XLRPackingStatistics]
 INFO     : Packed 0 fracturable DSPs into 0 clusters [PackerMsg::DSPPackingStatistics]
-INFO     : Packing took 3.0365787 seconds [FlowMsg::StageDuration]
-INFO     :     Packing took 7.875 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Packing virtual memory usage: begin = 59.552 MB, end = 408.604 MB, delta = 349.052 MB [FlowMsg::VMUsage]
-INFO     :     Packing peak virtual memory usage = 408.612 MB [FlowMsg::VMUsage::Peak]
-INFO     : Packing resident set memory usage: begin = 63.868 MB, end = 416.96 MB, delta = 353.092 MB [FlowMsg::RSSUsage]
-INFO     :     Packing peak resident set memory usage = 416.96 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Packing took 3.1050822 seconds [FlowMsg::StageDuration]
+INFO     :     Packing took 7.8125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Packing virtual memory usage: begin = 59.684 MB, end = 412.692 MB, delta = 353.008 MB [FlowMsg::VMUsage]
+INFO     :     Packing peak virtual memory usage = 412.7 MB [FlowMsg::VMUsage::Peak]
+INFO     : Packing resident set memory usage: begin = 64.728 MB, end = 419.516 MB, delta = 354.788 MB [FlowMsg::RSSUsage]
+INFO     :     Packing peak resident set memory usage = 419.516 MB [FlowMsg::RSSUsage::Peak]
 INFO     : SDC file 'sdc/gfx2d_ti60.sdc' parsed successfully.
 INFO     : Reading core interface constraints file "outflow\gfx2d_ti60.interface.csv" [DBMsg::CoreInterfaceConstraintsFileReading]
 INFO     : Successfully read core interface constraints file "outflow\gfx2d_ti60.interface.csv" [DBMsg::CoreInterfaceConstraintsFileLoadSuccess]
@@ -1563,12 +1563,12 @@ INFO     : Peak congestion smeared over 1/4 of the chip is 1.27382 at 3,0
 INFO     : Congestion-weighted HPWL per net: 48.6299
 INFO     : Post-placement cluster-level checks is successful
 INFO     : Post-placement primitive-level checks is successful
-INFO     : Placement took 56.8414069 seconds [FlowMsg::StageDuration]
-INFO     :     Placement took 418.125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Placement virtual memory usage: begin = 112.38 MB, end = 335.968 MB, delta = 223.588 MB [FlowMsg::VMUsage]
-INFO     :     Placement peak virtual memory usage = 461.524 MB [FlowMsg::VMUsage::Peak]
-INFO     : Placement resident set memory usage: begin = 127.484 MB, end = 355.052 MB, delta = 227.568 MB [FlowMsg::RSSUsage]
-INFO     :     Placement peak resident set memory usage = 477.188 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Placement took 55.8959733 seconds [FlowMsg::StageDuration]
+INFO     :     Placement took 418.71875 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Placement virtual memory usage: begin = 112.292 MB, end = 321.856 MB, delta = 209.564 MB [FlowMsg::VMUsage]
+INFO     :     Placement peak virtual memory usage = 462.548 MB [FlowMsg::VMUsage::Peak]
+INFO     : Placement resident set memory usage: begin = 126.26 MB, end = 340.712 MB, delta = 214.452 MB [FlowMsg::RSSUsage]
+INFO     :     Placement peak resident set memory usage = 479.952 MB [FlowMsg::RSSUsage::Peak]
 INFO     : SDC file 'sdc/gfx2d_ti60.sdc' parsed successfully.
 Maximum possible analyzed clocks frequency
    Clock Name     Period (ns)  Frequency (MHz)     Edge
@@ -1627,11 +1627,11 @@ INFO     : CSS improved CPD of clock tx_cal_clk by 0.00% (from 2143ps to 2143ps)
 INFO     : CSS improved CPD of clock tx_cal_clk_90edge by 0.00% (from 1995ps to 1995ps)
 INFO     : CSS improved CPD of clock hdmi_tx_slow_clk by 0.00% (from 5331ps to 5331ps)
 INFO     : CSS improved CPD of clock jtag_inst1_TCK by 0.00% (from -678ps to -678ps)
-INFO     : Discretized beneficial skew improved geomean CPD by 0.00% (from -2147483648ps to -2147483648ps in 40 iterations and 2.3 sec)
+INFO     : Discretized beneficial skew improved geomean CPD by 0.00% (from -2147483648ps to -2147483648ps in 40 iterations and 2.2 sec)
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INFO     : Overridding delay budgets for 193 synchronizer-related pins
-INFO     : Iter  1: overlap=207193  heapops=18714456   (0%) cpd=2143  frr=1.00  msec=6792
-INFO     : [Setup Delay Budgets | 945.6 ms]
+INFO     : Iter  1: overlap=207193  heapops=18714456   (0%) cpd=2143  frr=1.00  msec=6708
+INFO     : [Setup Delay Budgets | 866.2 ms]
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INFO     : Hold Fixing
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1640,32 +1640,32 @@ INFO     : Hold fix wire delay:        756
 INFO     : Hold fix delay ratio:     0.00%
 INFO     : Pins requiring hold fix:  0.01%
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INFO     : Iter  2: overlap=112004  heapops=16173277   (13%) cpd=2130  frr=0.99  msec=2673
-INFO     : Iter  3: overlap=77434   heapops=17210632   (21%) cpd=9632  frr=4.49  msec=2818
-INFO     : Iter  4: overlap=51203   heapops=18394573   (31%) cpd=2130  frr=0.99  msec=3552
-INFO     : Iter  5: overlap=32904   heapops=19239406   (44%) cpd=9658  frr=4.51  msec=3991
-INFO     : Iter  6: overlap=20906   heapops=19404006   (57%) cpd=2187  frr=1.02  msec=4180
-INFO     : Iter  7: overlap=13294   heapops=18170058   (66%) cpd=2166  frr=1.01  msec=4041
+INFO     : Iter  2: overlap=112004  heapops=16173277   (13%) cpd=2130  frr=0.99  msec=2619
+INFO     : Iter  3: overlap=77434   heapops=17210632   (21%) cpd=9632  frr=4.49  msec=2777
+INFO     : Iter  4: overlap=51203   heapops=18394573   (31%) cpd=2130  frr=0.99  msec=2968
+INFO     : Iter  5: overlap=32904   heapops=19239406   (44%) cpd=9658  frr=4.51  msec=3170
+INFO     : Iter  6: overlap=20906   heapops=19404006   (57%) cpd=2187  frr=1.02  msec=3296
+INFO     : Iter  7: overlap=13294   heapops=18170058   (66%) cpd=2166  frr=1.01  msec=3226
 INFO     : [Rebuild Parallel Routing Scheduler]
-INFO     : Iter  8: overlap=9186    heapops=16272735   (74%) cpd=2166  frr=1.01  msec=3429
-INFO     : Iter  9: overlap=6489    heapops=14725710   (78%) cpd=9706  frr=4.53  msec=3892
-INFO     : Iter 10: overlap=4508    heapops=13684963   (81%) cpd=9678  frr=4.52  msec=3907
-INFO     : Iter 11: overlap=3189    heapops=12549269   (84%) cpd=9801  frr=4.57  msec=3692
-INFO     : Iter 12: overlap=2323    heapops=11604336   (86%) cpd=9754  frr=4.55  msec=3536
+INFO     : Iter  8: overlap=9186    heapops=16272735   (74%) cpd=2166  frr=1.01  msec=3174
+INFO     : Iter  9: overlap=6489    heapops=14725710   (78%) cpd=9706  frr=4.53  msec=3549
+INFO     : Iter 10: overlap=4508    heapops=13684963   (81%) cpd=9678  frr=4.52  msec=3620
+INFO     : Iter 11: overlap=3189    heapops=12549269   (84%) cpd=9801  frr=4.57  msec=3461
+INFO     : Iter 12: overlap=2323    heapops=11604336   (86%) cpd=9754  frr=4.55  msec=3437
 INFO     : [Rebuild Parallel Routing Scheduler]
-INFO     : Iter 13: overlap=1720    heapops=10880889   (86%) cpd=9835  frr=4.59  msec=3857
-INFO     : Iter 14: overlap=1193    heapops=10161065   (87%) cpd=9780  frr=4.56  msec=3959
-INFO     : Iter 15: overlap=696     heapops=7836280    (88%) cpd=9914  frr=4.63  msec=3132
-INFO     : Iter 16: overlap=424     heapops=7634973    (89%) cpd=9773  frr=4.56  msec=4189
-INFO     : Iter 17: overlap=250     heapops=4802766    (89%) cpd=9872  frr=4.61  msec=2338
+INFO     : Iter 13: overlap=1720    heapops=10880889   (86%) cpd=9835  frr=4.59  msec=3439
+INFO     : Iter 14: overlap=1193    heapops=10161065   (87%) cpd=9780  frr=4.56  msec=3473
+INFO     : Iter 15: overlap=696     heapops=7836280    (88%) cpd=9914  frr=4.63  msec=2838
+INFO     : Iter 16: overlap=424     heapops=7634973    (89%) cpd=9773  frr=4.56  msec=3025
+INFO     : Iter 17: overlap=250     heapops=4802766    (89%) cpd=9872  frr=4.61  msec=2048
 INFO     : [Rebuild Parallel Routing Scheduler]
-INFO     : Iter 18: overlap=137     heapops=2599124    (89%) cpd=9770  frr=4.56  msec=1463
-INFO     : Iter 19: overlap=64      heapops=2270125    (89%) cpd=9872  frr=4.61  msec=1128
-INFO     : Iter 20: overlap=49      heapops=1690451    (90%) cpd=9783  frr=4.57  msec=868
-INFO     : Iter 21: overlap=22      heapops=1138844    (90%) cpd=9872  frr=4.61  msec=662
-INFO     : Iter 22: overlap=14      heapops=842979     (90%) cpd=9819  frr=4.58  msec=647
-INFO     : Iter 23: overlap=8       heapops=572868     (90%) cpd=9841  frr=4.59  msec=605
-INFO     : Iter 24: overlap=2       heapops=657791     (90%) cpd=9841  frr=4.59  msec=561
+INFO     : Iter 18: overlap=137     heapops=2599124    (89%) cpd=9770  frr=4.56  msec=1358
+INFO     : Iter 19: overlap=64      heapops=2270125    (89%) cpd=9872  frr=4.61  msec=1149
+INFO     : Iter 20: overlap=49      heapops=1690451    (90%) cpd=9783  frr=4.57  msec=905
+INFO     : Iter 21: overlap=22      heapops=1138844    (90%) cpd=9872  frr=4.61  msec=679
+INFO     : Iter 22: overlap=14      heapops=842979     (90%) cpd=9819  frr=4.58  msec=583
+INFO     : Iter 23: overlap=8       heapops=572868     (90%) cpd=9841  frr=4.59  msec=480
+INFO     : Iter 24: overlap=2       heapops=657791     (90%) cpd=9841  frr=4.59  msec=515
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INFO     : Beneficial skew enabled! Optimizing clock skews ... 
 INFO     : Non-legalized beneficial skew improved geomean CPD by 0.00% (from -2147483648ps to -2147483648ps)
@@ -1676,25 +1676,25 @@ INFO     : CSS improved CPD of clock tx_cal_clk by 0.00% (from 2166ps to 2166ps)
 INFO     : CSS improved CPD of clock tx_cal_clk_90edge by 0.00% (from 2045ps to 2045ps)
 INFO     : CSS improved CPD of clock hdmi_tx_slow_clk by 0.00% (from 6574ps to 6574ps)
 INFO     : CSS improved CPD of clock jtag_inst1_TCK by 0.00% (from -46ps to -46ps)
-INFO     : Discretized beneficial skew improved geomean CPD by 0.00% (from -2147483648ps to -2147483648ps in 1 iterations and 1.5 sec)
+INFO     : Discretized beneficial skew improved geomean CPD by 0.00% (from -2147483648ps to -2147483648ps in 1 iterations and 1.0 sec)
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INFO     : Iter 25: overlap=0       heapops=436744     (90%) cpd=9770  frr=4.56  msec=1986
+INFO     : Iter 25: overlap=0       heapops=436744     (90%) cpd=9770  frr=4.56  msec=1436
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INFO     : Routing Result
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INFO     : Routing Succeeded in 73.78 seconds taking 25 iterations! 
+INFO     : Routing Succeeded in 65.81 seconds taking 25 iterations! 
 INFO     : 
 INFO     : First iteration critical path delay = 2.143 ns 
 INFO     : Last iteration critical path delay  = 9.770 ns (ratio = 4.56)
 INFO     : Max Routing Heap Size = 100,006
 INFO     : Routing trace written to file 'outflow\gfx2d_ti60.troutingtraces' 
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INFO     : Routing took 79.7230763 seconds [FlowMsg::StageDuration]
-INFO     :     Routing took 219.890625 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Routing virtual memory usage: begin = 185.952 MB, end = 595.744 MB, delta = 409.792 MB [FlowMsg::VMUsage]
-INFO     :     Routing peak virtual memory usage = 645.936 MB [FlowMsg::VMUsage::Peak]
-INFO     : Routing resident set memory usage: begin = 206.712 MB, end = 598.9 MB, delta = 392.188 MB [FlowMsg::RSSUsage]
-INFO     :     Routing peak resident set memory usage = 620.416 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Routing took 71.7765234 seconds [FlowMsg::StageDuration]
+INFO     :     Routing took 198.25 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Routing virtual memory usage: begin = 186.428 MB, end = 595.116 MB, delta = 408.688 MB [FlowMsg::VMUsage]
+INFO     :     Routing peak virtual memory usage = 644.572 MB [FlowMsg::VMUsage::Peak]
+INFO     : Routing resident set memory usage: begin = 206.188 MB, end = 597.9 MB, delta = 391.712 MB [FlowMsg::RSSUsage]
+INFO     :     Routing peak resident set memory usage = 626.732 MB [FlowMsg::RSSUsage::Peak]
            ***** Beginning stage final timing analysis ... *****
 INFO     : SDC file 'sdc/gfx2d_ti60.sdc' parsed successfully.
 Maximum possible analyzed clocks frequency
@@ -1732,30 +1732,30 @@ jtag_inst1_TCK    jtag_inst1_TCK          0.000            0.091           (R-R)
 jtag_inst1_TCK    jtag_inst1_TCK        -50.000           48.794           (F-R)
 
 INFO     : Write Timing Report to "outflow\gfx2d_ti60.timing.rpt" ...
-INFO     : final timing analysis took 5.5698454 seconds [FlowMsg::StageDuration]
-INFO     :     final timing analysis took 7.3125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : final timing analysis virtual memory usage: begin = 510.384 MB, end = 674.084 MB, delta = 163.7 MB [FlowMsg::VMUsage]
-INFO     :     final timing analysis peak virtual memory usage = 674.084 MB [FlowMsg::VMUsage::Peak]
-INFO     : final timing analysis resident set memory usage: begin = 510.032 MB, end = 674.228 MB, delta = 164.196 MB [FlowMsg::RSSUsage]
-INFO     :     final timing analysis peak resident set memory usage = 674.228 MB [FlowMsg::RSSUsage::Peak]
+INFO     : final timing analysis took 5.3987406 seconds [FlowMsg::StageDuration]
+INFO     :     final timing analysis took 5.9375 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : final timing analysis virtual memory usage: begin = 508.444 MB, end = 668.14 MB, delta = 159.696 MB [FlowMsg::VMUsage]
+INFO     :     final timing analysis peak virtual memory usage = 668.14 MB [FlowMsg::VMUsage::Peak]
+INFO     : final timing analysis resident set memory usage: begin = 507.68 MB, end = 668.252 MB, delta = 160.572 MB [FlowMsg::RSSUsage]
+INFO     :     final timing analysis peak resident set memory usage = 668.252 MB [FlowMsg::RSSUsage::Peak]
            ***** Ending stage final timing analysis *****
            
            ***** Beginning stage bitstream generation ... *****
 INFO     : Reading core interface constraints file "outflow\gfx2d_ti60.interface.csv" [DBMsg::CoreInterfaceConstraintsFileReading]
 INFO     : Successfully read core interface constraints file "outflow\gfx2d_ti60.interface.csv" [DBMsg::CoreInterfaceConstraintsFileLoadSuccess]
 INFO     : Finished writing bitstream file work_pnr\gfx2d_ti60.lbf.
-INFO     : Bitstream generation took 1.8785079 seconds [FlowMsg::StageDuration]
-INFO     :     Bitstream generation took 1.53125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Bitstream generation virtual memory usage: begin = 440.404 MB, end = 641.772 MB, delta = 201.368 MB [FlowMsg::VMUsage]
-INFO     :     Bitstream generation peak virtual memory usage = 674.084 MB [FlowMsg::VMUsage::Peak]
-INFO     : Bitstream generation resident set memory usage: begin = 443.776 MB, end = 646.184 MB, delta = 202.408 MB [FlowMsg::RSSUsage]
-INFO     :     Bitstream generation peak resident set memory usage = 674.268 MB [FlowMsg::RSSUsage::Peak]
-INFO     : The entire flow of EFX_PNR took 152.727634 seconds [FlowMsg::StageDuration]
-INFO     :     The entire flow of EFX_PNR took 660.984375 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : The entire flow of EFX_PNR virtual memory usage: begin = 20.076 MB, end = 641.772 MB, delta = 621.696 MB [FlowMsg::VMUsage]
-INFO     :     The entire flow of EFX_PNR peak virtual memory usage = 674.084 MB [FlowMsg::VMUsage::Peak]
-INFO     : The entire flow of EFX_PNR resident set memory usage: begin = 22.644 MB, end = 646.224 MB, delta = 623.58 MB [FlowMsg::RSSUsage]
-INFO     :     The entire flow of EFX_PNR peak resident set memory usage = 674.268 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Bitstream generation took 1.9779511 seconds [FlowMsg::StageDuration]
+INFO     :     Bitstream generation took 1.75 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Bitstream generation virtual memory usage: begin = 439.324 MB, end = 639.332 MB, delta = 200.008 MB [FlowMsg::VMUsage]
+INFO     :     Bitstream generation peak virtual memory usage = 668.14 MB [FlowMsg::VMUsage::Peak]
+INFO     : Bitstream generation resident set memory usage: begin = 442.448 MB, end = 643.928 MB, delta = 201.48 MB [FlowMsg::RSSUsage]
+INFO     :     Bitstream generation peak resident set memory usage = 668.292 MB [FlowMsg::RSSUsage::Peak]
+INFO     : The entire flow of EFX_PNR took 143.7904719 seconds [FlowMsg::StageDuration]
+INFO     :     The entire flow of EFX_PNR took 639.625 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : The entire flow of EFX_PNR virtual memory usage: begin = 20.208 MB, end = 639.332 MB, delta = 619.124 MB [FlowMsg::VMUsage]
+INFO     :     The entire flow of EFX_PNR peak virtual memory usage = 668.14 MB [FlowMsg::VMUsage::Peak]
+INFO     : The entire flow of EFX_PNR resident set memory usage: begin = 23.428 MB, end = 643.968 MB, delta = 620.54 MB [FlowMsg::RSSUsage]
+INFO     :     The entire flow of EFX_PNR peak resident set memory usage = 668.292 MB [FlowMsg::RSSUsage::Peak]
 Stage completed: pnr
 Running: efx_run_pgm.py gfx2d_ti60 --family Titanium --device Ti60F225 --output_dir outflow --work_dir work_pnr --opt mode=active width=1 enable_roms=smart spi_low_power_mode=on io_weak_pullup=on oscillator_clock_divider=DIV8 bitstream_compression=on enable_external_master_clock=off active_capture_clk_edge=negedge jtag_usercode=0xFFFFFFFF release_tri_then_reset=on four_byte_addressing=off
 C:/Efinity/2026.1\bin\efx_pgm.exe --interface_designer_settings outflow\gfx2d_ti60_or.ini --periph outflow\gfx2d_ti60.lpf --family Titanium --device Ti60F225 --source E:\Workspace\Efinix\Main\fpga\gfx2d_ti60\work_pnr\gfx2d_ti60.lbf --dest outflow\gfx2d_ti60.hex --mode=active --width=1 --enable_roms=smart --spi_low_power_mode=on --io_weak_pullup=on --oscillator_clock_divider=DIV8 --bitstream_compression=on --enable_external_master_clock=off --active_capture_clk_edge=negedge --jtag_usercode=0xFFFFFFFF --release_tri_then_reset=on --four_byte_addressing=off
@@ -1782,10 +1782,10 @@ INFO     : 	seu_wait_interval                        = 0xFFFFFF
 INFO     : 	jtag_usercode                            = 0xFFFFFFFF
 INFO     : 	io_weak_pullup                           = on
 INFO     : Finished generating "outflow\gfx2d_ti60.hex"
-INFO     : Elitestek Bitstream Generator took 1.0001802 seconds [FlowMsg::StageDuration]
-INFO     :     Elitestek Bitstream Generator took 0.71875 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Elitestek Bitstream Generator virtual memory usage: begin = 2.668 MB, end = 10.436 MB, delta = 7.768 MB [FlowMsg::VMUsage]
-INFO     :     Elitestek Bitstream Generator peak virtual memory usage = 135.708 MB [FlowMsg::VMUsage::Peak]
-INFO     : Elitestek Bitstream Generator resident set memory usage: begin = 9.492 MB, end = 20.952 MB, delta = 11.46 MB [FlowMsg::RSSUsage]
-INFO     :     Elitestek Bitstream Generator peak resident set memory usage = 142.12 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Elitestek Bitstream Generator took 1.0352379 seconds [FlowMsg::StageDuration]
+INFO     :     Elitestek Bitstream Generator took 0.828125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Elitestek Bitstream Generator virtual memory usage: begin = 2.72 MB, end = 11.1 MB, delta = 8.38 MB [FlowMsg::VMUsage]
+INFO     :     Elitestek Bitstream Generator peak virtual memory usage = 135.916 MB [FlowMsg::VMUsage::Peak]
+INFO     : Elitestek Bitstream Generator resident set memory usage: begin = 10.244 MB, end = 22.156 MB, delta = 11.912 MB [FlowMsg::RSSUsage]
+INFO     :     Elitestek Bitstream Generator peak resident set memory usage = 143.048 MB [FlowMsg::RSSUsage::Peak]
 Stage completed: pgm

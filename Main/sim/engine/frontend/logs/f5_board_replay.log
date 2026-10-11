@@ -1,4 +1,4 @@
-# COM11 @ 115200 8N1, opened 17:56:01
+# COM11 @ 115200 8N1, opened 22:20:31
 gfx2dGame STG
 # --- 程序已加载，以下才是它的输出 ---
 pak 2840320 b370ba0a
@@ -9224,4 +9224,4 @@ end frames 9208 hits 4 over 0
 fail 0
 done
 
-# closed 18:35:12, 830248 bytes
+# closed 22:59:42, 830248 bytes

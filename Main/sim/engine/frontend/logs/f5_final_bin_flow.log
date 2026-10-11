@@ -125,12 +125,12 @@ INFO     : Analyzing Verilog file 'E:\Workspace\Efinix\Main\rtl\engine\engine_pa
 INFO     : Analyzing Verilog file 'E:\Workspace\Efinix\Main\rtl\engine\engine_bounds.v' [VERI-1482]
 INFO     : Analyzing Verilog file 'E:\Workspace\Efinix\Main\rtl\engine\engine_bin.v' [VERI-1482]
 INFO     : Analyzing Verilog file 'E:\Workspace\Efinix\Main\sim\engine\frontend\syn_bin\syn_engine_bin.v' [VERI-1482]
-INFO     : Analysis took 0.0522952 seconds [FlowMsg::StageDuration]
-INFO     :     Analysis took 0 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Analysis virtual memory usage: begin = 59.664 MB, end = 59.684 MB, delta = 0.02 MB [FlowMsg::VMUsage]
-INFO     :     Analysis peak virtual memory usage = 59.692 MB [FlowMsg::VMUsage::Peak]
-INFO     : Analysis resident set memory usage: begin = 75.368 MB, end = 78.372 MB, delta = 3.004 MB [FlowMsg::RSSUsage]
-INFO     :     Analysis peak resident set memory usage = 78.372 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Analysis took 0.0155621 seconds [FlowMsg::StageDuration]
+INFO     :     Analysis took 0.015625 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Analysis virtual memory usage: begin = 59.668 MB, end = 59.692 MB, delta = 0.024 MB [FlowMsg::VMUsage]
+INFO     :     Analysis peak virtual memory usage = 59.7 MB [FlowMsg::VMUsage::Peak]
+INFO     : Analysis resident set memory usage: begin = 64.88 MB, end = 67.94 MB, delta = 3.06 MB [FlowMsg::RSSUsage]
+INFO     :     Analysis peak resident set memory usage = 67.94 MB [FlowMsg::RSSUsage::Peak]
 INFO     : ***** Ending Analysis ... *****
 INFO     : ***** Beginning Elaboration ... *****
 WARNING  : E:\Workspace\Efinix\Main\sim\engine\frontend\syn_bin\syn_engine_bin.v(30): port 'write_context' remains unconnected for this instance [VERI-1927]
@@ -143,21 +143,21 @@ INFO     : E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v(56): compiling modul
 INFO     : E:\Workspace\Efinix\Main\rtl\engine\engine_bounds.v(4): compiling module 'engine_bounds' [VERI-1018]
 INFO     : E:\Workspace\Efinix\Main\rtl\engine\engine_inst.v(7): compiling module 'engine_inst' [VERI-1018]
 INFO     : E:\Workspace\Efinix\Main\rtl\engine\engine_inst.v(45): extracting RAM for identifier 'cache' [VERI-2571]
-INFO     : Elaboration took 0.0962062 seconds [FlowMsg::StageDuration]
-INFO     :     Elaboration took 0.09375 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Elaboration virtual memory usage: begin = 59.684 MB, end = 112.012 MB, delta = 52.328 MB [FlowMsg::VMUsage]
-INFO     :     Elaboration peak virtual memory usage = 112.012 MB [FlowMsg::VMUsage::Peak]
-INFO     : Elaboration resident set memory usage: begin = 78.416 MB, end = 131.652 MB, delta = 53.236 MB [FlowMsg::RSSUsage]
-INFO     :     Elaboration peak resident set memory usage = 131.652 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Elaboration took 0.1076501 seconds [FlowMsg::StageDuration]
+INFO     :     Elaboration took 0.078125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Elaboration virtual memory usage: begin = 59.692 MB, end = 112.016 MB, delta = 52.324 MB [FlowMsg::VMUsage]
+INFO     :     Elaboration peak virtual memory usage = 112.016 MB [FlowMsg::VMUsage::Peak]
+INFO     : Elaboration resident set memory usage: begin = 67.984 MB, end = 121.22 MB, delta = 53.236 MB [FlowMsg::RSSUsage]
+INFO     :     Elaboration peak resident set memory usage = 121.22 MB [FlowMsg::RSSUsage::Peak]
 INFO     : ***** Ending Elaboration ... *****
 INFO     : ... Setting Synthesis Option: mode=speed
 INFO     : ***** Beginning Reading Mapping Library ... *****
-INFO     : Reading Mapping Library took 0.011573 seconds [FlowMsg::StageDuration]
-INFO     :     Reading Mapping Library took 0 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Reading Mapping Library virtual memory usage: begin = 112.012 MB, end = 112.012 MB, delta = 0 MB [FlowMsg::VMUsage]
-INFO     :     Reading Mapping Library peak virtual memory usage = 112.012 MB [FlowMsg::VMUsage::Peak]
-INFO     : Reading Mapping Library resident set memory usage: begin = 131.788 MB, end = 131.792 MB, delta = 0.004 MB [FlowMsg::RSSUsage]
-INFO     :     Reading Mapping Library peak resident set memory usage = 131.792 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Reading Mapping Library took 0.0018243 seconds [FlowMsg::StageDuration]
+INFO     :     Reading Mapping Library took 0.015625 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Reading Mapping Library virtual memory usage: begin = 112.016 MB, end = 112.016 MB, delta = 0 MB [FlowMsg::VMUsage]
+INFO     :     Reading Mapping Library peak virtual memory usage = 112.016 MB [FlowMsg::VMUsage::Peak]
+INFO     : Reading Mapping Library resident set memory usage: begin = 122.384 MB, end = 122.388 MB, delta = 0.004 MB [FlowMsg::RSSUsage]
+INFO     :     Reading Mapping Library peak resident set memory usage = 122.388 MB [FlowMsg::RSSUsage::Peak]
 INFO     : ***** Ending Reading Mapping Library ... *****
 INFO     : ... Pre-synthesis checks begin
 WARNING  : Removing redundant signal : cmd[255:224]. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:90) [EFX-0200]
@@ -257,12 +257,12 @@ INFO     : ... Check and break combinational loops end (Real time : 0s)
 INFO     : ... Sequential Optimization begin
 INFO     : ... Clock Network 'clk' with 3227 loads will be considered for sequential optimization.
 INFO     : ... Sequential Optimization deduced 296 equivalent points.
-INFO     : ... Sequential Optimization end (Real time : 6s)
+INFO     : ... Sequential Optimization end (Real time : 4s)
 INFO     : ... Setup for logic synthesis begin
-INFO     : ... Setup for logic synthesis end (Real time : 1s)
+INFO     : ... Setup for logic synthesis end (Real time : 0s)
 INFO     : ... LUT mapping begin
 INFO     : ... LS, strategy: 3, nd: 5732, ed: 19155, lv: 22, pw: 10964.07
-INFO     : ... LUT mapping end (Real time : 26s)
+INFO     : ... LUT mapping end (Real time : 13s)
 INFO     : ... Post-synthesis Verific netlist creation begin
 INFO     : ... Post-synthesis Verific netlist creation end (Real time : 0s)
 INFO     : ... Postmap Retiming Optimization begin
@@ -270,12 +270,12 @@ INFO     : ... Clock Network 'clk~clk' with 3223 loads will be considered for re
 INFO     : ... Performed 17 retime moves.
 INFO     : ... Postmap Retiming Optimization end (Real time : 1s)
 INFO     : ***** Beginning VDB Netlist Checker ... *****
-INFO     : VDB Netlist Checker took 0.0225331 seconds [FlowMsg::StageDuration]
+INFO     : VDB Netlist Checker took 0.010021 seconds [FlowMsg::StageDuration]
 INFO     :     VDB Netlist Checker took 0.03125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : VDB Netlist Checker virtual memory usage: begin = 155.108 MB, end = 155.108 MB, delta = 0 MB [FlowMsg::VMUsage]
-INFO     :     VDB Netlist Checker peak virtual memory usage = 253.712 MB [FlowMsg::VMUsage::Peak]
-INFO     : VDB Netlist Checker resident set memory usage: begin = 177.984 MB, end = 178.044 MB, delta = 0.06 MB [FlowMsg::RSSUsage]
-INFO     :     VDB Netlist Checker peak resident set memory usage = 263.06 MB [FlowMsg::RSSUsage::Peak]
+INFO     : VDB Netlist Checker virtual memory usage: begin = 156.036 MB, end = 156.036 MB, delta = 0 MB [FlowMsg::VMUsage]
+INFO     :     VDB Netlist Checker peak virtual memory usage = 244.86 MB [FlowMsg::VMUsage::Peak]
+INFO     : VDB Netlist Checker resident set memory usage: begin = 171.352 MB, end = 171.412 MB, delta = 0.06 MB [FlowMsg::RSSUsage]
+INFO     :     VDB Netlist Checker peak resident set memory usage = 247.968 MB [FlowMsg::RSSUsage::Peak]
 INFO     : ***** Ending VDB Netlist Checker ... *****
 INFO     : Resource Summary 
 INFO     : ======================================= 
@@ -289,12 +289,12 @@ INFO     : =======================================
 INFO     : ... Post-Map Verilog Writer begin
 INFO     : Writing netlist 'syn_engine_bin' to Verilog file 'outflow\engine_bin_syn.map.v' [VDB-1030]
 INFO     : ... Post-Map Verilog Writer end (Real time : 0s)
-INFO     : The entire flow of EFX_MAP took 38.9787248 seconds [FlowMsg::StageDuration]
-INFO     :     The entire flow of EFX_MAP took 45.421875 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : The entire flow of EFX_MAP virtual memory usage: begin = 19.132 MB, end = 160.004 MB, delta = 140.872 MB [FlowMsg::VMUsage]
-INFO     :     The entire flow of EFX_MAP peak virtual memory usage = 253.712 MB [FlowMsg::VMUsage::Peak]
-INFO     : The entire flow of EFX_MAP resident set memory usage: begin = 31.5 MB, end = 182.56 MB, delta = 151.06 MB [FlowMsg::RSSUsage]
-INFO     :     The entire flow of EFX_MAP peak resident set memory usage = 263.06 MB [FlowMsg::RSSUsage::Peak]
+INFO     : The entire flow of EFX_MAP took 20.4290719 seconds [FlowMsg::StageDuration]
+INFO     :     The entire flow of EFX_MAP took 25.0625 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : The entire flow of EFX_MAP virtual memory usage: begin = 19.132 MB, end = 160.756 MB, delta = 141.624 MB [FlowMsg::VMUsage]
+INFO     :     The entire flow of EFX_MAP peak virtual memory usage = 244.86 MB [FlowMsg::VMUsage::Peak]
+INFO     : The entire flow of EFX_MAP resident set memory usage: begin = 20.484 MB, end = 175.796 MB, delta = 155.312 MB [FlowMsg::RSSUsage]
+INFO     :     The entire flow of EFX_MAP peak resident set memory usage = 247.968 MB [FlowMsg::RSSUsage::Peak]
 Stage completed: map
 Running: efx_run_pt_unified.py engine_bin_syn Titanium Ti60F225 --output_dir outflow --timing_model I3 --project_xml engine_bin_syn.xml
 Running: C:/Efinity/2026.1\python311\bin\python.exe C:\Efinity\2026.1\scripts\efx_run_pt_unified.py engine_bin_syn Titanium Ti60F225 --output_dir outflow --timing_model I3 --project_xml engine_bin_syn.xml
@@ -469,12 +469,12 @@ INFO     : Netlist has 5730 luts, 3240 ffs and 1006 adders [PackerMsg::NetlistSt
 INFO     : Packed into 8933 clusters with 2.628792(1.0078361) inputs(outputs) per cluster for a total of 23483(9003) inputs(outputs) [PackerMsg::ClusterPackingStatistics]
 INFO     : Packed into 8933 xlrs with 2.628792(1.0078361) inputs(outputs) per xlr for a total of 23483(9003) inputs(outputs) [PackerMsg::XLRPackingStatistics]
 INFO     : Packed 0 fracturable DSPs into 0 clusters [PackerMsg::DSPPackingStatistics]
-INFO     : Packing took 1.2461617 seconds [FlowMsg::StageDuration]
-INFO     :     Packing took 1.125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Packing virtual memory usage: begin = 59.592 MB, end = 126.284 MB, delta = 66.692 MB [FlowMsg::VMUsage]
-INFO     :     Packing peak virtual memory usage = 126.284 MB [FlowMsg::VMUsage::Peak]
-INFO     : Packing resident set memory usage: begin = 65.068 MB, end = 136.34 MB, delta = 71.272 MB [FlowMsg::RSSUsage]
-INFO     :     Packing peak resident set memory usage = 136.34 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Packing took 1.0346556 seconds [FlowMsg::StageDuration]
+INFO     :     Packing took 1.296875 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Packing virtual memory usage: begin = 59.66 MB, end = 126.344 MB, delta = 66.684 MB [FlowMsg::VMUsage]
+INFO     :     Packing peak virtual memory usage = 126.352 MB [FlowMsg::VMUsage::Peak]
+INFO     : Packing resident set memory usage: begin = 64.7 MB, end = 135.94 MB, delta = 71.24 MB [FlowMsg::RSSUsage]
+INFO     :     Packing peak resident set memory usage = 135.94 MB [FlowMsg::RSSUsage::Peak]
 INFO     : SDC file 'engine_bin_syn.sdc' parsed successfully.
 INFO     : Reading core interface constraints file "outflow\engine_bin_syn.interface.csv" [DBMsg::CoreInterfaceConstraintsFileReading]
 INFO     : Successfully read core interface constraints file "outflow\engine_bin_syn.interface.csv" [DBMsg::CoreInterfaceConstraintsFileLoadSuccess]
@@ -559,12 +559,12 @@ INFO     : Peak congestion smeared over 1/4 of the chip is 0.385181 at 107,91
 INFO     : Congestion-weighted HPWL per net: 24.3363
 INFO     : Post-placement cluster-level checks is successful
 INFO     : Post-placement primitive-level checks is successful
-INFO     : Placement took 10.5027947 seconds [FlowMsg::StageDuration]
-INFO     :     Placement took 33.75 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Placement virtual memory usage: begin = 74.092 MB, end = 179.164 MB, delta = 105.072 MB [FlowMsg::VMUsage]
-INFO     :     Placement peak virtual memory usage = 200.696 MB [FlowMsg::VMUsage::Peak]
-INFO     : Placement resident set memory usage: begin = 88.052 MB, end = 195.188 MB, delta = 107.136 MB [FlowMsg::RSSUsage]
-INFO     :     Placement peak resident set memory usage = 217.792 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Placement took 5.4793886 seconds [FlowMsg::StageDuration]
+INFO     :     Placement took 21.4375 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Placement virtual memory usage: begin = 72.24 MB, end = 180.34 MB, delta = 108.1 MB [FlowMsg::VMUsage]
+INFO     :     Placement peak virtual memory usage = 200.78 MB [FlowMsg::VMUsage::Peak]
+INFO     : Placement resident set memory usage: begin = 85.764 MB, end = 193.688 MB, delta = 107.924 MB [FlowMsg::RSSUsage]
+INFO     :     Placement peak resident set memory usage = 217.164 MB [FlowMsg::RSSUsage::Peak]
 INFO     : SDC file 'engine_bin_syn.sdc' parsed successfully.
 Maximum possible analyzed clocks frequency
  Clock Name  Period (ns)  Frequency (MHz)     Edge
@@ -591,11 +591,11 @@ INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INFO     : Beneficial skew enabled! Optimizing clock skews ... 
 INFO     : Non-legalized beneficial skew improved geomean CPD by 0.00% (from 8588ps to 8588ps)
 INFO     : CSS improved CPD of clock clk by 0.00% (from 8588ps to 8588ps)
-INFO     : Discretized beneficial skew improved geomean CPD by 0.00% (from 8588ps to 8588ps in 4 iterations and 0.3 sec)
+INFO     : Discretized beneficial skew improved geomean CPD by 0.00% (from 8588ps to 8588ps in 4 iterations and 0.2 sec)
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INFO     : Overridding delay budgets for 0 synchronizer-related pins
-INFO     : Iter  1: overlap=20750   heapops=1983165    (0%) cpd=8588  frr=1.00  msec=1370
-INFO     : [Setup Delay Budgets | 228.4 ms]
+INFO     : Iter  1: overlap=20750   heapops=1983165    (0%) cpd=8588  frr=1.00  msec=706
+INFO     : [Setup Delay Budgets | 146.9 ms]
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INFO     : Hold Fixing
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -604,42 +604,42 @@ INFO     : Hold fix wire delay:         46
 INFO     : Hold fix delay ratio:     0.00%
 INFO     : Pins requiring hold fix:  0.01%
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INFO     : Iter  2: overlap=8643    heapops=1578282    (29%) cpd=8663  frr=1.01  msec=496
-INFO     : Iter  3: overlap=4794    heapops=1290214    (46%) cpd=8687  frr=1.01  msec=425
-INFO     : Iter  4: overlap=2091    heapops=915192     (64%) cpd=8768  frr=1.02  msec=341
-INFO     : Iter  5: overlap=676     heapops=478007     (78%) cpd=8952  frr=1.04  msec=182
-INFO     : Iter  6: overlap=212     heapops=177735     (88%) cpd=8978  frr=1.05  msec=143
+INFO     : Iter  2: overlap=8643    heapops=1578282    (29%) cpd=8663  frr=1.01  msec=294
+INFO     : Iter  3: overlap=4794    heapops=1290214    (46%) cpd=8687  frr=1.01  msec=279
+INFO     : Iter  4: overlap=2091    heapops=915192     (64%) cpd=8768  frr=1.02  msec=198
+INFO     : Iter  5: overlap=676     heapops=478007     (78%) cpd=8952  frr=1.04  msec=125
+INFO     : Iter  6: overlap=212     heapops=177735     (88%) cpd=8978  frr=1.05  msec=77
 INFO     : [Rebuild Parallel Routing Scheduler]
-INFO     : Iter  7: overlap=51      heapops=71637      (90%) cpd=9015  frr=1.05  msec=126
-INFO     : Iter  8: overlap=25      heapops=30203      (91%) cpd=9135  frr=1.06  msec=93
-INFO     : Iter  9: overlap=9       heapops=22397      (92%) cpd=9135  frr=1.06  msec=91
-INFO     : Iter 10: overlap=5       heapops=21472      (92%) cpd=9135  frr=1.06  msec=92
-INFO     : Iter 11: overlap=3       heapops=19117      (92%) cpd=9135  frr=1.06  msec=88
-INFO     : Iter 12: overlap=3       heapops=18078      (92%) cpd=9262  frr=1.08  msec=96
-INFO     : Iter 13: overlap=1       heapops=18188      (92%) cpd=9262  frr=1.08  msec=84
+INFO     : Iter  7: overlap=51      heapops=71637      (90%) cpd=9015  frr=1.05  msec=78
+INFO     : Iter  8: overlap=25      heapops=30203      (91%) cpd=9135  frr=1.06  msec=50
+INFO     : Iter  9: overlap=9       heapops=22397      (92%) cpd=9135  frr=1.06  msec=47
+INFO     : Iter 10: overlap=5       heapops=21472      (92%) cpd=9135  frr=1.06  msec=46
+INFO     : Iter 11: overlap=3       heapops=19117      (92%) cpd=9135  frr=1.06  msec=46
+INFO     : Iter 12: overlap=3       heapops=18078      (92%) cpd=9262  frr=1.08  msec=48
+INFO     : Iter 13: overlap=1       heapops=18188      (92%) cpd=9262  frr=1.08  msec=48
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INFO     : Beneficial skew enabled! Optimizing clock skews ... 
 INFO     : Non-legalized beneficial skew improved geomean CPD by 0.00% (from 9322ps to 9322ps)
 INFO     : CSS improved CPD of clock clk by 0.00% (from 9322ps to 9322ps)
-INFO     : Discretized beneficial skew improved geomean CPD by 0.00% (from 9322ps to 9322ps in 1 iterations and 0.4 sec)
+INFO     : Discretized beneficial skew improved geomean CPD by 0.00% (from 9322ps to 9322ps in 1 iterations and 0.1 sec)
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INFO     : Iter 14: overlap=0       heapops=17818      (92%) cpd=9322  frr=1.09  msec=486
+INFO     : Iter 14: overlap=0       heapops=17818      (92%) cpd=9322  frr=1.09  msec=179
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INFO     : Routing Result
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INFO     : Routing Succeeded in 4.74 seconds taking 14 iterations! 
+INFO     : Routing Succeeded in 2.62 seconds taking 14 iterations! 
 INFO     : 
 INFO     : First iteration critical path delay = 8.588 ns 
 INFO     : Last iteration critical path delay  = 9.322 ns (ratio = 1.09)
 INFO     : Max Routing Heap Size = 4,016
 INFO     : Routing trace written to file 'outflow\engine_bin_syn.troutingtraces' 
 INFO     : ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INFO     : Routing took 7.483075 seconds [FlowMsg::StageDuration]
-INFO     :     Routing took 14.203125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Routing virtual memory usage: begin = 135.86 MB, end = 275.984 MB, delta = 140.124 MB [FlowMsg::VMUsage]
-INFO     :     Routing peak virtual memory usage = 390.056 MB [FlowMsg::VMUsage::Peak]
-INFO     : Routing resident set memory usage: begin = 155.008 MB, end = 290.532 MB, delta = 135.524 MB [FlowMsg::RSSUsage]
-INFO     :     Routing peak resident set memory usage = 388.316 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Routing took 4.0641544 seconds [FlowMsg::StageDuration]
+INFO     :     Routing took 13.046875 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Routing virtual memory usage: begin = 135.036 MB, end = 272.728 MB, delta = 137.692 MB [FlowMsg::VMUsage]
+INFO     :     Routing peak virtual memory usage = 389.096 MB [FlowMsg::VMUsage::Peak]
+INFO     : Routing resident set memory usage: begin = 153.872 MB, end = 289.172 MB, delta = 135.3 MB [FlowMsg::RSSUsage]
+INFO     :     Routing peak resident set memory usage = 390.86 MB [FlowMsg::RSSUsage::Peak]
            ***** Beginning stage final timing analysis ... *****
 INFO     : SDC file 'engine_bin_syn.sdc' parsed successfully.
 Maximum possible analyzed clocks frequency
@@ -657,30 +657,30 @@ Hold (Min) Clock Relationship
       clk              clk             0.000            0.035            (R-R)
 
 INFO     : Write Timing Report to "outflow\engine_bin_syn.timing.rpt" ...
-INFO     : final timing analysis took 0.2858872 seconds [FlowMsg::StageDuration]
-INFO     :     final timing analysis took 0.359375 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : final timing analysis virtual memory usage: begin = 265.152 MB, end = 282.416 MB, delta = 17.264 MB [FlowMsg::VMUsage]
-INFO     :     final timing analysis peak virtual memory usage = 390.056 MB [FlowMsg::VMUsage::Peak]
-INFO     : final timing analysis resident set memory usage: begin = 280.048 MB, end = 297.096 MB, delta = 17.048 MB [FlowMsg::RSSUsage]
-INFO     :     final timing analysis peak resident set memory usage = 388.316 MB [FlowMsg::RSSUsage::Peak]
+INFO     : final timing analysis took 0.1174759 seconds [FlowMsg::StageDuration]
+INFO     :     final timing analysis took 0.484375 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : final timing analysis virtual memory usage: begin = 261.08 MB, end = 278.784 MB, delta = 17.704 MB [FlowMsg::VMUsage]
+INFO     :     final timing analysis peak virtual memory usage = 389.096 MB [FlowMsg::VMUsage::Peak]
+INFO     : final timing analysis resident set memory usage: begin = 277.524 MB, end = 294.416 MB, delta = 16.892 MB [FlowMsg::RSSUsage]
+INFO     :     final timing analysis peak resident set memory usage = 390.86 MB [FlowMsg::RSSUsage::Peak]
            ***** Ending stage final timing analysis *****
            
            ***** Beginning stage bitstream generation ... *****
 INFO     : Reading core interface constraints file "outflow\engine_bin_syn.interface.csv" [DBMsg::CoreInterfaceConstraintsFileReading]
 INFO     : Successfully read core interface constraints file "outflow\engine_bin_syn.interface.csv" [DBMsg::CoreInterfaceConstraintsFileLoadSuccess]
 INFO     : Finished writing bitstream file work_pnr_engine_top\engine_bin_syn.lbf.
-INFO     : Bitstream generation took 2.5019601 seconds [FlowMsg::StageDuration]
-INFO     :     Bitstream generation took 2.203125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Bitstream generation virtual memory usage: begin = 256.536 MB, end = 341.408 MB, delta = 84.872 MB [FlowMsg::VMUsage]
-INFO     :     Bitstream generation peak virtual memory usage = 390.056 MB [FlowMsg::VMUsage::Peak]
-INFO     : Bitstream generation resident set memory usage: begin = 272.28 MB, end = 358.872 MB, delta = 86.592 MB [FlowMsg::RSSUsage]
-INFO     :     Bitstream generation peak resident set memory usage = 388.316 MB [FlowMsg::RSSUsage::Peak]
-INFO     : The entire flow of EFX_PNR took 22.6630509 seconds [FlowMsg::StageDuration]
-INFO     :     The entire flow of EFX_PNR took 52.15625 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : The entire flow of EFX_PNR virtual memory usage: begin = 20.096 MB, end = 341.408 MB, delta = 321.312 MB [FlowMsg::VMUsage]
-INFO     :     The entire flow of EFX_PNR peak virtual memory usage = 390.056 MB [FlowMsg::VMUsage::Peak]
-INFO     : The entire flow of EFX_PNR resident set memory usage: begin = 23.832 MB, end = 358.916 MB, delta = 335.084 MB [FlowMsg::RSSUsage]
-INFO     :     The entire flow of EFX_PNR peak resident set memory usage = 388.316 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Bitstream generation took 1.0131031 seconds [FlowMsg::StageDuration]
+INFO     :     Bitstream generation took 0.953125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Bitstream generation virtual memory usage: begin = 253.936 MB, end = 340.168 MB, delta = 86.232 MB [FlowMsg::VMUsage]
+INFO     :     Bitstream generation peak virtual memory usage = 389.096 MB [FlowMsg::VMUsage::Peak]
+INFO     : Bitstream generation resident set memory usage: begin = 271.376 MB, end = 359.156 MB, delta = 87.78 MB [FlowMsg::RSSUsage]
+INFO     :     Bitstream generation peak resident set memory usage = 390.86 MB [FlowMsg::RSSUsage::Peak]
+INFO     : The entire flow of EFX_PNR took 12.1510222 seconds [FlowMsg::StageDuration]
+INFO     :     The entire flow of EFX_PNR took 37.59375 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : The entire flow of EFX_PNR virtual memory usage: begin = 20.176 MB, end = 340.168 MB, delta = 319.992 MB [FlowMsg::VMUsage]
+INFO     :     The entire flow of EFX_PNR peak virtual memory usage = 389.096 MB [FlowMsg::VMUsage::Peak]
+INFO     : The entire flow of EFX_PNR resident set memory usage: begin = 23.412 MB, end = 359.2 MB, delta = 335.788 MB [FlowMsg::RSSUsage]
+INFO     :     The entire flow of EFX_PNR peak resident set memory usage = 390.86 MB [FlowMsg::RSSUsage::Peak]
 Stage completed: pnr
 Running: efx_run_pgm.py engine_bin_syn --family Titanium --device Ti60F225 --output_dir outflow --work_dir work_pnr_engine_top --opt mode=active width=1 enable_roms=smart spi_low_power_mode=on io_weak_pullup=on oscillator_clock_divider=DIV8 bitstream_compression=on enable_external_master_clock=off active_capture_clk_edge=negedge jtag_usercode=0xFFFFFFFF release_tri_then_reset=on four_byte_addressing=off
 C:/Efinity/2026.1\bin\efx_pgm.exe --interface_designer_settings outflow\engine_bin_syn_or.ini --periph outflow\engine_bin_syn.lpf --family Titanium --device Ti60F225 --source E:\Workspace\Efinix\Main\sim\engine\frontend\syn_bin\work_pnr_engine_top\engine_bin_syn.lbf --dest outflow\engine_bin_syn.hex --mode=active --width=1 --enable_roms=smart --spi_low_power_mode=on --io_weak_pullup=on --oscillator_clock_divider=DIV8 --bitstream_compression=on --enable_external_master_clock=off --active_capture_clk_edge=negedge --jtag_usercode=0xFFFFFFFF --release_tri_then_reset=on --four_byte_addressing=off
@@ -707,10 +707,10 @@ INFO     : 	seu_wait_interval                        = 0xFFFFFF
 INFO     : 	jtag_usercode                            = 0xFFFFFFFF
 INFO     : 	io_weak_pullup                           = on
 INFO     : Finished generating "outflow\engine_bin_syn.hex"
-INFO     : Elitestek Bitstream Generator took 1.0201772 seconds [FlowMsg::StageDuration]
-INFO     :     Elitestek Bitstream Generator took 0.78125 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
-INFO     : Elitestek Bitstream Generator virtual memory usage: begin = 2.716 MB, end = 11.072 MB, delta = 8.356 MB [FlowMsg::VMUsage]
-INFO     :     Elitestek Bitstream Generator peak virtual memory usage = 134.72 MB [FlowMsg::VMUsage::Peak]
-INFO     : Elitestek Bitstream Generator resident set memory usage: begin = 10.252 MB, end = 22.384 MB, delta = 12.132 MB [FlowMsg::RSSUsage]
-INFO     :     Elitestek Bitstream Generator peak resident set memory usage = 141.376 MB [FlowMsg::RSSUsage::Peak]
+INFO     : Elitestek Bitstream Generator took 1.0101804 seconds [FlowMsg::StageDuration]
+INFO     :     Elitestek Bitstream Generator took 0.71875 seconds (approximately) in total CPU time [FlowMsg::StageDuration::CPUTime]
+INFO     : Elitestek Bitstream Generator virtual memory usage: begin = 2.728 MB, end = 11.256 MB, delta = 8.528 MB [FlowMsg::VMUsage]
+INFO     :     Elitestek Bitstream Generator peak virtual memory usage = 134.792 MB [FlowMsg::VMUsage::Peak]
+INFO     : Elitestek Bitstream Generator resident set memory usage: begin = 10.252 MB, end = 22.268 MB, delta = 12.016 MB [FlowMsg::RSSUsage]
+INFO     :     Elitestek Bitstream Generator peak resident set memory usage = 141.548 MB [FlowMsg::RSSUsage::Peak]
 Stage completed: pgm

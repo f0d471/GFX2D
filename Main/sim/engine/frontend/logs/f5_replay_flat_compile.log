@@ -1,4 +1,3 @@
 make: Entering directory '/mnt/e/Workspace/Efinix/Main/sw/apps/game/gfx2dGame'
-CC lib/gfx/pb.c
-LD build_f5_host_flat/gfx2dGame
+make: Nothing to be done for 'all'.
 make: Leaving directory '/mnt/e/Workspace/Efinix/Main/sw/apps/game/gfx2dGame'

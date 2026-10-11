@@ -3,20 +3,20 @@
 === reset halt + load_image + resume
    [fpga_spinal.cpu0] Target successfully examined.
    75018 bytes written at address 0x00001000
-   downloaded 75018 bytes in 4.189030s (17.488 KiB/s)
+   downloaded 75018 bytes in 4.188307s (17.491 KiB/s)
 === 等串口采集结束（上限 1200 秒）
 --- 串口输出（E:\Workspace\Efinix\Main\sim\engine\frontend\logs\f5_board_tests.log）---
-# COM11 @ 115200 8N1, opened 17:20:02
+# COM11 @ 115200 8N1, opened 21:45:23
 gfx2dGame MODES
 pbTest start
-# --- 程序已加载，以下才是它的输出 ---
-pbcase space=0 layout=0 eq=0 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1295 cycles=21138
+pbcase space=0 layout=0 eq=0 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1261 cycles=21169
 pbcase space=0 layout=0 eq=0 n=1 raw=0 hw_crc=2919679994 sw_crc=2919679994 refs=6 bin=1511 cycles=23212
+# --- 程序已加载，以下才是它的输出 ---
 pbcase space=0 layout=0 eq=0 n=31 raw=0 hw_crc=393838062 sw_crc=393838062 refs=100 bin=3351 cycles=59733
 pbcase space=0 layout=0 eq=1 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1284 cycles=21056
 pbcase space=0 layout=0 eq=1 n=1 raw=0 hw_crc=2095807045 sw_crc=2095807045 refs=6 bin=1519 cycles=23371
 pbcase space=0 layout=0 eq=1 n=31 raw=0 hw_crc=2514739294 sw_crc=2514739294 refs=100 bin=3343 cycles=65348
-pbcase space=0 layout=0 eq=2 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1284 cycles=21075
+pbcase space=0 layout=0 eq=2 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1261 cycles=21169
 pbcase space=0 layout=0 eq=2 n=1 raw=0 hw_crc=183289556 sw_crc=183289556 refs=6 bin=1511 cycles=23370
 pbcase space=0 layout=0 eq=2 n=31 raw=0 hw_crc=873916662 sw_crc=873916662 refs=100 bin=3343 cycles=65348
 pbcase space=0 layout=0 eq=3 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1294 cycles=21125
@@ -31,7 +31,7 @@ pbcase space=0 layout=0 eq=5 n=31 raw=0 hw_crc=2431833379 sw_crc=2431833379 refs
 pbcase space=0 layout=1 eq=0 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1261 cycles=21169
 pbcase space=0 layout=1 eq=0 n=1 raw=0 hw_crc=1495533011 sw_crc=1495533011 refs=6 bin=1542 cycles=23122
 pbcase space=0 layout=1 eq=0 n=31 raw=0 hw_crc=3086365411 sw_crc=3086365411 refs=100 bin=3607 cycles=61727
-pbcase space=0 layout=1 eq=1 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1296 cycles=21148
+pbcase space=0 layout=1 eq=1 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1284 cycles=21056
 pbcase space=0 layout=1 eq=1 n=1 raw=0 hw_crc=1086148074 sw_crc=1086148074 refs=6 bin=1566 cycles=23310
 pbcase space=0 layout=1 eq=1 n=31 raw=0 hw_crc=3584618198 sw_crc=3584618198 refs=100 bin=3666 cycles=67455
 pbcase space=0 layout=1 eq=2 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1284 cycles=21075
@@ -41,7 +41,7 @@ pbcase space=0 layout=1 eq=3 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 
 pbcase space=0 layout=1 eq=3 n=1 raw=0 hw_crc=1663230162 sw_crc=1663230162 refs=6 bin=1524 cycles=23286
 pbcase space=0 layout=1 eq=3 n=31 raw=0 hw_crc=3041602996 sw_crc=3041602996 refs=100 bin=3606 cycles=67240
 pbcase space=0 layout=1 eq=4 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1284 cycles=21075
-pbcase space=0 layout=1 eq=4 n=1 raw=0 hw_crc=3448599496 sw_crc=3448599496 refs=6 bin=1570 cycles=23249
+pbcase space=0 layout=1 eq=4 n=1 raw=0 hw_crc=3448599496 sw_crc=3448599496 refs=6 bin=1524 cycles=23285
 pbcase space=0 layout=1 eq=4 n=31 raw=0 hw_crc=707420736 sw_crc=707420736 refs=100 bin=3666 cycles=67455
 pbcase space=0 layout=1 eq=5 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1293 cycles=21152
 pbcase space=0 layout=1 eq=5 n=1 raw=0 hw_crc=975583957 sw_crc=975583957 refs=6 bin=1570 cycles=23249
@@ -75,7 +75,7 @@ pbcase space=1 layout=1 eq=2 n=1 raw=0 hw_crc=2921656855 sw_crc=2921656855 refs=
 pbcase space=1 layout=1 eq=2 n=31 raw=0 hw_crc=2665389362 sw_crc=2665389362 refs=100 bin=3615 cycles=44005
 pbcase space=1 layout=1 eq=3 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1291 cycles=21131
 pbcase space=1 layout=1 eq=3 n=1 raw=0 hw_crc=1663230162 sw_crc=1663230162 refs=6 bin=1519 cycles=22432
-pbcase space=1 layout=1 eq=3 n=31 raw=0 hw_crc=3041602996 sw_crc=3041602996 refs=100 bin=3607 cycles=43959
+pbcase space=1 layout=1 eq=3 n=31 raw=0 hw_crc=3041602996 sw_crc=3041602996 refs=100 bin=3607 cycles=44127
 pbcase space=1 layout=1 eq=4 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1293 cycles=21126
 pbcase space=1 layout=1 eq=4 n=1 raw=0 hw_crc=3448599496 sw_crc=3448599496 refs=6 bin=1537 cycles=22391
 pbcase space=1 layout=1 eq=4 n=31 raw=0 hw_crc=707420736 sw_crc=707420736 refs=100 bin=3666 cycles=44116
@@ -92,4 +92,4 @@ PB/V1 private clip success/failure roundtrip ok
 fail 0
 done
 
-# closed 17:20:14, 8073 bytes
+# closed 21:45:35, 8073 bytes

@@ -1,1 +1,1 @@
-PASS: frames=35091 fields=35206 drops=115 rows=586 fps_milli=[49000,60000] diag fifo_min 322 samples 67758 zero 0 under 0 irqA 69403 irqB 67758 faults 0 swap_retry 0
+PASS: frames=31923 fields=32018 drops=95 rows=533 fps_milli=[49000,60000] diag fifo_min 322 samples 64651 zero 0 under 0 irqA 66279 irqB 64651 faults 0 swap_retry 0

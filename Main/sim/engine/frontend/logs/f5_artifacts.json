@@ -1,53 +1,53 @@
 {
   "Main/sw/apps/test/pbTest/build_f5_tests/pbTest-O2.bin": {
     "size": 75018,
-    "mtime_ns": 1791710333874334000,
+    "mtime_ns": 1791726267541898900,
     "sha256": "57c2fe39bd0068c0bc2769121645097fcaa95a6a40cb1b97c5b7093dbe096239"
   },
   "Main/sw/apps/test/instanceTest/build_f5_legacy/instanceTest-O2.bin": {
     "size": 76018,
-    "mtime_ns": 1791710337864692300,
+    "mtime_ns": 1791726270981202300,
     "sha256": "182764bc894a16cc4daa74bde832e1149279fefa7bca9033307ef2ad5cb1b89e"
   },
   "Main/sw/apps/probe/f4Bench/build_f5_research/f4Bench-O2.bin": {
     "size": 256510,
-    "mtime_ns": 1791710342610369500,
+    "mtime_ns": 1791726278050883800,
     "sha256": "c64a9252f8b5db3d6cb71c66d63ec32b648baa37c8525dfb3cdf9fb94fceac18"
   },
   "Main/sw/apps/probe/frontendBench/build_f5_verify/frontendBench-O2.bin": {
     "size": 161942,
-    "mtime_ns": 1791710357093516800,
+    "mtime_ns": 1791726284495517200,
     "sha256": "3c5a9b94b5507cefa8578e1da495f53a110ca9f2accf3bf7311ac6f2597c1bf9"
   },
   "Main/sw/apps/probe/frontendBench/build_f5_ab/frontendBench-O2.bin": {
     "size": 158910,
-    "mtime_ns": 1791710365391058400,
+    "mtime_ns": 1791726291007058800,
     "sha256": "3b3f236a541d1e0d61d6d190b0a3bd0c7b6124df8132afb8c7c58b8f5e1c09e0"
   },
   "Main/sw/apps/probe/frontendBench/build_f5_combo/frontendBench-O2.bin": {
     "size": 161942,
-    "mtime_ns": 1791710374109615700,
+    "mtime_ns": 1791726297451669300,
     "sha256": "b80ed7103507a14a720fdeb9d0c917570ceab526d90cfdded69c79b549b4ad46"
   },
   "Main/sw/apps/game/gfx2dGame/build_f5_pressure/gfx2dGame-O2-perf.bin": {
     "size": 121758,
-    "mtime_ns": 1791710381862392900,
+    "mtime_ns": 1791726304152745300,
     "sha256": "a485d8eabdc7eb6b258acd1b3f1195936b5d607a49b6e065618efe97e46b5b10"
   },
   "Main/sw/apps/game/gfx2dGame/build_f5_nmax/gfx2dGame-O2-perf.bin": {
     "size": 122054,
-    "mtime_ns": 1791710389674868600,
+    "mtime_ns": 1791726311283076000,
     "sha256": "312783fc8d9784c198597db90445abae4713607a3dab39a91610f001fac8fa67"
   },
   "Main/sw/apps/game/gfx2dGame/build_f5_replay/gfx2dGame-O2.bin": {
     "size": 152158,
-    "mtime_ns": 1791710395748336600,
+    "mtime_ns": 1791726317904893200,
     "sha256": "9dfc54f66ee9de238a3b36e34a6438ef45f6fa8857d1f68d09c3f3cd4335a1da"
   },
   "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit": {
     "size": 2775270,
-    "mtime_ns": 1791707458511686500,
-    "sha256": "ad6ecb0b6dd42542d31049cc7e816d79fc7cd4d50f92063c24d98ea19f9b20ad"
+    "mtime_ns": 1791725841811337200,
+    "sha256": "a7525e10c7b7e784cd5348cd01b9b11d0d4159a1f3243b4b8144d7df462adaea"
   },
   "versions": {
     "07d4695bd2e0273d9bc6112c08220efc010f19e6251bf2c9cd6a14e34b769d4c": {
@@ -232,14 +232,80 @@
     },
     "9dfc54f66ee9de238a3b36e34a6438ef45f6fa8857d1f68d09c3f3cd4335a1da": {
       "size": 152158,
-      "mtime_ns": 1791708154219849900,
+      "mtime_ns": 1791710395748336600,
       "sha256": "9dfc54f66ee9de238a3b36e34a6438ef45f6fa8857d1f68d09c3f3cd4335a1da",
       "path": "Main/sw/apps/game/gfx2dGame/build_f5_replay/gfx2dGame-O2.bin"
+    },
+    "ad6ecb0b6dd42542d31049cc7e816d79fc7cd4d50f92063c24d98ea19f9b20ad": {
+      "size": 2775270,
+      "mtime_ns": 1791707458511686500,
+      "sha256": "ad6ecb0b6dd42542d31049cc7e816d79fc7cd4d50f92063c24d98ea19f9b20ad",
+      "path": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit"
+    },
+    "57c2fe39bd0068c0bc2769121645097fcaa95a6a40cb1b97c5b7093dbe096239": {
+      "size": 75018,
+      "mtime_ns": 1791710333874334000,
+      "sha256": "57c2fe39bd0068c0bc2769121645097fcaa95a6a40cb1b97c5b7093dbe096239",
+      "path": "Main/sw/apps/test/pbTest/build_f5_tests/pbTest-O2.bin"
+    },
+    "182764bc894a16cc4daa74bde832e1149279fefa7bca9033307ef2ad5cb1b89e": {
+      "size": 76018,
+      "mtime_ns": 1791710337864692300,
+      "sha256": "182764bc894a16cc4daa74bde832e1149279fefa7bca9033307ef2ad5cb1b89e",
+      "path": "Main/sw/apps/test/instanceTest/build_f5_legacy/instanceTest-O2.bin"
+    },
+    "97262e900dfa6a25ad94e2afdf4ba57a1716b124b450bfcf8b4ee412af837a41": {
+      "size": 69994,
+      "mtime_ns": 1791710348037601900,
+      "sha256": "97262e900dfa6a25ad94e2afdf4ba57a1716b124b450bfcf8b4ee412af837a41",
+      "path": "Main/sw/apps/test/stripTest/build_f5_v2/stripTest-O2.bin"
+    },
+    "c64a9252f8b5db3d6cb71c66d63ec32b648baa37c8525dfb3cdf9fb94fceac18": {
+      "size": 256510,
+      "mtime_ns": 1791710342610369500,
+      "sha256": "c64a9252f8b5db3d6cb71c66d63ec32b648baa37c8525dfb3cdf9fb94fceac18",
+      "path": "Main/sw/apps/probe/f4Bench/build_f5_research/f4Bench-O2.bin"
+    },
+    "3c5a9b94b5507cefa8578e1da495f53a110ca9f2accf3bf7311ac6f2597c1bf9": {
+      "size": 161942,
+      "mtime_ns": 1791710357093516800,
+      "sha256": "3c5a9b94b5507cefa8578e1da495f53a110ca9f2accf3bf7311ac6f2597c1bf9",
+      "path": "Main/sw/apps/probe/frontendBench/build_f5_verify/frontendBench-O2.bin"
+    },
+    "3b3f236a541d1e0d61d6d190b0a3bd0c7b6124df8132afb8c7c58b8f5e1c09e0": {
+      "size": 158910,
+      "mtime_ns": 1791710365391058400,
+      "sha256": "3b3f236a541d1e0d61d6d190b0a3bd0c7b6124df8132afb8c7c58b8f5e1c09e0",
+      "path": "Main/sw/apps/probe/frontendBench/build_f5_ab/frontendBench-O2.bin"
+    },
+    "b80ed7103507a14a720fdeb9d0c917570ceab526d90cfdded69c79b549b4ad46": {
+      "size": 161942,
+      "mtime_ns": 1791710374109615700,
+      "sha256": "b80ed7103507a14a720fdeb9d0c917570ceab526d90cfdded69c79b549b4ad46",
+      "path": "Main/sw/apps/probe/frontendBench/build_f5_combo/frontendBench-O2.bin"
+    },
+    "a485d8eabdc7eb6b258acd1b3f1195936b5d607a49b6e065618efe97e46b5b10": {
+      "size": 121758,
+      "mtime_ns": 1791710381862392900,
+      "sha256": "a485d8eabdc7eb6b258acd1b3f1195936b5d607a49b6e065618efe97e46b5b10",
+      "path": "Main/sw/apps/game/gfx2dGame/build_f5_pressure/gfx2dGame-O2-perf.bin"
+    },
+    "312783fc8d9784c198597db90445abae4713607a3dab39a91610f001fac8fa67": {
+      "size": 122054,
+      "mtime_ns": 1791710389674868600,
+      "sha256": "312783fc8d9784c198597db90445abae4713607a3dab39a91610f001fac8fa67",
+      "path": "Main/sw/apps/game/gfx2dGame/build_f5_nmax/gfx2dGame-O2-perf.bin"
+    },
+    "0b3a57ddc4b43f049c45938dfe59769e5b61bea1a1708e75d398d13b57b725d4": {
+      "size": 2775270,
+      "mtime_ns": 1791722449859120400,
+      "sha256": "0b3a57ddc4b43f049c45938dfe59769e5b61bea1a1708e75d398d13b57b725d4",
+      "path": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit"
     }
   },
   "Main/sw/apps/test/stripTest/build_f5_v2/stripTest-O2.bin": {
     "size": 69994,
-    "mtime_ns": 1791710348037601900,
+    "mtime_ns": 1791726274406926800,
     "sha256": "97262e900dfa6a25ad94e2afdf4ba57a1716b124b450bfcf8b4ee412af837a41"
   },
   "Main/sw/apps/test/pbTest/build_f5_tests_ddr/pbTest-O2.bin": {

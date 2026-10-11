@@ -2,10 +2,10 @@
 === reset halt + load_image + resume
    [fpga_spinal.cpu0] Target successfully examined.
    152158 bytes written at address 0x00001000
-   downloaded 152158 bytes in 7.361437s (20.185 KiB/s)
+   downloaded 152158 bytes in 7.346877s (20.225 KiB/s)
 === 等串口采集结束（上限 10800 秒）
 --- 串口输出（E:\Workspace\Efinix\Main\sim\engine\frontend\logs\f5_board_replay.log）---
-# COM11 @ 115200 8N1, opened 17:56:01
+# COM11 @ 115200 8N1, opened 22:20:31
 gfx2dGame STG
 # --- 程序已加载，以下才是它的输出 ---
 pak 2840320 b370ba0a
@@ -9231,4 +9231,4 @@ end frames 9208 hits 4 over 0
 fail 0
 done
 
-# closed 18:35:12, 830248 bytes
+# closed 22:59:42, 830248 bytes

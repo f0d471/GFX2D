@@ -1,1 +1,1 @@
-PASS: 16x16 与 8x8 均为 OK；nmax result OK n_max 2189 knob 1904 ft_max 1584002 ft_p99 1584002 probes 15 timeouts 8；nmax result OK n_max 2187 knob 1936 ft_max 1400010 ft_p99 1400010 probes 14 timeouts 8
+PASS: 16x16 与 8x8 均为 OK；nmax result OK n_max 2206 knob 1920 ft_max 1591701 ft_p99 1588541 probes 13 timeouts 8；nmax result OK n_max 2185 knob 1936 ft_max 1401049 ft_p99 1401049 probes 15 timeouts 11

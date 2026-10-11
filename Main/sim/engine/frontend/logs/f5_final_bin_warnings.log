@@ -1,5 +1,5 @@
 // Efinity Synthesis Started 
-// Oct 11, 2026 16:25:30
+// Oct 11, 2026 21:31:52
 ///////////////////////////////////
 
 [EFX-0011 VERI-WARNING] root scope declaration is not allowed in Verilog 95/2K mode (VERI-1791) (E:\Workspace\Efinix\Main\rtl\engine/engine_regs_offsets.vh:7)

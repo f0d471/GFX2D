@@ -34,8 +34,8 @@ M5b GFX2D_TX_BUDGET=192：按场补满、不累加、超额归零 ok
 M5c 退出时的超额汇总：board: tx budget 192 B/field, over 1 times 18 bytes ok
 M5i INJECT=HOST_TX_NO_REFILL 见红：X3 next field refills to 192; three more fields still 192 (no accumulation) FAIL ok
 == M6 板上构建（bsp/ti60 的 board_tx_room） ==
-M6 gfx2dGame 板上构建零告警，bsp/ti60/board.o 里有 board_tx_room（bin 118502 字节） ok
-M6b STG_FIELD=3 板上构建零告警（bin 112414 字节） ok
+M6 gfx2dGame 板上构建零告警，bsp/ti60/board.o 里有 board_tx_room（bin 118486 字节） ok
+M6b STG_FIELD=3 板上构建零告警（bin 112398 字节） ok
 == M7 N_max 状态机的注错（每个都要让指定的行 FAIL） ==
 M7 INJECT=NMAX_BISECT_SIDE 见红：N1 six models: OK, 0 <= N* - N_max < STEP_MIN, N_max == knob FAIL ok
 M7 INJECT=NMAX_NO_STEPBACK 见红：N4 one spike at confirm field 1800: confirm fails, steps back STEP_MIN, reconfir ok
@@ -77,14 +77,14 @@ M13i INJECT=CSV_DROP_EQ 见红：脚本解析出 2 行不符，第一处 t 0 cmd
 == M14 日志不阻塞长跑（模式 2、36000 帧、GFX2D_TX_BUDGET=192、按 60 Hz 节拍，约 10 分钟） ==
 M14 lines_dropped 0、fail 0、bsp 超额汇总 over 0 times 0 bytes ok
     rows 600 bad 0 broken 0 head 1 sum 1 dropped 0 modes game first -
-    csvsum,36000,36012,12,1359095,520833,600,0；board: tx budget 192 B/field, over 0 times 0 bytes
+    csvsum,36000,36002,2,1442303,572916,600,0；board: tx budget 192 B/field, over 0 times 0 bytes
 == M15 自动驾驶（app 测试的 A 组） ==
 M15 A 组 8 行全 ok（64/32 同 M8） ok
     A4 autopilot plays one round twice: 5291 frames, reached SPELL 3 FAN+RAIN, lives lost 3, hi-score 12680, identical ok
 M15i INJECT=AUTO_ORDER 见红：A2 tie among up/down/left/right: the first in the fixed order (up) FAIL ok
 == M16 自动驾驶打一局（STG_FIELD=4、STG_JUDGE_AUTO=1，无窗口两遍） ==
 M16 两遍的 seg 与 g 行逐字节相同（5291 帧）、fail 0、done ok
-    auto frames 5291 cyc_avg 58 cyc_max 2973（PC 上的周期数只作登记）
+    auto frames 5291 cyc_avg 73 cyc_max 1007（PC 上的周期数只作登记）
     最后一帧：g 5290 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc d0ee1748
 == M16i 自动驾驶的注错（候选顺序倒过来） ==
 M16i INJECT=AUTO_ORDER 见红：CRC 序列变了，第一处不同在第 335 帧 ok

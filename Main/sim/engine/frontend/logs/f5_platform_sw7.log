@@ -73,9 +73,9 @@ G10 两遍日志逐字节相同、fail 0、done（6 段、840 帧，850 行） o
     f 359 2 pool 39 0 0 0 act 40 hit 1 graze 2 crc e0a75d21
     f 839 5 pool 970 0 0 0 act 951 hit 25 graze 42 crc 48b89ab2
 == G11 板上构建（STG_FIELD=1、2、4）与逐颗循环的反汇编 ==
-G11 STG_FIELD=1 板上构建零告警（bin 112910 字节） ok
-G11 STG_FIELD=2 板上构建零告警（bin 112966 字节） ok
-G11 STG_FIELD=4 板上构建零告警（bin 113342 字节） ok
+G11 STG_FIELD=1 板上构建零告警（bin 112894 字节） ok
+G11 STG_FIELD=2 板上构建零告警（bin 112942 字节） ok
+G11 STG_FIELD=4 板上构建零告警（bin 113318 字节） ok
 G11 stg_pool_step：86 条指令，没有除法、取模与间接跳转 ok
 G11 stg_pool_collide：75 条指令，没有除法、取模与间接跳转 ok
 G11 stg_pool_draw：89 条指令，没有除法、取模与间接跳转 ok
@@ -121,12 +121,12 @@ G15 两遍日志逐字节相同、fail 0、done、九行 seg 齐全（10185 帧�
     0  120  1860  1934  3734  5624  7514  10004  10184
     g 10184 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 38a200d5
 == G15i HUD 的注错（判据入口照样显示实测值） ==
-G15i INJECT=STG_LIVE_HUD 见红：与正常判据入口的前 1200 帧比，整帧 CRC 从第 274 帧起不同（第一个完整的一秒之前两边都是 --） ok
+G15i INJECT=STG_LIVE_HUD 见红：与正常判据入口的前 1200 帧比，整帧 CRC 从第 256 帧起不同（第一个完整的一秒之前两边都是 --） ok
 == G16 可玩：工具辅助通关录像（搜索器重生成与复核、判据入口回放两遍、与搜索器的摘要逐行比） ==
 G16a 入库的录像从头按键跑一遍：走到 CLEAR、残机没用完、帧恰好用完（36848 字节） ok
     clear 9027 score 21280 graze 938 lives 2 bombs 3
     end frames 9208 hits 4 over 0
-G16b 搜索器重新搜出的录像与入库的逐字节相同（308 秒） ok
+G16b 搜索器重新搜出的录像与入库的逐字节相同（313 秒） ok
     search blocks 2227 evals 1174856 backtracks 5032 forced 222
 G16c 判据入口回放两遍整份日志逐字节相同（9208 帧）、fail 0，seg/clear/end 与搜索器逐行相同 ok
     最后一帧：g 9207 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 937c83c9
@@ -134,7 +134,7 @@ G16c 判据入口回放两遍整份日志逐字节相同（9208 帧）、fail 0�
 G16i INJECT=REPLAY_KEY 见红：逐帧日志从第 200 帧起不同，摘要也与搜索器不同 ok
     end frames 5633 hits 12 over 1
 == G17 规模：场景 S1（模式 3、16x16、旋钮固定 1744）在 PC 上按 60 Hz 跑 20 秒并截帧 ==
-G17 S1 规模：第 10 秒以后每秒抽样帧的敌弹不少于 2015、溢出 0、fail 0，第 900 帧截出 640x480 的图 ok
-    抽样帧平均的方程像素（COPY/ALPHA/ADD/CONST/MUL/ALPHA_ST）：338645/533283/0/0/0/0
+G17 S1 规模：第 10 秒以后每秒抽样帧的敌弹不少于 2005、溢出 0、fail 0，第 900 帧截出 640x480 的图 ok
+    抽样帧平均的方程像素（COPY/ALPHA/ADD/CONST/MUL/ALPHA_ST）：338646/531851/0/0/0/0
 fail 0
 done

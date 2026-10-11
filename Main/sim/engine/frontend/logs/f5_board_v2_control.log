@@ -2,10 +2,10 @@
 === reset halt + load_image + resume
    [fpga_spinal.cpu0] Target successfully examined.
    69994 bytes written at address 0x00001000
-   downloaded 69994 bytes in 3.878414s (17.624 KiB/s)
+   downloaded 69994 bytes in 3.865002s (17.685 KiB/s)
 === 等串口采集结束（上限 1200 秒）
 --- 串口输出（E:\Workspace\Efinix\Main\sim\engine\frontend\logs\f5_board_v2.log）---
-# COM11 @ 115200 8N1, opened 17:22:31
+# COM11 @ 115200 8N1, opened 21:45:42
 stripTest G3
 reset ok
 CAPS ok
@@ -13,7 +13,6 @@ TEX upload ok
 direct build ok
 direct software ok
 strip begin ok
-# --- 程序已加载，以下才是它的输出 ---
 strip build ok
 register dst ok
 register DDR ok
@@ -21,6 +20,7 @@ register TEX ok
 submit ok
 error 0/0/00000000
 frame finish ok
+# --- 程序已加载，以下才是它的输出 ---
 CRC hw=73069421 sw=73069421
 same frame and padding ok
 perf read ok
@@ -43,4 +43,4 @@ direct mode finish ok
 fail 0
 done
 
-# closed 17:22:38, 654 bytes
+# closed 21:45:49, 654 bytes

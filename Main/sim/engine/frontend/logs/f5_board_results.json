@@ -61,7 +61,7 @@
     "artifact": "Main/sw/apps/game/gfx2dGame/build_f5_pressure/gfx2dGame-O2-perf.bin",
     "control_log": "Main/sim/engine/frontend/logs/f5_board_pressure_control.log",
     "transport": "UART",
-    "summary": "csvsum,600,601,1,1117411,1117411,10,0"
+    "summary": "csvsum,600,601,1,1115031,1115031,10,0"
   },
   "nmax": {
     "log": "Main/sim/engine/frontend/logs/f5_board_nmax.log",
@@ -73,27 +73,27 @@
       "TEX": [
         {
           "kind": "16x16",
-          "n_max": 1872,
+          "n_max": 1873,
           "knob": 1632,
-          "ft_max": 1627893,
+          "ft_max": 1628510,
           "ft_p99": 1627604,
           "probes": 14,
-          "timeouts": 12,
-          "confirmation": "nmax probe 13 confirm knob 1632 settle 598 timeout fields 3600 frames 3600 drops 0 act_min 1872 ft_max 1627893 ft_p99 1627604 pass",
+          "timeouts": 13,
+          "confirmation": "nmax probe 13 confirm knob 1632 settle 600 timeout fields 3600 frames 3600 drops 0 act_min 1873 ft_max 1628510 ft_p99 1627604 pass",
           "last_confirm_window": {
-            "t": 278,
-            "n_active": 1888,
-            "n_bullet": 1886,
-            "cpu_avg_cyc": 1252402,
-            "engine_busy_avg_cyc": 1638333,
+            "t": 279,
+            "n_active": 1917,
+            "n_bullet": 1915,
+            "cpu_avg_cyc": 1250421,
+            "engine_busy_avg_cyc": 1634145,
             "window_fields": 60,
             "bottleneck": "engine",
             "pace": "pipeline",
             "per_frame_bus": {
-              "hw_rd_burst_cum": 32595.016666666666,
-              "hw_wr_burst_cum": 39935.85,
-              "hw_rd_beat_cum": 162534.61666666667,
-              "hw_wr_beat_cum": 235950.85
+              "hw_rd_burst_cum": 32492.833333333332,
+              "hw_wr_burst_cum": 39834.88333333333,
+              "hw_rd_beat_cum": 162194.18333333332,
+              "hw_wr_beat_cum": 235619.88333333333
             }
           }
         },
@@ -101,25 +101,25 @@
           "kind": "8x8",
           "n_max": 1947,
           "knob": 1728,
-          "ft_max": 1334878,
-          "ft_p99": 1334878,
+          "ft_max": 1332653,
+          "ft_p99": 1332653,
           "probes": 14,
           "timeouts": 13,
-          "confirmation": "nmax probe 13 confirm knob 1728 settle 599 timeout fields 3600 frames 3600 drops 0 act_min 1947 ft_max 1334878 ft_p99 1334878 pass",
+          "confirmation": "nmax probe 13 confirm knob 1728 settle 600 timeout fields 3600 frames 3600 drops 0 act_min 1947 ft_max 1332653 ft_p99 1332653 pass",
           "last_confirm_window": {
-            "t": 561,
-            "n_active": 1988,
-            "n_bullet": 1986,
-            "cpu_avg_cyc": 1299596,
-            "engine_busy_avg_cyc": 1019164,
+            "t": 562,
+            "n_active": 1964,
+            "n_bullet": 1962,
+            "cpu_avg_cyc": 1299786,
+            "engine_busy_avg_cyc": 1019115,
             "window_fields": 60,
             "bottleneck": "cpu",
             "pace": "pipeline",
             "per_frame_bus": {
-              "hw_rd_burst_cum": 18343.916666666668,
-              "hw_wr_burst_cum": 25681.666666666668,
-              "hw_rd_beat_cum": 66295.85,
-              "hw_wr_beat_cum": 139572.18333333332
+              "hw_rd_burst_cum": 18346.383333333335,
+              "hw_wr_burst_cum": 25682.933333333334,
+              "hw_rd_beat_cum": 66298.68333333333,
+              "hw_wr_beat_cum": 139576.4
             }
           }
         }
@@ -127,53 +127,53 @@
       "PB": [
         {
           "kind": "16x16",
-          "n_max": 2189,
-          "knob": 1904,
-          "ft_max": 1584002,
-          "ft_p99": 1584002,
-          "probes": 15,
+          "n_max": 2206,
+          "knob": 1920,
+          "ft_max": 1591701,
+          "ft_p99": 1588541,
+          "probes": 13,
           "timeouts": 8,
-          "confirmation": "nmax probe 14 confirm knob 1904 settle 337 fields 3600 frames 3600 drops 0 act_min 2189 ft_max 1584002 ft_p99 1584002 pass",
+          "confirmation": "nmax probe 12 confirm knob 1920 settle 307 fields 3600 frames 3600 drops 0 act_min 2206 ft_max 1591701 ft_p99 1588541 pass",
           "last_confirm_window": {
-            "t": 321,
-            "n_active": 2209,
-            "n_bullet": 2207,
-            "cpu_avg_cyc": 1336048,
-            "engine_busy_avg_cyc": 1582074,
+            "t": 192,
+            "n_active": 2238,
+            "n_bullet": 2236,
+            "cpu_avg_cyc": 1340152,
+            "engine_busy_avg_cyc": 1589589,
             "window_fields": 60,
             "bottleneck": "engine",
             "pace": "pipeline",
             "per_frame_bus": {
-              "hw_rd_burst_cum": 9833.266666666666,
-              "hw_wr_burst_cum": 3270.7833333333333,
-              "hw_rd_beat_cum": 101807.31666666667,
-              "hw_wr_beat_cum": 80301.58333333333
+              "hw_rd_burst_cum": 9862.7,
+              "hw_wr_burst_cum": 3285.9,
+              "hw_rd_beat_cum": 101836.51666666666,
+              "hw_wr_beat_cum": 80314.41666666667
             }
           }
         },
         {
           "kind": "8x8",
-          "n_max": 2187,
+          "n_max": 2185,
           "knob": 1936,
-          "ft_max": 1400010,
-          "ft_p99": 1400010,
-          "probes": 14,
-          "timeouts": 8,
-          "confirmation": "nmax probe 13 confirm knob 1936 settle 378 fields 3600 frames 3600 drops 0 act_min 2187 ft_max 1400010 ft_p99 1400010 pass",
+          "ft_max": 1401049,
+          "ft_p99": 1401049,
+          "probes": 15,
+          "timeouts": 11,
+          "confirmation": "nmax probe 14 confirm knob 1936 settle 600 timeout fields 3600 frames 3600 drops 0 act_min 2185 ft_max 1401049 ft_p99 1401049 pass",
           "last_confirm_window": {
-            "t": 585,
-            "n_active": 2230,
-            "n_bullet": 2228,
-            "cpu_avg_cyc": 1365393,
-            "engine_busy_avg_cyc": 1140091,
+            "t": 532,
+            "n_active": 2235,
+            "n_bullet": 2233,
+            "cpu_avg_cyc": 1366312,
+            "engine_busy_avg_cyc": 1140983,
             "window_fields": 60,
             "bottleneck": "cpu",
             "pace": "pipeline",
             "per_frame_bus": {
-              "hw_rd_burst_cum": 8638.9,
-              "hw_wr_burst_cum": 2708.9666666666667,
-              "hw_rd_beat_cum": 100492.6,
-              "hw_wr_beat_cum": 79733.46666666666
+              "hw_rd_burst_cum": 8646.3,
+              "hw_wr_burst_cum": 2710.6833333333334,
+              "hw_rd_beat_cum": 100501.61666666667,
+              "hw_wr_beat_cum": 79735.28333333334
             }
           }
         }
@@ -182,8 +182,8 @@
     "same_binary": true,
     "fifo_min": 322,
     "gain_percent": [
-      16.93376068376069,
-      12.326656394453007
+      17.778964228510418,
+      12.22393425783257
     ]
   },
   "replay": {

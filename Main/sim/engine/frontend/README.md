@@ -1,7 +1,8 @@
 # 绘制前端：研究、实现与复现
 
-本目录收录F1～F5的独立判据与原始证据。F1～F3 已验收归档，F4 正式实现
-与板测完成并已验收归档（2026-10-11，判据在验收会话独立复现）；候选按显式开关选择，正确性、净收益、采用分别登记。
+本目录收录F1～F5的独立判据与原始证据。F1～F5 正式实现、板测与验收归档完成
+（2026-10-11，判据在验收会话独立复现）；候选按显式开关选择，正确性、净收益、
+采用分别登记。
 接口规格见
 [绘制前端总览](../../../../Engineering/Todo/sw/绘制前端总览.md)。
 
@@ -159,8 +160,9 @@ mode0 标量与 mode10 实例（预热 8、三轮各 30），verify 是独立诊
 
 输入是原v1标量/v1-I实例；硬件COUNT/SNAPSHOT、PREFIX、保序SCATTER生成PB，
 再按桶执行LOAD/引用/原几何像素/FLUSH。默认1024槽/8192引用，独立双PB各129KiB。
-GFX_FRONTEND_BIN 默认关；功能、净收益和采用分别登记，状态见
-[engine第14章](../../../../Engineering/TechReports/engine/14-硬件分桶与引用列表.md)。
+GFX_FRONTEND_BIN 默认关；功能、净收益与采用门槛结果登记在
+[engine第14章](../../../../Engineering/TechReports/engine/14-硬件分桶与引用列表.md)
+（同轮双型PB高于TEX，采用门槛满足，默认切换另行决策）。
 
 完整命令及消费者在 [tools/check](../../../tools/check/README.md#check_f5_binpy--run_f5_synthesispy--run_f5_boardpy)。
 新增独立模型 test_pb.c/test_pb_bounds.c、tb_engine_bin.v、tb_engine_pb.v、
