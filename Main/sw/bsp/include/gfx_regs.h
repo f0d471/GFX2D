@@ -20,6 +20,11 @@
 #define GFX_STRIP_H          0x030
 #define GFX_BAND_SURF          0x034
 #define GFX_ERROR_INSTANCE          0x038
+#define GFX_ERROR_STAGE          0x03C
+#define GFX_PB_BASE          0x140
+#define GFX_PB_BYTES          0x144
+#define GFX_DRAW_CAP          0x148
+#define GFX_REF_CAP          0x14C
 #define GFX_SURF(s, w)   (0x040 + ((s) * 12) + ((w) * 4))  /* s=0..15, w=0..2 */
 #define GFX_PERF(i)      (0x100 + (i) * 4)
 
@@ -34,7 +39,11 @@
 #define GFX_PERF_WAIT_DDR     7
 #define GFX_PERF_BUSY     8
 #define GFX_PERF_INSTANCE     9
-#define GFX_PERF_COUNT   10
+#define GFX_PERF_REF_COUNT     10
+#define GFX_PERF_BIN_CYCLES     11
+#define GFX_PERF_PB_RD_BEAT     12
+#define GFX_PERF_PB_WR_BEAT     13
+#define GFX_PERF_COUNT   14
 
 /* ID 与版本 */
 #define GFX_ID_VALUE     0x47465801u  /* "GFX" << 8 | 版本 */
@@ -61,13 +70,16 @@
 #define GFX_CAPS_LANES_S   8
 #define GFX_CAPS_INST_M   0x00001000u
 #define GFX_CAPS_INST_S   12
-#define GFX_CAPS_VALUE   0x0000146Fu
+#define GFX_CAPS_BIN_M   0x00002000u
+#define GFX_CAPS_BIN_S   13
+#define GFX_CAPS_VALUE   0x0000346Fu
 
 /* CTRL 位（SOFT_RST/CNT_CLR 写 1 自清，读恒 0） */
 #define GFX_CTRL_EN     (1u << 0)
 #define GFX_CTRL_SOFT_RST     (1u << 1)
 #define GFX_CTRL_CNT_CLR     (1u << 2)
 #define GFX_CTRL_BAND     (1u << 3)
+#define GFX_CTRL_BIN     (1u << 4)
 
 /* STATUS 位与错误码字段 */
 #define GFX_STATUS_BUSY   (1u << 0)

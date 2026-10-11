@@ -4,7 +4,7 @@
 [engine 第 10 章](../Engineering/TechReports/engine/10-整机与Nmax实测.md)。
 4KB 同位流 N_max：直通/TEX 1891/2237，条带 424/505；16KB 条带
 候选 479/597，均各 3600 场零掉帧。条带当前受 CPU 构造成本限制。
-主构型 41476 XLR/163 RAM/16 DSP，setup/hold +0.756/+0.026 ns；
+G4历史主构型41476 XLR/163 RAM/16 DSP，setup/hold +0.756/+0.026 ns；
 下文 B6、G1 与平台早期数字各对应其历史构建。
 
 2026 嵌入式芯片与系统设计竞赛，易灵思 FPGA 创新设计赛道，赛题二：
@@ -22,7 +22,10 @@ core setup/hold +0.756/+0.026 ns，CAPS.BAND=1。软件两套各 1 万张与
 [engine 第 09 章](../Engineering/TechReports/engine/09-条带控制与ABIv2.md)。
 G4 的游戏条带接入、N_max 与 16 KiB cache 对照已于 2026-10-09 验收归档。
 构造与提交接续见 [绘制前端 F 系列](../Engineering/Todo/sw/绘制前端总览.md)，
-方案决策 D64～D76 已归档，F1～F6 正式优化未开工。Flash 没有改写。
+方案决策D64～D76与F1～F4已验收归档；F5正式PB前端交付收口，F6未启动。
+F5当前整机60064 XLR/172 RAM/23 DSP，core setup/hold +0.104/+0.022 ns，
+所有时钟非负，CAPS=0x0000346F；新证据见
+[engine第14章](../Engineering/TechReports/engine/14-硬件分桶与引用列表.md)。Flash没有改写。
 下面 B6/G1 的资源表保留各自历史测量口径。
 
 | 部分 | 状态 |

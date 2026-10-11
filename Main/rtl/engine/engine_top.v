@@ -122,6 +122,72 @@ module engine_top #(
     wire [3:0]  wr_stat_cidx;
     wire        tmo_evt, tmo_dir;
 
+
+    wire bin_mode,pb_busy,pb_building,pb_abort,pb_done,pb_failed,pb_command_go;
+    reg pb_active;
+    wire [31:0] pb_base,pb_bytes,draw_cap,ref_cap,pb_error_index,pb_error_instance,pb_error_tag;
+    wire [3:0] pb_error_code,pb_error_stage,pb_src_id,pb_dst_id;
+    wire pb_perf_cmd,pb_perf_instance,pb_rd_beat,pb_wr_beat;
+    wire [1:0] pb_ref_add;
+    wire [255:0] pb_command_packet;
+    wire [63:0] pb_command_clip;
+    wire [31:0] pb_fd_addr,pw_addr;
+    wire [11:0] pb_fd_bytes,pw_bytes;
+    wire [3:0] pb_fd_cidx;
+    wire pb_fd_valid,pb_fd_instance,pb_fs_ready,pw_valid,pw_ready,pw_data_valid,pw_data_ready,pw_status,pw_error;
+    wire [127:0] pw_data;
+    wire [31:0] old_fd_addr;
+    wire [11:0] old_fd_bytes;
+    wire [3:0] old_fd_cidx,old_surf_ra_id,old_surf_rb_id;
+    wire old_fd_valid,old_fd_instance,old_fs_tready;
+    wire old_band_enable,old_band_start,old_band_flush,old_band_abort;
+    wire [31:0] old_band_bg_base,old_band_dst_base,pb_bg_base,pb_target_base;
+    wire [4:0] old_band_bg_slog2,old_band_dst_slog2,pb_bg_slog2,pb_target_slog2;
+    wire [15:0] old_band_y0,old_band_frame_height,pb_y0,pb_height;
+    wire pb_band_start,pb_band_flush;
+    always @(posedge clk)begin
+        if(rst_ctrl || soft_pending)pb_active<=0;
+        else if(kick)pb_active<=bin_mode;
+    end
+    assign fd_addr=pb_active?pb_fd_addr:old_fd_addr;
+    assign fd_bytes=pb_active?pb_fd_bytes:old_fd_bytes;
+    assign fd_cidx=pb_active?pb_fd_cidx:old_fd_cidx;
+    assign fd_instance=pb_active?pb_fd_instance:old_fd_instance;
+    assign fd_valid=pb_active?pb_fd_valid:old_fd_valid;
+    assign fs_tready=pb_active?pb_fs_ready:old_fs_tready;
+    assign surf_ra_id=pb_active?pb_src_id:old_surf_ra_id;
+    assign surf_rb_id=pb_active?pb_dst_id:old_surf_rb_id;
+    assign band_enable=pb_active?pb_busy:old_band_enable;
+    assign band_start=pb_active?pb_band_start:old_band_start;
+    assign band_flush=pb_active?pb_band_flush:old_band_flush;
+    assign band_abort=pb_active?pb_abort:old_band_abort;
+    assign band_bg_base=pb_active?pb_bg_base:old_band_bg_base;
+    assign band_dst_base=pb_active?pb_target_base:old_band_dst_base;
+    assign band_bg_slog2=pb_active?pb_bg_slog2:old_band_bg_slog2;
+    assign band_dst_slog2=pb_active?pb_target_slog2:old_band_dst_slog2;
+    assign band_y0=pb_active?pb_y0:old_band_y0;
+    assign band_frame_height=pb_active?pb_height:old_band_frame_height;
+    engine_pb #(.STRIP_H(STRIP_H)) u_pb(
+        .clk(clk),.rst(rst_ctrl||soft_pending),.go(kick&&bin_mode),.band_mode(band_mode),
+        .list_base(list_base),.list_count(list_count),.pb_base(pb_base),.pb_bytes(pb_bytes),.draw_cap(draw_cap),.ref_cap(ref_cap),
+        .lstrips(lstrips),.strip_log2(strip_log2),.band_surfs(band_surfs),
+        .busy(pb_busy),.building(pb_building),.abort(pb_abort),.done(pb_done),.failed(pb_failed),
+        .error_code(pb_error_code),.error_stage(pb_error_stage),.error_index(pb_error_index),.error_instance(pb_error_instance),.error_tag(pb_error_tag),
+        .perf_cmd(pb_perf_cmd),.perf_instance(pb_perf_instance),.ref_add(pb_ref_add),
+        .src_id(pb_src_id),.dst_id(pb_dst_id),.src_base(surf_ra_w0),.src_dim(surf_ra_w1),.src_ctrl(surf_ra_w2),
+        .dst_base(surf_rb_w0),.dst_dim(surf_rb_w1),.dst_ctrl(surf_rb_w2),
+        .band_start(pb_band_start),.band_flush(pb_band_flush),.bg_base(pb_bg_base),.target_base(pb_target_base),
+        .bg_slog2(pb_bg_slog2),.target_slog2(pb_target_slog2),.band_y0(pb_y0),.frame_height(pb_height),
+        .band_start_ready(band_start_ready),.band_flush_ready(band_flush_ready),.band_loaded(band_loaded),
+        .band_flushed(band_flushed),.band_busy(band_busy),.band_error(band_error),.band_error_code(band_error_code),
+        .drain_done(drain_done),.tmo_evt(tmo_evt),.tmo_write(tmo_dir),.command_go(pb_command_go),.command_packet(pb_command_packet),.command_clip(pb_command_clip),
+        .command_busy(cmd_busy),.command_done(done_set),.command_error(err_set),.command_error_code(err_code),
+        .fd_addr(pb_fd_addr),.fd_bytes(pb_fd_bytes),.fd_cidx(pb_fd_cidx),.fd_instance(pb_fd_instance),.fd_valid(pb_fd_valid),.fd_ready(fd_ready&&pb_active),
+        .fs_data(fs_tdata),.fs_valid(fs_tvalid&&pb_active),.fs_last(fs_tlast),.fs_instance(fs_instance),.fs_cidx(fs_cidx),.fs_ready(pb_fs_ready),
+        .rd_status(rd_stat_valid&&rd_stat_fetch&&pb_active),.rd_error(rd_stat_err),.rd_instance(rd_stat_instance),.rd_cidx(rd_stat_cidx),
+        .pw_addr(pw_addr),.pw_bytes(pw_bytes),.pw_valid(pw_valid),.pw_ready(pw_ready),.pw_data(pw_data),.pw_data_valid(pw_data_valid),
+        .pw_data_ready(pw_data_ready),.pw_status(pw_status),.pw_error(pw_error));
+
     // TEX 装载窗口（G1，第 4~7 页）与片上读流
     wire [31:0] regs_prdata;
     wire        regs_pready, regs_pslverr;
@@ -211,7 +277,7 @@ module engine_top #(
                     band_perf_rd;
     wire [11:0] perf_rdb_beats = (fd_valid && fd_ready) ? {4'b0, fd_bytes[11:4]}
                                                         : band_perf_rd ? 12'd160 : g_rd_beats;
-    wire perf_wrb = (g_wr_valid && g_wr_ready && !g_wr_band) ||
+    wire perf_wrb = (pw_valid && pw_ready) || (g_wr_valid && g_wr_ready && !g_wr_band) ||
                     band_perf_wr;
     wire perf_wait = (m_axi_arvalid && !m_axi_arready)
                   || (m_axi_rvalid  && !m_axi_rready)
@@ -235,19 +301,19 @@ module engine_top #(
         .clk(clk), .rst(rst_ctrl),
         .paddr(paddr[11:0]), .psel(psel && apb_hit_regs), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(regs_prdata), .pready(regs_pready), .pslverr(regs_pslverr),
-        .cmd_busy(cmd_busy),
-        .err_set(err_set), .err_code(err_code), .err_index(err_index), .err_tag(err_tag), .err_instance(err_instance), .perf_instance(perf_instance),
-        .done_set(done_set),
+        .cmd_busy(cmd_busy||pb_busy),.pb_busy(pb_busy),
+        .err_set(pb_active?(pb_done&&pb_failed):err_set),.err_code(pb_active?pb_error_code:err_code),.err_index(pb_active?pb_error_index:err_index),.err_tag(pb_active?pb_error_tag:err_tag),.err_instance(pb_active?pb_error_instance:err_instance),.err_stage(pb_active?pb_error_stage:4'd0),.perf_instance(pb_active?pb_perf_instance:perf_instance),
+        .done_set(pb_active?(pb_done&&!pb_failed):done_set),
         .kick(kick), .list_base(list_base), .list_count(list_count),
-        .band_mode(band_mode), .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
+        .band_mode(band_mode),.bin_mode(bin_mode),.pb_base(pb_base),.pb_bytes(pb_bytes),.draw_cap(draw_cap),.ref_cap(ref_cap), .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
         .soft_rst_done(drain_done), .soft_rst_pending(soft_pending),
         .irq_b(irq_b),
-        .perf_cmd(commit),
+        .perf_cmd(pb_active?pb_perf_cmd:commit),.perf_refs(pb_active?pb_ref_add:2'd0),.perf_bin(pb_building),.perf_real_mode(pb_active),.perf_axi_rd(m_axi_rvalid&&m_axi_rready),.perf_axi_wr(m_axi_wvalid&&m_axi_wready),.perf_pb_rd(pb_active&&pb_rd_beat),.perf_pb_wr(pb_active&&pb_wr_beat),
         .perf_pixel_en(sb_valid && sb_ready), .perf_pixel_npx(sb_npx),
         .perf_key_en(perf_key_valid_w), .perf_key_lanes(perf_key_lanes_w),
         .perf_rdb(perf_rdb), .perf_rdb_beats(perf_rdb_beats),
-        .perf_wrb(perf_wrb), .perf_wrb_beats(band_perf_wr ? 12'd160 : g_wr_beats),
-        .perf_wait(perf_wait), .perf_busy(cmd_busy),
+        .perf_wrb(perf_wrb), .perf_wrb_beats((pw_valid&&pw_ready)?{4'd0,pw_bytes[11:4]}:(band_perf_wr ? 12'd160 : g_wr_beats)),
+        .perf_wait(perf_wait), .perf_busy(cmd_busy||pb_busy),
         .surf_ra_id(surf_ra_id), .surf_rb_id(surf_rb_id),
         .surf_ra_w0(surf_ra_w0), .surf_ra_w1(surf_ra_w1), .surf_ra_w2(surf_ra_w2),
         .surf_rb_w0(surf_rb_w0), .surf_rb_w1(surf_rb_w1), .surf_rb_w2(surf_rb_w2)
@@ -258,13 +324,13 @@ module engine_top #(
     // =====================================================================
     engine_cmd #(.STRIP_H(STRIP_H)) u_cmd (
         .clk(clk), .rst(rst_ctrl),
-        .kick(kick), .list_base(list_base), .list_count(list_count),
-        .band_mode(band_mode), .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
-        .soft_rst(soft_pending),
-        .band_enable(band_enable), .band_start(band_start), .band_flush(band_flush), .band_abort(band_abort),
-        .band_bg_base(band_bg_base), .band_dst_base(band_dst_base),
-        .band_bg_slog2(band_bg_slog2), .band_dst_slog2(band_dst_slog2),
-        .band_y0(band_y0), .band_frame_height(band_frame_height),
+        .kick((kick&&!bin_mode)||pb_command_go),.external_mode(pb_command_go),.external_packet(pb_command_packet),.external_clip(pb_command_clip), .list_base(list_base), .list_count(list_count),
+        .band_mode(band_mode&&!pb_active), .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
+        .soft_rst(soft_pending||pb_abort),.preserve_clip(pb_abort&&!soft_pending),
+        .band_enable(old_band_enable), .band_start(old_band_start), .band_flush(old_band_flush), .band_abort(old_band_abort),
+        .band_bg_base(old_band_bg_base), .band_dst_base(old_band_dst_base),
+        .band_bg_slog2(old_band_bg_slog2), .band_dst_slog2(old_band_dst_slog2),
+        .band_y0(old_band_y0), .band_frame_height(old_band_frame_height),
         .band_start_ready(band_start_ready), .band_flush_ready(band_flush_ready),
         .band_loaded(band_loaded), .band_flushed(band_flushed),
         .band_busy(band_busy), .band_error(band_error), .band_error_code(band_error_code),
@@ -274,16 +340,16 @@ module engine_top #(
         .err_index(err_index), .err_tag(err_tag), .err_instance(err_instance), .perf_instance(perf_instance),
         .done_set(done_set), .commit(commit),
         .suppress_writes(suppress_writes),
-        .surf_ra_id(surf_ra_id), .surf_rb_id(surf_rb_id),
+        .surf_ra_id(old_surf_ra_id), .surf_rb_id(old_surf_rb_id),
         .surf_ra_w0(surf_ra_w0), .surf_ra_w1(surf_ra_w1),
         .surf_ra_w2(surf_ra_w2),
         .surf_rb_w0(surf_rb_w0), .surf_rb_w1(surf_rb_w1),
         .surf_rb_w2(surf_rb_w2),
-        .fd_addr(fd_addr), .fd_bytes(fd_bytes), .fd_cidx(fd_cidx),
-        .fd_instance(fd_instance), .fs_instance(fs_instance), .rd_stat_instance(rd_stat_instance),
-        .fd_valid(fd_valid), .fd_ready(fd_ready),
-        .fs_tdata(fs_tdata), .fs_tlast(fs_tlast), .fs_tvalid(fs_tvalid),
-        .fs_tready(fs_tready), .fs_cidx(fs_cidx),
+        .fd_addr(old_fd_addr), .fd_bytes(old_fd_bytes), .fd_cidx(old_fd_cidx),
+        .fd_instance(old_fd_instance), .fs_instance(fs_instance), .rd_stat_instance(rd_stat_instance),
+        .fd_valid(old_fd_valid), .fd_ready(fd_ready&&!pb_active),
+        .fs_tdata(fs_tdata), .fs_tlast(fs_tlast), .fs_tvalid(fs_tvalid&&!pb_active),
+        .fs_tready(old_fs_tready), .fs_cidx(fs_cidx),
         .rd_stat_valid(rd_stat_valid), .rd_stat_fetch(rd_stat_fetch),
         .rd_stat_err(rd_stat_err),
         .rd_stat_cidx(rd_stat_cidx),
@@ -313,7 +379,7 @@ module engine_top #(
     // 几何层
     // =====================================================================
     engine_geom #(.MAX_BEATS(192), .STRIP_H(STRIP_H)) u_geom (
-        .clk(clk), .rst(rst_ctrl),
+        .clk(clk), .rst(rst_ctrl||pb_abort),
         .start(geom_start),
         .op(i1_op), .eq(i1_eq), .key_en(i1_key_en),
         .key_w5(i1_key), .const_w4(i1_w4), .c(i1_c), .sfmt(i1_sfmt),
@@ -346,7 +412,7 @@ module engine_top #(
     // 计算阵列与计算核心
     // =====================================================================
     engine_pix u_pix (
-        .clk(clk), .rst(rst_ctrl),
+        .clk(clk), .rst(rst_ctrl||pb_abort),
         .sb_row(sb_row), .sb_npx(sb_npx), .sb_beats(sb_beats),
         .sb_lead_dst(sb_lead_dst), .sb_lead_src(sb_lead_src),
         .sb_op(sb_op), .sb_eq(sb_eq), .sb_key_en(sb_key_en), .sb_key(sb_key),
@@ -364,6 +430,7 @@ module engine_top #(
     // 搬运层（AXI 事务层）
     // =====================================================================
     engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13), .ENABLE_BAND(1), .BAND_STRIP_H(STRIP_H)) u_mover (
+        .pw_addr(pw_addr),.pw_bytes(pw_bytes),.pw_valid(pw_valid),.pw_ready(pw_ready),.pw_data(pw_data),.pw_data_valid(pw_data_valid),.pw_data_ready(pw_data_ready),.pw_status(pw_status),.pw_error(pw_error),.pb_rd_beat(pb_rd_beat),.pb_wr_beat(pb_wr_beat),
         .band_perf_rd(band_perf_rd), .band_perf_wr(band_perf_wr),
         .clk(clk), .rst(mover_rst),
         .rd_addr(g_rd_addr), .rd_bytes(g_rd_bytes), .rd_buf(g_rd_buf),

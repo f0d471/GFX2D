@@ -82,7 +82,9 @@ static sw6_scene_a       s_a;
 static sw6_scene_b       s_b;
 static uint32_t          s_fail;
 static uint32_t          s_backend;       /* 0 软件，1 硬件/DDR，2 硬件/TEX，3 硬件/STRIP */
+#if !SW6_MODE_JUDGE
 static int               s_tex_ready;     /* 热集已装载并 CRC 自校验通过（G1，HW/TEX 可用） */
+#endif
 static int               s_tex_on;        /* 表面表的热集槽当前处于 TEX 覆盖层之下 */
 #if !SW6_MODE_JUDGE || SW9_PERF
 static uint32_t          s_backend_fps[4], s_backend_fps_valid[4];
@@ -690,6 +692,9 @@ static int run_judge(void)
 #ifndef GFX2D_PRESS_EXIT
 #define GFX2D_PRESS_EXIT    0
 #endif
+#ifndef GFX2D_PRESS_AB_BIN
+#define GFX2D_PRESS_AB_BIN 0
+#endif
 #define SWJ_DWELL           5u      /* 每次切进来之后先停几帧不按键 */
 #define SWJ_DWELL_PRESS     60u     /* 模式 3 多停：旋钮 N0 = 64 时门控约 47 帧才攒够一次 24 发的齐射，
                                        停到池里有弹再切走，「切换时漏清池」才看得出来 */
@@ -704,7 +709,6 @@ static uint32_t     s_m1_frame;         /* 模式 1：本段的帧号 */
 static uint32_t     s_m1_field0;        /* 模式 1：本段开始时的场号（轮换按场数） */
 static uint32_t     s_mfps_cyc0, s_mfps_swaps0, s_mfps;
 static uint32_t     s_swj_n;            /* 切换判据：已经切了几次 */
-static int          s_tex_ready;        /* 热集装载并 CRC 自校验通过（G1，HW/TEX 可用） */
 
 /* --- v1-TEX（G1）：热集装载与 HW/TEX 后端 --------------------------------- */
 
@@ -1128,7 +1132,7 @@ static void sample_frame(void)
         gfx_list view;
         gfx_census cc;
         gfx_list_begin(&view, s_cmds[idx], s_cmd_cap[idx], &s_tab);
-        if(s_backend==3u) {
+        if(s_backend==3u && !s_mout.instances) {
             view.strip_table = (uint8_t *)(void *)s_cmds[idx];
             view.strips = (gfx_strip_config){480u >> GFX2D_STRIP_LOG2,
                                              GFX2D_STRIP_LOG2, idx, idx};
@@ -1186,6 +1190,7 @@ static int run_modes(void)
 #endif
     mode_enter((uint32_t)GFX2D_START_MODE);
     stats_init(&s_stats, &s_logq, s_mode, s_backend, stg_modes_overflow());
+    if(GFX2D_PRESS_AB_BIN)board_puts("f5 backend TEX begin\r\n");
     entered = 1;
 
     for (;;) {
@@ -1301,8 +1306,15 @@ static int run_modes(void)
         log_pump();
         total++;
         s_mode_frames++;
-        if (GFX2D_PRESS_EXIT && s_mode == 3u && stg_modes_press_done())
-            break;
+        if (GFX2D_PRESS_EXIT && s_mode == 3u && stg_modes_press_done()){
+            if(GFX2D_PRESS_AB_BIN && s_backend==2u){
+                s_fail+=stg_modes_fail()+s_stats.fail;
+                stats_end(&s_stats);log_drain();board_puts("f5 backend TEX end\r\n");
+                mode_leave(s_mode);s_backend=3u;mode_enter(3u);
+                stats_init(&s_stats,&s_logq,s_mode,s_backend,stg_modes_overflow());
+                entered=1;board_puts("f5 backend PB begin\r\n");
+            }else break;
+        }
 
         /* 切换在触发那一帧结束之后生效；统计的这一秒窗口从新模式的第一帧重新计 */
         if (next != s_mode) {

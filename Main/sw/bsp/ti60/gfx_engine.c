@@ -211,6 +211,34 @@ int gfx_engine_submit_strips(uint32_t list_base, uint32_t lstrips,
     return GFX_ENG_OK;
 }
 
+int gfx_engine_submit_pb(uint32_t base,uint32_t count,const gfx_engine_pb *p)
+{
+    if(!gfx_engine_present())return GFX_ENG_E_ABSENT;
+    if(!(eng_rd(GFX_CAPS)&GFX_CAPS_BIN_M))return GFX_ENG_E_CAPS;
+    if(!p)return GFX_ENG_E_ARG;
+    if((base&31u)||(p->base&127u))return GFX_ENG_E_ALIGN;
+    if(!p->draw_cap||p->draw_cap>32768u||p->ref_cap>131072u||count>p->draw_cap||
+       !p->lstrips||p->lstrips>30u||p->strip_log2<3u||p->strip_log2>5u||
+       (p->lstrips<<p->strip_log2)>480u||p->bg_id>15u||p->dst_id>15u)return GFX_ENG_E_ARG;
+    uint64_t required=((512ull+64ull*p->draw_cap+127ull)&~127ull)+8ull*p->ref_cap+16ull*p->lstrips;
+    uint64_t end=(uint64_t)p->base+p->bytes,input_end=(uint64_t)base+32ull*count;
+    if(required>p->bytes||end>0x100000000ull||input_end>0x100000000ull||
+       (count&&base<end&&p->base<input_end))return GFX_ENG_E_ARG;
+    if(eng_rd(GFX_STATUS)&(GFX_STATUS_BUSY|GFX_STATUS_DRAINING))return GFX_ENG_E_REJECT;
+    eng_wr(GFX_PB_BASE,p->base);eng_wr(GFX_PB_BYTES,p->bytes);
+    eng_wr(GFX_DRAW_CAP,p->draw_cap);eng_wr(GFX_REF_CAP,p->ref_cap);
+    eng_wr(GFX_LSTRIPS,p->lstrips);eng_wr(GFX_STRIP_H,p->strip_log2);eng_wr(GFX_BAND_SURF,(p->bg_id<<4)|p->dst_id);
+    eng_wr(GFX_CTRL,GFX_CTRL_EN|GFX_CTRL_BAND|GFX_CTRL_BIN);
+    eng_wr(GFX_LIST_BASE,base);eng_wr(GFX_LIST_COUNT,count);eng_wr(GFX_DOORBELL,1u);
+    return GFX_ENG_OK;
+}
+int gfx_engine_error_stage_read(uint32_t *stage)
+{
+    if(!stage)return GFX_ENG_E_ARG;
+    if(!gfx_engine_present())return GFX_ENG_E_ABSENT;
+    *stage=(eng_rd(GFX_CAPS)&GFX_CAPS_BIN_M)?eng_rd(GFX_ERROR_STAGE):0u;
+    return 0;
+}
 int gfx_engine_wait(uint32_t *err_code, uint32_t *err_index, uint32_t *err_tag)
 {
     uint32_t st;
@@ -250,7 +278,8 @@ int gfx_engine_perf_read(uint32_t *values, uint32_t n)
         return GFX_ENG_E_ARG;
     if (n != 0u && values == NULL)
         return GFX_ENG_E_ARG;
-    uint32_t supported=(eng_rd(GFX_CAPS)&GFX_CAPS_INST_M)?GFX_PERF_COUNT:9u;
+    uint32_t caps=eng_rd(GFX_CAPS);
+    uint32_t supported=(caps&GFX_CAPS_BIN_M)?GFX_PERF_COUNT:(caps&GFX_CAPS_INST_M)?10u:9u;
     for (i = 0u; i < n; i++)
         values[i] = i<supported?eng_rd(GFX_PERF(i)):0u;
     return GFX_ENG_OK;
@@ -260,7 +289,7 @@ int gfx_engine_perf_clear(void)
 {
     if (!gfx_engine_present())
         return GFX_ENG_E_ABSENT;
-    eng_wr(GFX_CTRL, (eng_rd(GFX_CTRL) & (GFX_CTRL_EN|GFX_CTRL_BAND)) | GFX_CTRL_CNT_CLR);
+    eng_wr(GFX_CTRL, (eng_rd(GFX_CTRL) & (GFX_CTRL_EN|GFX_CTRL_BAND|GFX_CTRL_BIN)) | GFX_CTRL_CNT_CLR);
     return GFX_ENG_OK;
 }
 

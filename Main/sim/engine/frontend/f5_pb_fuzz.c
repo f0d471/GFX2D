@@ -17,7 +17,7 @@
  * 编译（WSL，从仓库根）：
  *   gcc -std=c11 -I Main/sw/lib -fsanitize=address,undefined -g \
  *       Main/sim/engine/frontend/f5_pb_fuzz.c \
- *       Main/sw/lib/gfx/check.c Main/sw/lib/gfx/list.c Main/sw/lib/gfx/exec_sw.c \
+ *       Main/sw/lib/gfx/*.c \
  *       Main/sw/lib/core/format.c -o Main/sim/engine/frontend/build/f5_pb_fuzz
  *   Main/sim/engine/frontend/build/f5_pb_fuzz [场景数]
  *===*/
@@ -35,7 +35,7 @@
 #define META_W     64u
 #define DRAW_CAP   4096u
 #define REF_CAP    65536u
-#define PB_BYTES   (512u + DRAW_CAP * META_W + 8u * REF_CAP + 64u)
+#define PB_BYTES   (512u + DRAW_CAP * META_W + 8u * REF_CAP + 16u * LSTRIPS)
 
 #define MAX_PKGS   128u
 #define MAX_ARRAY  262144u
@@ -155,9 +155,9 @@ static void gen_scene(scene_t *sc, uint32_t seed)
                     e[6] = (uint8_t)(pi16(sy) & 0xFF); e[7] = (uint8_t)(pi16(sy) >> 8);
                 }
             }
-            arena_used += count * entry;
+            arena_used = (arena_used + count * entry + 15u) & ~15u;
             c->w[0] = GFX_OP_BLIT_INST | (eq << 8) | (key_en << 12) | (3u << 16);
-            c->w[1] = 0x30000000u;
+            c->w[1] = 0x30000000u + off;
             c->w[2] = count;
             c->w[3] = w | (h << 16);
             c->w[4] = key_en ? rnd() : 0u;
@@ -228,6 +228,20 @@ static int dest_window(const gfx_cmd *c, gfx_rect clip, gfx_rect *out)
     if (r.y0 < clip.y0) r.y0 = clip.y0;
     if (r.x1 > clip.x1) r.x1 = clip.x1;
     if (r.y1 > clip.y1) r.y1 = clip.y1;
+    uint32_t dst = (c->w[0] >> 20) & 15u;
+    if (r.x1 >= (int32_t)(st_d.s[dst].dim & 65535u)) r.x1 = (int32_t)(st_d.s[dst].dim & 65535u) - 1;
+    if (r.y1 >= (int32_t)(st_d.s[dst].dim >> 16)) r.y1 = (int32_t)(st_d.s[dst].dim >> 16) - 1;
+    uint32_t op = c->w[0] & 255u;
+    if (op == GFX_OP_BLIT || op == GFX_OP_BLIT_INST) {
+        uint32_t src = (c->w[0] >> 16) & 15u;
+        int32_t sx = si16(c->w[1]), sy = si16(c->w[1] >> 16);
+        if (r.x0 < dx - sx) r.x0 = dx - sx;
+        if (r.y0 < dy - sy) r.y0 = dy - sy;
+        int32_t ex = dx - sx + (int32_t)(st_d.s[src].dim & 65535u) - 1;
+        int32_t ey = dy - sy + (int32_t)(st_d.s[src].dim >> 16) - 1;
+        if (r.x1 > ex) r.x1 = ex;
+        if (r.y1 > ey) r.y1 = ey;
+    }
     if (rect_empty(r)) return 0;
     *out = r;
     return 1;
@@ -286,6 +300,10 @@ static void clip_apply(const gfx_cmd *c, gfx_rect *clip)
     clip->x0 = si16(c->w[1]); clip->y0 = si16(c->w[1] >> 16);
     clip->x1 = clip->x0 + (int32_t)(c->w[3] & 0xFFFFu) - 1;
     clip->y1 = clip->y0 + (int32_t)((c->w[3] >> 16) & 0xFFFFu) - 1;
+    if (clip->x0 < 0) clip->x0 = 0;
+    if (clip->y0 < 0) clip->y0 = 0;
+    if (clip->x1 >= SCREEN_W) clip->x1 = SCREEN_W - 1;
+    if (clip->y1 >= SCREEN_H) clip->y1 = SCREEN_H - 1;
     if (rect_empty(*clip)) *clip = (gfx_rect){ 0, 0, -1, -1 };
 }
 
@@ -330,7 +348,7 @@ static uint32_t pb_build(pb_t *pb, const scene_t *sc, int inj)
             pkt_inst_pos(sc, c, i, j, &dx, &dy, &sx, &sy);
             gfx_cmd tmp = *c;
             tmp.w[2] = (uint32_t)pi16(dx) | ((uint32_t)pi16(dy) << 16);
-            if (op == GFX_OP_BLIT)
+            if (op == GFX_OP_BLIT || op == GFX_OP_BLIT_INST)
                 tmp.w[1] = (uint32_t)pi16(sx) | ((uint32_t)pi16(sy) << 16);
             gfx_rect win;
             if (!dest_window(&tmp, clip, &win)) continue;
@@ -345,7 +363,7 @@ static uint32_t pb_build(pb_t *pb, const scene_t *sc, int inj)
             dirs[s] = off;
             off += (pb->counts[s] * 8u + 15u) & ~15u;
             m += pb->counts[s];
-        } else dirs[s] = off;
+        } else dirs[s] = 0;
     }
     if (m > REF_CAP) return 0;
     uint32_t *h = (uint32_t *)(void *)pb->buf;
@@ -375,7 +393,7 @@ static uint32_t pb_build(pb_t *pb, const scene_t *sc, int inj)
             pkt_inst_pos(sc, c, i, j, &dx, &dy, &sx, &sy);
             gfx_cmd tmp = *c;
             tmp.w[2] = (uint32_t)pi16(dx) | ((uint32_t)pi16(dy) << 16);
-            if (op == GFX_OP_BLIT)
+            if (op == GFX_OP_BLIT || op == GFX_OP_BLIT_INST)
                 tmp.w[1] = (uint32_t)pi16(sx) | ((uint32_t)pi16(sy) << 16);
             gfx_rect win;
             if (!dest_window(&tmp, clip, &win)) continue;
@@ -399,17 +417,17 @@ static uint32_t pb_build(pb_t *pb, const scene_t *sc, int inj)
             }
         }
     }
-    if (inj == INJ_SKIP_INST) return 0;           /* 对账红：写出数 < COUNT */
     if (inj == INJ_READY_EARLY && m) written++;   /* 目录口径不变，对账放行 */
     if (written != m) return 0;
     pb->m_total = m;
-    return m;
+    h[2] = 2u; /* 所有引用已写入并对账后发布 READY。 */
+    return 1u;
 }
 
 static int pb_exec(pb_t *pb, const scene_t *sc, uint32_t *m_seen)
 {
     const uint32_t *h = (const uint32_t *)(const void *)pb->buf;
-    if (h[0] != PB_MAGIC || h[1] != 1u || h[2] != 1u) return -1;
+    if (h[0] != PB_MAGIC || h[1] != 1u || h[2] != 2u) return -1;
     exec_sw_state es;
     es.clip.x0 = 0; es.clip.y0 = 0;
     es.clip.x1 = SCREEN_W - 1; es.clip.y1 = SCREEN_H - 1;
@@ -435,6 +453,7 @@ static int pb_exec(pb_t *pb, const scene_t *sc, uint32_t *m_seen)
             clip.y0 = si16((uint32_t)meta[34] | ((uint32_t)meta[35] << 8));
             clip.x1 = si16((uint32_t)meta[36] | ((uint32_t)meta[37] << 8));
             clip.y1 = si16((uint32_t)meta[38] | ((uint32_t)meta[39] << 8));
+            if ((op == GFX_OP_BLIT_INST) != (inst != 0xFFFFFFFFu)) return -4;
             if (inst != 0xFFFFFFFFu) {
                 if (op != GFX_OP_BLIT_INST) return -4;
                 if (inst >= c.w[2]) return -5;
@@ -446,6 +465,7 @@ static int pb_exec(pb_t *pb, const scene_t *sc, uint32_t *m_seen)
                 /* v1-I 的 key 值在 w4、w5 是 stride/layout；标量 BLIT 相反 */
                 c.w[5] = c.w[4];
                 c.w[4] = 0;
+                c.w[6] = 0;
             }
             m++;
             if (pkt >= sc->n_cmds) return -6;
@@ -469,15 +489,14 @@ static int pb_exec(pb_t *pb, const scene_t *sc, uint32_t *m_seen)
                            ((uint32_t)pi16(sy + win.y0 - dy) << 16);
             }
             out.w[7] = pkt;
-            /* 字段错误的命令两侧同样被拒、同样不写像素：错误码放行，只求一致 */
-            (void)exec_sw_run(&es, &st_p, &dev, &out, 1u, 1u, 0, 0);
+            if (exec_sw_run(&es, &st_p, &dev, &out, 1u, 1u, 0, 0)) return -7;
         }
     }
     *m_seen = m;
     return 0;
 }
 
-static void direct_exec(const scene_t *sc)
+static int direct_exec(const scene_t *sc)
 {
     exec_sw_state es;
     es.clip.x0 = 0; es.clip.y0 = 0;
@@ -499,12 +518,14 @@ static void direct_exec(const scene_t *sc)
                 /* v1-I 的 key 值在 w4、w5 是 stride/layout；标量 BLIT 相反 */
                 s.w[5] = s.w[4];
                 s.w[4] = 0;
-                exec_sw_run(&es, &st_d, &dev, &s, 1u, 1u, 0, 0);
+                s.w[6] = 0;
+                if (exec_sw_run(&es, &st_d, &dev, &s, 1u, 1u, 0, 0)) return -1;
             }
             continue;
         }
-        exec_sw_run(&es, &st_d, &dev, c, 1u, 1u, 0, 0);
+        if (exec_sw_run(&es, &st_d, &dev, c, 1u, 1u, 0, 0)) return -1;
     }
+    return 0;
 }
 
 int main(int argc, char **argv)
@@ -519,9 +540,9 @@ int main(int argc, char **argv)
         gen_scene(&sc, 0xA0000001u + n * 7919u);
         memset(pool, 0, FB_BYTES);
         memset(pool + FB_BYTES, 0, FB_BYTES);
-        direct_exec(&sc);
-        uint32_t m = pb_build(&pb, &sc, INJ_NONE);
-        if (!m) { skip++; continue; }
+        if (direct_exec(&sc)) { fail++; continue; }
+        if (!pb_build(&pb, &sc, INJ_NONE)) { skip++; continue; }
+        uint32_t m = pb.m_total;
         uint32_t m_seen = 0;
         int rc = pb_exec(&pb, &sc, &m_seen);
         if (rc || m_seen != m ||
@@ -533,25 +554,35 @@ int main(int argc, char **argv)
 
     static const char *names[] = { "clip_last", "ref_reverse", "skip_inst",
                                    "inst_scalar", "ready_early", "stale_pb" };
+    uint32_t missed = 0;
     for (uint32_t v = 0; v < 6u; v++) {
         uint32_t red = 0;
         for (uint32_t n = 0; n < scenes && !red; n++) {
             gen_scene(&sc, 0xA0000001u + n * 7919u);
             memset(pool, 0, FB_BYTES);
             memset(pool + FB_BYTES, 0, FB_BYTES);
-            direct_exec(&sc);
-            uint32_t m = pb_build(&pb, &sc, (int)v + 1);
+            if (direct_exec(&sc)) continue;
+            if (!pb_build(&pb, &sc, INJ_NONE)) continue;
+            uint32_t m = pb.m_total;
+            if ((int)v + 1 == INJ_STALE_PB) {
+                static scene_t previous;
+                gen_scene(&previous, 0xB0000001u + n * 7919u);
+                (void)pb_build(&pb, &previous, INJ_NONE);
+                gen_scene(&sc, 0xA0000001u + n * 7919u);
+            }
+            int built = pb_build(&pb, &sc, (int)v + 1);
             if ((int)v + 1 == INJ_SKIP_INST) {
-                if (!m) red++;              /* 对账失败即红 */
+                if (!built) red++;          /* 正常控制成功而写出数不符即红。 */
                 continue;
             }
-            if (!m) continue;
+            if (!built) continue;
             uint32_t m_seen = 0;
             int rc = pb_exec(&pb, &sc, &m_seen);
             if (rc || m_seen != m ||
                 memcmp(pool, pool + FB_BYTES, FB_BYTES)) red++;
         }
         printf("变异 %-12s：%s\n", names[v], red ? "红" : "未生效！");
+        if (!red) missed++;
     }
-    return fail ? 1 : 0;
+    return (fail || skip || missed) ? 1 : 0;
 }

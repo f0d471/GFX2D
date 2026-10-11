@@ -9,6 +9,11 @@
         <efx:design_file name="../../../../rtl/engine/engine_top.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_regs.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_cmd.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/engine_bounds.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/engine_packet_check.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/engine_pb_dma.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/engine_bin.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/engine_pb.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_inst.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_geom.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/engine/engine_pix.v" version="default" library="default" />

@@ -136,6 +136,10 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
 
     // ---- 寄存器层（engine_regs）----
     input  wire        kick,          // 一拍：DOORBELL 受理
+    input wire external_mode,
+    input wire [255:0] external_packet,
+    input wire [63:0] external_clip,
+    input wire preserve_clip,
     input  wire [31:0] list_base,
     input  wire [31:0] list_count,
     input wire band_mode,
@@ -243,6 +247,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     // 裁剪框（spec §4.4）：复位与软复位恢复全游戏区 [0,639]×[0,479]（闭区间）
     // =====================================================================
     reg signed [15:0] clip_x0, clip_y0, clip_x1, clip_y1;
+    reg external_r;
 
     // =====================================================================
     // 命令缓冲：两批乒乓，64 × 128 位，一写口（取数流）一读口（执行）
@@ -613,6 +618,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     always @(posedge clk) begin
         if (rst || soft_rst) begin
             st <= S_IDLE; busy_r <= 1'b0;
+            external_r<=0;
             inst_go<=0;inst_active<=0;inst_id<=0;inst_count<=0;inst_packet<=0;
             err_instance<=32'hffffffff;perf_instance<=0;
             bmode<=0;cfg_phase<=0;cfg_bad_q<=0;chk_q<=0;strip_id<=0;strips_r<=0;bg_id<=0;dst_id<=0;hdr_beat<=0;
@@ -625,8 +631,10 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
             fe_start_q <= 1'b0; rd_word <= 1'b0;
             pf_armed <= 1'b0; rq_pf <= 1'b0;
             pend_err <= 1'b0; pend_done <= 1'b0;
-            clip_x0 <= 16'sd0; clip_y0 <= 16'sd0;
-            clip_x1 <= 16'sd639; clip_y1 <= 16'sd479;
+            if(rst || !(preserve_clip === 1'b1))begin
+                clip_x0 <= 16'sd0; clip_y0 <= 16'sd0;
+                clip_x1 <= 16'sd639; clip_y1 <= 16'sd479;
+            end
         end else begin
             err_set    <= 1'b0;
             done_set   <= 1'b0;
@@ -649,6 +657,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
             case (st)
                 // ------------------------------------------------ IDLE
                 S_IDLE: if (kick) begin
+                    external_r<=(external_mode === 1'b1);
                     inst_active<=0;err_instance<=32'hffffffff;
                     busy_r  <= 1'b1;
                     base_r  <= list_base;
@@ -659,7 +668,11 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     strips_r <= lstrips[5:0];
                     bg_id <= band_surfs[7:4]; dst_id <= band_surfs[3:0];
                     table_base <= list_base;
-                    if (band_mode === 1'b1) begin
+                    if(external_mode === 1'b1)begin
+                        bmode<=0;cfg_phase<=0;count_r<=1;bi<=0;k<=0;bn<=1;nst<=N_IDLE;
+                        pend_err<=0;pend_done<=0;pf_armed<=0;
+                        w0<=external_packet[127:0];w1<=external_packet[255:128];st<=S_RUN;
+                    end else if (band_mode === 1'b1) begin
                         if (list_base[14:0]!=0 || lstrips==0 || lstrips>30 ||
                             strip_log2!=$clog2(STRIP_H) || band_surfs[31:8]!=0 ||
                             ({1'b0,list_base}+((lstrips+33'd1)<<15))>33'h100000000) begin
@@ -858,10 +871,11 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
 `endif
                     i1_w       <= w0[111:96];
                     i1_h       <= w0[127:112];
-                    i1_clip_x0 <= bmode ? 16'sd0 : clip_x0;
-                    i1_clip_y0 <= bmode ? 16'sd0 : clip_y0;
-                    i1_clip_x1 <= bmode ? 16'sd639 : clip_x1;
-                    i1_clip_y1 <= bmode ? 16'sd479 : clip_y1;
+                    // PB 生产者保持 packet/clip 到 command_done，几何层在 start 锁存。
+                    i1_clip_x0 <= external_r?external_clip[15:0]:(bmode ? 16'sd0 : clip_x0);
+                    i1_clip_y0 <= external_r?external_clip[31:16]:(bmode ? 16'sd0 : clip_y0);
+                    i1_clip_x1 <= external_r?external_clip[47:32]:(bmode ? 16'sd639 : clip_x1);
+                    i1_clip_y1 <= external_r?external_clip[63:48]:(bmode ? 16'sd479 : clip_y1);
                     i1_cidx    <= k[3:0];
                     start      <= 1'b1;
                     perf_instance<=inst_active;

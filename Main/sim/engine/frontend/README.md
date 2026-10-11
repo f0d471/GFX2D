@@ -1,6 +1,6 @@
 # 绘制前端：研究、实现与复现
 
-本目录收录 F1～F4 的独立判据与原始证据。F1～F3 已验收归档，F4 正式实现
+本目录收录F1～F5的独立判据与原始证据。F1～F3 已验收归档，F4 正式实现
 与板测完成并已验收归档（2026-10-11，判据在验收会话独立复现）；候选按显式开关选择，正确性、净收益、采用分别登记。
 接口规格见
 [绘制前端总览](../../../../Engineering/Todo/sw/绘制前端总览.md)。
@@ -154,3 +154,29 @@ mode0 标量与 mode10 实例（预热 8、三轮各 30），verify 是独立诊
 取数、解析、几何和像素出口拍，阶段区间可重叠，不作为板上分段周期。
 --collect 严格核对所有正式结果、当前程序结束边界、完整逻辑统计和旧位流身份，
 生成唯一 f4_results.json。原子批构造、完整解码与实际测量产物通过其清单关联。
+
+## F5 硬件分桶与引用列表
+
+输入是原v1标量/v1-I实例；硬件COUNT/SNAPSHOT、PREFIX、保序SCATTER生成PB，
+再按桶执行LOAD/引用/原几何像素/FLUSH。默认1024槽/8192引用，独立双PB各129KiB。
+GFX_FRONTEND_BIN 默认关；功能、净收益和采用分别登记，状态见
+[engine第14章](../../../../Engineering/TechReports/engine/14-硬件分桶与引用列表.md)。
+
+完整命令及消费者在 [tools/check](../../../tools/check/README.md#check_f5_binpy--run_f5_synthesispy--run_f5_boardpy)。
+新增独立模型 test_pb.c/test_pb_bounds.c、tb_engine_bin.v、tb_engine_pb.v、
+tb_engine_pb_game.v 与 test_pb_lease.c；研究原型 f5_pb_fuzz.c 修复了执行器返回值
+被忽略与XY4展开字段残留，正式研究复现为10000通过、0跳过、六变异红。
+原proto1的882/118/0只保留历史边界，不再称118为容量不足。
+
+模式10为INST直通，11为PB，12/13为PB+B1/B2，0为同轮TEX。fbin依次为
+scene/mode/repeat/PB_BYTES/DRAW_CAP/REF_CAP，以及采样窗口内INSTANCE、REF_COUNT、
+BIN_CYCLES、PB_RD_BEAT、PB_WR_BEAT增量；除以n才是每帧值。fcsv构造计时不含
+执行；exec_avg含实际执行与准备，gpu_busy为硬件忙，不能把三者相加为流水关键路径。
+
+正式证据为logs/f5_*：research_review/host/bin/frame/protocol/game/lease覆盖宿主与RTL；
+final_*与synthesis.json覆盖最终综合；board_*覆盖本次位流板测；artifacts.json
+登记实际部署物；board_results.json为最终消费者。*_pre_final仅为早期部署证据。
+旧回归中间产物隔离到build/f5/legacy*，原始证据收录在logs/f5_legacy_f4与f5_legacy_all。
+
+syn_bin/为动态输入、全输出观察综合工程，7RAM包含F4坐标缓存；wrapper根资源
+不能冒充裸engine_bin。所有临时大fixture和仿真可执行文件均留在忽略build。

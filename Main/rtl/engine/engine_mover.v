@@ -97,6 +97,15 @@ module engine_mover #(
     output wire band_perf_rd, band_perf_wr,
     input  wire                  clk,
     input  wire                  rst,          // 搬运层复位，顶层接 ~ddr_rstn
+    input wire [31:0] pw_addr,
+    input wire [11:0] pw_bytes,
+    input wire pw_valid,
+    output wire pw_ready,
+    input wire [127:0] pw_data,
+    input wire pw_data_valid,
+    output wire pw_data_ready,
+    output wire pw_status,pw_error,
+    output wire pb_rd_beat,pb_wr_beat,
 
     // ---- I2：像素读描述符（几何层 → 搬运层）----
     input  wire [31:0]           rd_addr,      // 字节地址，16 字节对齐（D3 规矩 1）
@@ -483,6 +492,10 @@ module engine_mover #(
     reg  [11:0] wr_beats_sent;
     reg [11:0] wr_bus_beats,raw_stop_after;
     reg raw_stop_valid;
+    reg wr_ctx_pb;
+    assign pb_rd_beat=m_axi_rvalid && m_axi_rready && rd_ctx_cmd;
+    assign pb_wr_beat=m_axi_wvalid && m_axi_wready && wr_ctx_pb;
+    wire pb_request=(pw_valid === 1'b1);
 
 `ifdef INJ_NO_GATE_WR
     wire        wr_gate_done = 1'b1;                   // 注错：去掉写门控
@@ -492,13 +505,15 @@ module engine_mover #(
     wire        wr_block     = (wr_busy && !wr_gate_done) || drain_hold || b_xfer || b_start_fire || b_flush_fire || b_wbusy;
     wire        wr_open      = !wr_block;
     wire        flush_open   = !drain_hold && (!wr_busy || wr_gate_done);
-    wire        wr_fire      = wr_core_ready && (b_wr_valid ? flush_open : (wr_open && wr_valid && !wr_is_band));
+    wire        wr_fire      = wr_core_ready && (b_wr_valid ? flush_open :
+                               (wr_open && (pb_request || (wr_valid && !wr_is_band))));
+    assign pw_ready=wr_core_ready && wr_open && !b_wr_valid;
     assign      b_wr_ready   = wr_core_ready && flush_open;
     assign      b_wfire      = wr_valid && wr_is_band && b_wready_desc && !wr_busy && !drain_hold && !b_start_fire && !b_flush_fire;
     assign      wr_ready     = wr_is_band ? (b_wready_desc && !wr_busy && !drain_hold && !b_start_fire && !b_flush_fire)
-                                         : (wr_core_ready && wr_open);
-    wire [31:0] write_desc_addr=b_wr_valid ? b_wr_addr : wr_addr;
-    wire [11:0] write_desc_bytes=b_wr_valid ? b_wr_bytes : wr_bytes;
+                                         : (wr_core_ready && wr_open && !pb_request);
+    wire [31:0] write_desc_addr=b_wr_valid ? b_wr_addr : pb_request?pw_addr:wr_addr;
+    wire [11:0] write_desc_bytes=b_wr_valid ? b_wr_bytes : pb_request?pw_bytes:wr_bytes;
 
     wire [3:0]   wr_status_tag;
     wire [11:0]  wr_status_len;
@@ -511,18 +526,22 @@ module engine_mover #(
     // tlast 正常写流与排空同一个式子：剩下的最后一拍（D48）
     wire [11:0]  wr_beats_left  = wr_beats_total - wr_beats_sent;
     wire         ws_core_tvalid = wr_drain_help ? (wr_beats_left != 12'd0) :
-                                  (wr_ctx_flush ? b_wvalid : (ws_tvalid && !b_wbusy));
+                                  (wr_ctx_flush ? b_wvalid : wr_ctx_pb?pw_data_valid:(ws_tvalid && !b_wbusy));
 `ifdef INJ_NO_TLAST
     // 注错：正常写流不打 tlast，只有排空哑拍打
     wire         ws_core_tlast  = wr_drain_help ? (wr_beats_left == 12'd1) : 1'b0;
 `else
     wire         ws_core_tlast  = (wr_beats_left == 12'd1);
 `endif
-    wire [127:0] ws_core_tdata  = wr_drain_help ? {4{32'h8000_0000}} : (wr_ctx_flush ? b_wdata : ws_tdata);
+    wire [127:0] ws_core_tdata  = wr_drain_help ? {4{32'h8000_0000}} :
+                                  (wr_ctx_flush ? b_wdata : wr_ctx_pb?pw_data:ws_tdata);
     // 写核整拍路径不保留输入 keep；BAND 取消掩码必须在 AXI 出口按前缀施加。
     wire [15:0]  ws_core_tkeep  = wr_drain_help ? 16'hFFFF :
-                                  (wr_ctx_flush ? 16'hFFFF : ws_tkeep);
-    assign       ws_tready      = drain_hold ? 1'b0 : (b_wbusy ? b_wsready : (wr_ctx_flush ? 1'b0 : wr_data_ready));
+                                  ((wr_ctx_flush || wr_ctx_pb) ? 16'hFFFF : ws_tkeep);
+    assign       ws_tready      = drain_hold ? 1'b0 : (b_wbusy ? b_wsready : ((wr_ctx_flush || wr_ctx_pb) ? 1'b0 : wr_data_ready));
+    assign pw_data_ready=wr_ctx_pb && !wr_drain_help && wr_data_ready;
+    assign pw_status=wr_stat_v && wr_ctx_pb;
+    assign pw_error=wr_err_r;
     assign       b_wready       = wr_ctx_flush && !wr_drain_help && wr_data_ready;
 
     wire         ws_core_fire   = ws_core_tvalid && wr_data_ready;
@@ -531,7 +550,7 @@ module engine_mover #(
         else begin
             if(wr_fire) begin wr_bus_beats<=0;raw_stop_valid<=0;end
             else if(m_axi_wvalid && m_axi_wready) wr_bus_beats<=wr_bus_beats+1'b1;
-            if(drain_enter && wr_busy && wr_ctx_flush) begin
+            if(drain_enter && wr_busy && (wr_ctx_flush || wr_ctx_pb)) begin
                 raw_stop_valid<=1;raw_stop_after<=wr_beats_sent;
             end
         end
@@ -539,7 +558,7 @@ module engine_mover #(
 `ifdef INJ_BAND_DRAIN_MASK
     wire raw_drain_kill=1'b0;
 `else
-    wire raw_drain_kill=wr_ctx_flush && raw_stop_valid && wr_bus_beats>=raw_stop_after;
+    wire raw_drain_kill=(wr_ctx_flush || wr_ctx_pb) && raw_stop_valid && wr_bus_beats>=raw_stop_after;
 `endif
 
     always @(posedge clk) begin
@@ -553,6 +572,7 @@ module engine_mover #(
             wr_ctx_cidx    <= 4'd0;
             wr_ctx_last_row<= 1'b0;
             wr_ctx_flush   <= 1'b0;
+            wr_ctx_pb<=0;
         end else begin
             if (wr_fire) begin
                 wr_busy         <= 1'b1;
@@ -562,6 +582,7 @@ module engine_mover #(
                 wr_ctx_cidx     <= wr_cidx;
                 wr_ctx_last_row <= wr_last_row;
                 wr_ctx_flush    <= b_wr_valid;
+                wr_ctx_pb<=!b_wr_valid && pb_request;
             end else if (wr_busy && wr_gate_done) begin
                 wr_busy <= 1'b0;
             end
@@ -576,7 +597,7 @@ module engine_mover #(
         end
     end
 
-    wire legacy_wr_stat=wr_stat_v && !wr_ctx_flush;
+    wire legacy_wr_stat=wr_stat_v && !wr_ctx_flush && !wr_ctx_pb;
     assign wr_stat_valid    = legacy_wr_stat || b_wstat;
     assign wr_stat_err      = legacy_wr_stat ? wr_err_r : b_werr;
     assign wr_stat_cidx     = legacy_wr_stat ? wr_ctx_cidx : b_wcidx;
@@ -713,14 +734,14 @@ module engine_mover #(
 `ifdef INJ_BAND_RAW_MASK
         wire kill = core_wdata[32*gp + 31];
 `else
-        wire kill = raw_drain_kill || (!wr_ctx_flush && core_wdata[32*gp + 31]);
+        wire kill = raw_drain_kill || (!(wr_ctx_flush || wr_ctx_pb) && core_wdata[32*gp + 31]);
 `endif
         assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4] & {4{~kill}};
         assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];
 `ifdef INJ_BAND_RAW_MASK
         assign m_axi_wdata[32*gp+24 +: 8] = 8'h00;
 `else
-        assign m_axi_wdata[32*gp+24 +: 8] = wr_ctx_flush ? core_wdata[32*gp+24 +:8] : 8'h00;
+        assign m_axi_wdata[32*gp+24 +: 8] = (wr_ctx_flush || wr_ctx_pb) ? core_wdata[32*gp+24 +:8] : 8'h00;
 `endif
 `endif
     end

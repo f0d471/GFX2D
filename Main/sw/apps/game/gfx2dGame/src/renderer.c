@@ -7,6 +7,7 @@
 #include "stg_main.h"
 #include "core/format.h"
 #include "gfx_engine.h"
+#include "gfx/pb.h"
 #ifndef GFX_FRONTEND_PLAN
 #define GFX_FRONTEND_PLAN 0
 #endif
@@ -19,19 +20,28 @@
 #ifndef GFX_FRONTEND_INST
 #define GFX_FRONTEND_INST 0
 #endif
+#ifndef GFX_FRONTEND_BIN
+#define GFX_FRONTEND_BIN 0
+#endif
+static gfx_pb_workspace s_pb[2];
+static gfx_pb_config s_pb_config[2];
+static gfx_lease s_pb_leases[2];
 static gfx_instance_arena s_instances[2];
 static gfx_lease s_instance_leases[2];
 static void instance_release(gfx_instance_arena *a,uint32_t generation)
 {
     uint32_t i;
     for(i=0;i<2;i++)if(a==&s_instances[i] && s_instance_leases[i].owner==generation)
-        s_instance_leases[i].owner=0;
+        {s_instance_leases[i].owner=0;
+         if(s_pb_leases[i].owner==generation)s_pb_leases[i].owner=0;}
 }
 static int instance_owned(const gfx_list *l)
 {
     uint32_t i;
     for(i=0;i<2;i++)if(l->instances==&s_instances[i])
-        return s_instance_leases[i].owner==l->instance_generation && l->instances->generation==l->instance_generation;
+        return s_instance_leases[i].owner==l->instance_generation && l->instances->generation==l->instance_generation &&
+            (!l->pb || (l->pb==&s_pb[i] && s_pb_leases[i].owner==l->instance_generation &&
+                        l->pb->generation==l->instance_generation));
     return 1; /* 显式外部 arena 的 lease 由调用方持有。 */
 }
 static gfx_strip_workspace s_workspace[2];
@@ -41,7 +51,19 @@ static gfx_surface_table s_build_tab[2];
 int renderer_list_begin(int hw, gfx_list *list, gfx_cmd *buf, uint32_t cap,
                          const gfx_surface_table *tab, int dst)
 {
-    if (hw == 3) {
+    int pb_mode=GFX_FRONTEND_BIN && hw==3;
+#ifdef __riscv
+    if(pb_mode){uint32_t caps=0;pb_mode=gfx_engine_caps_read(&caps)==0 &&
+        (caps&(GFX_CAPS_BIN_M|GFX_CAPS_INST_M))==(GFX_CAPS_BIN_M|GFX_CAPS_INST_M);}
+#endif
+    if(pb_mode && GFX_FRONTEND_BACKGROUND){
+        uint32_t idx=buf==(gfx_cmd *)board_region(REGION_CMDLIST_B).ptr?1u:0u;
+        gfx_surface bg={g_mem_regions[REGION_OFFSCREEN].offset+idx*0x200000u,640,480,12,0,0};
+        s_build_tab[idx]=*tab;
+        if(gfx_surface_set(&s_build_tab[idx],15,&bg))return GFX_BUILD_BAD_ARG;
+        tab=&s_build_tab[idx];
+    }
+    if (hw == 3 && !pb_mode) {
         const gfx_strip_config cfg = {480u >> GFX2D_STRIP_LOG2,
                                       GFX2D_STRIP_LOG2, GFX_FRONTEND_BACKGROUND?15u:(uint32_t)dst, (uint32_t)dst};
         const uint32_t idx=buf==(gfx_cmd *)board_region(REGION_CMDLIST_B).ptr?1u:0u;
@@ -65,7 +87,7 @@ int renderer_list_begin(int hw, gfx_list *list, gfx_cmd *buf, uint32_t cap,
         return rc;
     }
     gfx_list_begin(list, buf, cap, tab);
-    if(GFX_FRONTEND_INST && hw) {
+    if((GFX_FRONTEND_INST || pb_mode) && hw) {
         int capable=1;
 #ifdef __riscv
         uint32_t caps=0;
@@ -75,13 +97,24 @@ int renderer_list_begin(int hw, gfx_list *list, gfx_cmd *buf, uint32_t cap,
             uint32_t idx=buf==(gfx_cmd *)board_region(REGION_CMDLIST_B).ptr?1u:0u;
             board_mem shared=board_region(REGION_SHARED);
             uint32_t offset=0x400000u+idx*0x80000u,generation=s_instances[idx].generation+1u;
-            if(s_instance_leases[idx].owner)return GFX_BUILD_FULL;
+            if(s_instance_leases[idx].owner || (pb_mode && s_pb_leases[idx].owner))return GFX_BUILD_FULL;
+            gfx_pb_config pc={{480u>>GFX2D_STRIP_LOG2,GFX2D_STRIP_LOG2,
+                GFX_FRONTEND_BACKGROUND?15u:(uint32_t)dst,(uint32_t)dst},GFX_PB_DRAW_CAP,GFX_PB_REF_CAP};
+            uint32_t pb_span=gfx_pb_bytes(&pc);
+            if(pb_mode && (!pb_span || 2u*pb_span>0x300000u || shared.size<0x500000u+2u*pb_span))return GFX_BUILD_BAD_ARG;
             if(!generation)generation++;
             s_instance_leases[idx]=(gfx_lease){g_mem_regions[REGION_SHARED].offset+offset,0x80000u,generation,generation};
             s_instances[idx]=(gfx_instance_arena){(uint8_t *)shared.ptr+offset,
                 g_mem_regions[REGION_SHARED].offset+offset,0x80000u,0u,generation};
             list->instances=&s_instances[idx];
             list->instance_generation=generation;
+            if(pb_mode){
+                uint32_t po=0x500000u+idx*pb_span;
+                s_pb_config[idx]=pc;
+                s_pb[idx]=(gfx_pb_workspace){(uint8_t *)shared.ptr+po,g_mem_regions[REGION_SHARED].offset+po,pb_span,generation};
+                s_pb_leases[idx]=(gfx_lease){s_pb[idx].dev_base,s_pb[idx].bytes,generation,generation};
+                list->pb=&s_pb[idx];list->pb_config=&s_pb_config[idx];
+            }
         }
     }
     return GFX_OK;
@@ -147,6 +180,12 @@ static int submit_list(const gfx_list *list)
     if (list->first_error || list->rejected || list->overflow || !instance_owned(list))
         return GFX_ENG_E_ARG;
     if(!list->ended || (list->planned&&!list->planned->sealed))return GFX_ENG_E_ARG;
+    if(list->pb){
+        const gfx_pb_config *c=list->pb_config;
+        const gfx_engine_pb p={list->pb->dev_base,list->pb->bytes,c->draw_cap,c->ref_cap,
+            c->strips.lstrips,c->strips.strip_log2,c->strips.bg_id,c->strips.dst_id};
+        return gfx_engine_submit_pb((uint32_t)(uintptr_t)list->buf,list->used,&p);
+    }
     if (list->strip_table != NULL)
         return gfx_engine_submit_strips((uint32_t)(uintptr_t)list->strip_table,
                                         list->strips.lstrips, list->strips.strip_log2,
@@ -329,6 +368,7 @@ int renderer_pipeline_step(const gfx_list *list, int dst, exec_sw_stats *done_st
 {
 #ifdef __riscv
     if (pending_finish(done_st, exec_cycles, presented, ready_time) != 0) {
+        instance_release(list->instances,list->instance_generation);
 #if SW9_PERF
         if(list->frame&&!list->frame->published)gfx_frame_release(list->frame,list->frame->ticket);
 #endif
@@ -337,6 +377,7 @@ int renderer_pipeline_step(const gfx_list *list, int dst, exec_sw_stats *done_st
 #if SW9_PERF
     if(list->frame) {
         uint32_t sync;
+        s_pending_instance=list->instances;s_pending_generation=list->instance_generation;
         if(s_pipeline_front==-2||dst==s_pipeline_front||dst<0||dst>=BOARD_FB_COUNT||
            list->frame->pass[list->frame->count-1u].target.base!=g_mem_regions[REGION_FB0+dst].offset) {
             if(!list->frame->published)gfx_frame_release(list->frame,list->frame->ticket);
@@ -390,7 +431,7 @@ int renderer_prepare(int hw, const gfx_surface_table *tab)
         return -1;             /* 切换前必须显式 flush，不能复位仍在途的命令表 */
     if (gfx_engine_soft_reset() != GFX_ENG_OK)
         return -1;
-    for(i=0;i<2u;i++)s_instance_leases[i].owner=0u;
+    for(i=0;i<2u;i++){s_instance_leases[i].owner=0u;s_pb_leases[i].owner=0u;}
     s_pending_instance=NULL;s_pending_generation=0u;
 #if SW9_PERF
     if(s_pipeline_front!=-2)s_pipeline_front=-1;
@@ -476,7 +517,19 @@ hw_fail:
         rc = GFX_BUILD_BAD_ARG;
     else if (!list->ended || (list->planned&&!list->planned->sealed))
         rc=GFX_BUILD_BAD_ARG;
-    else if (list->strip_table != NULL) {
+    else if(list->pb){
+        const gfx_instance_arena *a=list->instances;
+        const gfx_instance_view view={a->host,a->dev_base,a->used};
+        gfx_pb_error pe;gfx_pb_stats ps;
+        rc=gfx_pb_build(tab,list->buf,list->used,&view,1,list->pb_config,list->pb,&pe);
+        if(!rc){
+            const gfx_instance_view pv={list->pb->host,list->pb->dev_base,list->pb->bytes};
+            rc=exec_sw_run_pb(tab,mem,&pv,&view,1,list->pb_config,&ps,&pe);
+            st->cmd=ps.packets;st->records_read=ps.packets;st->pixel_total=ps.pixels;
+            st->key_skip=ps.key_skip;st->pixel_written=ps.pixels-ps.key_skip;
+        }
+        *err=(exec_sw_error){rc,pe.index,pe.tag};
+    } else if (list->strip_table != NULL) {
         static uint32_t scratch[32768];
         rc = exec_sw_run_strips(tab, mem, list->strip_table,
                                 (list->strips.lstrips + 1u) * GFX_STRIP_REGION_BYTES,

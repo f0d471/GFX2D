@@ -3,6 +3,7 @@
 #include "board.h"
 #include "gfx/gfx.h"
 #include "gfx/frame.h"
+#include "gfx/pb.h"
 #include "core/crc32.h"
 #include <string.h>
 static uint32_t scratch[32768];
@@ -17,7 +18,7 @@ int frontend_verify(const gfx_list *l,const gfx_mem *m,const exec_sw_stats *hw,
 {
     gfx_surface_table tab=*l->t;exec_sw_state es;exec_sw_stats expected={0};exec_sw_error er;
     uint32_t shadow=g_mem_regions[REGION_OFFSCREEN].offset+0x600000u;
-    uint32_t dst=l->strip_table?l->strips.dst_id:0u,original=tab.s[dst].base;int rc;
+    uint32_t dst=l->pb?l->pb_config->strips.dst_id:l->strip_table?l->strips.dst_id:0u,original=tab.s[dst].base;int rc;
     tab.s[dst].base=shadow;
     if(l->frame && l->frame->count==2u) {
         const gfx_list *pre=l->frame->pass[0].draw;
@@ -27,6 +28,16 @@ int frontend_verify(const gfx_list *l,const gfx_mem *m,const exec_sw_stats *hw,
         {const exec_sw_stats *ph=&l->frame->pass[0].executed;
          if(ph->cmd!=expected.cmd||ph->pixel_total!=expected.pixel_total-expected.src_oob||
             ph->key_skip!=expected.key_skip||ph->pixel_written!=expected.pixel_written)return 5;}
+    }
+    if(l->pb && l->frame) {
+        /* PB 输入省略已分离的背景绘制；独立标量执行也须先实现 LOAD。
+           B2 的背景刚由上面的独立 prepass 重画，不能复制硬件目的帧作期望。 */
+        const gfx_surf_raw *bg=&tab.s[l->pb_config->strips.bg_id];
+        uint32_t row;
+        for(row=0;row<480u;row++)
+            memcpy((void *)((uintptr_t)m->host+shadow-m->dev_base+row*4096u),
+                   (const void *)((uintptr_t)m->host+bg->base-m->dev_base+
+                                 ((uintptr_t)row<<gfx_surf_stride_log2(bg))),2560u);
     }
     if(l->strip_table)
         rc=exec_sw_run_strips(&tab,m,l->strip_table,GFX_STRIP_TABLE_BYTES,&l->strips,scratch,sizeof scratch,&expected,&er);

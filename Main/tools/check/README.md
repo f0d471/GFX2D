@@ -492,3 +492,58 @@ run_f4_board.py 在 Windows 的 Efinity Python 下重建与串行采集；部署
 
 F4 的 --research 提供研究工具与输入回环复现，--profile 提供 TIMED 阶段诊断，
 --collect 从原始证据严格生成唯一汇总 f4_results.json。
+
+## check_f5_bin.py / run_f5_synthesis.py / run_f5_board.py
+
+F5 硬件保序分桶与 PB v1 的独立判据和串行板测。按开发环境手册选择 WSL、
+Efinity Python 与 EFINITY_HOME，命令从仓库根运行：
+
+~~~text
+wsl -e python3 Main/tools/check/check_f5_bin.py --research --models --bin --frame --mutations --protocols --game --replay --lease --legacy --legacy-all
+EFINITY_HOME="<EFINITY_WSL>" python3 Main/tools/check/check_f5_bin.py --platform
+python3 Main/tools/check/check_f5_bin.py --collect
+python Main/tools/check/run_f5_synthesis.py --build bin main --collect
+python Main/tools/check/run_f5_board.py --build tests legacy v2 research verify ab combo pressure nmax replay
+python Main/tools/check/run_f5_board.py --run tests legacy v2 research verify ab combo pressure nmax replay --program
+python Main/tools/check/run_f5_board.py --collect
+~~~
+
+--research 严格复现17个冻结输入每桶计数及修复后的万张原型；--models 生成独立
+标量像素与真实 PB 字节金标准；--bin 为真实 RTL 一万张逐字对拍；--frame、
+--protocols 覆盖完整引擎及20个故障/模式/容量反例、8/32行；--game 为 K1984
+完整640×480帧，含定时DDR、随机反压、16/32行及AXI/分类计数对账；--replay
+为宿主9208帧逐行对照；--lease、--legacy/--legacy-all 检查双帧资源与旧通路。
+六个真实 RTL 变异须失败；正常控制须成功。中间产物写 frontend/build/f5。
+
+f5_game_dump.c 是真实生产输入与独立标量金标准导出器，由 --game 编译调用，
+不链接到板上应用。独立综合采用动态观察 wrapper，只量资源和时序，协议验证
+由真实 RTL 测试台承担。综合收录检查当前位流新鲜度、所有时钟非负及自产位宽告警。
+
+板测只有一个进程占COM/JTAG，不写Flash。首项 --program 部署当前正时序位流；
+后续复用该位流。Nmax 同一BIN按 TEX16/8、PB16/8 搜索，原搜索参数保持，各
+3600场确认；压力构建 REF_CAP=32768，其余8192。--collect 独立检查结束边界、
+74组CRC、153组冻结状态与27组背景组合、四个长时确认和完整9208帧逐行结果。
+部署身份只登记到 logs/f5_artifacts.json，最终消费者写 f5_board_results.json。
+原始日志、资源报告和采用结论见 [engine第14章](../../../Engineering/TechReports/engine/14-硬件分桶与引用列表.md)。
+
+## run_f5_jtag_capture.py
+
+正常UART不可用时的功能诊断备用入口，仅支持tests/v2/replay；性能仍用原
+run_f5_board.py的正常构建与串口证据。使用开发环境所列Efinity Python：
+
+~~~text
+python Main/tools/check/run_f5_jtag_capture.py --build tests v2 replay --run tests v2 replay --program
+~~~
+
+每项独立build_f5_*_ddr编入F5_DDR_LOG=1；BSP将board_puts原始字节写到
+OFFSCREEN的+0x400000..+0x600000，预留32B header，容量2MiB；避开背景A/B和
++6MiB影子。默认构建完全不启用该路径，不访问COM，也不写Flash。
+header含magic、加载器nonce、长度、DONE/OVERFLOW、CRC32、版本、容量与保留字。
+发布前后使用fence；done必须是完整独立一行，overflow直接失败。
+JTAG加载核对字节数，周期性短暂停CPU读header，完成后dump原始DDR日志，
+检查nonce/header稳定、长度和独立zlib CRC32，再消费fail/done与逐帧结果。
+该诊断暂停与日志开销使周期不适合性能比较，f5_jtag_*.json明确标记。
+
+纯sink的ASan/UBSan判据为sim/engine/frontend/test_ddr_log.c，覆盖标准CRC32金值、
+分块done、伪done和溢出保护。部署身份仍进入唯一f5_artifacts.json；JTAG功能
+日志带单独产物键，普通UART性能日志不替换。

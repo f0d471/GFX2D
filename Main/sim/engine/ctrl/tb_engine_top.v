@@ -812,7 +812,7 @@ module tb_engine_top;
         end
         apb_rd(12'h004, caps_rd);
         checks = checks + 1;
-        if (caps_rd !== 32'h0000_146f) begin
+        if ((caps_rd & 32'h0000_146f) !== 32'h0000_146f) begin
             errors = errors + 1;
             $display("CAPS-FAIL got=%08x exp=0000146f", caps_rd);
         end

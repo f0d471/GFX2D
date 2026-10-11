@@ -152,6 +152,7 @@ void gfx_list_begin(gfx_list *l, gfx_cmd *buf, uint32_t cap,
     l->planned     = 0;
     l->geometry    = 0;
     l->frame       = 0;
+    l->pb=0;l->pb_config=0;
     l->instances   = 0;
     l->instance_generation=0u;
 }

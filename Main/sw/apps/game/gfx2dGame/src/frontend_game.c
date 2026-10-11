@@ -1,5 +1,7 @@
 /* 游戏只在适配层选择阶段；通用 frame 库不认识游戏与素材。 */
 #include "frontend_game.h"
+#include "renderer.h"
+#include "gfx/pb.h"
 #include "gfx/frame.h"
 #include "board.h"
 #ifdef FRONTEND_VERIFY
@@ -26,11 +28,16 @@ static int init_arena(void)
     if(!++generation)generation++;
     memset(&arena,0,sizeof arena);
     arena.next_ticket=next;
+    const gfx_pb_config pc={{480u>>GFX2D_STRIP_LOG2,GFX2D_STRIP_LOG2,0,0},GFX_PB_DRAW_CAP,GFX_PB_REF_CAP};
+    const uint32_t pb_span=gfx_pb_bytes(&pc);
+    if(!pb_span||2u*pb_span>0x300000u)return -1;
     for(i=0;i<2;i++) {
         if(gfx_frame_arena_add(&arena,g_mem_regions[REGION_OFFSCREEN].offset+i*0x200000u,0x200000u,generation)<0 ||
            gfx_frame_arena_add(&arena,g_mem_regions[REGION_SHARED].offset+0x800000u+i*0x10000u,0x10000u,generation)<0 ||
            gfx_frame_arena_add(&arena,g_mem_regions[REGION_CMDLIST_A+i].offset,0x100000u,generation)<0 ||
-           gfx_frame_arena_add(&arena,g_mem_regions[REGION_FB0+i].offset,0x400000u,generation)<0)return -1;
+           gfx_frame_arena_add(&arena,g_mem_regions[REGION_FB0+i].offset,0x400000u,generation)<0 ||
+           gfx_frame_arena_add(&arena,g_mem_regions[REGION_SHARED].offset+0x400000u+i*0x80000u,0x80000u,generation)<0 ||
+           gfx_frame_arena_add(&arena,g_mem_regions[REGION_SHARED].offset+0x500000u+i*pb_span,pb_span,generation)<0)return -1;
     }
     initialized=1;return 0;
 }
@@ -41,11 +48,12 @@ int frontend_game_compose_selected(const stg_game *g,gfx_list *l,int background_
     frame_context *c;uint32_t idx,bglease,prelease,cmdlease,dstlease,mask;gfx_pass pass;
     uint32_t bg=g_mem_regions[REGION_OFFSCREEN].offset;
     int rc;
-    if(!background_mode||!l->strip_table)return stg_game_compose(g,l,cfg,live,stats);
+    if(!background_mode||(!l->strip_table&&!l->pb))return stg_game_compose(g,l,cfg,live,stats);
     idx=l->buf==(gfx_cmd *)board_region(REGION_CMDLIST_B).ptr?1u:0u;c=&context[idx];
-    bg+=idx*0x200000u;bglease=idx*4u;prelease=bglease+1u;cmdlease=bglease+2u;dstlease=bglease+3u;
+    bg+=idx*0x200000u;bglease=idx*6u;prelease=bglease+1u;cmdlease=bglease+2u;dstlease=bglease+3u;
     if(!initialized&&init_arena())return -1;
     mask=(1u<<bglease)|(1u<<prelease)|(1u<<cmdlease)|(1u<<dstlease);
+    if(l->pb)mask|=(1u<<(bglease+4u))|(1u<<(bglease+5u));
     if(gfx_frame_begin(&c->plan,&arena,g->frame,mask))return -1;
     if(previous_mode[idx]!=background_mode)static_ready[idx]=0;
     previous_mode[idx]=background_mode;
@@ -86,6 +94,10 @@ int frontend_game_compose_selected(const stg_game *g,gfx_list *l,int background_
     pass.reads[1]=(gfx_pass_resource){g_mem_regions[REGION_ASSET].offset,g_mem_regions[REGION_ASSET].size,generation,UINT32_MAX};
     pass.reads[2]=(gfx_pass_resource){0,16384,generation,UINT32_MAX};
     pass.write_count=1;pass.writes[0]=pass.target;
+    if(l->pb){
+        pass.read_count=4;pass.reads[3]=(gfx_pass_resource){arena.page[bglease+4u].base,arena.page[bglease+4u].bytes,generation,bglease+4u};
+        pass.write_count=2;pass.writes[1]=(gfx_pass_resource){arena.page[bglease+5u].base,arena.page[bglease+5u].bytes,generation,bglease+5u};
+    }
     if(gfx_frame_add_pass(&c->plan,&pass)||gfx_frame_seal(&c->plan))goto cancel;
 #ifdef INJECT_FRONTEND_PREPASS_FAILURE
     if(background_mode==2)c->background.buf[0].w[0]=0x7fu;

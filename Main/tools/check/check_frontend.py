@@ -67,7 +67,7 @@ def legacy():
 def pipeline_model():
     game=MAIN/'sw/apps/game/gfx2dGame/src'
     sources=[SIM/'test_pipeline.c',game/'renderer.c',MAIN/'sw/bsp/memmap.c',
-             *[LIB/'gfx'/x for x in ('list.c','strip.c','strip_plan.c','frame.c','check.c','exec_sw.c','census.c','instances.c')],LIB/'core/format.c']
+             *[LIB/'gfx'/x for x in ('list.c','strip.c','strip_plan.c','frame.c','check.c','exec_sw.c','census.c','instances.c','pb.c')],LIB/'core/format.c']
     flags=['-m32','-O1','-g','-std=c11','-Wall','-Wextra','-Werror','-D__riscv','-DSW9_PERF=1','-DGFX_FRONTEND_BACKGROUND=2',
            '-ffunction-sections','-fdata-sections','-Wl,--gc-sections','-I'+str(LIB),'-I'+str(MAIN/'sw/bsp/include'),'-I'+str(game)]
     for name,defines,red in [('pipeline_model',[],False),('pipeline_early_release',['-DINJECT_PIPELINE_EARLY_RELEASE'],True),('pipeline_instance_reset',['-DGFX_FRONTEND_INST=1','-DF4_LEASE_RESET_TEST'],False)]:

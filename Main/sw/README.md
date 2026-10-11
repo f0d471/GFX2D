@@ -44,9 +44,10 @@ sw/
 
 | 程序 | 说明 |
 | --- | --- |
-| `apps/probe/frontendBench/` | F1～F3 真实游戏构造与受控访存基准。固定两型六档及通关录像状态；三次各 1000 帧，记录周期分位数、实际可见数、物理记录与有效字节 CRC；候选与执行开关、复现入口见 [frontend/README](../sim/engine/frontend/README.md) |
+| `apps/probe/frontendBench/` | F1～F5 真实游戏构造与受控访存基准。固定两型六档及通关录像状态；三次各 1000 帧，记录周期分位数、实际可见数、物理记录与有效字节 CRC；候选与执行开关、复现入口见 [frontend/README](../sim/engine/frontend/README.md) |
 | `apps/game/gfx2dGame/` | 基础 Demo（SW6，赛题基础要求 3）：场景 A 大量方块随机移动、场景 B 三张整屏图快速切换，每帧一条命令表交给软件执行器，双缓冲呈现。默认编**演示模式**（实时输入），`EXTRA_CFLAGS=-DSW6_JUDGE=1` 编**判据模式**（回放两段入库录像、逐帧打日志）。串起来跑的是 `Main/tools/check/check_sw6_demo.sh`。期望输出见下。另有 SW7 游戏本体的代码逐步放进 `src/game/stg_*`（A 批是实体池 `stg_pool`；B 批加了弹种表 `stg_kind`、发射器 `stg_emit`、五种弹型 `stg_pattern` 与弹幕场 `stg_field`），它们的主机测试在 `test/`，由 `Main/tools/check/check_sw7_game.sh` 编译运行；弹型判据的期望文件 `test/stg_patterns.txt` 由 `Main/tools/check/gen_stg_patterns.py` 生成。`EXTRA_CFLAGS=-DSTG_FIELD=<n>` 换成弹幕场的入口（1 演示、2 判据、3 `N_max` 搜索、4 游戏的判据入口），见下「弹幕场入口」。 |
 | `apps/game/cup3d/` | 纯软件 3D 光栅器在扫描输出的帧缓冲上转一只茶杯。三个用途：用真实负载量软件渲染的像素吞吐（E7 要的数）、让扫描输出跑在会动会遮挡的负载下、对外演示。320×240 光栅，1:1 贴在 640×480 的正中间。期望输出见下 |
+| `apps/test/pbTest/` | F5：74组PB与独立标量CRC、PB字节/PERF、稀疏stride、容量和模式返回；用法见 [pbTest/README](apps/test/pbTest/README.md) |
 | `apps/test/bootSizeTest/` | 检查 bootloader 从 Flash 拷贝的长度。带一个 300,000 字节、内容随位置变化的数据块，启动后打印整体与最后 4KB 的 CRC32 |
 | `apps/test/cacheCoherencyTest/` | E3 回归（**B6 改写版**）：引擎当外部写入者（FILL COPY）与第二个读者（BLIT），P/A/B/C/D 五组判据、注错与注错自检。B6 前的探针版（外部写入者 = `axi_probe_master`）随 D22 撤探针停用，机理实验归档 platform 第 05 章，改写前的最后一份基线日志 `logs/b6_preintegration_20261002.log`。**target-only**，target.mk 构建，产物 `build/cacheCoherencyTest-O2.bin`（注错 `build_inject/`、自检 `build_inject_selftest/`）。期望输出见下 |
 | `apps/test/engineTest/` | 引擎 P1 B6 的板上判据：同一张命令表软件执行器画一份、引擎画一份逐行 CRC 比对（SW3 十一个整帧金标准 + 几何定向与写掩码 + 单缓存行失效判据 INJ-COH），PERF 弹幕性能与 E5 复测（扫描 FIFO 水位/欠载/guard 等待）。**target-only**，target.mk 构建，产物 `build/engineTest-O2.bin`（注错 `build_inject/`）。期望输出见下 |
@@ -754,3 +755,24 @@ lib/gfx/instances.c 提供批量实例构造、显式数组 view 执行与提交
 apps/test/instanceTest 在新位流检查 122 组 CRC/PERF 和 70000 实例拆包，在旧
 CAPS 位流检查先展开、保留逻辑身份再提交的 fallback。实现和采用结论见
 [engine 第 13 章](../../Engineering/TechReports/engine/13-通用实例命令.md)。
+
+## PB v1 硬件引用前端
+
+lib/gfx/pb.h/.c 提供容量计算、独立字节参考构建与显式只读PB/view执行；生产
+板上构造不调用CPU binner。renderer通过GFX_FRONTEND_BIN选择后端3的PB输入，
+查询BIN/INST能力，不支持时在构造前走旧v2。默认关闭，采用依据见
+[engine第14章](../../Engineering/TechReports/engine/14-硬件分桶与引用列表.md)。
+
+实例A/B位于共享区+0x400000/+0x480000，各0x80000；默认PB A/B位于
++0x500000/+0x520400，各0x20400，双PB258KiB。容量变化重算span和B起点，
+两个PB总量不得超过0x300000。命令表、实例、PB、背景按generation持有，
+完成或错误且排空后释放；未提交的下一帧在前帧失败时也回收。
+
+apps/test/pbTest 检查74组DDR/TEX、六方程、两布局与稀疏stride的CRC、PB字节、
+PERF、容量/包错误，以及PB成功/失败后旧直通clip保持。frontendBench模式11~13
+覆盖PB与背景组合；run_f5_board.py串行验证，入口见sim/engine/frontend/README.md。
+驱动追加PB寄存器、ERROR_STAGE及14项能力感知PERF读取，旧接口尾项补零。
+
+F5_DDR_LOG=1为target-only功能诊断日志sink，默认不启用；占OFFSCREEN的4～6MiB，
+不使用UART，也不作为性能构建。完整采集与传输CRC消费者见
+[run_f5_jtag_capture.py](../tools/check/README.md#run_f5_jtag_capturepy)。

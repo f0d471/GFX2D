@@ -79,6 +79,8 @@ typedef struct {
 } gfx_geometry_cache;
 struct gfx_frame_plan;
 struct gfx_instance_arena;
+struct gfx_pb_config;
+struct gfx_pb_workspace;
 int gfx_strip_config_check(const gfx_surface_table *t, const gfx_strip_config *cfg);
 int gfx_strip_cmd_check(const gfx_surface_table *t, const gfx_strip_config *cfg,
                         const gfx_cmd *c);
@@ -102,6 +104,8 @@ typedef struct {
     gfx_strip_workspace     *planned;        /* NULL 保持即时物化 */
     gfx_geometry_cache      *geometry;       /* NULL 使用原几何算法 */
     struct gfx_frame_plan   *frame;          /* 多 pass 提交上下文，应用显式绑定 */
+    struct gfx_pb_config *pb_config;
+    struct gfx_pb_workspace *pb;
 } gfx_list;
 
 void gfx_list_begin(gfx_list *l, gfx_cmd *buf, uint32_t cap,

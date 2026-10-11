@@ -1,3 +1,4 @@
+#include "gfx/pb.h"
 /* F1：冻结真实游戏状态，计时内调用生产组帧，消费与排序在计时外。 */
 #include "board.h"
 #include "gfx/gfx.h"
@@ -116,9 +117,10 @@ static void measure(uint32_t id,uint32_t mode,uint32_t repeat)
     board_mem mem=board_region(REGION_CMDLIST_A);gfx_list l;stg_frame_stats st;
     gfx_strip_config cfg={30,4,0,0};uint32_t i,start,crc,expected=0;uint64_t total=0;
     uint64_t exec_total=0,pre_total=0,band_total=0;uint32_t exec_max=0,perf_start[9]={0},perf_end[9]={0};
+    uint32_t extended_start[GFX_PERF_COUNT]={0},extended_end[GFX_PERF_COUNT]={0};
     board_mem shared=board_region(REGION_SHARED);
     uint8_t *workspace=(uint8_t *)shared.ptr+0x40000u;
-    const int bg_mode=mode==5u?1:(mode>=6u&&mode<=9u)?2:0;
+    const int bg_mode=(mode==5u||mode==12u)?1:((mode>=6u&&mode<=9u)||mode==13u)?2:0;
     const int planned=mode==2u||mode==4u||mode==7u||mode==9u;
     const int templ=mode==3u||mode==4u||mode==8u||mode==9u;
 #ifdef FRONTEND_VERIFY
@@ -135,13 +137,19 @@ static void measure(uint32_t id,uint32_t mode,uint32_t repeat)
         .refs=(uint32_t *)(void *)(workspace+0x180000u),.ref_cap=30720};
     for(i=0;i<FRONTEND_ITERATIONS+8u;i++) {
         start=board_cycles();
-        if(mode==0u || mode==10u) {
+        if(mode==0u || mode>=10u) {
             gfx_list_begin(&l,mem.ptr,32768,&tab);
-            if(mode==10u) {
+            if(mode>=10u) {
                 static gfx_instance_arena ia;
                 ia=(gfx_instance_arena){(uint8_t *)shared.ptr+0x400000u,
                     g_mem_regions[REGION_SHARED].offset+0x400000u,0x80000u,0u,repeat+1u};
                 l.instances=&ia;
+                if(mode>=11u){
+                    static gfx_pb_config pc;static gfx_pb_workspace pb;
+                    pc=(gfx_pb_config){cfg,1024,8192};
+                    pb=(gfx_pb_workspace){(uint8_t *)shared.ptr+0x500000u,g_mem_regions[REGION_SHARED].offset+0x500000u,0x20400u,repeat+1u};
+                    l.pb_config=&pc;l.pb=&pb;
+                }
             }
         }
         else if(planned?gfx_list_begin_strips_planned(&l,mem.ptr,mem.size,&tab,&cfg,0,&work):
@@ -154,7 +162,11 @@ static void measure(uint32_t id,uint32_t mode,uint32_t repeat)
 #endif
         if(l.first_error||l.rejected||!l.ended){fails++;return;}
         if(i==7u)expected=frontend_consume(&l);
-        if(i==8u && FRONTEND_EXECUTE)renderer_perf_read(perf_start);
+        if(i==8u && FRONTEND_EXECUTE){renderer_perf_read(perf_start);
+#ifdef __riscv
+            gfx_engine_perf_read(extended_start,GFX_PERF_COUNT);
+#endif
+        }
         if(FRONTEND_EXECUTE) {
             exec_sw_state es;exec_sw_error er;exec_sw_stats xs;uint32_t elapsed;
             gfx_mem mm={0,(uint8_t *)((uintptr_t)board_region(REGION_CMDLIST_A).ptr-g_mem_regions[REGION_CMDLIST_A].offset),DDR_SIM_BYTES,shared.ptr,16384};
@@ -175,7 +187,7 @@ static void measure(uint32_t id,uint32_t mode,uint32_t repeat)
         } else if(l.frame&&gfx_frame_release(l.frame,l.frame->ticket)){fails++;return;}
     }
     crc=frontend_consume(&l);if(crc!=expected)fails++;
-    if(mode==10u) {
+    if(mode>=10u) {
         uint32_t pk4=0,pk8=0,in4=0,in8=0,k;
         for(k=0;k<l.used;k++)if(gfx_op(&l.buf[k])==GFX_OP_BLIT_INST) {
             if(l.buf[k].w[5]&(1u<<16)){pk8++;in8+=l.buf[k].w[2];}else{pk4++;in4+=l.buf[k].w[2];}
@@ -184,6 +196,16 @@ static void measure(uint32_t id,uint32_t mode,uint32_t repeat)
         field(pk4);field(in4);field(pk8);field(in8);board_puts("\n");
     }
     if(FRONTEND_EXECUTE)renderer_perf_read(perf_end);
+#ifdef __riscv
+    if(FRONTEND_EXECUTE && mode>=11u){
+        gfx_engine_perf_read(extended_end,GFX_PERF_COUNT);
+        board_puts("fbin");field(id);field(mode);field(repeat);field(l.pb->bytes);field(l.pb_config->draw_cap);field(l.pb_config->ref_cap);
+        for(uint32_t q=GFX_PERF_INSTANCE;q<GFX_PERF_COUNT;q++)field(extended_end[q]-extended_start[q]);
+        board_puts("\n");
+    }
+#else
+    (void)extended_start;(void)extended_end;
+#endif
 #ifdef FRONTEND_VERIFY
     {
         uint32_t hc=0,sc=0;int result;

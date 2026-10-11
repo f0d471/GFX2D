@@ -40,6 +40,8 @@ G1 在此基础启用 TEX profile，接口、验证与板测见
 
 | 文件 | 说明 |
 | --- | --- |
+| `engine_bin.v`、`engine_bounds.v`、`engine_packet_check.v` | F5：COUNT/快照、顺序PREFIX与保序SCATTER；18位求交、共享字段校验、32×96桶RAM；引用保持完整逻辑身份，READY首拍最后发布 |
+| `engine_pb.v`、`engine_pb_dma.v` | F5：PB配置/预检、逐桶LOAD/引用/metadata/坐标/旧执行器/FLUSH；复用DMA owner，PB原样写全部位，错误/复位排空；实现与证据见 [第14章](../../Engineering/TechReports/engine/14-硬件分桶与引用列表.md) |
 | `engine_inst.v` | F4：v1-I 直通实例展开，单个 256×32 坐标缓存、2 RAM，显式 DMA owner、跨 4 KiB 取数和首失败实例定位；已进入整机网表，过程见 [第 13 章](../../Engineering/TechReports/engine/13-通用实例命令.md) |
 | `engine_tex.v` | G1：16 KiB 四 bank scratchpad，32 位 APB 装载/读回，128 位同步读流，读延迟可选 1/2 拍；状态保持到 ready。cmd/geom 传 src_tex/rd_tex，mover 允许 DDR 请求提前而保持 I3 单流顺序；已进 SoC 网表 |
 | `engine_band.v` | G2 数据面：640×16×32 位，四路掩码、2048+512 分段、36 RAM；三相、紧凑映射、本地状态、同址读优先和取消。mover 目的路由与 geom 条带求交已实现，G3 已接帧级控制、CAPS.BAND=1，描述符入口寄存一拍；17 项验证和独立综合通过，2026-10-08 已验收。过程与边界见 [第 08 章](../../Engineering/TechReports/engine/08-条带缓冲.md) |

@@ -29,7 +29,7 @@ mkdir -p "$BUILD/frames" "$BUILD/sw6"
 bad=0
 total=0
 
-CORE="$RTL/engine/engine_tex.v $RTL/engine/engine_top.v $RTL/engine/engine_regs.v $RTL/engine/engine_cmd.v $RTL/engine/engine_inst.v \
+CORE="$RTL/engine/engine_tex.v $RTL/engine/engine_top.v $RTL/engine/engine_regs.v $RTL/engine/engine_cmd.v $RTL/engine/engine_inst.v $RTL/engine/engine_bounds.v $RTL/engine/engine_packet_check.v $RTL/engine/engine_pb_dma.v $RTL/engine/engine_bin.v $RTL/engine/engine_pb.v \
 $RTL/engine/engine_geom.v $RTL/engine/engine_pix.v $RTL/engine/engine_blend.v \
 $RTL/engine/engine_band.v $RTL/engine/engine_mover.v $RTL/vendor/verilog-axi/axi_dma_rd.v \
 $RTL/vendor/verilog-axi/axi_dma_wr.v $RTL/../sim/axi_probe/axi_ram_model.v"

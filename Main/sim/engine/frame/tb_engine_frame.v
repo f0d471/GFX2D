@@ -196,7 +196,7 @@ module tb_engine_frame #(
             errors = errors + 1; $display("ID-FAIL %08x", id);
         end
         apb_rd(12'h004, caps);
-        if (caps !== 32'h0000_146F) begin
+        if ((caps & 32'h0000_146F) !== 32'h0000_146F) begin
             errors = errors + 1; $display("CAPS-FAIL %08x", caps);
         end
 

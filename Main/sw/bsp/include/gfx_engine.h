@@ -84,6 +84,11 @@ int        gfx_engine_submit(uint32_t list_base, uint32_t list_count);
    首错或桶溢出的构造表由调用方拒绝，驱动不扫描 DDR 命令表。 */
 int gfx_engine_submit_strips(uint32_t list_base, uint32_t lstrips,
                               uint32_t strip_log2, uint32_t bg_id, uint32_t dst_id);
+typedef struct {
+    uint32_t base,bytes,draw_cap,ref_cap,lstrips,strip_log2,bg_id,dst_id;
+} gfx_engine_pb;
+int gfx_engine_submit_pb(uint32_t list_base,uint32_t list_count,const gfx_engine_pb *pb);
+int gfx_engine_error_stage_read(uint32_t *stage);
 
 /* 等当前提交结束（DONE/ERR 置位且引擎回空闲，D54），读错误三元组。
    出参可以为 NULL（不关心那一项）。返回值是驱动层状态；引擎报错时返回

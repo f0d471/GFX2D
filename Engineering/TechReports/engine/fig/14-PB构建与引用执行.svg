@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="780" viewBox="0 0 1280 780">
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#376fa8"/></marker><style>text{font-family:"Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#243747}.title{font-size:26px;font-weight:600}.label{font-size:18px;font-weight:600}.small{font-size:16px}.box{fill:#edf4fc;stroke:#376fa8;stroke-width:2}.old{fill:#f4f6f8;stroke:#798998;stroke-width:2;stroke-dasharray:7 5}.data{fill:none;stroke:#376fa8;stroke-width:2.5;marker-end:url(#a)}.ctrl{fill:none;stroke:#798998;stroke-width:2;marker-end:url(#a)}</style></defs>
+<rect width="1280" height="780" fill="white"/>
+<text x="50" y="48" class="title">原始绘制 → 两遍保序分桶 → PB 引用执行</text>
+<rect x="50" y="85" width="1180" height="105" rx="8" class="box"/>
+<text x="70" y="118" class="label">CPU：每帧只发布一份原始包表与实例数组</text>
+<text x="70" y="148" class="small">v1 / v1-I 共享状态 + XY4 / XYUV8；命令表、数组、PB、背景各有本帧 owner / generation</text>
+<text x="70" y="175" class="small">运动与游戏规则留在 CPU；发布后到 DONE / ERR 且排空完成前不改写资源</text>
+<path d="M220 190V225" class="data"/>
+<rect x="50" y="225" width="345" height="110" rx="8" class="box"/>
+<text x="70" y="257" class="label">COUNT / SNAPSHOT</text>
+<text x="70" y="287" class="small">包检查、五者求交、每桶计数</text>
+<text x="70" y="314" class="small">保存接受该包时的私有 clip</text>
+<rect x="455" y="225" width="315" height="110" rx="8" class="box"/>
+<text x="475" y="257" class="label">PREFIX</text>
+<text x="475" y="287" class="small">顺序累加计数与对齐跨度</text>
+<text x="475" y="314" class="small">容量失败在 LOAD 前拒绝</text>
+<rect x="830" y="225" width="400" height="110" rx="8" class="box"/>
+<text x="850" y="257" class="label">SCATTER / DRAIN</text>
+<text x="850" y="287" class="small">按输入序和实例序写 8 B 引用</text>
+<text x="850" y="314" class="small">两引用配整拍；等全部 B 响应</text>
+<path d="M395 280H455" class="data"/><path d="M770 280H830" class="data"/>
+<rect x="50" y="370" width="1180" height="105" rx="8" class="box"/>
+<text x="70" y="402" class="label">DDR 中的 PB v1：目录 + metadata + 每桶稳定引用</text>
+<text x="70" y="432" class="small">512 B header　|　64 B / packet：原包、clip、逻辑索引　|　8 B / ref：packet_index、instance_index</text>
+<text x="70" y="459" class="small">每桶 16 B 对齐；桶 RAM 只存计数、偏移、游标、半引用；READY 首拍最后发布</text>
+<path d="M220 335V370" class="data"/><path d="M1030 335V370" class="data"/>
+<path d="M640 475V495H225V515" class="data"/>
+<rect x="50" y="515" width="355" height="120" rx="8" class="box"/>
+<text x="70" y="548" class="label">每桶：LOAD → 读引用</text>
+<text x="70" y="579" class="small">最近 metadata / 坐标拍缓存</text>
+<text x="70" y="608" class="small">恢复原包和完整 packet / instance 身份</text>
+<rect x="460" y="515" width="370" height="120" rx="8" class="old"/>
+<text x="480" y="548" class="label">原几何 / 像素 / TEX / BAND</text>
+<text x="480" y="579" class="small">全帧坐标只在几何层裁到当前 strip</text>
+<text x="480" y="608" class="small">方程、舍入、色键与原画序保持</text>
+<path d="M405 575H460" class="data"/>
+<rect x="885" y="515" width="345" height="120" rx="8" class="box"/>
+<text x="905" y="548" class="label">FLUSH → 下一桶 / 完成</text>
+<text x="905" y="579" class="small">末桶全部响应排空后才 DONE</text>
+<text x="905" y="608" class="small">失败帧不交换；随后释放本帧资源</text>
+<path d="M830 575H885" class="data"/>
+<rect x="50" y="675" width="1180" height="58" rx="8" class="old"/>
+<text x="70" y="710" class="small">共用 AXI DMA：按 owner 分流；PB 原样写全部位，像素继续使用原掩码；PB 成功/失败都不回写旧直通 clip</text>
+<text x="50" y="762" class="small">蓝框：新增前端与内部对象　虚框：复用的执行/搬运边界　统计分别报告包、实例、引用、像素和实际 AXI 拍</text>
+</svg>
