@@ -1,58 +1,26 @@
-// engine_cmd：引擎 P1 B5 的命令层——命令表取数、十步检查与命令提交
-//
-// 职责（B5 条目 2.3 节）：经 I7 从搬运层读核取命令表（D18：每批 16 条、两批乒乓、
-// 整批出错退回逐条取），把每条 32 字节记录按 spec 第 02 章 §5 的固定顺序做十步检查
-// （结构为 B5 定案 D50 的单拍组合，逻辑权威 sw/lib/gfx/check.c 的 gfx_cmd_check()），
-// 通过的 FILL/BLIT 按 I1 串行下发给几何层，NOP/SET_CLIP/END 在本层就地处理；
-// 错误按「码/完整表内索引/w7 标签」三元组上报（D10），由寄存器层（engine_regs）
-// 落到 STATUS/ERROR_*/中断。
-//
-// 取数契约（2026-10-01 复核定稿，engine 第 05 章 3.4 节）：
-//   * 非空命令表要求 LIST_BASE 按 32 字节对齐，违例在取第 0 条前报 FETCH（索引 0、TAG 0）
-//     ——B2 读核 ENABLE_UNALIGNED=0 会把未对齐地址向下取整，不能静默读错；
-//   * 一个批最多 512 字节，跨 4KB 时在记录边界拆成两笔描述符，数据按序拼入同一批，
-//     全部状态 OK 才执行；任一笔失败整批丢弃、从批首逐条回退（回退语义 = spec §5 的
-//     顺序执行：出错点之前的记录照常取、查、执行）；
-//   * 记录地址 base+32*index 按 38 位求值（base < 2^32、index 为完整 32 位，
-//     32*index < 2^37，和最多需要 38 位）；批长先截到 32 位地址空间末尾的完整记录数，
-//     越过地址空间的记录不取也不回卷，逻辑执行真需要它时才报 FETCH；
-//   * B2 的 fd_cidx/fs_cidx 只有 4 位且是描述符上下文（批首，不是每条记录），
-//     完整 ERROR_INDEX 由本层保存的批首/记录号重建；fe_cidx_err 只作一致性监视；
-//   * 预取只缓存：预取批的数据与状态收齐才标记 OK/ERR（收齐前不停 fs_tready、
-//     不覆盖当前批）；当前批先遇 END 或错误时丢弃预取结果，预取的 SLVERR 不上报；
-//   * 物理预取可能读到 END 之后的记录（命令表在 DDR 上无读副作用，spec §5 允许）；
-//     这些字不检查、不执行，预取失败也不上报。
-//
-// 提交纪律（D52）：一次只给几何层一条 FILL/BLIT；非空命令等带 wr_last_row 的写状态、
-// 空命令等 cmd_done（D38），NOP/SET_CLIP 当拍完成；只有当前命令完成后才检查/提交
-// 下一条，「前一条 BUS_WRITE 先于后一条 BAD_FIELD」由构造保证。活动命令任何一笔
-// 读写状态报错或超时立即按该命令上报并停止推进（不专等末行写状态，早期读错不挂死），
-// 等在途命令自然收尾、预取流收完才回空闲；迟到响应到达后能再次提交。
-//
-// 读状态的归属（G1 修订）：搬运层把 DDR/取数与 TEX 的读状态合并成一路，并带显式
-// 来源位 rd_stat_fetch（1 = 命令取数）。取数引擎只消费带取数来源的状态，像素读的
-// 状态（含 TEX）恒归活动命令——预取在途与本地末拍同拍也不再串线
-//（旧版按「FE 在途即取数」推断，TEX 本地读快、同拍概率大，靠不住）。
-// 写状态只来自像素通路，恒归活动命令。
-//
-// v1-TEX profile（引擎 P3 G1，spec 02 章 3.8 节）：BLIT 的源表面允许 space=1（TEX），
-// 目的仍必须 DDR，space=2/3 仍报 BAD_SPACE。TEX 源在结构一步多查两条（仍在
-// space/format 之前，违反报 BAD_SURFACE）：base 16 字节对齐；
-// base + height × 2^stride_log2 ≤ 0x4000（扩展位宽，完整行跨含 padding）。
-//
-// 仿真注错口（综合时是常量）：位 0 (1) 对调 space/format 两步（优先级向量必须见红）；
-// 位 1 (2) 关掉逐条回退（FETCH 落在批中间的向量必须见红）。
-//
-// 设计依据：B5 条目、TechReports engine 第 05 章（研究、定案 D50/D51/D52 与 D38 确认）。
 `timescale 1ns/1ps
+//==============================================================================================//
+// FILE: engine_cmd.v
+//
+// DESCRIPTION: 命令层：从搬运层取命令表（每批 16 条、两批乒乓、跨 4KB 拆描述符），
+//   每条 32 字节记录做十步检查，FILL/BLIT/BLIT_INST 串行下发几何层，
+//   NOP/SET_CLIP/END 就地处理，错误按「码/表内索引/实例/tag」上报寄存器层。
+//   另含结构谓词 ec_struct_ok 与字段步 ec_fields（检查逻辑权威 sw/lib/gfx/check.c）。
+//
+// NOTE:
+//   1. 非空命令表要求 LIST_BASE 按 32 字节对齐，违例取第 0 条前报 FETCH
+//   2. 记录地址按 38 位求值；越过地址空间的记录不取不回卷，逻辑执行需要时报 FETCH
+//   3. 预取只缓存：当前批先遇 END 或错误时丢弃预取结果，预取的 SLVERR 不上报
+//   4. 一次只下发一条 FILL/BLIT；前一条完成后才检查/提交下一条（构造保证错误有序）
+//   5. 读状态按搬运层显式来源位分发：取数来源归取数引擎，像素/TEX 读恒归活动命令
+//   6. v1-TEX：BLIT 源允许 space=1，目的必须 DDR；源结构多查对齐与 16KiB 界
+//==============================================================================================//
 `default_nettype none
 `include "engine_regs_offsets.vh"
 
-// ---------------------------------------------------------------- 结构谓词
-// spec 第 02 章 §2。末像素：base + ((h-1)<<stride_log2) + (w-1)*4 + 3 ≤ 0xFFFFFFFF。
-// 行偏移最多 47 位，不能截断后再判——B5 复核：33 位截断会把「和的第 32 位恰好
-// 回到 0」的越界误判为合法（第 05 章第四节有反例）。实现：行偏移高 16 位非 0 直接
-// 越界；否则 base、行偏移低位、行尾字节用 34 位相加，高 2 位非 0 即越界。
+// 结构谓词：末像素 base + ((h-1)<<stride_log2) + (w-1)*4 + 3 ≤ 0xFFFFFFFF。
+// 行偏移最多 47 位，不能截断后再判——33 位截断会把「和的第 32 位恰好回到 0」
+// 的越界误判为合法。行偏移高 16 位非 0 直接越界；否则 34 位相加看高 2 位。
 module ec_struct_ok(
     input  wire [31:0] s0,   // base
     input  wire [31:0] s1,   // {height, width}
@@ -84,8 +52,7 @@ module ec_struct_ok(
     assign ok = s2[31] && base_al && wh_nz && sl_ok && stride_ok && no_ovf && ctrl_ok && tex_ok;
 endmodule
 
-// ---------------------------------------------------------------- 字段步
-// spec 第 02 章 §3 字段矩阵 + w0[15:14]、w0[13]（tint）、w6 三句散文。
+// 字段步：按操作码的零字段矩阵 + w0[15:14]、w0[13]（tint）、w6 三句散文
 module ec_fields(
     input  wire [255:0] cmd,
     output wire         bad
@@ -129,33 +96,43 @@ module ec_fields(
               || (is_clip && z_clip);
 endmodule
 
-// =====================================================================
 module engine_cmd #(parameter integer STRIP_H = 16) (
     input  wire        clk,
     input  wire        rst,           // 控制层复位（soc_system_reset），同步
 
-    // ---- 寄存器层（engine_regs）----
+    // 寄存器层（engine_regs）
     input  wire        kick,          // 一拍：DOORBELL 受理
-    input wire external_mode,
-    input wire [255:0] external_packet,
-    input wire [63:0] external_clip,
-    input wire preserve_clip,
+    input  wire        external_mode,  // 一拍：外部直投单条命令（PB 执行器）
+    input  wire [255:0] external_packet,
+    input  wire [63:0] external_clip,
+    input  wire        preserve_clip,  // 排空返回时保住旧 clip（PB abort 用）
     input  wire [31:0] list_base,
     input  wire [31:0] list_count,
-    input wire band_mode,
-    input wire [31:0] lstrips, strip_log2, band_surfs,
-    output wire band_enable, band_start, band_flush, band_abort,
-    output reg [31:0] band_bg_base, band_dst_base,
-    output reg [4:0] band_bg_slog2, band_dst_slog2,
+    input  wire        band_mode,
+    input  wire [31:0] lstrips,
+    input  wire [31:0] strip_log2,
+    input  wire [31:0] band_surfs,
+    output wire        band_enable,
+    output wire        band_start,
+    output wire        band_flush,
+    output wire        band_abort,
+    output reg  [31:0] band_bg_base,
+    output reg  [31:0] band_dst_base,
+    output reg  [4:0]  band_bg_slog2,
+    output reg  [4:0]  band_dst_slog2,
     output wire [15:0] band_y0,
-    output reg [15:0] band_frame_height,
-    input wire band_start_ready, band_flush_ready, band_loaded, band_flushed,
-    input wire band_busy, band_error,
-    input wire [3:0] band_error_code,
-    input wire drain_done,
+    output reg  [15:0] band_frame_height,
+    input  wire        band_start_ready,
+    input  wire        band_flush_ready,
+    input  wire        band_loaded,
+    input  wire        band_flushed,
+    input  wire        band_busy,
+    input  wire        band_error,
+    input  wire [3:0]  band_error_code,
+    input  wire        drain_done,
     input  wire        soft_rst,      // 电平：软复位请求举着，立即弃单回空闲
     output wire        busy,          // 已受理的命令表在跑（含收尾排空）
-    output reg         err_set,       // 一拍：错误三元组同拍有效
+    output reg         err_set,       // 一拍：错误四元组同拍有效
     output reg  [3:0]  err_code,
     output reg  [31:0] err_index,     // 完整表内零基索引（低 4 位上下文在这里重建）
     output reg  [31:0] err_tag,
@@ -163,17 +140,23 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     output reg         commit,        // 一拍：一条命令完成（PERF_CMD；不含 END 与出错命令）
     output wire        suppress_writes, // 活动命令总线错误后，余下写流只发零 strobe
 
-    // ---- 表面表读口（engine_regs 的组合读口，下标来自当前记录）----
+    // 表面表读口（engine_regs 的组合读口，下标来自当前记录）
     output wire [3:0]  surf_ra_id,
     output wire [3:0]  surf_rb_id,
-    input  wire [31:0] surf_ra_w0, surf_ra_w1, surf_ra_w2,
-    input  wire [31:0] surf_rb_w0, surf_rb_w1, surf_rb_w2,
+    input  wire [31:0] surf_ra_w0,
+    input  wire [31:0] surf_ra_w1,
+    input  wire [31:0] surf_ra_w2,
+    input  wire [31:0] surf_rb_w0,
+    input  wire [31:0] surf_rb_w1,
+    input  wire [31:0] surf_rb_w2,
 
-    // ---- 搬运层：命令取数（I7）----
-    output wire fd_instance,
-    input wire fs_instance, rd_stat_instance, tmo_instance,
-    output reg [31:0] err_instance,
-    output reg perf_instance,
+    // 搬运层：命令取数（I7）
+    output wire        fd_instance,
+    input  wire        fs_instance,
+    input  wire        rd_stat_instance,
+    input  wire        tmo_instance,
+    output reg [31:0]  err_instance,
+    output reg         perf_instance,
     output wire [31:0] fd_addr,
     output wire [11:0] fd_bytes,
     output wire [3:0]  fd_cidx,
@@ -185,7 +168,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     output wire        fs_tready,
     input  wire [3:0]  fs_cidx,
 
-    // ---- 搬运层：状态与超时（I7）----
+    // 搬运层：状态与超时（I7）
     input  wire        rd_stat_valid,
     input  wire        rd_stat_fetch,  // 显式来源：1 = FD；F4 另按 rd_stat_instance 分流
     input  wire        rd_stat_err,
@@ -196,7 +179,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     input  wire        wr_stat_last_row,
     input  wire        tmo_evt,
 
-    // ---- 几何层：I1 下发与完成 ----
+    // 几何层：I1 下发与完成
     output reg         start,
     output reg  [7:0]  i1_op,
     output reg  [3:0]  i1_eq,
@@ -229,7 +212,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     input  wire        geom_cmd_done,
     input  wire [3:0]  geom_done_cidx,
 
-    // ---- 仿真观测（综合悬空）----
+    // 仿真观测（综合悬空）
     output wire        fe_cidx_err    // 取数流上下文低 4 位与期望不符（一致性监视）
 );
     localparam [7:0] OP_NOP  = 8'h00;
@@ -238,20 +221,13 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     localparam [7:0] OP_CLIP = 8'h03;
     localparam [7:0] OP_END  = 8'hff;
 
-    // 注错（变异测试）：两处变异各包在 `ifdef 内，都不定义时它们不进编译输入。
-    // 编译开关与 sim/engine/ctrl/run.sh 的用例一一对应，一次只开一个：
-    //   INJ_CHK_SWAP  用对调 space/format 的错误码，十步检查的顺序判据必须红
-    //   INJ_NO_FB     关掉逐条回退，整批失败时直接报错收尾
+    // 注错开关见 engine-manual.md。
 
-    // =====================================================================
-    // 裁剪框（spec §4.4）：复位与软复位恢复全游戏区 [0,639]×[0,479]（闭区间）
-    // =====================================================================
+    // 裁剪框：复位与软复位恢复全游戏区 [0,639]×[0,479]（闭区间）
     reg signed [15:0] clip_x0, clip_y0, clip_x1, clip_y1;
     reg external_r;
 
-    // =====================================================================
     // 命令缓冲：两批乒乓，64 × 128 位，一写口（取数流）一读口（执行）
-    // =====================================================================
     reg [127:0] cbuf [0:63];
     reg [127:0] cbuf_rdata;
     wire        fs_fire = fs_tvalid && fs_tready && !(fs_instance === 1'b1);
@@ -267,9 +243,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         cbuf_rdata <= cbuf[cbuf_ra];
     end
 
-    // =====================================================================
-    // 取数请求（主状态机先摆好 rq_*，再举一拍 fe_start_q；FE 空闲时受理）
-    // =====================================================================
+    // 取数请求：主状态机先摆好 rq_*，再举一拍 fe_start_q；FE 空闲时受理
     reg [31:0] rq_addr;     // 批首地址（32 字节对齐、在地址空间内）
     reg [4:0]  rq_n;        // 记录数（0 = 直接完成）
     reg        rq_half;     // 写入哪一批半区
@@ -297,9 +271,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         end
     endfunction
 
-    // =====================================================================
     // 取数引擎 FE：把 rq_n 条记录取进 rq_half 半区；也服务逐条回退（n=1）
-    // =====================================================================
     localparam [1:0] F_IDLE = 2'd0, F_ISSUE = 2'd1, F_POLL = 2'd2, F_PULSE = 2'd3;
     reg [1:0]  fe_st;
     reg [1:0]  fe_d;        // 当前描述符（0/1，跨 4KB 拆分）
@@ -323,32 +295,37 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     // 原来写成 {27'd0, rq_n1, 5'd0}（拼接和 37 位）再截回 32 位，数值一样但报 VERI-WARNING 截断。
     wire [31:0] rq_a1    = rq_addr + {22'd0, rq_n1, 5'd0};
 
-    wire inst_fd_valid,inst_fd_ready,inst_fs_ready,inst_busy,inst_valid,inst_error;
-    wire [31:0] inst_fd_addr,inst_xy,inst_uv,inst_next_id;
+    // 实例取数与命令取数共用一条 FD 流：批量取数期间 FE 持有所有权
+    wire        inst_fd_valid, inst_fd_ready, inst_fs_ready, inst_busy, inst_valid, inst_error;
+    wire [31:0] inst_fd_addr, inst_xy, inst_uv, inst_next_id;
     wire [11:0] inst_fd_bytes;
-    wire [3:0] inst_fd_cidx,inst_error_code;
-    reg inst_go,inst_active;
-    reg [31:0] inst_id;
-    reg [15:0] inst_count;
+    wire [3:0]  inst_fd_cidx, inst_error_code;
+    reg         inst_go, inst_active;
+    reg [31:0]  inst_id;
+    reg [15:0]  inst_count;
     reg [255:0] inst_packet;
-    wire command_owner=fe_st==F_ISSUE;
-    assign fd_instance=!command_owner && inst_fd_valid;
-    assign inst_fd_ready=fd_ready && !command_owner;
-    engine_inst u_inst(.clk(clk),.rst(rst||soft_rst),.cancel(pend_err||soft_rst),.go(inst_go),
-        .base(inst_packet[63:32]),.count(inst_packet[79:64]),.stride(inst_packet[168:160]),
-        .layout(inst_packet[176]),.fixed_uv(inst_packet[223:192]),.context_id(k[3:0]),
-        .busy(inst_busy),.fd_addr(inst_fd_addr),.fd_bytes(inst_fd_bytes),.fd_cidx(inst_fd_cidx),
-        .fd_valid(inst_fd_valid),.fd_ready(inst_fd_ready),.fs_data(fs_tdata),
-        .fs_valid(fs_tvalid && (fs_instance === 1'b1)),.fs_last(fs_tlast),.fs_cidx(fs_cidx),
-        .fs_ready(inst_fs_ready),.stat_valid(rd_stat_valid && (rd_stat_instance === 1'b1)),
-        .stat_error(rd_stat_err),.stat_cidx(rd_stat_cidx),.valid(inst_valid),
-        .ready(st==S_INEXT && !inst_error),.xy(inst_xy),.uv(inst_uv),.instance_id(inst_next_id),
-        .error(inst_error),.error_code(inst_error_code));
+    wire command_owner = fe_st == F_ISSUE;
+    assign fd_instance = !command_owner && inst_fd_valid;
+    assign inst_fd_ready = fd_ready && !command_owner;
+    engine_inst u_inst (
+        .clk(clk), .rst(rst || soft_rst), .cancel(pend_err || soft_rst), .go(inst_go),
+        .base(inst_packet[63:32]), .count(inst_packet[79:64]), .stride(inst_packet[168:160]),
+        .layout(inst_packet[176]), .fixed_uv(inst_packet[223:192]), .context_id(k[3:0]),
+        .busy(inst_busy),
+        .fd_addr(inst_fd_addr), .fd_bytes(inst_fd_bytes), .fd_cidx(inst_fd_cidx),
+        .fd_valid(inst_fd_valid), .fd_ready(inst_fd_ready),
+        .fs_data(fs_tdata), .fs_valid(fs_tvalid && (fs_instance === 1'b1)),
+        .fs_last(fs_tlast), .fs_cidx(fs_cidx), .fs_ready(inst_fs_ready),
+        .stat_valid(rd_stat_valid && (rd_stat_instance === 1'b1)),
+        .stat_error(rd_stat_err), .stat_cidx(rd_stat_cidx),
+        .valid(inst_valid), .ready(st == S_INEXT && !inst_error),
+        .xy(inst_xy), .uv(inst_uv), .instance_id(inst_next_id),
+        .error(inst_error), .error_code(inst_error_code));
     assign fd_addr = command_owner ? ((fe_d == 2'd0) ? rq_addr : rq_a1) : inst_fd_addr;
-    assign fd_bytes = command_owner ? ({7'd0,(fe_d==0)?rq_n1:(rq_n-rq_n1)}<<5) : inst_fd_bytes;
+    assign fd_bytes = command_owner ? ({7'd0, (fe_d == 0) ? rq_n1 : (rq_n - rq_n1)} << 5) : inst_fd_bytes;
     assign fd_cidx = command_owner ? rq_ctx : inst_fd_cidx;
     assign fd_valid = (command_owner || inst_fd_valid) && !soft_rst;
-    assign fs_tready = ((fs_instance === 1'b1) ? inst_fs_ready : (fe_st==F_POLL)) && !soft_rst;
+    assign fs_tready = ((fs_instance === 1'b1) ? inst_fs_ready : (fe_st == F_POLL)) && !soft_rst;
     wire fe_done     = (fe_st == F_PULSE);      // 一拍，负载 fe_err
     wire fe_busy_any = (fe_st != F_IDLE);
     assign fe_cidx_err = fe_cidx_err_r;
@@ -409,9 +386,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         end
     end
 
-    // =====================================================================
     // 主状态机
-    // =====================================================================
     localparam [4:0] S_IDLE=0, S_FETCH=1, S_RD0=2, S_RD1=3, S_RUN=4,
         S_ISSUE=5, S_ACTIVE=6, S_ADV=7, S_SWITCH=8, S_PERW=9, S_PER_WAIT=10,
         S_TERM=12, S_EXEC=13, S_RD2=14, S_CFG=15, S_HDR=16, S_HADDR=17,
@@ -467,9 +442,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     // 读状态按搬运层给的显式来源位分发（G1）：带取数来源的归取数引擎，
     // 其余（DDR 像素读与 TEX 本地读）归活动命令的像素通路。
 
-    // =====================================================================
-    // 十步检查（D50 单拍组合；权威 sw/lib/gfx/check.c；第一步取记录归取数状态机）
-    // =====================================================================
+    // 十步检查：单拍组合，逻辑权威 sw/lib/gfx/check.c；第一步取记录归取数状态机
     wire [255:0] cmd_full = {w1, w0};
     wire [7:0]   c_op     = cmd_full[7:0];
     wire [3:0]   c_eq     = cmd_full[11:8];
@@ -480,24 +453,25 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     assign surf_rb_id = cfg_phase ? dst_id : c_dstid;
 
     wire is_fill_c = (c_op == OP_FILL);
-    wire is_inst_c = c_op==8'h05;
+    wire is_inst_c = (c_op == 8'h05);
     wire is_blit_c = (c_op == OP_BLIT) || is_inst_c;
     wire op_ok_c   = (c_op == OP_NOP) || is_fill_c || is_blit_c
                    || (c_op == OP_CLIP) || (c_op == OP_END);
 
     wire scalar_f_bad, f_bad_c;
-    ec_fields u_fields(.cmd(cmd_full),.bad(scalar_f_bad));
-    wire [15:0] inst_stride=cmd_full[175:160];
-    wire [1:0] inst_layout=cmd_full[177:176];
-    wire [24:0] inst_length=(cmd_full[79:64]==0)?25'd0:
-        ({9'd0,cmd_full[79:64]}-25'd1)*{16'd0,inst_stride[8:0]}+(inst_layout==0?25'd4:25'd8);
-    wire [32:0] inst_limit={1'b0,cmd_full[63:32]}+(({8'd0,inst_length}+33'd15)&~33'd15);
-    wire inst_fields_bad=cmd_full[15:13]!=0 || cmd_full[63:32]%16!=0 ||
-        cmd_full[95:80]!=0 || inst_layout>1 || cmd_full[191:178]!=0 ||
-        inst_stride<(inst_layout==0?16'd4:16'd8) || inst_stride>256 || inst_stride[1:0]!=0 ||
-        (inst_layout==1 && cmd_full[223:192]!=0) ||
-        (!cmd_full[12] && cmd_full[159:128]!=0) ||
-        (c_eq!=3 && cmd_full[31:24]!=0) || inst_limit>33'h100000000;
+    ec_fields u_fields(.cmd(cmd_full), .bad(scalar_f_bad));
+    wire [15:0] inst_stride = cmd_full[175:160];
+    wire [1:0]  inst_layout = cmd_full[177:176];
+    wire [24:0] inst_length = (cmd_full[79:64] == 0) ? 25'd0 :
+        ({9'd0, cmd_full[79:64]} - 25'd1) * {16'd0, inst_stride[8:0]} + (inst_layout == 0 ? 25'd4 : 25'd8);
+    wire [32:0] inst_limit = {1'b0, cmd_full[63:32]} + (({8'd0, inst_length} + 33'd15) & ~33'd15);
+    // 实例包专用字段检查，与 engine_packet_check 同口径
+    wire inst_fields_bad = cmd_full[15:13] != 0 || cmd_full[63:32] % 16 != 0 ||
+        cmd_full[95:80] != 0 || inst_layout > 1 || cmd_full[191:178] != 0 ||
+        inst_stride < (inst_layout == 0 ? 16'd4 : 16'd8) || inst_stride > 256 || inst_stride[1:0] != 0 ||
+        (inst_layout == 1 && cmd_full[223:192] != 0) ||
+        (!cmd_full[12] && cmd_full[159:128] != 0) ||
+        (c_eq != 3 && cmd_full[31:24] != 0) || inst_limit > 33'h100000000;
     assign f_bad_c=is_inst_c?inst_fields_bad:scalar_f_bad;
     wire eq_bad_c = (c_eq > 4'd5);
 
@@ -505,7 +479,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     ec_struct_ok u_ssrc(.s0(surf_ra_w0), .s1(surf_ra_w1), .s2(surf_ra_w2), .ok(src_ok_c));
     ec_struct_ok u_sdst(.s0(surf_rb_w0), .s1(surf_rb_w1), .s2(surf_rb_w2), .ok(dst_ok_c));
 
-    // v1-TEX（G1）：BLIT 源放行 space=1，其余非 DDR 仍报 BAD_SPACE
+    // v1-TEX：BLIT 源放行 space=1，其余非 DDR 仍报 BAD_SPACE
     wire [1:0] src_space_c = surf_ra_w2[9:8];
     wire sp_src_bad = is_blit_c && (src_space_c == 2'd2 || src_space_c == 2'd3);
     wire sp_dst_bad = (is_fill_c || is_blit_c) && (surf_rb_w2[9:8] != 2'd00);
@@ -594,16 +568,12 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     wire [4:0] chk = v_norm;
 `endif
 
-    // SET_CLIP 的新框：x1 = x + w − 1。x 是有符号 16 位、w 是无符号 16 位，
-    // 和的范围 [−32768, 98301]，用 18 位有符号求值再饱和到 16 位
-    // （B5 复核：17 位零扩展会把负原点 −4 抬成 65532，裁剪框永远不空，
-    //   159 条向量的 clip-negative-origin 抓出）
+    // SET_CLIP 的新框：x1 = x + w − 1。x 有符号、w 无符号，和的范围
+    // [−32768, 98301]，用 18 位有符号求值再饱和到 16 位；17 位零扩展会把
+    // 负原点 −4 抬成 65532，裁剪框永远不空
     wire [15:0] cw  = w0[111:96];
     wire [15:0] ch  = w0[127:112];
-    // 三项各自**先**取成 18 位有符号再相加。原来把 $signed({{3{sign}},x}) 直接写进和式：
-    // {{3{..}} 是 3 个填充位 + 16 位 = 19 位，$signed 之后操作数是 19 位，
-    // 于是整个表达式 19 位、赋给 18 位目标而报截断。数值本来就在 18 位内，
-    // 这里按上面注释的本意（18 位有符号求值）显式拆开。
+    // 三项各自先取成 18 位有符号再相加，不把拼接结果直接写进和式（位宽膨胀报截断）
     wire signed [17:0] cx0  = $signed({{2{w0[47]}}, w0[47:32]});
     wire signed [17:0] cw18 = $signed({2'b00, cw});
     wire signed [17:0] cy0  = $signed({{2{w0[63]}}, w0[63:48]});
@@ -611,9 +581,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     wire signed [17:0] cx1  = cx0 + cw18 - 18'sd1;
     wire signed [17:0] cy1  = cy0 + ch18 - 18'sd1;
 
-    // =====================================================================
     // 主时序
-    // =====================================================================
     integer i;
     always @(posedge clk) begin
         if (rst || soft_rst) begin
@@ -655,7 +623,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                 nst <= fe_err ? N_ERR : N_OK;
 
             case (st)
-                // ------------------------------------------------ IDLE
+                // IDLE
                 S_IDLE: if (kick) begin
                     external_r<=(external_mode === 1'b1);
                     inst_active<=0;err_instance<=32'hffffffff;
@@ -708,7 +676,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end
                 end
 
-                // ------------------------------------------------ 等当前批取数
+                // 等当前批取数
                 S_FETCH: if (tmo_evt) begin
                     // 取数方向超过门限：只报告不放弃；迟到响应到达后 S_TERM 收尾
                     pend_err  <= 1'b1;
@@ -757,9 +725,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end
                 end
 
-                // ------------------------------------------------ 读记录
-                // 同步读 RAM 的时序：EX 发地址 0；RD0 发地址 1；RD1 拍的 rdata
-                // 已是字 0，捕进 w0；RD2 拍的 rdata 是字 1，捕进 w1。
+                // 读记录：EX 发地址 0、RD0 发地址 1，RD1/RD2 拍依次捕进 w0/w1
                 S_EXEC: begin
                     rd_word <= 1'b0;
                     st      <= S_RD0;
@@ -777,7 +743,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     st <= S_RUN;
                 end
 
-                // ------------------------------------------------ 判定与就地处理
+                // 判定与就地处理
                 S_RUN: begin chk_q<=chk;st<=S_DISPATCH;end
                 S_DISPATCH: begin
                     if ({1'b0, k} >= {1'b0, bi} + {1'b0, bn}) begin
@@ -843,7 +809,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end
                 end
 
-                // ------------------------------------------------ 下发几何层
+                // 下发几何层
                 S_ISSUE: if (!geom_busy && !active) begin
                     i1_op      <= w0[7:0];
                     i1_eq      <= w0[11:8];
@@ -884,7 +850,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     st         <= S_ACTIVE;
                 end
 
-                // ------------------------------------------------ 等活动命令完成
+                // 等活动命令完成
                 S_ACTIVE: begin
 `ifdef INJ_INST_EARLY_DONE
                     if(inst_active && geom_busy)done_set<=1;
@@ -927,7 +893,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end
                 end
 
-                // ------------------------------------------------ 推进
+                // 推进
                 S_ADV: begin
                     inst_active<=0;
                     k <= k + 32'd1;
@@ -937,7 +903,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                         st <= per ? S_PERW : S_EXEC;
                 end
 
-                // ------------------------------------------------ 批切换
+                // 批切换
                 S_SWITCH: begin
                     if ({1'b0, bi} + {1'b0, bn} >= {1'b0, count_r}) begin
                         if(bmode) st<=S_BFLUSH;
@@ -1008,7 +974,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     // N_INFL：等预取收尾（不能停 fs_tready）
                 end
 
-                // ------------------------------------------------ 逐条回退取一条
+                // 逐条回退取一条
                 S_PERW: if (!k_ok) begin
                     pend_err  <= 1'b1;                      // 越过地址空间：报 FETCH
                     err_code  <= EC_ERR_FETCH;
@@ -1044,7 +1010,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end
                 end
 
-                // G3：表头和条带相位，跨条带不预取；正常 flush 后才开放下一段。
+                // 条带相位：表头收 4 拍，跨条带不预取；正常 flush 后才开放下一段
                 S_CFG: begin cfg_bad_q<=cfg_bad;st<=S_CFG_WAIT;end
                 S_CFG_WAIT: begin
                     if(cfg_bad_q) begin
@@ -1106,9 +1072,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     else begin strip_id<=strip_id+1'b1;st<=S_BNEXT;end
                 end
 
-                // ------------------------------------------------ 收尾
-                // 等在途命令自然收尾（状态/完成照常回来，不再上报）、预取流收完；
-                // 全部静止后才置 done_set/err_set 并回空闲——DONE/ERR 置位即引擎已空闲
+                // 收尾：等在途命令与预取流全部静止才置 done_set/err_set——DONE/ERR 置位即引擎已空闲
                 S_TERM: begin
                     if ((wr_stat_valid && wr_stat_last_row)
                      || (geom_cmd_done && geom_done_cidx == k[3:0]))
