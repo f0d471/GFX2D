@@ -1,5 +1,5 @@
 // Efinity Synthesis Started 
-// Oct 11, 2026 21:32:35
+// Oct 12, 2026 04:37:49
 ///////////////////////////////////
 
 [EFX-0011 VERI-WARNING] root scope declaration is not allowed in Verilog 95/2K mode (VERI-1791) (E:\Workspace\Efinix\Main\rtl\engine/engine_regs_offsets.vh:7)
@@ -307,44 +307,44 @@
 [EFX-0201 WARNING] Re-wiring to GND non-driven net/port 'a_rd_rst_i' in module 'efx_fifo_top_6ceb0421bf6b4ab2809a782952ee3915(FAMILY="TITANIUM",MODE="FWFT",DEPTH=16,DATA_WIDTH=128,PROGRAMMABLE_FULL="NONE",PROG_FULL_ASSERT=16,PROG_FULL_NEGATE=16,PROGRAMMABLE_EMPTY="NONE",PROG_EMPTY_ASSERT=0,PROG_EMPTY_NEGATE=0)'. (E:\Workspace\Efinix\Main\rtl\vendor\ddr3_controller\common\efx_fifo_v2.3\efx_fifo_wrapper.v:124)
 [EFX-0201 WARNING] Re-wiring to GND non-driven net/port 'a_wr_rst_i' in module 'efx_fifo_wrapper(SYNC_CLK=0,MODE="FWFT",DEPTH=16,DATA_WIDTH=90)'. (E:\Workspace\Efinix\Main\rtl\vendor\ddr3_controller\phy_ctl\ddr_phy_if.v:954)
 [EFX-0657 WARNING] Mapping into logic memory block 'logic_ram' (32 bits) (E:\Workspace\Efinix\Main\fpga\gfx2d_ti60\ip\soc\soc.v:19273) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'row_queue' (2 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:157) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_blit' (2 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:165) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_key_en' (2 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:165) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_read_dst' (2 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:165) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_eq' (6 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:166) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_key' (64 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:167) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_w4' (64 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:167) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_c' (16 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:168) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_sfmt' (8 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:169) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_ls' (4 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:170) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_ld' (4 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:170) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_beats' (16 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:171) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_src_need' (16 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:171) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_first_mask' (8 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:174) because size is too small (<=64)
-[EFX-0657 WARNING] Mapping into logic memory block 'h_last_mask' (8 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:174) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'row_queue' (2 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:98) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_blit' (2 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:106) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_key_en' (2 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:106) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_read_dst' (2 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:106) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_eq' (6 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:107) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_key' (64 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:108) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_w4' (64 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:108) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_c' (16 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:109) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_sfmt' (8 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:110) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_ls' (4 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:111) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_ld' (4 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:111) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_beats' (16 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:112) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_src_need' (16 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:112) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_first_mask' (8 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:115) because size is too small (<=64)
+[EFX-0657 WARNING] Mapping into logic memory block 'h_last_mask' (8 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_pix.v:115) because size is too small (<=64)
 [EFX-0657 WARNING] Mapping into logic memory block 'out_fifo_tlast' (32 bits) (E:\Workspace\Efinix\Main\rtl\vendor\verilog-axi\axi_dma_rd.v:639) because size is too small (<=64)
 [EFX-0657 WARNING] Mapping into logic memory block 'out_fifo_tuser' (32 bits) (E:\Workspace\Efinix\Main\rtl\vendor\verilog-axi\axi_dma_rd.v:645) because size is too small (<=64)
 [EFX-0657 WARNING] Mapping into logic memory block 'status_fifo_user' (32 bits) (E:\Workspace\Efinix\Main\rtl\vendor\verilog-axi\axi_dma_wr.v:262) because size is too small (<=64)
 [EFX-0657 WARNING] Mapping into logic memory block 'status_fifo_last' (32 bits) (E:\Workspace\Efinix\Main\rtl\vendor\verilog-axi\axi_dma_wr.v:263) because size is too small (<=64)
 [EFX-0657 WARNING] Mapping into logic memory block 'out_fifo_wlast' (32 bits) (E:\Workspace\Efinix\Main\rtl\vendor\verilog-axi\axi_dma_wr.v:904) because size is too small (<=64)
-[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$1c2' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:426)
-[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$c21' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:426)
-[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$1b21' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:426)
-[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$d2' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:426)
-[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$b12' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:426)
-[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$212' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:426)
-[EFX-0657 WARNING] Mapping into logic memory block 'u_engine/u_regs/surf_w0' (512 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_regs.v:182) because read port is not synchronous.
-[EFX-0657 WARNING] Mapping into logic memory block 'u_engine/u_regs/surf_w1' (512 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_regs.v:183) because read port is not synchronous.
-[EFX-0657 WARNING] Mapping into logic memory block 'u_engine/u_regs/surf_w2w' (512 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_regs.v:184) because read port is not synchronous.
+[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$1c2' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:401)
+[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$c21' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:401)
+[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$1b21' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:401)
+[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$d2' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:401)
+[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$b12' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:401)
+[EFX-0120 WARNING] Memory block 'u_engine/u_cmd/counts__D$212' has mis-matched read/write address. WRITE_MODE cannot be set to "WRITE_FIRST". It will be set to "READ_UNKNOWN" instead. (E:\Workspace\Efinix\Main\rtl\engine\engine_cmd.v:401)
+[EFX-0657 WARNING] Mapping into logic memory block 'u_engine/u_regs/surf_w0' (512 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_regs.v:180) because read port is not synchronous.
+[EFX-0657 WARNING] Mapping into logic memory block 'u_engine/u_regs/surf_w1' (512 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_regs.v:181) because read port is not synchronous.
+[EFX-0657 WARNING] Mapping into logic memory block 'u_engine/u_regs/surf_w2w' (512 bits) (E:\Workspace\Efinix\Main\rtl\engine\engine_regs.v:182) because read port is not synchronous.
 [EFX-0657 WARNING] Mapping into logic memory block 'u_ddr3/u_memory_bus_ctl/col_mach/fifo_ram[1].RAM32M0/memory' (256 bits) (E:\Workspace\Efinix\Main\rtl\vendor\ddr3_controller\memory_bus_ctl\memory_bus_ctl.v:5169) because 'syn_ram_style' directive is 'register' or 'logic'.
-[EFX-0657 WARNING] Mapping into logic memory block 'u_display/u_fetch/hist_gap' (384 bits) (E:\Workspace\Efinix\Main\rtl\display\display_fetch.v:187) because read port is not synchronous.
-[EFX-0657 WARNING] Mapping into logic memory block 'u_display/u_fetch/hist_full' (384 bits) (E:\Workspace\Efinix\Main\rtl\display\display_fetch.v:186) because read port is not synchronous.
-[EFX-0657 WARNING] Mapping into logic memory block 'u_display/u_fetch/hist_first' (384 bits) (E:\Workspace\Efinix\Main\rtl\display\display_fetch.v:185) because read port is not synchronous.
-[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_DRCK is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:79)
-[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_RESET is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:80)
-[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_RUNTEST is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:81)
-[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_TMS is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:86)
-[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_UPDATE is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:87)
+[EFX-0657 WARNING] Mapping into logic memory block 'u_display/u_fetch/hist_gap' (384 bits) (E:\Workspace\Efinix\Main\rtl\display\display_fetch.v:158) because read port is not synchronous.
+[EFX-0657 WARNING] Mapping into logic memory block 'u_display/u_fetch/hist_full' (384 bits) (E:\Workspace\Efinix\Main\rtl\display\display_fetch.v:157) because read port is not synchronous.
+[EFX-0657 WARNING] Mapping into logic memory block 'u_display/u_fetch/hist_first' (384 bits) (E:\Workspace\Efinix\Main\rtl\display\display_fetch.v:156) because read port is not synchronous.
+[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_DRCK is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:61)
+[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_RESET is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:62)
+[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_RUNTEST is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:63)
+[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_TMS is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:68)
+[EFX-0011 VERI-WARNING] Input/inout port jtag_inst1_UPDATE is unconnected. Place and route may remove this unconnected port. (VDB-8003) (E:\Workspace\Efinix\Main\rtl\top\gfx2d_top.v:69)
 [EFX-0011 VERI-WARNING] Net u_soc/u_EfxSapphireSoc/system_cores_0_logic_cpu/IBusCachedPlugin_cache/lineLoader_address[5] is dangling. (VDB-8009) 
 [EFX-0011 VERI-WARNING] Net u_soc/u_EfxSapphireSoc/system_cores_0_logic_cpu/IBusCachedPlugin_cache/lineLoader_address[4] is dangling. (VDB-8009) 
 [EFX-0011 VERI-WARNING] Net u_soc/u_EfxSapphireSoc/system_cores_0_logic_cpu/IBusCachedPlugin_cache/lineLoader_address[1] is dangling. (VDB-8009) 

@@ -1,7 +1,7 @@
 
 Elitestek FPGA Placement and Routing.
 Version: 2026.1.132 
-Date: Sun Oct 11 21:32:20 2026
+Date: Mon Oct 12 04:37:36 2026
 
 Copyright (C) 2013 - 2026 Efinix, Inc. All rights reserved.
  
@@ -155,7 +155,7 @@ Top-level Entity Name: engine_bin_syn
 
 ----------- Module Resource Usage Distribution Estimates (end) ----------
 
-Elapsed time for packing: 0 hours 0 minutes 1 seconds
+Elapsed time for packing: 0 hours 0 minutes 0 seconds
 ---------- Resource Summary (begin) ----------
 Inputs: 2 / 1703 (0.12%)
 Outputs: 128 / 2267 (5.65%)
