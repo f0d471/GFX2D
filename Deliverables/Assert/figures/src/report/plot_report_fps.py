@@ -14,7 +14,7 @@ INK = "#1D2733"
 fig, ax = plt.subplots(figsize=(7.0, 3.1), dpi=200)
 fig.subplots_adjust(left=0.09, right=0.97, top=0.86, bottom=0.16)
 
-groups = ["普通游戏（模式 2）", "压力档 S1（同 K1744）"]
+groups = ["普通游戏（模式 2）", "压力关卡（负载旋钮 1744）"]
 sw = [2.5, 2.1]
 hw = [60.0, 30.6]
 x = [0, 1]
