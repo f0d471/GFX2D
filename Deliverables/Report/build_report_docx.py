@@ -247,6 +247,8 @@ def build():
             ncols = len(rows[0])
             if ncols == 4 and rows[0][0] == "资源":
                 widths = [4.6, 3.5, 3.4, 2.9]
+            elif ncols == 3 and rows[0][0] == "类别":
+                widths = [2.2, 5.2, 7.0]
             else:
                 widths = [14.4 / ncols] * ncols
             add_table(doc, rows, widths)
