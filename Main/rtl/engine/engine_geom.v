@@ -1,78 +1,27 @@
-// engine_geom：引擎 P1 B3 的几何层
-//
-// 接一条已经通过十步检查的 FILL 或 BLIT（I1），算出它实际要画的矩形，拆成行，
-// 每行给搬运层发读源、读目的、写目的的描述符（I2），给计算阵列发这一行的边带（I5）。
-// 这一层不碰像素，只碰坐标与地址；它一错，错的都是地址。
-//
-// 四件事：
-//
-//   1. 五者求交（D34）。目的矩形、游戏区 [0,639]×[0,479]、当前裁剪框、目的表面、
-//      源表面；FILL 没有源，只交前四项。中间量一律 32 位有符号，空宽高先判。
-//      源表面那一项是 spec 第 01 章 3.6 节第 5 步「源越界只跳过该像素」在矩形级的
-//      等价写法：[dst_x−src_x, dst_x−src_x+src_w−1] × 同理的 y，交掉之后像素通路
-//      不必再逐像素判源越界。
-//
-//   2. 行迭代（D33）。多拍顺序实现，每行 4 拍（边带 1 拍、每笔描述符 1 拍、
-//      行推进 1 拍）。实测对照搬运层的每行周期数余量 2.4 倍以上，不必做流水。
-//      每一行开始之前等这一行要用的那一半行缓冲空着（row_free，D41）。
-//
-//   3. 描述符（D35、D3 规矩 1）。每行按 16 字节对齐的覆盖区间发：下界向下、上界向上
-//      取整到 16 字节，可能带出不属本行的像素（由 D16 的带内标记不写）。覆盖区间
-//      按「不跨 4KB」与「不超过 AXI_MAX_BURST_LEN 拍」拆段。P1 里一行最多两段、
-//      最多 161 拍（640 像素 = 2560 字节，取整后最多 2576；< 4096 且 < 3072），
-//      P2/P3 或改 beat 宽度后要重算。
-//
-//   4. D7 读写避让（D37）。只有两条判定：读源 ⟺ 操作是 BLIT；读目的 ⟺ 方程不是 COPY。
-//      两者都不改变逐像素结果：FILL 是常量源；COPY 不看目的，色键命中的像素走 D16
-//      的带内标记（目的原值不动）。
-//
-// 接口（总览 2.4 节 I1、I2、I5，本章新增的字段已回写）：
-//   I1 控制层 → 本层：一条命令的全部字段，start 一拍脉冲提交。零面积命令照常下发，
-//      只有本层求交之后才知道它是空的（2026-10-01 订正）。
-//   I2 本层 → 搬运层：读描述符与写描述符，每笔恰好一个突发。
-//   I5 本层 → 计算阵列：每行一条边带，先于本行的读描述符发出，B4 在数据回来之前
-//      就知道这一行的相位与掩码。
-//   D38 零面积命令的完成：本层回一拍 cmd_done（带命令索引）。非空命令的完成由
-//      最后一个写描述符的 wr_last_row 带出——**只打在最后一行的最后一段上**，
-//      最后一行跨 4KB 拆成两段时第一段不打，否则控制层会收到两次完成。
-//
-// 发出顺序（测试台的期望值按同一顺序，见 tools/check/geom_model.py 的 REC_* 表）：
-//   每行 = 边带(I5) → 读源(I2) → 读目的(I2) → 写目的(I2)
-//   读描述符的目标行缓冲号 rd_buf = {源/目的, 行号最低位}：位 1 = 0 源 / 1 目的，
-//   位 0 是行缓冲的两半（乒乓），按行号最低位翻转。
-//
-// row_free[1:0]：本层与 B4 之间的握手，电平，每一半一位：row_free[h] 高表示
-//   源、目的两块行缓冲的第 h 半都空着（D23 的行缓冲是两块各两半）。
-//   本层在**每一行**发边带之前查这一行要用的那一半 row_free[行号最低位]，
-//   包括每条命令的第 0 行：行号每条命令从 0 起，上一条命令的最后几行可能还占着第 0 半，
-//   只在命令内部的行推进上查会让下一条命令的第 0 行盖掉它（2026-10-01 复核）。
-//   约定：B4 只在第 h 半的边带握手之后才把 row_free[h] 拉低，所以本层看到它高之后
-//   到边带握手之间它不会掉。B4 已确认这套编码与时机（D45：该半写流的末拍被写核收走之后才拉高）。
-//
-// 注错（变异测试）：本文件是干净形态，五处变异各包在 `ifdef 内。
-// 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
-// 注错改的都是本文件里真实的逻辑，由测试台与独立模型逐条比对抓出来；
-// 编译开关与 sim/engine/geom/run.sh 的用例一一对应，一次只开一个：
-//   INJ_SKIP_SURF    漏掉第五项求交（源表面）
-//   INJ_NO_SPLIT     跨 4KB 不拆：一个描述符盖过页边界，违反 D3 规矩 1
-//   INJ_ALPHA_AS_COPY ALPHA 也按 COPY 走「不读目的」的避让，读描述符少一半
-//   INJ_COPY_READ     COPY 也发读目的描述符（边带仍说不读）：多发的描述符
-//   INJ_ROW_NOFREE    行开始之前不看 row_free：下一行的读盖掉还没写完的那一半
-//
-// 设计依据、算式、位宽、定案 D33~D40 与实测数据见
-// Engineering/TechReports/engine/03-几何层.md。
 `timescale 1ns/1ps
+//==============================================================================================//
+// FILE: engine_geom.v
+//
+// DESCRIPTION: 几何层：接一条通过十步检查的 FILL/BLIT，五者求交得实际矩形，逐行
+//   拆成读源/读目的/写目的描述符与每行边带。只碰坐标与地址，不碰像素。
+//
+// NOTE:
+//   1. 中间量一律 32 位有符号，空宽高先判；零面积命令回一拍 cmd_done
+//   2. 每行发边带前等 row_free 对应半区空着，含每条命令的第 0 行
+//   3. wr_last_row 只打在最后一行的最后一段，跨 4KB 拆段时首段不打
+//   4. 发出顺序 = 边带 → 读源 → 读目的 → 写目的，测试台按同序期望（geom_model.py）
+//==============================================================================================//
 `default_nettype none
 
 module engine_geom #(
     parameter integer STRIP_H = 16,
-    // D3 规矩 1 的拍数上限，与搬运层两个核的 AXI_MAX_BURST_LEN 同一个值
+    // 拍数上限，与搬运层两个核的 AXI_MAX_BURST_LEN 同一个值
     parameter integer MAX_BEATS = 192
 )(
     input  wire        clk,
     input  wire        rst,
 
-    // ---- I1：控制层 → 几何层 ----
+    // I1：控制层 → 几何层
     input  wire        start,        // 一拍脉冲：提交一条已经通过十步检查的 FILL/BLIT
     input  wire [7:0]  op,           // 1 FILL、2 BLIT（其余不到本层）
     input  wire [3:0]  eq,           // 0 COPY、1 ALPHA、2 ADD、3 CONST、4 MUL、5 ALPHA_STRAIGHT
@@ -102,14 +51,14 @@ module engine_geom #(
     input  wire signed [15:0] clip_y0,
     input  wire signed [15:0] clip_x1,
     input  wire signed [15:0] clip_y1,
-    input  wire [3:0]  cidx,         // 命令索引（D19 的错误归属）
-    input  wire [1:0]  row_free,     // B4 的行缓冲空闲握手（电平，每一半一位，D41）
+    input  wire [3:0]  cidx,         // 命令索引，错误归属
+    input  wire [1:0]  row_free,     // 行缓冲空闲握手，电平，每一半一位
 
     output reg         busy,
-    output reg         cmd_done,     // D38：零面积命令的完成脉冲
+    output reg         cmd_done,     // 零面积命令的完成脉冲
     output reg  [3:0]  done_cidx,
 
-    // ---- I2：读描述符 ----
+    // I2：读描述符
     output reg  [31:0] rd_addr,
     output reg  [11:0] rd_beats,
     output reg  [1:0]  rd_buf,
@@ -119,7 +68,7 @@ module engine_geom #(
     output reg         rd_valid,
     input  wire        rd_ready,
 
-    // ---- I2：写描述符 ----
+    // I2：写描述符
     output reg  [31:0] wr_addr,
     output reg  [11:0] wr_beats,
     output reg  [3:0]  wr_cidx,
@@ -128,7 +77,7 @@ module engine_geom #(
     output reg         wr_valid,
     input  wire        wr_ready,
 
-    // ---- I5：每行边带 ----
+    // I5：每行边带
     output reg  [15:0] sb_row,       // 本命令内的零基行号
     output reg  [15:0] sb_py,        // 目的面上的绝对 y
     output reg  [10:0] sb_npx,       // 本行像素数
@@ -142,7 +91,7 @@ module engine_geom #(
     output reg  [31:0] sb_w4,
     output reg  [7:0]  sb_c,
     output reg  [3:0]  sb_sfmt,
-    output reg         sb_read_dst,  // 这一行读不读目的（D7）
+    output reg         sb_read_dst,  // 这一行读不读目的
     output reg         sb_valid,
     input  wire        sb_ready
 );
@@ -175,10 +124,7 @@ module engine_geom #(
     reg        r_dst_band;
     reg [3:0]  r_cidx;
 
-    // ---------------------------------------------------------------- 五者求交
-    // 纯组合，输入只用 I1 端口值：start 那一拍算一次，结果与全部 I1 字段一起锁存，
-    // 命令执行期间不再看 I1。所以这条比较链两头都是寄存器（上游是控制层 B5 的 I1
-    // 寄存器，单独综合里是 LFSR；下游是锁存副本与行首地址），D34 的实测就是这条链。
+    // 五者求交：纯组合，start 那一拍算一次，与全部 I1 字段一起锁存后命令期间不再看 I1
     wire signed [31:0] p_dx = dst_x;
     wire signed [31:0] p_dy = dst_y;
     wire signed [31:0] p_sx = src_x;
@@ -196,8 +142,7 @@ module engine_geom #(
     reg               i_empty;
 
     always @* begin
-        // 纯组合块：先把所有中间量与输出给默认值，少给一条路径就会推断出锁存器
-        // （研究探针首版漏了 dx1/dy1 的默认值，Efinity 报 latch inferred）。
+        // 先给全部中间量与输出默认值，少给一条路径就会推断出锁存器
         dx1 = 32'sd0; dy1 = 32'sd0;
         t_x0 = 32'sd0; t_y0 = 32'sd0; t_x1 = -32'sd1; t_y1 = -32'sd1;
         s_hi_x = 32'sd0; s_hi_y = 32'sd0;
@@ -251,24 +196,22 @@ module engine_geom #(
     // 源的行首 x 偏移：sx0 = src_x + (x0 - dst_x)
     wire signed [31:0] sx_off = p_sx + (t_x0 - p_dx);
 
-    // D7 的两条判定（D37）。
-    // 声明放在用它的段计算之前：先用后声明在 iverilog 与 Efinity 里能过，换一个工具未必。
+    // D7 读写避让判定；声明放在用它的段计算之前（先用后声明可移植性没有保证）。
     wire d7_read_dst;
 `ifdef INJ_ALPHA_AS_COPY
     assign d7_read_dst = ((r_eq == EQ_COPY) || (r_eq == EQ_ALPHA));  // 注错：ALPHA 也按 COPY
 `else
     assign d7_read_dst = !(r_eq == EQ_COPY);
 `endif
-    // 本行发不发读目的描述符。正式配置就是 d7_read_dst；注错版让 COPY 也发，
-    // 而边带的 sb_read_dst 仍按 D7 说不读——测试台的握手计数要抓住多出来的那几笔。
+    // 本行发不发读目的描述符：注错版让 COPY 也发，而边带仍说不读，
+    // 测试台的握手计数要抓住多出来的那几笔。
 `ifdef INJ_COPY_READ
     wire seg_read_dst = 1'b1;             // 注错：COPY 也发读目的描述符
 `else
     wire seg_read_dst = d7_read_dst;
 `endif
 
-    // ---------------------------------------------------------------- 本行的段
-    // 组合量：从 dst_cur / src_cur / nb 算出本行最多六个候选段与一个边带槽。
+    // 本行的段：从 dst_cur / src_cur / nb 算出本行最多六个候选段与一个边带槽
     reg [31:0] a0, a1, alen;
     reg [11:0] b0, b1;
     reg [31:0] s_a0, s_a1, s_len;
@@ -341,7 +284,7 @@ module engine_geom #(
             seg_addr[2] = s_a0 + {{20{1'b0}}, s_b0}; seg_beats[2] = s_b1 >> 4;
             seg_isrd[2] = (s_b1 != 0);
         end
-        // 读目的：D7 —— 只有方程不是 COPY 才有。注错位 2 让 ALPHA 也走 COPY 的避让，
+        // 读目的：只有方程不是 COPY 才有。注错位 2 让 ALPHA 也走 COPY 的避让，
         // 注错位 3 让 COPY 也发。
         if (seg_read_dst) begin
             seg_addr[3] = a0; seg_beats[3] = b0 >> 4; seg_isrd[3] = (b0 != 0);
@@ -366,7 +309,7 @@ module engine_geom #(
                 nxt_i = k[2:0];
     end
 
-    // ---------------------------------------------------------------- 发射
+    // 发射
     wire cur_sb = (st == S_ROW) && (seg_i == 3'd0);
     wire cur_on = (st == S_ROW) && (seg_i != 3'd0) && (seg_i != 3'd7) && seg_pres[seg_i];
     wire cur_wr = cur_on && seg_iswr[seg_i];
@@ -374,7 +317,7 @@ module engine_geom #(
     wire last_wr_seg = (seg_i == 3'd6) || (seg_pres[6] == 1'b0);
     wire last_row_now = (row_i == (nrows - 16'd1));
 
-    // 行缓冲那一半空没空（D41）。
+    // 行缓冲那一半空没空
 `ifdef INJ_ROW_NOFREE
     // 注错：不看 row_free，直接开下一行
     wire rf_first = 1'b1;                 // 命令的第 0 行
@@ -422,7 +365,7 @@ module engine_geom #(
         wr_last_row   = cur_wr && last_row_now && last_wr_seg;
     end
 
-    // ---------------------------------------------------------------- 时序
+    // 时序
     always @(posedge clk) begin
         if (rst) begin
             st <= S_IDLE; busy <= 1'b0;
@@ -446,7 +389,7 @@ module engine_geom #(
                     r_dst_band<=band_enable;
                     done_cidx <= cidx;
                     if (i_empty) begin
-                        cmd_done <= 1'b1;                 // D38：零面积命令
+                        cmd_done <= 1'b1;                 // 零面积命令
                         st <= S_IDLE;
                     end else begin
                         busy      <= 1'b1;

@@ -1,39 +1,16 @@
-// engine_tex：v1-TEX profile 的片上纹理（引擎 P3 G1，定案 D57）
-//
-// 16 KiB scratchpad：四个 1024×32 bank。APB 写口每次写一个 32 位字（字地址低两位
-// 选 bank）；读流与 APB 读回复用 128 位宽读口（同行号读四个 bank 拼拍）。
-// 不做 cache 标签、不做替换、不做 BLIT-to-TEX；RAM 内容不做全量复位，
-// 控制复位只清执行现场（在途描述符与流水），内容保留。
-//
-// APB（第 4~7 页，psel 已按 paddr[15:14]==01 门控，本模块收窗口内 14 位字节地址）：
-//   * 只允许 4 字节对齐的 32 位访问，未对齐回 PSLVERR 且不得改写 RAM；
-//   * 读在 SETUP 相发同步读请求、ACCESS 相给出数据（pready 恒 1，零等待）；
-//   * 写在 ACCESS 相（完成沿）提交；
-//   * 宽读口给读流优先：两者同拍竞争时 APB 读拿不到口，读回值不保证——
-//     运行期 CPU 不得读写 TEX 是驱动纪律（总体设计 3.4 节 2026-10-07 定案段），
-//     硬件不加互锁。
-//
-// 读流（I3）：描述符口收「字节地址 + 字节数」，每拍读一个 128 位字，经
-// 同步 RAM 的一级输出（READ_LATENCY=1）或再加 q1（=2）给出 data/valid/tlast——valid 允许
-// 有空拍（描述符受理与收尾各一拍），一个描述符之内 valid 连续；消费者恒 ready
-//（D23/I3 契约），所以本模块没有 ready 口、不做 skid buffer。上下文（缓冲号、
-// 命令索引）在描述符口锁存，随流（rs_buf）与状态（stat_*）带回。
-// 状态在末拍之后有效，直到 stat_ready 握手；上下文保持且 busy 不撤。
-//
-// 描述符恰好一笔的纪律由几何层保证（跨 4KB 已拆段）；本模块把地址截到窗口内
-// 使用，越界描述符是上游检查（engine_cmd 的 TEX 结构两条）的责任。
-//
-// 注错（变异测试）：本文件是干净形态，三处变异各包在 `ifdef 内。
-// 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
-// 编译开关与 sim/engine/tex/run.sh 的用例一一对应，一次只开一个：
-//   INJ_VALID_EARLY  valid 提前一级：valid 与 data 错拍（研究变异的正式版，
-//                    全路径内存比对必须见红）
-//   INJ_WR_LOOSE     未对齐 APB 写放行（未对齐拒绝用例必须见红）
-//   INJ_STAT_DROP    状态脉冲吞掉（所有走 TEX 的用例挂看门狗，必须见红）
-//
-// 设计依据：引擎 P3 总览 D57、engine 第 07 章（前期研究与定义修正）；
-// RAM 组织与块数（四 bank 16 块）的实验证据在同章 3.5 节。
 `timescale 1ns/1ps
+//==============================================================================================//
+// FILE: engine_tex.v
+//
+// DESCRIPTION: v1-TEX profile 的片上纹理：16 KiB 四 bank scratchpad。APB 写口每次
+//   写一个 32 位字，读流与 APB 读回复共用 128 位宽读口（同行号拼四 bank）。
+//
+// NOTE:
+//   1. 不做 cache 标签、替换与 BLIT-to-TEX；控制复位只清执行现场，RAM 内容保留
+//   2. APB 只收 4 字节对齐的 32 位访问，未对齐回 PSLVERR 且不改写 RAM
+//   3. 宽读口读流优先，同拍竞争时 APB 读拿不到口——运行期 CPU 不得读写 TEX 是驱动纪律，硬件不加互锁
+//   4. 消费者恒 ready，本模块没有 ready 口、不做 skid buffer；注错开关见 engine-manual.md
+//==============================================================================================//
 `default_nettype none
 
 module engine_tex #(
@@ -42,7 +19,7 @@ module engine_tex #(
     input  wire        clk,
     input  wire        rst,           // 控制层复位（soc_system_reset），同步
 
-    // ---- APB 从口（窗口内字节地址，psel 已按页门控）----
+    // APB 从口（窗口内字节地址，psel 已按页门控）
     input  wire [13:0] paddr,
     input  wire        psel,
     input  wire        penable,
@@ -52,7 +29,7 @@ module engine_tex #(
     output wire        pready,
     output wire        pslverr,
 
-    // ---- 读描述符口（搬运层 → 本模块）----
+    // 读描述符口（搬运层 → 本模块）
     input  wire [13:0] req_addr,      // 字节地址，16 字节对齐
     input  wire [11:0] req_bytes,     // 字节数，16 的倍数
     input  wire [1:0]  req_buf,       // 目标行缓冲号（随流带回）
@@ -60,13 +37,13 @@ module engine_tex #(
     input  wire        req_valid,
     output wire        req_ready,
 
-    // ---- 读流（本模块 → 搬运层；消费者恒 ready，无 ready 口）----
+    // 读流（本模块 → 搬运层；消费者恒 ready，无 ready 口）
     output wire [127:0] rs_tdata,
     output wire         rs_tvalid,
     output wire         rs_tlast,
     output wire [1:0]   rs_buf,
 
-    // ---- 状态与占用 ----
+    // 状态与占用
     output wire         stat_valid,   // 末拍之后保持，直到 stat_ready 采样
     input  wire         stat_ready,
     output wire [3:0]   stat_cidx,
@@ -74,9 +51,7 @@ module engine_tex #(
     output wire         busy          // 描述符在途（受理起到状态握手止）
 );
 
-    // =====================================================================
     // APB 译码
-    // =====================================================================
     wire       apb_access   = psel && penable;
     wire       apb_wr_acc   = apb_access && pwrite;
     wire       apb_rd_setup = psel && !penable && !pwrite;
@@ -94,9 +69,7 @@ module engine_tex #(
     assign pslverr = apb_access && !apb_aligned;
     assign pready  = 1'b1;
 
-    // =====================================================================
     // 读流引擎
-    // =====================================================================
     reg         busy_r;
     reg  [11:0] left;          // 剩余拍数
     reg  [9:0]  ra_cur;        // 当前宽读行号（16KiB = 1024 行）
@@ -176,9 +149,7 @@ module engine_tex #(
     assign stat_cidx  = ctx_cidx;
     assign stat_buf   = ctx_buf;
 
-    // =====================================================================
-    // 四个 1024×32 bank（研究探针 probe_tex_ram.v 的组织，实测 16 块 RAM）
-    // =====================================================================
+    // 四个 1024×32 bank（实测 16 块 RAM）
     wire [127:0] bank_q;
     genvar b;
     generate
