@@ -1,41 +1,18 @@
-// display_fetch：扫描输出的取数侧（core_clk 域）
-//
-// 职责（Engineering/Todo/hw/扫描输出.md 2.2 节）：
-//   1. AXI 读主机，接 Axi_Mux 的 S0，只发起读；每个方向在途事务不超过 1。
-//   2. 按水位取数（D3）：空位不少于一行（160 拍）、没有在途读、本场还有行没取，就发下一行。
-//      一行 = 160 拍 = 640 像素，地址 = 基址 + (row << 12)（行跨 4096 字节，永不跨 4KB）。
-//   3. 场起始清空的六步（D7）：停发新读 → 等 rlast 并丢弃 → 两侧复位 → 等复位落下 →
-//      锁存本场基址 → 开始预取。清空由这里执行，因为必须在等 rlast 之后才动写指针。
-//   4. APB 寄存器与统计（寄存器表见 2.2 节，偏移即窗口内偏移）。
-//   5. 接收像素侧的帧快照（toggle/ack），并给出场同步中断。
-//      ack 按**电平**追 toggle，不按沿：两个域的复位源不同，落在 core 复位窗口里的翻转
-//      若按沿判就会被吃掉，两侧各守一个电平、快照永久冻结。详见下面接收块的注释。
-//
-// 发行条件（结论 3，别照字面理解阈值）：
-//      !in_flight && (row < V_ACTIVE) && en && (DEPTH - wr_level) >= LINE_BEATS
-//   wr_level 是写侧水位，它用滞后的读指针，占用偏高 → 空位算小，判据保守。
-//   在途的 160 拍不计入水位，所以「空位 ≥ 160」加上「在途 ≤ 160」才等于不会溢出。
-//
-// 复位（2026-09-20 复核订正第 1 条）：rst_busy 是 wr_rst_int | rd_rst_int 的组合，
-// 含像素域的寄存器，在 core_clk 里直接判就是一条没有同步器的跨域路径（SDC 又把它切掉，
-// STA 不会报）。这里用 display_fifo 给出的 rst_busy_sync，判它连续为低 4 拍再恢复写入。
-//
-// CLEAR（CTRL.bit2）清两侧的量测：core 侧直接清，像素侧靠 clear_toggle 送过去。
-// 2026-09-21 上板发现这一条原先只清了 core 侧，而像素侧的累计值软件根本清不掉：
-// core 复位（每次 reset halt）不会复位像素域（它的复位来自 pll_locked），
-// 于是像素侧的 src_eff 会留着上一次的 1，从 core 复位到下一个场起始之间一直在
-// 帧缓冲模式下读空 FIFO，把 FIFO_UNDERFLOW_BEATS 灌进整整一场（实测 77266 拍、
-// ZERO_HITS 1 次）。判据要求这两个数恒为 0，清不掉就永远判不过。
-// 寄存器表里 bit2 写的本来就是「清统计」，没写「只清 core 侧」，按表办。
-// 注错（变异测试）：本文件是干净形态，四处变异各包在 `ifdef 内。
-// 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
-// 编译开关与 sim/display/run.sh 的用例一一对应，一次只开一个：
-//   INJ_NO_DRAIN   场起始不等 rlast 就复位写指针
-//   INJ_NO_CLEAR   场起始不清 FIFO
-//   INJ_SWAP_NOW   切换立刻生效
-//   INJ_INFLIGHT2  允许两笔在途
-// 见 Engineering/Todo/hw/扫描输出.md 2.3 节。
 `timescale 1ns/1ps
+//==============================================================================================//
+// FILE: display_fetch.v
+//
+// DESCRIPTION: 扫描输出的取数侧（core_clk 域）：AXI 读主机（Axi_Mux S0，只发起读），
+//   按水位逐行取数、场起始清空、APB 寄存器与统计、帧快照接收与场同步中断。
+//   寄存器表见 display-manual.md，注错开关见文内 `ifdef。
+//
+// NOTE:
+//   1. 发行条件 !in_flight && (row < V_ACTIVE) && en && (DEPTH - wr_level) >= LINE_BEATS；
+//      水位不含在途拍，空位与在途两笔相加才等于不溢出
+//   2. 场起始清空必须先等 rlast 再动写指针；CLEAR 的像素侧清理由 clear_toggle 送过去
+//   3. ack 按电平追 toggle 不按沿：两个域复位源不同，core 复位窗口里的沿会被吃掉
+//   4. 复位用 display_fifo 的 rst_busy_sync（原 rst_busy 是无同步器的跨域路径），连续低 4 拍再写
+//==============================================================================================//
 `default_nettype none
 
 module display_fetch #(
@@ -48,8 +25,7 @@ module display_fetch #(
     input  wire         clk,            // core_clk
     input  wire         rst,            // 同步复位，高有效
 
-    // ---- APB 从口，paddr 是窗口内 12 位偏移 ----
-    input  wire [11:0]  paddr,
+    //  APB 从口，paddr 是窗口内 12 位偏移    input  wire [11:0]  paddr,
     input  wire         psel,
     input  wire         penable,
     input  wire         pwrite,
@@ -75,8 +51,7 @@ module display_fetch #(
     input  wire         r_valid,
     output wire         r_ready,
 
-    // ---- FIFO 写侧 ----
-    output wire         fifo_wr_en,
+    //  FIFO 写侧    output wire         fifo_wr_en,
     output wire [127:0] fifo_wr_data,
     input  wire [9:0]   fifo_wr_level,
     input  wire         fifo_wr_full,
@@ -84,8 +59,7 @@ module display_fetch #(
     output reg          fifo_rst,
     input  wire         fifo_rst_busy,
 
-    // ---- 与像素侧的握手 ----
-    input  wire         fs_toggle,      // 场起始（像素侧 vs 下降沿，toggle）
+    //  与像素侧的握手    input  wire         fs_toggle,      // 场起始（像素侧 vs 下降沿，toggle）
     output wire         src_sel,        // 生效的 CTRL.SRC，送像素侧
     output reg          clear_toggle,   // CTRL.CLEAR：每次写 1 翻一次，像素侧同步后清累计值
     input  wire         snap_toggle,    // 帧快照号（像素侧在场起始翻）
@@ -101,9 +75,7 @@ module display_fetch #(
     output wire         irq
 );
 
-    // ------------------------------------------------------------------
     // APB 偏移
-    // ------------------------------------------------------------------
     localparam [11:0] A_ID        = 12'h000;
     localparam [11:0] A_VERSION   = 12'h004;
     localparam [11:0] A_CTRL      = 12'h008;
@@ -151,9 +123,7 @@ module display_fetch #(
     // 对 SWAP_REQ 的任意写：写 1 置请求，写 0 撤销
     wire swap_wr_any = access & pwrite & (paddr == A_SWAPREQ);
 
-    // ------------------------------------------------------------------
     // 配置寄存器（影子），生效值在「场起始」那一拍锁存（D9）
-    // ------------------------------------------------------------------
     reg        en_sh, src_sh, clear_pulse;
     reg [31:0] back_sh;
     reg        swap_req_sh;
@@ -163,9 +133,7 @@ module display_fetch #(
     reg [31:0] base_eff;
     reg [31:0] front_base;        // 本场在扫的基址（只读回给软件确认）
 
-    // ------------------------------------------------------------------
     // 运行状态
-    // ------------------------------------------------------------------
     reg [1:0]  state;
     localparam [1:0] S_RUN = 2'd0, S_DRAIN = 2'd1, S_RESET = 2'd2, S_WAIT = 2'd3;
 
@@ -215,16 +183,12 @@ module display_fetch #(
     wire [9:0] free_beats = DEPTH_10 - fifo_wr_level;
     wire room_for_line = (free_beats >= LINE_BEATS_10);
 
-    // ------------------------------------------------------------------
     // 场起始事件的同步与边沿检测（像素侧 toggle）
-    // ------------------------------------------------------------------
     (* async_reg = "true" *) reg [1:0] fs_sync;
     always @(posedge clk) fs_sync <= {fs_sync[0], fs_toggle};
     wire fs_event = fs_sync[1] ^ fs_sync[0];
 
-    // ------------------------------------------------------------------
     // 帧快照的接收：收到就把整组锁存，并把 ack 跟成收到的电平
-    // ------------------------------------------------------------------
     // 判据是**电平**不是沿：同步进来的 snap_toggle 与回给源侧的 snap_ack 不一致，
     // 就说明有一组快照还没收。
     //
@@ -273,9 +237,7 @@ module display_fetch #(
         end
     end
 
-    // ------------------------------------------------------------------
     // 发行与收数
-    // ------------------------------------------------------------------
     // !ar_valid 这一条不能省：ar_fire 那一拍照样满足 !in_flight（寄存器还是旧值），
     // 少了它就变成「同一拍先清 ar_valid 又立刻拉起」，一笔没完就接着发下一笔。
     //
@@ -460,9 +422,7 @@ module display_fetch #(
     assign irq = irq_stat & irq_en;
     assign src_sel = src_eff;
 
-    // ------------------------------------------------------------------
     // 统计：最大值与直方图（一次测量在这里落账，口径同 scanout_stub）
-    // ------------------------------------------------------------------
     function [3:0] bucket;
         input [31:0] v;
         begin
@@ -532,9 +492,7 @@ module display_fetch #(
         end
     end
 
-    // ------------------------------------------------------------------
     // APB 读
-    // ------------------------------------------------------------------
     reg hit;
 
     always @(*) begin
@@ -581,9 +539,7 @@ module display_fetch #(
     // ddrBurstProbe 会往 0x00C 写，报 PSLVERROR 有触发总线异常的风险。
     assign pslverr = access & (pwrite ? ~(wr_legal | (paddr == A_FRONT)) : ~hit);
 
-    // ------------------------------------------------------------------
     // APB 写（影子寄存器；生效时刻见 D9）
-    // ------------------------------------------------------------------
     always @(posedge clk) begin
         if (rst) begin
             en_sh       <= 1'b0;

@@ -1,30 +1,19 @@
-// display_fifo：扫描输出的异步 FIFO（写侧 core_clk，读侧像素时钟）
-//
-// 里面是仓内已有的厂商源码 rtl/vendor/ddr3_controller/common/efx_fifo_v2.3/efx_fifo_wrapper.v，
-// 本模块只做三件事：把定死的参数写在一处、把厂商端口收成扫描输出用得到的那几个、
-// 把 rst_busy 在写侧同步一次。手写异步 FIFO 是退路，触发条件见
-// Engineering/Todo/hw/扫描输出.md 的 D4（水位或复位语义满足不了 D7，或综合后没推断成片上 RAM 块）。
-//
-// 定值（2026-09-20 实测，见该文件第 4 节与 2.2 节的「FIFO 语义」表）：
-//   DEPTH = 512 拍（约 3 行）、DATA_WIDTH = 128 位、SYNC_CLK = 0（真异步）、
-//   OUTPUT_REG = 0（读延迟恰为 1 个 rd 周期，像素侧的对齐 D=1 靠它）、
-//   ASYM_WIDTH_RATIO = 4（读写同宽）、RAM_STYLE = "block_ram"、SYNC_STAGE = 2。
-//   BYPASS_RESET_SYNC 必须显式写 0：置 1 会把内部复位接到 wrapper 根本没连线的
-//   a_wr_rst_i / a_rd_rst_i 上，还把 rst_busy 写死成 0。
-//
-// 三条实测出来的纪律，用这一层的人必须遵守：
-//   1. a_rst_i 是唯一的复位，两侧由厂商内部各一套两级同步器一起复位；wrapper 的
-//      a_wr_rst_i / a_rd_rst_i 没有接到 FIFO，不要去接它们。
-//   2. 复位窗口里 FIFO 不拦写（wr_en_int = we & ~wr_full，且 full_o 在复位期间为 0），
-//      写进去的字会盖掉 ram[0] 而指针被钉在 0。所以复位期间 wr_en 必须由调用方压住。
-//   3. rst_busy 是 wr_rst_int | rd_rst_int 的组合，含像素域的寄存器。在 core_clk 里
-//      直接用它就是一条没有同步器、SDC 又切掉了的跨域路径（STA 不会报）。
-//      本模块给出同步后的 rst_busy_sync，调用方判它连续为低再加本域余量。
-//
-// 水位语义：两个水位都是 RAM 里的指针差，**不含在途的 AXI 拍**。
-//   wr_level（写侧）用滞后的读指针，占用偏高 → 算出来的空位偏小，发行判据保守；
-//   rd_level（读侧）用滞后的写指针，占用偏低 → 水位判据量到的是下界。
 `timescale 1ns/1ps
+//==============================================================================================//
+// FILE: display_fifo.v
+//
+// DESCRIPTION: 扫描输出的异步 FIFO（写侧 core_clk，读侧像素时钟）：封装厂商
+//   efx_fifo_wrapper（rtl/vendor/.../efx_fifo_wrapper.v，源码不改），定值集中在一处，
+//   端口收成扫描输出用得到的几个，rst_busy 在写侧同步一次。
+//
+// NOTE:
+//   1. a_rst_i 是唯一复位（两侧内部各两级同步器）；wrapper 的 a_wr_rst_i/a_rd_rst_i 没连线，不要接
+//   2. 复位窗口里 FIFO 不拦写且 full 为 0，写入会盖掉 ram[0]——复位期间 wr_en 必须由调用方压住
+//   3. rst_busy 是两域寄存器的组合，在 core_clk 直接判是无同步器的跨域路径；
+//      用本模块的 rst_busy_sync，判它连续为低再加本域余量
+//   4. 水位都是 RAM 指针差，不含在途 AXI 拍：wr_level 偏高（保守）、rd_level 偏低（下界）
+//   5. BYPASS_RESET_SYNC 必须显式 0（置 1 会接内部没连线的复位脚并把 rst_busy 写死 0）
+//==============================================================================================//
 `default_nettype none
 
 module display_fifo #(

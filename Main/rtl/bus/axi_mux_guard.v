@@ -1,38 +1,16 @@
-// Axi_Mux 仲裁配置与防饿死保护（永久模块）
-//
-// 用途：Axi_Mux 的仲裁方式、三通道用户掩码与 SoC（S2）防饿死保护集中在这里，
-// 不再挂在临时的 axi_probe_master 或占位的 apb_probe 上。
-// 实验 E5 的端口分配与防饿死判据见 Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md。
-//
-// 挂在 SoC 的 APB Slave 0 下，独占窗口 0xF810_F000~0xF810_FFFF（CPU 地址），
-// 顶层按 paddr[15:12]==4'hF 译码，窗口内 12 位偏移：
-//
-//   偏移    名称            读写  复位值        内容
-//   0x000   ID              只读  32'h4D55_5847  ASCII "MUXG"
-//   0x004   VERSION         只读  2             寄存器接口版本（2：两个 MAX 改为运行中取最大，见下）
-//   0x008   CTRL            读写  3             bit0 ARB_TYPE（1 优先级），bit1 GUARD_EN
-//   0x00C   CHANNEL_MASK    读写  7             三位用户掩码，bit0 S0、bit1 S1、bit2 S2
-//   0x010   AGE_LIMIT       读写  64            保护触发阈值，单位 core_clk 周期
-//   0x014   STATUS          只读  0             bit0 protect_ar，bit1 protect_aw
-//   0x018   GUARD_HITS      只读  0             两个 protect 的 0->1 次数之和
-//   0x01C   S2_MAX_WAIT_AR  只读  0             SoC ARVALID 为高、ARREADY 为低的最长连续周期数，含尚未握手的那一笔
-//   0x020   S2_MAX_WAIT_AW  只读  0             SoC AWVALID 为高、AWREADY 为低的最长连续周期数，含尚未握手的那一笔
-//   0x024   CLEAR           只写  —             bit0 写 1 清 GUARD_HITS 与两个 MAX，不改配置与保护状态
-//
-// 保护逻辑（2.2 节措施二）：
-//   每个方向一个等待计数器：SoC 的 valid 为高、ready 为低时加 1（饱和），
-//   握手完成或 valid 撤销时清零。
-//   计数达到 AGE_LIMIT 时锁存该方向的 protect；protect 保持到该方向握手完成或 valid 撤销。
-//   送进 Axi_Mux 的 Cfg_Cnl_Mask = CHANNEL_MASK & {1'b1, ~(protect_ar|protect_aw), 1'b1}，
-//   GUARD_EN=0 时保护掩码恒为全 1（只用于注错）。S0、S2 两位永不被保护清掉。
-//
-// 为什么安全：Axi_Mux 的掩码只参与新通道搜索（Axi_Mux.v 第 2491 行 Effe_S_Val），
-// 已经锁存在 Act_Cnl_List 的授权与在途事务不受掩码变化影响，所以不撤销 valid 也不违反 AXI 协议。
-//
-// 两个 MAX 每拍都更新（VERSION 2）：版本 1 只在握手那一拍取最大值，SoC 真被卡住、永不握手时
-// 寄存器停在上一笔的值上，恰好看不到这个模块要诊断的情形（E5 复核时仿真里就这样误判过一次）。
-// 对已完成的事务，两种取法的结果逐拍相同。
 `timescale 1ns/1ps
+//==============================================================================================//
+// FILE: axi_mux_guard.v
+//
+// DESCRIPTION: Axi_Mux 仲裁配置与 SoC（S2）防饿死保护：每个方向一个等待计数器，
+//   达到 AGE_LIMIT 锁存 protect，把 S1 从 Cfg_Cnl_Mask 里摘掉直到该方向恢复。
+//
+// NOTE:
+//   1. 掩码只影响新通道搜索，已锁存的授权与在途事务不受影响，不撤 valid 不违反 AXI
+//   2. 两个 MAX 每拍更新（运行中取最大）：只在握手拍取值时，永不握手的那笔看不到
+//   3. S0、S2 两位永不被保护清掉；GUARD_EN=0 时掩码恒全 1（只用于注错）
+//   4. 寄存器表见 bus-manual.md
+//==============================================================================================//
 `default_nettype none
 
 module axi_mux_guard #(
@@ -99,9 +77,7 @@ wire wr_legal = (paddr == ADDR_CTRL) | (paddr == ADDR_CNL_MASK) |
 // 写 1 清三个统计寄存器；不改配置，也不清当前保护状态
 wire stat_clear = access & pwrite & (paddr == ADDR_CLEAR) & pwdata[0];
 
-// ---------------------------------------------------------------------------
 // 读通路（access 阶段组合输出）
-// ---------------------------------------------------------------------------
 reg hit;
 
 always @(*) begin
@@ -127,9 +103,7 @@ end
 assign pready  = 1'b1;
 assign pslverr = access & (pwrite ? ~wr_legal : ~hit);
 
-// ---------------------------------------------------------------------------
 // 保护逻辑：等待计数 -> 锁存 protect -> 掩码
-// ---------------------------------------------------------------------------
 wire ar_waiting = s2_arvalid & ~s2_arready;
 wire aw_waiting = s2_awvalid & ~s2_awready;
 wire ar_hand    = s2_arvalid & s2_arready;
@@ -176,9 +150,7 @@ wire guard_allow_s1 = cfg_guard_en ? ~(protect_ar | protect_aw) : 1'b1;
 assign arb_type = cfg_arb_type;
 assign cnl_mask = cfg_mask & {1'b1, guard_allow_s1, 1'b1};
 
-// ---------------------------------------------------------------------------
-// 统计：protect 的 0->1 次数、两个方向的最大地址等待
-// ---------------------------------------------------------------------------
+// 统计：protect 的 0->1 次数与两个方向的最大地址等待。
 // 运行中取最大：等待中的这一拍结束后已等了 wait+1 拍，每拍与 MAX 比较。
 // 一笔等了 N 拍再握手时，最大值正好是 N，与握手时取值相同；永不握手的那一笔也会一直往上涨。
 // 计数饱和时不再加一，避免 wait+1 回绕成 0。
@@ -202,7 +174,7 @@ always @(posedge clk) begin
             stat_max_ar <= 32'h0;
             stat_max_aw <= 32'h0;
         end else begin
-            // 保护触发次数：Ar、AW 两个 0->1 沿之和，同一拍可加 0/1/2（E5 2.2 节）
+            // 保护触发次数：AR、AW 两个 0->1 沿之和，同一拍可加 0/1/2
             stat_hits <= stat_hits + {31'b0, ar_rise} + {31'b0, aw_rise};
 
             if (ar_grow)
@@ -213,9 +185,7 @@ always @(posedge clk) begin
     end
 end
 
-// ---------------------------------------------------------------------------
 // 配置寄存器写
-// ---------------------------------------------------------------------------
 always @(posedge clk) begin
     if (rst) begin
         cfg_arb_type  <= 1'b1;

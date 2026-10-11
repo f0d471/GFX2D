@@ -1,38 +1,20 @@
-// gfx2d 顶层
-//
-// 组成：
-//   u_soc        Sapphire RISC-V SoC（efx_soc 3.4.0 生成，fpga/gfx2d_ti60/ip/soc/soc.v）
-//   u_ddr3       DDR3 软核控制器（厂商加密源码，rtl/vendor/ddr3_controller/）
-//   u_engine     2D 渲染引擎（rtl/engine/，引擎 P1 B1~B5，B6 接进顶层）
-//   u_display    从 DDR3 帧缓冲取数并输出像素（rtl/display/display_top.v）
-//   u_axi_mux    AXI 多路器，扫描输出、引擎与 SoC 共用 DDR3 控制器（rtl/vendor/axi_mux/Axi_Mux.v）
-//   u_mux_guard 仲裁配置与 SoC 防饿死保护，永久模块（rtl/bus/axi_mux_guard.v）
-//   u_hdmi_tx    HDMI 编码与发送，640x480@60（rtl/hdmi/hdmi_tx.v）
-//
-//   apb_probe 与 axi_probe_master 已按引擎 P1 的 D6、D21 从顶层撤下
-//   （源文件保留在 rtl/bus/，不再例化；测量程序与回归见 doc/开发环境.md）。
-//
-// 时钟（全部由 Interface Designer 里的 PLL 产生，见 fpga/gfx2d_ti60/README.md）：
-//   core_clk           100MHz   PLL_TL0 <- clk_25m    SoC、DDR3 控制器 AXI 侧、APB
-//   sdram_clk 等四个   400MHz   PLL_TR0 <- clk_25m    DDR3 PHY
-//   hdmi_tx_slow_clk   25.2MHz  PLL_BL0 <- clk_27m    HDMI 像素时钟
-//
-// 连接（实验 E5 的 2.1 节：Axi_Mux 用 X3，端口重分配为 S0 扫描、S1 引擎、S2 SoC）：
-//   display_top（真实扫描输出）-> Axi_Mux S0 --+
-//   engine_top（渲染引擎）    -> S1 ---------+--> DDR3 控制器的 AXI 从口
-//   SoC io_ddrA（AXI4，128 位）-> S2 ---------+
-//   仲裁方式与三通道掩码由 u_mux_guard 给出，掩码 = 用户掩码 & SoC 防饿死保护掩码
-//   SoC APB Slave 0（CPU 地址 0xF810_0000，64KB 窗口）
-//     0x0000~0x0FFF -> engine 寄存器（引擎 P1 的 D5/D51）
-//     0xE000~0xEFFF -> display 寄存器（扫描输出的量测）
-//     0xF000~0xFFFF -> axi_mux_guard 寄存器（仲裁配置与保护）
-//     其余          -> 默认常量应答：PREADY=1、PSLVERR=1、PRDATA=0（D21，未映射页必须有应答）
-//   HDMI 像素可来自 DDR3 帧缓冲或八色彩条，由 display_out 按 SRC 选择。
-//
-// 端口名与 fpga/gfx2d_ti60/gfx2d_ti60.peri.xml 中的信号名一一对应，改一边要同步另一边。
 `include "../vendor/ddr3_controller/ddr3_parameter.vh"
 
 `timescale 1ps/1ps
+//==============================================================================================//
+// FILE: gfx2d_top.v
+//
+// DESCRIPTION: gfx2d 顶层：Sapphire SoC、DDR3 软核控制器、2D 渲染引擎、扫描输出、
+//   Axi_Mux（S0 扫描/S1 引擎/S2 SoC）与 mux_guard、HDMI 发送。模块清单、时钟表与
+//   APB 窗口分配见同目录设计文档。
+//
+// NOTE:
+//   1. 时钟：core_clk 100M（PLL_TL0）、sdram_clk 等 400M（PLL_TR0）、hdmi_tx_slow_clk 25.2M（PLL_BL0）
+//   2. 未映射 APB 页必须有应答：默认常量 PREADY=1、PSLVERR=1、PRDATA=0
+//   3. 端口名与 fpga/gfx2d_ti60/gfx2d_ti60.peri.xml 一一对应，改一边要同步另一边
+//   4. apb_probe 与 axi_probe_master 已从顶层撤下，源文件保留在 rtl/bus/
+//==============================================================================================//
+
 `default_nettype none
 
 module gfx2d_top (
@@ -128,9 +110,7 @@ module gfx2d_top (
     output wire                        tmds_tx_data2_TX_RST
 );
 
-// ---------------------------------------------------------------------------
 // 复位
-// ---------------------------------------------------------------------------
 // SoC 与 DDR3 控制器都挂在 core_clk 上，两个 PLL 任意一个没锁定都保持复位。
 // DDR3 控制器再多等 DDR_RST_DELAY 个 core_clk 周期（3ms），与官方参考设计相同。
 localparam [19:0] DDR_RST_DELAY = 20'd300_000;
@@ -150,9 +130,7 @@ wire ddr_rstn = (ddr_rst_cnt == DDR_RST_DELAY);
 // SoC 输出的同步复位，给 APB 从机用
 wire soc_system_reset;
 
-// ---------------------------------------------------------------------------
 // SoC 与 DDR3 控制器之间的 AXI4
-// ---------------------------------------------------------------------------
 // 两侧位宽不同，下面两处是有意的截断，与官方参考设计一致，2026-09-16 实验 E2 已查证：
 //   地址  SoC 32 位 -> 控制器 28 位。SoC 送出的地址与 CPU 地址按位相同（不减基址）。
 //         上板实测低 28 位逐位参与寻址，高 4 位丢弃，回绕周期 256MB：
@@ -211,9 +189,7 @@ wire [7:0]                     soc_ddr_rid;
 wire [`AXI_DATA_WIDTH-1:0]     soc_ddr_rdata;
 wire [1:0]                     soc_ddr_rresp;
 
-// ---------------------------------------------------------------------------
 // 渲染引擎的 AXI 主机口（Axi_Mux S1）与 APB 从口（第 0 页）
-// ---------------------------------------------------------------------------
 wire [31:0]                    eng_awaddr;
 wire [7:0]                     eng_awlen;
 wire [2:0]                     eng_awsize;
@@ -244,9 +220,7 @@ wire [31:0]                    eng_prdata;
 wire                           eng_pready;
 wire                           eng_pslverr;
 wire                           eng_irq_b;
-// ---------------------------------------------------------------------------
 // 扫描输出（display）的 AXI 读主机口（Axi_Mux S0）
-// ---------------------------------------------------------------------------
 // 只发起读，写通道在例化处接成不发起
 wire [31:0]                    sco_araddr;
 wire [7:0]                     sco_arlen;
@@ -275,9 +249,7 @@ wire                           disp_irq;
 wire                           guard_arb_type;
 wire [2:0]                     guard_cnl_mask;
 
-// ---------------------------------------------------------------------------
 // Axi_Mux 出口，接 DDR3 控制器
-// ---------------------------------------------------------------------------
 wire [7:0]                     mux_awid;
 wire [31:0]                    mux_awaddr;
 wire [7:0]                     mux_awlen;
@@ -302,9 +274,7 @@ wire                           mux_arvalid;
 wire                           ddr_arready;
 wire                           mux_rready;
 
-// ---------------------------------------------------------------------------
 // APB Slave 0
-// ---------------------------------------------------------------------------
 wire [15:0] apb_paddr;
 wire        apb_psel;
 wire        apb_penable;
@@ -314,9 +284,7 @@ wire [31:0] apb_prdata;
 wire        apb_pready;
 wire        apb_pslverr;
 
-// ---------------------------------------------------------------------------
 // DDR3 软核控制器
-// ---------------------------------------------------------------------------
 ddr3_top u_ddr3 (
     .axi_clk                (core_clk),
     .core_clk               (core_clk),
@@ -418,9 +386,7 @@ ddr3_top u_ddr3 (
     .cal_done               ()
 );
 
-// ---------------------------------------------------------------------------
 // Sapphire SoC
-// ---------------------------------------------------------------------------
 soc u_soc (
     .io_asyncReset                      (~pll_all_locked),
     .io_systemClk                       (core_clk),
@@ -541,9 +507,7 @@ soc u_soc (
     .system_i2c_0_io_sda_write          ()
 );
 
-// ---------------------------------------------------------------------------
 // APB Slave 0 的地址划分（按 paddr[15:12] 分成四个窗口）
-// ---------------------------------------------------------------------------
 //   0x0000~0x0FFF  engine 的寄存器（CPU 地址 0xF810_0000 起，引擎 P1 的 D5）
 //   0x4000~0x7FFF  engine 的 TEX 装载窗口（G1，16 KiB；引擎顶层按 paddr[15:14] 分选）
 //   0xE000~0xEFFF  display 的寄存器（真实扫描输出量测）
@@ -562,9 +526,7 @@ wire [31:0] grd_prdata;
 wire        grd_pready;
 wire        grd_pslverr;
 
-// ---------------------------------------------------------------------------
 // 渲染引擎（引擎 P1 B1~B5 的六层，B6 接进顶层；G1 加 TEX 装载窗口）
-// ---------------------------------------------------------------------------
 // 寄存器表：rtl/engine/engine_regs.v，偏移与位号的真源是 tools/check/regs_gen.py。
 // 复位（D17）：控制层挂 soc_system_reset（同步、高有效），搬运层挂 ddr_rstn 取反
 // （与 Axi_Mux 同一复位源，只在上电与 PLL 失锁时复位）；软复位经寄存器层的
@@ -629,9 +591,7 @@ assign apb_pslverr = apb_sel_eng ? eng_pslverr :
                      apb_sel_sco ? sco_pslverr  :
                      apb_sel_grd ? grd_pslverr  : 1'b1;
 
-// ---------------------------------------------------------------------------
 // Axi_Mux 的仲裁配置与 SoC 防饿死保护（E5 2.1 节第 3、4 步，永久模块）
-// ---------------------------------------------------------------------------
 // APB 窗口 0xF810_F000~0xF810_FFFF；送进多路器的掩码 = 用户掩码 & 保护掩码。
 // axi_probe_master 已按 D6/D22 从顶层撤下（它的 ARB 寄存器随之不可访问），
 // 源文件与 sim/axi_probe/ 保留。
@@ -656,9 +616,7 @@ axi_mux_guard u_mux_guard (
     .s2_awready     (soc_ddr_awready)
 );
 
-// ---------------------------------------------------------------------------
 // 扫描输出替身（E5 2.3 节：按行节拍发 160 拍读并把时间记下来）
-// ---------------------------------------------------------------------------
 // 扫描输出（display）
 // ---------------------------------------------------------------------------
 // APB 窗口 0xF810_E000~0xF810_EFFF（接管替身那一页）；只发起读，写通道在 Axi_Mux 例化处接成不发起。
@@ -714,9 +672,7 @@ display_top #(
     .vid_de         (disp_vid_de)
 );
 
-// ---------------------------------------------------------------------------
 // Axi_Mux：S0 = 扫描输出，S1 = 引擎，S2 = SoC，出口 = DDR3 控制器
-// ---------------------------------------------------------------------------
 // Normal 模式下响应按事务顺序送回，与 ID 无关，所以控制器 4 位 ID 截断仍然安全。
 // Axi_Mux 没有 BRESP 端口；同一时刻只有被选中的主机看到 bvalid，控制器的 bresp 直接并接给各主机。
 // 仲裁方式与三通道掩码由 u_mux_guard 给出（不再是探针主机的 ARB 寄存器）：
@@ -868,9 +824,7 @@ Axi_Mux #(
     .O_R_Cnl_Num    ()
 );
 
-// ---------------------------------------------------------------------------
 // HDMI 发送（D10 取 B′：本模块是纯编码封装，彩条在 display_out 里）
-// ---------------------------------------------------------------------------
 // 像素与 hs/vs/de 由 u_display 给；本模块把复位同步的结果 vid_rst_n 回给像素侧共用。
 hdmi_tx u_hdmi_tx (
     .clk_pixel  (hdmi_tx_slow_clk),

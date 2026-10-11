@@ -1,21 +1,17 @@
-// display_top：扫描输出（display）对外的唯一入口
-//
-// 里面三块（见 Engineering/Todo/hw/扫描输出.md 2.2 节）：
-//   display_fetch  取数侧，core_clk 域：AXI 读主机 + 按水位取数 + APB 寄存器 + 统计
-//   display_fifo   跨时钟的异步 FIFO（厂商标本封装），写侧 core_clk、读侧像素时钟
-//   display_out    像素侧，像素时钟域：唯一的视频时序发生器（color_bar_rgb）、拍拆像素、
-//                  D=1 对齐、SRC 二选一、水位与欠载观测、帧快照
-//
-// 对顶层露四样：APB 从口、AXI 读主机口（Axi_Mux 的 S0）、中断，以及给 hdmi_tx 的像素与同步。
-// TMDS 由 hdmi_tx 出（D10 取 B′：hdmi_tx 是纯编码封装，彩条搬到了 display_out）。
-// 顶层管脚与 fpga 的 peri.xml 都不变。
-//
-// 跨域全部走结构化的通道，没有裸打拍：
-//   core -> pixel：src_sel（一个电平，只在场起始变化，两级同步后在像素侧再锁存一次）、
-//                  clear_toggle（CTRL.CLEAR，toggle 加两级同步，清像素侧的累计值）
-//   pixel -> core：fs_toggle（场起始，toggle）、snap_toggle + 快照总线（toggle/ack）
-// 像素侧的复位 rst_pixel_n 由 hdmi_tx 的 vid_rst_n 给，两个模块共用一个复位源。
 `timescale 1ns/1ps
+//==============================================================================================//
+// FILE: display_top.v
+//
+// DESCRIPTION: 扫描输出对外的唯一入口：display_fetch（core_clk 取数/APB/统计）、
+//   display_fifo（跨时钟异步 FIFO）、display_out（像素侧时序与输出）。
+//   对顶层露 APB 从口、AXI 读主机口（Axi_Mux S0）、中断与给 hdmi_tx 的像素同步。
+//
+// NOTE:
+//   1. TMDS 由 hdmi_tx 出（纯编码封装），彩条在 display_out，全设计只有一个「场」真源
+//   2. 跨域全走结构化通道：core→pixel 用 src_sel 电平与 clear_toggle（两级同步）；
+//      pixel→core 用 fs_toggle 与 snap_toggle+快照总线（toggle/ack），无裸打拍
+//   3. 像素侧复位 rst_pixel_n 由 hdmi_tx 的 vid_rst_n 给，两个模块共用一个复位源
+//==============================================================================================//
 `default_nettype none
 
 module display_top #(
