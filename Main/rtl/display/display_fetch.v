@@ -25,7 +25,8 @@ module display_fetch #(
     input  wire         clk,            // core_clk
     input  wire         rst,            // 同步复位，高有效
 
-    //  APB 从口，paddr 是窗口内 12 位偏移    input  wire [11:0]  paddr,
+    // APB 从口，paddr 是窗口内 12 位偏移
+    input  wire [11:0]  paddr,
     input  wire         psel,
     input  wire         penable,
     input  wire         pwrite,
@@ -51,7 +52,8 @@ module display_fetch #(
     input  wire         r_valid,
     output wire         r_ready,
 
-    //  FIFO 写侧    output wire         fifo_wr_en,
+    // FIFO 写侧
+    output wire         fifo_wr_en,
     output wire [127:0] fifo_wr_data,
     input  wire [9:0]   fifo_wr_level,
     input  wire         fifo_wr_full,
@@ -59,7 +61,8 @@ module display_fetch #(
     output reg          fifo_rst,
     input  wire         fifo_rst_busy,
 
-    //  与像素侧的握手    input  wire         fs_toggle,      // 场起始（像素侧 vs 下降沿，toggle）
+    // 与像素侧的握手
+    input  wire         fs_toggle,      // 场起始（像素侧 vs 下降沿，toggle）
     output wire         src_sel,        // 生效的 CTRL.SRC，送像素侧
     output reg          clear_toggle,   // CTRL.CLEAR：每次写 1 翻一次，像素侧同步后清累计值
     input  wire         snap_toggle,    // 帧快照号（像素侧在场起始翻）

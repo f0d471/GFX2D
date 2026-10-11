@@ -30,7 +30,8 @@ module display_out #(
     input  wire         src_sel,        // CTRL.SRC（core_clk 域），场起始锁存
     input  wire         clear_toggle,   // CTRL.CLEAR（core_clk 域 toggle），清本侧累计值
 
-    //  FIFO 读侧    input  wire [127:0] rd_data,
+    // FIFO 读侧
+    input  wire [127:0] rd_data,
     input  wire [9:0]   rd_level,
     input  wire         rd_empty,
     output wire         rd_en,
