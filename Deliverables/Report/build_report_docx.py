@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 from docx import Document
-from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
@@ -100,6 +100,19 @@ def add_table(doc, rows, widths_cm):
             if i == 0:
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 shade(cell, "EDF0F3")
+    for j in range(len(rows[0])):
+        r0 = 1
+        while r0 < len(rows):
+            r1 = r0
+            while r1 + 1 < len(rows) and rows[r1 + 1][j] == rows[r0][j]:
+                r1 += 1
+            if r1 > r0:
+                merged = tb.cell(r0, j).merge(tb.cell(r1, j))
+                for extra in merged.paragraphs[1:]:
+                    extra._p.getparent().remove(extra._p)
+                merged.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+                merged.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+            r0 = r1 + 1
     return tb
 
 
