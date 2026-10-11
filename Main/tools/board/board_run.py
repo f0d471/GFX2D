@@ -61,6 +61,7 @@ from input_forward import InputForwarder, packet
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MAIN = os.path.dirname(os.path.dirname(HERE))          # <仓库>/Main
+DEFAULT_JTAG_URL = "ftdi://0x0403:0x6011:0:ff/1"
 
 try:
     import serial
@@ -266,7 +267,7 @@ def main():
     ending.add_argument("--stop-on", default=None, help="收到该子串就结束采集；没收到时退出码为 1")
     ending.add_argument("--stop-line", default=None, help="收到完整一行才结束；用于区分 done 与 nmax done")
     ap.add_argument("--log", default=None, help="串口日志路径，默认 %%TEMP%%/board_run.log")
-    ap.add_argument("--jtag-url", default="ftdi://0x0403:0x6011:0:ff/1",
+    ap.add_argument("--jtag-url", default=DEFAULT_JTAG_URL,
                     help="下载器 URL，默认板载 FT4232H 的通道 B")
     ap.add_argument("--efinity", default=None, help="Efinity 安装目录")
     ap.add_argument("--ide", default=None, help="Efinity RISC-V IDE 安装目录（找 OpenOCD 用）")

@@ -12,8 +12,12 @@ import zlib
 from run_f5_board import ROOT,MAIN,BUILD,LOGS,JOBS,register,synthesis
 sys.path.insert(0,str(MAIN/'tools/board'))
 import board_run
-BASE=0x02c00000
-CAPACITY=0x200000-32
+definitions=(MAIN/'sw/bsp/include/board_ddr_log.h').read_text(encoding='utf-8')
+def constant(name):return int(re.search(r'^#define '+name+r' (0x[0-9a-fA-F]+|\d+)u$',definitions,re.M)[1],0)
+BASE=constant('BOARD_DDR_LOG_BASE')
+HEADER_BYTES=constant('BOARD_DDR_LOG_HEADER')
+MAGIC=constant('BOARD_DDR_LOG_MAGIC')
+CAPACITY=constant('BOARD_DDR_LOG_BYTES')-HEADER_BYTES
 CHOICES=['tests','v2','replay']
 def binary(job):
     app,name,perf,_=JOBS[job]
@@ -35,6 +39,7 @@ def header(output):
     return [words[BASE+4*i] for i in range(8)]
 def capture(job,program):
     bit=synthesis();exe=binary(job);register(exe)
+    if job=='replay':assert (LOGS/'f5_replay_host_flat.log').stat().st_size+512<CAPACITY,'回放日志超过诊断区容量'
     efinity=board_run.find_efinity(None);ocd=board_run.find_openocd(efinity)
     if not ocd:raise RuntimeError('缺 OpenOCD')
     cfg=str(MAIN/'tools/board/gfx2d_debug.cfg');workspace=str(MAIN/'sdk')
@@ -48,7 +53,7 @@ def capture(job,program):
             if not ok or re.search(r'^Error',out,re.M):raise RuntimeError(out[-2000:])
             return out
         if program:
-            ok,out=board_run.program_bitstream(str(Path(efinity)/'pgm/bin/ftdi_pgm.bat'),str(bit),'0x10660a79')
+            ok,out=board_run.program_bitstream(str(Path(efinity)/'pgm/bin/ftdi_pgm.bat'),str(bit),board_run.DEFAULT_JTAG_URL)
             control.write(out+'\n');control.flush()
             if not ok:raise RuntimeError('JTAG 位流部署失败')
         print('F5 JTAG START '+job,flush=True)
@@ -63,12 +68,12 @@ def capture(job,program):
             values=header(command(['halt',f'mdw 0x{BASE:x} 8','resume','shutdown']))
             magic,got_nonce,length,flags,crc,version,capacity,reserved=values
             if magic==0:continue
-            assert magic==0x35474f4c and got_nonce==nonce and version==1 and capacity==CAPACITY and reserved==0,values
+            assert magic==MAGIC and got_nonce==nonce and version==1 and capacity==CAPACITY and reserved==0,values
             assert length<=CAPACITY and not flags&2,'DDR 日志溢出'
             print(f'F5 JTAG WAIT {job} bytes={length} flags={flags} elapsed={int(time.monotonic()-begin)}',flush=True)
             if flags&1:break
         dump=BUILD/(job+'_ddr_log.bin')
-        after=header(command(['halt','dump_image {'+dump.as_posix()+'} '+hex(BASE+32)+' '+str(length),
+        after=header(command(['halt','dump_image {'+dump.as_posix()+'} '+hex(BASE+HEADER_BYTES)+' '+str(length),
                               f'mdw 0x{BASE:x} 8','shutdown'],timeout=600))
         assert after==values,'完成后的header改变'
         payload=dump.read_bytes()
@@ -78,7 +83,7 @@ def capture(job,program):
         log=LOGS/('f5_jtag_'+job+'.log')
         log.write_bytes(('# F5 artifact '+key+'\n# JTAG DDR log: nonce='+str(nonce)+' bytes='+str(length)+' crc32='+str(crc)+'\n').encode()+payload)
         metadata={'artifact':key,'transport':'JTAG DDR','nonce':nonce,'bytes':length,'crc32':crc,'header':values,
-                  'region_base':BASE,'region_bytes':CAPACITY+32,'performance_evidence':False}
+                  'region_base':BASE,'region_bytes':CAPACITY+HEADER_BYTES,'performance_evidence':False}
         (LOGS/('f5_jtag_'+job+'.json')).write_text(json.dumps(metadata,indent=2)+'\n',encoding='utf-8')
         assert re.search(r'^fail 0\s*$',text,re.M) and re.search(r'^done\s*$',text,re.M),text[-2000:]
         assert not re.search(r'^(FAIL |err |engine err )',text,re.M),text[-2000:]

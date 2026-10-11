@@ -1,0 +1,202 @@
+{
+  "tests": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_tests.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/test/pbTest/build_f5_tests/pbTest-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_tests_control.log",
+    "transport": "UART",
+    "crc_cases": 74
+  },
+  "legacy": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_legacy.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/test/instanceTest/build_f5_legacy/instanceTest-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_legacy_control.log",
+    "transport": "UART"
+  },
+  "v2": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_v2.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/test/stripTest/build_f5_v2/stripTest-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_v2_control.log",
+    "transport": "UART"
+  },
+  "research": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_research.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/probe/f4Bench/build_f5_research/f4Bench-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_research_control.log",
+    "transport": "UART"
+  },
+  "verify": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_verify.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/probe/frontendBench/build_f5_verify/frontendBench-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_verify_control.log",
+    "transport": "UART",
+    "pixel_cases": 153,
+    "fifo_min": 348
+  },
+  "ab": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_ab.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/probe/frontendBench/build_f5_ab/frontendBench-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_ab_control.log",
+    "transport": "UART",
+    "fifo_min": 337,
+    "states": 17
+  },
+  "combo": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_combo.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/probe/frontendBench/build_f5_combo/frontendBench-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_combo_control.log",
+    "transport": "UART",
+    "pixel_cases": 27,
+    "fifo_min": 347
+  },
+  "pressure": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_pressure.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/game/gfx2dGame/build_f5_pressure/gfx2dGame-O2-perf.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_pressure_control.log",
+    "transport": "UART",
+    "summary": "csvsum,600,601,1,1117411,1117411,10,0"
+  },
+  "nmax": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_nmax.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/game/gfx2dGame/build_f5_nmax/gfx2dGame-O2-perf.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_nmax_control.log",
+    "transport": "UART",
+    "matrix": {
+      "TEX": [
+        {
+          "kind": "16x16",
+          "n_max": 1872,
+          "knob": 1632,
+          "ft_max": 1627893,
+          "ft_p99": 1627604,
+          "probes": 14,
+          "timeouts": 12,
+          "confirmation": "nmax probe 13 confirm knob 1632 settle 598 timeout fields 3600 frames 3600 drops 0 act_min 1872 ft_max 1627893 ft_p99 1627604 pass",
+          "last_confirm_window": {
+            "t": 278,
+            "n_active": 1888,
+            "n_bullet": 1886,
+            "cpu_avg_cyc": 1252402,
+            "engine_busy_avg_cyc": 1638333,
+            "window_fields": 60,
+            "bottleneck": "engine",
+            "pace": "pipeline",
+            "per_frame_bus": {
+              "hw_rd_burst_cum": 32595.016666666666,
+              "hw_wr_burst_cum": 39935.85,
+              "hw_rd_beat_cum": 162534.61666666667,
+              "hw_wr_beat_cum": 235950.85
+            }
+          }
+        },
+        {
+          "kind": "8x8",
+          "n_max": 1947,
+          "knob": 1728,
+          "ft_max": 1334878,
+          "ft_p99": 1334878,
+          "probes": 14,
+          "timeouts": 13,
+          "confirmation": "nmax probe 13 confirm knob 1728 settle 599 timeout fields 3600 frames 3600 drops 0 act_min 1947 ft_max 1334878 ft_p99 1334878 pass",
+          "last_confirm_window": {
+            "t": 561,
+            "n_active": 1988,
+            "n_bullet": 1986,
+            "cpu_avg_cyc": 1299596,
+            "engine_busy_avg_cyc": 1019164,
+            "window_fields": 60,
+            "bottleneck": "cpu",
+            "pace": "pipeline",
+            "per_frame_bus": {
+              "hw_rd_burst_cum": 18343.916666666668,
+              "hw_wr_burst_cum": 25681.666666666668,
+              "hw_rd_beat_cum": 66295.85,
+              "hw_wr_beat_cum": 139572.18333333332
+            }
+          }
+        }
+      ],
+      "PB": [
+        {
+          "kind": "16x16",
+          "n_max": 2189,
+          "knob": 1904,
+          "ft_max": 1584002,
+          "ft_p99": 1584002,
+          "probes": 15,
+          "timeouts": 8,
+          "confirmation": "nmax probe 14 confirm knob 1904 settle 337 fields 3600 frames 3600 drops 0 act_min 2189 ft_max 1584002 ft_p99 1584002 pass",
+          "last_confirm_window": {
+            "t": 321,
+            "n_active": 2209,
+            "n_bullet": 2207,
+            "cpu_avg_cyc": 1336048,
+            "engine_busy_avg_cyc": 1582074,
+            "window_fields": 60,
+            "bottleneck": "engine",
+            "pace": "pipeline",
+            "per_frame_bus": {
+              "hw_rd_burst_cum": 9833.266666666666,
+              "hw_wr_burst_cum": 3270.7833333333333,
+              "hw_rd_beat_cum": 101807.31666666667,
+              "hw_wr_beat_cum": 80301.58333333333
+            }
+          }
+        },
+        {
+          "kind": "8x8",
+          "n_max": 2187,
+          "knob": 1936,
+          "ft_max": 1400010,
+          "ft_p99": 1400010,
+          "probes": 14,
+          "timeouts": 8,
+          "confirmation": "nmax probe 13 confirm knob 1936 settle 378 fields 3600 frames 3600 drops 0 act_min 2187 ft_max 1400010 ft_p99 1400010 pass",
+          "last_confirm_window": {
+            "t": 585,
+            "n_active": 2230,
+            "n_bullet": 2228,
+            "cpu_avg_cyc": 1365393,
+            "engine_busy_avg_cyc": 1140091,
+            "window_fields": 60,
+            "bottleneck": "cpu",
+            "pace": "pipeline",
+            "per_frame_bus": {
+              "hw_rd_burst_cum": 8638.9,
+              "hw_wr_burst_cum": 2708.9666666666667,
+              "hw_rd_beat_cum": 100492.6,
+              "hw_wr_beat_cum": 79733.46666666666
+            }
+          }
+        }
+      ]
+    },
+    "same_binary": true,
+    "fifo_min": 322,
+    "gain_percent": [
+      16.93376068376069,
+      12.326656394453007
+    ]
+  },
+  "replay": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_replay.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/game/gfx2dGame/build_f5_replay/gfx2dGame-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_replay_control.log",
+    "transport": "UART",
+    "frames": 9208,
+    "full_replay": true,
+    "differences": 0
+  },
+  "artifacts_manifest": "Main/sim/engine/frontend/logs/f5_artifacts.json",
+  "bitstream": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+  "scope": "full"
+}

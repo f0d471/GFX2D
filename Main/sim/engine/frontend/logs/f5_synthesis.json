@@ -1,0 +1,112 @@
+{
+  "bin": {
+    "xlr": 8933,
+    "ram": 7,
+    "dsp": 3,
+    "slacks": [
+      {
+        "clock": "clk",
+        "kind": "setup",
+        "slack_ns": 0.552
+      },
+      {
+        "clock": "clk",
+        "kind": "hold",
+        "slack_ns": 0.035
+      }
+    ],
+    "setup_ns": 0.552,
+    "hold_ns": 0.035,
+    "scope": "dynamic observation wrapper; not protocol validation"
+  },
+  "main": {
+    "xlr": 60064,
+    "ram": 172,
+    "dsp": 23,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 0.104
+      },
+      {
+        "clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.215
+      },
+      {
+        "clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.281
+      },
+      {
+        "clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.208
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.329
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 32.983
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 95.321
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 49.92
+      },
+      {
+        "clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.022
+      },
+      {
+        "clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.054
+      },
+      {
+        "clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.03
+      },
+      {
+        "clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.091
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.072
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.089
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.091
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.794
+      }
+    ],
+    "setup_ns": 0.104,
+    "hold_ns": 0.022,
+    "scope": "complete SoC; 100MHz; unchanged SDK/cache/scan clocks"
+  }
+}

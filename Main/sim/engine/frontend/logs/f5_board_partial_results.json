@@ -1,0 +1,177 @@
+{
+  "tests": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_tests.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/test/pbTest/build_f5_tests/pbTest-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_tests_control.log",
+    "crc_cases": 74
+  },
+  "legacy": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_legacy.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/test/instanceTest/build_f5_legacy/instanceTest-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_legacy_control.log"
+  },
+  "research": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_research.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/probe/f4Bench/build_f5_research/f4Bench-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_research_control.log"
+  },
+  "verify": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_verify.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/probe/frontendBench/build_f5_verify/frontendBench-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_verify_control.log",
+    "pixel_cases": 153,
+    "fifo_min": 347
+  },
+  "ab": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_ab.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/probe/frontendBench/build_f5_ab/frontendBench-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_ab_control.log",
+    "fifo_min": 336,
+    "states": 17
+  },
+  "combo": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_combo.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/probe/frontendBench/build_f5_combo/frontendBench-O2.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_combo_control.log",
+    "pixel_cases": 27,
+    "fifo_min": 347
+  },
+  "pressure": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_pressure.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/game/gfx2dGame/build_f5_pressure/gfx2dGame-O2-perf.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_pressure_control.log",
+    "summary": "csvsum,599,600,1,1114401,1114401,9,0"
+  },
+  "nmax": {
+    "log": "Main/sim/engine/frontend/logs/f5_board_nmax.log",
+    "fail": 0,
+    "artifact": "Main/sw/apps/game/gfx2dGame/build_f5_nmax/gfx2dGame-O2-perf.bin",
+    "control_log": "Main/sim/engine/frontend/logs/f5_board_nmax_control.log",
+    "matrix": {
+      "TEX": [
+        {
+          "kind": "16x16",
+          "n_max": 1816,
+          "knob": 1584,
+          "ft_max": 1594965,
+          "ft_p99": 1588541,
+          "probes": 14,
+          "timeouts": 14,
+          "confirmation": "nmax probe 13 confirm knob 1584 settle 600 timeout fields 3600 frames 3600 drops 0 act_min 1816 ft_max 1594965 ft_p99 1588541 pass",
+          "last_confirm_window": {
+            "t": 282,
+            "n_active": 1850,
+            "n_bullet": 1848,
+            "cpu_avg_cyc": 1250464,
+            "engine_busy_avg_cyc": 1600100,
+            "window_fields": 60,
+            "bottleneck": "engine",
+            "pace": "pipeline",
+            "per_frame_bus": {
+              "hw_rd_burst_cum": 31708.466666666667,
+              "hw_wr_burst_cum": 39053.65,
+              "hw_rd_beat_cum": 158379.1,
+              "hw_wr_beat_cum": 231909.76666666666
+            }
+          }
+        },
+        {
+          "kind": "8x8",
+          "n_max": 1897,
+          "knob": 1680,
+          "ft_max": 1318987,
+          "ft_p99": 1318987,
+          "probes": 14,
+          "timeouts": 14,
+          "confirmation": "nmax probe 13 confirm knob 1680 settle 599 timeout fields 3600 frames 3600 drops 0 act_min 1897 ft_max 1318987 ft_p99 1318987 pass",
+          "last_confirm_window": {
+            "t": 567,
+            "n_active": 1933,
+            "n_bullet": 1931,
+            "cpu_avg_cyc": 1295783,
+            "engine_busy_avg_cyc": 999379,
+            "window_fields": 60,
+            "bottleneck": "cpu",
+            "pace": "pipeline",
+            "per_frame_bus": {
+              "hw_rd_burst_cum": 17896.75,
+              "hw_wr_burst_cum": 25237.2,
+              "hw_rd_beat_cum": 65043.816666666666,
+              "hw_wr_beat_cum": 138435.51666666666
+            }
+          }
+        }
+      ],
+      "PB": [
+        {
+          "kind": "16x16",
+          "n_max": 2131,
+          "knob": 1856,
+          "ft_max": 1560214,
+          "ft_p99": 1560214,
+          "probes": 13,
+          "timeouts": 9,
+          "confirmation": "nmax probe 12 confirm knob 1856 settle 600 timeout fields 3600 frames 3600 drops 0 act_min 2131 ft_max 1560214 ft_p99 1560214 pass",
+          "last_confirm_window": {
+            "t": 196,
+            "n_active": 2171,
+            "n_bullet": 2169,
+            "cpu_avg_cyc": 1336490,
+            "engine_busy_avg_cyc": 1555607,
+            "window_fields": 60,
+            "bottleneck": "engine",
+            "pace": "pipeline",
+            "per_frame_bus": {
+              "hw_rd_burst_cum": 9689.1,
+              "hw_wr_burst_cum": 3213.3,
+              "hw_rd_beat_cum": 101605.98333333334,
+              "hw_wr_beat_cum": 80240.98333333334
+            }
+          }
+        },
+        {
+          "kind": "8x8",
+          "n_max": 2110,
+          "knob": 1872,
+          "ft_max": 1383894,
+          "ft_p99": 1380208,
+          "probes": 16,
+          "timeouts": 9,
+          "confirmation": "nmax probe 15 confirm knob 1872 settle 484 fields 3600 frames 3600 drops 0 act_min 2110 ft_max 1383894 ft_p99 1380208 pass",
+          "last_confirm_window": {
+            "t": 593,
+            "n_active": 2145,
+            "n_bullet": 2143,
+            "cpu_avg_cyc": 1362076,
+            "engine_busy_avg_cyc": 1123166,
+            "window_fields": 60,
+            "bottleneck": "cpu",
+            "pace": "pipeline",
+            "per_frame_bus": {
+              "hw_rd_burst_cum": 8509.033333333333,
+              "hw_wr_burst_cum": 2660.8166666666666,
+              "hw_rd_beat_cum": 100295.05,
+              "hw_wr_beat_cum": 79682.43333333333
+            }
+          }
+        }
+      ]
+    },
+    "same_binary": true,
+    "fifo_min": 322,
+    "gain_percent": [
+      17.34581497797356,
+      11.228255139694255
+    ]
+  },
+  "artifacts_manifest": "Main/sim/engine/frontend/logs/f5_artifacts.json",
+  "bitstream": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+  "scope": "partial"
+}

@@ -1,0 +1,33 @@
+{
+  "research_scenes": 10000,
+  "frozen_bucket_states": 17,
+  "host_pixel_scenes": 10000,
+  "rtl_pb_byte_scenes": 10000,
+  "protocols": 20,
+  "strip_heights": [
+    8,
+    16,
+    32
+  ],
+  "real_game_frames": [
+    "H16 random",
+    "H16 timed",
+    "H32 random"
+  ],
+  "mutations_red": [
+    "CLIP",
+    "ORDER",
+    "SKIP",
+    "READY",
+    "HIGH_BYTE",
+    "STALE"
+  ],
+  "legacy_f4_frames": 144,
+  "host_replay": {
+    "frames": 9208,
+    "full_replay": true,
+    "differences": 0
+  },
+  "capability_combinations": 4,
+  "platform_checks": "complete"
+}

@@ -1,0 +1,2 @@
+RESULT: PASS protocol=         15 errors=          0
+/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_pb.v:231: $finish called at 2345000 (1ps)

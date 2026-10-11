@@ -1,0 +1,86 @@
+# COM11 @ 115200 8N1, opened 14:37:29
+gfx2dGame MODES
+pbTest start
+pbcase space=0 layout=0 eq=0 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1287 cycles=21232
+# --- 程序已加载，以下才是它的输出 ---
+pbcase space=0 layout=0 eq=0 n=1 raw=0 hw_crc=2919679994 sw_crc=2919679994 refs=6 bin=1537 cycles=23272
+pbcase space=0 layout=0 eq=0 n=31 raw=0 hw_crc=393838062 sw_crc=393838062 refs=100 bin=3363 cycles=59761
+pbcase space=0 layout=0 eq=1 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1293 cycles=21266
+pbcase space=0 layout=0 eq=1 n=1 raw=0 hw_crc=2095807045 sw_crc=2095807045 refs=6 bin=1507 cycles=23375
+pbcase space=0 layout=0 eq=1 n=31 raw=0 hw_crc=2514739294 sw_crc=2514739294 refs=100 bin=3358 cycles=65435
+pbcase space=0 layout=0 eq=2 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1287 cycles=21232
+pbcase space=0 layout=0 eq=2 n=1 raw=0 hw_crc=183289556 sw_crc=183289556 refs=6 bin=1511 cycles=23436
+pbcase space=0 layout=0 eq=2 n=31 raw=0 hw_crc=873916662 sw_crc=873916662 refs=100 bin=3343 cycles=65205
+pbcase space=0 layout=0 eq=3 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1295 cycles=21246
+pbcase space=0 layout=0 eq=3 n=1 raw=0 hw_crc=4237069604 sw_crc=4237069604 refs=6 bin=1529 cycles=23460
+pbcase space=0 layout=0 eq=3 n=31 raw=0 hw_crc=1513667472 sw_crc=1513667472 refs=100 bin=3343 cycles=65205
+pbcase space=0 layout=0 eq=4 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1299 cycles=21223
+pbcase space=0 layout=0 eq=4 n=1 raw=0 hw_crc=1133515372 sw_crc=1133515372 refs=6 bin=1510 cycles=23367
+pbcase space=0 layout=0 eq=4 n=31 raw=0 hw_crc=155823561 sw_crc=155823561 refs=100 bin=3358 cycles=65435
+pbcase space=0 layout=0 eq=5 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1299 cycles=21223
+pbcase space=0 layout=0 eq=5 n=1 raw=0 hw_crc=229146434 sw_crc=229146434 refs=6 bin=1534 cycles=23447
+pbcase space=0 layout=0 eq=5 n=31 raw=0 hw_crc=2431833379 sw_crc=2431833379 refs=100 bin=3363 cycles=65342
+pbcase space=0 layout=1 eq=0 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1295 cycles=21246
+pbcase space=0 layout=1 eq=0 n=1 raw=0 hw_crc=1495533011 sw_crc=1495533011 refs=6 bin=1537 cycles=23179
+pbcase space=0 layout=1 eq=0 n=31 raw=0 hw_crc=3086365411 sw_crc=3086365411 refs=100 bin=3666 cycles=61929
+pbcase space=0 layout=1 eq=1 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1299 cycles=21247
+pbcase space=0 layout=1 eq=1 n=1 raw=0 hw_crc=1086148074 sw_crc=1086148074 refs=6 bin=1556 cycles=23356
+pbcase space=0 layout=1 eq=1 n=31 raw=0 hw_crc=3584618198 sw_crc=3584618198 refs=100 bin=3619 cycles=67364
+pbcase space=0 layout=1 eq=2 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1287 cycles=21232
+pbcase space=0 layout=1 eq=2 n=1 raw=0 hw_crc=2921656855 sw_crc=2921656855 refs=6 bin=1537 cycles=23363
+pbcase space=0 layout=1 eq=2 n=31 raw=0 hw_crc=2665389362 sw_crc=2665389362 refs=100 bin=3663 cycles=67392
+pbcase space=0 layout=1 eq=3 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1299 cycles=21247
+pbcase space=0 layout=1 eq=3 n=1 raw=0 hw_crc=1663230162 sw_crc=1663230162 refs=6 bin=1544 cycles=23390
+pbcase space=0 layout=1 eq=3 n=31 raw=0 hw_crc=3041602996 sw_crc=3041602996 refs=100 bin=3665 cycles=67521
+pbcase space=0 layout=1 eq=4 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1288 cycles=21232
+pbcase space=0 layout=1 eq=4 n=1 raw=0 hw_crc=3448599496 sw_crc=3448599496 refs=6 bin=1539 cycles=23341
+pbcase space=0 layout=1 eq=4 n=31 raw=0 hw_crc=707420736 sw_crc=707420736 refs=100 bin=3666 cycles=67545
+pbcase space=0 layout=1 eq=5 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1267 cycles=21250
+pbcase space=0 layout=1 eq=5 n=1 raw=0 hw_crc=975583957 sw_crc=975583957 refs=6 bin=1556 cycles=23356
+pbcase space=0 layout=1 eq=5 n=31 raw=0 hw_crc=1509528985 sw_crc=1509528985 refs=100 bin=3619 cycles=67364
+pbcase space=1 layout=0 eq=0 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1287 cycles=21232
+pbcase space=1 layout=0 eq=0 n=1 raw=0 hw_crc=2919679994 sw_crc=2919679994 refs=6 bin=1505 cycles=22504
+pbcase space=1 layout=0 eq=0 n=31 raw=0 hw_crc=393838062 sw_crc=393838062 refs=100 bin=3363 cycles=40066
+pbcase space=1 layout=0 eq=1 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1293 cycles=21266
+pbcase space=1 layout=0 eq=1 n=1 raw=0 hw_crc=2095807045 sw_crc=2095807045 refs=6 bin=1510 cycles=22489
+pbcase space=1 layout=0 eq=1 n=31 raw=0 hw_crc=2514739294 sw_crc=2514739294 refs=100 bin=3341 cycles=42413
+pbcase space=1 layout=0 eq=2 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1287 cycles=21232
+pbcase space=1 layout=0 eq=2 n=1 raw=0 hw_crc=183289556 sw_crc=183289556 refs=6 bin=1549 cycles=22570
+pbcase space=1 layout=0 eq=2 n=31 raw=0 hw_crc=873916662 sw_crc=873916662 refs=100 bin=3341 cycles=42413
+pbcase space=1 layout=0 eq=3 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1299 cycles=21247
+pbcase space=1 layout=0 eq=3 n=1 raw=0 hw_crc=4237069604 sw_crc=4237069604 refs=6 bin=1510 cycles=22489
+pbcase space=1 layout=0 eq=3 n=31 raw=0 hw_crc=1513667472 sw_crc=1513667472 refs=100 bin=3345 cycles=42381
+pbcase space=1 layout=0 eq=4 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1293 cycles=21266
+pbcase space=1 layout=0 eq=4 n=1 raw=0 hw_crc=1133515372 sw_crc=1133515372 refs=6 bin=1507 cycles=22509
+pbcase space=1 layout=0 eq=4 n=31 raw=0 hw_crc=155823561 sw_crc=155823561 refs=100 bin=3358 cycles=42414
+pbcase space=1 layout=0 eq=5 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1293 cycles=21266
+pbcase space=1 layout=0 eq=5 n=1 raw=0 hw_crc=229146434 sw_crc=229146434 refs=6 bin=1537 cycles=22557
+pbcase space=1 layout=0 eq=5 n=31 raw=0 hw_crc=2431833379 sw_crc=2431833379 refs=100 bin=3341 cycles=42413
+pbcase space=1 layout=1 eq=0 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1295 cycles=21246
+pbcase space=1 layout=1 eq=0 n=1 raw=0 hw_crc=1495533011 sw_crc=1495533011 refs=6 bin=1556 cycles=22424
+pbcase space=1 layout=1 eq=0 n=31 raw=0 hw_crc=3086365411 sw_crc=3086365411 refs=100 bin=3665 cycles=41586
+pbcase space=1 layout=1 eq=1 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1295 cycles=21246
+pbcase space=1 layout=1 eq=1 n=1 raw=0 hw_crc=1086148074 sw_crc=1086148074 refs=6 bin=1539 cycles=22522
+pbcase space=1 layout=1 eq=1 n=31 raw=0 hw_crc=3584618198 sw_crc=3584618198 refs=100 bin=3634 cycles=44025
+pbcase space=1 layout=1 eq=2 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1293 cycles=21266
+pbcase space=1 layout=1 eq=2 n=1 raw=0 hw_crc=2921656855 sw_crc=2921656855 refs=6 bin=1539 cycles=22522
+pbcase space=1 layout=1 eq=2 n=31 raw=0 hw_crc=2665389362 sw_crc=2665389362 refs=100 bin=3617 cycles=44167
+pbcase space=1 layout=1 eq=3 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1299 cycles=21247
+pbcase space=1 layout=1 eq=3 n=1 raw=0 hw_crc=1663230162 sw_crc=1663230162 refs=6 bin=1519 cycles=22535
+pbcase space=1 layout=1 eq=3 n=31 raw=0 hw_crc=3041602996 sw_crc=3041602996 refs=100 bin=3617 cycles=44167
+pbcase space=1 layout=1 eq=4 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1293 cycles=21266
+pbcase space=1 layout=1 eq=4 n=1 raw=0 hw_crc=3448599496 sw_crc=3448599496 refs=6 bin=1548 cycles=22534
+pbcase space=1 layout=1 eq=4 n=31 raw=0 hw_crc=707420736 sw_crc=707420736 refs=100 bin=3617 cycles=44167
+pbcase space=1 layout=1 eq=5 n=0 raw=0 hw_crc=647216426 sw_crc=647216426 refs=2 bin=1267 cycles=21250
+pbcase space=1 layout=1 eq=5 n=1 raw=0 hw_crc=975583957 sw_crc=975583957 refs=6 bin=1539 cycles=22522
+pbcase space=1 layout=1 eq=5 n=31 raw=0 hw_crc=1509528985 sw_crc=1509528985 refs=100 bin=3663 cycles=44116
+pbcase space=0 layout=1 eq=1 n=31 raw=1 hw_crc=3584618198 sw_crc=3584618198 refs=100 bin=3751 cycles=68425
+pbcase space=1 layout=1 eq=5 n=31 raw=1 hw_crc=1509528985 sw_crc=1509528985 refs=100 bin=3758 cycles=45086
+pberror test=0 code=2 stage=3 index=0 tag=0
+pberror test=1 code=2 stage=1 index=0 tag=4110417920
+pberror test=2 code=2 stage=1 index=0 tag=4110417922
+PB/V1 private clip success/failure roundtrip ok
+fail 0
+done
+
+# closed 14:37:42, 8019 bytes

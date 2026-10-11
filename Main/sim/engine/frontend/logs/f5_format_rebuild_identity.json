@@ -1,0 +1,7 @@
+{
+  "object": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+  "same_bytes_after_format_rebuild": false,
+  "previous_size": 2775270,
+  "current_size": 2775270,
+  "change": "trailing whitespace on one blank RTL line"
+}

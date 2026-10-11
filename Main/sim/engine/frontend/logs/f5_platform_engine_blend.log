@@ -1,0 +1,13 @@
+规格侧 check_round255.c:
+  check_round255: 总判定：全部通过
+正常用例:
+  exhaustive: RESULT: PASS
+  golden: RESULT: PASS
+  stall: RESULT: PASS
+注错用例（期望 FAIL）:
+  inject_wrong_eq: RESULT: FAIL
+  inject_trunc16: RESULT: FAIL
+  inject_unreg_c: RESULT: FAIL
+  inject_copy_dst: RESULT: FAIL
+  inject_x_no_en: RESULT: FAIL
+SIM OK: 9/9 cases as expected

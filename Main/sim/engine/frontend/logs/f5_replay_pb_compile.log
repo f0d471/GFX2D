@@ -1,0 +1,4 @@
+make: Entering directory '/mnt/e/Workspace/Efinix/Main/sw/apps/game/gfx2dGame'
+CC lib/gfx/pb.c
+LD build_f5_host_pb/gfx2dGame
+make: Leaving directory '/mnt/e/Workspace/Efinix/Main/sw/apps/game/gfx2dGame'

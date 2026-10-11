@@ -1,0 +1,1 @@
+bounds: /mnt/e/Workspace/Efinix/Main/sim/engine/frontend/test_pb_bounds.c:52: main: Assertion `gfx_pb_build(&t,(const gfx_cmd *)(const void *)bytes,1,NULL,0,&c,&p,&e)==GFX_E_BAD_FIELD' failed.

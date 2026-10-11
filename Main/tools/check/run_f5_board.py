@@ -112,7 +112,9 @@ def collect(jobs=None):
         deployed=(ROOT/alternate[1]).resolve() if alternate else binary(job)
         key=deployed.relative_to(ROOT.resolve()).as_posix();identity=registry[key];st=deployed.stat()
         assert (st.st_size,st.st_mtime_ns)==(identity['size'],identity['mtime_ns']),job+': 未登记的产物改动'
-        control=(BUILD/(job+'_control.log')).read_bytes()
+        control_source=BUILD/(job+'_control.log')
+        if not control_source.exists():control_source=LOGS/('f5_board_'+job+'_control.log')
+        control=control_source.read_bytes()
         control_text=control.decode('utf-8',errors='replace')
         assert f"{identity['size']} bytes written at address" in control_text and 'Target successfully examined' in control_text,job+': 部署缺字节数或目标识别'
         saved=LOGS/('f5_board_'+job+'_control.log')
@@ -222,6 +224,7 @@ def collect(jobs=None):
     result['scope']='full' if complete else 'partial'
     (LOGS/('f5_board_results.json' if complete else 'f5_board_partial_results.json')).write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
     print('F5 BOARD COLLECT PASS '+result['scope']+' jobs='+','.join(selected),flush=True)
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('--build',nargs='+',choices=JOBS);p.add_argument('--run',nargs='+',choices=JOBS)
     p.add_argument('--program',action='store_true');p.add_argument('--collect',nargs='*',choices=JOBS);p.add_argument('--progress',action='store_true');a=p.parse_args();BUILD.mkdir(parents=True,exist_ok=True);LOGS.mkdir(exist_ok=True)

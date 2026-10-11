@@ -1,0 +1,5 @@
+F5 FRAME SH=         16 diff=          0 cmd_reads=       7181 pixel_reads=       2817 writes=       3349 DDR_beats=    101956
+F5 PROFILE bin_cycles=    113119 pb_rd=      12724 pb_wr=       3571
+F5 game frame checks=      70402 errors=          0
+RESULT: PASS
+/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_pb_game.v:252: $finish called at 15357545000 (1ps)

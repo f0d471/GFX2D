@@ -1,0 +1,2 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+ERROR: 打不开串口 COM11：could not open port 'COM11': PermissionError(13, '拒绝访问。', None, 5)

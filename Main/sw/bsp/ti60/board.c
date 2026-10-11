@@ -112,9 +112,7 @@ int board_asset_read(uint32_t offset, void *dst, uint32_t bytes)
 
 #if defined(F5_DDR_LOG) && F5_DDR_LOG
 #include "board_ddr_log.h"
-/* OFFSCREEN[4MiB,6MiB)，避开背景A/B与+6MiB影子；仅诊断构建租用。 */
-#define F5_LOG_BASE 0x02c00000u
-#define F5_LOG_BYTES 0x00200000u
+/* 仅诊断构建租用共享区尾部，地址由board_ddr_log.h统一定义。 */
 static board_ddr_log f5_log;
 static int f5_log_initialized;
 #endif
@@ -122,11 +120,11 @@ static int f5_log_initialized;
 void board_puts(const char *s)
 {
 #if defined(F5_DDR_LOG) && F5_DDR_LOG
-    volatile uint32_t *h=(volatile uint32_t *)(uintptr_t)F5_LOG_BASE;
+    volatile uint32_t *h=(volatile uint32_t *)(uintptr_t)BOARD_DDR_LOG_BASE;
     if(!f5_log_initialized){
-        board_ddr_log_init(&f5_log,(volatile uint8_t *)(uintptr_t)(F5_LOG_BASE+32u),F5_LOG_BYTES-32u);
-        h[0]=0x35474f4cu; /* LOG5；h[1]的本次nonce由JTAG加载器发布。 */
-        h[2]=0;h[3]=0;h[4]=0;h[5]=1;h[6]=F5_LOG_BYTES-32u;h[7]=0;
+        board_ddr_log_init(&f5_log,(volatile uint8_t *)(uintptr_t)(BOARD_DDR_LOG_BASE+BOARD_DDR_LOG_HEADER),BOARD_DDR_LOG_BYTES-BOARD_DDR_LOG_HEADER);
+        h[0]=BOARD_DDR_LOG_MAGIC; /* LOG5；h[1]的本次nonce由JTAG加载器发布。 */
+        h[2]=0;h[3]=0;h[4]=0;h[5]=1;h[6]=BOARD_DDR_LOG_BYTES-BOARD_DDR_LOG_HEADER;h[7]=0;
         f5_log_initialized=1;
     }
     board_ddr_log_append(&f5_log,s);
@@ -146,7 +144,7 @@ void board_puts(const char *s)
 uint32_t board_tx_room(void)
 {
 #if defined(F5_DDR_LOG) && F5_DDR_LOG
-    return f5_log_initialized?f5_log.capacity-f5_log.used:F5_LOG_BYTES-32u;
+    return f5_log_initialized?f5_log.capacity-f5_log.used:BOARD_DDR_LOG_BYTES-BOARD_DDR_LOG_HEADER;
 #else
     return (uint32_t)uart_writeAvailability(BSP_UART_TERMINAL);
 #endif
