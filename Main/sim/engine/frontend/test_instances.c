@@ -1,4 +1,4 @@
-/* F4 独立金标准：从输入坐标构造原 BLIT，绝不调用实例展开器产生期望。 */
+/* 独立金标准：从输入坐标构造原 BLIT，绝不调用实例展开器产生期望。 */
 #include "gfx/gfx.h"
 #include "gfx/census.h"
 #include <stdio.h>

@@ -3,10 +3,10 @@
 *
 * @brief  这一层是叠在只读的 `sdk/` 之上的项目板级层：sdk 是 SoC IP 的生成物，
 *         重新生成 IP 时整个目录会被覆盖，所以项目要往 sdk 加的东西一律放这里，
-*         由本层转出去（SW1 spec 2.1 节）。
+*         由本层转出去。
 *
-*         SW1 提供 UART、CLINT、分区与缓存服务；SW9 补 GPIO/串口输入、
-*         显示中断节拍与异步呈现，引擎驱动由 engine 系列提供。
+*         本层提供 UART、CLINT、分区与缓存服务，另有 GPIO/串口输入、
+*         显示中断节拍与异步呈现；引擎驱动由 engine 系列提供。
 *
 *         这里 include 的 sdk 头文件在 mk/target.mk 里按系统头（-isystem）引入：
 *         它们是上游代码，里面定义了用不到的 static 函数，
@@ -47,7 +47,7 @@
 /* 素材分区的 SPI 读法。0 = 单线（与 bootloader 现状一致，`spiFlash_f2m`），
    1 = 双线（`spiFlash_f2m_dual`，板上 data_0/1 已接好）。
    默认取单线：它是当前唯一经过完整启动验证的路径；双线能不能用、值不值得用
-   由 E6 的实测决定，那时只改这一个宏。 */
+   由实测决定，要换时只改这一个宏。 */
 #ifndef BOARD_ASSET_SPI_DUAL
 #define BOARD_ASSET_SPI_DUAL 0
 #endif
@@ -67,7 +67,7 @@ board_mem board_region(board_region_id id)
         return m;
     }
     /* DDR 基址是 0：CPU 的 DDR 窗口从 0x0000_1000 起，而分区起点都 >= 0x0040_0000，
-       且这个范围内 CPU 地址就等于控制器地址（E2 实测），所以分区表的偏移可以直接当
+       且这个范围内 CPU 地址就等于控制器地址（实测过），所以分区表的偏移可以直接当
        CPU 地址用。memmap.h 里不写这个前提，它只属于本层。 */
     m.ptr  = (void *)(uintptr_t)g_mem_regions[id].offset;
     m.size = g_mem_regions[id].size;
@@ -79,7 +79,7 @@ uint32_t board_cycles(void)
     return (uint32_t)clint_getTimeLow(BSP_CLINT);   /* 1 tick = 10ns */
 }
 
-/* --- 素材分区（sw 第 04 章 3.8 节）----------------------------------------------- */
+/* --- 素材分区--------------------------------------------------------------------- */
 /* 每次读都自己初始化一遍 SPI 与 Flash，不假设 bootloader 跑完之后
    外设还保持着它留下的状态。驱动的调用顺序与 bootloaderConfig.h 一致。 */
 static void asset_spi_begin(void)
@@ -140,7 +140,7 @@ void board_puts(const char *s)
 }
 
 /* sdk 的 uart_writeAvailability() 读 UART 状态寄存器的 [23:16]，就是发送 FIFO 的空位数；
-   写不超过这么多字节，上面的 uart_write() 就不会在忙等里停下（sw 第 07 章 3.3 节）。 */
+   写不超过这么多字节，上面的 uart_write() 就不会在忙等里停下。 */
 uint32_t board_tx_room(void)
 {
 #if defined(F5_DDR_LOG) && F5_DDR_LOG
@@ -159,7 +159,7 @@ uint32_t board_keys(void)
     const uint32_t gpio = (~gpio_getInput(SYSTEM_GPIO_1_IO_CTRL)) & 0xFu;
     uint32_t physical = 0u, rising = 0u;
 
-    /* D3：只在确认非空后调用 sdk 的阻塞 uart_read；一帧内读空 FIFO。
+    /* 只在确认非空后调用 sdk 的阻塞 uart_read；一帧内读空 FIFO。
        两包之间即使先按下再松开，rising 仍把按下沿交给这一帧。 */
     while (uart_readOccupancy(BSP_UART_TERMINAL) != 0u) {
         const uint8_t b = (uint8_t)uart_read(BSP_UART_TERMINAL);
@@ -201,8 +201,8 @@ uint32_t *board_fb(int index)
 }
 
 /* --- 扫描输出（display）------------------------------------------------- */
-/* 寄存器表见 `rtl/display/display_fetch.v` 文件头与
-   `../Engineering/Todo/hw/扫描输出.md` 2.2 节。窗口是 APB Slave 0 的 `0xE000~0xEFFF`。
+/* 寄存器表见 `rtl/display/display_fetch.v` 文件头。
+   窗口是 APB Slave 0 的 `0xE000~0xEFFF`。
    这些地址只出现在本文件：应用经 board_fb / board_present / board_wait_frame 用它，
    不碰寄存器。 */
 /* 轮询上界。两件事都以场为节拍（60Hz，一场 16.7ms），给到 100ms 是六倍余量。
@@ -233,7 +233,7 @@ static uint32_t s_present_field; /* 写 SWAP_REQ 之前读的 FRAME_COUNT */
 static uint32_t s_present_retries;
 static int s_present_pending;
 
-/* SWAP_REQ 的写恰好落在场起始那一拍时，硬件让场起始的清零优先（display 第 01 章 4.1 节），
+/* SWAP_REQ 的写恰好落在场起始那一拍时，硬件让场起始的清零优先，
    这次请求被吞掉，SWAP_COUNT 再也不会变。场号先于请求读，正常的请求最迟在其后第二个
    场起始生效、并在该场排空复位时计数；到第三个场起始仍没换，只能是被吞了，重写一次。
    引擎忙时恰好约一场的负载会让请求成串贴着场起始写，这个窗口才真的会碰上。 */
@@ -258,8 +258,8 @@ int board_present_request(int index, uint32_t *ticket)
     if (!disp_present_in_bitstream())
         return -1;
 
-    /* 写方向不需要先刷缓存：本构型没有写缓冲，CPU 的写返回时已经落到 DDR
-       （platform 第 05 章 T3、T6）。要失效的是「读回外部主机写的东西」那个方向。 */
+    /* 写方向不需要先刷缓存：本构型没有写缓冲，CPU 的写返回时已经落到 DDR。
+       要失效的是「读回外部主机写的东西」那个方向。 */
     fb = g_mem_regions[REGION_FB0 + index].offset;
     disp_wr(DISP_BACK_BASE, fb);
 
@@ -409,7 +409,7 @@ int board_should_quit(void)
     return 0;
 }
 
-/* 按 E3 规则包成带 "memory" clobber 的函数（platform 第 05 章）：
+/* 缓存失效包成带 "memory" clobber 的函数：
    sdk 的宏没有 clobber，紧邻的空 asm 屏障保证编译器不会把相邻的访存
    重排到失效之前——失效的作用是让后面的读真的去 DDR 取数。 */
 void board_dcache_invalidate_all(void)

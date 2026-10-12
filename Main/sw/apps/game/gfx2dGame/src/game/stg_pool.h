@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file stg_pool.h: 实体池 —— 敌弹、自机弹、敌机、粒子
 *
-* @brief  sw 第 06 章 3.5 节。四个池用同一种 20 字节实体，布局先用 AoS；
+* @brief  四个池用同一种 20 字节实体，布局先用 AoS；
 *         实体的字段只在 stg_pool.c 里读写，外面经函数取值，以后换 SoA 只改那一个文件。
 *
 *         **回收是 Existential Processing**（Fabian《Data-Oriented Design》）：
@@ -9,22 +9,22 @@
 *         读指针从 0 走到 n，写指针只在实体存活时前进；碰撞与炸弹只打「已标记移除」，
 *         下一遍压缩时移除。存活实体的相对顺序不变（绘制顺序稳定），没有空闲链表。
 *
-*         口径（sw 第 06 章 3.5 节）：
+*         口径：
 *           - x, y 是实体**中心**，Q.8；vx, vy 每帧加一次。
 *           - 画图时目的左上角取 (x >> 8) - w/2，见 stg_draw_origin()。
 *           - 出界：中心落在游戏区四周外扩 STG_MARGIN_PX 之外，半开区间，见 stg_bounds_field()。
-*           - 池满时拒绝，溢出计数加一（进 SW8 的 CSV）。
+*           - 池满时拒绝，溢出计数加一（进统计 CSV）。
 *
-*         没有文件级的可变状态：池的描述与存储都在调用方给的结构体里（sw 第 06 章 3.5 节）。
+*         没有文件级的可变状态：池的描述与存储都在调用方给的结构体里。
 *         更新循环只做加法与比较，不调函数指针、没有除法（设计文档 4.4 节的实现约束）。
 *
-*         碰撞（sw 第 06 章 3.8、3.10 节）：自机判定点对敌弹见 stg_pool_collide()，自机弹对敌机见 stg_pool_hit_targets()；
-*         炸弹消弹见 stg_pool_cancel()，粒子寿命见 stg_pool_age()（C 批，2.2、2.4 节）；
-*         SW8 自动驾驶的危险度扫描见 stg_pool_danger()（C 批，sw 第 07 章 3.10 节）；
-*         按池发出（2.6 节）见 stg_pool_draw()。这些逐颗的循环里没有除法与取模、
+*         碰撞：自机判定点对敌弹见 stg_pool_collide()，自机弹对敌机见 stg_pool_hit_targets()；
+*         炸弹消弹见 stg_pool_cancel()，粒子寿命见 stg_pool_age()；
+*         自动驾驶的危险度扫描见 stg_pool_danger()；
+*         按池发出见 stg_pool_draw()。这些逐颗的循环里没有除法与取模、
 *         没有函数指针调用，check_sw7_game.sh 用 objdump 查板上构建。
 *
-*         每个池记一个弹种位图 kinds（C 批，2.2 节）：一遍更新时把存活实体的弹种或进去，追加时也或进去；
+*         每个池记一个弹种位图 kinds：一遍更新时把存活实体的弹种或进去，追加时也或进去；
 *         组帧只遍历位图里有的弹种。
 *
 *         注错开关（主机测试 apps/game/gfx2dGame/test/ 用，见 check_sw7_game.sh）：
@@ -46,7 +46,7 @@
 #include "core/fixmath.h"
 #include "gfx/gfx.h"
 
-/* 容量。**存储上限，不是 60 FPS 下的 N_max**（sw 第 06 章 3.5 节）。 */
+/* 容量。**存储上限，不是 60 FPS 下的 N_max**。 */
 #define STG_CAP_EBULLET     16384u
 #define STG_CAP_PBULLET     256u
 #define STG_CAP_ENEMY       64u
@@ -58,7 +58,7 @@
 #define STG_F_NOCANCEL      0x0020u     /* [5]   不可消除（炸弹不消它） */
 #define STG_F_REMOVE        0x8000u     /* [15]  已标记移除，下一遍压缩时移除 */
 
-/* 游戏区与出界外扩。外扩取最大弹图的半宽：米弹 20x20，10 像素（sw 第 06 章 3.5 节）。 */
+/* 游戏区与出界外扩。外扩取最大弹图的半宽：米弹 20x20，10 像素。 */
 #define STG_FIELD_W         400
 #define STG_FIELD_H         480
 #define STG_MARGIN_PX       10
@@ -70,7 +70,7 @@ typedef struct {
     uint16_t flags;         /* STG_F_* */
 } stg_ent;
 
-/* 与 E8 的实体同宽：四个 int32 加两个 uint16，4 字节对齐、无填充。 */
+/* 与实体微基准（entityBench）的实体同宽：四个 int32 加两个 uint16，4 字节对齐、无填充。 */
 _Static_assert(sizeof(stg_ent) == 20u, "stg_ent 必须是 20 字节");
 
 /* 出界边界，Q.8。存活条件 x_lo <= x < x_hi 且 y_lo <= y < y_hi。 */
@@ -129,7 +129,7 @@ void     stg_pool_step(stg_pool *p, const stg_bounds *b, stg_step_stats *st);
 /* 给第 i 个实体打「已标记移除」，下一遍移除。i 越界时什么也不做。 */
 void     stg_pool_mark(stg_pool *p, uint32_t i);
 
-/* --- 碰撞：自机判定点对敌弹（sw 第 06 章 3.8 节） --------------------------------- */
+/* --- 碰撞：自机判定点对敌弹 ------------------------------------------------- */
 
 /* 自机探针。坐标与半径都是 Q.8。 */
 typedef struct {
@@ -144,7 +144,7 @@ typedef struct {
     uint32_t grazes;
 } stg_hit_stats;
 
-/* 逐颗（2.4 节 B 批定法）：
+/* 逐颗：
      1. 已标记移除的跳过；
      2. 粗筛阈值 T = r_graze + r_kind[弹种]，|dx| >= T 或 |dy| >= T 就跳过；
      3. d² = dx² + dy²；受击开关开着且 d² < (r_hit + r_b)² 为命中：命中数加一、打移除标记，不再算擦弹；
@@ -156,7 +156,7 @@ typedef struct {
 void     stg_pool_collide(stg_pool *p, const int32_t *r_kind, const stg_probe *pr,
                           stg_hit_stats *st);
 
-/* --- 碰撞：自机弹对敌机（sw 第 06 章 3.10 节，C 批） --------------------------------- */
+/* --- 碰撞：自机弹对敌机 ----------------------------------------------------- */
 
 /* 目标圆。坐标与半径都是 Q.8。 */
 typedef struct {
@@ -181,7 +181,7 @@ uint32_t stg_pool_cancel(stg_pool *p, stg_pool *sparks, int32_t svx, int32_t svy
 /* 粒子寿命：帧号当剩余寿命，每遍减一，减到 0 打移除标记（下一遍压缩时移除）；已标记的跳过。 */
 void     stg_pool_age(stg_pool *p);
 
-/* --- 按池发出（sw 第 06 章 3.9 节） ------------------------------------------------ */
+/* --- 按池发出 --------------------------------------------------------------- */
 
 /* 一个弹种的画图几何：图宽高（像素）与源图每行 2^cols_log2 格。 */
 typedef struct {
@@ -190,8 +190,8 @@ typedef struct {
 } stg_draw_geom;
 
 /* 从 *cursor 起扫池，把「弹种为 kind、没有标记移除、目的矩形与 clip 相交」的实体依次写进 out[0..cap)：
-     目的左上角  (x >> 8) - w/2，(y >> 8) - h/2（2.2 节）
-     源左上角    (sprite & (2^cols_log2 - 1)) * w，(sprite >> cols_log2) * h（2.3 节）
+     目的左上角  (x >> 8) - w/2，(y >> 8) - h/2
+     源左上角    (sprite & (2^cols_log2 - 1)) * w，(sprite >> cols_log2) * h
    写满 cap 条或扫到池尾就停，返回写了几条；*cursor 移到下一个没扫过的下标，扫完时等于存活数。
    调用方反复调用直到 *cursor == 存活数，每次把写出来的交给 gfx_blit_run()，缓冲只要 cap 条。
    clip 是闭区间（gfx_rect），与执行器的裁剪同口径；只判相交，不裁。
@@ -199,7 +199,7 @@ typedef struct {
 uint32_t stg_pool_draw(const stg_pool *p, uint32_t kind, const stg_draw_geom *g,
                        const gfx_rect *clip, uint32_t *cursor, gfx_blit_pos *out, uint32_t cap);
 
-/* --- 自动驾驶的危险度（sw 第 07 章 3.10 节，C 批） ----------------------------------- */
+/* --- 自动驾驶的危险度 ------------------------------------------------------- */
 
 #define STG_DANGER_MAX      9u
 

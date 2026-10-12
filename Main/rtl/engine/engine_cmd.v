@@ -150,7 +150,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     input  wire [31:0] surf_rb_w1,
     input  wire [31:0] surf_rb_w2,
 
-    // 搬运层：命令取数（I7）
+    // 搬运层：命令取数
     output wire        fd_instance,
     input  wire        fs_instance,
     input  wire        rd_stat_instance,
@@ -168,9 +168,9 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     output wire        fs_tready,
     input  wire [3:0]  fs_cidx,
 
-    // 搬运层：状态与超时（I7）
+    // 搬运层：状态与超时
     input  wire        rd_stat_valid,
-    input  wire        rd_stat_fetch,  // 显式来源：1 = FD；F4 另按 rd_stat_instance 分流
+    input  wire        rd_stat_fetch,  // 显式来源：1 = FD；实例通路另按 rd_stat_instance 分流
     input  wire        rd_stat_err,
     input  wire [3:0]  rd_stat_cidx,
     input  wire        wr_stat_valid,
@@ -179,7 +179,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     input  wire        wr_stat_last_row,
     input  wire        tmo_evt,
 
-    // 几何层：I1 下发与完成
+    // 几何层：命令下发与完成
     output reg         start,
     output reg  [7:0]  i1_op,
     output reg  [3:0]  i1_eq,
@@ -189,7 +189,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     output reg  [7:0]  i1_c,
     output reg  [3:0]  i1_sfmt,
     output reg  [31:0] i1_src_base,
-    output reg         i1_src_tex,    // 源在片上 TEX（G1，I1 的新字段）
+    output reg         i1_src_tex,    // 源在片上 TEX
     output reg  [15:0] i1_src_w,
     output reg  [15:0] i1_src_h,
     output reg  [4:0]  i1_src_slog2,
@@ -422,7 +422,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     reg        active;         // FILL/BLIT 已下发未完成
     reg        rd_word;        // cbuf 读口字选
     reg        pend_err, pend_done;
-    // 完成语义（D20 的驱动契约：DONE/ERR 置位即引擎已空闲，驱动可立即读 PERF）：
+    // 完成语义（驱动契约：DONE/ERR 置位即引擎已空闲，驱动可立即读 PERF）：
     // 检出时只挂 pending，等在途命令收尾、预取流收完（S_TERM）才置 done_set/err_set。
 
     // 预取槽
@@ -439,7 +439,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     wire [37:0] k_a0 = {6'd0, base_r} + {1'b0, k, 5'd0};
     wire        k_ok = (k_a0 <= 38'h00_FFFF_FFE0);
 
-    // 读状态按搬运层给的显式来源位分发（G1）：带取数来源的归取数引擎，
+    // 读状态按搬运层给的显式来源位分发：带取数来源的归取数引擎，
     // 其余（DDR 像素读与 TEX 本地读）归活动命令的像素通路。
 
     // 十步检查：单拍组合，逻辑权威 sw/lib/gfx/check.c；第一步取记录归取数状态机
@@ -886,7 +886,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end else if (
                                (wr_stat_valid && wr_stat_last_row)
                               || (geom_cmd_done && geom_done_cidx == k[3:0])) begin
-                        // 非空命令的末行写状态 / 空命令的 cmd_done（D38）
+                        // 非空命令的末行写状态 / 空命令的 cmd_done
                         active<=0;
                         if(inst_active && inst_id+32'd1!={16'd0,inst_count})st<=S_INEXT;
                         else begin commit<=1;st<=S_ADV;end

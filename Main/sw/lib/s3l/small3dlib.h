@@ -1328,8 +1328,8 @@ S3L_Unit S3L_distanceManhattan(S3L_Vec4 a, S3L_Vec4 b)
 
 void S3L_mat4Xmat4(S3L_Mat4 m1, S3L_Mat4 m2)
 {
-  /* [#40] P1 删除了 `S3L_USE_MATMUL` 钩子（曾在此转调 S3L_mat4Xmat4_hw 走 matmul IP）。
-   *    matmul 已从主线撤出、slave7 现为错误响应桩 ⇒ 那条路径必然挂死。见 object3d.c 顶部。
+  /* [#40] 删除了 `S3L_USE_MATMUL` 钩子（曾在此转调 S3L_mat4Xmat4_hw 走 matmul IP）。
+   *    matmul 已从主线撤出、slave7 现为错误响应桩 ⇒ 那条路径必然挂死。
    *    删掉钩子后本函数与 small3dlib 上游一致。 */
   S3L_Mat4 mat1;
 

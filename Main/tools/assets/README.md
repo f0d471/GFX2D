@@ -1,12 +1,11 @@
 # assets：素材的生成与打包
 
-SW5 素材流水线（[`../../../Engineering/TechReports/sw/04-素材流水线.md`](../../../Engineering/TechReports/sw/04-素材流水线.md)）
-的两个工具，输入是 `Main/assets/` 下的 PNG 与点阵字库文本，输出是进构建的素材包与头文件。
+素材流水线的两个工具，输入是 `Main/assets/` 下的 PNG 与点阵字库文本，输出是进构建的素材包与头文件。
 
 | 文件 | 用途 |
 | --- | --- |
 | `gen_placeholder.py` | 生成占位 PNG（纯色、棋盘、渐变、圆形弹幕、色键图、图集）。图案全部按坐标算出来，没有随机数，同一个 Pillow 版本产出逐字节相同的 PNG |
-| `gen_stg_neon.py` | 生成游戏的霓虹几何素材（sw 第 06 章 3.12 节）：三种弹各四色、自机弹、火花、自机与两种敌机的线框、Boss、星点、标题、大号数字、图标、青色字库，共 12 张 PNG。图案按坐标算出，不用随机数与字体文件；`--check` 重新生成并与入库的逐像素比，`--check --inject` 改一个像素必须见红 |
+| `gen_stg_neon.py` | 生成游戏的霓虹几何素材：三种弹各四色、自机弹、火花、自机与两种敌机的线框、Boss、星点、标题、大号数字、图标、青色字库，共 12 张 PNG。图案按坐标算出，不用随机数与字体文件；`--check` 重新生成并与入库的逐像素比，`--check --inject` 改一个像素必须见红 |
 | `gen_font_txt.py` | 把原样入库的上游点阵字体 `Main/assets/font/spleen-8x16.bdf`（Spleen 8x16，BSD-2-Clause）转换成打包工具读的字库文本 `font/ascii8x16.txt`，只取 ASCII 的 95 个字形；`--check` 重新生成并与入库的逐字节比，`--check --inject` 改一个像素必须见红 |
 | `pack_assets.py` | 读 `Main/assets/manifest.txt`，把每一项转成目标字节、打成 `assets.pak`，并生成 `assets.h` |
 
@@ -18,7 +17,7 @@ wsl -e python3 Main/tools/assets/gen_stg_neon.py --check       # 重新生成，
 wsl -e python3 Main/tools/assets/gen_font_txt.py               # 由 spleen-8x16.bdf 生成字库文本（产物入库）
 wsl -e python3 Main/tools/assets/gen_font_txt.py --check       # 重新生成，与入库的逐字节比
 wsl -e python3 Main/tools/assets/pack_assets.py                # 打包到 Main/assets/build/
-wsl -e python3 Main/tools/assets/pack_assets.py --max-pak 1048576    # 收紧运行预算（E6 出数后用）
+wsl -e python3 Main/tools/assets/pack_assets.py --max-pak 1048576    # 收紧素材包的体积预算
 ```
 
 ## 目录约定
@@ -52,6 +51,6 @@ Pillow 对 16 位灰度 `I;16` 的 `convert("RGBA")` 是**截断到 255**（1000
 
 ## 判据
 
-`Main/tools/check/check_sw5_assets.sh` 把素材流水线（sw 第 04 章 3.12 节）的软件侧判据串起来跑（含七种坏包注错、
-一次注错构建、镜像回环与许可台账），另有一份独立实现 `check_sw5_pak.py` 自己解包、
+`Main/tools/check/check_sw5_assets.sh` 把素材流水线的软件侧判据串起来跑（含七种坏包注错、
+一次注错构建、镜像回环与许可登记检查），另有一份独立实现 `check_sw5_pak.py` 自己解包、
 自己从 PNG 与字库重算每一项的像素字节再逐字节比——打包与解包不能互相证明。

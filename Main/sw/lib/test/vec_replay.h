@@ -4,9 +4,9 @@
 * @brief  两个来源、两个实现，交叉跑。
 *
 *         来源一是 `tools/check/check_cmd_semantics.py --emit` 导出的 159 条
-*         （ABI 1，交换格式见 spec 第 02 章规范条款 §7.2）。它是规范的可执行镜像，
+*         （ABI 1）。它是命令语义的可执行镜像，
 *         生成物不入库，所以这一组要先跑一次工具、再把路径交给 `make test VEC=…`。
-*         来源二是 `vec_builtin.c` 里按第 02 章条文手写的那一组，不依赖 python，
+*         来源二是 `vec_builtin.c` 里按命令语义条文手写的那一组，不依赖 python，
 *         默认就跑。
 *
 *         实现一是产品的 `exec_sw`，实现二是 `ref_exec`。

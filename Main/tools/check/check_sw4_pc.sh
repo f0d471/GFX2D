@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# check_sw4_pc.sh —— PC 平台层（SW4）的提交前判据
+# check_sw4_pc.sh —— PC 平台层的提交前判据
 #
-# 判据见 Engineering/TechReports/sw/03-PC平台层与帧节拍.md 5.2 节。本脚本负责其中「要跑多次再比」
+# 本脚本负责 PC 平台层判据中「要跑多次再比」
 # 的那三条，其余由判据程序与主机侧测试自己判：
 #
 #   1 显示   十一个整帧用例的 CRC 与 lib/test/golden.txt 逐行相同

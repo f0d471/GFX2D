@@ -2,7 +2,7 @@
 #ifndef BOARD_DDR_LOG_H
 #define BOARD_DDR_LOG_H
 #include <stdint.h>
-/* SHARED尾部[+0x840000,+0xA00000)，避开实例/PB/F3/prepass及所有OFFSCREEN测试面。 */
+/* SHARED尾部[+0x840000,+0xA00000)，避开实例/PB/条带计划工作区/prepass及所有OFFSCREEN测试面。 */
 #define BOARD_DDR_LOG_BASE 0x00e40000u
 #define BOARD_DDR_LOG_BYTES 0x001c0000u
 #define BOARD_DDR_LOG_MAGIC 0x35474f4cu

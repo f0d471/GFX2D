@@ -2,8 +2,7 @@
 
 `rtl/display/` 的随码文档：扫描输出三模块的寄存器表、定值与跨域协议。
 取数侧 `display_fetch`（core_clk 域）、异步 FIFO `display_fifo`、像素侧 `display_out`
-（像素时钟域）。研究背景在 `Engineering/TechReports/platform/`（E5 第 06 章）与
-`display` 各章；寄存器窗口在 APB Slave 0 的 0xE000~0xEFFF（`gfx2d_top` 按 paddr[15:12]==4'hE 分选）。
+（像素时钟域）；寄存器窗口在 APB Slave 0 的 0xE000~0xEFFF（`gfx2d_top` 按 paddr[15:12]==4'hE 分选）。
 
 ## 1 display_fetch 寄存器表
 

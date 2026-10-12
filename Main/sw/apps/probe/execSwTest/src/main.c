@@ -1,18 +1,18 @@
 /******************************************************************************
 *
-* @file main.c: execSwTest —— E7 的板上专项探针（前期研究版）
+* @file main.c: execSwTest —— 软件执行器板上吞吐的专项探针（前期研究版）
 *
-* @brief  E7 要的是「软件执行器各方程在板上的分方程像素吞吐」。本程序是它的
-*         第一版可运行骨架，先回答四个问题，数字进 E7 的开发日志：
+* @brief  目标是「软件执行器各方程在板上的分方程像素吞吐」。本程序是它的
+*         第一版可运行骨架，先回答四个问题：
 *
-*         1. VERIFY。SW3 的十一个整帧用例在板上跑一遍，整帧 CRC32 与
+*         1. VERIFY。十一个整帧用例在板上跑一遍，整帧 CRC32 与
 *            `lib/test/golden.txt` 逐行比。**这一条不过，后面所有数字都没有意义**：
 *            吞吐是拿一份没被证明正确的执行器量出来的。同时它把
 *            「板上执行器 == PC 执行器」这条判据钉死在同一个产物上。
 *         2. THR。逐方程量吞吐：每个用例在 FB0 与 FB1 上各测，
 *            只把 `exec_sw_run()` 包在计时区间里，命令构造、CRC、串口都在区间外。
 *            每轮独立打点（`board_cycles()` 差），多轮取最小并打出离差，
-*            这样「写 FB0 比写 FB1 慢」这类目的面差异不会被平均掉（E7 2.4 节）。
+*            这样「写 FB0 比写 FB1 慢」这类目的面差异不会被平均掉。
 *         3. CMP。S1 同类的混合命令表（整屏 FILL + HUD BLIT + 2000 个 12x12 色键 BLIT），
 *            量「整表的每像素成本」与单项负载的差，给折帧用。
 *         4. OVH。纯 NOP 的命令表：量命令表遍历与记录校验的固定开销，
@@ -20,7 +20,7 @@
 *
 *         2026-09-27 已完成注错判分收尾；E7_VERIFY_ONLY 跳过吞吐段。
 *         生产吞吐、折帧预算与产物身份已归档；`-Os` 与四像素展开保留为可选优化。
-*         口径、判据与切分见 `Engineering/TechReports/platform/09-软件执行器像素吞吐的板上复现.md`。
+*         口径与判据即上面四段的切分。
 *
 *         计时口径：`board_cycles()` 是 CLINT 低 32 位、1 tick = 10ns、42.9 秒回绕
 *         （bsp/include/board.h）。本程序每轮独立取两次读数相减（都在 42.9 秒内）。
@@ -55,7 +55,7 @@
 #define E7_VERIFY_ONLY 0
 #endif
 
-/* 色键字：与 SW3 的 cases.c 取同一个值，便于与 golden 对照。 */
+/* 色键字：与 lib/gfx 的 cases.c 取同一个值，便于与 golden 对照。 */
 #define KEY_COLOR       0x00123456u
 
 /* 源纹理的尺寸。**目的窗口不能超过源**：`dst_window()` 会把窗口的右边与下边
@@ -292,8 +292,8 @@ static void seed_cmp_tex(void)
 
 /* 帧缓冲内容：与坐标有关的渐变。性能负载不需要它的具体值，但写一遍是必须的：
    不初始化时 DDR 里的残留会让读改写型方程（ALPHA/ADD）的数字依赖上电状态。
-   注意**同一块内存只按一种格式铺一次**：本构型没有写缓冲（platform 第 05 章
-   T3/T6），写返回时已落到 DDR，但已装行的读会拿到旧值，先后铺两种格式就会
+   注意**同一块内存只按一种格式铺一次**：本构型没有写缓冲（cacheMechTest
+   的 T3/T6），写返回时已落到 DDR，但已装行的读会拿到旧值，先后铺两种格式就会
    混成一份不存在的输入。 */
 static void seed_fb(uint32_t base)
 {
@@ -311,7 +311,7 @@ static void seed_fb(uint32_t base)
 
 /* --- 1 VERIFY：十一个整帧用例对 golden.txt --------------------------------- */
 
-/* SW3 的期望值（sw/lib/test/golden.txt）。写成表而不是读文件：板上没有文件系统。 */
+/* 期望值（sw/lib/test/golden.txt）。写成表而不是读文件：板上没有文件系统。 */
 static const char *const g_case_name[GFX_CASE_N] = {
     "fill-screen", "blit-copy", "blit-key", "blit-alpha-pm",
     "blit-alpha-straight", "blit-add", "fill-const", "blit-mul",
@@ -1012,7 +1012,7 @@ int main(void)
         return 0;
     }
 
-    /* 扫描输出保持开启：E7 2.4 节要求量的是「扫描在跑」时的吞吐。
+    /* 扫描输出保持开启：要量的是「扫描在跑」时的吞吐。
        present 自己等掉一场，也把 FB0 设为当前扫描源。 */
     board_present(0);
 
@@ -1057,7 +1057,7 @@ int main(void)
     run_verify();
 
     if (!E7_VERIFY_ONLY) {
-        /* VERIFY 的 gfx_case_build 会把色键纹理改写成 SW3 的 64x64 纹理，
+        /* VERIFY 的 gfx_case_build 会把色键纹理改写成用例的 64x64 纹理，
            性能段必须重新铺受控输入，否则量到的是别人留下的数据。 */
         seed_tex(s_tex_src, SRC_W, SRC_H, SRC_SL, GFX_FMT_ARGB8888_PM, 0);
         seed_tex(s_tex_st, SRC_W, SRC_H, SRC_SL, GFX_FMT_ARGB8888_ST, 0);

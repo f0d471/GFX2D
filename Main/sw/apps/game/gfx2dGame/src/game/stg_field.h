@@ -1,32 +1,32 @@
 /******************************************************************************
 * @file stg_field.h: 弹幕场 —— 状态结构体与一帧的顺序
 *
-* @brief  sw 第 06 章 3.7~3.9 节的 B 批部分。场的全部状态在一个结构体里
+* @brief  场的全部状态在一个结构体里
 *         （四个池、发射器与替身宿主、随机数、自机探针、计数），没有模块级的可变全局；
 *         换段、切模式时整体重新初始化。
 *
-*         一帧的顺序（2.3 节「一帧的顺序」，是契约）：
+*         一帧的顺序（是契约）：
 *           ① 每个池一遍更新（上一帧打的移除标记在这一步移除）；
 *           ② 发射器按数组顺序：到点就在宿主当前的位置齐射，新弹追加在池尾、出生那一帧不移动；
 *              处理完一个发射器，它的宿主再移动；
-*           ③ 碰撞：自机判定点对敌弹（2.4 节）；
-*           ④ 组帧与活动元素计数（2.6 节，stg_field_compose）。
+*           ③ 碰撞：自机判定点对敌弹；
+*           ④ 组帧与活动元素计数（stg_field_compose）。
 *         第 k 帧的状态指第 k 帧第 ③ 步之后的池。stg_field_advance 做 ①②，
 *         stg_field_collide 做 ③，stg_field_step 是两者相加；弹型判据只跑 ①②。
 *
-*         给 SW8 的两个钩子（2.8 节）：
+*         给统计埋点与演示模式的两个钩子：
 *           受击  stg_field_set_hits(f, 0) 关掉受击，碰撞照做、擦弹照算；
-*           密度  stg_field_set_pressure(f, K) 驱动定寿命下落负载（sw 第 07 章 3.6 节）：
+*           密度  stg_field_set_pressure(f, K) 驱动定寿命下落负载（压力测试的负载）：
 *                 每帧在所有发射器之后，Bresenham 累加器 acc += K，每满 L 发一颗，任意连续 L 帧恰好 K 颗；
 *                 每颗在游戏区上沿外 10 像素出生、x = 8 + next % 385 像素（场的 xorshift32），
 *                 竖直向下 4 像素/帧，恰好活 L = 125 帧后出界回收。稳态下池里恰好 K 颗。
 *
-*         组帧（2.6 节 B 批；C 批起用游戏的素材与表面槽）：SET_CLIP 游戏区 400x480 -> 深色 FILL 铺满游戏区 ->
+*         组帧：SET_CLIP 游戏区 400x480 -> 深色 FILL 铺满游戏区 ->
 *         静止自机（COPY 加色键）-> 敌弹（按弹种编号的顺序，每个弹种分段调 gfx_blit_run，方程查弹种表，敌弹是 ALPHA）->
 *         SET_CLIP 全屏 -> END。表面槽由调用方在 stg_compose_cfg 里给，本文件不认识槽号。
 *         活动元素就是发出去的 Sprite 命令条数（至少一个像素落在裁剪框内），按池分开计，背景 FILL 不算。
 *
-*         替身宿主（B 批没有敌机）：位置每帧加 vx，移动后 x 落在 [x_lo, x_hi) 之外就把 vx 取反。
+*         替身宿主（没有敌机时给发射器一个会动的宿主）：位置每帧加 vx，移动后 x 落在 [x_lo, x_hi) 之外就把 vx 取反。
 ******************************************************************************/
 #ifndef GFX2D_STG_FIELD_H
 #define GFX2D_STG_FIELD_H
@@ -43,17 +43,17 @@
 
 #define STG_FIELD_EMIT_MAX  8u
 
-/* 自机（B 批静止）。尺寸常量见 sw 第 06 章 3.8 节。 */
+/* 自机（位置固定，不随输入移动）。 */
 #define STG_PLAYER_X        (200 * FX_ONE)
 #define STG_PLAYER_Y        (400 * FX_ONE)
 #define STG_PLAYER_R_HIT    (2 * FX_ONE)
 #define STG_PLAYER_R_GRAZE  (16 * FX_ONE)
 
-/* 组帧时的背景色（G2 的底色 #02040A）与分段缓冲的条数（16 字节一条，2 KB）。 */
+/* 组帧时的背景色（条带缓冲的底色 #02040A）与分段缓冲的条数（16 字节一条，2 KB）。 */
 #define STG_BG_ARGB         0x0002040Au
 #define STG_DRAW_CHUNK      128u
 
-/* 定寿命下落负载（sw 第 07 章 3.6 节）。寿命 L = (480 + 2 × 10) 像素 / 4 像素每帧 = 125 帧。 */
+/* 定寿命下落负载（压力测试）。寿命 L = (480 + 2 × 10) 像素 / 4 像素每帧 = 125 帧。 */
 #define STG_PRESS_LIFE      125u
 #define STG_PRESS_VY        (4 * FX_ONE)
 #define STG_PRESS_Y0        (-STG_MARGIN_PX * FX_ONE)
@@ -94,7 +94,7 @@ typedef struct {
     uint32_t player_key;                /* 色键 */
 } stg_compose_cfg;
 
-/* 一帧发出的活动元素（2.6 节），按池分开。B 批只有敌弹与自机。 */
+/* 一帧发出的活动元素，按池分开。场里只有敌弹与自机。 */
 typedef struct {
     uint32_t ebullet;
     uint32_t pbullet;
@@ -115,7 +115,7 @@ int  stg_field_add_emitter(stg_field *f, const stg_emit_rec *rec, int32_t x, int
 /* ①②：池更新、发射与宿主移动。 */
 void stg_field_advance(stg_field *f);
 
-/* ③：自机判定点对敌弹（2.4 节），计数累加进 hits、grazes，本帧的写进 frame_hit。 */
+/* ③：自机判定点对敌弹，计数累加进 hits、grazes，本帧的写进 frame_hit。 */
 void stg_field_collide(stg_field *f);
 
 /* ①②③。 */

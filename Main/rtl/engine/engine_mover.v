@@ -42,13 +42,13 @@ module engine_mover #(
     output wire                  band_perf_rd,
     output wire                  band_perf_wr,
 
-    // I2：像素读描述符（几何层 → 搬运层）
+    // 像素读描述符（几何层 → 搬运层）
     input  wire [31:0]           rd_addr,      // 字节地址，16 字节对齐
     input  wire [11:0]           rd_bytes,     // 字节数，16 的倍数
     input  wire [1:0]            rd_buf,       // 落到哪块行缓冲
     input  wire [3:0]            rd_cidx,      // 命令索引，错误归属
-    input  wire                  rd_tex,       // 源在片上 TEX（G1）：描述符入口选路
-    input  wire                  rd_band,      // G2：目的在 BAND；ENABLE_BAND=0 时忽略
+    input  wire                  rd_tex,       // 源在片上 TEX：描述符入口选路
+    input  wire                  rd_band,      // 目的在 BAND；ENABLE_BAND=0 时忽略
     input  wire                  rd_valid,
     output wire                  rd_ready,
 
@@ -69,7 +69,7 @@ module engine_mover #(
     input  wire [1:0]            tx_stat_buf,
     input  wire                  tx_busy,       // TEX 描述符在途（受理起到状态脉冲止）
 
-    // I7：命令取数描述符（控制层 → 搬运层），优先于像素读
+    // 命令取数描述符（控制层 → 搬运层），优先于像素读
     input  wire                  fd_instance,
     output wire                  fs_instance,
     output wire                  rd_stat_instance,
@@ -79,7 +79,7 @@ module engine_mover #(
     input  wire                  fd_valid,
     output wire                  fd_ready,
 
-    // I3：读流（搬运层 → 计算阵列）
+    // 读流（搬运层 → 计算阵列）
     output wire [127:0]          rs_tdata,     // 像素读流，进行缓冲
     output wire [15:0]           rs_tkeep,
     output wire                  rs_tlast,
@@ -91,24 +91,24 @@ module engine_mover #(
     output wire                  fs_tlast,
     output wire                  fs_tvalid,
     input  wire                  fs_tready,
-    output wire [3:0]            fs_cidx,      // 回显 fd_cidx；批量取数须按拍序在 B5 重建记录索引
+    output wire [3:0]            fs_cidx,      // 回显 fd_cidx；批量取数须按拍序在控制层重建记录索引
 
-    // I2：写描述符（几何层 → 搬运层）
+    // 写描述符（几何层 → 搬运层）
     input  wire [31:0]           wr_addr,
     input  wire [11:0]           wr_bytes,
     input  wire [3:0]            wr_cidx,
     input  wire                  wr_last_row,  // 本命令的最后一行
-    input  wire                  wr_band,      // G2：像素结果写入 BAND
+    input  wire                  wr_band,      // 像素结果写入 BAND
     input  wire                  wr_valid,
     output wire                  wr_ready,
 
-    // I4：写流（计算阵列 → 搬运层）
+    // 写流（计算阵列 → 搬运层）
     input  wire [127:0]          ws_tdata,     // 每拍 4 像素，X 字节最高位 = 1 表示不写
     input  wire [15:0]           ws_tkeep,     // 写流没有 tlast 口：本层按描述符拍数打
     input  wire                  ws_tvalid,
     output wire                  ws_tready,
 
-    // BAND 条带面控制口（G2 直接控制，G3 接帧级循环）
+    // BAND 条带面控制口（band 数据面直接控制，顶层接帧级循环）
     input  wire                  band_start,
     input  wire                  band_flush,
     output wire                  band_start_ready,
@@ -126,10 +126,10 @@ module engine_mover #(
     output wire                  band_error,
     output wire [3:0]            band_error_code,
 
-    // I7：状态（搬运层 → 控制层）
+    // 状态（搬运层 → 控制层）
     output wire                  rd_stat_valid, // 一拍脉冲，负载同拍有效
     output wire                  rd_stat_err,   // 1 = 读回 rresp 非 OKAY
-    output wire                  rd_stat_fetch, // 显式来源：1 = 命令取数（G1，控制层不再按 FE 状态猜）
+    output wire                  rd_stat_fetch, // 显式来源：1 = 命令取数（控制层不再按 FE 状态猜）
     output wire [3:0]            rd_stat_cidx,
     output wire [1:0]            rd_stat_buf,
     output wire                  wr_stat_valid,
@@ -137,7 +137,7 @@ module engine_mover #(
     output wire [3:0]            wr_stat_cidx,
     output wire                  wr_stat_last_row,
 
-    // I7：排空与超时
+    // 排空与超时
     input  wire                  drain_req,     // 电平请求
     output wire                  drain_busy,
     output wire                  drain_done,    // 一拍脉冲
@@ -293,12 +293,12 @@ module engine_mover #(
 `else
     wire        rd_gate_done = (rd_status_seen && rd_stream_done);
 `endif
-    // 排空期间挡新提交。TEX 流在途时可预发 DDR 请求，但 I3 保持单流所有者。
+    // 排空期间挡新提交。TEX 流在途时可预发 DDR 请求，但读流保持单流所有者。
     wire        rd_block     = (rd_busy && !rd_gate_done) || drain_hold || b_xfer || b_start_fire || b_flush_fire;
     wire        rd_open      = !rd_block;
 
     // 仲裁：命令取数优先于像素读；像素读按 rd_tex/rd_band 在描述符入口选路。
-    // TEX/BAND 在 DDR 读流收尾后受理；返回流待数据与状态收尾后才交给 I3，
+    // TEX/BAND 在 DDR 读流收尾后受理；返回流待数据与状态收尾后才交给读流，
     wire        rd_pick_bg    = b_rd_valid;
     wire        rd_pick_fd    = !rd_pick_bg && fd_valid;
     wire        rd_pick_tex   = !fd_valid && rd_valid && rd_tex && !rd_is_band;
@@ -325,7 +325,7 @@ module engine_mover #(
     assign      tx_cidx       = rd_cidx;
     assign      tx_valid      = tx_fire;
 
-    // I3 的源流先于目的流，命令流另走 fs；上下文各带各的。
+    // 读核的源流先于目的流，命令流另走 fs；上下文各带各的。
     wire [127:0] core_rs_tdata;
     wire [15:0]  core_rs_tkeep;
     wire         core_rs_tlast, core_rs_tvalid, core_rs_tready;
@@ -545,7 +545,7 @@ module engine_mover #(
     reg  [TMO_WIDTH-1:0] rd_tmo, wr_tmo;
     reg                  rd_tmo_rep, wr_tmo_rep;
 
-    // 「握手」两侧都算：本层一侧与 AXI 一侧；TEX 的描述符/流/状态算读方向（G1）
+    // 「握手」两侧都算：本层一侧与 AXI 一侧；TEX 的描述符/流/状态算读方向
     wire rd_axi_hs = (m_axi_arvalid && m_axi_arready) || (m_axi_rvalid && m_axi_rready);
     wire wr_axi_hs = (m_axi_awvalid && m_axi_awready) || (m_axi_wvalid && m_axi_wready)
                   || (m_axi_bvalid && m_axi_bready);

@@ -18,7 +18,7 @@ module engine_pix (
     input  wire         clk,
     input  wire         rst,            // 同步复位，与几何层、搬运层同一个
 
-    // I5：每行边带（几何层 → 本层）
+    // 每行边带（几何层 → 本层）
     input  wire [15:0]  sb_row,         // 命令内行号，最低位 = 这一行用的半
     input  wire [10:0]  sb_npx,         // 本行像素数
     input  wire [7:0]   sb_beats,       // 本行写拍数（拆段时是两段之和）
@@ -34,9 +34,9 @@ module engine_pix (
     input  wire         sb_read_dst,    // 这一行读不读目的
     input  wire         sb_valid,
     output wire         sb_ready,
-    output wire [1:0]   row_free,       // I5 的反向：第 h 半两块都空着
+    output wire [1:0]   row_free,       // 边带的反向：第 h 半两块都空着
 
-    // I3：读流（搬运层 → 本层）
+    // 读流（搬运层 → 本层）
     input  wire [127:0] rs_tdata,
     input  wire [15:0]  rs_tkeep,       // 对齐描述符恒全 1，不用
     input  wire         rs_tlast,       // 标描述符边界而不是行边界，不用
@@ -44,13 +44,13 @@ module engine_pix (
     output wire         rs_tready,      // 恒 1
     input  wire [1:0]   rs_buf,         // {源/目的, 半}
 
-    // I4：写流（本层 → 搬运层），没有 tlast
+    // 写流（本层 → 搬运层），没有 tlast
     output reg  [127:0] ws_tdata,       // 每拍 4 像素，X 字节最高位 = 1 表示不写
     output wire [15:0]  ws_tkeep,
     output reg          ws_tvalid,
     input  wire         ws_tready,
 
-    // I8：色键跳过事件（B5 的 PERF_KEY_SKIP 计数源）
+    // 色键跳过事件（控制层 PERF_KEY_SKIP 计数源）
     // 与输出写流同拍寄存色键掩码，写流握手时才计数。
     output wire [3:0]   perf_key_lanes,
     output wire         perf_key_valid

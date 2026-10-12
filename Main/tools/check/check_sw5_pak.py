@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""独立校验素材包（SW5 判据：打包与解包不能互相证明）。
+"""独立校验素材包（判据：打包与解包不能互相证明）。
 
 这是**另一份实现**：它自己按 assetpak 的字节格式解包、自己按 manifest 从 PNG
 与字库文本重算每一项的像素字节，再与 .pak 逐字节比。
 它不 import `pack_assets.py`，也不复用它的任何函数——两边同一个错误才能被看见
-（spec 第 01 章 4.1 节的教训）。
+（工具不能自己判自己的教训）。
 
     python3 Main/tools/check/check_sw5_pak.py --pak Main/assets/build/assets.pak
     python3 Main/tools/check/check_sw5_pak.py --pak F.pak --assets Main/assets

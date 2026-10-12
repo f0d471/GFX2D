@@ -14,25 +14,25 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 | `hdmi/` | `rtl/hdmi/hdmi_tx.v` 整条通路 | 正常 + 2 个注错 |
 | `apb_probe/` | `rtl/bus/apb_probe.v` | 正常 + 2 个注错 |
 | `axi_probe/` | `rtl/bus/axi_probe_master.v` 与 `rtl/vendor/axi_mux/Axi_Mux.v`，两个主机并发 | 正常 + 4 个注错。需要 `EFINITY_HOME` 指向 Efinity 安装目录（取 `EFX_SRL8` 原语模型） |
-| `axi_mux_guard/` | `rtl/bus/axi_mux_guard.v` 与 `Axi_Mux`（X3，三个主机：扫描替身、引擎替身、CPU 替身） | 读、写两个方向各一组：14 个用例（11 正常/对照 + 3 注错），加两项保护开关逐项比对与一项「inject_wlast 的 FAIL 来自 wlast_err」检查，共 17 项，实验 E5 2.2 节。同样需要 `EFINITY_HOME` |
-| `display/` | `rtl/display/` 的扫描输出：`display_fifo`（厂商异步 FIFO 的封装）与 `display_top` | 两个测试台。`tb_fifo_semantics`：正常 + `inject_no_reset`；`tb_display`：`image`（含像素时钟 ±0.5% 两组）、`swap`、`inflight`、`level`、`starve`、`snapshot`、`corerst`、`image_full`（整帧 640×480，用 `FULL=1` 打开）与 7 个注错。见 [display 第 01 章](../../Engineering/TechReports/display/01-从DDR3帧缓冲到HDMI的扫描输出.md) 3.7 节。只有明文 RTL，不需要 `EFINITY_HOME` |
-| `engine/blend/` | `rtl/engine/engine_blend.v`（引擎 P1 B1 的单通道混合核） | `exhaustive`（六个方程全定义域 50462976 个向量，方程用不到的输入跟着变）、`golden`（抽样 1024 条对 `check_round255.c` 导出的金标准）、`stall`（随机插入 `en` 拉低的停顿拍）与 5 个注错。全量一次约 6 分钟。只有明文 RTL，不需要 `EFINITY_HOME` |
-| `engine/mover/` | `rtl/engine/engine_mover.v`（引擎 P1 B2 的搬运层）经仓内 `Axi_Mux`（S1）接从机 | `normal`（读侧仲裁、读流分发与上下文、写掩码、状态里的命令索引与末行标记、在途契约、地址与突发约束）、`drain`（读、写突发中途各排空一次，控制层复位与软复位各一组；请求完成后继续举着时 `drain_done` 只打一次、请求撤下之前不收新提交）、`err`（读回、写响应 SLVERR 各一例）、`timeout`（从机按住超过门限）与 5 个注错，另加从机定时模式的回归 `slave_timed`（`tb_slave_timed.v`，直连从机、不经过被测）。需要 `EFINITY_HOME`（`Axi_Mux` 例化 `EFX_SRL8`） |
-| `engine/geom/` | `rtl/engine/engine_geom.v`（引擎 P1 B3 的几何层）。同目录另有 B3 前期研究的探针 `probe_geom.v`（`probe_geom_intersect`、`probe_geom_d7`、`probe_geom_rowiter`），保留为回归 | 期望值全部由独立模型 `tools/check/geom_model.py` 现算，测试台只做「驱动 + 比对」：定向用例 34 条、159 条向量里几何层见到的 59 条命令、十一整帧用例的 17 条命令，合计 1020 + 338 + 5224 条记录逐字段比、每个描述符过 D3 规矩 1、D7 的读源/读目的有无、零面积命令的完成脉冲与命令索引；握手监视器查多发的描述符与非空命令的 `cmd_done`，B4 行缓冲替身查每一行都开在空着的那一半上。另加 `+STALL`（三个方向各压反压）与 `+RFSTALL`（行缓冲替身的排空拉长到 23 拍），判据是序列与恒 ready 时相同。五个注错，探针 14/14，全套 27/27。不需要 `EFINITY_HOME`。见 `../../Engineering/TechReports/engine/03-几何层.md` |
-| `engine/pix/` | `rtl/engine/engine_pix.v`（引擎 P1 B4 的计算阵列与片上缓存）。同目录另有 B4 前期研究的探针 `probe_pix.v`，保留为回归 | 一行一行的单元测试 418 行 / 10216 个槽与五个注错；乒乓测试台 874 行 / 28340 个槽（行与行之间不等，三种写流下游）与两个注错；B1~B4 真实通路（几何层、计算阵列、搬运层、两个 DMA 核、随机反压从机）30 条命令 512 KiB 逐字对软件执行器；跨命令写后读一组（等写回必须对、不等必须红）；研究探针 9 项，全套 25/25。不需要 `EFINITY_HOME`。见 `../../Engineering/TechReports/engine/04-计算阵列与片上缓存.md` |
-| `engine/ctrl/` | B5 的控制层：研究探针 `probe_check.v`（保留为回归）+ 正式单元仿真 `tb_engine_top.v`（`rtl/engine/engine_top.v` 全链经 APB 提交，从机是 `axi_ram_model`）| 探针：定向 54 条 × 三结构全符、随机 3000 组互比、预计算位等价。正式：159 条一致性向量端到端逐条对错误三元组与内存、定向 D1~D16（取数边界/总线错误/超时/软复位/写后读/首错顺序/PERF 与 APB 对账），6576 项检查 0 错；两个注错构建（对调 space/format、关掉逐条回退）各自见红。不需要 `EFINITY_HOME`。见 `../../Engineering/TechReports/engine/05-控制层.md` |
-| `engine/frame/` | B6 的整帧仿真：`tb_engine_frame.v`（`engine_top` 经 APB 提交整张命令表，从机 `axi_ram_model` 带随机反压，4 MiB 存储，其中用例窗口由各用例 `cnt.hex` 指定）| SW3 十一个整帧金标准（内存逐 128 位对软件执行器、帧缓冲 CRC 对 `golden.txt` 11/11）+ SW6 场景 A 连续两帧（`tools/check/sw6_frames_dump.c` 从游戏本体的 `sw6_scene_a.c` 组表导出）+ 定时从机弹幕性能（16 颗 16×16 ALPHA，`PERF_BUSY` 逐颗对账）+ 从机 SLVERR 窗口注错；计数器对账 `PIXEL == pixel_total − src_oob`、`RD/WR_BEAT`、`RD/WR_BURST` 对从机观测值。不需要 `EFINITY_HOME`。见 `../../Engineering/TechReports/engine/06-顶层集成与上板.md` |
+| `axi_mux_guard/` | `rtl/bus/axi_mux_guard.v` 与 `Axi_Mux`（X3，三个主机：扫描替身、引擎替身、CPU 替身） | 读、写两个方向各一组：14 个用例（11 正常/对照 + 3 注错），加两项保护开关逐项比对与一项「inject_wlast 的 FAIL 来自 wlast_err」检查，共 17 项。同样需要 `EFINITY_HOME` |
+| `display/` | `rtl/display/` 的扫描输出：`display_fifo`（厂商异步 FIFO 的封装）与 `display_top` | 两个测试台。`tb_fifo_semantics`：正常 + `inject_no_reset`；`tb_display`：`image`（含像素时钟 ±0.5% 两组）、`swap`、`inflight`、`level`、`starve`、`snapshot`、`corerst`、`image_full`（整帧 640×480，用 `FULL=1` 打开）与 7 个注错。只有明文 RTL，不需要 `EFINITY_HOME` |
+| `engine/blend/` | `rtl/engine/engine_blend.v`（单通道混合核） | `exhaustive`（六个方程全定义域 50462976 个向量，方程用不到的输入跟着变）、`golden`（抽样 1024 条对 `check_round255.c` 导出的金标准）、`stall`（随机插入 `en` 拉低的停顿拍）与 5 个注错。全量一次约 6 分钟。只有明文 RTL，不需要 `EFINITY_HOME` |
+| `engine/mover/` | `rtl/engine/engine_mover.v`（搬运层）经仓内 `Axi_Mux`（S1）接从机 | `normal`（读侧仲裁、读流分发与上下文、写掩码、状态里的命令索引与末行标记、在途契约、地址与突发约束）、`drain`（读、写突发中途各排空一次，控制层复位与软复位各一组；请求完成后继续举着时 `drain_done` 只打一次、请求撤下之前不收新提交）、`err`（读回、写响应 SLVERR 各一例）、`timeout`（从机按住超过门限）与 5 个注错，另加从机定时模式的回归 `slave_timed`（`tb_slave_timed.v`，直连从机、不经过被测）。需要 `EFINITY_HOME`（`Axi_Mux` 例化 `EFX_SRL8`） |
+| `engine/geom/` | `rtl/engine/engine_geom.v`（几何层）。同目录另有前期研究的探针 `probe_geom.v`（`probe_geom_intersect`、`probe_geom_d7`、`probe_geom_rowiter`），保留为回归 | 期望值全部由独立模型 `tools/check/geom_model.py` 现算，测试台只做「驱动 + 比对」：定向用例 34 条、159 条向量里几何层见到的 59 条命令、十一整帧用例的 17 条命令，合计 1020 + 338 + 5224 条记录逐字段比、每个描述符过 16 字节对齐/不跨 4KB 的规矩、读写避让的读源/读目的有无、零面积命令的完成脉冲与命令索引；握手监视器查多发的描述符与非空命令的 `cmd_done`，行缓冲替身查每一行都开在空着的那一半上。另加 `+STALL`（三个方向各压反压）与 `+RFSTALL`（行缓冲替身的排空拉长到 23 拍），判据是序列与恒 ready 时相同。五个注错，探针 14/14，全套 27/27。不需要 `EFINITY_HOME` |
+| `engine/pix/` | `rtl/engine/engine_pix.v`（计算阵列与片上缓存）。同目录另有前期研究的探针 `probe_pix.v`，保留为回归 | 一行一行的单元测试 418 行 / 10216 个槽与五个注错；乒乓测试台 874 行 / 28340 个槽（行与行之间不等，三种写流下游）与两个注错；从几何层到搬运层的真实通路（几何层、计算阵列、搬运层、两个 DMA 核、随机反压从机）30 条命令 512 KiB 逐字对软件执行器；跨命令写后读一组（等写回必须对、不等必须红）；研究探针 9 项，全套 25/25。不需要 `EFINITY_HOME` |
+| `engine/ctrl/` | 控制层：研究探针 `probe_check.v`（保留为回归）+ 正式单元仿真 `tb_engine_top.v`（`rtl/engine/engine_top.v` 全链经 APB 提交，从机是 `axi_ram_model`）| 探针：定向 54 条 × 三结构全符、随机 3000 组互比、预计算位等价。正式：159 条一致性向量端到端逐条对错误三元组与内存、定向判据（取数边界/总线错误/超时/软复位/写后读/首错顺序/PERF 与 APB 对账），6576 项检查 0 错；两个注错构建（对调 space/format、关掉逐条回退）各自见红。不需要 `EFINITY_HOME` |
+| `engine/frame/` | 整帧仿真：`tb_engine_frame.v`（`engine_top` 经 APB 提交整张命令表，从机 `axi_ram_model` 带随机反压，4 MiB 存储，其中用例窗口由各用例 `cnt.hex` 指定）| 十一个整帧金标准（内存逐 128 位对软件执行器、帧缓冲 CRC 对 `golden.txt` 11/11）+ 基础 Demo 场景 A 连续两帧（`tools/check/sw6_frames_dump.c` 从游戏本体的 `sw6_scene_a.c` 组表导出）+ 定时从机弹幕性能（16 颗 16×16 ALPHA，`PERF_BUSY` 逐颗对账）+ 从机 SLVERR 窗口注错；计数器对账 `PIXEL == pixel_total − src_oob`、`RD/WR_BEAT`、`RD/WR_BURST` 对从机观测值。不需要 `EFINITY_HOME` |
 
-`engine/band/` 是 G2 正式数据面验证，默认 `run.sh` 共 17 项：9 正常、8 定向变异。
+`engine/band/` 是条带缓冲的正式数据面验证，默认 `run.sh` 共 17 项：9 正常、8 定向变异。
 真实全部数据面核对软件金标准，含状态/取消/超时/重试、空条带和 8/16/32 行参数。
-研究探针仍由 `python3 Main/tools/check/g2_research.py` 独立复现。G3 已启用主帧级 BAND，完整控制验证见 engine/stripctl。
+研究探针仍由 `python3 Main/tools/check/g2_research.py` 独立复现。主帧级 BAND 已启用，完整控制验证见 engine/stripctl。
 端口、资源、周期与边界见 [band/README](engine/band/README.md)。
 
-| `engine/stripctl/` | G3 完整条带控制、生产分桶和软件执行器 | 两套各 10000 张、软件错误边界、16/32 行完整帧、FETCH/总线/排空/复位、4 软件与 3 RTL 变异；入口 `tools/check/check_g3_stripctl.py`，证据见目录 README |
+| `engine/stripctl/` | 完整条带控制、生产分桶和软件执行器 | 两套各 10000 张、软件错误边界、16/32 行完整帧、FETCH/总线/排空/复位、4 软件与 3 RTL 变异；入口 `tools/check/check_g3_stripctl.py`，证据见目录 README |
 
 ## 规则
 
-G1 的 `engine/tex/` 为正式 TEX 验证：APB 全窗口、两种读延迟、TEX/DDR 请求重叠
+`engine/tex/` 为正式 TEX（片上纹理）验证：APB 全窗口、两种读延迟、TEX/DDR 请求重叠
 与流隔离、PERF、错误、复位及四个定向变异，共 6/6。研究探针另行保留，
 入口和证据见 [tex/README](engine/tex/README.md)。
 
@@ -63,10 +63,10 @@ G1 的 `engine/tex/` 为正式 TEX 验证：APB 全窗口、两种读延迟、TE
 | `engine/mover/inject_nodrain` | 排空旁路（`-DINJ_DRAIN_BYPASS`），排空期不帮忙收读流、也不补哑拍 | FAIL，两个方向都停在忙态，排空完成等不到 |
 | `engine/mover/inject_nogate_wr` | 去掉写方向的在途门控（`-DINJ_NO_GATE_WR`） | FAIL，上一笔写还没结束就接受了下一个写描述符 |
 | `engine/mover/inject_drain_level` | 排空按电平重进（`-DINJ_DRAIN_LEVEL`），且只在排空态里挡提交 | FAIL，请求举着时 `drain_done` 打了两次，退出排空那一拍接受了新的读描述符 |
-| `engine/mover/inject_no_tlast` | 正常写流不打 `tlast`（`-DINJ_NO_TLAST`，D48 之前靠计算阵列给而它没给） | FAIL，写核进 `DROP_DATA`，吞掉下一笔的写流 |
+| `engine/mover/inject_no_tlast` | 正常写流不打 `tlast`（`-DINJ_NO_TLAST`，早期版本靠计算阵列给而它没给） | FAIL，写核进 `DROP_DATA`，吞掉下一笔的写流 |
 | `engine/geom/inject_nosrc` | `-DINJ_SKIP_SURF`：求交跳过第五项（源表面） | FAIL，逐条比对见红：矩形变大，边带、读描述符、写描述符都不同 |
 | `engine/geom/inject_no4k` | `-DINJ_NO_SPLIT`：跨 4KB 不拆，一个描述符盖过页边界 | FAIL，`RULE1 ... crosses 4KB` |
-| `engine/geom/inject_alpha` | `-DINJ_ALPHA_AS_COPY`：ALPHA 也按 COPY 走「不读目的」的避让 | FAIL，`MISMATCH sideband read-dst vs D7`，读描述符少一半 |
+| `engine/geom/inject_alpha` | `-DINJ_ALPHA_AS_COPY`：ALPHA 也按 COPY 走「不读目的」的避让 | FAIL，`sideband read-dst` 判定不一致，读描述符少一半 |
 | `engine/geom/inject_extra` | `-DINJ_COPY_READ`：COPY 也发读目的描述符（边带仍说不读） | FAIL，握手监视器的 `PROTO handshake count`（消费循环看不见多发的描述符） |
 | `engine/geom/inject_norf` | `-DINJ_ROW_NOFREE`：行开始之前不看 `row_free`，配 `+RFSTALL` | FAIL，行缓冲替身的 `BUFERR ... started on busy half` |
 | `engine/pix` 的五个注错 | `-DINJ_ROT_OFF`、`-DINJ_SKIP_KEY`、`-DINJ_DROP_MASK`、`-DINJ_EN_NOTREADY`、`-DINJ_CORE_NOEN` | FAIL，各自红在对应的像素比对或协议检查上；`-DINJ_EN_NOTREADY`/`-DINJ_CORE_NOEN` 在恒 ready 的测试台上必须不红 |
@@ -83,8 +83,6 @@ G1 的 `engine/tex/` 为正式 TEX 验证：APB 全窗口、两种读延迟、TE
 写方向 `wr_aggr_guard`/`wr_aggr_noguard`/`wr_contract` 在原从机上、`wr_q4_*` 三例在写队列 4 的从机上各跑一组，
 全部期望 PASS，并由 `run.sh` 比对保护开、关两例的统计必须逐项相同（写方向上 guard 没有可观测的作用，
 写方向的等待靠措施一）。全部全链路用例都要求从机的 `wlast_err` 为 0。
-口径、实测值与写方向结论的订正见
-[platform 第 06 章](../../Engineering/TechReports/platform/06-Axi_Mux三端口仲裁与SoC防饿死保护.md)。
 
 ## 范围
 
@@ -96,27 +94,27 @@ DDR3 控制器与官方的 `axi_interconnect_beta` 是加密 RTL，SoC 网表里
 它的 `ADDR_STALL_MAX`、`RD_QUEUE`、`WR_QUEUE`（读、写地址队列深度）与 `hold_ar`/`hold_aw`
 都带默认值，默认值保持原来只有随机反压的行为不变；
 改它之后用到它的仿真都要复跑（2026-09-19 加 `WR_QUEUE` 与 `wlast_err` 之后，`axi_probe` 五个用例的日志与改前逐字节相同；
-2026-09-30 引擎 B2 补四样之后，`axi_probe`、`axi_mux_guard`、`display` 三个套件的完整输出与改前逐字节相同；
+2026-09-30 搬运层补四样之后，`axi_probe`、`axi_mux_guard`、`display` 三个套件的完整输出与改前逐字节相同；
 同日复核修了定时模式的三处，只动 `TIMED=1` 的分支，三个套件重跑仍逐字节相同）。
 
-2026-09-30（引擎 P1 B2，D13）补的四样，全部是新增参数、默认值保持原行为：
+2026-09-30 搬运层补的四样，全部是新增参数、默认值保持原行为：
 
 | 参数 | 默认 | 作用 |
 | --- | --- | --- |
 | `MEM_WORDS` | 4096 | 存储字数，地址取模改用它；整帧用例的设备内存 4 MiB 时取 262144 |
 | `STRB_EN` | 0 | 0 按整字写（原行为）；1 按 `wstrb` 逐字节写。`wstrb` 是新增端口，默认不读它，所以既有测试台不接这个端口也保持原行为 |
 | `ERR_LO`/`ERR_HI` | `0xFFFF_FFFF`/`0` | 落在这个字节区间的突发回 `SLVERR`，默认值让判断恒为假 |
-| `TIMED` | 0 | 0 随机反压（原行为）；1 定时模式，用 `RD_LAT=23 RD_BUB=12 WR_BUB=6 B_LAT=1`（E4 校准值）：第一个 R 握手在 AR 握手之后第 `RD_LAT+2` 拍，W 通道每收满 `WR_BUB` 拍空一拍，最后一拍之后 `B_LAT` 拍出写响应。与前期研究校准用的从机逐拍相同，回归是 `engine/mover/tb_slave_timed.v` |
+| `TIMED` | 0 | 0 随机反压（原行为）；1 定时模式，用 `RD_LAT=23 RD_BUB=12 WR_BUB=6 B_LAT=1`（板上实测校准值）：第一个 R 握手在 AR 握手之后第 `RD_LAT+2` 拍，W 通道每收满 `WR_BUB` 拍空一拍，最后一拍之后 `B_LAT` 拍出写响应。与前期研究校准用的从机逐拍相同，回归是 `engine/mover/tb_slave_timed.v` |
 
 从机发现 WLAST 与突发长度对不上时打印 `MODEL: wlast mismatch` 并把 `wlast_err` 加一，
 用到它的测试台必须把 `wlast_err` 非零判为失败：只打印不计错，会让一个把写通路弄死锁的主机替身看起来像「CPU 被饿死」。
 
 产物在各子目录的 `build/` 下，不进版本库。
 
-G4 的真实游戏整帧与同板证据在 [engine/g4](engine/g4/README.md)：
+整机条带接入的真实游戏整帧与同板证据在 [engine/g4](engine/g4/README.md)：
 check_g4_integration.py --rtl 使用 8 MiB 随机反压模型，检查 TEX/BAND、
 整帧可见区与 padding、DDR/PERF，并要求三种变异见红。
 
 绘制前端的方案研究在 [engine/frontend](engine/frontend/README.md)：
-1680 份真实状态的阶段记录计数与生产构造观察点等价，以及既有 G4 CSV 的分型回归。
+1680 份真实状态的阶段记录计数与生产构造观察点等价，以及既有整机 CSV 的分型回归。
 目前没有新增前端 RTL、板测或性能验收结果。

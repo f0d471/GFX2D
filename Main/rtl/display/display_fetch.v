@@ -126,7 +126,7 @@ module display_fetch #(
     // 对 SWAP_REQ 的任意写：写 1 置请求，写 0 撤销
     wire swap_wr_any = access & pwrite & (paddr == A_SWAPREQ);
 
-    // 配置寄存器（影子），生效值在「场起始」那一拍锁存（D9）
+    // 配置寄存器（影子），生效值在「场起始」那一拍锁存
     reg        en_sh, src_sh, clear_pulse;
     reg [31:0] back_sh;
     reg        swap_req_sh;
@@ -208,7 +208,7 @@ module display_fetch #(
     //     它还有一个结构上的作用——只比 snap_sync[1] 的话第 0 级就成了死端，
     //     综合会把两级折成一条 EFX_SRL8 移位链，同步器的第一级不再是独立触发器
     //     （同一份设计里 fs_sync 因为两级都被用到才保持成两个带 async_reg 的 EFX_FF；
-    //      网表核对见 TechReports display 第 01 章 5.2 节）。用上第 0 级就折不掉。
+    //      上板网表核对过两级没有被折链）。用上第 0 级就折不掉。
     //   snap_go：把锁存再推后一拍。快照数据总线是一条跨域的组合路径，
     //     SDC 把两个时钟切开了、STA 不查它，这样从像素侧那个边沿算起有三个 core 周期的建立时间。
     //     `& ~snap_go` 不能省：snap_ack 要到锁存那一拍才更新，在那之前 snap_new 一直成立，
@@ -248,7 +248,7 @@ module display_fetch #(
     // in_flight / ar_valid 判断要不要进 S_DRAIN 的。若同一拍既 fs_event 又 can_issue，
     // 就会一边把 ar_valid 拉起、一边因为「当时没有在途也没有挂起」直接跳过排空去复位 FIFO；
     // 那笔 AR 随后才被接走，它的拍正好落在 S_RUN 恢复之后，进新场的队头——
-    // 这就是 D7 要防的那件事，由清空动作自己造出来。
+    // 这就是场起始清空要防的那件事，由清空动作自己造出来。
     // 触发条件很窄（本场还有行没取 + 恰好在 fs_event 那一拍空闲），但那正是欠载自愈的场景。
     wire can_issue;
 `ifdef INJ_INFLIGHT2
@@ -334,7 +334,7 @@ module display_fetch #(
             end
 `endif
 
-            // SWAP_REQ 的请求位：软件写它（写 0 撤销），场起始那一刻锁存并清零（D9）
+            // SWAP_REQ 的请求位：软件写它（写 0 撤销），场起始那一刻锁存并清零
 `ifdef INJ_SWAP_NOW
             if (swap_wr_any)
                 swap_req_sh <= 1'b0;      // 注错：请求位不再由软件置起
@@ -343,11 +343,11 @@ module display_fetch #(
                 swap_req_sh <= pwdata[0];
 `endif
 
-            // ---- 场起始清空的六步（D7）----
+            // 场起始清空的六步
             case (state)
                 S_RUN: begin
                     if (fs_event) begin
-                        // 第一步：停发新读，并锁存这一场要用的配置（D9）
+                        // 第一步：停发新读，并锁存这一场要用的配置
                         lat_en   <= en_sh;
                         lat_src  <= src_sh;
                         lat_back <= back_sh;
@@ -355,7 +355,7 @@ module display_fetch #(
                         swap_req_sh <= 1'b0;
                         // 第一步之后要等的那一笔：已经在途的，或者地址已经拉高、还没被接走的。
                         // ar_valid 挂起时不能直接去复位：那一笔迟早会被接走，然后它的拍会
-                        // 流进新场的队头——正是 D7 要防的那件事。
+                        // 流进新场的队头——正是先排空在途要防的那件事。
                         // 注错 NO_DRAIN：跳过第二步，在途那笔剩下的拍会落进新场的队头
 `ifdef INJ_NO_DRAIN
                         state <= S_RESET;
@@ -542,7 +542,7 @@ module display_fetch #(
     // ddrBurstProbe 会往 0x00C 写，报 PSLVERROR 有触发总线异常的风险。
     assign pslverr = access & (pwrite ? ~(wr_legal | (paddr == A_FRONT)) : ~hit);
 
-    // APB 写（影子寄存器；生效时刻见 D9）
+    // APB 写（影子寄存器；场起始那一拍锁存生效）
     always @(posedge clk) begin
         if (rst) begin
             en_sh       <= 1'b0;

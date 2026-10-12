@@ -1,13 +1,13 @@
 /******************************************************************************
 * @file check.c: 记录校验与表面谓词
 *
-* @brief  spec 第 02 章规范条款 §5 固定了十步检查顺序。第一步「取记录」是
+* @brief  命令语义规范固定了十步检查顺序。第一步「取记录」是
 *         执行器的有界取数，与命令表状态有关；第二到第十步只看一条记录与
 *         表面表，写成纯函数放在这里，构造层与执行器共用同一份。
 *
 *         顺序本身就是规格的一部分：一条同时有两处错的记录只能报一个码，
-*         报哪个由这里的先后决定。spec 第 02 章 4.2 节记了为什么
-*         space 与 format 要各算一步、且各自按「源在前、目的在后」查。
+*         报哪个由这里的先后决定。space 与 format 要各算一步、
+*         且各自按「源在前、目的在后」查。
 ******************************************************************************/
 
 #include "gfx/gfx.h"
@@ -117,7 +117,7 @@ int gfx_surface_struct_ok(const gfx_surface_table *t, uint32_t id)
     if ((s->ctrl & GFX_SURF_CTRL_RSVD) != 0u)
         return 0;
 
-    /* v1-TEX（G1，spec 第 02 章 3.8 节）：space=1 的 base 是片上 16 KiB 窗口内的
+    /* v1-TEX：space=1 的 base 是片上 16 KiB 窗口内的
        偏移，额外要求 16 字节对齐与 base + height × 2^stride_log2 ≤ 0x4000；
        64 位求值，完整行跨含 padding。违反按 BAD_SURFACE 报，仍在 space 步之前。 */
     if (gfx_surf_space(s) == GFX_SPACE_TEX) {
@@ -151,7 +151,7 @@ static int space_step(const gfx_surface_table *t, uint32_t op,
         if (gfx_surf_space(&t->s[dstid]) != GFX_SPACE_DDR)
             return GFX_E_BAD_SPACE;
     } else if (op == GFX_OP_BLIT) {
-        /* v1-TEX（G1）：BLIT 源放行 TEX，目的仍必须 DDR；BAND 与 space=3 拒绝 */
+        /* v1-TEX：BLIT 源放行 TEX，目的仍必须 DDR；BAND 与 space=3 拒绝 */
         uint32_t ssp = gfx_surf_space(&t->s[srcid]);
 
         if (ssp != GFX_SPACE_DDR && ssp != GFX_SPACE_TEX)

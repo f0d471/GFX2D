@@ -1,8 +1,8 @@
-/* pix_cases_dump：引擎 P1 B4 的金标准导出器
+/* pix_cases_dump：引擎逐像素通路（engine_pix）的金标准导出器
  *
  * 链接 sw/lib/gfx（list.c 造命令、check.c 检查、exec_sw.c 执行），导出初始内存、
  * 表面表、命令表与软件执行器跑完之后的期望内存，给 sim/engine/pix/tb_engine_path.v
- * 喂 B1~B4 的真实通路。输出是 $readmemh 能读的 128 位字，按总线字节序。
+ * 喂混合核到像素阵列的真实通路。输出是 $readmemh 能读的 128 位字，按总线字节序。
  *
  *   pix_cases_dump PREFIX              定向用例：目的表面每行都跨 4KB；六个方程的 FILL
  *                                      （ALPHA、ALPHA_STRAIGHT 的常量 alpha 不是 255）；
@@ -12,7 +12,7 @@
  *                                      就读它的尾部（两组：640 像素两行的 ALPHA、整行两行的 FILL，
  *                                      各接一颗 16 像素的 ALPHA_STRAIGHT）
  *   pix_cases_dump --sprites PREFIX    16 颗互不重叠的 16×16 ALPHA 弹幕（量两种提交方式的周期数）
- *   pix_cases_dump --frame N PREFIX    SW3 十一个整帧用例之一（0..10），附命令表边界的元数据
+ *   pix_cases_dump --frame N PREFIX    十一个整帧用例之一（0..10），附命令表边界的元数据
  */
 #include <stdint.h>
 #include <stdio.h>
@@ -76,7 +76,7 @@ static void write_counts(const char *prefix, uint32_t n1, uint32_t n2,
     char name[512];
     FILE *f;
 
-    /* cnt/stats 是 B6 整帧仿真的机器可读输入（$readmemh）：两张表的条数、
+    /* cnt/stats 是整帧仿真的机器可读输入（$readmemh）：两张表的条数、
        软件执行器的统计与本用例的设备窗口（128 位字数）。meta.txt 供人读与
        run_frames.sh 的 CRC 核对，两者并存。 */
     if (snprintf(name, sizeof(name), "%s.cnt.hex", prefix) >= (int)sizeof(name)) exit(2);
@@ -143,7 +143,7 @@ static int export_frame(uint32_t idx, const char *prefix)
     return 0;
 }
 
-/* v1-TEX（G1）：72 颗 16×8 预乘 ALPHA 弹幕，前 24 颗源在片上 TEX（slot 1，
+/* v1-TEX：72 颗 16×8 预乘 ALPHA 弹幕，前 24 颗源在片上 TEX（slot 1，
  * 64×64 纹理的 base=0/space=1），后 48 颗源在 DDR（slot 2，同一份内容），
  * 目的 640×96。命令表 73 条跨五个取数批（16×4+9，批 ≤16 条）：后续批的
  * 预取窗口落在前面命令的执行中段。取数优先 + 单读所有者使「像素状态与

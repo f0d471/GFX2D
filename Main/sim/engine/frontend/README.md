@@ -1,15 +1,15 @@
 # 绘制前端：研究、实现与复现
 
-本目录收录F1～F5的独立判据与原始证据。F1～F5 正式实现、板测与验收归档完成
-（2026-10-11，判据在验收会话独立复现）；候选按显式开关选择，正确性、净收益、
-采用分别登记。
-接口规格见
-[绘制前端总览](../../../../Engineering/Todo/sw/绘制前端总览.md)。
+本目录收录绘制前端各批次的独立判据与原始证据：首轮成本测量、背景面通用
+pass、保序分桶与模板复用、通用实例命令、硬件分桶与引用列表。全部批次正式
+实现、板测与验收归档完成（2026-10-11，判据在验收会话独立复现）；候选按
+显式开关选择，正确性、净收益、采用分别登记。
 
 正式代码在 `Main/sw/lib/gfx/frame.h/.c`、`strip_plan.c`、
 `apps/game/gfx2dGame/src/frontend_game.c` 与 `apps/probe/frontendBench/`。
-F1～F3 沿原 v1/v2 与 RTL 边界；F4 新增 v1-I 与实例 RTL，SDK、时钟和 Flash
-保持。16KB 对照只复用 G4 候选 bit，F4 本批以 4KB 主线验证。
+成本测量与两个候选沿用原 v1/v2 与 RTL 边界；通用实例命令新增 v1-I 与实例
+RTL，SDK、时钟和 Flash 保持。16KB 对照只复用整机条带接入时的候选 bit，
+实例命令本批以 4KB 主线验证。
 
 ## 判据与命令
 
@@ -25,8 +25,8 @@ planned 差分明确要求前 10000 张成功 seal，另 1000 张测试错误；
 所有 H/相位和六方程的实际命中，避免随机场景只测 miss。像素消费者为独立
 直通执行器，包含非游戏矩形、裁剪、源越界、后置 overlay 和 padding。
 
-旧 v1/v2 的 G3 一万场景、错误三元组与 G4 批量差分由 `--legacy` 复跑，日志
-写本目录，不覆盖 G3/G4 的归档证据。手工链接 `strip.c` 的工具同时链接
+旧 v1/v2 的条带控制一万场景、错误三元组与整机批量差分由 `--legacy` 复跑，
+日志写本目录，不覆盖对应目录的归档证据。手工链接 `strip.c` 的工具同时链接
 `strip_plan.c`。正式应用仍由 mk 的 wildcard 收集库源码。
 
 Windows 板测使用 Efinity Python 和既有 `board_run.py`，COM/JTAG 同时只由
@@ -39,8 +39,8 @@ $env:PYTHONIOENCODING = 'utf-8'
 ```
 
 首次装载 bit 后，后续同位流程序可 `--no-program`；指定既有候选用 `--bit`。
-每次实际部署的 BIN 在唯一 `logs/artifacts.json` 登记，旧 bit 复用 G4 的
-唯一清单。工具只执行 JTAG/DDR 装载，不写 Flash。
+每次实际部署的 BIN 在唯一 `logs/artifacts.json` 登记，旧 bit 复用整机条带
+接入目录的唯一清单。工具只执行 JTAG/DDR 装载，不写 Flash。
 
 完整队列运行 `validate_frontend_board.py`。`--resume` 只复用具有完整结束
 边界且原部署 BIN 大小/时间戳仍与登记一致的记录，仍重新检查矩阵与消费者。
@@ -55,7 +55,7 @@ Python 的中文边界读取显式使用 UTF-8，不依赖 Windows 默认代码�
 相同输入，游戏逻辑不在构造计时内。
 
 模式编号：0 为直通/TEX，1 为原即时 v2，2 为 planned，3 为几何模板，4 为
-planned+模板；5 为 B1 底色缓存，6 为 B2 动态 prepass，7/8/9 分别是 B2
+planned+模板；5 为底色缓存，6 为动态 prepass，7/8/9 分别是动态 prepass
 与 planned/模板/两者组合。逻辑 draw、by_eq、可见敌弹、Plan、refs 与
 物理记录分别输出。
 
@@ -68,7 +68,7 @@ planned+模板；5 为 B1 底色缓存，6 为 B2 动态 prepass，7/8/9 分别�
 `FRONTEND_VERIFY` 单独构建，一组只测一次，完成后用软件执行器重定向到
 离屏影子，检查可见像素、padding、CMD/PIXEL/KEY_SKIP。其周期受诊断影响，
 只用于正确性。`fpass` 保留每 pass 原九项 PERF 与耗时，DDR 字节按 16 B/beat
-解释；B2 的 prepass 和 BAND 流量均计入。
+解释；动态 prepass 和 BAND 流量均计入。
 
 ## 证据文件
 
@@ -77,7 +77,7 @@ planned+模板；5 为 B1 底色缓存，6 为 B2 动态 prepass，7/8/9 分别�
 | `baseline/` | 首轮测量源码；隔离链接 `1e2cd8d`，重建与部署的 124430 B BIN 全字节一致 |
 | `inputs/manifest.json` | 34 份固定 v1/v2 有效记录输入，表面描述符、记录数、计数及记录；与 RV32 全字段 CRC 一致 |
 | `logs/f1_baseline_4k.log/.json` | 首轮 17 状态×两模式×三次×1000 帧；构造周期，不包含渲染 |
-| `logs/candidates_final_4k.log/.json` | 一份登记 BIN 的三状态×十候选×三次×1000 帧，含扫描与执行；F3 初版几何探针的成本快照，最终模板模式成本看 f3_cpu |
+| `logs/candidates_final_4k.log/.json` | 一份登记 BIN 的三状态×十候选×三次×1000 帧，含扫描与执行；保序分桶初版几何探针的成本快照，最终模板模式成本看 f3_cpu |
 | `logs/all_outputs_4k.log/.json` | 17 状态×十配置×三次，共 510 组独立 CRC/PERF/padding；诊断周期不作为性能 |
 | `logs/f1_memory_v2_4k.log` | 相同数据/地址集合的复制、读、读改写与访问次序/冷热点矩阵 |
 | `logs/f1_sets_isolated_4k.log` | 明确关闭扫描后的同组/不同组、冷/热、读/纯写/读改写，36 次各 1000 次访问 |
@@ -89,36 +89,31 @@ planned+模板；5 为 B1 底色缓存，6 为 B2 动态 prepass，7/8/9 分别�
 | `logs/perf_pipeline_*.log`、`production_results.json` | 最终生产流水 TEX/STRIP/prepass 各 1200 帧；一型一次复测，不等于 N_max 或冻结三次 A/B。旧 perf_* 是串行研究快照 |
 | `logs/switch_uart.log`、`surface_guard_4k.log`、`prepass_failure_pipeline.log` | 正常 UART 三模式四后端、忙态 SURF 保护、故意 prepass 错误 60 帧零交换；旧 switch.log 超时不属于通过证据 |
 | `logs/board_results.json` | 队列完成后的逐消费者判定，不用程序退出码替代功能条件 |
-| `f4_instance_analysis.py`、`f4_instance_stats.json` | F4 研究轮：17 组 v1 输入的合包统计（共享状态键连续区间、XY4/XYUV8、字节压缩），保守口径 |
-| `f5_pb_analysis.py`、`f5_pb_stats.json`、`logs/f5_pb_analysis_proto1.log` | F5 研究轮：17 组冻结输入的 PB v1 容量/引用/取数账；H=16 与生产 v2 表逐场景交叉验证（M、峰值桶），H=32 对照 |
-| `f5_pb_fuzz.c`、`logs/f5_pb_fuzz_proto1.log` | F5 宿主对拍原型：PB v1 构建+独立展开+像素对拍 1000 张，6 类变异见红；编译命令在文件头 |
-| `f4_inst_proto.c` | F4 宿主对拍器：构造+独立展开逐字对拍与边界样例；核心实现在 `sw/apps/probe/f4Bench/src/f4_core.c`（与板测共用） |
-| `logs/f4_bench_proto*.log` | F4 板上三路径测量（base/inst/instb），G4 4KB 主线 bit 纯构造；proto1/2 为过程轮，proto4 为未补 DMA padding 的研究值；修复值与生产收益另列 |
-| `logs/f5_board_softbin.log` | F5 研究板测（2026-10-11）：f4Bench 含 F5 的 `bin` 路径（软件两遍 binner）与 `mbin`（引用数，与宿主模型交叉核对）；部署 BIN 在 f4_artifacts.json 登记，F4 验收 BIN 旧 sha 已入 versions。F4 归档的 `f4_board_research-fixed.log` 未动，两轮 base/inst/instb 的差属跨轮热状态漂移（第 13 章 3.8 口径） |
+| `f4_instance_analysis.py`、`f4_instance_stats.json` | 实例命令研究轮：17 组 v1 输入的合包统计（共享状态键连续区间、XY4/XYUV8、字节压缩），保守口径 |
+| `f5_pb_analysis.py`、`f5_pb_stats.json`、`logs/f5_pb_analysis_proto1.log` | 硬件分桶研究轮：17 组冻结输入的 PB v1 容量/引用/取数账；H=16 与生产 v2 表逐场景交叉验证（M、峰值桶），H=32 对照 |
+| `f5_pb_fuzz.c`、`logs/f5_pb_fuzz_proto1.log` | 硬件分桶宿主对拍原型：PB v1 构建+独立展开+像素对拍 1000 张，6 类变异见红；编译命令在文件头 |
+| `f4_inst_proto.c` | 实例命令宿主对拍器：构造+独立展开逐字对拍与边界样例；核心实现在 `sw/apps/probe/f4Bench/src/f4_core.c`（与板测共用） |
+| `logs/f4_bench_proto*.log` | 实例命令板上三路径测量（base/inst/instb），整机 4KB 主线 bit 纯构造；proto1/2 为过程轮，proto4 为未补 DMA padding 的研究值；修复值与生产收益另列 |
+| `logs/f5_board_softbin.log` | 硬件分桶研究板测（2026-10-11）：f4Bench 含硬件分桶的 `bin` 路径（软件两遍 binner）与 `mbin`（引用数，与宿主模型交叉核对）；部署 BIN 在 f4_artifacts.json 登记，实例命令验收 BIN 旧 sha 已入 versions。实例命令归档的 `f4_board_research-fixed.log` 未动，两轮 base/inst/instb 的差属跨轮热状态漂移，收益以同轮相对值为准 |
 | `logs/board_queue.log`、`main_bit_restore.log` | 队列结束与 16KB 对照后主线位流恢复的原始输出 |
 | `logs/interactive_restore.log`、`interactive_restore_summary.json` | 注错结束后恢复当前正常 TEX 交互版；8 个启动窗口 59～60 fps、drop 最大 1，仅为短观察 |
 
 失败的同值回写探针、首轮几何调用、Windows 编码与矩阵计数检查的诊断记录
-保留为研究证据。它们不进入正式通过的性能表。每项结果的已验证范围和采用
-结论以 TechReports 正文为准。
+保留为研究证据，不进入正式通过的性能表。
 
 ## 图与报告
 
 运行 `frontend_report_figures.py` 生成三张架构 SVG，`stats/plot_frontend.py`
-用原值生成两张成本/记录曲线。图源在 TechReports 的 `fig/`，渲染 PNG 放
-忽略 build/，普通版面检查不附加摘要。
+用原值生成两张成本/记录曲线。渲染 PNG 放忽略的 build/，普通版面检查不
+附加摘要。
 
-F1 过程在 [engine 第 12 章](../../../../Engineering/TechReports/engine/12-绘制前端成本分解.md)，
-F2 在 [sw 第 09 章](../../../../Engineering/TechReports/sw/09-背景面与绘制阶段.md)，
-F3 在 [sw 第 10 章](../../../../Engineering/TechReports/sw/10-保序分桶与模板复用.md)，
-F4 研究复核与正式实现位于 [engine 第 13 章](../../../../Engineering/TechReports/engine/13-通用实例命令.md)。
 原方案研究的 `research_results.json`、`spec_review.json` 与
-`probe_frontend.c` 保留，来源与决策见 engine 第 11 章；它们不作为新增板测证明。
+`probe_frontend.c` 保留为早期方案研究的证据，不作为新增板测证明。
 
-阶段与生产汇总：`check_frontend.py --summarize --production`。生成 `cost_results.json` 和 `production_results.json`，不重复计算部署摘要。两型高负载 F3 无净收益，F2 本轮生产复测没有帧率提升，候选保持默认关闭；Todo 保留供验收。
+阶段与生产汇总：`check_frontend.py --summarize --production`。生成 `cost_results.json` 和 `production_results.json`，不重复计算部署摘要。两型高负载下保序分桶无净收益，背景面候选本轮生产复测没有帧率提升，候选保持默认关闭。
 
 
-## F4 通用实例命令
+## 通用实例命令
 
 生产实现位于 lib/gfx/instances.c 与 rtl/engine/engine_inst.v，研究原型仅用于复现。
 以下命令在 WSL 的仓库根运行，全部独立产物在本目录忽略的 build/f4 下：
@@ -134,21 +129,21 @@ python3 Main/tools/check/check_f4_instances.py --collect
 --models 为 10000 张独立标量像素金标准与 ASan/UBSan；--rtl 为完整引擎 144 组，
 --mutations 覆盖六类定向变异，--protocols 覆盖稀疏 stride 跨页、完整错误身份、
 数组读错/超时排空、预取超时完整身份与软复位恢复；--lease 检查双帧独占、忙时重用与过期 generation。
---v2 在独立目录复跑 G3 的两套万张与 16/32 行 RTL，不覆盖 G3 的历史证据。
+--v2 在独立目录复跑条带控制的两套万张与 16/32 行 RTL，不覆盖其历史证据。
 
 Windows 下用开发环境手册所列 Efinity Python 运行 run_f4_board.py。--build 可选
  tests-final、fallback、ab、verify、nmax-base、nmax-inst；--run 使用相同名称，
 --program 为队列首项加载指定 bit；tests-final 与 fallback 始终加载各自登记的
 位流。其余复用当前位流。fallback 使用研究复现时
-核对并备份的 G4 位流，CAPS.INST=0；完成后用 tests-final --program 恢复 F4 位流。
+核对并备份的整机位流，CAPS.INST=0；完成后用 tests-final --program 恢复实例命令位流。
 工具仅执行 JTAG/DDR，不写 Flash；完整身份登记在 logs/f4_artifacts.json。
 
 板测 tests-final 有 122 组 CRC/PERF 与 70000 实例拆包；fallback 在旧位流上先
 展开成标量、保留身份映射并执行同组 CRC。ab 同一 BIN 比较 17 个冻结状态的
 mode0 标量与 mode10 实例（预热 8、三轮各 30），verify 是独立诊断构建，另做
 可见像素、行 padding 与 PERF 核对。finst 报告 arena 字节、两种布局的包/实例数，
-不把模式 10 的记录数当逻辑 draw 数。净收益与采用结论见
-[engine 第 13 章](../../../../Engineering/TechReports/engine/13-通用实例命令.md)。
+不把模式 10 的记录数当逻辑 draw 数。同轮净收益为正这一采用条件在独立复现中
+成立；直通实例通过 GFX_FRONTEND_INST=1 显式启用，默认 0。
 
 --research 重建修复的研究编码器，核对 17 组与边界，并将三份输入生成到忽略目录
 后做 C 编译与全字节回环。--profile 在同一 TIMED 完整引擎 fixture 上记录数组
@@ -156,21 +151,19 @@ mode0 标量与 mode10 实例（预热 8、三轮各 30），verify 是独立诊
 --collect 严格核对所有正式结果、当前程序结束边界、完整逻辑统计和旧位流身份，
 生成唯一 f4_results.json。原子批构造、完整解码与实际测量产物通过其清单关联。
 
-## F5 硬件分桶与引用列表
+## 硬件分桶与引用列表
 
 输入是原v1标量/v1-I实例；硬件COUNT/SNAPSHOT、PREFIX、保序SCATTER生成PB，
 再按桶执行LOAD/引用/原几何像素/FLUSH。默认1024槽/8192引用，独立双PB各129KiB。
-GFX_FRONTEND_BIN 默认关；功能、净收益与采用门槛结果登记在
-[engine第14章](../../../../Engineering/TechReports/engine/14-硬件分桶与引用列表.md)
-（同轮双型PB高于TEX，采用门槛满足，默认切换另行决策）。
+GFX_FRONTEND_BIN 默认关；同轮双型PB高于TEX，采用门槛满足，默认切换另行决策。
 
-完整命令及消费者在 [tools/check](../../../tools/check/README.md#check_f5_binpy--run_f5_synthesispy--run_f5_boardpy)。
+完整命令及消费者见 `Main/tools/check/README.md`。
 新增独立模型 test_pb.c/test_pb_bounds.c、tb_engine_bin.v、tb_engine_pb.v、
 tb_engine_pb_game.v 与 test_pb_lease.c；研究原型 f5_pb_fuzz.c 修复了执行器返回值
 被忽略与XY4展开字段残留，正式研究复现为10000通过、0跳过、六变异红。
 原proto1的882/118/0只保留历史边界，不再称118为容量不足。
 
-模式10为INST直通，11为PB，12/13为PB+B1/B2，0为同轮TEX。fbin依次为
+模式10为INST直通，11为PB，12/13为PB加底色缓存/动态prepass，0为同轮TEX。fbin依次为
 scene/mode/repeat/PB_BYTES/DRAW_CAP/REF_CAP，以及采样窗口内INSTANCE、REF_COUNT、
 BIN_CYCLES、PB_RD_BEAT、PB_WR_BEAT增量；除以n才是每帧值。fcsv构造计时不含
 执行；exec_avg含实际执行与准备，gpu_busy为硬件忙，不能把三者相加为流水关键路径。
@@ -180,5 +173,5 @@ final_*与synthesis.json覆盖最终综合；board_*覆盖本次位流板测；a
 登记实际部署物；board_results.json为最终消费者。*_pre_final仅为早期部署证据。
 旧回归中间产物隔离到build/f5/legacy*，原始证据收录在logs/f5_legacy_f4与f5_legacy_all。
 
-syn_bin/为动态输入、全输出观察综合工程，7RAM包含F4坐标缓存；wrapper根资源
+syn_bin/为动态输入、全输出观察综合工程，7RAM包含实例坐标缓存；wrapper根资源
 不能冒充裸engine_bin。所有临时大fixture和仿真可执行文件均留在忽略build。

@@ -1,8 +1,8 @@
-// 引擎 P1 B2：搬运层 engine_mover 的测试台
+// 搬运层 engine_mover 的测试台
 //
 // 被测是 rtl/engine/engine_mover.v 整块，经 rtl/vendor/axi_mux/Axi_Mux.v（S1）
 // 接到补齐四样的 sim/axi_probe/axi_ram_model.v。测试台扮演三边：
-//   几何层（I2 发读写描述符）、计算阵列（I3 收读流、I4 送写流）、控制层（I7 发排空请求与门限）
+//   几何层（发读写描述符）、计算阵列（收读流、送写流）、控制层（发排空请求与门限）
 //
 // 用例（用 +define+ 选，见 run.sh）：
 //   CASE_NORMAL   读侧仲裁（命令取数优先）、读流分发与上下文、写掩码、状态里的命令索引与末行标记、
@@ -13,7 +13,7 @@
 //   CASE_ERR      读回 SLVERR 与写响应 SLVERR 各一例，状态里的错误与命令索引正确
 //   CASE_TIMEOUT  从机按住超过门限：报超时、不放弃；放开后照常完成，数据属于原来那一笔
 //
-// 判据全文见 engine 第 02 章 3.11 节；注错位见 engine_mover.v 文件头。
+// 注错位见 engine_mover.v 文件头。
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -50,7 +50,7 @@ module tb_engine_mover;
 `ifdef TMO_LIMIT_VAL
     localparam integer TMO_LIMIT = `TMO_LIMIT_VAL;
 `else
-    localparam integer TMO_LIMIT = 4096;   // D30 的复位值
+    localparam integer TMO_LIMIT = 4096;   // 超时阈值的复位值
 `endif
 `ifdef SEED_VAL
     localparam integer SEED = `SEED_VAL;
@@ -424,7 +424,7 @@ module tb_engine_mover;
     reg         wr_src_en = 0;
     integer     wsrc_i = 0, wsrc_total = 0, wsrc_stop = 0, wsrc_tag = 0;
     reg  [127:0] wsrc_data = 0;
-    // 写流不送 tlast：搬运层按描述符拍数自己打（D48）
+    // 写流不送 tlast：搬运层按描述符拍数自己打
 
     always @(*) begin
         wsrc_data[31:0]   = wpix(wsrc_tag, wsrc_i, 0);

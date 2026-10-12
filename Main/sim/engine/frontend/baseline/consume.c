@@ -1,4 +1,4 @@
-/* F1 首轮已部署源码：独立编译单元消费有效记录，无 LTO。 */
+/* 测量基线已部署源码：独立编译单元消费有效记录，无 LTO。 */
 #include "gfx/gfx.h"
 #include "core/crc32.h"
 uint32_t frontend_consume(const gfx_list *l)

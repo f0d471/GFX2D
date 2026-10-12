@@ -1,30 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""geom_model.py: 引擎 P1 几何层（B3）的独立模型
+"""geom_model.py: 引擎几何层（engine_geom）的独立模型
 
-这一份不读 RTL，按 spec 第 01、02 章的规则从命令算出：
+这一份不读 RTL，按逐像素规格与命令语义规格的规则从命令算出：
   * 目的矩形、游戏区、裁剪框、目的表面、源表面**五者求交**（FILL 只有前四项）；
   * 逐行的读源、读目的、写目的描述符（16 字节对齐的覆盖区间，不跨 4KB，不超过 192 拍）；
   * 逐行的 I5 边带（拍数、首拍前导填充像素、本行像素数、源与目的两路的拍内像素相位、
     方程、`key`、色键字、常量源字、`c`、源格式、这一行读不读目的）；
-  * D7 的三种读写避让。
+  * 读写避让的三种规则。
 
 用法：
   python3 geom_model.py --vectors <check_cmd_semantics --emit 的产物>
   python3 geom_model.py --cases   <geom_cases_dump 的产物>
   python3 geom_model.py --directed
   python3 geom_model.py --selftest
-  python3 geom_model.py --dump-records <输入> <输出>  导出 $readmemh 能读的记录，给 B3 的 Verilog 测试台
+  python3 geom_model.py --dump-records <输入> <输出>  导出 $readmemh 能读的记录，给几何层的 Verilog 测试台
 
---vectors / --cases 除了规矩 1 与 D7，还做两项对照，防止模型只和自己一致：
+--vectors / --cases 除了描述符规矩与读写避让，还做两项对照，防止模型只和自己一致：
   * 每条 FILL/BLIT 按软件执行器的写法（四者求交的窗口里逐像素判源越界）逐行比，
     同时给出执行器口径的 pixel_total 与 src_oob；
   * 向量带参考实现的末态裁剪框（clip=）时，模型走完之后的裁剪框必须与它相同。
 命令表的走法与 check_cmd_semantics.py 的 run_lists() 同口径：裁剪框跨表继承，出错处截断（run_vector）。
 
-权威是 Engineering/TechReports/spec/01-逐像素规格.md 3.6 节、spec/02 规范条款 §2/§4、
-与 Engineering/TechReports/engine/02-AXI事务层.md 3.9 节的 D3 规矩 1。
-研究过程、算式与位宽见 Engineering/TechReports/engine/03-几何层.md。
+权威是 Main/doc/赛题二总体设计.md 3.4、3.5 节的规格与 Main/rtl/engine/engine_geom.v 的入库实现；
+研究记录见 Main/sim/engine/geom/README.md。
 """
 
 import argparse
@@ -180,7 +179,7 @@ class Cmd:
 def intersect(surf, cmd, clip):
     """返回闭区间矩形 (x0, y0, x1, y1)，空则 None。
 
-    五项的次序与 spec 第 01 章 3.6 节相同：目的矩形、游戏区、裁剪框、目的表面、源表面。
+    五项的次序与逐像素规格的定稿次序相同：目的矩形、游戏区、裁剪框、目的表面、源表面。
     中间量一律 32 位有符号；空宽高先判，避免 w-1 无符号下溢。
     源表面一项是「源越界只跳过该像素」在矩形级的等价写法：
         [dx - sx, dx - sx + src_w - 1] x [dy - sy, dy - sy + src_h - 1]
@@ -371,7 +370,7 @@ def run_list(surf, cmds, count, clip, limit=None):
     只做几何层的事：NOP 记一笔、SET_CLIP 更新裁剪框、FILL/BLIT 出计划、END 停。
     十步检查归控制层（B5），这里假定进来的记录已经合法；出错的那一条与之后的记录
     不会到几何层，由调用方用 limit 截断（见 run_vector）。
-    clip 是这张表开始时的裁剪框：它跨命令表继承（spec 第 02 章规范条款 §4.4），不能每张表重置。
+    clip 是这张表开始时的裁剪框：它跨命令表继承（规范条款），不能每张表重置。
     """
     plans = []
     clip = list(clip)
@@ -588,7 +587,7 @@ def check_plan(plans, bad):
                 if m != [True] * 4:
                     bad.append("%s: 中间拍有无效像素" % w)
 
-            # D7：读源、读目的的有无
+            # 读写避让规则：读源、读目的的有无
             if (len(r.src_segs) > 0) != p.read_src:
                 bad.append("%s: 读源描述符与 D7 不符" % w)
             if (len(r.dst_rd_segs) > 0) != p.read_dst:
@@ -691,7 +690,7 @@ def surf_table(slots):
 # ---------------------------------------------------------------- 定向用例
 
 def directed_cases():
-    """B3 仿真清单第 1 条的定向用例（engine 第 03 章 3.4 节）：真实输入没有覆盖到的几何边界。
+    """几何层仿真清单第 1 条的定向用例：真实输入没有覆盖到的几何边界。
 
     返回 [(名字, 说明, 表面表, 命令, 期望检查点)]。
     """
@@ -753,7 +752,7 @@ def directed_cases():
         t, Cmd([(OP_BLIT) | (EQ_COPY << 8) | (1 << 16) | (0 << 20),
                coord(-10, -10), coord(300, 100), w_h(100, 100), 0, 0, 0, 0]))
 
-    # 7 四种方程的读目的有无（D7）
+    # 7 四种方程的读目的有无（读写避让规则）
     for eq in (EQ_COPY, EQ_ALPHA, EQ_ADD, EQ_CONST, EQ_MUL, EQ_ALPHA_STRAIGHT):
         t = [Surf(i) for i in range(SURF_N)]
         mk_surf(t, 0, 0x00100000, 640, 480, 12)
@@ -984,7 +983,7 @@ def run_vectors(path, verbose):
 def run_directed(verbose):
     bad = []
     total = 0
-    print("定向用例（engine 第 03 章 3.4 节）：")
+    print("定向用例：")
     for name, desc, t, cmd in directed_cases():
         clip = [0, 0, SCREEN_W - 1, SCREEN_H - 1]
         p = plan_command(t, cmd, clip)

@@ -2,16 +2,13 @@
 *
 * @file main.c: cacheMechTest
 *
-* @brief  实验 E3 的机理实验：把 cacheCoherencyTest 依赖的几条缓存行为逐条单独测出来。
+* @brief  缓存行为的机理实验：把 cacheCoherencyTest 依赖的几条缓存行为逐条单独测出来。
 *
 *         cacheCoherencyTest 回答「外部主机写入之后 CPU 读到什么」。它的判据成立
 *         要靠几条关于 CPU 数据缓存本身的事实：写与读会不会装行、有没有写缓冲、
 *         缓存的行号与标签取哪几位、失效指令什么时候生效、栈与 IO 访问会不会挤掉行。
-*         这些事实在 E3 的过程中都被猜错过，这个程序把每一条做成一组独立的判据，
+*         这些事实在定判据的过程中都被猜错过，这个程序把每一条做成一组独立的判据，
 *         每组自带期望值，任何一组与期望不符都计入 fail。
-*
-*         完整记录见
-*         Engineering/TechReports/platform/05-CPU数据缓存与第二个主机写入的一致性.md
 *
 *         ## 组
 *

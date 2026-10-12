@@ -2,15 +2,13 @@
 * @file gfx.h: 命令表构造层与软件执行器的接口
 *
 * @brief  三组接口：表面表的登记、命令表的构造、命令表的执行。
-*         行为的权威是 spec 第 01、02 两章，本文件只给签名与各字段的口径。
+*         行为的权威是 Main/doc/赛题二总体设计.md 3.4 节，本文件只给签名与各字段的口径。
 *
 *         构造层与执行器共用同一个记录校验 `gfx_cmd_check()`：
-*         规范条款 §5 的十步里，第一步（取记录）是执行器的有界取数，
+*         十步检查里，第一步（取记录）是执行器的有界取数，
 *         其余九步与命令表状态无关，写成一个纯函数，两处调用同一份，
 *         规则不会在两边漂移。构造时早检不替代执行时重查，
 *         因为表面表可能在两次调用之间被改写。
-*
-*         判据与口径见 Engineering/TechReports/sw/02-命令表构造层与软件执行器.md 第五节。
 ******************************************************************************/
 #ifndef GFX2D_GFX_H
 #define GFX2D_GFX_H
@@ -28,16 +26,16 @@ int  gfx_surface_set(gfx_surface_table *t, int id, const gfx_surface *s);
 void gfx_surface_set_raw(gfx_surface_table *t, int id,
                          uint32_t base, uint32_t dim, uint32_t ctrl);
 
-/* 软复位：清掉全部 valid。spec 第 02 章规范条款 §2。 */
+/* 软复位：清掉全部 valid。 */
 void gfx_surface_reset(gfx_surface_table *t);
 
-/* 结构谓词，规范条款 §2 的六条。返回非 0 表示结构合法且 valid。 */
+/* 结构谓词（表面项的六条结构规则）。返回非 0 表示结构合法且 valid。 */
 int  gfx_surface_struct_ok(const gfx_surface_table *t, uint32_t id);
 
 /* --- 记录校验 ----------------------------------------------------------- */
 
-/* 标量 v1/TEX 的规范条款 §5 第二至第十步；v1-I 包用 gfx_instance_packet_check。
-   返回 spec 错误码。
+/* 标量 v1/TEX 的十步检查第二至第十步；v1-I 包用 gfx_instance_packet_check。
+   返回 ABI 错误码。
    不看命令表状态，也不看 clip，所以构造层与执行器可以共用。 */
 int  gfx_cmd_check(const gfx_surface_table *t, const gfx_cmd *c);
 
@@ -50,7 +48,7 @@ uint32_t gfx_cmd_decode(const gfx_cmd *c, char *buf, uint32_t cap);
 typedef struct {
     uint32_t lstrips, strip_log2, bg_id, dst_id;
 } gfx_strip_config;
-/* F3 工作区由调用方独占；封表后直到完成前不得复用。 */
+/* 条带计划的工作区由调用方独占；封表后直到完成前不得复用。 */
 typedef struct {
     gfx_cmd cmd;
     uint16_t first_strip, last_strip;
@@ -138,7 +136,7 @@ int  gfx_blit(gfx_list *l, int src, int sx, int sy, int dst, int dx, int dy,
 int  gfx_set_clip(gfx_list *l, gfx_rect r);
 int  gfx_list_end(gfx_list *l);
 
-/* --- 批量提交（sw 第 06 章 3.6 节）--------------------------------------------- */
+/* --- 批量提交--------------------------------------------------------------- */
 
 /* 一串 BLIT 共用的部分。字段与 gfx_blit() 的同名参数同型。 */
 typedef struct {
@@ -256,7 +254,7 @@ int exec_sw_run_strips(const gfx_surface_table *t, const gfx_mem *m,
 /* 把统计清零。 */
 void exec_sw_stats_clear(exec_sw_stats *st);
 
-/* --- 整帧用例（E7 与引擎仿真共用的金标准输入） ------------------------- */
+/* --- 整帧用例（板上测量与引擎仿真共用的金标准输入） ------------------------- */
 
 #define GFX_CASE_N 11
 

@@ -1,11 +1,11 @@
-// engine_blend 测试台（引擎 P1 B1：单通道混合核）
+// engine_blend 测试台（单通道混合核）
 //
-// 判据（Engineering/TechReports/engine/01-计算核心.md 3.6 节与第五节）：
+// 判据：
 //   1. 六个方程、每通道**全定义域**穷举，与被测逐值相同。期望值在本测试台里用**精确商**
 //      round(x/255) = (2x+255)/510 现算、输入按设计文档 3.5 节的 Fs/Fd 直接代入，
 //      不使用被测的那条快速式，两个实现互相独立。
 //      ALPHA 预乘跑满 2^24（不限定 src_pm <= a）：硬件会收到任意输入，
-//      软件执行器 exec_sw.c 对任意输入都按同一条规则算，见 engine 第 01 章 4.1 节。
+//      软件执行器 exec_sw.c 对任意输入都按同一条规则算。
 //      方程用不到的输入（例如 COPY 的 dst、a、c）不固定成 0，而是跟着循环变量变，
 //      被测的输出必须与它们无关；否则「COPY 误用了 dst」这类抄错行的错会被 0 掩盖。
 //   2. 抽样与 check_round255.c 的输出对一次（-DGOLDEN，读 build/golden.hex）。
@@ -34,7 +34,7 @@
 
 module tb_engine_blend;
 
-    localparam integer L        = 3;          // engine_blend 的固定延迟（D24）
+    localparam integer L        = 3;          // engine_blend 的固定延迟
     localparam integer GOLDEN_N = 1024;       // check_round255.c --golden 的条数
 
 `ifdef ONLY_EQ

@@ -1,4 +1,4 @@
-// B4 formal RTL unit test: I5 sidebands + I3 read stream + I4 write stream.
+// Formal RTL unit test: sidebands + read stream + write stream.
 `timescale 1ns/1ps
 `default_nettype none
 // 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）；INJ_VAL 只为打印，
@@ -224,7 +224,7 @@ module tb_engine_pix;
             rnd = $random(seed);
             f_c = rnd[7:0];
             f_w4 = {(rnd[7:0] | 8'h80), $random(seed) & 32'h00FFFFFF};
-            f_read_dst = (eqf != 3'd0);                 // D37：非 COPY 才读目的
+            f_read_dst = (eqf != 3'd0);                 // 非 COPY 才读目的
             sb = (f_ls + f_npx + 3) / 4;
             // 源字：随机 alpha（含 0 与 255 的极端值）+ 随机 24 位色
             for (slot = 0; slot < sb * 4 + 8; slot = slot + 1) begin
@@ -261,9 +261,9 @@ module tb_engine_pix;
         $display("sweep done: %0d rows",rows_run);
         for(k=0;k<6;k=k+1) begin
             f_npx=3+k*5;f_ls=0;f_ld=(k*3)%4;half=k%2;
-            // 送给被测的 sfmt 故意不按方程给（I1 上 FILL 没有源表面）：ALPHA 与
+            // 送给被测的 sfmt 故意不按方程给（命令接口上 FILL 没有源表面）：ALPHA 与
             // ALPHA_STRAIGHT 偏给 XRGB，被测必须不看它。色键位打开、色键字等于常量：
-            // FILL 没有色键（spec 第 02 章条款 3），被测必须照写
+            // FILL 没有色键，被测必须照写
             gen_row(1,k,(k==1||k==5)?0:k%3,1);run_row;
         end
         for(k=0;k<4;k=k+1) begin

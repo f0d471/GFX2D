@@ -1,6 +1,6 @@
 // display_top（扫描输出）仿真：取数、跨域、像素对齐、双缓冲切换与自愈
 //
-// 判据来自 Engineering/Todo/hw/扫描输出.md 2.3 节。用 -D 选用例：
+// 用 -D 选用例：
 //   CASE_IMAGE / CASE_SWAP / CASE_INFLIGHT / CASE_LEVEL / CASE_STARVE / CASE_SNAPSHOT / CASE_CORERST
 //   FULL_FRAME     整帧 640x480（默认小帧 640x8，逐像素比对跑得动）
 //   CLK_PLUS / CLK_MINUS   像素时钟偏 ±0.5%，结论不能依赖固定相位
@@ -390,9 +390,9 @@ module tb_display;
     integer k;
     reg [31:0] rd;
 
-    // D7 的不变量（2026-09-21 复核补）：复位 FIFO 的那一拍，既不能有在途读，
+    // FIFO 复位的不变量（2026-09-21 复核补）：复位 FIFO 的那一拍，既不能有在途读，
     // 也不能有已经拉起、还没被接走的 AR。少了这一条，「同一拍既 fs_event 又发行」
-    // 这类竞态会绕过排空，让在途那笔的拍落进新场的队头——正是 D7 要防的事，
+    // 这类竞态会绕过排空，让在途那笔的拍落进新场的队头——这正是排空判据要防的事，
     // 而逐像素比对只在恰好撞上时才会红，判据不该靠运气。
     integer drain_viol = 0;
     always @(posedge clk_core) begin
@@ -501,7 +501,7 @@ module tb_display;
         begin : starve_case
             integer starve_idx;
             // 停住取数要停在场消隐之后的可见区里：消隐有 1.43ms，在那边停多久都能被预取补回来。
-            // 一直停到场起始才放开——这样取数侧是「还欠着账」进场的，D7 的第一步与第二步
+            // 一直停到场起始才放开——这样取数侧是「还欠着账」进场的，场首的排空与续取
             // 才有实活干（正常场里最后一行早就取完，场起始时取数侧是闲着的，
             // 所以 inj_no_drain 只能跟这个用例配对，跟 image 配对是测不出来的）。
             wait_fields(1);

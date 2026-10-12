@@ -4,14 +4,14 @@
 | --- | --- |
 | `gfx2d_ti60/` | 唯一的 Efinity 工程。器件 Ti60F225，时序模型 I3，顶层模块 `gfx2d_top` |
 
-`gfx2d_ti60/` 与 `rtl/` 的相对位置不能改：工程用 `../../rtl/...` 引用源码，工程目录必须在仓库下两级。
+`gfx2d_ti60/` 与 `rtl/` 的相对位置不能改：工程按两个目录的相对路径引用源码，工程目录必须在仓库下两级。
 
 ## 文件
 
 | 路径 | 内容 |
 | --- | --- |
 | `gfx2d_ti60/gfx2d_ti60.xml` | 工程文件：源文件列表、综合与布局布线选项、比特流选项、约束文件路径 |
-| `../rtl/engine/engine_band.v` | 已加入源列表，经 mover 接入；G3 启用帧级 BAND 和 CAPS.BAND，G4 接入游戏 HW/STRIP。BAND 独立占 36 RAM，当前整机资源见下方 G4 记录 |
+| `../rtl/engine/engine_band.v` | 已加入源列表，经 mover 接入；帧级 BAND 与 CAPS.BAND 已启用，游戏 HW/STRIP 后端已接入。BAND 独立占 36 RAM，当前整机资源见下方构型记录 |
 | `../rtl/engine/engine_blend.v`、`../rtl/engine/engine_pix.v` | 已由 engine_top/engine_pix 例化并进入整机网表，12 个混合核与 12 个引擎 DSP 对应 |
 | `gfx2d_ti60/gfx2d_ti60.peri.xml` | 接口设计：管脚分配、IO 电压、PLL、LVDS TX、硬 JTAG |
 | `gfx2d_ti60/sdc/gfx2d_ti60.sdc` | 时序约束 |
@@ -29,7 +29,7 @@ efx_run.bat gfx2d_ti60.xml
 
 map、interface、pnr、pgm 四步，约一分半，输出 `outflow/gfx2d_ti60.bit`（JTAG 加载）与 `.hex`（写 Flash）。不需要开 GUI，也不需要许可证。
 
-编译与上板的结果见 `../../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md` 第五节，操作命令见 `../doc/开发环境.md`。
+编译与上板的操作命令见 `../doc/开发环境.md`。
 
 ## 三个 PLL
 
@@ -39,7 +39,7 @@ map、interface、pnr、pgm 四步，约一分半，输出 `outflow/gfx2d_ti60.b
 | `DDR3_PLL` | PLL_TR0 | `clk_25m` | `sdram_clk`、`rx_cal_clk`、`tx_cal_clk`、`tx_cal_clk_90edge` 各 400MHz，`clk_100m` 100MHz | DDR3 PHY |
 | `HDMI_PLL` | PLL_BL0 | `clk_27m`（H2） | `hdmi_tx_slow_clk` 25.2MHz、`hdmi_tx_fast_clk` 126MHz（相移 90°） | HDMI 像素与串行化 |
 
-Ti60 的 PLL 有两条容易踩的规则：静态相移的单位是 0.5 个 FPLL 周期（不是 45°），CLKOUT0 的频率不能超过参考时钟的 4 倍。25MHz 参考给不出 25.2MHz 加 90° 的组合，所以 HDMI 用 27MHz 晶振。推导过程见 `../../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md` 3.4 节。
+Ti60 的 PLL 有两条容易踩的规则：静态相移的单位是 0.5 个 FPLL 周期（不是 45°），CLKOUT0 的频率不能超过参考时钟的 4 倍。25MHz 参考给不出 25.2MHz 加 90° 的组合，所以 HDMI 用 27MHz 晶振。
 
 ## 管脚
 
@@ -69,7 +69,7 @@ Ti60 的 PLL 有两条容易踩的规则：静态相移的单位是 0.5 个 FPLL
 - 改顶层端口要同步改 `peri.xml`，反过来也一样。对不上时 Interface Designer 会在 Missing Interface Pins 里列出来，但不会报错，容易漏。
 - 改 PLL 参数要同步改 `sdc/gfx2d_ti60.sdc` 里的时钟周期与波形。
 - `settings.json` 里 `HexFile_Path` 必须是绝对路径（3.4.0 起 `--base_path` 改成相对路径 `ip`，不再需要占位符）；`ip/soc/source/soc_config` 里也记着 bootloader hex 的路径。仓库里存的是占位符，克隆之后用 `tools/check/localize_paths.py --apply` 展开，提交前用 `--restore` 还原，见 `../doc/开发环境.md` 第 3 节。
-- 调试核：`<efx:debugger>` 的 `auto_instantiation` 是 `off`。打开的话，命令行编译会失败，因为自动插入这一步要求 `work_dbg/debug_top.v` 事先存在，而这个文件只有 GUI 的 Debug Wizard 会生成。要用逻辑分析仪时，在 GUI 里生成一次再编译，原因见 `../../Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md` 4.2 节。
+- 调试核：`<efx:debugger>` 的 `auto_instantiation` 是 `off`。打开的话，命令行编译会失败，因为自动插入这一步要求 `work_dbg/debug_top.v` 事先存在，而这个文件只有 GUI 的 Debug Wizard 会生成。要用逻辑分析仪时，在 GUI 里生成一次再编译。
 
 ## SoC IP
 
@@ -90,21 +90,20 @@ Standard 构型、单核 100MHz、指令与数据缓存各 4KB、无 FPU、DDR �
 程序区 `LDSize=4092`，片上 RAM 启用自定义 hex（512KB bootloader）。
 重新生成用 `tools/soc/ipm_gen_soc.py`，步骤见 `sdk/README.md`「重新生成 SoC IP 时」。生成前先提交。
 
-## G1/G2 历史构型
+## TEX/条带历史构型
 
-engine_tex 已登记到 gfx2d_ti60 源文件列表并接入四页 TEX 窗口。G1 阶段 4KB/1 路
-整机的资源和时序见 [engine 第 07 章](../../Engineering/TechReports/engine/07-片上纹理.md)。
-产物身份集中在 `../sim/engine/tex/logs/g1_artifacts.json`，旧 outflow 身份不代表当前 G1。
+engine_tex 已登记到 gfx2d_ti60 源文件列表并接入四页 TEX 窗口。TEX 轮 4KB/1 路
+整机的资源和时序：产物身份集中在 `../sim/engine/tex/logs/g1_artifacts.json`，旧 outflow 身份不代表当前轮次。
 
-2026-10-08 G2 正式数据面接线后的历史 outflow：37426 XLR/121 RAM/16 DSP，
+2026-10-08 条带数据面正式接线后的历史 outflow：37426 XLR/121 RAM/16 DSP，
 core_clk setup/hold +0.551/+0.026 ns，最薄 rx_cal_clk hold +0.009 ns；四步通过。
 本次 bit/BIN 身份以 `../sim/engine/band/logs/formal_artifacts.json` 为准，
-G1 清单仅对应其历史构建。BAND 帧功能与新完整资源账归 G3/G4。
+TEX 清单仅对应其历史构建。BAND 帧功能与新完整资源账归条带控制与游戏接入轮。
 
-## G4 当前构型
+## 条带接入后的构型
 
 4KB/1 路、16 行 BAND，TEX/BAND 均在位，同一 bit 支持直通与条带。
 四步 PASS：41476 XLR/163 RAM/16 DSP，core_clk setup/hold +0.756/+0.026 ns。
 16KB/4 路复制构型为 40795/181/16、+0.751/+0.026 ns，保留候选，
 主线 IP 与 SDK 不替换。身份集中在 ../sim/engine/g4/logs/artifacts.json；
-复现见 tools/soc/make_cache_variant.py 与 engine 第 10 章。
+复现见 tools/soc/make_cache_variant.py。

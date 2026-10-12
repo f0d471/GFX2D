@@ -1,18 +1,19 @@
-// probe_geom：引擎 P1 B3（几何层）前期研究的探针，**不是入库实现**
+// probe_geom：几何层前期研究的探针，**不是入库实现**
 //
-// 入库实现是 rtl/engine/engine_geom.v（engine 第 03 章 3.6 节），本文件只回答 B3 研究清单的两问：
+// 入库实现是 rtl/engine/engine_geom.v，本文件只回答研究清单的两问：
 //   第 1 问 产出速率：行迭代每行、每条命令花几拍（配套 tb_probe_geom.v 逐拍量）；
 //   第 5 问 实验：把「五者求交的 32 位比较链」与「行迭代的加法链」单独综合，
 //           看 100 MHz 下的余量与资源（配套 syn/ 下的 Efinity 小工程）。
 //
 // 四个模块：
 //   probe_geom_intersect  纯组合的五者求交（32 位有符号 max/min 链），给综合看关键路径；
-//   probe_geom_d7         D7 读写避让的判定（读不读源、读不读目的），纯组合；
+//   probe_geom_d7         读写避让的判定（读不读源、读不读目的），纯组合；
 //   probe_geom_rowiter    多拍顺序的行迭代：每行算覆盖区间、按 4KB 与最大拍数拆段、
-//                         按 rsrc/rdst（来自 probe_geom_d7）发哪几笔读、给 I5 边带；
-//   probe_geom_top        两者接起来，带观测寄存器（综合删不掉任何一位，照 B1/B2 的做法）。
+//                         按 rsrc/rdst（来自 probe_geom_d7）发哪几笔读、给每行边带；
+//   probe_geom_top        两者接起来，带观测寄存器（综合删不掉任何一位，照混合核与
+//                         搬运层探针的做法）。
 //
-// 关键路径的两种候选写在文件末的注释里，结论在 TechReports engine 第 03 章。
+// 关键路径的两种候选写在文件末的注释里。
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -99,11 +100,11 @@ module probe_geom_intersect #(
 endmodule
 
 // ---------------------------------------------------------------------------
-// D7 读写避让的判定：一条命令读不读源、读不读目的
+// 读写避让的判定：一条命令读不读源、读不读目的
 //   FILL 是常量源，永远不读源；BLIT 永远读源。
-//   方程为 COPY 时不读目的（COPY 不看目的，色键命中的像素走 D16 的带内标记），其余五个方程都读目的。
+//   方程为 COPY 时不读目的（COPY 不看目的，色键命中的像素走 X 字节的带内标记），其余五个方程都读目的。
 // 行迭代把 rsrc/rdst 当输入，判定写在这里，注错才有一处真实的逻辑可改；
-// B3 的入库实现里它在 engine_geom.v 内部。
+// 入库实现里它在 engine_geom.v 内部。
 // ---------------------------------------------------------------------------
 module probe_geom_d7 #(
     parameter integer INJECT = 0        // 位 0：ALPHA 也按 COPY 走「不读目的」的避让
@@ -128,20 +129,20 @@ endmodule
 //
 // 每行的动作：
 //   1 算目的、源的行首地址与 16 字节覆盖区间；
-//   2 按「不跨 4KB」与「不超过 MAX_BEATS 拍」拆段（P1 里最多两段）；
-//   3 按 D7 发读描述符（源、目的），再发写描述符（每段一笔）；
-//   4 给 I5 边带：本行像素数、源与目的的拍内像素相位（首拍前导填充）、写拍数。
+//   2 按「不跨 4KB」与「不超过 MAX_BEATS 拍」拆段（直通模式里最多两段）；
+//   3 按避让判定发读描述符（源、目的），再发写描述符（每段一笔）；
+//   4 给每行边带：本行像素数、源与目的的拍内像素相位（首拍前导填充）、写拍数。
 // 描述符一拍一笔；消费者不 ready 就停在原处（搬运层每个方向一笔在途，天然反压）。
 // ---------------------------------------------------------------------------
 module probe_geom_rowiter #(
     parameter integer MAX_BEATS = 192,
-    // 位 0：跨 4KB 不拆（D7 的注错在 probe_geom_d7）
+    // 位 0：跨 4KB 不拆（避让的注错在 probe_geom_d7）
     parameter integer INJECT = 0
 )(
     input  wire        clk,
     input  wire        rst,
 
-    // ---- I1（研究探针：只接求交结果之后的那部分字段）----
+    // 命令口（研究探针：只接求交结果之后的那部分字段）
     input  wire        start,
     input  wire [31:0] dst_row0,      // 第一行的行首字节地址（= base + (y0<<stride) + x0*4）
     input  wire [31:0] src_row0,
@@ -149,26 +150,26 @@ module probe_geom_rowiter #(
     input  wire [31:0] src_stride,
     input  wire [15:0] nrows,
     input  wire [10:0] npx,           // 本行像素数
-    input  wire        rsrc,          // D7：读不读源（probe_geom_d7 给）
-    input  wire        rdst,          // D7：读不读目的（probe_geom_d7 给）
-    input  wire        last_cmd,      // 本命令的最后一行由它标（I2 的 wr_last_row）
+    input  wire        rsrc,          // 避让判定：读不读源（probe_geom_d7 给）
+    input  wire        rdst,          // 避让判定：读不读目的（probe_geom_d7 给）
+    input  wire        last_cmd,      // 本命令的最后一行由它标（写描述符的 wr_last_row）
     input  wire [3:0]  cidx,
 
-    // ---- I2：读描述符 ----
+    // 读描述符
     output reg  [31:0] rd_addr,
     output reg  [11:0] rd_beats,
     output reg  [1:0]  rd_buf,
     output reg         rd_valid,
     input  wire        rd_ready,
 
-    // ---- I2：写描述符 ----
+    // 写描述符
     output reg  [31:0] wr_addr,
     output reg  [11:0] wr_beats,
     output reg         wr_last_row,
     output reg         wr_valid,
     input  wire        wr_ready,
 
-    // ---- I5：每行边带 ----
+    // 每行边带
     output reg  [10:0] sb_npx,
     output reg  [1:0]  sb_lead_dst,
     output reg  [1:0]  sb_lead_src,
@@ -217,7 +218,7 @@ module probe_geom_rowiter #(
         if (xcross) begin
             b0 = (page_left > {1'b0, max_bytes}) ? max_bytes : page_left[11:0];
             b1 = alen[11:0] - b0;
-            if (b1 > max_bytes) b1 = max_bytes;      // P1 到不了，留作直通用例
+            if (b1 > max_bytes) b1 = max_bytes;      // 直通模式到不了，留作用例
         end else begin
             b0 = (alen > {20'b0, max_bytes}) ? max_bytes : alen[11:0];
             b1 = alen[11:0] - b0;
@@ -249,7 +250,7 @@ module probe_geom_rowiter #(
             seg_addr[1] = s_a0 + {{20{1'b0}}, s_b0}; seg_beats[1] = s_b1 >> 4;
             seg_pres[1] = (s_b1 != 0);
         end
-        // 读目的：D7，只有 rdst 为 1 才发
+        // 读目的：只有 rdst 为 1 才发
         if (rdst) begin
             seg_addr[2] = a0; seg_beats[2] = b0 >> 4; seg_pres[2] = (b0 != 0);
             seg_addr[3] = a0 + {{20{1'b0}}, b0}; seg_beats[3] = b1 >> 4;
@@ -273,7 +274,7 @@ module probe_geom_rowiter #(
                 nxt_i = k[2:0];
     end
 
-    // I2/I5 的 valid 与数据组合驱动：握手当拍完成，一笔描述符占一拍
+    // 描述符与边带的 valid 与数据组合驱动：握手当拍完成，一笔描述符占一拍
     wire cur_pres = (st == S_EMIT) && (seg_i != 3'd6) && seg_pres[seg_i];
     wire cur_wr   = cur_pres && seg_iswr[seg_i];
     wire cur_rd   = cur_pres && !seg_iswr[seg_i];
@@ -355,7 +356,7 @@ endmodule
 
 // ---------------------------------------------------------------------------
 // 单独综合的顶层：把求交与行迭代都编进去，并且不让综合删掉任何一位。
-// 照 B1/B2 的做法：LFSR 造激励，全部输出按位异或进观测寄存器，观测寄存器回灌 LFSR。
+// 照混合核与搬运层探针的做法：LFSR 造激励，全部输出按位异或进观测寄存器，观测寄存器回灌 LFSR。
 // ---------------------------------------------------------------------------
 module probe_geom_top (
     input  wire        clk,
@@ -429,7 +430,7 @@ module probe_geom_top (
     );
 
     // 观测：被测的每一个输出都要按位异或进来，否则综合会把没被观测的位整块删掉
-    // （B2 踩过一次：观测只接了控制位，两个核的输出 FIFO 被剪光，见 engine 第 02 章第四节）。
+    // （踩过一次：观测只接了控制位，两个核的输出 FIFO 被剪光）。
     // 248 位折成 128 位：obsv[247:128] 是 120 位，补 8 位零才凑成 128。
     // 首版补了 120 位零（写成 {120'b0, obsv[247:128]}，结果 240 位），
     // Efinity 报 "expression size 240 truncated to fit in target size 128"，高 112 位被丢掉。

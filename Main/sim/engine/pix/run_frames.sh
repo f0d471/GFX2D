@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 导出 SW3 十一个整帧金标准并核对 framebuffer CRC，供 B6 仿真重用。
+# 导出十一个整帧金标准并核对 framebuffer CRC，供整帧仿真重用。
 set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p build/frames

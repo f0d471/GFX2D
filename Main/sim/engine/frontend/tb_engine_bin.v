@@ -1,4 +1,4 @@
-// F5 两遍构建：一万张独立软件 PB 金标准，逐字核对目录/metadata/引用/padding。
+// 两遍构建：一万张独立软件 PB 金标准，逐字核对目录/metadata/引用/padding。
 `timescale 1ns/1ps
 `default_nettype none
 module tb_engine_bin;

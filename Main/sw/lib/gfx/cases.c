@@ -1,13 +1,11 @@
 /******************************************************************************
 * @file cases.c: 十一个整帧用例
 *
-* @brief  软件执行器、参考实现、E7 的板上测量与引擎仿真共用的同一批输入。
+* @brief  软件执行器、参考实现、板上测量与引擎仿真共用的同一批输入。
 *         每个用例负责三件事：登记表面、把两张表面的初始内容写进设备内存、
 *         构造命令表。跑完之后对整帧算 CRC32，期望值在 sw/lib/test/golden.txt。
 *
-*         用例清单与来由见 Engineering/TechReports/sw/02 第 2.5 节：
-*         spec 第 01 章第六节原写九个，同时又要求拆开裁剪、另加通道范围一条，
-*         实际是十一个，在这里定死，各处不再自行解释。
+*         用例共十一个，在这里定死，各处不再自行解释。
 *
 *         帧缓冲取 640x480、stride_log2 = 12，与板上一致；纹理 64x64、
 *         stride_log2 = 8，格式随用例变。
@@ -177,7 +175,7 @@ static uint32_t build_one(uint32_t idx, gfx_surface_table *t,
         (void)gfx_blit(&l, 1, 0, 0, 0, 300, 200, (int)TEX_W, (int)TEX_H,
                        (int)GFX_EQ_ADD, 0u, 0, 0u);
         break;
-    case 6:                                     /* fill-const，c = 1 是第 01 章的反例 */
+    case 6:                                     /* fill-const，c = 1 是舍入行为的最小反例 */
         (void)gfx_fill(&l, 0, rect_of(0, 0, (int32_t)FB_W, (int32_t)FB_H),
                        0x00010101u, (int)GFX_EQ_CONST, 1u);
         break;

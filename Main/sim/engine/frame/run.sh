@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# 引擎 P1 B6（顶层集成）的整帧仿真
+# 顶层集成的整帧仿真
 #
-# 被测是 engine_top（B1~B5 六层整机）经 APB 提交整张命令表，从机是带随机反压的
+# 被测是 engine_top 六层整机经 APB 提交整张命令表，从机是带随机反压的
 # axi_ram_model（262144 字 = 4 MiB；用例窗口外另存命令表）。
 #
 # 用例三组：
-#   frames/frame0..10  SW3 十一个整帧金标准（pix_cases_dump --frame 导出）；
+#   frames/frame0..10  十一个整帧金标准（pix_cases_dump --frame 导出）；
 #                      内存逐 128 位对软件执行器，帧缓冲 CRC 由本脚本按
-#                      sw 第 03 章 3.6 节口径另算并与 sw/lib/test/golden.txt 比对
-#   sw6/sw6a_f0、sw6a_f1  SW6 场景 A 连续两帧（sw6_frames_dump 导出，游戏本体的
+#                      软件执行器同口径另算并与 sw/lib/test/golden.txt 比对
+#   sw6/sw6a_f0、sw6a_f1  基础 Demo 场景 A 连续两帧（sw6_frames_dump 导出，游戏本体的
 #                      sw6_scene_a.c 组表），内存逐 128 位对软件执行器
 #   sprites            16 颗互不重叠的 16×16 ALPHA，定时从机（RD_LAT=23 RD_BUB=12
 #                      WR_BUB=6 B_LAT=1），PERF_BUSY 逐颗对账（性能判据见测试台文件头）

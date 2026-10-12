@@ -1,4 +1,4 @@
-/* F5：独立标量像素基准与 PB 字节金标准。导出一万张 RTL 构建场景。 */
+/* 独立标量像素基准与 PB 字节金标准。导出一万张 RTL 构建场景。 */
 #include "gfx/pb.h"
 #include <assert.h>
 #include <stdio.h>

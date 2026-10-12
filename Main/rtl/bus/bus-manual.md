@@ -3,8 +3,7 @@
 `rtl/bus/` 的随码文档：各 APB 附件的寄存器表与专用语义。
 地址窗口分配（APB Slave 0，CPU 地址 0xF810_0000 起）：engine 0x0000~0x0FFF、
 scanout_stub 0xE000~0xEFFF、axi_mux_guard 0xF000~0xFFFF、axi_probe_master 0x1000~0x1FFF；
-其余页默认应答 PREADY=1、PSLVERR=1、PRDATA=0。研究背景在
-`Engineering/TechReports/platform/`（E4 第 03 章、E5 第 06 章）。
+其余页默认应答 PREADY=1、PSLVERR=1、PRDATA=0。
 
 ## 1 apb_probe（已从顶层撤下）
 

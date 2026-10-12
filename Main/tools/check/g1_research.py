@@ -35,7 +35,7 @@ def main():
     if '--record-board' in sys.argv:
         import hashlib
         artifacts = []
-        # 对照对象为 engine 第 06 章 5.3、5.4 节登记的 B6 产物。
+        # 对照对象为整机板测登记的产物（主线比特流与 engineTest bin）。
         for rel, expected in [
             ('fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit',
              'b2118f54501cde5d6f3c8c8143aa45a578fa04aa32a797e37f4a2268d915cf63'),

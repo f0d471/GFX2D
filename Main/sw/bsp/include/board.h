@@ -13,8 +13,6 @@
 *         这里只放与硬件有关、两边都能实现的服务。应用层的事不进这里：
 *         素材按编号查找是 `lib/core` 解析素材包，录像一段按键缓冲是
 *         `lib/core` 处理，文件读写才归 `bsp/host`。
-*
-*         接口的取舍见 Engineering/TechReports/sw/01-软件平台分层与双目标构建.md 3.3 节。
 ******************************************************************************/
 #ifndef GFX2D_BOARD_H
 #define GFX2D_BOARD_H
@@ -29,7 +27,7 @@ int board_begin_compare(void);
 
 /* 板级帧节拍与计时基准：core_clk = 100MHz，1 个 cycle = 10ns。
    PC 上按 SDL_GetPerformanceCounter 折算成同一单位，只作显示，
-   不作性能结论（SW1-SW9 总览约束 5）。 */
+   不作性能结论。 */
 #define BOARD_HZ            100000000u
 
 #define BOARD_FB_COUNT      2
@@ -61,7 +59,7 @@ uint32_t   board_cycles(void);
 /* 走 UART（板上）或 stdout（PC），两边逐字节相同。应用里不出现 printf。 */
 void       board_puts(const char *s);
 
-/* 现在还能不阻塞地交给 board_puts() 多少字节（sw 第 07 章 3.3 节）。
+/* 现在还能不阻塞地交给 board_puts() 多少字节。
    板上的 board_puts() 忙等发送 FIFO，115200 波特每帧只发得出约 192 字节，一次写多了会卡住当帧；
    应用把日志先放进 lib/core/logq，每帧只取这么多字节写出去。
 
@@ -102,7 +100,7 @@ uint32_t  *board_fb(int index);
    比特流里没有扫描输出时板上退回空操作，老程序照常跑完。 */
 void       board_present(int index);
 
-/* SW9：异步请求交换；ticket 是请求前的 SWAP_COUNT。板上同时等场起始中断 A
+/* 异步请求交换；ticket 是请求前的 SWAP_COUNT。板上同时等场起始中断 A
    与交换计数变化，确认之前不得复用原扫描面。返回 0 为成功。 */
 int        board_present_request(int index, uint32_t *ticket);
 int        board_present_finished(uint32_t ticket);
@@ -110,7 +108,7 @@ int        board_present_wait(uint32_t ticket);
 /* 板上与场起始同一拍写入而被硬件吞掉、由 BSP 重写的交换请求次数；PC 恒 0。 */
 uint32_t   board_present_retries(void);
 
-/* SW9：项目 ISR，只在板级层操作 PLIC 和中断源。计数用于等待和板上判据。 */
+/* 项目 ISR，只在板级层操作 PLIC 和中断源。计数用于等待和板上判据。 */
 int        board_irq_init(void);
 int        board_irq_enabled(void);
 void       board_engine_irq_enable(void);
@@ -134,14 +132,12 @@ void       board_wait_frame(void);
        uint32_t d = (uint32_t)(f1 - f0) - (uint32_t)(s1 - s0);   // 这一段错过的场数
        total += d;                                              // 累加放宽类型里
 
-   先提升再减会把一次回绕放大成天文数字（SW8 要按秒累加掉帧数，踩到一次整列作废）。
+   先提升再减会把一次回绕放大成天文数字（统计要按秒累加掉帧数，踩到一次整列作废）。
 
    板上：FRAME_COUNT 由像素域时序发生器在每一个场起始加一，与 EN 无关、任何时刻可读；
          SWAP_COUNT 在完成的切换上加一。比特流里没有扫描输出时两个都恒为 0。
    PC：场数由 board_init 起算的 60Hz 时间轴给（同样与有没有 present 无关），
-       切换数是成功 present 过的次数。
-
-   口径与判据见 Engineering/TechReports/sw/03-PC平台层与帧节拍.md 3.4 节。 */
+       切换数是成功 present 过的次数。 */
 uint32_t   board_frame_count(void);
 uint32_t   board_swap_count(void);
 
@@ -170,13 +166,12 @@ int        board_should_quit(void);
 
    本函数只管搬运，**不解析**：素材包的结构与校验规则在 lib/core/assetpak 里，
    由 assetpak_load() 调用它。这样 bsp 不依赖 lib、lib 不依赖 bsp，
-   仍然只有应用把两者接起来（sw 第 01 章 3.2 节的分层）。 */
+   仍然只有应用把两者接起来。 */
 int board_asset_read(uint32_t offset, void *dst, uint32_t bytes);
 
 /* --- 缓存 --------------------------------------------------------------- */
-/* 按 E3 规则包成带 "memory" clobber 的函数：CPU 数据缓存会遮蔽外部主机
+/* 缓存失效包成带 "memory" clobber 的函数：CPU 数据缓存会遮蔽外部主机
    （引擎、扫描输出）写入 DDR 的结果，共享区读回之前必须失效一次。
-   见 Engineering/TechReports/platform/05-CPU数据缓存与第二个主机写入的一致性.md。
    PC 上都是空操作。 */
 void       board_dcache_invalidate_all(void);
 void       board_dcache_invalidate_range(const void *addr, uint32_t bytes);

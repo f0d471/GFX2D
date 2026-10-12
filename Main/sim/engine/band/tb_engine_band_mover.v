@@ -1,4 +1,4 @@
-// G2 真实 mover/AXI 控制验证：4KB 拆段、超时不放弃、LOAD/FLUSH 排空、错误重试。
+// 真实 mover/AXI 控制验证：4KB 拆段、超时不放弃、LOAD/FLUSH 排空、错误重试。
 `timescale 1ns/1ps
 `default_nettype none
 module tb_engine_band_mover;

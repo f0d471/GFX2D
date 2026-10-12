@@ -1,7 +1,7 @@
-// B5 的单元仿真测试台：engine_top（B1~B5 全部）经 APB 提交，从机是补齐后的
-// axi_ram_model（4 MiB、wstrb、运行时 SLVERR 窗口）。判据（B5 条目 2.4 节）：
+// 控制层的单元仿真测试台：engine_top 全链经 APB 提交，从机是补齐后的
+// axi_ram_model（4 MiB、wstrb、运行时 SLVERR 窗口）。判据：
 //
-//   1 十步检查：159 条一致性向量逐条喂进引擎，错误三元组与 spec 第 02 章逐条相同；
+//   1 十步检查：159 条一致性向量逐条喂进引擎，错误三元组与命令语义逐条相同；
 //     命令表放在专用地址，可读记录之后由从机回 SLVERR（vec_to_sim 转换）。
 //   2 取数的边界：FETCH 落在批中间（回退后定位到那一条）、首批/下一批不可取、
 //     LIST_BASE 非 32 字节对齐、批跨 4KB 拆两笔、32 位地址末端的 END 优先。
@@ -427,7 +427,7 @@ module tb_engine_top;
     endtask
 
     // =====================================================================
-    // 定向段（D1~D16）
+    // 定向段
     // =====================================================================
     task directed_all;
         reg [31:0] s;
@@ -436,7 +436,7 @@ module tb_engine_top;
         reg [127:0] tname;
 
         begin
-            // ---- D1 跨 4KB 的批拆分：批首 0xFE0（1 条 + 15 条两笔），全部可读
+            // ---- 跨 4KB 的批拆分：批首 0xFE0（1 条 + 15 条两笔），全部可读
             tname = "d1_split_4k";
             soft_reset;
             surf16(0, WORK);
@@ -453,14 +453,14 @@ module tb_engine_top;
             submit_check(LBASE + 32'hFE0, 16'd16, 32'd0, 0, 0, tname);
             check_mem(WORK, 32'h00AB_CD12, tname);
 
-            // ---- D2 LIST_BASE 非 32 字节对齐：FETCH（索引 0、TAG 0）
+            // ---- LIST_BASE 非 32 字节对齐：FETCH（索引 0、TAG 0）
             tname = "d2_misaligned";
             soft_reset;
             apb_wr(R_CTRL, 32'h1);
             mwrite(LBASE, 32'h0000_0000);
             submit_check(LBASE + 32'h10, 16'd1, 32'd9, 32'd0, 32'd0, tname);
 
-            // ---- D3a 32 位地址末端：第 0 条 END（别名字 0x3FFFE，地址 0x3FFFE0）
+            // ---- 32 位地址末端：第 0 条 END（别名字 0x3FFFE，地址 0x3FFFE0）
             tname = "d3_end_first";
             soft_reset;
             apb_wr(R_CTRL, 32'h1);
@@ -468,7 +468,7 @@ module tb_engine_top;
             mwrite(32'h003F_FFFC, 32'h0000_00A5);
             submit_check(32'hFFFF_FFE0, 16'd2, 32'd0, 0, 0, tname);
 
-            // ---- D3b 第 0 条 FILL、第 1 条不可取 → FETCH 索引 1（第 0 条已执行）
+            // ---- 第 0 条 FILL、第 1 条不可取 → FETCH 索引 1（第 0 条已执行）
             tname = "d3b_unfetchable1";
             soft_reset;
             surf16(0, WORK + 32'h0100);
@@ -480,7 +480,7 @@ module tb_engine_top;
             submit_check(32'hFFFF_FFE0, 16'd2, 32'd9, 32'd1, 32'd0, tname);
             check_mem(WORK + 32'h0100, 32'h0011_2233, tname);
 
-            // ---- D4a 索引 ≥16 的 FETCH：20 条、可读截在 17 → ERROR_INDEX=17
+            // ---- 索引 ≥16 的 FETCH：20 条、可读截在 17 → ERROR_INDEX=17
             tname = "d4a_fetch17";
             soft_reset;
             put_surf3(0, WORK + 32'h0200, 32'h0020_0010, 32'h8000_0006); // 16×32, stride 64
@@ -499,7 +499,7 @@ module tb_engine_top;
                 check_mem(WORK + 32'h0200 + j*64, 32'h0000_0000 + j, tname);
             check_mem(WORK + 32'h0200 + 17*64, 32'h0000_0000, tname);
 
-            // ---- D4b 索引 ≥16 的 BUS_WRITE：第 17 条的目的表面落在 SLVERR 区
+            // ---- 索引 ≥16 的 BUS_WRITE：第 17 条的目的表面落在 SLVERR 区
             tname = "d4b_bus_write17";
             soft_reset;
             put_surf3(0, 32'h0031_0000, 32'h0020_0010, 32'h8000_0006);
@@ -517,7 +517,7 @@ module tb_engine_top;
             u_ram.err_hi_r = 32'h0030_0fff;
             submit_check(LBASE + 32'h800, 16'd20, 32'd11, 32'd17, 32'h0000_0011, tname);
 
-            // ---- D5 BUS_READ 端到端：源像素在 SLVERR 区；后续命令无副作用
+            // ---- BUS_READ 端到端：源像素在 SLVERR 区；后续命令无副作用
             tname = "d5_bus_read";
             soft_reset;
             surf16(0, 32'h0030_0000);
@@ -553,7 +553,7 @@ module tb_engine_top;
             check_mem(WORK + 32'h0400, 32'h0000_0000, tname);
             apb_wr(R_IRQ_EN, 32'h0);
 
-            // ---- D6 BUS_WRITE 端到端：目的在 SLVERR 区
+            // ---- BUS_WRITE 端到端：目的在 SLVERR 区
             tname = "d6_bus_write";
             soft_reset;
             surf16(0, WORK + 32'h0500);
@@ -566,7 +566,7 @@ module tb_engine_top;
             mwrite(LBASE + 32'h1000 + 28, 32'h0000_00D1);
             submit_check(LBASE + 32'h1000, 16'd1, 32'd11, 32'd0, 32'h0000_00D1, tname);
 
-            // ---- D7 超时：取数方向被按住超过 T=4096 拍；放行后回空闲、可再提交
+            // ---- 取数超时：取数方向被按住超过 T=4096 拍；放行后回空闲、可再提交
             tname = "d7_timeout";
             soft_reset;
             surf16(0, WORK + 32'h0600);
@@ -605,7 +605,7 @@ module tb_engine_top;
             submit_check(LBASE + 32'h1400, 16'd1, 32'd0, 0, 0, tname);
             check_mem(WORK + 32'h0600, 32'h000B_0C0D, tname);   // XRGB：X 字节恒 0
 
-            // ---- D8 软复位：清 valid、裁剪框恢复全游戏区、之后能再次提交
+            // ---- 软复位：清 valid、裁剪框恢复全游戏区、之后能再次提交
             tname = "d8_soft_reset";
             soft_reset;
             surf16(0, WORK + 32'h0700);
@@ -633,7 +633,7 @@ module tb_engine_top;
             for (j = 0; j < 16; j = j + 1)
                 check_mem(WORK + 32'h0700 + j*64, 32'h0077_7777, tname);
 
-            // ---- D9 跨命令写后读：FILL 写 A，紧接 BLIT 从别名表面 B 读同一块
+            // ---- 跨命令写后读：FILL 写 A，紧接 BLIT 从别名表面 B 读同一块
             tname = "d9_hazard_war";
             soft_reset;
             put_surf3(0, WORK + 32'h0800, 32'h0010_0010, 32'h8000_0006);  // A
@@ -653,7 +653,7 @@ module tb_engine_top;
             for (j = 0; j < 16; j = j + 1)
                 check_mem(WORK + 32'h0900 + j*4, 32'h001E_2D3C, tname);
 
-            // ---- D10 首错顺序：前一条 BUS_WRITE 先于后一条 BAD_FIELD
+            // ---- 首错顺序：前一条 BUS_WRITE 先于后一条 BAD_FIELD
             tname = "d10_err_before_field";
             soft_reset;
             surf16(0, 32'h0030_0000);
@@ -666,7 +666,7 @@ module tb_engine_top;
             mwrite(LBASE + 32'h1900 + 32, 32'h0000_0101);      // FILL + key 位 → BAD_FIELD
             submit_check(LBASE + 32'h1900, 16'd2, 32'd11, 32'd0, 32'h0000_0042, tname);
 
-            // ---- D11 零面积/NOP/SET_CLIP 混排不死锁
+            // ---- 零面积/NOP/SET_CLIP 混排不死锁
             tname = "d11_no_deadlock";
             soft_reset;
             surf16(0, WORK + 32'h0B00);
@@ -685,7 +685,7 @@ module tb_engine_top;
             submit_check(LBASE + 32'h1980, 16'd4, 32'd0, 0, 0, tname);
             check_mem(WORK + 32'h0B00, 32'h0055_5555, tname);  // XRGB：X 字节恒 0
 
-            // ---- D12 PERF 对账抽样：CMD/PIXEL/KEY_SKIP 在已知负载上精确
+            // ---- PERF 对账抽样：CMD/PIXEL/KEY_SKIP 在已知负载上精确
             tname = "d12_perf";
             soft_reset;
             surf16(0, WORK + 32'h0C00);
@@ -713,7 +713,7 @@ module tb_engine_top;
             for (j = 8; j < 16; j = j + 1)
                 check_mem(WORK + 32'h0D00 + j*4, 32'h0055_5555, tname);
 
-            // ---- D13 16 条 NOP：一笔 32 拍取数，RD_BEAT 不得截成 4 位
+            // ---- 16 条 NOP：一笔 32 拍取数，RD_BEAT 不得截成 4 位
             tname = "d13_fetch_beats";
             soft_reset;
             for (j = 0; j < 128; j = j + 1)
@@ -728,7 +728,7 @@ module tb_engine_top;
             if (perf1 !== 32'd32) begin errors = errors + 1;
                 $display("PERF-FAIL RD_BEAT=%0d exp=32", perf1); end
 
-            // ---- D14 LIST_COUNT 是整字寄存器，高 16 位不得静默丢失
+            // ---- LIST_COUNT 是整字寄存器，高 16 位不得静默丢失
             tname = "d14_count_width";
             soft_reset;
             for (j = 0; j < 128; j = j + 1)
@@ -741,7 +741,7 @@ module tb_engine_top;
             if (perf0 !== 32'h0001_0000) begin errors = errors + 1;
                 $display("CASE-FAIL LIST_COUNT=%08x exp=00010000", perf0); end
 
-            // ---- D15 逐条回退时超时：ERR 只能在取数排空后与 BUSY=0 同时可见
+            // ---- 逐条回退时超时：ERR 只能在取数排空后与 BUSY=0 同时可见
             tname = "d15_fallback_timeout";
             soft_reset;
             for (j = 0; j < 16; j = j + 1)
@@ -777,7 +777,7 @@ module tb_engine_top;
                 errors = errors + 1;
                 $display("CASE-FAIL %0s: 收尾 status=%08x exp=TIMEOUT且空闲", tname, s); end
 
-            // ---- D16 APB 错误响应须在 ACCESS 完成边沿可见
+            // ---- APB 错误响应须在 ACCESS 完成边沿可见
             soft_reset;
             apb_wr(R_CTRL, 32'd0);
             apb_wr_reject(R_DOOR, 32'd1); // EN=0

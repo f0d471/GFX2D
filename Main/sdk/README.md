@@ -4,7 +4,7 @@
 
 项目对 sdk 的需求（板级封装、驱动包装、缓存失效的包装、地址映射）一律放在**叠在 sdk 之上的项目板级层** `sw/bsp/`（`ti60/` 与 `host/` 两个实现），由它转出去，不改 sdk 本身，
 这样重新生成 IP 之后 `git diff --quiet HEAD -- Main/sdk` 仍然成立。分层与判据见
-[`../sw/README.md`](../sw/README.md) 与 [`../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md`](../../Engineering/TechReports/sw/01-软件平台分层与双目标构建.md)。
+[`../sw/README.md`](../sw/README.md)。
 
 本目录的内容由厂商 IP 生成，其中还带着 lwIP、FreeRTOS、CoreMark 等第三方组件，各自的授权以其文件头或同目录的许可证文件为准。
 
@@ -50,8 +50,7 @@
 ## 重新生成 SoC IP 时
 
 当前软件包由 efx_soc 3.4.0（Efinity 2026.1）生成，2026-09-19。生成走 IP Manager 的 Python API，
-不用图形界面，工具是 `../tools/soc/ipm_gen_soc.py`，做法与原因见
-`../../Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md`。
+不用图形界面，工具是 `../tools/soc/ipm_gen_soc.py`，用法与注意事项见 `../tools/soc/README.md`。
 
 1. 工作区干净，当前提交就是回退点；
 2. `python3 tools/check/localize_paths.py --apply` 展开 `settings.json` 里 bootloader hex 的路径；

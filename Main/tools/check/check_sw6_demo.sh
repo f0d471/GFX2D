@@ -1,33 +1,32 @@
 #!/usr/bin/env bash
-# check_sw6_demo.sh —— 基础 Demo（SW6）的提交前判据
+# check_sw6_demo.sh —— 基础 Demo 的提交前判据
 #
-# 判据与检查脚本的约定见 Engineering/TechReports/sw/05-基础Demo.md 3.12 节。
-# 日志侧的外部核对（两遍比对、hud 与上一帧统计、hcrc 按字库文本独立重画、s 与 scene
+# 十项判据列在下面。日志侧的外部核对（两遍比对、hud 与上一帧统计、hcrc 按字库文本独立重画、s 与 scene
 # 参考值、off 与 eq）由 tools/check/check_sw6_log.py 做，本脚本负责串起来：
 #
-#   D1  录像可重生成    gen_sw6_replay.py 重打两份 .g2dr，与入库的逐字节相同；
+#   1   录像可重生成    gen_sw6_replay.py 重打两份 .g2dr，与入库的逐字节相同；
 #                       replay2c.py 独立解析一遍
-#   D2  编过并跑通      make PLATFORM=host，判据模式一遍，^fail 0 与 ^done、退出码 0
-#       D2b 演示模式    默认构建加帧数上限编过并冒烟，A、B 两段都出现
-#       D2c 双缓冲反例  INJECT=SW6_FB_PER_PASS、每遍 121 帧，必须出现 fb err
-#   D3  对期望日志      去掉 cyc 三列后与入库的期望日志逐行相同；快速档另核前缀关系
-#   D4  有窗与无窗      同一个二进制在 SDL_VIDEODRIVER=dummy 下再跑一遍，逐字节相同
-#   D5  两遍一致        p 1 与 p 2 逐帧相同；反例 INJECT=SW6_LIVE_HUD 必须见红
-#   D6  HUD             hud 列对上一帧统计、hcrc 对字库文本重画；反例 INJECT=EQ_COPY 见红
-#   D7  场景 B          scene 参考值两两不同、每个 B 帧对上本帧 s；反例 EQ_COPY 见红
-#   D8  计数            A 帧 off >= 4；eq A 的 copy/alpha/add、eq P 的 copy/alpha/straight 非 0
-#   D9  逐方程注错      COPY／ALPHA／ADD／ALPHA_STRAIGHT 各一次，每次至少改变一行
-#   D10 Sanitizer       加 SAN=1 再跑一遍，ASan／UBSan 无报告、fail 0
+#   2   编过并跑通      make PLATFORM=host，判据模式一遍，^fail 0 与 ^done、退出码 0
+#       2b  演示模式    默认构建加帧数上限编过并冒烟，A、B 两段都出现
+#       2c  双缓冲反例  INJECT=SW6_FB_PER_PASS、每遍 121 帧，必须出现 fb err
+#   3   对期望日志      去掉 cyc 三列后与入库的期望日志逐行相同；快速档另核前缀关系
+#   4   有窗与无窗      同一个二进制在 SDL_VIDEODRIVER=dummy 下再跑一遍，逐字节相同
+#   5   两遍一致        p 1 与 p 2 逐帧相同；反例 INJECT=SW6_LIVE_HUD 必须见红
+#   6   HUD             hud 列对上一帧统计、hcrc 对字库文本重画；反例 INJECT=EQ_COPY 见红
+#   7   场景 B          scene 参考值两两不同、每个 B 帧对上本帧 s；反例 EQ_COPY 见红
+#   8   计数            A 帧 off >= 4；eq A 的 copy/alpha/add、eq P 的 copy/alpha/straight 非 0
+#   9   逐方程注错      COPY／ALPHA／ADD／ALPHA_STRAIGHT 各一次，每次至少改变一行
+#   10  Sanitizer       加 SAN=1 再跑一遍，ASan／UBSan 无报告、fail 0
 #       板上目标        有交叉工具链时另编判据与演示两种构建，零告警且 bin <= 524288 字节
 #
 # 用法（WSL，仓库根或任意位置）：
 #     bash Main/tools/check/check_sw6_demo.sh
 #     SW6_QUICK=1 bash Main/tools/check/check_sw6_demo.sh     每段每遍只跑 120 帧
 #
-# 需要 SDL2 与 python3；D10 的板上目标要 RISCV_BIN=<RISCV_BIN>（doc/开发环境.md 第 11 节）。
+# 需要 SDL2 与 python3；板上目标要 RISCV_BIN=<RISCV_BIN>（doc/开发环境.md 第 11 节）。
 # 不上板：板上对账（判据模式快速档）用 tools/board/board_run.py 单独跑，
 # 串口日志用 `check_sw6_log.py --board <串口日志> logs/sw6_judge_quick.log` 对账，
-# 原始串口日志入库，见 sw 第 05 章 3.13 节。
+# 原始串口日志入库 logs/。
 
 set -u
 
@@ -76,7 +75,7 @@ else
     printf 'fail %d\ndone\n' "$FAIL"; exit 1
 fi
 
-# ---------------------------------------------------------------- D1 录像
+# ---------------------------------------------------------------- 录像可重生成
 echo "== D1 录像可重生成 =="
 if python3 "$GEN" --out "$TMP/replay" >"$TMP/gen.log" 2>&1; then
     d1=0
@@ -100,7 +99,7 @@ else
     tail_lines 5 <"$TMP/gen.log" | while read -r l; do note "$l"; done
 fi
 
-# ---------------------------------------------------------------- D2 编过并跑通
+# ---------------------------------------------------------------- 编过并跑通
 echo "== D2 判据模式（有窗） =="
 if ! make -C "$APP" -s PLATFORM=host EXTRA_CFLAGS="$JUDGE_CFLAGS" >"$TMP/build.log" 2>&1; then
     bad "D2 编不过"
@@ -119,7 +118,7 @@ else
     tail_lines 8 <"$TMP/run.txt" | while read -r l; do note "$l"; done
 fi
 
-# ---------------------------------------------------------------- D3 期望日志
+# ---------------------------------------------------------------- 期望日志
 echo "== D3 对期望日志 =="
 if [ ! -f "$EXPECT" ]; then
     bad "D3 缺少入库的期望日志 $EXPECT"
@@ -140,7 +139,7 @@ else
     fi
 fi
 
-# ---------------------------------------------------------------- D4 有窗与无窗
+# ---------------------------------------------------------------- 有窗与无窗
 echo "== D4 无窗同一个二进制 =="
 SDL_VIDEODRIVER=dummy "$HOST_BIN" >"$TMP/dummy.log" 2>"$TMP/dummy.err"
 rc=$?
@@ -154,9 +153,9 @@ else
     head -2 "$TMP/d4.log" | while read -r l; do note "$l"; done
 fi
 
-# ---------------------------------------------------------------- D2b 演示模式
+# ---------------------------------------------------------------- 演示模式
 echo "== D2b 演示模式（默认构建）编过并冒烟 =="
-# 判据模式换掉了默认构建，所以这一条放在 D4 之后：D5~D8 只用已经采集好的 run.txt。
+# 判据模式换掉了默认构建，所以这一条放在无窗复跑之后：日志侧判据只用已经采集好的 run.txt。
 # 演示模式是 `#else` 那一半，`-DSW6_FRAMES` 的编译期分支只在它里面求值——
 # 第一版 `SW6_FRAMES_MAX` 带 `(uint32_t)` 转型，`#if` 不认，演示模式加这个开关编不过。
 if ! make -C "$APP" -s PLATFORM=host EXTRA_CFLAGS="-DGFX2D_START_MODE=1 -DSW6_STAGE_FRAMES=60 -DSW6_FRAMES=200" \
@@ -177,10 +176,10 @@ else
     fi
 fi
 
-# ---------------------------------------------------------------- D2c 双缓冲反例
+# ---------------------------------------------------------------- 双缓冲反例
 echo "== D2c 双缓冲不变量的反例：按每遍帧号选面、每遍 121 帧（奇数） =="
 # 应用在每帧开头核对「目的面不是上一次 present 的那一面」，违反就打 fb err 并计 fail。
-# 正常构建按全局帧序号轮换，D2 的全量跑（B 段一遍 367 帧，奇数）已经覆盖；
+# 正常构建按全局帧序号轮换，判据模式的全量跑（B 段一遍 367 帧，奇数）已经覆盖；
 # 反例退回按每遍帧号选面，一遍的帧数是奇数时下一遍第 0 帧必然撞上，这一条必须见红。
 if ! make -C "$APP" -s PLATFORM=host INJECT=SW6_FB_PER_PASS \
         EXTRA_CFLAGS="-DSW6_JUDGE=1 -DSW6_FRAMES=121" >"$TMP/build_fb.log" 2>&1; then
@@ -196,7 +195,7 @@ else
     fi
 fi
 
-# ---------------------------------------------------------------- D5~D9 日志侧
+# ---------------------------------------------------------------- 日志侧判据
 echo "== D5 两遍一致 =="
 if python3 "$CHK" --pair "$TMP/run.txt" >"$TMP/d5.log" 2>&1; then
     grep '^chk' "$TMP/d5.log" | while read -r l; do note "$l"; done
@@ -232,7 +231,7 @@ else
     head -3 "$TMP/d8.log" | while read -r l; do note "$l"; done
 fi
 
-# ---------------------------------------------------------------- D9 逐方程注错
+# ---------------------------------------------------------------- 逐方程注错
 echo "== D9 逐方程注错（与快速档期望日志比，至少改变一行） =="
 QEXPECT="$LOGS/sw6_judge_quick.log"
 QFLAGS="-DSW6_JUDGE=1 -DSW6_FRAMES=120"
@@ -252,7 +251,7 @@ else
         else
             ok "D9 INJECT=$inj 至少改变一行（$(sed -n '1p' "$TMP/cmp_$inj.log" | cut -c1-60)…）"
         fi
-        # D6／D7 的反例用 EQ_COPY 那一次
+        # HUD／场景 B 的反例用 EQ_COPY 那一次
         if [ "$inj" = "EQ_COPY" ]; then
             if python3 "$CHK" --hud "$TMP/inj_EQ_COPY.txt" --font "$FONT" >"$TMP/c6.log" 2>&1; then
                 bad "D6 反例：EQ_COPY 下 hcrc 仍然全对（判据空转）"
@@ -268,7 +267,7 @@ else
     done
 fi
 
-# ---------------------------------------------------------------- D5 反例
+# ---------------------------------------------------------------- 两遍一致的反例
 echo "== D5 反例：判据模式照样显示实时量 =="
 if ! make -C "$APP" -s PLATFORM=host INJECT=SW6_LIVE_HUD EXTRA_CFLAGS="$QFLAGS" \
         >"$TMP/build_live.log" 2>&1; then
@@ -286,7 +285,7 @@ else
     fi
 fi
 
-# ---------------------------------------------------------------- D10 Sanitizer
+# ---------------------------------------------------------------- Sanitizer
 echo "== D10 Sanitizer 与板上目标 =="
 if make -C "$APP" -s PLATFORM=host SAN=1 EXTRA_CFLAGS="$QFLAGS" >"$TMP/build_san.log" 2>&1; then
     SDL_VIDEODRIVER=dummy "$HOST_BIN" >"$TMP/san.log" 2>&1

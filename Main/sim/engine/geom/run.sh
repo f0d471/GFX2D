@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# 引擎 P1 B3（几何层）的仿真
+# 几何层的仿真
 #
 # 两步：
-#   1 研究探针 probe_geom.v（B3 研究清单第 1、5 项，engine 第 03 章 3.1、3.5 节，保留为回归）
-#   2 入库实现 rtl/engine/engine_geom.v 的单元仿真（engine 第 03 章 3.7 节）
+#   1 研究探针 probe_geom.v（产出速率与单独综合，保留为回归）
+#   2 入库实现 rtl/engine/engine_geom.v 的单元仿真
 #
 # 期望值一律由独立模型 tools/check/geom_model.py 现算，测试台只做「驱动 + 比对」：
 #   三组输入：定向用例 34 条、159 条向量里几何层见到的命令、十一整帧用例的全部命令。
 #   每条记录只有在握手真正发生的那一拍之后才前进到下一条（+STALL 会压出反压）。
-#   测试台另有握手监视器（PROTO / DONEERR）与 B4 行缓冲替身（BUFERR），见 tb_engine_geom.v 文件头。
+#   测试台另有握手监视器（PROTO / DONEERR）与行缓冲替身（BUFERR），见 tb_engine_geom.v 文件头。
 #
 # 需要 WSL 里的 iverilog 12、python3 与主机 gcc（整帧用例的导出用）。
 # 不需要 EFINITY_HOME：本目录不例化任何厂商原语（单独综合的工程在 syn/）。

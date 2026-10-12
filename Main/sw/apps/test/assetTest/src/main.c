@@ -1,7 +1,7 @@
 /******************************************************************************
-* @file main.c: assetTest —— SW5 素材流水线的判据程序
+* @file main.c: assetTest —— 素材流水线的判据程序
 *
-* @brief  一次跑完素材流水线（sw 第 04 章 3.12 节）软件侧的判据：
+* @brief  一次跑完素材流水线软件侧的判据：
 *           1. 经板级读入口把素材包装进 REGION_ASSET（PC 读文件、板上读 Flash），
 *              由 lib/core/assetpak 两段式装载：先读包头校验总长，再读正文；
 *           2. 与编译时生成的 assets.h 对账（版本、条目数、总长、整包 CRC、逐项几何）；
@@ -12,7 +12,6 @@
 *           5. 打印整帧 CRC、一块已知窗口的 CRC，以及一张 64×24 的字符画。
 *              字符画在两个平台上逐字节相同，是留档的那张「可目视核对」的图。
 *
-*         判据与对账见 Engineering/TechReports/sw/04-素材流水线.md 3.12 节；
 *         串起来跑的是 Main/tools/check/check_sw5_assets.sh。
 *         板上与 PC 跑的是同一份源码、同一份素材包，整帧 CRC 必须相同。
 ******************************************************************************/
@@ -130,7 +129,7 @@ static void dump_entries(const assetpak *pk)
 
 static const char *RAMP = " .:-=+*#%@";
 
-/* 逐行取前 width * 4 字节、跳过行跨的间隙：口径与 sw 第 03 章 3.6 节一致。 */
+/* 逐行取前 width * 4 字节、跳过行跨的间隙：算进间隙会与板上 DDR 的上电残值对不上。 */
 static uint32_t fb_crc(const uint32_t *fb)
 {
     crc32_ctx ctx;

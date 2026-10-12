@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
-# check_sw8_stats.sh —— 演示模式与统计埋点（SW8）A~D 四批的提交前判据
+# check_sw8_stats.sh —— 演示模式与统计埋点的提交前判据
 #
-# 判据见 Engineering/TechReports/sw/07-演示模式与统计埋点.md 第三节与第五节，
-# 口径见 2.2、2.3、2.4 节与 4.4、4.9 节。
-# 本脚本串起来跑：
+# 各项判据与口径列在下面。本脚本串起来跑：
 #
 #   M1 主机测试         mk/host.mk 的 test 目标：64 位（ASan/UBSan）与 -m32 输出逐字节相同、fail 0，
 #                       stderr 里没有 sanitizer 报告；普查（C 组）19 行、模拟时钟（S 组）4 行、
@@ -45,12 +43,12 @@
 #                       bsp 退出时的超额汇总是 over 0 times 0 bytes。SW8_SKIP_LONG=1 跳过，**跳过不算通过**
 #   M15 自动驾驶的 app 测试
 #                       M8 的 app 测试输出里 A 组 8 行全 ok（接管与交还、偏好与平局、躲弹、打一局两遍相同；
-#                       危险度扫描对朴素参考在 SW7 的 P7）；注错 AUTO_ORDER（候选顺序倒过来）必须让 A2 的平局那一行见红
+#                       危险度扫描对朴素参考的比对在实体池测试里）；注错 AUTO_ORDER（候选顺序倒过来）必须让 A2 的平局那一行见红
 #   M16 自动驾驶打一局  gfx2dGame 以 -DSTG_FIELD=4 -DSTG_JUDGE_AUTO=1 编 PC 版（输入换成自动驾驶、受击打开），
 #                       无窗口、GFX2D_UNPACED=1 跑两遍：seg 与 g 行逐字节相同（CRC 序列可复现）、fail 0、done、没有 err 行；
 #                       打出活到哪一段与每帧平均开销（PC 上的周期数只作登记）
 #   M16i 自动驾驶的注错 INJECT=AUTO_ORDER 编同一个入口：g 行的 CRC 序列必须与 M16 不同
-#   M17 出图与第一版统计 D 批：入库的四份样例日志 apps/game/gfx2dGame/logs/sw8_stats_{demo,game,s1,press}.log
+#   M17 出图与第一版统计 入库的四份样例日志 apps/game/gfx2dGame/logs/sw8_stats_{demo,game,s1,press}.log
 #                       逐行对账（同 M13 的解析）；Main/tools/stats/plot_stats.py 按固定参数出三张图，
 #                       三份图源与 Deliverables/Assert/figures/src/sw8_*.html 逐字节相同（入库的图就是这几份日志画的）
 #   M17i 出图的注错     不给搜索日志时必须报 missing 1、退出码非 0、不出搜索轨迹图
@@ -249,7 +247,7 @@ expect_red M7 NMAX_NO_SETTLE   '^N1 six models'
 
 # ---------------------------------------------------------------- M8 搜索跑在弹幕场上
 echo "== M8 搜索跑在弹幕场上（gfx2dGame 的 app 测试，64 位 ASan/UBSan 与 -m32） =="
-# 选项从 mk/host.mk 取，与 check_sw7_game.sh 的 G4 同一做法
+# 选项从 mk/host.mk 取，与 check_sw7_game.sh 的实体池项同一做法
 FLAGS="$(make -C "$SW" -s --no-print-directory -f mk/host.mk OBJDIR="$TMP/flags" \
          --eval 'sw8_print_flags: ; @echo -std=gnu11 -O$(OPT) -g $(WARN)' sw8_print_flags 2>/dev/null)"
 build_app() {   # $1 = 产物名，$2 = 64|32

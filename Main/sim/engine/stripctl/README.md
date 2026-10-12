@@ -1,8 +1,7 @@
-# G3：条带控制与软件分桶
+# 条带控制与软件分桶
 
 正式入口为 tools/check/check_g3_stripctl.py，使用生产 list/strip/exec_sw 与
-完整 engine_top。研究模型和原型同时保留，结论与验收边界见
-[engine 第 09 章](../../../../Engineering/TechReports/engine/09-条带控制与ABIv2.md)。
+完整 engine_top。研究模型和原型同时保留。
 
 ## 正式复现
 
@@ -19,7 +18,8 @@ python3 Main/tools/check/check_g3_stripctl.py
 --collect-board 检查原始板测日志、CRC、fail/done 和扫描压力，不烧写。
 
 构建工件和共享内存镜像进入忽略的 build/；证据进入 logs/。
-条带表计数、布局、局部坐标与错误约束以 spec 第 02 章 3.9 节为准。
+条带表计数、布局、局部坐标与错误约束以 `sw/lib/gfx/strip.c`、`strip_plan.c`
+的实现与 `tools/check/check_g3_stripctl.py` 的判据为准。
 
 ## 原始研究复现
 
@@ -53,14 +53,14 @@ Main/sim/engine/stripctl/build/tiling_fuzz --json
 | logs/acceptance_review.json | 验收复核对照，引用以上原始结果 |
 | logs/research_results.json、fuzz_results.json | 研究模型、1000 张原型与四种变异 |
 
-## G4 前期研究工件
+## 游戏接入前期研究工件
 
-真实游戏帧的分桶统计（2026-10-09，engine 第 10 章 3.3 节）：host 构建
+真实游戏帧的分桶统计（2026-10-09）：host 构建
 `make PLATFORM=host EXTRA_CFLAGS='-DGFX2D_STRIP_RESEARCH=1 ...'` 下的
 `draw_frame` 探针逐帧打 `rcsv` 行；`g4_frame_census.awk` 按档聚合。
 `logs/g4_k2400.log`～`logs/g4_k3600.log` 是 `GFX2D_PRESS_KNOB` 固定四档
-的原始日志；nmax 全程主日志（约 1.3 MB）不入库，复现命令见第 10 章。
+的原始日志；nmax 全程主日志（约 1.3 MB）不入库，复现命令同 tools/check 的整机检查。
 
 板测程序为 sw/apps/test/stripTest，经 board_run.py 的 --bin 走 JTAG；
-完整工具命令及本机占位符见 doc/开发环境.md。板卡证据超出 G3 的原定最低边界，
-仍是诊断场景；G4 的游戏条带接入、持续 N_max、cache 对照和作品数字尚未验收。
+完整工具命令及本机占位符见 doc/开发环境.md。板卡证据超出条带控制的原定最低边界，
+仍是诊断场景；游戏条带接入与整机 N_max 的正式判据在 sim/engine/g4 与 tools/check。

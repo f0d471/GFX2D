@@ -1,4 +1,4 @@
-// G4 真实游戏整帧：生产组帧、TEX 热集、随机反压、可见区与 padding、PERF。
+// 真实游戏整帧：生产组帧、TEX 热集、随机反压、可见区与 padding、PERF。
 `timescale 1ns/1ps
 `default_nettype none
 module tb_g4_frame #(parameter integer SH=16);

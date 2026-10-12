@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 引擎 P1 B1：单通道混合核（rtl/engine/engine_blend.v）仿真
+# 单通道混合核（rtl/engine/engine_blend.v）仿真
 #
 # 用例：
 #   spec      先用 check_round255.c 自己的断言过一次（六个方程、舍入与位宽的规格侧实现）

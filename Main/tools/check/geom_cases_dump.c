@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file geom_cases_dump.c: 把十一个整帧用例的表面表与命令表导成几何层模型能吃的记录
 *
-* @brief  几何层（B3）的独立模型 tools/check/geom_model.py 要「能直接吃十一个整帧用例的命令」。
+* @brief  几何层的独立模型 tools/check/geom_model.py 要「能直接吃十一个整帧用例的命令」。
 *         用例的命令表是 C 代码在运行时构造的（sw/lib/gfx/cases.c 与 list.c），
 *         所以不要在 Python 里照抄一遍——照抄会与真源分叉。这里链接 sw/lib/gfx
 *         把它导成与 check_cmd_semantics.py --emit 相同的文本记录格式，模型再去解析。
@@ -10,7 +10,7 @@
 *         sw/lib/gfx 的 cases.c、list.c、check.c 与 sw/lib/core/format.c）：
 *             bash tools/check/geom_cases_dump.sh [输出文件]
 *
-*         与 B3 研究清单第 4 项（engine 第 03 章 3.4 节）对应；B4 的逐像素期望值导出用另一个更全的小程序。
+*         逐像素期望值的导出用另一个更全的小程序（pix_cases_dump）。
 ******************************************************************************/
 
 #include <stdio.h>

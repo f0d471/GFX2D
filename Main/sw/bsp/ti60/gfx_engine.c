@@ -1,7 +1,7 @@
 /******************************************************************************
-* @file gfx_engine.c: 2D 渲染引擎最小驱动的 Ti60F225 实现（引擎 P1 B6）
+* @file gfx_engine.c: 2D 渲染引擎最小驱动的 Ti60F225 实现
 *
-* @brief  协议与取舍见 gfx_engine.h 的文件头与 TechReports engine 第 06、07 章。
+* @brief  协议与取舍见 gfx_engine.h 的文件头。
 *         寄存器偏移一律取生成的 gfx_regs.h，
 *         本文件不出现第二个偏移真源；页基址是 APB Slave 0（soc.h 的
 *         IO_APB_SLAVE_0_INPUT，CPU 地址 0xF810_0000）。
@@ -38,7 +38,7 @@ static void eng_wr(uint32_t offset, uint32_t value)
 {
     *(volatile uint32_t *)(uintptr_t)(ENG_BASE + offset) = value;
     /* 写被拒收（PSLVERR）时硬件没有独立的错误线，拒收场景由调用顺序保证：
-       submit 先查 STATUS 的忙/排空位（D54 的拒收条件），其余寄存器不受限。 */
+       submit 先查 STATUS 的忙/排空位（DOORBELL 的拒收条件），其余寄存器不受限。 */
 }
 
 int gfx_engine_present(void)
@@ -64,8 +64,8 @@ int gfx_engine_soft_reset(void)
     if (!gfx_engine_present())
         return GFX_ENG_E_ABSENT;
 
-    /* EN 与 SOFT_RST 一起写：EN=0 时 DOORBELL 拒收（D54），复位完要能直接提交。
-       SOFT_RST 写 1 自清，复位请求在内部排空完成后才撤（D17/D54）。 */
+    /* EN 与 SOFT_RST 一起写：EN=0 时 DOORBELL 拒收，复位完要能直接提交。
+       SOFT_RST 写 1 自清，复位请求在内部排空完成后才撤。 */
     eng_wr(GFX_CTRL, GFX_CTRL_EN | GFX_CTRL_SOFT_RST);
 
     waited = 0u;
@@ -103,7 +103,7 @@ int gfx_engine_surf_set_space(int slot, uint32_t base, uint32_t width,
     /* +0 base、+4 [15:0] 宽 / [31:16] 高、+8 控制字：[4:0] stride_log2、
        [9:8] space、[15:12] format、[31] valid，其余位必须为 0
        （设计文档 3.4 节，违例报 BAD_SURFACE）。valid 最后置 1。
-       space 的取值写在位段里：0 DDR，1 TEX（v1-TEX profile 的 BLIT 源，G1）；
+       space 的取值写在位段里：0 DDR，1 TEX（v1-TEX profile 的 BLIT 源）；
        format 的枚举在 gfx_abi.h，那是 lib 层的头，本层引用它就破坏了分层。 */
     eng_wr(GFX_SURF((uint32_t)slot, 2u), 0u);
     eng_wr(GFX_SURF((uint32_t)slot, 0u), base);
@@ -177,7 +177,7 @@ int gfx_engine_submit(uint32_t list_base, uint32_t list_count)
 
     if (!gfx_engine_present())
         return GFX_ENG_E_ABSENT;
-    /* D53：非空表 LIST_BASE[4:0] 必须为 0，硬件对未对齐报 FETCH（索引 0、TAG 0）。
+    /* 非空表 LIST_BASE[4:0] 必须为 0，硬件对未对齐报 FETCH（索引 0、TAG 0）。
        在这里拦下来能把「调用方分配命令表没对齐」变成一眼可见的驱动错误码，
        而不是一张查不出原因的 FETCH。 */
     if (list_count != 0u && (list_base & 0x1Fu) != 0u)
@@ -190,7 +190,7 @@ int gfx_engine_submit(uint32_t list_base, uint32_t list_count)
 
     eng_wr(GFX_CTRL, GFX_CTRL_EN); /* 旧入口显式选直通，允许模式往返。 */
     eng_wr(GFX_LIST_BASE, list_base);
-    eng_wr(GFX_LIST_COUNT, list_count); /* D53：寄存器与命令层都是完整 32 位 */
+    eng_wr(GFX_LIST_COUNT, list_count); /* 寄存器与命令层都是完整 32 位 */
     eng_wr(GFX_DOORBELL, 1u);
     return GFX_ENG_OK;
 }
@@ -247,7 +247,7 @@ int gfx_engine_wait(uint32_t *err_code, uint32_t *err_index, uint32_t *err_tag)
     if (!gfx_engine_present())
         return GFX_ENG_E_ABSENT;
 
-    /* D54：DONE/ERR 只在引擎静止（在途命令收尾、预取收完）之后置位，
+    /* DONE/ERR 只在引擎静止（在途命令收尾、预取收完）之后置位，
        所以「DONE 或 ERR 且不忙」就代表可以读计数器与错误定位。 */
     waited = 0u;
     do {

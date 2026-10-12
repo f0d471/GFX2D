@@ -1,8 +1,8 @@
-// tb_probe_pix：B4 研究探针 probe_pix.v 的测试台
+// tb_probe_pix：研究探针 probe_pix.v 的测试台
 //
 // 参考模型与 sw/lib/gfx/exec_sw.c 逐条对齐（blend_px 与 r255 照抄）：
 //   a = XRGB ? 255 : srcw[31:24]；三通道 r255(s*fs + d*fd)；输出高字节恒 0；
-//   BLIT 色键比较源的原始存储字，命中则该像素不写；FILL 无色键（spec 第 02 章条款 3）。
+//   BLIT 色键比较源的原始存储字，命中则该像素不写；FILL 无色键。
 //
 // 五类用例：
 //   sweep  npx 1..25 × ls 0..3 × ld 0..3 共 400 行（BLIT），方程、sfmt、色键、半号滚动；
@@ -15,9 +15,9 @@
 // 写流的下游有两种接法：
 //   默认      ws_tready 恒 1（只看「下游 ready 时每拍一拍」）
 //   +REALWR   接真写核 rtl/vendor/verilog-axi/axi_dma_wr.v（参数与 engine_mover 相同）
-//             与 E4 校准的定时从机（axi_ram_model TIMED=1）；测试台按段发写描述符
+//             与板上实测校准的定时从机（axi_ram_model TIMED=1）；测试台按段发写描述符
 //             （段 1 结束在 4KB 边界上），ws_tready 由写核给。写核每个描述符首拍必停一拍，
-//             输出 FIFO 半满时也停（2026-10-01 复核补的，见 engine 第 04 章 3.3、3.6 节）
+//             输出 FIFO 半满时也停（2026-10-01 复核补的判据）
 //
 // 整体检查（每行都查）：
 //   逐拍逐槽（按握手计拍）：行内非色键像素逐位相等且「不写」位为 0；行外/色键命中「不写」位为 1；
@@ -398,7 +398,7 @@ module tb_probe_pix;
             rnd = $random(seed);
             f_c = rnd[7:0];
             f_w4 = {(rnd[7:0] | 8'h80), $random(seed) & 32'h00FFFFFF};
-            f_read_dst = (eqf != 3'd0);                 // D37：非 COPY 才读目的
+            f_read_dst = (eqf != 3'd0);                 // 非 COPY 才读目的
             sb = (f_ls + f_npx + 3) / 4;
             // 源字：随机 alpha（含 0 与 255 的极端值）+ 随机 24 位色
             for (slot = 0; slot < sb * 4 + 8; slot = slot + 1) begin

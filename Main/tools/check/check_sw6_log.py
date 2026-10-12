@@ -1,33 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""check_sw6_log.py —— SW6 判据日志的外部核对
+"""check_sw6_log.py —— 基础 Demo 判据日志的外部核对
 
-判据与日志格式的权威是 Engineering/TechReports/sw/05-基础Demo.md 3.11、3.12 节。
-本脚本只做**日志侧**的判据，不碰应用内部：spec 第 01 章 4.1、4.7 两节那条教训是
+判据与日志格式的权威是 gfx2dGame 打日志的代码，判据口径见 Main/tools/check/README.md。
+本脚本只做**日志侧**的判据，不碰应用内部：教训是
 「判据要能从外面核对，不能由被测程序自己判自己」。
 
 七种模式，各打印若干行 `chk <名字> ok|FAIL`，末尾 `fail <n>`，退出码 0 表示全过：
 
-    --compare A B           两份日志逐行比（去掉 cyc 三列），用于 D3 与 D4
-    --pair LOG              同一段的两遍（p 1／p 2）逐行比（再去掉 p 列），用于 D5
+    --compare A B           两份日志逐行比（去掉 cyc 三列），用于「对期望日志」与「有窗与无窗」
+    --pair LOG              同一段的两遍（p 1／p 2）逐行比（再去掉 p 列），用于「两遍一致」
     --hud LOG --font FONT   hud 列与上一帧统计对账；hcrc 与按字库文本独立重画的
-                            HUD 矩形 CRC 对账，用于 D6
+                            HUD 矩形 CRC 对账，用于「HUD 与字形」
     --scene LOG             三个 scene 参考值两两不同；每个 B 帧的 scrc 等于本帧 s
-                            那张图的参考值；k=1 段内 s 逐帧轮换，用于 D7
+                            那张图的参考值；k=1 段内 s 逐帧轮换，用于「场景 B」
     --counts LOG            A 帧 off >= 4；eq A 的 copy/alpha/add 非 0；
-                            eq P 的 copy/alpha/straight 非 0，用于 D8
-    --quick-prefix FULL Q   快速档的逐帧行按段、按遍必须是全量档的前缀，用于 D3
+                            eq P 的 copy/alpha/straight 非 0，用于「off 与 eq 计数」
+    --quick-prefix FULL Q   快速档的逐帧行按段、按遍必须是全量档的前缀，用于「对期望日志」
     --board BOARD EXPECT    板上串口日志从 pak 行起与期望日志逐行比（去掉 cyc 三列），
-                            用于第 3 节「板上对账」
+                            用于板上对账
 
-只用标准库（zlib.crc32 与 lib/core/crc32 同参，sw 第 04 章 3.6 节）。
+只用标准库（zlib.crc32 与 lib/core/crc32 同参）。
 """
 
 import argparse
 import sys
 import zlib
 
-# f 行的字段位置：行里不出现字符本身，按空白切分就能解析（spec 2.7）
+# f 行的字段位置：行里不出现字符本身，按空白切分就能解析
 F_LABELS = ["f", None, None, "p", None, "s", None, "keys", None, "n", None,
             "k", None, "cmd", None, "pix", None, "ksk", None, "hud", None,
             None, "off", None, "cyc", None, None, None, "crc", None,
@@ -91,7 +91,7 @@ def groups(lines):
     return g
 
 
-# ---------------------------------------------------------------- D3 / D4
+# ---------------------------------------------------------------- 期望日志对比
 
 def compare_lines(a, b, tag):
     if len(a) != len(b):
@@ -135,7 +135,7 @@ def board_body(lines):
     board_run.py 的日志里有三样别的东西：它自己的 `#` 标记行；加载之前 Flash 里旧程序
     在 `reset halt` 之前打的几行；本程序的横幅常常抢在「程序已加载」标记之前出现
     （程序一恢复就打印，标记写得晚）。所以去掉 `#` 行与空行，取**最后一个**横幅之后、
-    从 `pak` 行起的部分，与期望日志从 `pak` 行起比（spec 第 3 节「板上对账」）。"""
+    从 `pak` 行起的部分，与期望日志从 `pak` 行起比（板上对账）。"""
     body = [ln for ln in lines if ln.strip() != "" and not ln.startswith("#")]
     last = None
     for i, ln in enumerate(body):
@@ -158,7 +158,7 @@ def mode_board(pb, pe):
     compare_lines(e, b, "board 从 pak 行起")
 
 
-# ---------------------------------------------------------------- D5
+# ---------------------------------------------------------------- 两遍一致
 
 def mode_pair(path):
     lines = norm(path)
@@ -187,7 +187,7 @@ def mode_pair(path):
             ok("pair %s 段 %d 帧两遍逐行相同" % (stage, len(p1)))
 
 
-# ---------------------------------------------------------------- D6
+# ---------------------------------------------------------------- HUD 与字形
 
 def load_font(path):
     glyphs = []
@@ -295,7 +295,7 @@ def mode_hud(path, font):
         ok("hud／hcrc %d 帧全部对账" % n_check)
 
 
-# ---------------------------------------------------------------- D7
+# ---------------------------------------------------------------- 场景 B
 
 def mode_scene(path):
     lines = norm(path)
@@ -344,7 +344,7 @@ def mode_scene(path):
             ok("scene k=1 段内 s 逐帧轮换且三张都轮到（p%s，%d 帧）" % (p, len(k1)))
 
 
-# ---------------------------------------------------------------- D8
+# ---------------------------------------------------------------- off 与 eq 计数
 
 def mode_counts(path):
     lines = norm(path)
@@ -392,7 +392,7 @@ def mode_counts(path):
                     bad("counts eq P", "copy=%d alpha=%d straight=%d" % (copy, alpha, straight))
 
 
-# ---------------------------------------------------------------- D3 后半
+# ---------------------------------------------------------------- 期望日志对比的后半（快速档前缀）
 
 def mode_quick_prefix(full, quick):
     fl, ql = norm(full), norm(quick)

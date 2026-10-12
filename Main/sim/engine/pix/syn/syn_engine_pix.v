@@ -1,4 +1,4 @@
-// B4 formal RTL isolated synthesis wrapper. Every input is LFSR driven;
+// Formal RTL isolated synthesis wrapper. Every input is LFSR driven;
 // every output affects obs so RAM and DSP logic cannot be pruned.
 `timescale 1ns/1ps
 `default_nettype none

@@ -1,4 +1,4 @@
-// G1 正式 TEX 的单独综合：全部输入来自变量激励，全部输出参与观测。
+// 正式 TEX 的单独综合：全部输入来自变量激励，全部输出参与观测。
 `timescale 1ns/1ps
 `default_nettype none
 module syn_engine_tex(input wire clk, rst, output reg obs);

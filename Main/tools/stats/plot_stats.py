@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""plot_stats.py —— 把 gfx2dGame 的统计日志画成报告与幻灯片用的三张图（sw 第 07 章 3.11 节）
+"""plot_stats.py —— 把 gfx2dGame 的统计日志画成报告与幻灯片用的三张图
 
 输入是模式框架打出来的日志（PC 的标准输出或板上 board_run.py 录下的串口日志都行），
 只认下面几种行，其余行忽略（行尾的 \\r 与 board_run.py 的 # 标记行不影响）：
 
-    csvh,t,mode,exec,...          表头：列名以它为准（sw 第 07 章 3.9 节）
+    csvh,t,mode,exec,...          表头：列名以它为准
     csv,<每 60 场一行>
     csvsum,frames,fields,...
     nmax load 16x16|8x8           一遍搜索开始

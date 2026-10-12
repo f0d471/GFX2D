@@ -3,7 +3,7 @@
 | 文件 | 用途 |
 | --- | --- |
 | `board_run.py` | 烧比特流、先开串口、复位并加载程序、回收串口输出，一条命令走完；也做调试通路检查、寄存器读写与「从 Flash 启动」的采集 |
-| `input_forward.py` | SW9 的两字节按键协议、Windows 键盘与 XInput 手柄采样；由 `board_run.py --forward-input` 调用 |
+| `input_forward.py` | 板上游戏的两字节按键协议、Windows 键盘与 XInput 手柄采样；由 `board_run.py --forward-input` 调用 |
 | `game_control.py` | 正在运行的游戏的电脑控制面板；固定操作说明、实时模式/后端/FPS、切换提示、硬件后端恢复和重开按钮 |
 | `play.ps1` | 游戏控制面板的 PowerShell 启动入口；定位 Efinity Python，日志与状态写入项目内的构建目录 |
 | `gfx2d_debug.cfg` | 本板用的 OpenOCD 配置，修掉官方 cfg 在本板上的两处对不上，`board_run.py` 用它 |
@@ -20,7 +20,7 @@ set PYTHONHOME=<EFINITY>\python311
 | 用法 | 做什么 |
 | --- | --- |
 | `--bin <程序.bin>` | 烧比特流，开串口，`reset halt`、`load_image`、`resume`，收串口到 `--stop-on` 的文本或 `--seconds` 超时 |
-| `--flash-boot` | **从 Flash 启动**：先开串口，再烧比特流；SoC 复位后 bootloader 从 `0x380000` 把程序拷进 DDR 自己跑，本模式不 `load_image`。程序与素材包都在 Flash 里时用它（SW5、SW9 的板上判据） |
+| `--flash-boot` | **从 Flash 启动**：先开串口，再烧比特流；SoC 复位后 bootloader 从 `0x380000` 把程序拷进 DDR 自己跑，本模式不 `load_image`。程序与素材包都在 Flash 里时用它（素材装载与游戏移植的板上判据） |
 | `--check-only` | 调试通路检查：连开两次 OpenOCD 会话各读一次 PC（`doc/开发环境.md` 0.6 节第 5 步） |
 | `--cmd "<OpenOCD 命令>"` | 不加载程序，复位后执行命令，可给多个。回归表的 APB 探针：`--cmd "mdw 0xf8100000 3"`；按键：`--cmd "mdw 0xf8016000"` |
 | `--list-ports` | 列串口 |
@@ -33,9 +33,9 @@ set PYTHONHOME=<EFINITY>\python311
 `--bin` 会把要验的那一段（bootloader 从 Flash 拷贝）绕过去。
 它不用 OpenOCD：配置完 FPGA 的那一刻 SoC 就复位并开始打印，所以串口必须先开。
 
-SW9 的转发位图与 `bsp/include/board.h` 一致：方向键或 WASD 为方向，空格为炸弹，
+转发位图与 `bsp/include/board.h` 一致：方向键或 WASD 为方向，空格为炸弹，
 左 Shift 为慢速，Tab 为软硬件切换，数字键 1～3 为三种模式；手柄方向键/左摇杆、A、左肩键、Start
-对应方向、炸弹、慢速、切换。实体 KEY0～KEY3（丝印 SW0～SW3）依次为左、下、上、右。
+对应方向、炸弹、慢速、切换。实体 KEY0～KEY3（板上丝印的拨码开关）依次为左、下、上、右。
 每个串口包是两个字节：首字节 `0x80 | k[6:0]`；次字节高位为 0，`[6:3]` 为
 `(k ^ (k >> 4) ^ (k >> 8)) & 0xf`，`[2:0]` 为 `k[9:7]`。板上每帧读空接收 FIFO，
 保留同帧按下沿，300 ms 无有效包即释放转发键；实体键不受此超时影响。
@@ -86,10 +86,10 @@ OpenOCD 考察到目标，`load_image` 报的写入字节数等于 bin 的大小
 
 ## game_control.py
 
-G1 程序按 SW → HW/DDR → HW/TEX → SW 循环。控制面板显示三个后端，
+游戏程序按 SW → HW/DDR → HW/TEX → SW 循环。控制面板显示三个后端，
 请求跨两步切换时等待每次板上反馈后再发下一步；旧程序没有 TEX 时停止继续请求。
 CSV 弹数按 n_bullet 列解析。运行 `tools/check/test_game_control.py` 可离线检查，
-GUI 不承担板上功能判分；完整验收见 engine 第 07 章。
+GUI 不承担板上功能判分。
 
 在仓库根目录启动面板：
 
@@ -129,7 +129,7 @@ $env:PYTHONHOME = '<EFINITY>\python311'
 | Esc / 转发复选框 | 停止或恢复键盘与手柄转发；板上游戏继续运行 |
 | 重开本局 | 先切 1、等待确认、再切 2；也可按相同顺序手动重开 |
 | 手柄方向键/左摇杆、A、LB | 移动、炸弹、慢速；支持第一个 XInput 手柄 |
-| 实体 SW0 / SW1 / SW2 / SW3 | 左 / 下 / 上 / 右；不受电脑转发开关影响 |
+| 实体拨码开关 KEY0～KEY3 | 左 / 下 / 上 / 右；不受电脑转发开关影响 |
 
 键盘仅在面板位于前台时转发；手柄不受前台限制，关闭转发开关后两者都停止。关闭面板前发送
 全松包，游戏继续运行。模式 2 连续 600 帧无输入后自动驾驶，任意游戏按键接管回来。
@@ -185,7 +185,7 @@ python3 Main/tools/board/make_flash_image.py --app <程序.bin> [--out <镜像.h
 写完之后 FPGA 停在桥接镜像上；再按上面的 `--flash-boot` 烧一次自己的比特流，
 SoC 复位后就会从 Flash 启动。
 
-## G4 板测矩阵
+## 条带后端板测矩阵
 
 run_g4_matrix.py 在 Windows/Efinity Python 下串行调用 board_run.py：
 16k-follow 为候选同帧/S1/条带诊断/地址回绕；16k-cache 为候选缓存回归与

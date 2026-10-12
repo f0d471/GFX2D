@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-# 引擎寄存器表的单一真源（B5 定案 D51）。
+# 引擎寄存器表的单一真源。
 #
 # 偏移、位域、复位值与读写属性只在本文件的 REGS 表里写一遍，一条命令生成两份产物：
 #   Main/rtl/engine/engine_regs_offsets.vh   Verilog `localparam`，RTL `include
-#   Main/sw/bsp/include/gfx_regs.h           C `#define`，驱动（B6）include
+#   Main/sw/bsp/include/gfx_regs.h           C `#define`，驱动 include
 # `--check` 重新生成并与仓库内两份产物逐行比，不一致即退出码 1（挂提交前检查，
 # 与 localize_paths.py --check 同一位置）。语义（每一位干什么）的权威是
-# Main/doc/赛题二总体设计.md 3.4 节与 Engineering/TechReports/spec/02-命令语义.md；
-# 本文件只锁「数字与位号」，改语义先改那两处再回来同步表。
+# Main/doc/赛题二总体设计.md 3.4 节；
+# 本文件只锁「数字与位号」，改语义先改那里再回来同步表。
 #
 # 用法（在 Main/ 下）：
 #   python3 tools/check/regs_gen.py                 生成两份产物
@@ -47,8 +47,8 @@ PERF_NAMES = ["CMD", "PIXEL", "KEY_SKIP", "RD_BURST", "WR_BURST",
 ID_VALUE   = 0x47465801
 ID_VERSION = 0x01
 
-# CAPS 位（spec 第 02 章 §1 与 3.8 节：v1 支持色键、预乘/直通 ALPHA、MUL；
-# v1-TEX profile（引擎 P3 的 G1，2026-10-07 定案 D57/D63）把 TEX 置 1）
+# CAPS 位（v1 支持色键、预乘/直通 ALPHA、MUL；
+# v1-TEX profile（条带模式的片上纹理装载窗口，2026-10-07 定案）把 TEX 置 1）
 # (名字, 最低位, 位宽, 复位值)。[11:8] = 每拍像素通路数，v1 为 4。
 CAPS_FIELDS = [("KEY", 0, 1, 1), ("ALPHA_PM", 1, 1, 1),
                ("ALPHA_ST", 2, 1, 1), ("MUL", 3, 1, 1),
@@ -57,7 +57,7 @@ CAPS_FIELDS = [("KEY", 0, 1, 1), ("ALPHA_PM", 1, 1, 1),
                ("LANES", 8, 4, 4), ("INST", 12, 1, 1), ("BIN", 13, 1, 1)]
 CAPS_VALUE = sum(value << lo for _, lo, _, value in CAPS_FIELDS)
 
-# TEX 装载窗口（v1-TEX profile，G1 的 D57）：APB Slave0 的第 4~7 页，
+# TEX 装载窗口（v1-TEX profile 定案）：APB Slave0 的第 4~7 页，
 # 页内偏移 0x4000 起 16 KiB，CPU 地址 0xF810_4000~0xF810_7FFF。
 TEX_WINDOW = 0x4000
 TEX_BYTES = 16384
@@ -72,7 +72,7 @@ STATUS_CODE_HI, STATUS_CODE_LO = 7, 4                     # [7:4] 错误码
 # 中断位（IRQ_EN 读写；IRQ_STAT 写 1 清）
 IRQ_BITS = [("LIST_DONE", 0), ("ERROR", 1)]
 
-# 错误码（spec 第 02 章 §5 的 0~9 + D19 的 10~12）
+# 错误码（0~9 为检查类错误；10~12 为硬件独有的总线读、总线写与超时错误）
 ERR_CODES = [("OK", 0), ("BAD_OPCODE", 1), ("BAD_FIELD", 2), ("BAD_EQUATION", 3),
              ("BAD_SURFACE", 4), ("BAD_SPACE", 5), ("BAD_FORMAT", 6), ("OVERLAP", 7),
              ("BAD_PREMULT", 8), ("FETCH", 9), ("BUS_READ", 10), ("BUS_WRITE", 11),
@@ -85,8 +85,8 @@ PERF_COUNT = len(PERF_NAMES)
 def gen_vh():
     L = []
     a = L.append
-    a("// 由 tools/check/regs_gen.py 生成（D51 的单一真源），不要手改；")
-    a("// 语义见 Main/doc/赛题二总体设计.md 3.4 节与 spec 第 02 章。")
+    a("// 由 tools/check/regs_gen.py 生成，是寄存器语义的单一真源，不要手改；")
+    a("// 语义见 Main/doc/赛题二总体设计.md 3.4 节。")
     a("`ifndef GFX_ENGINE_REGS_OFFSETS_VH")
     a("`define GFX_ENGINE_REGS_OFFSETS_VH")
     a("")
@@ -138,7 +138,7 @@ def gen_vh():
     for n, v in ERR_CODES:
         a(f"localparam [3:0] EC_ERR_{n} = 4'd{v};")
     a("")
-    a("// TEX 装载窗口（v1-TEX profile，G1 的 D57）：APB Slave0 页内偏移，")
+    a("// TEX 装载窗口（v1-TEX profile）：APB Slave0 页内偏移，")
     a("// 不是第 0 页寄存器表的 12 位偏移；CPU 地址 = 0xF810_0000 + EC_TEX_WINDOW。")
     a(f"localparam [15:0] EC_TEX_WINDOW = 16'h{TEX_WINDOW:04X};")
     a(f"localparam [31:0] EC_TEX_BYTES  = 32'd{TEX_BYTES};")
@@ -152,8 +152,8 @@ def gen_vh():
 def gen_h():
     L = []
     a = L.append
-    a("/* 由 tools/check/regs_gen.py 生成（D51 的单一真源），不要手改；")
-    a(" * 语义见 Main/doc/赛题二总体设计.md 3.4 节与 spec 第 02 章。")
+    a("/* 由 tools/check/regs_gen.py 生成，是寄存器语义的单一真源，不要手改；")
+    a(" * 语义见 Main/doc/赛题二总体设计.md 3.4 节。")
     a(" * 引擎寄存器页：APB 第 0 页，基址 0xF810_0000（soc.h 的 IO_APB_SLAVE_0_INPUT）。 */")
     a("#ifndef GFX_REGS_H")
     a("#define GFX_REGS_H")
@@ -204,12 +204,12 @@ def gen_h():
     for n, v in ERR_CODES:
         a(f"#define GFX_ERR_{n}      0x{v:X}u")
     a("")
-    a("/* TEX 装载窗口（v1-TEX profile，G1 的 D57）：APB Slave0 页内偏移，")
+    a("/* TEX 装载窗口（v1-TEX profile）：APB Slave0 页内偏移，")
     a(" * 不是第 0 页寄存器表的偏移；CPU 地址 = 0xF810_0000 + GFX_TEX_WINDOW。 */")
     a(f"#define GFX_TEX_WINDOW   0x{TEX_WINDOW:04X}u")
     a(f"#define GFX_TEX_BYTES    {TEX_BYTES}u")
     a("")
-    a("/* 超时门限 T 的复位值（D30） */")
+    a("/* 超时门限 T 的复位值 */")
     a("#define GFX_TMO_RESET    4096u")
     a("")
     a("#endif")

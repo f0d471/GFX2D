@@ -131,7 +131,7 @@ wire ddr_rstn = (ddr_rst_cnt == DDR_RST_DELAY);
 wire soc_system_reset;
 
 // SoC 与 DDR3 控制器之间的 AXI4
-// 两侧位宽不同，下面两处是有意的截断，与官方参考设计一致，2026-09-16 实验 E2 已查证：
+// 两侧位宽不同，下面两处是有意的截断，与官方参考设计一致，已上板实测查证（2026-09-16）：
 //   地址  SoC 32 位 -> 控制器 28 位。SoC 送出的地址与 CPU 地址按位相同（不减基址）。
 //         上板实测低 28 位逐位参与寻址，高 4 位丢弃，回绕周期 256MB：
 //         0x0000_1000~0x0FFF_FFFF 内 CPU 地址即控制器地址，以上全是别名。
@@ -139,7 +139,6 @@ wire soc_system_reset;
 //         SoC 内部 CPU 一路的 ID 接常量 0，发出的 awid/arid 恒为 8'h00，截断安全。
 //         io_ddrMasters_0 的 ID 最高位是 1，启用它会让响应回错主机；这个口已在 SoC IP 里关掉
 //         （efx_soc 3.4.0 重新生成，AXIMaster=0）。
-//   依据见 Engineering/TechReports/platform/02-DDR地址译码与AXI-ID实测.md。
 wire [31:0]                    soc_ddr_awaddr;
 wire [7:0]                     soc_ddr_awid;
 wire [7:0]                     soc_ddr_awlen;
@@ -237,7 +236,7 @@ wire                           sco_rlast;
 wire                           sco_rvalid;
 wire                           sco_rready;
 
-// 扫描输出与 HDMI 之间（D10 取 B′）：像素与同步由 display 出，复位由 hdmi_tx 出
+// 扫描输出与 HDMI 之间：像素与同步由 display 出，复位由 hdmi_tx 出
 wire [23:0]                    disp_vid_rgb;
 wire                           disp_vid_hs;
 wire                           disp_vid_vs;
@@ -245,7 +244,7 @@ wire                           disp_vid_de;
 wire                           hdmi_vid_rst_n;
 wire                           disp_irq;
 
-// Axi_Mux 的仲裁配置来自永久模块 u_mux_guard（E5 2.1 节第 3 步）
+// Axi_Mux 的仲裁配置来自永久模块 u_mux_guard
 wire                           guard_arb_type;
 wire [2:0]                     guard_cnl_mask;
 
@@ -492,9 +491,8 @@ soc u_soc (
     .jtagCtrl_reset                     (jtag_inst1_RESET),
 
     // 用户中断：A 扫描输出场同步，B 引擎，C 摄像头帧完成（中断号 16/17/22，见 sdk 的 soc.h）。
-    // A 已接到扫描输出的场起始中断（电平，复位后 IRQ_EN=0，见扫描输出 spec 的 D5）；
+    // A 已接到扫描输出的场起始中断（电平，复位后 IRQ_EN=0）；
     // B 接到引擎的中断输出（电平 = IRQ_STAT & IRQ_EN，复位后不举）；C 的模块还没接入，先接 0。
-    // 分配见 Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md 3.1 节。
     .userInterruptA                     (disp_irq),
     .userInterruptB                     (eng_irq_b),
     .userInterruptC                     (1'b0),
@@ -508,11 +506,11 @@ soc u_soc (
 );
 
 // APB Slave 0 的地址划分（按 paddr[15:12] 分成四个窗口）
-//   0x0000~0x0FFF  engine 的寄存器（CPU 地址 0xF810_0000 起，引擎 P1 的 D5）
-//   0x4000~0x7FFF  engine 的 TEX 装载窗口（G1，16 KiB；引擎顶层按 paddr[15:14] 分选）
+//   0x0000~0x0FFF  engine 的寄存器（CPU 地址 0xF810_0000 起）
+//   0x4000~0x7FFF  engine 的 TEX 装载窗口（16 KiB；引擎顶层按 paddr[15:14] 分选）
 //   0xE000~0xEFFF  display 的寄存器（真实扫描输出量测）
 //   0xF000~0xFFFF  axi_mux_guard 的寄存器（仲裁配置与 SoC 防饿死保护）
-//   其余           默认常量应答（D21）：PREADY=1、PSLVERR=1、PRDATA=0。
+//   其余           默认常量应答：PREADY=1、PSLVERR=1、PRDATA=0。
 //                  未映射页必须有模块应答，CPU 的访问才不会停住；
 //                  第 1 页随 axi_probe_master 撤下，也落进默认应答。
 wire        apb_sel_eng = (apb_paddr[15:12] == 4'h0) || (apb_paddr[15:14] == 2'b01);
@@ -526,13 +524,13 @@ wire [31:0] grd_prdata;
 wire        grd_pready;
 wire        grd_pslverr;
 
-// 渲染引擎（引擎 P1 B1~B5 的六层，B6 接进顶层；G1 加 TEX 装载窗口）
+// 渲染引擎（混合/搬运/几何/计算/控制五层加顶层集成；含片上纹理装载窗口）
 // 寄存器表：rtl/engine/engine_regs.v，偏移与位号的真源是 tools/check/regs_gen.py。
-// 复位（D17）：控制层挂 soc_system_reset（同步、高有效），搬运层挂 ddr_rstn 取反
+// 复位：控制层挂 soc_system_reset（同步、高有效），搬运层挂 ddr_rstn 取反
 // （与 Axi_Mux 同一复位源，只在上电与 PLL 失锁时复位）；软复位经寄存器层的
 // drain_req 请求排空，见 engine_top.v 文件头。AXI 主口接 Axi_Mux 的 S1。
-// G1：16 位页内偏移完整传入，寄存器与 TEX 的分选在引擎顶层做——只扩 psel 不扩位
-// 会让 TEX 窗口的访问按 12 位截断别名进第 0 页寄存器（engine 第 07 章 4.1 节）。
+// 16 位页内偏移完整传入，寄存器与 TEX 的分选在引擎顶层做——只扩 psel 不扩位；
+// 只扩 psel 不扩位会让 TEX 窗口的访问按 12 位截断别名进第 0 页寄存器。
 engine_top u_engine (
     .clk        (core_clk),
     .rst_ctrl   (soc_system_reset),
@@ -574,7 +572,7 @@ engine_top u_engine (
     .m_axi_bvalid  (eng_bvalid),
     .m_axi_bready  (eng_bready),
 
-    // 中断 B = IRQ_STAT & IRQ_EN，接 SoC 的 userInterruptB（引擎 P1 的 D5）
+    // 中断 B = IRQ_STAT & IRQ_EN，接 SoC 的 userInterruptB
     .irq_b      (eng_irq_b),
 
     // 仿真观测口（取数流上下文一致性监视），综合悬空
@@ -591,9 +589,9 @@ assign apb_pslverr = apb_sel_eng ? eng_pslverr :
                      apb_sel_sco ? sco_pslverr  :
                      apb_sel_grd ? grd_pslverr  : 1'b1;
 
-// Axi_Mux 的仲裁配置与 SoC 防饿死保护（E5 2.1 节第 3、4 步，永久模块）
+// Axi_Mux 的仲裁配置与 SoC 防饿死保护（永久模块）
 // APB 窗口 0xF810_F000~0xF810_FFFF；送进多路器的掩码 = 用户掩码 & 保护掩码。
-// axi_probe_master 已按 D6/D22 从顶层撤下（它的 ARB 寄存器随之不可访问），
+// axi_probe_master 已从顶层撤下（它的 ARB 寄存器随之不可访问），
 // 源文件与 sim/axi_probe/ 保留。
 axi_mux_guard u_mux_guard (
     .clk            (core_clk),
@@ -616,11 +614,11 @@ axi_mux_guard u_mux_guard (
     .s2_awready     (soc_ddr_awready)
 );
 
-// 扫描输出替身（E5 2.3 节：按行节拍发 160 拍读并把时间记下来）
+// 扫描输出替身（按行节拍发 160 拍读并把时间记下来）
 // 扫描输出（display）
 // ---------------------------------------------------------------------------
 // APB 窗口 0xF810_E000~0xF810_EFFF（接管替身那一页）；只发起读，写通道在 Axi_Mux 例化处接成不发起。
-// 像素侧与 hdmi_tx 对接（D10 取 B′）：display 出像素与 hs/vs/de，hdmi_tx 出 vid_rst_n 与 TMDS。
+// 像素侧与 hdmi_tx 对接：display 出像素与 hs/vs/de，hdmi_tx 出 vid_rst_n 与 TMDS。
 // 顶层管脚与 peri.xml 都不变。
 display_top #(
     .H_ACTIVE   (640),
@@ -676,7 +674,7 @@ display_top #(
 // Normal 模式下响应按事务顺序送回，与 ID 无关，所以控制器 4 位 ID 截断仍然安全。
 // Axi_Mux 没有 BRESP 端口；同一时刻只有被选中的主机看到 bvalid，控制器的 bresp 直接并接给各主机。
 // 仲裁方式与三通道掩码由 u_mux_guard 给出（不再是探针主机的 ARB 寄存器）：
-// 上电为优先级模式、三通道全开、SoC 防饿死保护开启，见 E5 2.1、2.2 节。
+// 上电为优先级模式、三通道全开、SoC 防饿死保护开启。
 Axi_Mux #(
     .SLAVE_ID_WIDTH (8),
     .ID_MODE_SEL    ("Normal"),
@@ -717,7 +715,7 @@ Axi_Mux #(
     .I_M_R_VALID    (ddr_rvalid),
     .O_M_R_READY    (mux_rready),
 
-    // S0：扫描输出，只发起读，写通道接成不发起（E5 2.1 节第 2 步）
+    // S0：扫描输出，只发起读，写通道接成不发起
     .I_S0_AW_ID     (8'h0),
     .I_S0_AW_ADDR   (32'h0),
     .I_S0_AW_LEN    (8'h0),
@@ -750,7 +748,7 @@ Axi_Mux #(
     .O_S0_R_VALID   (sco_rvalid),
     .I_S0_R_READY   (sco_rready),
 
-    // S2：SoC io_ddrA（原来在 S0，E5 2.1 节第 2 步挪到这里，由 guard 保护）
+    // S2：SoC io_ddrA（原来在 S0，后挪到这里，由 guard 保护）
     .I_S2_AW_ID     (soc_ddr_awid),
     .I_S2_AW_ADDR   (soc_ddr_awaddr),
     .I_S2_AW_LEN    (soc_ddr_awlen),
@@ -824,7 +822,7 @@ Axi_Mux #(
     .O_R_Cnl_Num    ()
 );
 
-// HDMI 发送（D10 取 B′：本模块是纯编码封装，彩条在 display_out 里）
+// HDMI 发送（本模块是纯编码封装，彩条在 display_out 里）
 // 像素与 hs/vs/de 由 u_display 给；本模块把复位同步的结果 vid_rst_n 回给像素侧共用。
 hdmi_tx u_hdmi_tx (
     .clk_pixel  (hdmi_tx_slow_clk),

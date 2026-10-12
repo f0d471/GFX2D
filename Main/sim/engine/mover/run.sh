@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# 引擎 P1 B2：搬运层 engine_mover 仿真
+# 搬运层 engine_mover 仿真
 #
 # 被测是 rtl/engine/engine_mover.v 整块，经仓内 Axi_Mux（S1）接补齐四样的从机。
 # 用例分四组：协议与上下文、复位与排空、错误、超时；另有六个注错，每一个都要见红
-# （第六个是 D48 之后补的：正常写流不打 tlast）。
+# （第六个是后补的：正常写流不打 tlast）。
 # 最后单独跑一次从机定时模式（TIMED=1）的回归，它不经过被测，只测 axi_ram_model。
 #
-# 正常用例全程不得置超时位（D30 复核补的判据），测试台自己检查。
+# 正常用例全程不得置超时位（复核补的判据），测试台自己检查。
 # Axi_Mux 用到厂商原语 EFX_SRL8，需要 Efinity 自带的仿真模型：
 #   EFINITY_HOME 指向 Efinity 安装目录（WSL 里的路径），见 doc/开发环境.md 第 1、11 节
 set -u
@@ -73,7 +73,7 @@ check inject_nodrain   FAIL -DCASE_DRAIN  -DINJ_DRAIN_BYPASS
 check inject_nogate_wr FAIL -DCASE_NORMAL -DINJ_NO_GATE_WR
 # 排空按电平重进：请求举着时 drain_done 反复打，退出那一拍收了新提交
 check inject_drain_level FAIL -DCASE_DRAIN -DINJ_DRAIN_LEVEL
-# 正常写流不打 tlast（D48 之前靠计算阵列给，它不给时）：写核进 DROP_DATA，吞掉下一笔的写流
+# 正常写流不打 tlast（应由搬运层按描述符拍数自己打）：写核进 DROP_DATA，吞掉下一笔的写流
 check inject_no_tlast  FAIL -DCASE_NORMAL -DINJ_NO_TLAST
 
 # 注错的 FAIL 必须红在它对应的判据上，不是随便什么错

@@ -1,7 +1,7 @@
-# G4 整机条带接入与性能验证
+# 整机条带接入与性能验证
 
 本目录保存真实游戏研究复现、正式整帧仿真、完整回放与板上性能证据。
-结论与判据见 [engine 第 10 章](../../../../Engineering/TechReports/engine/10-整机与Nmax实测.md)。
+判据入口为 tools/check/check_g4_integration.py 与本节命令。
 
 从仓库根在 WSL 运行：
 

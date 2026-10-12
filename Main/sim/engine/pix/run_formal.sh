@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# 引擎 P1 B4：入库 RTL rtl/engine/engine_pix.v 的正式判据
+# 入库 RTL rtl/engine/engine_pix.v 的正式判据
 #
 # 三组，期望值都不取自被测：
 #   unit_*   tb_engine_pix.v，一行一行地跑：sweep 400 行（npx 1..25 × 源/目的相位 4×4）、
 #            FILL 六方程、拆段四行、长行八行，逐槽对照 exec_sw.c 的像素公式；
 #            写流下游恒 ready 与每 7 拍停 1 拍各一遍；五个注错各自见红。
-#   pipe_*   tb_engine_pix_pipe.v，按 I5 允许的最快节奏发行（行与行之间不等，只等 row_free），
+#   pipe_*   tb_engine_pix_pipe.v，按边带契约允许的最快节奏发行（行与行之间不等，只等 row_free），
 #            两半同时有货；命令 1~5 行、半号照几何层；写流下游恒 ready、周期停顿、成串停顿三种；
 #            不看 tready 与混合核不随流水停两个注错在成串停顿下见红。
-#   path_*   tb_engine_path.v，B1~B4 真实通路（几何层、计算阵列、搬运层、两个 DMA 核、随机反压的
+#   path_*   tb_engine_path.v，引擎全链真实通路（几何层、计算阵列、搬运层、两个 DMA 核、随机反压的
 #            AXI RAM），命令与期望内存由 tools/check/pix_cases_dump.c 经软件执行器导出，
 #            512 KiB 存储逐 128 位比对；色键注错见红。另有跨命令写后读的一组：
 #            等上一条写回完成再提交时对，几何层一空闲就提交（-DNOWAIT）时必须见红——
-#            B1~B4 自己不挡这种冲突，B5 的命令下发要处理它。
+#            数据通路自己不挡这种冲突，控制层的命令下发要处理它。
 #
 # 注错位与 rtl/engine/engine_pix.v 文件头一一对应。
 # 需要 WSL 里的 iverilog 12 与 gcc；不需要 EFINITY_HOME（不经过 Axi_Mux）。

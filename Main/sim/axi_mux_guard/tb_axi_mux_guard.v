@@ -1,4 +1,4 @@
-// sim/axi_mux_guard 测试台（实验 E5 的 2.2 节保护仿真）
+// sim/axi_mux_guard 测试台（Axi_Mux 防饿死保护的仿真）
 //
 // 被测：rtl/vendor/axi_mux/Axi_Mux.v（X3，真厂商源码）、rtl/bus/axi_mux_guard.v，
 //       从机复用 sim/axi_probe/axi_ram_model.v。
@@ -8,15 +8,15 @@
 //   CASE_CHAIN           全链路：三个主机 + guard + Axi_Mux + 从机
 //                       可叠加 GUARD_OFF / INFLIGHT1 / S1_WRITE / INJECT_MASK_S0 / HOLD_MIDGRANT / INJECT_WLAST
 //
-// 判据（对应 E5 2.2 节的用例表，阈值都是按实测定的验收口径，不是形式上界）：
+// 判据（阈值都是按板上实测定的验收口径，不是形式上界）：
 //   grant_sequence   三路持续请求复现 S0=10 S1=10 S2=0；仅 S1/S2 复现 S1=19 S2=0
 //   dual_direction   两个 protect 都清除之前 S1 不恢复；同拍触发 HITS 加 2；
 //                    未握手时 S2_MAX_WAIT 已经在涨（VERSION 2 的运行中最大值）
 //   全链路用例一律要求：S1 不撤销 valid、扫描不超时、从机的 wlast_err 为 0、
 //   S2 完成 CPU_REQS 笔、S2 最大地址等待（含未握手的那一笔）不超过阈值。
-//   阈值：遵守措施一 CONTRACT_BOUND_VAL（414），激进 S1 NORMAL_BOUND_VAL（700）。
+//   阈值：遵守在途契约（每方向一笔在途）时 CONTRACT_BOUND_VAL（414），激进 S1 时 NORMAL_BOUND_VAL（700）。
 //   读方向 normal / inflight1 PASS，inject_noguard 同一阈值下 FAIL（保护在读方向起作用的对照）；
-//   写方向 wr_* 全部 PASS，保护开关的结果逐项相同，由 run.sh 比对（见 E5 2.2 节「写方向」）；
+//   写方向 wr_* 全部 PASS，保护开关的结果逐项相同，由 run.sh 比对；
 //   inject_mask_s0   掩码把 S0 位一起清掉，扫描必须拿不到授权（判据报 FAIL 才算对）
 //   inject_midgrant  S1 已获授权后下游持续不 ready，S1 不得撤销 valid，S2 释放后能完成
 //   inject_wlast     复原引擎替身打一拍的 WLAST，从机的协议检查必须报 FAIL
@@ -41,7 +41,7 @@
 `ifndef CPU_REQS
   `define CPU_REQS 10
 `endif
-// 两条验收阈值，都不是形式上界，来源见 E5 2.2 节与开发日志：
+// 两条验收阈值，都不是形式上界，来自板上实测：
 //   NORMAL_BOUND_VAL    激进 S1 时：按实测取（保护开启 590、关闭 889），留余量取 700
 //   CONTRACT_BOUND_VAL  遵守措施一时：AGE_LIMIT(64) + 一笔 256 拍读(约 310) + 搜索余量(40)
 `ifndef NORMAL_BOUND_VAL
@@ -137,7 +137,7 @@ wire        guard_arb_type;
 wire [2:0]  guard_cnl_mask;
 
 `ifdef INJECT_MASK_S0
-  // 注错：让保护掩码的 S0 位跟着 S1 一起被清（E5 2.2 节 inject_mask_s0）
+  // 注错：让保护掩码的 S0 位跟着 S1 一起被清（inject_mask_s0）
   wire [2:0] mux_mask = guard_cnl_mask & 3'b110;
 `else
   wire [2:0] mux_mask = guard_cnl_mask;
@@ -321,7 +321,7 @@ end
 `endif
 
 // ---------------------------------------------------------------------------
-// grant_sequence 用：直接例化地址仲裁器（E5 1 节的数字出自这里）
+// grant_sequence 用：直接例化地址仲裁器（固定授权序列的数字出自这里）
 // ---------------------------------------------------------------------------
 reg  [2:0]  ac_valid = 3'b000;
 reg         ac_ready = 1'b1;
@@ -437,7 +437,7 @@ initial begin
     if (rd_status[1:0] !== 2'b11) errors = errors + 1;
     if (guard_cnl_mask[1] !== 1'b0) errors = errors + 1;
 
-    // 同一拍两个方向都触发：GUARD_HITS 必须加 2（E5 2.2 节的寄存器定义）
+    // 同一拍两个方向都触发：GUARD_HITS 必须加 2（AR、AW 各计一次）
     g_rd(12'h018, rd_hits);
     $display("DUAL 同拍触发: HITS=%0d (期望 2：AR、AW 各一次)", rd_hits);
     if (rd_hits !== 32'd2) errors = errors + 1;
@@ -536,7 +536,7 @@ initial begin
     else
         $display("RESULT: FAIL (proto_err=%b wlast_err=%0d cpu_rd=%0d：协议违例或 S2 没能恢复)", proto_err, u_ram.wlast_err, cpu_done_rd);
 `else
-    // 保护开启/关闭跑同一判据，方向由 S1_WRITE 选；阈值来自实测定（E5 2.2 节）。
+    // 保护开启/关闭跑同一判据，方向由 S1_WRITE 选；阈值来自板上实测。
     // 这里**不做**「关保护就报 FAIL」的硬编码：保护关闭必须靠实测超过阈值才 FAIL，
     // 否则把阈值改宽也看不出来（2026-09-19 复核发现的假绿漏洞）。
 `ifdef INFLIGHT1
@@ -756,7 +756,7 @@ module master_aggr (
                 arvalid <= 1'b0;
 
             // 写方向：激进时地址流水，W 拍按序发；valid 一旦拉高就保持到握手（AXI 要求）。
-            // inflight1 按 E5 措施一：上一笔的写响应（bvalid 握手，bready 恒 1）回来之前不拉下一笔 awvalid。
+            // inflight1 按在途契约（每方向一笔在途）：上一笔的写响应（bvalid 握手，bready 恒 1）回来之前不拉下一笔 awvalid。
             if ((mode == 1'b1) && enable) begin
                 if (awvalid) begin
                     if (awready) begin

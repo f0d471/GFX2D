@@ -1,4 +1,4 @@
-// B5 engine_top 单独综合封装（B3/B4 同一套做法）：全部输入由 LFSR 驱动（不接常数），
+// engine_top 单独综合封装（与几何层、计算阵列同一套做法）：全部输入由 LFSR 驱动（不接常数），
 // 全部输出折进观测寄存器 obs，RAM/逻辑不会被剪。约束 100 MHz（core_clk）。
 // APB 与 AXI 从侧（arready/rdata/...）由 LFSR 直接驱动；AXI 主口输出与 irq_b、
 // prdata/pslverr 等折进 obs。

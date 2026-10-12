@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file gfx2d_stats.c: 模式框架的统计埋点（每秒一行 CSV）
 *
-* @brief  口径见 gfx2d_stats.h 与 sw 第 07 章 3.9 节。计数的增量都先按 uint32 相减（场号、切换次数、周期数都会回绕）。
+* @brief  口径见 gfx2d_stats.h。计数的增量都先按 uint32 相减（场号、切换次数、周期数都会回绕）。
 ******************************************************************************/
 
 #include "gfx2d_stats.h"
@@ -87,7 +87,7 @@ void stats_sample_counted(stats_state *s, const gfx_census *cc, const stats_samp
             cmd += s->sample.cc.cmd_by_eq[e];
             pix += s->sample.cc.pix_by_eq[e];
         }
-        /* CSV 的 cmd/pixel 保持 SW8 的普查口径；PERF_PIXEL 是硬件独立口径。 */
+        /* CSV 的 cmd/pixel 保持按方程普查的口径；PERF_PIXEL 是硬件独立口径。 */
         s->sample.xs.cmd = cmd;
         s->sample.xs.pixel_total = pix;
         s->sample.xs.key_skip = 0u; /* 逐帧软件值不可由累计硬件计数器冒充 */

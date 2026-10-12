@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# F4 研究轮：在 F1 冻结的 34 组固定输入上量化 v1-I 实例化的合包率与字节压缩。
+# 研究轮：在冻结的 34 组固定输入上量化 v1-I 实例化的合包率与字节压缩。
 # 只读 inputs/mode0（v1 直通记录流），跟踪 SET_CLIP 状态 epoch，
-# 按 F4 契约的共享状态键（w0 全部、key 值、宽高、裁剪 epoch）聚合连续 BLIT。
+# 按实例契约的共享状态键（w0 全部、key 值、宽高、裁剪 epoch）聚合连续 BLIT。
 # 输出 f4_instance_stats.json 与控制台摘要；不改任何生产源码。
 import json
 import struct

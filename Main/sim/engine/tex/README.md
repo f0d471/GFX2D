@@ -1,7 +1,7 @@
-# G1 TEX 验证与研究
+# TEX 片上纹理验证与研究
 
-正式实现为 `rtl/engine/engine_tex.v`，已接入引擎与 SoC。规格、研究、修复和板测见
-[engine 第 07 章](../../../../Engineering/TechReports/engine/07-片上纹理.md)。
+正式实现为 `rtl/engine/engine_tex.v`，已接入引擎与 SoC。规格见
+`rtl/engine/engine-manual.md` 第 4.5 节。
 
 ## 正式验证
 
@@ -44,5 +44,5 @@ geom 27/27、mover 17/17、pix 25/25、ctrl 4/4、frame 16/16。`host_regression
 `python3 Main/tools/check/g1_research.py` 复现原 DDR/本地延迟研究，`--prepare-syn`
 生成 RAM 探针工程；它们不代替正式 APB、重叠和排空验证。研究结果在
 `research_results.json`、`definition_checks.json`、`ram_*.rpt` 及
-`tex_l1/tex_l2/tex_bad_valid.log`。原 `artifact_manifest.json` 是历史 P1 对照，
-其中固定路径的当前文件已由 G1 重建；`--record-board` 只比较原 B6 身份。
+`tex_l1/tex_l2/tex_bad_valid.log`。原 `artifact_manifest.json` 是历史直通对照，
+其中固定路径的当前文件已由 TEX 轮重建；`--record-board` 只比较原整机身份。

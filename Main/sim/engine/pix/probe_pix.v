@@ -1,49 +1,49 @@
-// probe_pix：引擎 P1 B4（计算阵列与片上缓存）前期研究的探针，**不是入库实现**
+// probe_pix：计算阵列与片上缓存前期研究的探针，**不是入库实现**
 //
-// 回答 B4 研究清单（engine 第 04 章第二节）的五问里能在仿真与综合台上量的三件：
-//   第 1 问 旋转器与首末拍：两拍窗口、4 个位置的像素旋转（D15）怎么写；
-//            首末拍「不属于本行的像素」的掩码怎么打（D16 的像素一侧）。
-//   第 3 问 流水线的拍对齐：源拍、目的拍、色键结果与 B1 的 L=3 怎么对齐，
+// 回答研究清单的五问里能在仿真与综合台上量的三件：
+//   第 1 问 旋转器与首末拍：两拍窗口、4 个位置的像素旋转怎么写；
+//            首末拍「不属于本行的像素」的掩码怎么打（X 字节不写标记的像素一侧）。
+//   第 3 问 流水线的拍对齐：源拍、目的拍、色键结果与混合核的 L=3 怎么对齐，
 //            出口怎么保证每拍一拍（判据「两行在片上之后写流不断拍」）。
 //   第 5 问 实验：行缓冲 + 旋转器 + 一条 4 像素通路（12 个 engine_blend）单独综合，
-//            RAM 与 D23 的 14 块对账、100 MHz 余量（配套 syn/ 下的 Efinity 小工程）。
+//            RAM 的 14 块对账、100 MHz 余量（配套 syn/ 下的 Efinity 小工程）。
 //
 // 第 2 问（行缓冲的乒乓与空闲握手）的结论在注释与开发日志里：
 //   Efinity 的 RAM 读、写口都是寄存的（efinity-synthesis.pdf「RAM」章），
 //   本文件的 probe_pix_linebuf 用最普通的推断写法（读写分立 always、非阻塞），
-//   读延迟恒 1 拍；「这一半空出来」的握手按 D41，row_free 的释放时机
-//   见 engine 第 04 章 3.12 节的 D45（这一半的写流末拍被写核收走那一拍）。探针不含这段握手。
+//   读延迟恒 1 拍；「这一半空出来」的握手：row_free 的释放时机是
+//   这一半的写流末拍被写核收走那一拍。探针不含这段握手。
 //
 // 写流的反压（2026-10-01 复核补的）：写核 axi_dma_wr 的 s_axis_write_data_tready 是寄存器，
 //   写核在 STATE_START 里看到 tvalid 才发 AW、下一拍才拉高 tready（axi_dma_wr.v:509、515），
 //   所以每个写描述符的第一拍至少要等一拍；输出 FIFO 半满（16 拍）也拉低（axi_dma_wr.v:905），
 //   所以像素通路必须看 ws_tready：整条流水共用一个时钟使能 en = ws_tready || !ws_tvalid，
-//   行缓冲读口、各级寄存器、12 个 engine_blend 的 en（I6 留的口）、行状态机都挂在它上面。
+//   行缓冲读口、各级寄存器、12 个 engine_blend 的 en（研究契约留的口）、行状态机都挂在它上面。
 //
 // 四个模块：
-//   probe_pix_linebuf  128 位 × 512 的简单双口 RAM，位 [8] 选两行乒乓的半（D23）；
+//   probe_pix_linebuf  128 位 × 512 的简单双口 RAM，位 [8] 选两行乒乓的半；
 //                      深度 256 与 512 占同样的 7 块（efx_map_ramest 实测），取 512。
 //                      读口带读使能 re（流水停顿时读出寄存器保持）。
 //   probe_pix_rot      纯组合的两拍窗口旋转器。窗口 = {prev, cur}，4 个位置：
 //                      off  = (ls >= ld) ? 1 : 0   读地址超前量
 //                      st   = (ls >= ld) ? ls-ld : ls-ld+4   窗口内起始槽（0~3）
 //                      px[t] = 窗口槽 [st+t]，t = 0..3 对齐到目的拍槽 t。
-//                      摊开写就是 4 个 32 位 4:1 mux。推导与 Amiga blitter
-//                      桶形移位的对照见 engine 第 04 章 3.1 节。
+//                      摊开写就是 4 个 32 位 4:1 mux，推导与 Amiga blitter
+//                      的桶形移位同源。
 //   probe_pix_mask     纯组合的首末拍掩码：目的拍 k 的槽 t 有效
-//                      ⟺ 0 ≤ 4k − ld + t < npx。行外像素打「不写」（D16）。
+//                      ⟺ 0 ≤ 4k − ld + t < npx。行外像素打「不写」。
 //   probe_pix_path     一行的数据通路：两块行缓冲、旋转、色键、XRGB 的 a、
 //                      12 个 rtl/engine/engine_blend.v、标记合并、写流（含 tlast）。
 //                      行级驱动简化为 start 脉冲 + 行参数（数据由测试台预填进 RAM），
 //                      不含读流写入与 row_free 的完整握手——那是入库实现的事。
 // 单独综合的顶层在 syn/syn_probe_pix.v（LFSR 驱动全部输入，含 ws_tready）。
 //
-// 设计依据、研究过程与结论见 Engineering/TechReports/engine/04-计算阵列与片上缓存.md。
+// 探针只回答上面三问；入库依据在 rtl/engine/engine_pix.v 与同目录 README。
 `timescale 1ns/1ps
 `default_nettype none
 
 // ---------------------------------------------------------------------------
-// 128 位 × 512 简单双口 RAM，两行乒乓（D23）。位 [8] 是半号：半 0 = 行偶数，半 1 = 行奇数。
+// 128 位 × 512 简单双口 RAM，两行乒乓。位 [8] 是半号：半 0 = 行偶数，半 1 = 行奇数。
 // 推断写法：读写分立 always、非阻塞、同步读（读延迟 1 拍），读口带读使能。
 // Efinity 2026.1 映射为 6 块 512×20 + 1 块 1024×8，共 7 块（efx_map_ramest 与 syn 实测）。
 // ---------------------------------------------------------------------------
@@ -63,8 +63,8 @@ module probe_pix_linebuf (
 endmodule
 
 // ---------------------------------------------------------------------------
-// 两拍窗口、4 个位置的像素旋转器（D15）。纯组合。
-//   ls、ld  源、目的行首地址拍内相位 lead（I5，D36）
+// 两拍窗口、4 个位置的像素旋转器。纯组合。
+//   ls、ld  源、目的行首地址拍内相位 lead（边带）
 //   prev、cur  源行缓冲连续两拍的读出（cur 的地址 = 目的拍号 + off）
 //   px[0..3]   已对齐到目的拍槽位的 4 个源像素字（32 位原样，不做字节重排）
 // off 与 st 的公式见文件头；px[t] = 窗口 8 槽 {prev[0..3], cur[0..3]} 的 [st+t]。
@@ -108,8 +108,8 @@ module probe_pix_rot #(
 endmodule
 
 // ---------------------------------------------------------------------------
-// 首末拍掩码（D16 的像素一侧）：目的拍 k 的槽 t 属于本行 ⟺ 0 ≤ 4k − ld + t < npx。
-// 行外像素的源槽内容是覆盖区间带出的相邻像素（D35），读了但标记「不写」。
+// 首末拍掩码（X 字节不写标记的像素一侧）：目的拍 k 的槽 t 属于本行 ⟺ 0 ≤ 4k − ld + t < npx。
+// 行外像素的源槽内容是覆盖区间带出的相邻像素，读了但标记「不写」。
 // 纯组合；入库实现里在边带级预计算首末两掩码、按拍号二选一，这里直接逐槽比较，
 // 两者等价（首拍只有头部行外、末拍只有尾部行外，中间拍恒满拍）。
 // ---------------------------------------------------------------------------
@@ -137,7 +137,7 @@ endmodule
 
 // ---------------------------------------------------------------------------
 // 一行的数据通路：行缓冲 ×2 → 旋转 → 色键 → XRGB 的 a → 12 个 engine_blend →
-// 标记合并 → 写流。研究与综合共用；例化真核 rtl/engine/engine_blend.v（I6 的 L=3）。
+// 标记合并 → 写流。研究与综合共用；例化真核 rtl/engine/engine_blend.v（L=3 与正式一致）。
 //
 // 拍对齐（研究第 3 问的答案，周期编号从「地址寄存器输出第 0 拍地址」起）：
 //   周期 0   地址发生器：源地址 = 半基 + k + off，目的地址 = 半基 + k
@@ -145,10 +145,10 @@ endmodule
 //   周期 2   r_cur ← q_src、r_prev ← 旧 r_cur、r_dst ← q_dst、r_k ← k（数据级）
 //   周期 3   旋转（{r_prev, r_cur} → px）、色键比较、a 的选择组合后落寄存器：
 //            r_px0..3、r_a、r_key、r_mask；r_dst2 ← r_dst（与 r_px 同拍进 blend）
-//   周期 4~6 engine_blend 的三级（D24）：r_p → r_x → out
-//   周期 7   标记合并（行外 | 色键命中 → X 字节 bit7，D16）落写流寄存器 ws_*
+//   周期 4~6 engine_blend 的三级：r_p → r_x → out
+//   周期 7   标记合并（行外 | 色键命中 → X 字节 bit7）落写流寄存器 ws_*
 //   延迟合计 7 拍；地址发生器行内无气泡 → 下游 ready 时写流每拍一拍。
-//   B2 3.8 节实测 PIX_LAT 4 与 12 每颗弹幕周期数完全相同，这一拍两拍的延迟
+//   实测 PIX_LAT 4 与 12 每颗弹幕周期数完全相同，这一拍两拍的延迟
 //   被「写与下一行的读并行」盖住，不为省它把 dst 接成 RAM 输出直驱。
 //
 // 停顿：上面的「周期」都按 en 计。en = ws_tready || !ws_tvalid，en 为 0 的那一拍
@@ -156,9 +156,9 @@ endmodule
 //   写流寄存器、行状态机）一起保持；写流的 tvalid 在停顿期间保持为 1，不出气泡。
 //
 // 行驱动（研究简化）：start 一拍 + 行参数；源、目的两行假定已预填进第 half 半。
-// tlast 按 tb 给的段拍数打（一行最多两段，D35）：每段最后一拍 tlast（D29）。
-// 这只是为了让测试台把写流直接接到写核上。I5 的边带只有本行写拍数之和（sb_beats），没有段界，
-// 所以定案 D48 改由搬运层按写描述符拍数打 tlast，入库的 engine_pix 不出 tlast。
+// tlast 按 tb 给的段拍数打（一行最多两段）：每段最后一拍 tlast。
+// 这只是为了让测试台把写流直接接到写核上。边带只有本行写拍数之和（sb_beats），没有段界，
+// 所以定案改由搬运层按写描述符拍数打 tlast，入库的 engine_pix 不出 tlast。
 // ---------------------------------------------------------------------------
 module probe_pix_path #(
     // 位 0 旋转错位、位 1 跳过色键、位 2 丢首末拍掩码、
@@ -178,21 +178,21 @@ module probe_pix_path #(
     input  wire [31:0] w4,
     input  wire [7:0]  c,
     input  wire [1:0]  sfmt,           // 0 XRGB8888、1 ARGB8888_PM、2 ARGB8888_STRAIGHT
-    input  wire        read_dst,       // D7：方程不是 COPY
+    input  wire        read_dst,       // 读目的：方程不是 COPY
     input  wire [10:0] npx,
     input  wire [1:0]  lead_src,
     input  wire [1:0]  lead_dst,
     input  wire [7:0]  seg1_beats,     // 写流第 1 段拍数（tlast 位置）
     input  wire [7:0]  seg2_beats,     // 第 2 段拍数（0 = 不拆段）
 
-    // 行缓冲预填写口（研究用；入库实现换成 I3 读流的写入）
+    // 行缓冲预填写口（研究用；入库实现换成读流的写入）
     input  wire        lb_we,
     input  wire        lb_src_sel,     // 预填目标：0 源块、1 目的块
     input  wire [8:0]  lb_waddr,
     input  wire [127:0] lb_wdata,
 
-    // 写流（I4 的形状）
-    output reg  [127:0] ws_tdata,      // 每像素 X 字节 bit7 = 1 表示不写（D16）
+    // 写流（与正式写流同形）
+    output reg  [127:0] ws_tdata,      // 每像素 X 字节 bit7 = 1 表示不写
     output reg  [15:0]  ws_tkeep,
     output reg          ws_tlast,
     output reg          ws_tvalid,
@@ -244,7 +244,7 @@ module probe_pix_path #(
     reg [7:0] cnt_k;                    // 0..dst_beats-1
     reg [8:0] rd_addr_src, rd_addr_dst;
     // 12 位中间量 + 显式切片：npx 的 LFSR 会给满 11 位，中间量按最大位宽算、
-    // 取位用切片，Efinity 就不发位宽截断告警。I5 真实上限 npx=640 → beats ≤ 161。
+    // 取位用切片，Efinity 就不发位宽截断告警。边带真实上限 npx=640 → beats ≤ 161。
     wire [11:0] beats_w = {1'b0, r_npx} + {9'b0, r_ld} + 12'd3;
     wire [9:0]  dst_beats = beats_w[11:2];               // ceil((ld+npx)/4)
     wire [7:0]  src_k8 = cnt_k + {6'b0, rot_off};        // 半内拍地址（行内 ≤ 162，不会出半）
@@ -291,7 +291,7 @@ module probe_pix_path #(
     wire [31:0] s2 = r_is_blit ? px2 : r_w4;
     wire [31:0] s3 = r_is_blit ? px3 : r_w4;
 
-    // 色键：比较源的原始存储字（spec 第 01 章 3.5 节 *4；FILL 无色键）
+    // 色键：比较源的原始存储字；FILL 无色键
     wire k0 = r_is_blit && r_key_en && (((INJECT & 2) == 0) ? (s0 == r_key) : 1'b0);
     wire k1 = r_is_blit && r_key_en && (((INJECT & 2) == 0) ? (s1 == r_key) : 1'b0);
     wire k2 = r_is_blit && r_key_en && (((INJECT & 2) == 0) ? (s2 == r_key) : 1'b0);
@@ -308,7 +308,7 @@ module probe_pix_path #(
     probe_pix_mask #(.INJECT((INJECT & 4) != 0 ? 1 : 0)) u_mask (
         .ld(r_ld), .npx(r_npx), .k(r_k2), .mask(mask_raw));
 
-    // ---------------------------------------------------------------- blend 级（I6：寄存器直驱）
+    // blend 级（寄存器直驱）
     reg [31:0] r_px0, r_px1, r_px2, r_px3;
     reg [7:0]  r_a0, r_a1, r_a2, r_a3;
     reg [127:0] r_dst2;
@@ -330,13 +330,13 @@ module probe_pix_path #(
         end
     end
 
-    // 不读目的时 dst 喂 0：只有 COPY 不看 dst（D37 两条判定），MUL 属非 COPY 必然在读
+    // 不读目的时 dst 喂 0：只有 COPY 不看 dst，MUL 属非 COPY 必然在读
     wire [31:0] d0 = r_read_dst ? r_dst2[31:0]    : 32'd0;
     wire [31:0] d1 = r_read_dst ? r_dst2[63:32]   : 32'd0;
     wire [31:0] d2 = r_read_dst ? r_dst2[95:64]   : 32'd0;
     wire [31:0] d3 = r_read_dst ? r_dst2[127:96]  : 32'd0;
 
-    // 12 个混合核：4 像素 × B/G/R（I6：en 接整条流水的时钟使能；输入全寄存器驱动）
+    // 12 个混合核：4 像素 × B/G/R（en 接整条流水的时钟使能；输入全寄存器驱动）
     wire [7:0] ob0, og0, or0, ob1, og1, or1, ob2, og2, or2, ob3, og3, or3;
     engine_blend u_b0 (.clk(clk), .en(en_core), .src(r_px0[7:0]),   .dst(d0[7:0]),   .a(r_a0), .c(r_c), .eq(r_eq), .out(ob0));
     engine_blend u_g0 (.clk(clk), .en(en_core), .src(r_px0[15:8]),  .dst(d0[15:8]),  .a(r_a0), .c(r_c), .eq(r_eq), .out(og0));
@@ -373,14 +373,14 @@ module probe_pix_path #(
         end
     end
 
-    // 不写标记：色键命中 | 行外（D16：X 字节最高位；XRGB 写回高字节本就强制 0）
+    // 不写标记：色键命中 | 行外（X 字节最高位；XRGB 写回高字节本就强制 0）
     wire [3:0] nowrite = k_d3 | ~m_d3;
-    // tlast：段 1 的末拍（k = seg1-1）、段 2 的末拍（k = seg1+seg2-1，D29）
+    // tlast：段 1 的末拍（k = seg1-1）、段 2 的末拍（k = seg1+seg2-1）
     wire last_s1 = (k_d5k == (r_seg1 - 8'd1));
     wire last_s2 = (r_seg2 != 8'd0) && (k_d5k == (r_seg1 + r_seg2 - 8'd1));
 
     // 像素字 0x00RRGGBB（小端，设计文档 3.5 节 *7）：X[31:24]（不写标记在 bit7）、
-    // R[23:16]、G[15:8]、B[7:0]。XRGB 写回高字节本就强制 0（spec *4），bit7 借作 D16 标记。
+    // R[23:16]、G[15:8]、B[7:0]。XRGB 写回高字节本就强制 0，bit7 借作不写标记。
     wire [7:0] nw3 = nowrite[3] ? 8'h80 : 8'h00;
     wire [7:0] nw2 = nowrite[2] ? 8'h80 : 8'h00;
     wire [7:0] nw1 = nowrite[1] ? 8'h80 : 8'h00;

@@ -1,4 +1,4 @@
-/* F5 板上通用矩形与实例：独立标量像素、PB 字节、容量及错误完成。 */
+/* 板上通用矩形与实例（PB）：独立标量像素、PB 字节、容量及错误完成。 */
 #include "board.h"
 #include "gfx_engine.h"
 #include "gfx/pb.h"

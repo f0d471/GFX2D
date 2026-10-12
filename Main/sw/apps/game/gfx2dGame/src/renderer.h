@@ -19,8 +19,8 @@ int renderer_list_begin(int hw, gfx_list *list, gfx_cmd *buf, uint32_t cap,
 int renderer_list_census(const gfx_surface_table *tab, const gfx_list *list,
                           gfx_census *census);
 
-/* 同一份命令表的两位执行者。PC 的 hw 标签沿 SW8 判据仍用软件模拟；
-   RV32 的 hw 才会提交到 B6 引擎。 */
+/* 同一份命令表的两位执行者。PC 上的 hw 后端仍用软件模拟（与统计判据同口径）；
+   RV32 的 hw 才会提交到引擎。 */
 int renderer_prepare(int hw, const gfx_surface_table *tab);
 int renderer_run(int hw, const gfx_surface_table *tab, const gfx_mem *mem,
                  exec_sw_state *es, exec_sw_error *err, const gfx_list *list,

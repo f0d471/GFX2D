@@ -1,25 +1,25 @@
 /******************************************************************************
 *
-* @file main.c: engineTest —— 引擎 P1 B6 的板上判据
+* @file main.c: engineTest —— 引擎直通模式的板上判据
 *
 * @brief  同一张命令表，软件执行器画一份、引擎画一份，逐行 CRC 比对两个面。
-*         覆盖 B6 条目 2.6 节的上板判据：
+*         覆盖引擎接入后的上板判据：
 *
-*           CASE x11  SW3 十一个整帧金标准（lib/gfx/cases.c 的同一构建器，
+*           CASE x11  十一个整帧金标准（lib/gfx/cases.c 的同一构建器，
 *                     帧缓冲落在 FB0/FB1 两个面）。引擎面与软件面的 CRC 必须相同；
 *           COUNT32   用 LIST_COUNT=0x10000 提交 FILL+END；旧驱动的 16 位截断
 *                     会变成 COUNT=0、目的像素不变，板上必须实测写入成功；
 *           DIR  x5   几何定向与写掩码：目的 x 对 4 取余 1/2/3 的窄矩形（首末拍的
 *                     部分掩码）、两端都缺的整行、色键棋盘（中间拍按像素跳过的
 *                     稀疏掩码）——S1 发出的这两种掩码在真控制器上从没验过
-*                     （探针只发过全掩码），总线地址恒 16 字节对齐（D15）；
-*           PERF      16 颗 16×16 预乘 ALPHA，读 PERF_*，每颗周期数与总览估算
-*                     约 1100、engine 第 02 章 3.8 节模型 1092~1124 对照；
-*           STRESS    E5 引擎侧复测：整屏 FILL、整屏 BLIT、1000 颗弹幕轮换着跑
-*                     120 场，扫描 FIFO 最低水位（不得低于 160 拍）、欠载（0）
-*                     与 guard 的 SoC 最大地址等待按 platform 第 08 章口径登记；
+*                     （探针只发过全掩码），总线地址恒 16 字节对齐；
+*           PERF      16 颗 16×16 预乘 ALPHA，读 PERF_*，每颗周期数与估算
+*                     约 1100、性能模型 1092~1124 对照；
+*           STRESS    扫描 FIFO 与 guard 的引擎侧复测：整屏 FILL、整屏 BLIT、
+*                     1000 颗弹幕轮换着跑 120 场，扫描 FIFO 最低水位（不得低于
+*                     160 拍）、欠载（0）与 guard 的 SoC 最大地址等待一并登记；
 *           INJECT=1  注错构建：INJ-COH 一行在单条缓存行上跳过 dcache 失效
-*                     （E3 规则：CPU 读回引擎写过的区域之前必须失效），
+*                     （缓存规则：CPU 读回引擎写过的区域之前必须失效），
 *                     该行必须打 differ FAIL (inject) 且不计入 fail 数。
 *                     注错缩到单缓存行的原因见 run_inject_check()：
 *                     4KB 的缓存罩不住整面的 CRC，第一版整面注错 NOT_RED。
@@ -39,7 +39,7 @@
 #include "gfx/gfx.h"
 #include "core/crc32.h"
 
-/* --- DDR 布局（memmap.h 的分区；偏移即 CPU 地址，platform 第 02 章） ------- */
+/* --- DDR 布局（memmap.h 的分区；偏移即 CPU 地址） ------------------------- */
 static const uint32_t FB_ENGINE = 0x02000000u;  /* REGION_FB0：引擎画的那个面 */
 static const uint32_t FB_SW     = 0x02400000u;  /* REGION_FB1：软件执行器的那个面 */
 static const uint32_t TEX_BASE  = 0x00600000u;  /* REGION_SHARED：金标准的纹理 */
@@ -52,7 +52,7 @@ static const uint32_t CMDLIST   = 0x00400000u;  /* REGION_CMDLIST_A，1MB 对齐
 #define FB_ROW_BYTES    (FB_WIDTH * 4u)
 #define FB_ROWS         FB_HEIGHT
 
-/* --- display / guard 的量测寄存器（E5 复测口径，见文件头） ----------------- */
+/* --- display / guard 的量测寄存器（复测口径，见文件头） -------------------- */
 #define DISP_BASE       0xF810E000u
 #define D_CTRL          0x008u
 #define D_SNAP_FRAME    0x0E0u
@@ -93,7 +93,7 @@ static void ok_line(const char *what, int pass)
    必须显式读一遍把行装进去——INJ-COH 的注错靠它（见 run_inject_check）。 */
 static volatile uint32_t prime_sink;
 
-/* 逐行 CRC（sw 第 03 章 3.6 节口径：每行取前 640×4 字节，跳过行跨的间隙） */
+/* 逐行 CRC（口径：每行取前 640×4 字节，跳过行跨的间隙） */
 static uint32_t crc_face(uint32_t base)
 {
     crc32_ctx c;
@@ -116,7 +116,7 @@ static void fill_face(uint32_t base)
         p[i] = i * 0x9E3779B9u + (i >> 3);
 }
 
-/* 把表面表登记进引擎（只登记 ctrl 有 valid 位的槽；space 随表——G1 起源可以是 TEX） */
+/* 把表面表登记进引擎（只登记 ctrl 有 valid 位的槽；space 随表——起源可以是 TEX） */
 static int engine_load_table(const gfx_surface_table *t)
 {
     int s;
@@ -157,7 +157,7 @@ static uint32_t engine_run(const gfx_surface_table *t,
     return 0u;
 }
 
-/* D53 的 LIST_COUNT 是 32 位。第一条 FILL、第二条 END，使大 COUNT 可以安全
+/* LIST_COUNT 是 32 位。第一条 FILL、第二条 END，使大 COUNT 可以安全
    提前结束；若驱动把 0x10000 截成 0，像素不变，本判据必红。 */
 static void run_count32(void)
 {
@@ -245,9 +245,9 @@ static void golden_case(uint32_t idx, int tex)
         ok_line(tex ? "TEX-SW-ERR" : "SW-ERR", 0);
         return;
     }
-    /* E3 规则：引擎写过的面，CPU 读回之前必须失效（失效晚于写入完成）。
+    /* 缓存规则：引擎写过的面，CPU 读回之前必须失效（失效晚于写入完成）。
        注错构建也不在这里例外——整面罩不进 4KB 的缓存，跳过失效看不到差异，
-       E3 的注错缩到单缓存行，见 run_inject_check()。 */
+       注错缩到单缓存行，见 run_inject_check()。 */
     board_dcache_invalidate_range((const void *)(uintptr_t)FB_ENGINE, FB_STRIDE_BYTES * FB_ROWS);
     c_eng = crc_face(FB_ENGINE);
     c_sw = crc_face(FB_SW);
@@ -279,9 +279,9 @@ static void run_golden(uint32_t idx)
     golden_case(idx, 0);
 }
 
-/* --- E3 注错：单缓存行上的失效判据 ---------------------------------------- */
+/* --- 注错：单缓存行上的失效判据 -------------------------------------------- */
 
-/* 目的 4 个字落在同一条缓存行。E3 的「不失效读到旧值」在整帧 CRC 上做不了：
+/* 目的 4 个字落在同一条缓存行。「不失效读到旧值」在整帧 CRC 上做不了：
    数据缓存一共 64 行 × 64 字节 = 4KB，罩不住 1.9MB 的帧缓冲，预读会把自己
    逐出，跳过失效后读回照样 miss 到新值（第一版注错因此 NOT_RED）。
    缩到一条缓存行：预读装行 → 引擎写 → （注错构建跳过失效）→ 读回。 */
@@ -440,7 +440,7 @@ static void dir_key(gfx_list *l, int dst)
     gfx_blit(l, 1, 0, 0, dst, 10, 200, 620, 4, GFX_EQ_COPY, 0u, 1, KEY_COLOR);
 }
 
-/* --- v1-TEX（G1）：能力位、装载窗口与错误三元组 --------------------------- */
+/* --- v1-TEX：能力位、装载窗口与错误三元组 ---------------------------------- */
 
 static void run_tex_caps(void)
 {
@@ -641,8 +641,8 @@ static void run_perf_sprites(void)
     }
     gfx_engine_perf_read(perf, GFX_ENG_PERF_N);
     busy = perf[GFX_PERF_BUSY];
-    /* 通过线放宽到 [900,1500) 防粗大回归；精确数（模型 1092~1124、B4 实测
-       1104.3、整帧仿真 1116）的对账写进 TechReports engine 第 06 章 */
+    /* 通过线放宽到 [900,1500) 防粗大回归；精确数（模型 1092~1124、计算阵列实测
+       1104.3、整帧仿真 1116）作为对账参考 */
     ok_line("PERF-BUSY", busy >= 900u * 16u && busy < 1500u * 16u);
     {
         static const char hex[] = "0123456789abcdef";
@@ -657,9 +657,9 @@ static void run_perf_sprites(void)
         board_puts("\n");
     }
 
-    /* v1-TEX 成对测量（G1）：同一份命令表与逻辑输入，源表面改指片上 TEX。
+    /* v1-TEX 成对测量：同一份命令表与逻辑输入，源表面改指片上 TEX。
        源 DDR 事务必须消失：两轮 RD_BURST 之差 = 16 颗 × 16 行 = 256；
-       每颗周期数按条目门槛 ≤750（软件执行器与校准仿真的口径见 engine 第 07 章）。 */
+       每颗周期数按条目门槛 ≤750（与软件执行器、校准仿真同口径）。 */
     {
         static uint32_t perf2[GFX_ENG_PERF_N];
         uint32_t busy_t, rd_ddr = perf[GFX_PERF_RD_BURST], rd_t;
@@ -705,7 +705,7 @@ static void run_perf_sprites(void)
     }
 }
 
-/* --- E5 引擎侧复测（扫描 FIFO 水位 + SoC 地址等待）------------------------ */
+/* --- 引擎侧复测（扫描 FIFO 水位 + SoC 地址等待）--------------------------- */
 
 #define STRESS_FIELDS   120u
 
@@ -871,7 +871,7 @@ int main(void)
     run_directed("DIR key-sparse", dir_key, TEX_BASE + 0x800u, 64u * 16u);
     run_inject_check();
 
-    /* v1-TEX（G1）：能力位、装载窗口、金标准的 TEX 源版本与错误三元组 */
+    /* v1-TEX：能力位、装载窗口、金标准的 TEX 源版本与错误三元组 */
     run_tex_caps();
     run_tex_busy();
     run_tex_load();

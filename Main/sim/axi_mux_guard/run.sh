@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Axi_Mux（X3）+ axi_mux_guard + 三个主机的仿真（实验 E5 2.2 节）
+# Axi_Mux（X3）+ axi_mux_guard + 三个主机的仿真（防饿死保护）
 # 每个用例按各自的期望（PASS / FAIL）判定，另有两组「保护开关结果逐项相同」的比对；
 # 任何一项不符合都说明判据或机理变了，脚本报 SIM BROKEN 并以非零退出
 #
@@ -18,7 +18,7 @@ SRC="../../rtl/bus/axi_mux_guard.v ../../rtl/vendor/axi_mux/Axi_Mux.v \
 BUILD=build
 mkdir -p "$BUILD"
 
-# 全链路用例共用的从机条件：地址通道接近「随时可收」（E5 2.2 节）
+# 全链路用例共用的从机条件：地址通道接近「随时可收」
 CHAIN_Q="-DADDR_STALL_MAX_VAL=4 -DRD_QUEUE_VAL=4"
 
 run_case() {
@@ -63,7 +63,7 @@ same() {
     fi
 }
 
-# 固定授权序列（直接例化地址仲裁器，复现 E5 1 节的两组数字）
+# 固定授权序列（直接例化地址仲裁器，复现其固定的两组授权计数）
 check grant_sequence  PASS -DCASE_GRANT_SEQUENCE
 # guard 单元：AR、AW 同时超限且分时完成；同拍 HITS 加 2；未握手时 MAX_WAIT 已在涨
 check dual_direction  PASS -DCASE_DUAL_DIRECTION

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 引擎 P1 B5（控制层）的仿真
+# 控制层的仿真
 #
 # 三步：
-#   1 研究探针 probe_check.v（B5 研究清单第 1、5 项，engine 第 05 章 3.1 节，保留为回归）
+#   1 研究探针 probe_check.v（十步检查三种结构，保留为回归）
 #   2 engine_top 单元仿真：159 条一致性向量（APB 提交、端到端）+ 取数边界/总线错误/
 #     超时/软复位/写后读/首错顺序/PERF 抽样的定向用例（判据见 tb_engine_top.v 文件头）
 #   3 两个注错构建：-DINJ_CHK_SWAP 对调 space/format、-DINJ_NO_FB 关掉逐条回退，

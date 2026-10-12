@@ -1,6 +1,6 @@
-/*=== F5 研究轮宿主对拍原型：PB v1 构建 + 独立展开 + 像素级对拍 + 变异判据
+/*=== 研究轮宿主对拍原型：PB v1 构建 + 独立展开 + 像素级对拍 + 变异判据
  *
- * 输入形态与冻结输入一致：v1 标量命令流加 F4 v1-I 实例包（数组在 arena）。
+ * 输入形态与冻结输入一致：v1 标量命令流加 v1-I 实例包（数组在 arena）。
  * pb_build 按条目 2.3 的两遍构建（COUNT/SNAPSHOT、PREFIX、SCATTER）生成
  * PB v1 内存（512 B header + 64 B metadata 槽 + 16 B 对齐的 8 B 引用区），
  * clip 快照保存在 metadata，绝不依赖末次 SET_CLIP 追溯。

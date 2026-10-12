@@ -72,7 +72,7 @@ def game_counts():
     BUILD.mkdir(parents=True, exist_ok=True)
     text = (GAME / "game/stg_draw.c").read_text(encoding="utf-8")
     text = text.replace("int stg_game_compose(", "int stg_game_compose_observed(", 1)
-    # F2 把主体移到 layers；观察副本的主体与包装调用同时改名，避免重定义。
+    # 生产版的主体在 stg_game_compose_layers；观察副本的主体与包装调用同时改名，避免重定义。
     text = text.replace("stg_game_compose_layers(", "stg_game_compose_layers_observed(")
     text = '#include "gfx/gfx.h"\nextern void frontend_mark(gfx_list *, unsigned);\n' + text
     replacements = [

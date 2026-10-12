@@ -1,11 +1,11 @@
 /******************************************************************************
 * @file stg_emit.h: 发射记录与发射器
 *
-* @brief  sw 第 06 章 3.7 节。一种弹型不是一个函数，而是一条常量发射记录；五种弹型是同一个
+* @brief  一种弹型不是一个函数，而是一条常量发射记录；五种弹型是同一个
 *         发射函数的五组参数（BulletML 的 fire 与 repeat 的子集）。发射器按宿主的时间调用，
 *         不在弹幕上调用；发射时算好 vx、vy，此后池里只做加法。
 *
-*         契约（2.3 节 B 批定法，Python 独立实现 tools/check/gen_stg_patterns.py 照同样的规则写）：
+*         契约（Python 独立实现 tools/check/gen_stg_patterns.py 照同样的规则写）：
 *           计时    从 t = 0 起，t 是 interval 的倍数时齐射；实现为倒数计数（到 0 齐射、
 *                   再装入 interval - 1），不取模。repeat 是总齐射次数，0 为一直发。
 *           基准角  ABS 取 angle0；AIM 取 fx_atan2(py - ey, px - ex) + angle0，每次齐射重算；
@@ -80,7 +80,7 @@ int      stg_emitter_init(stg_emitter *em, const stg_emit_rec *rec, int32_t x, i
    返回这一帧试图发射的弹数（没到点或已发完为 0）。 */
 uint32_t stg_emitter_tick(stg_emitter *em, stg_pool *pool, const stg_emit_ctx *ctx);
 
-/* 不看计时与 repeat，马上齐射一次（终符的门控用，sw 第 06 章 3.11 节）：弹种换成 kind（只取低 4 位），
+/* 不看计时与 repeat，马上齐射一次（终符的门控用）：弹种换成 kind（只取低 4 位），
    其余照 stg_emitter_tick 的规则；已齐射次数加一，倒数计数不动。返回这次的发数。 */
 uint32_t stg_emitter_fire(stg_emitter *em, stg_pool *pool, const stg_emit_ctx *ctx, uint32_t kind);
 

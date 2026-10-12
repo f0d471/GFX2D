@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# F5 研究轮：在 F1 冻结的 17 组固定输入上量化 PB v1 的容量、引用分布与取数账。
-# 输入链：inputs/mode0（v1 直通记录流）按 F4 共享状态键合包成 v1-I 包流，
-# 再按 F5 条目 2.3 的两遍构建（COUNT/SNAPSHOT、PREFIX、SCATTER）算每桶引用。
+# 研究轮：在冻结的 17 组固定输入上量化 PB v1 的容量、引用分布与取数账。
+# 输入链：inputs/mode0（v1 直通记录流）按共享状态键合包成 v1-I 包流，
+# 再按两遍构建（COUNT/SNAPSHOT、PREFIX、SCATTER）算每桶引用。
 # 求交语义对齐 strip.c 即时 v2（目的矩形与 clip、屏幕、目的表面高、源有效区求交），
 # 用 mode1 的 v2 条目数交叉验证：M_model + NOP 数 == M_v2（NOP 在 v2 进桶 0 占位，
 # PB 只对绘制包产生引用）。

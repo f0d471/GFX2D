@@ -1,4 +1,4 @@
-// tb_engine_tex：v1-TEX（G1）的正式判据，两个层级
+// tb_engine_tex：v1-TEX 的正式判据，两个层级
 //
 // 单元级 engine_tex（INJECT 可注错，见下）：
 //   APB-LOAD    4096 字装载/逐字读回（首末地址与相邻字隔离靠逐字不同的图案）
@@ -15,7 +15,7 @@
 // tools/check/pix_cases_dump.c --tex-sprites 导出：40 颗 16×16 预乘 ALPHA，
 // 前 20 颗源在片上 TEX、后 20 颗在 DDR，命令表 41 条跨两个取数批）：
 //   RENDER      512 KiB 期望内存逐 128 位比对；PERF_RD_*/WR_* 与从机观测对账
-//               （读事件只计真实 DDR 描述符与取数，TEX 不计入——G1 的口径）；
+//               （读事件只计真实 DDR 描述符与取数，TEX 不计入——现行口径）；
 //               PIXEL 对软件统计；fe_cidx_err 恒 0
 //   OVERLAP     取数预取在途与 TEX 像素读状态同拍的场面必须发生过（不串线）
 //   ERR-*       BAND 源、TEX 目的、错对齐、越界、未登记槽的错误三元组
@@ -636,7 +636,7 @@ module tb_engine_tex #(
             errors = errors + 1;
             $display("PIXEL-MISMATCH perf=%0d exp=%0d", perf_pixel, stats_hex[0] - stats_hex[1]);
         end
-        // 源 DDR 事务消失（G1）：24 颗 TEX 源的 192 行不得出现在读事务里
+        // 源 DDR 事务消失：24 颗 TEX 源的 192 行不得出现在读事务里
         // （DDR 侧：48×8 源行 + 72×8 目的行 + 5 笔取数，批次 = ≤16 条）
         if (perf_rd_burst != 384 + 576 + 1 + 5) begin
             errors = errors + 1;

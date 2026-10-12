@@ -1,4 +1,4 @@
-/* F4 研究原型核心实现；契约说明见 f4_core.h。
+/* 实例命令研究原型核心实现；契约说明见 f4_core.h。
  * 热循环按 RV32 成本取舍：共享状态缓存在 builder，arena 按整字存储，
  * instance_count 延迟到封包回填一次；语义与 f4_expand 的检查严格对齐。 */
 #include "f4_core.h"

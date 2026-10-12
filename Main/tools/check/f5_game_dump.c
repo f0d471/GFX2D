@@ -1,4 +1,4 @@
-/* F5 真实游戏帧：独立标量金标准、v1-I 输入、PB 字节、TEX 与 DDR 初值。 */
+/* 真实游戏帧：独立标量金标准、v1-I 输入、PB 字节、TEX 与 DDR 初值。 */
 #include "gfx/gfx.h"
 #include "gfx/pb.h"
 #include "core/assetpak.h"

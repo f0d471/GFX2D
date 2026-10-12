@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file check_sw8_tx.c: board_tx_room() 的 PC 实现的主机侧探针
 *
-* @brief  sw 第 07 章 3.3 节。bsp/host 要 SDL，编不进 lib/test，所以单独做一支探针，
+* @brief  bsp/host 要 SDL，编不进 lib/test，所以单独做一支探针，
 *         链的是**真实的** sw/bsp/host/board.c 与 sw/bsp/memmap.c，测的就是那段代码。
 *         由 check_sw8_stats.sh 编译并跑两遍：
 *

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# 引擎 P3 G1：sim/engine/tex 的正式判据（两个层级见 tb_engine_tex.v 文件头）。
+# sim/engine/tex 的正式判据（两个层级见 tb_engine_tex.v 文件头）。
 # 金标准由 tools/check/pix_cases_dump.c --tex-sprites 现算（软件执行器经 TEX
 # 影子窗口跑出期望内存），不照抄任何现成文件。注入构建只跑单元级，
 # 对应判据见红才算过；正常构建要求单元级 + 整机级全绿输出 TEX SIM OK。
-# 前期研究的四组实验仍在 tools/check/g1_research.py（B4 台现场补丁，证据在 logs/）。
+# 前期研究的四组实验仍在 tools/check/g1_research.py（现场补丁，证据在 logs/）。
 set -u
 cd "$(dirname "$0")"
 mkdir -p build

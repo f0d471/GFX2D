@@ -53,7 +53,7 @@ check_disp() {
     case "$r" in "RESULT: $want"*) ;; *) bad=$((bad + 1)) ;; esac
 }
 
-# ---- FIFO 语义（D4 的开工前提）----
+# ---- FIFO 语义 ----
 check_fifo semantics        PASS
 check_fifo inject_no_reset  FAIL -DINJECT_NO_RESET
 

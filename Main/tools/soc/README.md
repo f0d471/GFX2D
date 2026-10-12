@@ -4,7 +4,7 @@
 | --- | --- |
 | `ipm_gen_soc.py` | 用 IP Manager 的官方 Python API 完整生成 Sapphire SoC：包装文件 `soc.v`、网表、片上 RAM 初始文件、软件包 |
 
-完整步骤（登记项恢复、回归）见 [`../../sdk/README.md`](../../sdk/README.md)「重新生成 SoC IP 时」，这里只讲工具本身。
+完整步骤（登记项恢复、回归）见 `Main/sdk/README.md`「重新生成 SoC IP 时」，这里只讲工具本身。
 
 ## 用法
 
@@ -15,7 +15,7 @@ cmd /c "call <EFINITY>\bin\setup.bat && python Main\tools\soc\ipm_gen_soc.py --p
 
 | 参数 | 说明 |
 | --- | --- |
-| `--project` | Efinity 工程目录：主线工程，或仓库外的复制工程（例如 E8 比较缓存大小时） |
+| `--project` | Efinity 工程目录：主线工程，或仓库外的复制工程（例如比较缓存大小的候选复制工程） |
 | `--override K=V ...` | 覆盖 `settings.json` 里的参数，例如 `DCacheSize=8192`；键名不存在直接报错，不会静默无效 |
 | `--sync-sdk <目录>` | 生成后把软件包复制到这个目录并删掉 `embedded_sw/`。主线给 `Main\sdk`，复制工程不给 |
 | `--dry-run` | 只打印参数对照与文件集，不生成。改参数前先跑一次 |

@@ -21,7 +21,7 @@ module engine_geom #(
     input  wire        clk,
     input  wire        rst,
 
-    // I1：控制层 → 几何层
+    // 命令口：控制层 → 几何层
     input  wire        start,        // 一拍脉冲：提交一条已经通过十步检查的 FILL/BLIT
     input  wire [7:0]  op,           // 1 FILL、2 BLIT（其余不到本层）
     input  wire [3:0]  eq,           // 0 COPY、1 ALPHA、2 ADD、3 CONST、4 MUL、5 ALPHA_STRAIGHT
@@ -34,8 +34,8 @@ module engine_geom #(
     input  wire [15:0] src_w,
     input  wire [15:0] src_h,
     input  wire [4:0]  src_slog2,
-    input  wire        src_tex,       // 源在片上 TEX（G1，I1 的新字段；仅 BLIT 源会置 1）
-    input  wire        band_enable,   // G2：目的片上化，按当前条带求交
+    input  wire        src_tex,       // 源在片上 TEX（仅 BLIT 源会置 1）
+    input  wire        band_enable,   // 目的片上化，按当前条带求交
     input  wire [15:0] band_y0,
     input  wire [31:0] dst_base,
     input  wire [15:0] dst_w,
@@ -58,17 +58,17 @@ module engine_geom #(
     output reg         cmd_done,     // 零面积命令的完成脉冲
     output reg  [3:0]  done_cidx,
 
-    // I2：读描述符
+    // 读描述符
     output reg  [31:0] rd_addr,
     output reg  [11:0] rd_beats,
     output reg  [1:0]  rd_buf,
-    output reg         rd_tex,        // 源读描述符的片上标记（G1）：仅 BLIT 源可能置 1
+    output reg         rd_tex,        // 源读描述符的片上标记：仅 BLIT 源可能置 1
     output reg         rd_band,
     output reg  [3:0]  rd_cidx,
     output reg         rd_valid,
     input  wire        rd_ready,
 
-    // I2：写描述符
+    // 写描述符
     output reg  [31:0] wr_addr,
     output reg  [11:0] wr_beats,
     output reg  [3:0]  wr_cidx,
@@ -77,7 +77,7 @@ module engine_geom #(
     output reg         wr_valid,
     input  wire        wr_ready,
 
-    // I5：每行边带
+    // 每行边带
     output reg  [15:0] sb_row,       // 本命令内的零基行号
     output reg  [15:0] sb_py,        // 目的面上的绝对 y
     output reg  [10:0] sb_npx,       // 本行像素数
@@ -113,7 +113,7 @@ module engine_geom #(
     reg [10:0] npx;
     reg signed [15:0] py;
 
-    // I1 的锁存副本
+    // 命令的锁存副本
     reg [7:0]  r_op;
     reg [3:0]  r_eq;
     reg        r_key_en;
@@ -124,7 +124,7 @@ module engine_geom #(
     reg        r_dst_band;
     reg [3:0]  r_cidx;
 
-    // 五者求交：纯组合，start 那一拍算一次，与全部 I1 字段一起锁存后命令期间不再看 I1
+    // 五者求交：纯组合，start 那一拍算一次，与全部命令字段一起锁存，命令期间不再看输入
     wire signed [31:0] p_dx = dst_x;
     wire signed [31:0] p_dy = dst_y;
     wire signed [31:0] p_sx = src_x;
@@ -196,7 +196,7 @@ module engine_geom #(
     // 源的行首 x 偏移：sx0 = src_x + (x0 - dst_x)
     wire signed [31:0] sx_off = p_sx + (t_x0 - p_dx);
 
-    // D7 读写避让判定；声明放在用它的段计算之前（先用后声明可移植性没有保证）。
+    // 读写避让判定；声明放在用它的段计算之前（先用后声明可移植性没有保证）。
     wire d7_read_dst;
 `ifdef INJ_ALPHA_AS_COPY
     assign d7_read_dst = ((r_eq == EQ_COPY) || (r_eq == EQ_ALPHA));  // 注错：ALPHA 也按 COPY
@@ -278,7 +278,7 @@ module engine_geom #(
         end
         seg_pres[0] = 1'b1;                                  // 边带每行一条
 
-        // 读源：D7 —— 只有 BLIT 有
+        // 读源：只有 BLIT 有
         if (r_op == OP_BLIT) begin
             seg_addr[1] = s_a0; seg_beats[1] = s_b0 >> 4; seg_isrd[1] = (s_b0 != 0);
             seg_addr[2] = s_a0 + {{20{1'b0}}, s_b0}; seg_beats[2] = s_b1 >> 4;
@@ -337,7 +337,7 @@ module engine_geom #(
         sb_npx        = npx;
         sb_beats      = wr_total[7:0];
         sb_lead_dst   = dst_cur[3:2];
-        // FILL 没有源行，这个字段无意义；固定发 0，独立模型也按 0 记（B4 不看它）
+        // FILL 没有源行，这个字段无意义；固定发 0，独立模型也按 0 记（计算阵列不看它）
         sb_lead_src   = (r_op == OP_BLIT) ? src_cur[3:2] : 2'd0;
         sb_op         = r_op;
         sb_eq         = r_eq;
@@ -352,7 +352,7 @@ module engine_geom #(
         rd_addr       = seg_addr[seg_i];
         rd_beats      = seg_beats[seg_i];
         rd_buf        = {seg_dir[seg_i], row_i[0]};
-        // TEX 标记仅用于源读；G2 BAND 标记仅用于目的读写，逻辑地址仍为全帧地址。
+        // TEX 标记仅用于源读；BAND 标记仅用于目的读写，逻辑地址仍为全帧地址。
         rd_tex        = cur_rd && !seg_dir[seg_i] && r_src_tex;
         rd_band       = cur_rd && seg_dir[seg_i] && r_dst_band;
         wr_band       = cur_wr && r_dst_band;
@@ -426,7 +426,7 @@ module engine_geom #(
                 end
             end
             S_ADV: begin
-                // 行缓冲的乒乓：下一行要用的那一半空着才推（row_free 由 B4 给）
+                // 行缓冲的乒乓：下一行要用的那一半空着才推（row_free 由计算阵列给）
                 if (last_row_now) begin
                     st <= S_DONE;
                 end else if (rf_next) begin

@@ -2,7 +2,7 @@
 *
 * @file main.c: ddrAliasTest
 *
-* @brief  实验 E2：CPU 看到的 DDR 地址里，哪几位真正参与寻址。
+* @brief  回答 CPU 看到的 DDR 地址里，哪几位真正参与寻址。
 *
 *         SoC 把 0x0000_1000~0xE000_0FFF 整段判给 DDR，地址原样送出；
 *         顶层只把低 28 位接到 DDR3 控制器。本程序在板上回答三件事：

@@ -13,7 +13,7 @@
 *         这段算术放在 bsp/include 而不是 board.c 里，是为了让它可判：
 *         `lib/` 不能看 `bsp/`，`bsp/ti60/board.c` 又要 sdk 头文件、编不了主机，
 *         只有放在两个实现都能包含的头里，`Main/tools/check/check_sw_layers.sh`
-*         才能在主机上拿**真实的这一段代码**跑算例（见 TechReports sw 第 01 章 4.9）。
+*         才能在主机上拿**真实的这一段代码**跑算例。
 *
 *         行宽由调用方给出，必须是 2 的幂（本构型的实测值是 64 字节，
 *         来自 cacheMechTest 的 T4）。

@@ -10,7 +10,7 @@
 //   1. CTRL 的 SOFT_RST/CNT_CLR 写 1 自清，EN 挡 DOORBELL；忙/排空/EN=0 时写 DOORBELL 回 PSLVERR
 //   2. 软复位举 soft_pending 直到 soft_rst_done，撤下拍清 SURF valid、错误定位与 DONE
 //   3. 未映射偏移读写都回 PSLVERR；APB 主机在 ACCESS 结束沿采样，PSLVERR 同沿组合给出
-//   4. PERF 事件按 I8 汇入，WAIT_DDR/BUSY 按电平每拍计一，引擎空闲自然不动
+//   4. PERF 事件由计算阵列经顶层汇入，WAIT_DDR/BUSY 按电平每拍计一，引擎空闲自然不动
 //==============================================================================================//
 `default_nettype none
 `include "engine_regs_offsets.vh"
@@ -19,7 +19,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
     input  wire        clk,
     input  wire        rst,            // 控制层复位（soc_system_reset），同步、高有效
 
-    // APB 从口（B6 接第 0 页：psel 已按页门控，paddr 取页内 12 位）
+    // APB 从口（接第 0 页：psel 已按页门控，paddr 取页内 12 位）
     input  wire [11:0] paddr,
     input  wire        psel,
     input  wire        penable,
@@ -65,7 +65,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
     // 中断 B
     output wire        irq_b,          // 电平 = IRQ_STAT & IRQ_EN
 
-    // PERF 事件（I8，顶层接线）
+    // PERF 事件（顶层接线）
     input  wire        perf_cmd,       // 一拍：一条通过检查的命令提交（不含 END/错误）
     input  wire        perf_pixel_en,  // 一拍：一行边带握手，PIXEL += npx
     input  wire [10:0] perf_pixel_npx,

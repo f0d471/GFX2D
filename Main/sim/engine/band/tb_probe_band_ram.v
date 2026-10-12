@@ -1,4 +1,4 @@
-// G2 RAM 端口实验：全容量、逐像素掩码、同步读与异址并发。
+// 条带 RAM 端口实验：全容量、逐像素掩码、同步读与异址并发。
 `timescale 1ns/1ps
 `default_nettype none
 module tb_probe_band_ram #(parameter integer SEGMENTED=0);

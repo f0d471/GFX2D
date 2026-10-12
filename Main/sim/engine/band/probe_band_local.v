@@ -1,4 +1,4 @@
-// G2 研究适配器：TEX/静态源代理与紧凑 BAND，真实 geom/pix 在外部。
+// 研究适配器：TEX/静态源代理与紧凑 BAND，真实 geom/pix 在外部。
 // 此模块没有 APB、ABI、DMA 或排空实现，不是正式 BAND/mover。
 // 背景装载/写回由测试台拷贝；真实 DMA 三相搬运另由 tb_probe_band_dma 验证。
 `timescale 1ns/1ps

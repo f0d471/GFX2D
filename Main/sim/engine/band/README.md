@@ -1,8 +1,7 @@
-# G2 BAND 数据面验证与前期研究
+# BAND 条带数据面验证与前期研究
 
-正式数据面已实现并于 2026-10-08 验收归档，默认 `run.sh` 为正式验证。主帧控制仍未启用，
-研究探针与历史证据继续保留。过程与解释归入
-[engine 第 08 章](../../../../Engineering/TechReports/engine/08-条带缓冲.md)。
+正式数据面已实现并于 2026-10-08 验收，默认 `run.sh` 为正式验证。主帧控制仍未启用，
+研究探针与历史证据继续保留。
 
 ## 正式复现
 
@@ -45,7 +44,7 @@ python3 Main/tools/check/check_g2_band.py --record-board
 独立 formal_{place,timing,hier_util}.rpt 与主工程 formal_main_*。
 formal_bad_observer_* 是 RAM=0 的失败观测报告，保留为试错，不能计通过。
 formal_board_results.json 与 formal_artifacts.json 绑定新 bit 的 DDR/TEX 22 CRC
-兼容性板测，BAND 帧模式/N_max 仍归 G3/G4。formal_regression_*.log 为原十二套回归。
+兼容性板测，BAND 帧模式/N_max 归条带控制与整机轮次。formal_regression_*.log 为原十二套回归。
 
 ## 研究复现
 
@@ -79,7 +78,7 @@ python3 Main/tools/check/g2_research.py --collect-syn
 | `syn_probe_band_ram.v` | 全变量激励/全位观测的隔离包装，参数由生成工程选择 |
 | `probe_band_local.v` | 计算代理：源/目的同步流、紧凑地址、带内标记和写反压；没有 DMA/ABI/排空 |
 | `g2_research.py` 生成的 `tb_band_path.v` | 保留实际 geom/pix/blend；6 条带边界拷贝不计时；对拍完整 512 KiB |
-| 生成的 `tb_probe_band_dma.v` | 保留实际 mover 与 DMA；推荐分段 RAM 接 E4 校准从机，独立测装载/写回/取消 |
+| 生成的 `tb_probe_band_dma.v` | 保留实际 mover 与 DMA；推荐分段 RAM 接校准从机，独立测装载/写回/取消 |
 
 前期研究的计算和搬运是两个分开的实验。其数据和行协议相符，
 不等于主工程已经支持 BAND，也不等于板上性能提升。
@@ -89,12 +88,12 @@ python3 Main/tools/check/g2_research.py --collect-syn
 | 文件或组 | 消费方 |
 | --- | --- |
 | `logs/source_refs.json` | 两份代码级参考、固定版本/许可及厂商 RAM 依据 |
-| `definition_checks.json` | 76,800 拍无别名、stride 和 I3 数据下界 |
+| `definition_checks.json` | 76,800 拍无别名、stride 和读流数据下界 |
 | `ram_*.log`、`band_*.log` | 原始正常/对应变异；值、内存、握手与完成状态 |
 | `research_results.json` | 对齐/跨条带周期、DMA 三相、排空和独立模型偏差 |
 | 五组 `*_place/timing/hier_util.rpt`、`*_synthesis.log` | 原始资源及时序/四步输出 |
 | `synthesis_results.json`、`ram_physical_modes.json` | 工具结果与模式数量，推荐 36 块研究 RAM |
-| `g2_board_baseline.log`、`board_results.json` | 现行 G1 基线的 22 个 CRC/六项错误/性能/扫描，不是 G2 板测 |
+| `g2_board_baseline.log`、`board_results.json` | 现行 TEX 基线的 22 个 CRC/六项错误/性能/扫描，不是条带板测 |
 | `board_artifacts.json` | 当前 bit 和新编 BIN 的唯一完整摘要及消费者，首次 --record-board 写入 |
 | `dependency_{geom,mover,pix}.log` | 正式依赖回归 27/27、17/17、25/25 |
 | `segmented_parse_fail.log` | 分段探针初次 map 失败，修正保留字之后重新通过 |
@@ -104,5 +103,3 @@ python3 Main/tools/check/g2_research.py --collect-syn
 本轮仅 JTAG 配置当前基线与 DDR 程序装载，Flash 未改，9208 帧回放未重跑。
 
 构建物使用忽略的 `build/`，可复用研究源码与原始结果保留在本目录。
-正式 G2 判据和接续范围见
-正式 G2 判据与证据见 [engine 第 08 章](../../../../Engineering/TechReports/engine/08-条带缓冲.md)。

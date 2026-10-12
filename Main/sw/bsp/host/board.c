@@ -13,22 +13,21 @@
 *         模型做：`base` 在 board_init 取一次，场号是 (now − base) / step，
 *         present 记下进入时的场号、等到场号变化再返回。free 的不是「第几帧画面」
 *         而是「第几场」，没 present 过它照样走，这样 `Δ场 − Δ切换` 才等于掉帧数。
-*         模型与实测见 Engineering/TechReports/sw/03-PC平台层与帧节拍.md 3.4 节与 3.1 节。
 *
 *         帧缓冲行跨固定 4096 字节，上传纹理时按同一个 pitch 交给 SDL，
-*         不再另拷贝：PC 与板上的缓冲布局必须一模一样，否则 SW9 的逐帧
+*         不再另拷贝：PC 与板上的缓冲布局必须一模一样，否则逐帧
 *         CRC 对比没有意义。
 *
 *         无窗口模式不改这里的代码：把 SDL_VIDEODRIVER 置成 dummy 再跑同一个
-*         二进制即可（sw 第 03 章 3.2 节的 D3、3.5 节）。这样有窗与无窗确实是同一条执行路径。
+*         二进制即可。这样有窗与无窗确实是同一条执行路径。
 *
-*         **截帧**（只在 PC 上有，sw 第 06 章 3.9 节）：没有显示器时用它看画面。
+*         **截帧**（只在 PC 上有）：没有显示器时用它看画面。
 *           GFX2D_SNAPSHOT=<k,k,...>  呈现序号（第几次成功的 board_present()，从 0 起），最多 64 个
 *           GFX2D_SNAPSHOT_DIR=<目录>  写到哪里，缺省当前目录
-*         到了就把要呈现的那一面的 640x480 写成 PPM（P6，文件名 snap_<k>.ppm，k 补到 5 位），
+*         到了就把要呈现的那一面的 640x480 写成 PPM（文件名 snap_<k>.ppm，k 补到 5 位），
 *         在 stderr 打一行 `board: snapshot k -> 路径`。不设时什么也不做，不改 board.h，也不改应用的输出。
 *
-*         **不等场**（只在 PC 上有，sw 第 06 章 3.13 节）：
+*         **不等场**（只在 PC 上有）：
 *           GFX2D_UNPACED=1  board_present() 照常上传纹理、计切换次数、截帧，只是不等下一个场起始就返回；
 *                            board_wait_frame() 也不等。判据入口一局约一万帧，按 60 Hz 等场要三分钟，用它跑得快。
 *         场号仍按墙钟自由运行，所以不等场时「场数增量」没有意义；应用不知道这回事，判据入口本来就不看它。
@@ -53,7 +52,7 @@
 /* 板级帧节拍：一场的秒数取 1/60。step 由性能计数器的频率折算，不是墙钟。 */
 #define BOARD_FPS           60u
 
-/* 缩放上限。F1~F3 切 1x / 2x / 3x。 */
+/* 缩放上限。功能键切 1x / 2x / 3x。 */
 #define BOARD_SCALE_MAX     3
 
 static uint8_t  *s_ddr;             /* 模拟的 DDR，64MB */
@@ -68,7 +67,7 @@ static uint32_t      s_swaps;       /* 成功 present 过的次数 */
 static int           s_scale;
 static int           s_quit;
 
-/* 串口发送额度的模拟（sw 第 07 章 3.3 节，board.h 的 board_tx_room）。s_tx_budget 为 0 表示不限。 */
+/* 串口发送额度的模拟（board.h 的 board_tx_room）。s_tx_budget 为 0 表示不限。 */
 static uint32_t      s_tx_budget;   /* GFX2D_TX_BUDGET：每场补满到多少字节 */
 static uint32_t      s_tx_room;     /* 本场还剩多少 */
 static uint32_t      s_tx_field;    /* 上一次补额度时的场号 */
@@ -94,7 +93,7 @@ static void die(const char *what)
 
 /* 事件泵。两件事：
    - SDL_QUIT 置 s_quit，应用经 board_should_quit 拿到；
-   - F1~F3 切窗口大小。**缩放是宿主的事，不进 board_keys 的位图**：
+   - 功能键切窗口大小（1x/2x/3x）。**缩放是宿主的事，不进 board_keys 的位图**：
      进了位图就会被录进录像、改变回放的按键序列，破坏确定性。 */
 static void pump_events(void)
 {
@@ -120,7 +119,7 @@ static void pump_events(void)
     }
 }
 
-/* --- 串口发送额度（sw 第 07 章 3.3 节）------------------------------------------- */
+/* --- 串口发送额度--------------------------------------------------------------- */
 /* 板上 board_puts 忙等发送 FIFO，PC 上 stdout 不会阻塞，所以「日志不阻塞」的判据要在 PC 上
    先把额度限住才测得出来。**额度按场补，不按墙钟**：场号就是 board_frame_count() 那根时间轴，
    按墙钟补的话模拟出来的发送量与帧节拍脱钩。补满而不累加：真实的发送 FIFO 容量是固定的。 */
@@ -261,7 +260,7 @@ void board_init(void)
     if (s_ren == NULL)
         die("SDL_CreateRenderer");
 
-    /* 缩放用最近邻（sw 第 03 章 3.2 节的 D4）。SDL 对这个 hint 的默认值是**未设**，
+    /* 缩放用最近邻。SDL 对这个 hint 的默认值是**未设**，
        所以必须显式写 "0"；它在建纹理时被读走，之后改没有用。 */
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
@@ -310,7 +309,7 @@ board_mem board_region(board_region_id id)
     return m;
 }
 
-/* --- 素材分区（sw 第 04 章 3.8 节）----------------------------------------------- */
+/* --- 素材分区--------------------------------------------------------------------- */
 /* PC 上素材分区就是 assets.pak 这一个文件：offset 是文件偏移。
    每次调用开一次文件，读两段（包头、正文）就是开两次，
    比起把整包先读进内存再校验，这样不会在包头就坏掉时读进一个来路不明的长度。 */
@@ -357,7 +356,7 @@ uint32_t board_cycles(void)
 #ifdef INJECT_HOST_CYCLES_NAIVE
     /* 注错：直接相乘。本机 SDL 的计数器频率是 1e9，dt * 1e8 在 dt 约 1.845e11
        （184.5 秒）时越过 2^64，之后返回的数值乱跳，不再是任何有意义的周期数。
-       见 TechReports sw 第 01 章 4.10，用它做「跑满 200 秒」的对照。 */
+       用它做「跑满 200 秒」的对照。 */
     return (uint32_t)((dt * (uint64_t)BOARD_HZ) / s_perf_freq);
 #else
     /* 先拆成整秒与余数再乘，中间量不会越界：
@@ -394,8 +393,8 @@ void board_puts(const char *s)
     }
 }
 
-/* **F1~F3 不在这里**：窗口大小是宿主的事，缩放键在 pump_events 里被吃掉。
-   加进来就会进录像、改变回放的按键序列（sw 第 03 章 3.2 节的 D4）。 */
+/* **缩放键不在这里**：窗口大小是宿主的事，缩放键在 pump_events 里被吃掉。
+   加进来就会进录像、改变回放的按键序列。 */
 uint32_t board_keys(void)
 {
     const Uint8 *k;

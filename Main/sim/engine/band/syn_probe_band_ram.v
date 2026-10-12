@@ -1,4 +1,4 @@
-// G2 隔离 RAM 综合：全部地址/使能/数据来自变量激励，全部输出参与观测。
+// 隔离 RAM 综合：全部地址/使能/数据来自变量激励，全部输出参与观测。
 `timescale 1ns/1ps
 `default_nettype none
 `ifndef BAND_DEPTH

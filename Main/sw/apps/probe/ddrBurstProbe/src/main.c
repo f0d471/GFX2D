@@ -2,8 +2,8 @@
 *
 * @file main.c: ddrBurstProbe
 *
-* @brief  实验 E4：通过 axi_probe_master（DDR3 上的第二个 AXI 主机）测量控制器的
-*         突发上限、每笔事务的固定开销与持续吞吐，并做 E2 移交过来的交叉读。
+* @brief  通过 axi_probe_master（DDR3 上的第二个 AXI 主机）测量控制器的
+*         突发上限、每笔事务的固定开销与持续吞吐，并做 CPU 写、探针读的交叉读。
 *
 *         寄存器表见 rtl/bus/axi_probe_master.v 文件头，基址 0xF810_1000。
 *
@@ -166,7 +166,7 @@ static int stage_ident(void)
     bsp_printf("IDENT id=0x%s arb=0x%s %s\r\n", a, b, ok ? "ok" : "FAIL");
     int fail = !ok;
 
-    /* E5 配置归属：guard 与扫描替身的窗口与上电默认值。
+    /* 配置归属：guard 与扫描替身的窗口与上电默认值。
        VERSION 2 = 两个 MAX_WAIT 改为运行中取最大（含未握手的那一笔）；加载了旧比特流时这一行报 FAIL */
     uint32_t gc = grd(G_CTRL), gm = grd(G_MASK), ga = grd(G_AGE);
     int gok = (grd(0x00) == 0x4D555847u) && (grd(0x04) == 2u) &&
@@ -304,9 +304,9 @@ static int stage_share(void)
     return !(st == ST_DONE && bprb_shared_done);
 }
 
-/* E5：三方并发。扫描输出按水位从 DDR 取数、探针替身读满负载、CPU 拷贝三者同时跑，
+/* 三方并发。扫描输出按水位从 DDR 取数、探针替身读满负载、CPU 拷贝三者同时跑，
    记录扫描的首拍/整笔/最大拍间隙、guard 的 SoC 地址等待与命中数、CPU 拷贝耗时。
-   板上只报告黑盒控制器下的实测最大值，不声称形式上界（见 E5 2.2 节）。
+   板上只报告黑盒控制器下的实测最大值，不声称形式上界。
    2026-09-21：这里的 S0 从扫描替身换成了真实 display，`S_CTRL=1`（只开 EN）就已经是
    完整的取数负载——像素侧的弹出判据不看 `src_eff`，`SRC` 只决定显示哪一路。
    本阶段只读 `MAX_*`/`TXN`/`BEAT`/`SKIP`/`RESPERR`，所以不必把 CTRL 写成 3。
@@ -390,7 +390,7 @@ static int inject_round(uint32_t age, uint32_t mode, const char *name, uint32_t 
     return (st2 == ST_DONE) ? 0 : 1;
 }
 
-/* E5：保护的上板判据。AGE_LIMIT=1 时读、写两个方向的 GUARD_HITS 都必须增加且探针照常完成；
+/* 保护（guard）的上板判据。AGE_LIMIT=1 时读、写两个方向的 GUARD_HITS 都必须增加且探针照常完成；
    再把 S0 的掩码位清掉当反例，扫描替身必须完全拿不到授权。 */
 static int stage_inject(void)
 {
@@ -435,7 +435,7 @@ static int stage_inject(void)
 void main()
 {
     int fail = 0;
-    /* B6 起 S1 探针撤下；先读仍有效的第 0 页，避免访问旧页触发总线错误后静默停住。 */
+    /* 引擎接入后 S1 探针撤下；先读仍有效的第 0 页，避免访问旧页触发总线错误后静默停住。 */
     if (*(volatile uint32_t *)(uintptr_t)0xF8100000u == 0x47465801u) {
         wait_ms(8000u); /* 使诊断落在 board_run 的加载分界之后。 */
         bsp_printf("ddrBurstProbe unavailable: S1 probe removed; use pre-B6 bitstream\r\n");

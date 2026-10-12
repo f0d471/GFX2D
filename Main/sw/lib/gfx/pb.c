@@ -1,4 +1,4 @@
-/* PB v1 的独立字节模型和宿主执行消费者，参考契约见 spec 第 02 章。 */
+/* PB v1 的独立字节模型和宿主执行消费者，参考契约见 gfx_abi.h。 */
 #include "gfx/pb.h"
 #include <string.h>
 static uint32_t get32(const uint8_t *p)

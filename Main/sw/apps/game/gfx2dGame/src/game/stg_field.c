@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file stg_field.c: 弹幕场
 *
-* @brief  口径见 stg_field.h 与 sw 第 06 章 3.7 节。全部是整数运算，没有浮点、没有 malloc、
+* @brief  口径见 stg_field.h。全部是整数运算，没有浮点、没有 malloc、
 *         没有文件级的可变状态。
 ******************************************************************************/
 
@@ -67,7 +67,7 @@ void stg_field_advance(stg_field *f)
     stg_emit_ctx ctx;
     uint32_t     i;
 
-    /* ① 每个池一遍。B 批只有敌弹池有内容，另外三个是空的，一遍不做事。 */
+    /* ① 每个池一遍。场的用法里只有敌弹池有内容，另外三个是空的，一遍不做事。 */
     stg_pool_step(&f->pools.ebullet, &f->bounds, &f->last);
     stg_pool_step(&f->pools.pbullet, &f->bounds, 0);
     stg_pool_step(&f->pools.enemy, &f->bounds, 0);
@@ -160,7 +160,7 @@ uint32_t stg_draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cf
         gfx_blit_tmpl        t;
         uint32_t             cursor = 0u;
 
-        /* 只遍历池里有的弹种（2.2 节 C 批的弹种位图），尺寸为 0 的不画 */
+        /* 只遍历池里有的弹种（按弹种位图），尺寸为 0 的不画 */
         if ((stg_pool_kinds(p) & (1u << kind)) == 0u || ki->w == 0u)
             continue;
         g.w         = (int32_t)ki->w;

@@ -1,4 +1,4 @@
-/* F3：稳定小引用分桶，封表时连续物化；ABI v2 与错误索引保持。 */
+/* 稳定小引用分桶，封表时连续物化；ABI v2 与错误索引保持。 */
 #include "gfx/gfx.h"
 #include "strip_internal.h"
 #include <stddef.h>

@@ -88,7 +88,7 @@ module engine_top #(
     wire [31:0] err_index, err_tag, err_instance;
     wire        perf_instance, fd_instance, fs_instance, rd_stat_instance;
 
-    // 搬运层（I7）
+    // 搬运层（状态与排空）
     wire [31:0] fd_addr;
     wire [11:0] fd_bytes;
     wire [3:0]  fd_cidx;
@@ -203,7 +203,7 @@ module engine_top #(
     wire [1:0]  tx_stat_buf;
     wire        tx_busy;
 
-    // 几何层（I1/I2/I5）
+    // 几何层（命令、描述符、边带）
     wire        geom_start;
     wire [7:0]  i1_op;
     wire [3:0]  i1_eq;
@@ -242,7 +242,7 @@ module engine_top #(
     wire [31:0] sb_key, sb_w4;
     wire [1:0]  row_free;
 
-    // 计算阵列（I3/I4 + I8）
+    // 计算阵列（读流、写流 + PERF 事件）
     wire [127:0] rs_tdata, ws_tdata;
     // 读错误行及失败命令的后续写流仍可走完描述符，但不得改 DDR：
     // engine_mover 按每个像素 X 字节的最高位清掉对应 WSTRB。
@@ -261,7 +261,7 @@ module engine_top #(
     wire [31:0] surf_ra_w0, surf_ra_w1, surf_ra_w2;
     wire [31:0] surf_rb_w0, surf_rb_w1, surf_rb_w2;
 
-    // PERF 汇聚（I8）：读事件只计真实 DDR 描述符与命令取数，TEX 读不计入
+    // PERF 汇聚：读事件只计真实 DDR 描述符与命令取数，TEX 读不计入
     wire [3:0] perf_key_lanes_w;
     wire       perf_key_valid_w;
 `ifdef INJ_STRIP_PERF

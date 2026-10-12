@@ -85,7 +85,7 @@ def band():
     import importlib.util,contextlib,io
     spec=importlib.util.spec_from_file_location('g2_f4_review',MAIN/'tools/check/check_g2_band.py')
     m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-    # G2 的 CASE 路径相对其既有忽略 build 目录；原始 logs 独立隔离。
+    # check_g2_band.py 的 CASE 路径相对其既有忽略 build 目录；原始 logs 独立隔离。
     m.LOGS=BUILD/'legacy_band_logs';m.LOGS.mkdir(parents=True,exist_ok=True)
     args=sys.argv[:];sys.argv=[str(spec.origin)];captured=io.StringIO()
     try:

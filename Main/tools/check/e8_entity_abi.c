@@ -1,4 +1,4 @@
-/* E8 独立 ABI 对照：实体路径生成的 BLIT 必须与 gfx_blit 字节相同。 */
+/* 独立 ABI 对照：实体路径生成的 BLIT 必须与 gfx_blit 字节相同。 */
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>

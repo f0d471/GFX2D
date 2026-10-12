@@ -1,18 +1,18 @@
-// B6 整帧仿真：engine_top（B1~B5 六层整机）经 APB 提交整帧命令表，从机是
+// 整帧仿真：engine_top 六层整机经 APB 提交整帧命令表，从机是
 // 带随机反压的 axi_ram_model。初始内存、表面表、命令表与期望内存由
-// tools/check/pix_cases_dump.c --frame（SW3 十一个整帧金标准）与
-// tools/check/sw6_frames_dump.c（SW6 场景 A 的两帧）导出。
+// tools/check/pix_cases_dump.c --frame（十一个整帧金标准）与
+// tools/check/sw6_frames_dump.c（基础 Demo 场景 A 的两帧）导出。
 //
-// 判据（B6 条目 2.4 节）：
+// 判据：
 //   整帧       期望内存逐 128 位相同；帧缓冲 CRC 由 run.sh 的 python 按
-//              sw 第 03 章 3.6 节口径另算，与 golden.txt 比对（11 帧金标准）
+//              软件执行器同口径另算，与 golden.txt 比对（11 帧金标准）
 //   计数器对账 PERF_PIXEL == 软件执行器 pixel_total − src_oob（stats.hex 前两行）；
 //              PERF_KEY_SKIP == key_skip；PERF_RD_BEAT/WR_BEAT == 从机观测的读写拍数；
 //              PERF_RD_BURST/WR_BURST == 从机观测的读写事务数（命令取数计入读侧）
 //   性能       +TIMED 定时从机（RD_LAT=23 RD_BUB=12 WR_BUB=6 B_LAT=1）下跑弹幕用例，
-//              PERF_BUSY / 16 = 每颗周期数，与 engine 第 02 章 3.8 节模型 1092~1124
-//              与 B4 实测 1104.3 对照；本台把通过线放宽到 [900, 1400] 防粗大回归，
-//              精确对账在章正文里做
+//              PERF_BUSY / 16 = 每颗周期数，与模型 1092~1124、
+//              计算阵列实测 1104.3 对照；本台把通过线放宽到 [900, 1400] 防粗大回归，
+//              精确对账随验收做
 //   注错       ERRWIN=1 时从机把帧缓冲区间设成 SLVERR 窗口，第一条写命令必须以
 //              BUS_WRITE 报错收场（总线错误经整机通路端到端浮出），本台在
 //              ERRWIN!=0 时要求 errors>0 且打印 RESULT: FAIL（期望见红）。
@@ -152,7 +152,7 @@ module tb_engine_instances #(
         end
     endtask
 
-    // 提交一张表并等结束（D54：DONE/ERR 置位即静止）
+    // 提交一张表并等结束（DONE/ERR 置位即静止）
     task submit(input [31:0] base, input [31:0] cnt, output [31:0] code);
         reg [31:0] s;
         integer g;
@@ -236,7 +236,7 @@ module tb_engine_instances #(
         repeat(5) @(negedge clk); rst=0;
         repeat(2) @(negedge clk);
 
-        // ID 与 CAPS 在位（D51：ID="GFX"<<8|1；CAPS 复位值 0x0000046F，G3 起 TEX/BAND 位为 1）
+        // ID 与 CAPS 在位（ID="GFX"<<8|1；CAPS 复位值 0x0000046F，TEX/BAND 位为 1）
         apb_rd(12'h000, id);
         if (id !== 32'h4746_5801) begin
             errors = errors + 1; $display("ID-FAIL %08x", id);
@@ -299,7 +299,7 @@ module tb_engine_instances #(
            (code!=0 && (err_index!==stats_hex[6] || err_tag!==stats_hex[7])))begin
             errors=errors+1;$display("INSTANCE mismatch count=%0d want=%0d err=%0d index=%0d tag=%0d",perf_instance,stats_hex[3],err_instance,err_index,err_tag);
         end
-        // ---- 计数器对账（perf 寄存器在静止后读，D20/D54） ----
+        // ---- 计数器对账（perf 寄存器在静止后读） ----
         apb_rd(12'h100 + 4*0, perf_cmd);
         apb_rd(12'h100 + 4*1, perf_pixel);
         apb_rd(12'h100 + 4*2, perf_key);
@@ -357,7 +357,7 @@ module tb_engine_instances #(
             end
         errors = errors + mem_bad;
 
-        // 帧缓冲导出给 run.sh 的 python 算 CRC（sw 第 03 章 3.6 节口径）
+        // 帧缓冲导出给 run.sh 的 python 算 CRC（软件执行器同口径）
         $writememh({case_path, ".got.hex"}, u_ram.mem);
 
         $display("PROFILE fetch_cycles=%0d decode_cycles=%0d geometry_cycles=%0d pixel_output_beats=%0d",
@@ -369,7 +369,7 @@ module tb_engine_instances #(
 `ifdef TIMED
 `ifdef SPRITES
         // 弹幕用例（16 颗 16×16 ALPHA）：PERF_BUSY 逐颗对账；通过线放宽到
-        // [900, 1400]（模型 1092~1124、B4 实测 1104.3），精确对账在章正文。
+        // [900, 1400]（模型 1092~1124、计算阵列实测 1104.3），精确对账随验收做。
         begin
             integer busy;
             integer per;

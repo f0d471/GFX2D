@@ -1,5 +1,5 @@
-/* 由 tools/check/regs_gen.py 生成（D51 的单一真源），不要手改；
- * 语义见 Main/doc/赛题二总体设计.md 3.4 节与 spec 第 02 章。
+/* 由 tools/check/regs_gen.py 生成，是寄存器语义的单一真源，不要手改；
+ * 语义见 Main/doc/赛题二总体设计.md 3.4 节。
  * 引擎寄存器页：APB 第 0 页，基址 0xF810_0000（soc.h 的 IO_APB_SLAVE_0_INPUT）。 */
 #ifndef GFX_REGS_H
 #define GFX_REGS_H
@@ -108,12 +108,12 @@
 #define GFX_ERR_BUS_WRITE      0xBu
 #define GFX_ERR_TIMEOUT      0xCu
 
-/* TEX 装载窗口（v1-TEX profile，G1 的 D57）：APB Slave0 页内偏移，
+/* TEX 装载窗口（v1-TEX profile）：APB Slave0 页内偏移，
  * 不是第 0 页寄存器表的偏移；CPU 地址 = 0xF810_0000 + GFX_TEX_WINDOW。 */
 #define GFX_TEX_WINDOW   0x4000u
 #define GFX_TEX_BYTES    16384u
 
-/* 超时门限 T 的复位值（D30） */
+/* 超时门限 T 的复位值 */
 #define GFX_TMO_RESET    4096u
 
 #endif

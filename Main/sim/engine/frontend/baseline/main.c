@@ -1,4 +1,4 @@
-/* F1 首轮源码冻结，链接 1e2cd8d 的生产源码；不引用后续候选实现。 */
+/* 测量基线源码冻结，链接 1e2cd8d 的生产源码；不引用后续候选实现。 */
 #include "board.h"
 #include "gfx/gfx.h"
 #include "gfx_engine.h"

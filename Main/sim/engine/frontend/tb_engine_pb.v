@@ -1,4 +1,4 @@
-// F5 完整引擎：PB 字节、像素和 AXI 计数消费者。
+// 完整引擎：PB 字节、像素和 AXI 计数消费者。
 `timescale 1ns/1ps
 `default_nettype none
 module tb_engine_pb #(parameter integer TEST=0,STRIP_H=16);
@@ -92,7 +92,7 @@ axi_ram_model #(.MEM_WORDS(MEM_WORDS),.STRB_EN(1),.STALL(3),.ADDR_STALL_MAX(3),
         end
     endtask
 
-    // 提交一张表并等结束（D54：DONE/ERR 置位即静止）
+    // 提交一张表并等结束（DONE/ERR 置位即引擎静止）
     task submit(input [31:0] base, input [31:0] cnt, output [31:0] code);
         reg [31:0] s;
         integer g;

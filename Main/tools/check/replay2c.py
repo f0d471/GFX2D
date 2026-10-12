@@ -3,7 +3,7 @@
 """replay2c.py —— 录像（.g2dr）与 C 数组、录制文本之间的转换
 
 板上没有文件系统，SW9 要把一段录像编进程序；PC 上的录制结果是一段日志。
-双方共用同一份格式定义（sw/lib/core/replay.h，sw 第 03 章 3.2 节的 D6）：
+双方共用同一份格式定义（sw/lib/core/replay.h）：
 
     偏移  长度  内容
     0     4     魔数 'G','2','D','R'（小端读作 0x52443247）
@@ -20,7 +20,7 @@
 
 用法：
 
-    # 二进制 -> C 数组（判据用；主机侧测试与 SW9 都读它）
+    # 二进制 -> C 数组（判据用；主机侧测试与板上构建都读它）
     python3 replay2c.py --in fixture.g2dr --out replay_fixture.h --name replay_fixture
 
     # 录制日志 -> 二进制

@@ -1,7 +1,7 @@
-// G2 正式完整通路：真实 geom/pix/blend/mover/BAND/TEX 与两个 DMA 核。
+// 条带模式正式完整通路：真实 geom/pix/blend/mover/BAND/TEX 与两个 DMA 核。
 // 软件执行器导出初态、命令和期望；按原序逐条提交并等末行写状态，逐拍比较 512 KiB。
 // 覆盖 DDR/TEX 源、跨条带、负 x、重叠、有色色键、原始 X、取数并发及提前 flush。
-// TIMED 使用 E4 校准从机；NO_FETCH 单独验证长行源的提前 DDR 返回；MODEL_SEED 改随机种子。
+// TIMED 使用校准从机；NO_FETCH 单独验证长行源的提前 DDR 返回；MODEL_SEED 改随机种子。
 // 三相计数从 start 到 flushed，含直接控制器提交间隙，不含上传 TEX 和 SoC 扫描争用。
 `timescale 1ns/1ps
 `default_nettype none

@@ -1,12 +1,12 @@
 /******************************************************************************
 * @file exec_sw.c: 软件执行器
 *
-* @brief  按 spec 第 01、02 两章逐像素执行一张命令表。它有三个用途
+* @brief  按命令语义规范逐像素执行一张命令表。它有三个用途
 *         （设计文档 3.8 节）：PC 上的渲染器、板上的软件渲染模式与对比基线、
 *         引擎仿真与上板 CRC 的金标准。
 *
-*         结构固定为：有界取数 -> gfx_cmd_check()（规范条款 §5 的第二到第十步）
-*         -> 裁剪（第 01 章 3.6 节的四者求交）-> 逐像素。
+*         结构固定为：有界取数 -> gfx_cmd_check()（十步检查的第二到第十步）
+*         -> 裁剪（四者求交）-> 逐像素。
 *
 *         混合的算术只写一份 `blend_px()`，六个方程的循环由宏各生成一份特化：
 *         调用点的 eq 是编译期常量，里面的 switch 会被折叠掉，
@@ -20,9 +20,9 @@
 #include "gfx/gfx.h"
 #include <string.h>
 
-/* spec 第 01 章 3.4 节定稿的 V 顺序：两项先相加，再一次 ÷255 舍入，最后 clamp。
+/* V 顺序定稿：两项先相加，再一次 ÷255 舍入，最后 clamp。
    中间量用 uint32_t，两项之和上限 130050 需要 17 位，C 里自然满足；
-   不能压到 16 位模截断（那样全域有 64643 处错，见第 01 章 3.3 节）。 */
+   不能压到 16 位模截断（那样全域有 64643 处错）。 */
 static inline uint32_t r255(uint32_t x)
 {
     uint32_t t = x + 128u;
@@ -92,7 +92,7 @@ static inline uint32_t *dev_ptr(const gfx_mem *m, uint32_t addr)
     return (uint32_t *)(void *)(m->host + off);
 }
 
-/* 表面的地址窗口：space=1（TEX，G1）经宿主的 TEX 影子窗口，其余走设备窗口。
+/* 表面的地址窗口：space=1（TEX）经宿主的 TEX 影子窗口，其余走设备窗口。
    返回 0 表示宿主没有提供所需的窗口（调用方违约，按 BAD_SURFACE 停下，
    与 PC 上给错 DDR 窗口同一处理）。tex_view 是调用方提供的暂存视图。 */
 static const gfx_mem *surf_window(const gfx_mem *m, const gfx_surf_raw *s,
@@ -195,7 +195,7 @@ DEF_FILL_LOOP(fill_mul,      GFX_EQ_MUL)
 DEF_FILL_LOOP(fill_straight, GFX_EQ_ALPHA_STRAIGHT)
 
 /* BLIT 的一个像素有三种结局：源越界跳过、色键命中跳过、写回。
-   顺序照 spec 第 01 章 3.6 节第 5 步：先判源越界，再判色键。
+   顺序固定：先判源越界，再判色键。
    ms 是源表面窗口（v1-TEX 的 TEX 源经影子窗口），m 是目的窗口。 */
 #define DEF_BLIT_LOOP(fn, EQ)                                                  \
 static void fn(const gfx_surf_raw *ss, const gfx_surf_raw *ds,                 \
@@ -305,7 +305,7 @@ static int run_core(const gfx_mem *source_m, exec_sw_state *es, const gfx_surfac
         const gfx_cmd *c;
         uint32_t       op, eq, srcid, dstid, w, h, sfmt;
         gfx_rect       win;
-        gfx_mem        sv;              /* TEX 源的影子窗口视图（G1） */
+        gfx_mem        sv;              /* TEX 源的影子窗口视图 */
         const gfx_mem *swin;            /* 本条命令的源表面窗口 */
         int            code;
 

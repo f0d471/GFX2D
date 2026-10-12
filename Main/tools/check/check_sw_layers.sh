@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check_sw_layers.sh —— 提交前跑一次的结构判据
 #
-# 判据见 Engineering/TechReports/sw/01-软件平台分层与双目标构建.md 3.10 节：
+# 结构判据共七项：
 #   1  lib/ 在只有 -Isw/lib 的条件下编译通过；
 #   2  注错：lib/ 里 include "board.h" 必须编不过；应用里 include <soc.h> 必须编不过；
 #      另有一个对照组：合法的 board.h 与 lib 头文件必须编得过；
@@ -17,7 +17,7 @@
 # 第 2、3、4、6 项用的是**真实的板上构建**（xPack 交叉工具链 + sw/mk/target.mk，产物落临时目录），
 # 不是另写一套 -I 去模拟。这一点是有代价换来：第一版第 2 项用主机 gcc 加手写的 -I 检查，
 # 而真实构建里 sdk 的 include 路径当时是全局加的，应用照样能 include <soc.h>，
-# 判据通过了但分层没有生效。见 TechReports sw 第 01 章 4.6。
+# 判据通过了但分层并没有生效，所以这几项必须用真实构建来查。
 #
 # 用法（在 WSL 里，仓库根或任意位置）：
 #     RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw_layers.sh
@@ -57,7 +57,7 @@ ok()   { printf '%s ok\n'   "$1"; }
 bad()  { printf '%s FAIL\n' "$1"; FAIL=$((FAIL + 1)); }
 note() { printf '    %s\n'   "$1"; }
 
-# SW6 起 gfx2dGame 包含生成物 assets.h，素材包与头文件都不入库：干净克隆里不先打包，
+# gfx2dGame 包含生成物 assets.h，素材包与头文件都不入库：干净克隆里不先打包，
 # 第 2、3、4、6 项那几次真实构建会因为找不到 assets.h 而失败，而那是假红。
 # 与 check_sw5_assets.sh 的 S1 同一做法。
 if python3 "$MAIN/tools/assets/pack_assets.py" >"$TMP/pack.log" 2>&1; then
@@ -206,7 +206,7 @@ rm -f "$INJ_DUP_LIB" "$INJ_DUP_BSP"
 # ---------------------------------------------------------------------------
 # 6  改了头文件必须触发重编**并重链**
 #    目标文件只依赖源文件时，改头文件不会重编，旧的目标文件被悄悄链进产物：
-#    把 memmap.h 的 FB_HEIGHT 从 480 改成 240，bin 与改之前一模一样（见 TechReports sw 第 01 章 4.8）。
+#    把 memmap.h 的 FB_HEIGHT 从 480 改成 240，bin 与改之前一模一样。
 #    只查「重编了」不够：第一版修法把 -include $(DEPS) 放错位置，默认目标被 .d 抢走，
 #    目标文件重编了却不链接，产物照样不更新。两项都要查。
 # ---------------------------------------------------------------------------

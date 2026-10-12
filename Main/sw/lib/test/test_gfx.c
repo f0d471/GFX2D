@@ -294,7 +294,7 @@ static void t8_pixel_math(void)
 {
     gfx_cmd c;
 
-    /* spec 第 01 章 3.4 节的最小反例：c = 1、src = 1、dst = 128。
+    /* 区分舍入顺序的最小反例：c = 1、src = 1、dst = 128。
        精确值 32513/255 约 127.502，V 顺序得 128（U 顺序会得 127）。 */
     mk_fill(&c, GFX_EQ_CONST, 0x00010101u, 1u);
     px_case("T8 const c1 s1 d128", &c, 0x00808080u, 0u, GFX_FMT_XRGB8888,

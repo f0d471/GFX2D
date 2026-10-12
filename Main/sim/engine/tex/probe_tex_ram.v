@@ -1,4 +1,4 @@
-// G1 RAM 组织研究：四个 1024x32 bank；APB 每次写一个 bank，读出整拍。
+// RAM 组织研究：四个 1024x32 bank；APB 每次写一个 bank，读出整拍。
 // APB 读回复用宽读口，正式实现须在引擎空闲时切换读地址并锁存字选择。
 `timescale 1ns/1ps
 `default_nettype none

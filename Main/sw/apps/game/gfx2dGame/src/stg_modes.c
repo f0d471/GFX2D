@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file stg_modes.c: 模式框架里的模式 2（游戏）与模式 3（压力测试）
 *
-* @brief  口径见 stg_modes.h 与 sw 第 07 章 3.7、3.8 节。游戏状态、搜索状态机与本文件的计数都是静态的，
+* @brief  口径见 stg_modes.h。游戏状态、搜索状态机与本文件的计数都是静态的，
 *         不用 malloc；游戏状态每次离开、进入都整体重置。
 ******************************************************************************/
 
@@ -218,7 +218,7 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     o->cyc_build = board_cycles() - t0;             /* 组帧含普查自查 */
 
 #if defined(GFX2D_STRIP_RESEARCH) && GFX2D_STRIP_RESEARCH
-    /* G4 研究探针：同一份游戏状态第二遍组 v2 条带表，只统计不执行。
+    /* 条带研究探针：同一份游戏状态第二遍组 v2 条带表，只统计不执行。
        16 行 30 桶与 32 行 15 桶各一遍，桶峰值读表头计数数组。
        输出列：rcsv,u1,u2,pk16,cyc2,u3,pk32,cyc3,err2,err3,eqok；
        err=两遍各自的 rejected+overflow+first_error 异常，eqok=1 表示
@@ -361,7 +361,7 @@ void stg_mode_game_frame(const stg_main_ctx *ctx, int dst, uint32_t keys,
 {
     uint32_t t0 = board_cycles();
 
-    /* 自动驾驶：连续 600 帧无按键就接管，任何按键立即交还（sw 第 07 章 3.10 节）；开销单独计 */
+    /* 自动驾驶：连续 600 帧无按键就接管，任何按键立即交还；开销单独计 */
     o->auto_on = (uint32_t)stg_auto_take(&s_idle, keys);
     if (o->auto_on)
         keys = stg_auto_keys(&s_game, NULL);
@@ -474,7 +474,7 @@ void stg_mode_press_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *
 #endif
     draw_frame(ctx, dst, &h, o, &cc);
 
-    /* 模拟时钟：本帧整帧的普查按 B 批的模型算代价；真实时钟：场数增量与周期数 */
+    /* 模拟时钟：本帧整帧的普查按弹幕场的模型算代价；真实时钟：场数增量与周期数 */
     e   = stg_press_cost(&s_clock, &cc, &cost);
     cyc = (cost > 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)cost;
 #if GFX2D_PRESS_CLOCK

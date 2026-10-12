@@ -1,4 +1,4 @@
-/* 正式 G3 的同一调用序列：直通金标准、生产 v2 表、RTL 初始内存。 */
+/* 条带控制正式实现的同一调用序列：直通金标准、生产 v2 表、RTL 初始内存。 */
 #include "gfx/gfx.h"
 #include <stdio.h>
 #include <stdlib.h>

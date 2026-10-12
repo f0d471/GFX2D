@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file ref_exec.c: 软件执行器的独立参考实现
 *
-* @brief  照 spec 第 01 章 3.6 节的执行顺序与第 02 章规范条款 §5 的十步逐条抄，
+* @brief  照命令语义规范的执行顺序与十步检查逐条抄，
 *         每一步旁边写出处。不追求速度：每个像素都重新算一遍地址，
 *         方程在像素循环里现选，除以 255 用整数除法而不是移位近似式。
 *
@@ -11,7 +11,7 @@
 #include "ref_exec.h"
 
 /* half-up 的精确商：round(x / 255) == (x + 127) / 255。
-   产品实现走的是 spec 定稿的移位式 (t + (t>>8)) >> 8（t = x + 128），
+   产品实现走的是定稿的移位式 (t + (t>>8)) >> 8（t = x + 128），
    两条路在 x = 0..130050 上必须给出同样的值 —— 这正是本文件存在的意义。 */
 static uint32_t ref_div255(uint32_t x)
 {
@@ -67,7 +67,7 @@ static int ref_surf_ok(const gfx_surface_table *t, uint32_t id)
 
     if ((t->s[id].ctrl & GFX_SURF_CTRL_RSVD) != 0u) return 0;
 
-    /* v1-TEX（G1）：space=1 的 base 是片上窗口内偏移，加 16 字节对齐与
+    /* v1-TEX：space=1 的 base 是片上窗口内偏移，加 16 字节对齐与
        base + height*2^stride_log2 <= 0x4000 两条，64 位求值。 */
     if (sf_space(t, id) == GFX_SPACE_TEX) {
         uint64_t end;
@@ -213,7 +213,7 @@ static uint32_t ref_addr(const gfx_surface_table *t, uint32_t id, int32_t x, int
     return sf_base(t, id) + ((uint32_t)y << sf_sl(t, id)) + ((uint32_t)x * 4u);
 }
 
-/* v1-TEX（G1）：源表面的地址窗口。TEX 源经宿主的影子窗口；
+/* v1-TEX：源表面的地址窗口。TEX 源经宿主的影子窗口；
    返回 0 表示宿主没给影子（按 BAD_SURFACE 停）。view 由调用方提供并保持存活。 */
 static const gfx_mem *ref_surf_win(const gfx_mem *m, const gfx_surface_table *t,
                                    uint32_t id, gfx_mem *view)
@@ -353,7 +353,7 @@ int ref_exec_run(gfx_rect *clip, const gfx_surface_table *t, const gfx_mem *m,
             }
         }
 
-        /* spec 第 01 章 3.6 节：宽高先判 0，再四者求交，闭区间 */
+        /* 顺序：宽高先判 0，再四者求交，闭区间 */
         if (w == 0u || h == 0u) {
             if (st != 0) st->cmd++;
             continue;

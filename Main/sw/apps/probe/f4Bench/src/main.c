@@ -1,8 +1,8 @@
-/* F4 研究板测：同一冻结输入流上对比三条构造路径的每帧 CPU 周期。
+/* 实例命令研究板测：同一冻结输入流上对比三条构造路径的每帧 CPU 周期。
  * base=生产 gfx_blit_run 分段重放（模板批量接口的最佳用法）；
  * inst=f4_build 整流重放（含逐记录分派，实例 API 的上界口径）；
  * instb=f4_append_batch 批入口重放（共享检查段级一次，
- * 对应 spec 里 gfx_instances_append 的生产形态）。
+ * 对应 lib/gfx 里 gfx_instances_append 的生产形态）。
  * 对拍（构造+展开逐字比较）先行，计时内只做构造，CRC 消费在计时外；
  * 不执行渲染，不上引擎。 */
 #include "board.h"
@@ -48,8 +48,8 @@ static uint64_t bin_sum[ROUNDS];
 static uint32_t base_min[ROUNDS], base_max[ROUNDS];
 static uint32_t inst_min[ROUNDS], inst_max[ROUNDS];
 static uint32_t instb_min[ROUNDS], instb_max[ROUNDS];
-/* F5 研究路径：软件模拟硬件 binner 的两遍遍历（COUNT/SNAPSHOT 与 SCATTER）。
-   逐条口径（每条绘制一个引用候选），与宿主 f5_pb_analysis.py 同语义：
+/* 硬件分桶的研究路径：软件模拟硬件 binner 的两遍遍历（COUNT/SNAPSHOT 与 SCATTER）。
+   逐条口径（每条绘制一个引用候选），与宿主侧参考模型同语义：
    clip 从全屏开始、SET_CLIP 截断到屏幕、目的窗口与源有效区求交后按
    16 行条带计引用；COUNT 与 SCATTER 各完整重放一次输入流。 */
 #define PBREF_CAP (96u * 1024u)
@@ -452,7 +452,7 @@ int main(void)
         board_puts("\n");
         if (vk < 0 || vb < 0) {failed++;break;}
 
-        /* F5 软 binner 的引用数在计时外确认一次（与宿主模型交叉核对） */
+        /* 软 binner 的引用数在计时外确认一次（与宿主模型交叉核对） */
         softbin_pass(in, n, 0);
         softbin_prefix();
         {

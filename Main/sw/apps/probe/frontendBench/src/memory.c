@@ -1,4 +1,4 @@
-/* F1 受控访存：相同记录、地址集合、写次数，改变访问次序。 */
+/* 受控访存：相同记录、地址集合、写次数，改变访问次序。 */
 #include "board.h"
 #include "gfx/gfx.h"
 #include "core/format.h"

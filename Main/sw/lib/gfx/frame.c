@@ -1,4 +1,4 @@
-/* F2 通用串行 pass 计划：预检无 doorbell，租约保持到完成或错误排空。 */
+/* 通用串行 pass 计划：预检无 doorbell，租约保持到完成或错误排空。 */
 #include "gfx/frame.h"
 #include <string.h>
 static int err(gfx_frame_plan *p,int e){if(p&&!p->first_error)p->first_error=e;return e;}

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # 把 check_cmd_semantics.py --emit 的标签文本展开成 engine_top 测试台能稳定解析的
-# 定型记录流（B5 条目 2.4 节第 1 条的转换脚本）。
+# 定型记录流。
 #
-# 输入：emit 的文本（spec 第 02 章规范条款 §7.2 的格式）
+# 输入：emit 的文本（--emit 导出的向量集格式）
 # 输出：一行一条记录、字段空格分隔、数字十六进制无前缀的 vec_stream.txt：
 #   V lists reads code errlist erridx errtag mem clipx0 clipy0 clipx1 clipy1
 #   S slot base width height ctrl

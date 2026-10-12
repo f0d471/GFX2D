@@ -219,7 +219,7 @@ module engine_band #(
     assign ws_ready = active && w_writing && !cancel &&
                       !(ram_re && ram_ra == write_index);
     wire pixel_write = ws_valid && ws_ready;
-    // I4 的现有消费者输出全 keep；局部写不静默接收半字掩码。
+    // 写流的现有消费者输出全 keep；局部写不静默接收半字掩码。
     wire bad_keep = pixel_write && ws_keep != 16'hffff;
     wire fill_write = (phase == LOAD_DATA) && dma_rvalid && !cancel && load_left != 0;
     wire [AW-1:0] ram_wa = fill_write ? load_index : write_index;

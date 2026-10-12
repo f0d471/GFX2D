@@ -1,7 +1,7 @@
-/* F4 研究原型的共享核心：v1-I 实例包构造器与独立标量展开器。
- * 宿主对拍器（f4_inst_proto.c）与板测应用（apps/probe/f4Bench）编同一份
- * 实现，保证两侧成本与正确性结论指向同一段代码；生产实现由开发轮按
- * Todo/绘制前端F4 的 spec 另行交付，本文件不是候选 API。 */
+/* 实例命令研究原型的共享核心：v1-I 实例包构造器与独立标量展开器。
+ * 宿主对拍器（sim/engine/frontend/f4_inst_proto.c）与板测应用（apps/probe/f4Bench）编同一份
+ * 实现，保证两侧成本与正确性结论指向同一段代码；生产实现由 lib/gfx 的实例接口交付，
+ * 本文件不是候选 API。 */
 #ifndef F4_INST_CORE_H
 #define F4_INST_CORE_H
 

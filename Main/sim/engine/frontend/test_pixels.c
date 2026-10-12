@@ -1,4 +1,4 @@
-/* F2/F3 独立像素检查：非游戏矩形；直通解释器与 prepass/BAND 对拍。 */
+/* 独立像素检查：非游戏矩形；直通解释器与 prepass/BAND 对拍。 */
 #include "gfx/gfx.h"
 #include <stdio.h>
 #include <stdlib.h>

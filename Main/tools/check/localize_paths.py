@@ -75,7 +75,7 @@ SUSPECT = re.compile(r"(?:(?<![A-Za-z0-9])[A-Za-z]:[\\/]"
 # 允许保留绝对路径的文件。
 #   Main/doc/开发环境.md   按约定集中记录本机取值，见该文件第 11 节
 #   本脚本                 说明里要举路径的例子
-#   platform 第 07 章      原样引用的报错输出里带 Efinity 的安装路径（4.1 节）
+#   原样引用厂商报错输出的文档   输出里带 Efinity 的安装路径
 ALLOW = {
     "Main/doc/开发环境.md",
     "Main/tools/check/localize_paths.py",

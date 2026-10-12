@@ -1,4 +1,4 @@
-# SW5 素材清单（manifest）。制表符分隔，字段见下面这一行；# 开头是注释。
+# 素材清单（manifest）。制表符分隔，字段见下面这一行；# 开头是注释。
 #
 # kind       surf = 一张 PNG 一项表面；atlas = 一张 PNG 按 slice 切成网格；
 #            font  = 文本点阵字库，由打包工具渲染成网格图集
@@ -20,7 +20,7 @@ surf	5	BULLET_PM	premult	placeholder/bullet.png	32x32	-	-	sprite
 surf	6	BULLET_ST	straight	placeholder/bullet.png	32x32	-	-	sprite
 surf	7	KEY_DEMO	xrgb	placeholder/key_demo.png	32x32	-	0x00FF00FF	sprite
 surf	8	SOLID8	xrgb	placeholder/solid8.png	8x8	-	-	sprite
-# SW7 C 批：游戏的霓虹几何素材（Main/tools/assets/gen_stg_neon.py 生成，sw 第 06 章 3.12 节）；表面槽见 sw/apps/game/gfx2dGame/src/stg_slots.h
+# 游戏的霓虹几何素材（Main/tools/assets/gen_stg_neon.py 生成）；表面槽见 sw/apps/game/gfx2dGame/src/stg_slots.h
 atlas	9	BUL16	premult	neon/bul16.png	64x16	16x16	-	sprite
 atlas	10	BUL8	premult	neon/bul8.png	32x8	8x8	-	sprite
 atlas	11	RICE20	premult	neon/rice20.png	320x80	20x20	-	sprite

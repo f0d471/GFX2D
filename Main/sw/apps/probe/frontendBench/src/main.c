@@ -1,5 +1,5 @@
 #include "gfx/pb.h"
-/* F1：冻结真实游戏状态，计时内调用生产组帧，消费与排序在计时外。 */
+/* 绘制前端微基准：冻结真实游戏状态，计时内调用生产组帧，消费与排序在计时外。 */
 #include "board.h"
 #include "gfx/gfx.h"
 #include "gfx_engine.h"

@@ -1,4 +1,4 @@
-/* F4 正式板测：显式数组 view，独立标量像素金标准，计数与错误定位。 */
+/* 实例命令正式板测：显式数组 view，独立标量像素金标准，计数与错误定位。 */
 #include "board.h"
 #include "gfx_engine.h"
 #include "gfx/gfx.h"

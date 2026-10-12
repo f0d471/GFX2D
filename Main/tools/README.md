@@ -21,9 +21,9 @@
 | `board/make_flash_image.py` | 同上，只用标准库 | 合成与回环校验，不碰板子 |
 | `check/check_cmd_semantics.py`、`check/geom_model.py` | 同上，只用标准库 | 生成与校验命令语义的一致性向量；引擎几何层的独立模型（求交、描述符、边带、定向用例、$readmemh 记录导出），不读 RTL、不依赖板子与编译器 |
 | `check/geom_cases_dump.sh` | WSL，要主机 gcc | 链接 `sw/lib/gfx` 的 `cases.c` 与 `list.c`，把十一个整帧用例导成几何模型能吃的记录 |
-| `check/check_sw6_log.py`、`check/gen_sw6_replay.py` | 同上，只用标准库 | 判据日志的外部核对（`zlib.crc32` 与 `lib/core/crc32` 同参）；SW6 两段录像的独立生成 |
-| `check/gen_sin_tab.py` | 同上，只用标准库 | 生成 SW7 的 1280 项 Q1.14 正弦表 `sw/lib/core/sin_tab.c` |
-| `check/gen_stg_patterns.py` | 同上，只用标准库 | SW7 弹型判据的独立实现：生成五种弹型的期望文件，并与 C 的轨迹逐帧比对 |
+| `check/check_sw6_log.py`、`check/gen_sw6_replay.py` | 同上，只用标准库 | 判据日志的外部核对（`zlib.crc32` 与 `lib/core/crc32` 同参）；基础 Demo 两段录像的独立生成 |
+| `check/gen_sin_tab.py` | 同上，只用标准库 | 生成游戏的 1280 项 Q1.14 正弦表 `sw/lib/core/sin_tab.c` |
+| `check/gen_stg_patterns.py` | 同上，只用标准库 | 游戏弹型判据的独立实现：生成五种弹型的期望文件，并与 C 的轨迹逐帧比对 |
 | `stats/plot_stats.py` | 同上，只用标准库 | 读统计日志、出 HTML+SVG 的图源；导出 PNG 用 `Deliverables/Assert/figures/src/render.sh`（Windows 的 Edge） |
 | `check/check_sw_layers.sh`、`check/check_sw5_assets.sh`、`check/check_sw6_demo.sh`、`check/check_sw7_game.sh`、`check/check_sw8_stats.sh`、`check/check_sw8_tx.c`、`check/gen_stg_clear.c`、`check/check_round255.c`、`check/check_subst.c`、`check/geom_cases_dump.c` | WSL | 要交叉工具链、主机 gcc；前两个与 `check_sw6_demo.sh`、`check_sw7_game.sh`、`check_sw8_stats.sh` 都要 `python3`（`check_sw7_game.sh` 打包素材还要 Pillow）；`check_sw7_game.sh`、`check_sw8_stats.sh` 要 `gcc-multilib` 与 `libsdl2-dev`，`check_sw8_tx.c` 要 `libsdl2-dev`（由 `check_sw8_stats.sh` 编译）；`geom_cases_dump.c` 只要主机 gcc，由 `geom_cases_dump.sh` 编译 |
 
@@ -35,12 +35,12 @@ Efinity 自带的 `python.exe` 在 `python311\bin\` 下而标准库在 `python31
 
 - 放进上面五类之一；都不合适时再开新目录，并在本表登记。
 - 只做一次的实验脚本、临时诊断程序不进 `tools/`。实验程序放 `sw/apps/probe/`，
-  一次性的核对做完就删，结论与过程写进 `Engineering/TechReports/`。
+  一次性的核对做完就删，结论写进对应目录的 README。
 - 不写绝对路径：工具位置按环境变量或相对本脚本的位置推，仓库根由脚本位置推出，不要求从特定目录运行。
 - 判断成功要有正面证据（输出里的成功标记、字节数、`done`），不能只看子进程的退出码：
   厂商脚本出错时也可能返回 0，见 `board/README.md`。
 - 判据脚本要带注错：把一处改错，判据必须报 FAIL，只跑正常用例说明不了判据在检查东西。
 
-G4 复现入口：check/check_g4_integration.py（宿主、RTL、板测构建与证据核验）、
+游戏整机复现入口：check/check_g4_integration.py（宿主、RTL、板测构建与证据核验）、
 board/run_g4_matrix.py（串行板测）、soc/make_cache_variant.py（独立缓存构型）、
 stats/plot_g4.py（实测对照图）；各子目录 README 登记参数。

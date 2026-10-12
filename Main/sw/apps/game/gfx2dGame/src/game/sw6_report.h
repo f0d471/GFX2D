@@ -1,7 +1,7 @@
 /******************************************************************************
 * @file sw6_report.h: 三个 CRC 口径与全部日志行
 *
-* @brief  日志格式的权威是 spec 2.7 节。逐行以 `\r\n` 结尾（与 UART 逐字节相同），
+* @brief  日志格式以本文件的行定义为准。逐行以 `\r\n` 结尾（与 UART 逐字节相同），
 *         按空白切分即可解析，行里不出现字符本身。
 *
 *         三个 CRC 都逐行喂、只取可见的那一段、跳过行跨间隙：
@@ -34,7 +34,7 @@ void sw6_log_scene(uint32_t i, uint32_t scrc);
 /* eq <P|A> <copy> <alpha> <add> <straight> */
 void sw6_log_eq(char kind, const uint32_t eq[4]);
 
-/* 一帧一行（spec 2.7 的 f 行） */
+/* 一帧一行（日志里的 f 行） */
 typedef struct {
     uint32_t frame;
     char     stage;         /* 'A' 或 'B' */

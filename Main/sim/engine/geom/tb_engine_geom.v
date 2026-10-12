@@ -1,27 +1,27 @@
-// tb_engine_geom：引擎 P1 B3 几何层的单元仿真
+// tb_engine_geom：几何层的单元仿真
 //
-// 被测是 rtl/engine/engine_geom.v 整块。测试台按 I1 喂命令，收 I2 的描述符与 I5 的边带，
+// 被测是 rtl/engine/engine_geom.v 整块。测试台按命令接口喂命令，收读写描述符与每行边带，
 // 与独立模型（Main/tools/check/geom_model.py --dump-records / --dump-directed）给的
 // 期望值逐条比。期望值不读 RTL，也不在本文件里重算——本文件只做「驱动 + 比对」。
 //
-// 判据（engine 第 03 章 3.7 节）：
+// 判据：
 //   1 定向用例 31 条：基址不按 4KB 对齐、基址只按 4 字节对齐（相位不等于 x 对 4 的余数）、
 //     行跨 4KB（拆两段）、源与目的相位 4×4、宽度对 4 取余 4 种、源矩形越出源表面、零面积
 //   2 已有输入：159 条向量与十一整帧用例里几何层真正见到的全部命令
-//   3 规矩 1 与避让：每个描述符 16 字节对齐、不跨 4KB、不超过 192 拍；D7 三种情形没有读描述符
+//   3 规矩 1 与避让：每个描述符 16 字节对齐、不跨 4KB、不超过 192 拍；避让三种情形没有读描述符
 //   4 注错：漏掉第五项求交、跨 4KB 不拆、ALPHA 误开读目的避让、COPY 多发读目的、
 //     行开始之前不看 row_free，各自必须见红
-//   另加两个握手用例：+STALL（三个方向各压出反压）与 +RFSTALL（B4 行缓冲替身的排空
+//   另加两个握手用例：+STALL（三个方向各压出反压）与 +RFSTALL（行缓冲替身的排空
 //     拉长到 23 拍，几何层必须真的停下来等），判据都是「序列与恒 ready 时逐条相同」。
 //
 // 每条记录的消费循环只在**握手真正发生的那一拍之后**才前进到期望的下一条：
 // 「比较 → 等一拍 → 前进」的写法在 ready 被压住时会与 RTL 脱节（描述符还压在
-// DUT 的 valid 上没被收走，测试台已经去比下一条了）。这一条是逼出来的，见第 03 章第四节。
+// DUT 的 valid 上没被收走，测试台已经去比下一条了）。这一条是逼出来的。
 //
 // 消费循环只看它正在等的那个通道，别的通道的 ready 照样是高的——多发的描述符会被
 // 悄悄收走。所以另有一个与消费循环无关的**握手监视器**：逐拍数三个通道的握手与
 // cmd_done 脉冲，每条命令结束时与消费循环收下的条数比（PROTO / DONEERR），
-// 并查三个 valid 不同时为高。还有一个 **B4 行缓冲替身**给 row_free，
+// 并查三个 valid 不同时为高。还有一个 **行缓冲替身**给 row_free，
 // 查每一行都开在空着的那一半上（BUFERR）。这两样是 2026-10-01 复核时补的：
 // 原来的测试台放过了「COPY 多发读目的」「非空命令也回 cmd_done」「行推进不等 row_free」三种错。
 //
@@ -150,7 +150,7 @@ module tb_engine_geom;
         sb_ready = !stall_en || (pcnt[2:0] != 3'd5);
     end
 
-    // ---------------------------------------------------------------- B4 行缓冲替身（D41）
+    // ---------------------------------------------------------------- 行缓冲替身（半号 = 行号最低位）
     // 两半各一位占用。第 h 半在它的边带握手那一拍占上；这一行的写描述符拍数收齐
     // （累计到边带的 sb_beats）之后，再过 drain 拍放掉——模拟写流从行缓冲里读完。
     // row_free = ~占用。默认 drain = 0；+RFSTALL 时 23 拍，比一行的几何层开销长，
@@ -274,7 +274,7 @@ module tb_engine_geom;
     integer nrow_total = 0;
     time t_start, t_end;
 
-    // D3 规矩 1：每个描述符都要过。违例直接计入 bad：原来只计 rule1、不计 bad，
+    // 规矩 1：每个描述符都要过。违例直接计入 bad：原来只计 rule1、不计 bad，
     // 规矩 1 单独违例时 RESULT 仍是 PASS，只靠 run.sh 事后 grep 兜底（2026-10-01 复核）。
     task check_rule1;
         input is_wr;
@@ -344,7 +344,7 @@ module tb_engine_geom;
             start = 1'b0;
 
             if ((mem[hdr + C_FLAGS] & FLAG_EMPTY) != 0) begin
-                // 零面积命令：不回描述符，只回一拍带命令索引的完成脉冲（D38）
+                // 零面积命令：不回描述符，只回一拍带命令索引的完成脉冲
                 cyc = 0;
                 while (!cmd_done && cyc < 256) begin
                     @(posedge clk);
@@ -475,7 +475,7 @@ module tb_engine_geom;
                     $display("        RTL %0d rows, EXP %0d rows", nrow_seen, nrows_exp);
                 end
                 nrow_total = nrow_total + nrow_seen;
-                // D7：读源的有无与操作对应、读目的的有无与方程对应
+                // 避让判定：读源的有无与操作对应、读目的的有无与方程对应
                 total = total + 1;
                 if ((rd_src_seen > 0) !== ((mem[hdr + C_FLAGS] & FLAG_RSRC) != 0)) begin
                     failm("read-source presence vs D7");

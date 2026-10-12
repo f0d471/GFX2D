@@ -1,4 +1,4 @@
-// G2 前期研究：分相复用的一读一写 RAM，未接入生产 RTL。
+// 前期研究：分相复用的一读一写 RAM，未接入生产 RTL。
 // PIXEL_MASK=1 时每个 32 位像素独立写使能，模拟 mover 的带内不写标记。
 // PIXEL_MASK=0 是无掩码容量下界对照，不能直接充当正式 BAND。
 `timescale 1ns/1ps

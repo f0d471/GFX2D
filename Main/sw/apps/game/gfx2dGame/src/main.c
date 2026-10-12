@@ -1,15 +1,15 @@
 /******************************************************************************
-* @file main.c: gfx2dGame —— 模式框架（SW8）、SW6 基础 Demo 与 SW7 的入口
+* @file main.c: gfx2dGame —— 模式框架、基础 Demo 与游戏的入口
 *
-* @brief  赛题基础要求 3 的基础 Demo（Engineering/TechReports/sw/05-基础Demo.md）。
+* @brief  赛题基础要求 3 的基础 Demo。
 *         同一份应用每帧更新场景、生成命令表、交给 `lib/gfx` 的软件执行器、呈现后缓冲，
 *         并逐帧打一行日志。两个场景：
 *           A 大量方块随机移动：N=100~5000，每帧 N 条场景命令，瓶颈在命令数；
 *           B 三张整屏图快速切换：初始化时预合成进 DDR 离屏层，每帧一次整屏 BLIT COPY，
 *             瓶颈在访存带宽。
 *
-*         入口（编译期开关，板上没有 argv，见 spec 2.5）：
-*           不给开关       模式框架（sw 第 07 章 3.7 节）：1 基础 Demo（SW6 的演示，实时输入，A／B 每 SW6_STAGE_FRAMES 场轮换）、
+*         入口（编译期开关，板上没有 argv）：
+*           不给开关       模式框架：1 基础 Demo（演示，实时输入，A／B 每 SW6_STAGE_FRAMES 场轮换）、
 *                          2 游戏、3 压力测试（stg_modes.c）；上电进 -DGFX2D_START_MODE=<1|2|3>（缺省 2）。
 *                          数字键 1~3 直接选模式，Tab 切后端变量；板上用和弦（上 + 下按住 8 帧切下一个模式，
 *                          左 + 右切后端，stg_chord）。切换在触发那一帧结束之后生效：离开时游戏状态整体重置，
@@ -17,18 +17,18 @@
 *                            mode <m> enter frame <帧号> crc <整帧 CRC32> pool <四个池的存活数> clip <裁剪框>
 *                          -DGFX2D_FRAMES=N 限总帧数（不给时沿用 -DSW6_FRAMES）；-DGFX2D_SWITCH_JUDGE=1 用合成的
 *                          按键脚本来回切 150 次（切换判据，check_sw8_stats.sh）。
-*                          每 60 场一行统计 CSV（gfx2d_stats.c，sw 第 07 章 3.9 节）；CSV 与框架自己的行都进日志队列，
-*                          每帧只取出 board_tx_room() 那么多字节。模式 1 里 SW6 的逐帧日志照旧直接打，
+*                          每 60 场一行统计 CSV（gfx2d_stats.c）；CSV 与框架自己的行都进日志队列，
+*                          每帧只取出 board_tx_room() 那么多字节。模式 1 里基础 Demo 的逐帧日志照旧直接打，
 *                          队列在模式 1 的每帧开头先取空（不让半行被夹断）。
 *           -DSW6_JUDGE=1  判据模式：不读实时按键，按入库的两段录像各回放两遍，
 *                          先打 pak／scene／eq P，再逐帧打 f 行，最后 fail／done。不走模式框架。
 *
-*         判据与检查脚本见 spec 第 3 节与 2.6 节；期望日志入库
+*         判据与检查脚本见 tools/check/check_sw6_demo.sh；期望日志入库
 *         `logs/sw6_judge.log` 与 `logs/sw6_judge_quick.log`。
 *
-*         -DSTG_FIELD=<n> 时换成 SW7 B 批的弹幕场入口（stg_main.c，sw 第 06 章 3.9 节）：
-*         启动只做分区窗口、素材包与表面槽三步，不做预合成；表面槽用游戏那一套（stg_slots.h，
-*         sw 第 06 章 3.12 节）。SW6 的两种构建不受影响。
+*         -DSTG_FIELD=<n> 时换成弹幕场入口（stg_main.c）：
+*         启动只做分区窗口、素材包与表面槽三步，不做预合成；表面槽用游戏那一套（stg_slots.h）。
+*         基础 Demo 的两种构建不受影响。
 ******************************************************************************/
 
 #include <stddef.h>
@@ -98,11 +98,11 @@ static uint32_t s_last_in;
 static uint32_t s_last_bld;
 static uint32_t s_last_exe;
 
-/* 上一帧的命令表与执行器统计：模式框架的统计埋点抽样用（sw 第 07 章 3.9 节），SW6 自己不看它们 */
+/* 上一帧的命令表与执行器统计：模式框架的统计埋点抽样用，基础 Demo 自己不看它们 */
 static uint32_t      s_last_list;
 static uint32_t      s_last_used;
 static exec_sw_stats s_last_xs;
-static uint32_t      s_last_tp;         /* 发出呈现请求前一刻的 board_cycles()（帧时间的终点，sw 第 07 章 3.4 节） */
+static uint32_t      s_last_tp;         /* 发出呈现请求前一刻的 board_cycles()（帧时间的终点） */
 
 /* 上一次交给 board_present 的那一面（-1 表示还没呈现过）。present 等切换完成才返回，
    所以它就是正在扫描的那一面：本帧的目的面必须是另一面，否则板上会撕裂。 */
@@ -110,7 +110,7 @@ static int s_shown = -1;
 
 /* 全局的帧序号：目的面与命令表都按它的奇偶轮换，**不随每段每遍的帧号归零**。
    按每遍的帧号选面时，一遍的帧数是奇数（B 段 367 帧）就会在下一遍第 0 帧
-   画到正在扫描的那一面上（spec 4.23 第 1 条）。 */
+   画到正在扫描的那一面上（双缓冲的要求）。 */
 static uint32_t s_seq;
 
 /* 一遍（一个阶段的一遍）里场景命令的按方程累计，给 `eq A` 那一行用 */
@@ -140,7 +140,7 @@ static void say2(const char *tag, uint32_t a, uint32_t b)
 
 /* --- 初始化 -------------------------------------------------------------- */
 
-/* 按分区表算 gfx_mem 的窗口：素材区起点到 OFF2 末端（spec 2.0 第 1 条）。
+/* 按分区表算 gfx_mem 的窗口：素材区起点到 OFF2 末端。
    两个数都由分区表与 FB_BYTES 在运行时算出，代码里不写死；
    同时核对相邻分区的指针差等于分区表的偏移差（assetTest 的 chk M1 那一套）。 */
 static int boot_mem(void)
@@ -194,7 +194,7 @@ static void boot_fail_report(int rc)
     board_puts(buf);
 }
 
-/* 装载素材包、与生成的头对账、打 `pak` 行（spec 2.0 第 1 条）。 */
+/* 装载素材包、与生成的头对账、打 `pak` 行。 */
 static int boot_asset(void)
 {
     const board_mem asset = board_region(REGION_ASSET);
@@ -214,7 +214,7 @@ static int boot_asset(void)
 
     sw6_log_pak(s_pak.total_len, s_pak.pack_crc);
 
-    /* 不一致记一次 fail：`pak` 行照实打，D3 与期望日志对账时能立刻归因 */
+    /* 不一致记一次 fail：`pak` 行照实打，与期望日志对账时能立刻归因 */
     if (s_pak.version != ASSET_PAK_VERSION)
         s_fail++;
     if (s_pak.total_len != ASSET_PAK_TOTAL_LEN || s_pak.pack_crc != ASSET_PAK_CRC32
@@ -223,7 +223,7 @@ static int boot_asset(void)
     return 0;
 }
 
-/* 表面槽：0、1 是两张帧缓冲，2~9 是素材 8 项，10~12 是三张离屏图（spec 2.0 第 1 条）。 */
+/* 表面槽：0、1 是两张帧缓冲，2~9 是素材 8 项，10~12 是三张离屏图。 */
 static int boot_surfaces(void)
 {
     static const struct {
@@ -282,7 +282,7 @@ static int boot_surfaces(void)
     return 0;
 }
 
-/* 三张整屏图预合成进离屏层，并把三个参考 CRC 打出去（spec 2.0 第 2 条）。 */
+/* 三张整屏图预合成进离屏层，并把三个参考 CRC 打出去。 */
 static int boot_precompose(void)
 {
     sw6_b_ctx ctx;
@@ -329,7 +329,7 @@ static int boot(void)
 
 #if !SW6_MODE_JUDGE || STG_FIELD_MODE != 0
 
-/* 游戏的表面槽（sw 第 06 章 3.12 节，stg_slots.h）：0、1 是两张帧缓冲，2~14 是 SW5 字库与 12 张霓虹素材。
+/* 游戏的表面槽（stg_slots.h）：0、1 是两张帧缓冲，2~14 是字库与 12 张霓虹素材。
    不登记离屏图：游戏没有预合成。 */
 static int boot_surfaces_stg(void)
 {
@@ -483,7 +483,7 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
             fs.bad++;
 
         if (stage == 0u) {
-            /* 打底：一条写满 640×480 可见像素的全屏 FILL（spec 2.0 第 4 条） */
+            /* 打底：一条写满 640×480 可见像素的全屏 FILL */
             if (gfx_fill(&l, dst, all, SW6_BG_COLOR, GFX_EQ_COPY, 0u) != 0)
                 fs.bad++;
             sw6_a_build(&s_a, &l, dst, &fs);
@@ -503,7 +503,7 @@ static void frame_run(uint32_t stage, uint32_t pass, uint32_t frame, sw6_input *
         hud.hw_fps       = s_backend_fps[s_backend ? s_backend : 1u];
         hud.hw_fps_valid = (int)s_backend_fps_valid[s_backend ? s_backend : 1u];
 #else
-        /* 只有一个窗口，实测值按当前后端归栏；判据只走软件，HUD 与 SW6 期望日志不变 */
+        /* 只有一个窗口，实测值按当前后端归栏；判据只走软件，HUD 与基础 Demo 期望日志不变 */
         hud.sw_fps       = s_sw_fps;
         hud.sw_fps_valid = s_fps_valid && s_backend == 0u;
         hud.hw_fps       = s_sw_fps;
@@ -655,7 +655,7 @@ static int run_judge(void)
 
 #else   /* !SW6_MODE_JUDGE */
 
-/* --- 模式框架（sw 第 07 章 3.7 节，默认构建）------------------------------------- */
+/* --- 模式框架（默认构建）--------------------------------------------------- */
 
 /* 上电进哪个模式（2026-09-26 定案）：缺省 2（游戏） */
 #ifndef GFX2D_START_MODE
@@ -682,7 +682,7 @@ static int run_judge(void)
 #define GFX2D_FIELDS_MAX    0
 #endif
 
-/* 切换判据：合成的按键脚本代替实时按键（2.1 节「切换判据怎么驱动」） */
+/* 切换判据：合成的按键脚本代替实时按键 */
 #ifndef GFX2D_SWITCH_JUDGE
 #define GFX2D_SWITCH_JUDGE  0
 #endif
@@ -710,11 +710,11 @@ static uint32_t     s_m1_field0;        /* 模式 1：本段开始时的场号�
 static uint32_t     s_mfps_cyc0, s_mfps_swaps0, s_mfps;
 static uint32_t     s_swj_n;            /* 切换判据：已经切了几次 */
 
-/* --- v1-TEX（G1）：热集装载与 HW/TEX 后端 --------------------------------- */
+/* --- v1-TEX：热集装载与 HW/TEX 后端 --------------------------------------- */
 
-/* 热集 = 标准圆弹/小圆弹/火花（SW7 口径），按现行 manifest 顺序紧凑摆进
+/* 热集 = 标准圆弹/小圆弹/火花（游戏口径），按现行 manifest 顺序紧凑摆进
    16 KiB 窗口；装载一次、读回 CRC 自校验，通过后 HW/TEX 后端才可用。
-   装载、读回与重登记都要求引擎空闲（D57 的驱动纪律，驱动层拒绝忙时访问），
+   装载、读回与重登记都要求引擎空闲（驱动纪律：驱动层拒绝忙时访问），
    上传只在启动与重载时发生，不进每帧循环、不藏在引擎计时之外。 */
 static const struct {
     uint32_t entry;
@@ -818,7 +818,7 @@ static int tex_overlay(int on)
 /* 后端切换前的表面表准备；HW/TEX 不可用或覆盖层失败返回 -1（调用方退回 HW/DDR）。 */
 static int backend_apply(uint32_t backend)
 {
-    // 演示模式使用 SW6 的另一套槽位，不能覆盖成 STG 的热集槽。
+    // 演示模式使用基础 Demo 的另一套槽位，不能覆盖成 STG 的热集槽。
     const int want = (backend >= 2u && s_mode != 1u);
 
 #ifndef __riscv
@@ -833,7 +833,7 @@ static int backend_apply(uint32_t backend)
     return s_tex_on ? 0 : tex_overlay(1);
 }
 
-/* 统计埋点与日志队列（sw 第 07 章 3.9 节）：框架自己的行都进队列，每帧只取出 board_tx_room() 那么多字节 */
+/* 统计埋点与日志队列：框架自己的行都进队列，每帧只取出 board_tx_room() 那么多字节 */
 #define LOGQ_BYTES          8192u
 #define LOG_TAKE_MAX        256u
 static logq         s_logq;
@@ -851,7 +851,7 @@ static void log_line(const char *s)
     (void)logq_put(&s_logq, s);
 }
 
-/* 每帧：取出不超过 board_tx_room() 的字节交给 board_puts（sw 第 07 章 3.3、3.9 节）。 */
+/* 每帧：取出不超过 board_tx_room() 的字节交给 board_puts。 */
 static void log_pump(void)
 {
     const uint32_t room = board_tx_room();
@@ -867,8 +867,8 @@ static void log_pump(void)
     board_puts(s_log_out);
 }
 
-/* 模式 1：SW6 的逐帧日志照旧直接打（会阻塞，sw 第 07 章 4.5 节），所以队列在模式 1 的每帧开头先取空，
-   不让上一帧按空位取出的半行被 SW6 的行夹断。 */
+/* 模式 1：基础 Demo 的逐帧日志照旧直接打（会阻塞），所以队列在模式 1 的每帧开头先取空，
+   不让上一帧按空位取出的半行被基础 Demo 的行夹断。 */
 static void log_drain(void)
 {
     while (logq_used(&s_logq) != 0u) {
@@ -1373,7 +1373,7 @@ static int run_modes(void)
 
 #endif  /* SW6_MODE_JUDGE */
 
-/* --- 弹幕场入口（sw 第 06 章 3.9 节）--------------------------------------------- */
+/* --- 弹幕场入口------------------------------------------------------------- */
 
 #if STG_FIELD_MODE != 0
 
@@ -1475,7 +1475,7 @@ int main(void)
     s_cmd_cap[1] = cmdB.size / (uint32_t)sizeof(gfx_cmd);
 
 #if STG_FIELD_MODE != 0
-    /* 下面 SW6 的启动与主循环不走；留在原处，SW6 的静态函数仍被引用，不触发未用告警 */
+    /* 下面基础 Demo 的启动与主循环不走；留在原处，其静态函数仍被引用，不触发未用告警 */
     return run_stg();
 #endif
 

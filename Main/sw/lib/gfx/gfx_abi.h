@@ -5,8 +5,8 @@
 *         错误码与游戏区尺寸。它只描述数据的样子，不含任何行为，
 *         所以构造层、执行器、参考实现与板上驱动都包含它。
 *
-*         权威是 Engineering/TechReports/spec/02-命令语义.md（规范条款 §1~§5）
-*         与 spec 第 01 章；本文件是那两章的 C 镜像，任何 ABI 改动都先改正文。
+*         语义的权威是 Main/doc/赛题二总体设计.md 3.4 节；本文件是它的 C 镜像，
+*         任何 ABI 改动都先改那边的正文，再同步到这里。
 *
 *         表面表的内存布局与硬件的 SURF[0..15] 寄存器窗口逐位相同
 *         （每项 3 个字、步长 12 字节），驱动写两边是同一份代码。
@@ -28,7 +28,7 @@
 #define GFX_INSTANCE_XYUV8 1u
 #define GFX_OP_END          0xFFu
 
-/* 混合方程（w0[11:8]），系数表见设计文档 3.5 节与 spec 第 01 章 3.4 节。 */
+/* 混合方程（w0[11:8]），系数表见设计文档 3.5 节。 */
 #define GFX_EQ_COPY             0u
 #define GFX_EQ_ALPHA            1u
 #define GFX_EQ_ADD              2u
@@ -48,7 +48,7 @@
 #define GFX_SPACE_TEX       1u
 #define GFX_SPACE_BAND      2u
 
-/* 错误码，spec 第 02 章规范条款 §5 的表。 */
+/* 错误码。 */
 #define GFX_OK              0
 #define GFX_E_BAD_OPCODE    1
 #define GFX_E_BAD_FIELD     2
@@ -71,7 +71,7 @@
 #define GFX_STRIP_MAX 30u
 #define GFX_STRIP_TABLE_BYTES 1048576u
 
-/* 游戏区。裁剪的四者求交里有它一项，spec 第 01 章 3.6 节。 */
+/* 游戏区。裁剪的四者求交里有它一项。 */
 #define GFX_SCREEN_W        640
 #define GFX_SCREEN_H        480
 
@@ -118,7 +118,7 @@ typedef struct {
 /* 设备地址到主机内存的窗口。
    表面的 base 是设备地址：板上可以直接解引用，PC 上不能，所以所有访存都经这里换算。
    板上把 dev_base 设成 host 所指的那个地址即为恒等映射。
-   v1-TEX（G1）：space=1 表面的 base 是片上 TEX 窗口内的字节偏移，经 tex 影子窗口
+   v1-TEX：space=1 表面的 base 是片上 TEX 窗口内的字节偏移，经 tex 影子窗口
    解析——tex_host 指向与片上内容相同的 DDR 影子（板上）或宿主缓冲（PC），
    tex_bytes 是影子长度；两个屏位置零表示宿主没有提供影子，TEX 源按 BAD_SURFACE 停。 */
 typedef struct {
@@ -143,7 +143,7 @@ static inline uint32_t gfx_src(const gfx_cmd *c)  { return (c->w[0] >> 16) & 0xF
 static inline uint32_t gfx_dst(const gfx_cmd *c)  { return (c->w[0] >> 20) & 0xFu; }
 static inline uint32_t gfx_c(const gfx_cmd *c)    { return (c->w[0] >> 24) & 0xFFu; }
 
-/* 半字的取值。坐标是有符号，宽高是无符号，见 spec 第 01 章 3.6 节的位宽表。 */
+/* 半字的取值。坐标是有符号，宽高是无符号。 */
 static inline int32_t  gfx_s16(uint32_t v) { return (int32_t)(int16_t)(uint16_t)(v & 0xFFFFu); }
 static inline uint32_t gfx_u16(uint32_t v) { return v & 0xFFFFu; }
 
@@ -155,7 +155,7 @@ static inline uint32_t gfx_surf_space(const gfx_surf_raw *s)  { return (s->ctrl 
 static inline uint32_t gfx_surf_format(const gfx_surf_raw *s) { return (s->ctrl >> 12) & 0xFu; }
 static inline uint32_t gfx_surf_valid(const gfx_surf_raw *s)  { return (s->ctrl >> 31) & 1u; }
 
-/* 像素地址，spec 第 02 章规范条款 §2 的地址公式。 */
+/* 像素地址。 */
 static inline uint32_t gfx_addr_of(const gfx_surf_raw *s, int32_t x, int32_t y)
 {
     return s->base + ((uint32_t)y << gfx_surf_stride_log2(s)) + ((uint32_t)x << 2);

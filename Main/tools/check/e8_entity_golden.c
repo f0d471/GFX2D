@@ -1,10 +1,10 @@
-/* E8 前期研究：主机侧期望值的生成器。
+/* 实体基准的前期研究：主机侧期望值的生成器。
  *
  * 板上 entityBench 与这里编的是**同一份 lib/core/entity.c**，
  * 跑同样的帧数、同样的初始种子。本程序把逐帧实体字段摘要与命令表摘要、
  * 终态摘要打成 C 头文件，板上的判据程序在独立的非计时复核遍里逐帧对账。
  *
- * 为什么在主机侧生成而不是板上自比：E8 的判据要求「实体所有相关字段与命令表字节
+ * 为什么在主机侧生成而不是板上自比：判据要求「实体所有相关字段与命令表字节
  * 逐帧在计时外摘要核对主机侧期望」。本版先生成各组 1000 帧后的终态摘要，
  * 主机侧是 x86 LP64，板是 RV32 ILP32，
  * 两边逻辑字段与命令记录一致才可通过。结构体尺寸另由静态断言约束，
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
     fprintf(fp, " *       -o /tmp/e8_entity_golden && /tmp/e8_entity_golden \\\n");
     fprintf(fp, " *       --out Main/sw/apps/probe/entityBench/src/golden.h\n");
     fprintf(fp, " *\n");
-    fprintf(fp, " * 判据与口径见 Engineering/TechReports/platform/10-CPU每弹幕开销与缓存对照的复现.md 第六节。\n");
+    fprintf(fp, " * 判据与口径见实体池探针 entityBench（src/main.c）的文件头。\n");
     fprintf(fp, " */\n");
     fprintf(fp, "#ifndef EB_GOLDEN_H\n#define EB_GOLDEN_H\n\n#include <stdint.h>\n\n");
     fprintf(fp, "#define EB_G_FRAMES %uu\n", frames);

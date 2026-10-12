@@ -62,7 +62,6 @@ module display_out #(
     //   INJ_LAG0      对齐取 D=0，用 psel 而不是 psel_d1
     //   INJ_PHASE3    弹出相位改成 psel==3
     //   INJ_ORDER_REV 拍内像素顺序拆反
-    // 见 Engineering/Todo/hw/扫描输出.md 2.3 节。
 
     // 「水位与触底」的计量窗口：一场取 480 行、弹 480 行，起始水位是 0（场起始清空过），
     // 所以**场末必然排空到 0**——这是守恒，不是故障。取数侧发完最后一行就没有行可发了，
@@ -192,7 +191,7 @@ module display_out #(
 
     wire [31:0] fifo_pixel = rd_data[{sel, 5'b0} +: 32];
 
-    // SRC 选择（场起始锁存，见 D9）
+    // SRC 选择（场起始锁存）
     (* async_reg = "true" *) reg [1:0] src_sync = 2'b00;
     always @(posedge clk) src_sync <= {src_sync[0], src_sel};
 

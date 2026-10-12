@@ -1,4 +1,4 @@
-/* G3 构造拒绝、表容量和软件错误三元组。与 RTL 定向输入使用相同预期。 */
+/* 条带构造拒绝、表容量和软件错误三元组。与 RTL 定向输入使用相同预期。 */
 #include "gfx/gfx.h"
 #include <stdio.h>
 #include <string.h>

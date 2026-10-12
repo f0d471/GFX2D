@@ -1,4 +1,4 @@
-/* G3 帧级 BAND 板测：混合 DDR/TEX、两次 clip、六方程、空桶和错误恢复。 */
+/* 帧级 BAND 板测：混合 DDR/TEX、两次 clip、六方程、空桶和错误恢复。 */
 #include <stdint.h>
 #include <string.h>
 #include "board.h"

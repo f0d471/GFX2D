@@ -1,4 +1,4 @@
-# Main/assets 的来源与许可台账
+# Main/assets 的来源与许可登记表
 
 判据：`Main/assets/` 下的**每个非生成文件**都必须在本表里有登记；
 `Main/tools/check/check_sw5_assets.sh` 会按这条扫一遍（有文件没登记就报红）。
@@ -11,10 +11,10 @@
 | 文件 | 来源 | 许可 | 说明 |
 | --- | --- | --- | --- |
 | `manifest.txt` | 本项目编写 | 项目自有 | 素材清单（TSV），打包工具的输入 |
-| `font/ascii8x16.txt` | 脚本生成（`Main/tools/assets/gen_font_txt.py` 由 `font/spleen-8x16.bdf` 转换） | BSD-2-Clause，随 Spleen（Copyright (c) 2018-2026, Frederic Cambus） | 8×16 点阵 ASCII 字库，95 个字形（0x20~0x7E）；打包工具把它渲染成图集。产物入库，`check_sw7_game.sh` 的 G14f 由 BDF 重新生成并逐字节比对 |
+| `font/ascii8x16.txt` | 脚本生成（`Main/tools/assets/gen_font_txt.py` 由 `font/spleen-8x16.bdf` 转换） | BSD-2-Clause，随 Spleen（Copyright (c) 2018-2026, Frederic Cambus） | 8×16 点阵 ASCII 字库，95 个字形（0x20~0x7E）；打包工具把它渲染成图集。产物入库，`check_sw7_game.sh` 由 BDF 重新生成并逐字节比对 |
 | `font/spleen-8x16.bdf` | 上游原样：Spleen 2.2.0 的 `spleen-8x16.bdf`（https://github.com/fcambus/spleen），未修改 | BSD-2-Clause，Copyright (c) 2018-2026, Frederic Cambus，全文见 `font/LICENSE-spleen.txt` | 字库的像素来源；只取其中 ASCII 的 95 个字形 |
 | `font/LICENSE-spleen.txt` | 上游原样：Spleen 的 `LICENSE` | BSD-2-Clause 原文 | 分发字体与由它渲染的像素时必须附带的版权声明与许可全文 |
-| `LICENSES.md` | 本项目编写 | 项目自有 | 本台账 |
+| `LICENSES.md` | 本项目编写 | 项目自有 | 本表 |
 | `neon/bul16.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 16×16 圆弹，四色；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
 | `neon/bul8.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 8×8 小圆弹，四色；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
 | `neon/rice20.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 20×20 米弹，四色 × 16 个方向；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
@@ -36,14 +36,14 @@
 
 - 许可是 BSD-2-Clause，只要求保留版权声明与许可全文；两者已随字体放进 `font/`。
 - 上游文件原样入库（`font/spleen-8x16.bdf`），由 `Main/tools/assets/gen_font_txt.py` 转换成打包工具读的
-  `font/ascii8x16.txt`，离线可以重新生成；打包工具、霓虹素材脚本与 SW6 的 HUD 独立重画都只读这份文本，接口不变。
+  `font/ascii8x16.txt`，离线可以重新生成；打包工具、霓虹素材脚本与判据侧的 HUD 独立重画都只读这份文本，接口不变。
 - 字库的像素来源就是 `font/spleen-8x16.bdf` 这一个上游文件，转换规则写在脚本的文件头里。
 
 BSD-2-Clause 对二进制分发的要求：素材包与 Flash 镜像里带着由它渲染的像素，
 作品随附的文档（报告或说明）里要附上 `font/LICENSE-spleen.txt` 的版权声明与许可条文。
 
-**没有登记许可的非生成素材不入库。** 正式角色、弹幕与背景的美术生产随 SW7 的主题选择另排，
+**没有登记许可的非生成素材不入库。** 正式角色、弹幕与背景的美术生产随游戏主题的选择另排，
 到时加进来的每一份非生成素材都要先在本表登记。
 
-SW7 C 批的正式素材（霓虹几何，`neon/` 下 12 张 PNG）全部由 `Main/tools/assets/gen_stg_neon.py` 按坐标生成，
-不引入第三方素材；青色字库与大号数字照 `font/ascii8x16.txt` 渲染，许可随 Spleen。它们在上表逐个登记（sw 第 06 章 3.12 节），不走「生成文件不登记」那一条。
+正式素材（霓虹几何，`neon/` 下 12 张 PNG）全部由 `Main/tools/assets/gen_stg_neon.py` 按坐标生成，
+不引入第三方素材；青色字库与大号数字照 `font/ascii8x16.txt` 渲染，许可随 Spleen。它们在上表逐个登记，不走「生成文件不登记」那一条。

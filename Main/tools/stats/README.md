@@ -1,12 +1,11 @@
 # stats：统计日志出图
 
-SW8 统计埋点（[`../../../Engineering/TechReports/sw/07-演示模式与统计埋点.md`](../../../Engineering/TechReports/sw/07-演示模式与统计埋点.md) 3.9、3.11 节）
-的出图工具。输入是 `gfx2dGame` 模式框架打出来的日志，输出是报告与幻灯片用的图的源码。
+统计埋点的出图工具。输入是 `gfx2dGame` 模式框架打出来的日志，输出是报告与幻灯片用的图的源码。
 
 | 文件 | 用途 |
 | --- | --- |
 | `plot_stats.py` | 读日志里的 `csvh`、`csv`、`csvsum` 与 `nmax` 几种行，出三张图的 HTML+SVG 源码：按混合方程的像素占比、帧时间分布、`N_max` 搜索轨迹 |
-| `plot_frontend.py` | 读取 F1 原始基线摘要和 17 状态物理记录摘要，生成 TechReports 的构造周期及背景候选动态表片段曲线；不把宿主周期作性能 |
+| `plot_frontend.py` | 读取绘制前端原始基线摘要和 17 状态物理记录摘要，生成构造周期及背景候选动态表片段曲线；不把宿主周期作性能 |
 
 只用标准库（WSL 的 python3 没有 matplotlib）。PC 的标准输出与板上 `board_run.py` 录下的串口日志都能读：
 行尾的 `\r`、`#` 开头的标记行与其它日志行都跳过。
@@ -15,7 +14,7 @@ SW8 统计埋点（[`../../../Engineering/TechReports/sw/07-演示模式与统�
 
 绘制前端曲线在仓库根运行 `python3 Main/tools/stats/plot_frontend.py`，复用
 本目录既有标准库 SVG 函数。输入必须有完整 34 组基线和 170 组物理计数，
-缺组即失败；输出在 TechReports engine/sw 的 `fig/`，提交前渲染目检。
+缺组即失败；输出是构造周期与动态表片段两张 SVG 曲线，提交前渲染目检。
 
 ```
 wsl -e python3 Main/tools/stats/plot_stats.py --out Deliverables/Assert/figures/src [--prefix sw8_] [--ref-s1] \
@@ -45,19 +44,19 @@ wsl -e python3 Main/tools/stats/plot_stats.py --out Deliverables/Assert/figures/
     "$L/sw8_stats_s1.log=S1 规模（模式 3，旋钮 1744）@10"
 ```
 
-四份样例日志怎么录的（构建开关、帧数）见 sw 第 07 章 3.11 节。PC 日志里的帧时间是墙钟，只验证流程；
-板上的数字由 SW9 用同一个脚本出图。
+四份样例日志入库在 `sw/apps/game/gfx2dGame/logs/`。PC 日志里的帧时间是墙钟，只验证流程；
+板上的数字用同一个脚本出图。
 
 ## 画法约定
 
-照 [`../../../Deliverables/Assert/README.md`](../../../Deliverables/Assert/README.md)「画图约定」：底色 `#FAFAF7`，1760×880，
+画图约定：底色 `#FAFAF7`，1760×880，
 由 `render.sh` 以 2 倍像素导出。方程的颜色与 `profile.html` 一致：COPY 蓝 `#4A7FD0`、ALPHA 绿 `#2E7D4F`、ADD 金 `#A37A1C`、CONST 红 `#E8546B`。
 这组颜色在 `#FAFAF7` 上金与绿相邻那一对的色盲区分度在 6~8 之间，所以堆叠条的每段都带直接标注（放得下时）与 2 像素间隙，图例常在。
 搜索轨迹图里通过与掉帧除了颜色还靠形状区分（实心点、空心叉）。
 
-## G4 报告图
+## 实测对照报告图
 
-plot_g4.py 使用 matplotlib，从 G4 的 performance_results.json 与 SW9
-历史原始日志生成 rep_g4_nmax.png/SVG，区分 P1 历史、当前同位流后端
+plot_g4.py 使用 matplotlib，从 `sim/engine/g4` 的 performance_results.json 与板上
+历史原始日志生成 rep_g4_nmax.png/SVG，区分直通档历史、当前同位流后端
 和同程序缓存对照。先运行 check_g4_integration.py --performance，再用
 带 matplotlib 的 Python 运行本脚本；不手改图上的数字。

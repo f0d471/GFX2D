@@ -1,5 +1,5 @@
-// 由 tools/check/regs_gen.py 生成（D51 的单一真源），不要手改；
-// 语义见 Main/doc/赛题二总体设计.md 3.4 节与 spec 第 02 章。
+// 由 tools/check/regs_gen.py 生成，是寄存器语义的单一真源，不要手改；
+// 语义见 Main/doc/赛题二总体设计.md 3.4 节。
 `ifndef GFX_ENGINE_REGS_OFFSETS_VH
 `define GFX_ENGINE_REGS_OFFSETS_VH
 
@@ -121,7 +121,7 @@ localparam [3:0] EC_ERR_BUS_READ = 4'd10;
 localparam [3:0] EC_ERR_BUS_WRITE = 4'd11;
 localparam [3:0] EC_ERR_TIMEOUT = 4'd12;
 
-// TEX 装载窗口（v1-TEX profile，G1 的 D57）：APB Slave0 页内偏移，
+// TEX 装载窗口（v1-TEX profile）：APB Slave0 页内偏移，
 // 不是第 0 页寄存器表的 12 位偏移；CPU 地址 = 0xF810_0000 + EC_TEX_WINDOW。
 localparam [15:0] EC_TEX_WINDOW = 16'h4000;
 localparam [31:0] EC_TEX_BYTES  = 32'd16384;

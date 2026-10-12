@@ -2,8 +2,7 @@
 
 引擎 RTL（`rtl/engine/`）的随码文档：模块清单、编码表、注错开关与关键协议。
 寄存器偏移与位号的单一真源是 `engine_regs_offsets.vh`（`tools/check/regs_gen.py` 生成），
-语义的权威是 `doc/赛题二总体设计.md` 3.4 节与 spec 第 02 章；各工作点的研究、定案与实测
-在 `Engineering/TechReports/engine/`（章节映射见文末）。
+命令语义的权威是 `doc/赛题二总体设计.md` 3.4 节，层间协议见本文第 4 节。
 
 ## 1 模块清单
 
@@ -17,7 +16,7 @@
 | `engine_blend` | 单通道混合核（6 方程，3 级流水） | 例化 12 份 |
 | `engine_mover` | 唯一 AXI 主机：仲裁/门控/排空/超时/带内掩码 | 挂 `~rst_ddr_n` |
 | `engine_tex` | 16 KiB 片上纹理，四 bank | APB 第 4~7 页 |
-| `engine_band` | 条带数据面 640×STRIP_H×32 | 单缓冲，G3 三相 |
+| `engine_band` | 条带数据面 640×STRIP_H×32 | 单缓冲，三相循环 |
 | `engine_inst` | v1-I 实例坐标取数（256×32 缓存） | FD 流与命令取数共用 |
 | `engine_pb` | PB 帧控制与引用执行（31 状态） | bin_mode=1 时接管 |
 | `engine_bin` | PB 两遍构建：COUNT/PREFIX/SCATTER/目录 | 32×96 桶 RAM |
@@ -51,16 +50,16 @@ ALPHA 预乘不限定 src ≤ a：BLIT 的源像素来自表面，没有逐个�
 ERROR_STAGE：0 旧路径/无错、1 包级、2 实例、3 分桶计数/容量、4 PB 写、5 引用执行、6 BAND。
 
 PERF 下标 0~8 为原九项（CMD/PIXEL/KEY_SKIP/RD_BURST/WR_BURST/RD_BEAT/WR_BEAT/
-WAIT_DDR/BUSY），9~13 为 F4/F5 追加（INSTANCE/REF_COUNT/BIN_CYCLES/PB_RD_BEAT/PB_WR_BEAT）。
+WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/REF_COUNT/BIN_CYCLES/PB_RD_BEAT/PB_WR_BEAT）。
 
 ## 4 关键协议
 
 ### 4.1 命令层取数契约（engine_cmd）
 
 - 非空命令表要求 LIST_BASE 按 32 字节对齐，违例在取第 0 条前报 FETCH；
-  B2 读核 ENABLE_UNALIGNED=0 会把未对齐地址向下取整，不能静默读错。
+  搬运层读核 ENABLE_UNALIGNED=0 会把未对齐地址向下取整，不能静默读错。
 - 一批最多 16 条、512 字节；跨 4KB 在记录边界拆两笔描述符，任一笔失败整批丢弃、
-  从批首逐条回退（回退 = spec §5 顺序执行：出错点之前的记录照常执行）。
+  从批首逐条回退（回退保持顺序执行的语义：出错点之前的记录照常执行）。
 - 记录地址 base+32×index 按 38 位求值；越过地址空间的记录不取不回卷，执行需要时报 FETCH。
 - `fd_cidx`/`fs_cidx` 只有 4 位且是描述符上下文（批首），完整 ERROR_INDEX 由本层重建；
   `fe_cidx_err` 只作一致性监视。
@@ -101,8 +100,8 @@ WAIT_DDR/BUSY），9~13 为 F4/F5 追加（INSTANCE/REF_COUNT/BIN_CYCLES/PB_RD_B
 - 首末拍掩码：目的拍 k 槽 t 的像素号 j = 4k + t − ld，属于本行 ⟺ 0 ≤ j < npx；
   一拍的行把行尾算进首拍掩码。色键比较源原始 32 位存储字，只对 BLIT；
   行外或色键命中的槽在 X 字节最高位打 1。
-- a 的来源：BLIT 源格式 XRGB 取 255，其余取源字高字节；FILL 一律取 w4[31:24]
-  （规范条款 §4.2），不看边带 sfmt。
+- a 的来源：BLIT 源格式 XRGB 取 255，其余取源字高字节；FILL 一律取 `w4[31:24]`
+  （FILL 的 a 就是常量字高字节），不看边带 sfmt。
 - 时钟使能 `en = ws_tready || !ws_tvalid` 管住每一级（含行缓冲读口与 12 个核）；
   行内下游 ready 不出气泡，一行发完等 8 拍排空再开下一行。
 - 行队列按边带握手先后记下半号；一半在写流末拍被写核收走前不再收边带（row_free 反向握手）。
@@ -114,7 +113,7 @@ WAIT_DDR/BUSY），9~13 为 F4/F5 追加（INSTANCE/REF_COUNT/BIN_CYCLES/PB_RD_B
 - 描述符按 16 字节对齐覆盖区间发，可能带出界外像素（带内标记不写）；跨 4KB 与
   MAX_BEATS=192 拍拆段，一行最多两段。
 - 发出顺序每行 = 边带 → 读源 → 读目的 → 写目的；rd_buf = {源/目的, 行号最低位}。
-- row_free 电平握手，每行发边带前查（含每条命令第 0 行）；B4 在该半边带握手后拉低、
+- row_free 电平握手，每行发边带前查（含每条命令第 0 行）；计算阵列在该半边带握手后拉低、
   写流末拍被写核收走后拉高。
 
 ### 4.5 片上纹理（engine_tex）
@@ -184,25 +183,9 @@ WAIT_DDR/BUSY），9~13 为 F4/F5 追加（INSTANCE/REF_COUNT/BIN_CYCLES/PB_RD_B
 | `INJ_BAND_PIXEL_MASK`（band） | bit31 不写标记失效 |
 | `INJ_BAND_ADDR_STRIDE`（band） | 局部地址按固定 256 词行距换算 |
 
-## 6 设计依据
-
-| 模块/主题 | TechReports |
-| --- | --- |
-| blend（B1） | engine 第 01 章 |
-| mover（B2） | engine 第 02 章 |
-| geom（B3） | engine 第 03 章 |
-| pix（B4） | engine 第 04 章 |
-| regs/cmd/top（B5）、整机（B6） | engine 第 05、06 章 |
-| tex（G1） | engine 第 07 章 |
-| band（G2） | engine 第 08 章 |
-| 条带 ABI（G3）与整机（G4） | engine 第 09、10 章 |
-| 绘制前端方案与成本（F1~F3） | engine 第 11、12 章 |
-| 实例命令（F4） | engine 第 13 章 |
-| 硬件分桶与引用列表（F5） | engine 第 14 章 |
-
 注错机制的标准做法见 `Main/doc/开发环境.md` 0.3 节。
 
-## 7 排版约束
+## 6 排版约束
 
 综合器（Synplify）对源码文本敏感：token 逐字等价的排版重排会改变映射结果。
 `engine_bin.v` 的正文曾因重排使整机映射 +1606 XLR（60064→61670，超过 Ti60F225 的

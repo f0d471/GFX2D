@@ -1,4 +1,4 @@
-# B4 单独综合
+# 计算阵列与片上缓存的单独综合
 
 两个工程，路径全相对，生成物 `outflow/`、`work_*/` 不入库：
 
@@ -8,7 +8,7 @@
 | `engine_pix_syn.xml` | `syn_engine_pix.v` | 入库 `rtl/engine/engine_pix.v` 加 12 个 `engine_blend` |
 
 两个顶层都用 128 位 LFSR 驱动被测的全部输入（含 `ws_tready` 与行缓冲写口），全部输出折进观测寄存器，
-输入不接常数（B3 验收踩过：顶层输入接常数，综合把逻辑折掉、余量虚高）。约束 100 MHz。运行 Efinity 2026.1：
+输入不接常数（顶层输入接常数，综合会把逻辑折掉、余量虚高）。约束 100 MHz。运行 Efinity 2026.1：
 
 ```bat
 call <EFINITY>\bin\setup.bat
@@ -23,4 +23,4 @@ efx_run.bat engine_pix_syn.xml
 告警只有未用的接口位（`sb_row[15:1]`、`sb_eq[3]`、`rs_tlast`、`rs_tkeep`）被删、函数局部中间量被删、
 十五个不超过 64 位的小数组映射成逻辑，以及单独综合工程固有的 IO 未分配管脚。
 
-研究探针那一个的数（3341 XLR、13 块 RAM、setup +4.898 ns）与两者的对照见 engine 第 04 章 3.5、3.10 节。
+研究探针那一个的数：3341 XLR、13 块 RAM、setup +4.898 ns。

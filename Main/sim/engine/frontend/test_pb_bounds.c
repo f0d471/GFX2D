@@ -1,4 +1,4 @@
-/* F5 独立模型边界：容量、包/实例身份、错误 PB、解析窗口与空帧。 */
+/* 独立模型边界：容量、包/实例身份、错误 PB、解析窗口与空帧。 */
 #include "gfx/pb.h"
 #include <assert.h>
 #include <stdio.h>
