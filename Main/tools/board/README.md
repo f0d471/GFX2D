@@ -12,6 +12,10 @@
 
 ## board_run.py
 
+验证范围以 `Main/doc/验证流程.md` 为准。代表性部署与引擎功能用
+`tools/check/validate.py --checks board --profile quick --run`；该入口自动定位当前 UART。
+串口号和 Flash 内容必须按当前设备确认，历史登记值只作参考。
+
 ```
 set PYTHONHOME=<EFINITY>\python311
 <EFINITY>\python311\bin\python.exe tools\board\board_run.py --bin <程序.bin> --stop-on done

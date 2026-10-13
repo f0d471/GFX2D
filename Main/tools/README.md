@@ -12,6 +12,9 @@
 
 ## 用哪个解释器
 
+验证入口是 `check/validate.py`（WSL 执行宿主／RTL 项，Windows Efinity Python 执行板测／综合项）。
+`--list` 是唯一清单，默认只显示计划；范围与档位见 `../doc/验证流程.md`。
+
 | 工具 | 在哪跑 | 为什么 |
 | --- | --- | --- |
 | `board/board_run.py` | Windows，Efinity 自带的 python，设 `PYTHONHOME=<EFINITY>\python311` | 要 pyserial 与 Windows 的 COM 口；WSL 拿不到 COM 口 |

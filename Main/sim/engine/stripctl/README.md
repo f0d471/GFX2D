@@ -17,7 +17,8 @@ python3 Main/tools/check/check_g3_stripctl.py
 --collect-syn 采集独立和主工程最新报告，检查四步、全部 slack 与 hold 门槛；
 --collect-board 检查原始板测日志、CRC、fail/done 和扫描压力，不烧写。
 
-构建工件和共享内存镜像进入忽略的 build/；证据进入 logs/。
+新运行的构建工件、共享内存镜像与日志进入忽略的 `Main/sim/build/check-runs/<运行号>/`；
+--run-dir 续接同轮，范围以 `Main/doc/验证流程.md` 为准。本目录 logs 是历史归档证据。
 条带表计数、布局、局部坐标与错误约束以 `sw/lib/gfx/strip.c`、`strip_plan.c`
 的实现与 `tools/check/check_g3_stripctl.py` 的判据为准。
 

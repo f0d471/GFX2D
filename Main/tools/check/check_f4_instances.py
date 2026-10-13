@@ -7,11 +7,11 @@ import sys
 import re
 from pathlib import Path
 import subprocess
+from check_run import IncompleteCheck, paths, session
 ROOT=Path(__file__).resolve().parents[3]
 MAIN=ROOT/'Main'
 SIM=MAIN/'sim/engine/frontend'
-BUILD=SIM/'build/f4'
-LOGS=SIM/'logs'
+BUILD,LOGS=paths('frontend','f4')
 RTL=MAIN/'rtl'
 def run(tag,args,cwd=ROOT,timeout=600):
     p=subprocess.run(list(map(str,args)),cwd=cwd,capture_output=True,text=True,timeout=timeout)
@@ -36,12 +36,16 @@ def compile_rtl(tag,defines=()):
     run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(RTL/'engine')]+
         ['-D'+d for d in defines]+['-o',BUILD/(tag+'.vvp')]+sources)
     return BUILD/(tag+'.vvp')
+def rtl_cases(profile):
+    return list(range(144)) if profile!='quick' else sorted(set([6*i+i%6 for i in range(24)]+[66]))
+
 def rtl():
     binary=compile_rtl('rtl')
-    for n in range(144):
+    cases=rtl_cases(session().profile)
+    for n in cases:
         out=run('rtl_%03d'%n,['vvp','-n',binary,'+CASE='+str(BUILD/'fixtures'/('case%02d'%n))],timeout=120)
         if 'RESULT: PASS' not in out or 'FAIL' in out:raise RuntimeError('RTL case '+str(n)+': '+out[-3500:])
-    print('F4 RTL PASS cases=144 DDR/TEX equations=6 XY4/XYUV8 N=0/1/15/16/17/31',flush=True)
+    print('F4 RTL PASS cases='+str(len(cases))+' scope='+session().profile,flush=True)
 def mutations():
     mutations=['STRIDE','XYUV','STATE','SKIP','OWNER','EARLY_DONE']
     for name in mutations:
@@ -102,14 +106,14 @@ def legacy():
     if not env.get('EFINITY_HOME'):
         raise RuntimeError('先设置 EFINITY_HOME 为安装目录的 WSL 路径，见开发环境第 1 节')
     for part in ['ctrl','tex','frame','geom','mover','pix','band']:
-        if part=='band':band();continue
+        if part=='band':session().perform('f4.band',band);continue
         args=['bash',str(MAIN/'sim/engine'/part/'run.sh')]
-        if not Path(args[1]).exists():continue
+        if not Path(args[1]).exists():raise RuntimeError('missing legacy entry: '+part)
         p=subprocess.run(args,cwd=ROOT,env=env,capture_output=True,text=True,timeout=1200)
         (LOGS/('f4_legacy_'+part+'.log')).write_text(p.stdout+p.stderr,encoding='utf-8')
         if p.returncode:raise RuntimeError('legacy '+part+': '+(p.stdout+p.stderr)[-2000:])
         print('F4 LEGACY PASS '+part,flush=True)
-    v2()
+    session().perform('f4.v2',v2)
 
 
 
@@ -168,7 +172,7 @@ def profile():
     (LOGS/'f4_profile.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
     print('F4 PROFILE PASS '+json.dumps(result),flush=True)
 
-def collect():
+def review_archive():
     import re
     cache={}
     def read_log(name):
@@ -232,15 +236,36 @@ def collect():
     need(syn['inst']['ram']<=4 and all(s['slack']>=0 for k in syn.values() for s in k['slacks']),'synthesis')
     result={'models_frames':10000,'rtl_cases':144,'mutations_red':6,'protocols':protocol_names,'lease':'PASS','v2':v2,'board':board,'synthesis':syn,
         'artifact_registry':'f4_artifacts.json','scope':'v1-I direct profile; historical full-replay and human HDMI/input observations retain their existing scope'}
+    result['scope']='historical archive consistency review; no current deployment claim'
+    (session().logs('archive-review')/'f4_results.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
+    print('F4 ARCHIVE REVIEW PASS models=10000 rtl=144 mutations=6 board='+','.join(board),flush=True)
+
+def collect():
+    if session().profile=='quick':raise RuntimeError('快速档不能生成完整验收汇总')
+    required=['f4.'+name for name in ['models','rtl','mutations','protocols','lease']]
+    session().require(required)
+    result={'scope':'current host/RTL only; board and synthesis collected separately',
+            'profile':session().profile,'models_frames':10000,'rtl_cases':144,'mutations_red':6,
+            'groups':{name:session().read()['checks'][name] for name in required}}
     (LOGS/'f4_results.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
-    print('F4 EVIDENCE PASS models=10000 rtl=144 mutations=6 board='+','.join(board),flush=True)
+    print('F4 HOST RTL COLLECT PASS scope='+session().profile,flush=True)
 def main():
+    global LOGS
     p=argparse.ArgumentParser()
-    names=['models','rtl','mutations','protocols','lease','v2','band','legacy','research','profile','collect']
-    for name in names:p.add_argument('--'+name,action='store_true')
+    names=['models','rtl','mutations','protocols','lease','v2','band','legacy','research','profile','collect','review_archive']
+    for name in names:p.add_argument('--timed-profile' if name=='profile' else '--'+name.replace('_','-'),dest=name,action='store_true')
+    p.add_argument('--archive-dir',type=Path)
     a=p.parse_args();BUILD.mkdir(parents=True,exist_ok=True);(BUILD/'fixtures').mkdir(exist_ok=True);LOGS.mkdir(exist_ok=True)
     selected=[name for name in names if getattr(a,name)]
     if not selected:p.error('至少选择一组判据')
-    for name in selected:globals()[name]()
-    print('F4 CHECK PASS',flush=True)
-if __name__=='__main__':main()
+    if a.review_archive:
+        if selected!=['review_archive'] or not a.archive_dir:p.error('历史复核只与 --archive-dir 一起使用')
+        LOGS=(ROOT/a.archive_dir).resolve()
+        if not LOGS.is_relative_to(ROOT.resolve()):p.error('历史证据目录必须在仓库内')
+    if any(name in selected for name in ['rtl','mutations','protocols','profile']) and 'models' not in selected:
+        selected.insert(0,'models')
+    for name in selected:session().perform('f4.'+name,globals()[name])
+    print('F4 CHECK PASS scope='+session().profile+' run='+str(session().path.relative_to(ROOT)),flush=True)
+if __name__=='__main__':
+    try:main()
+    except IncompleteCheck as error:print('INCOMPLETE '+str(error),file=sys.stderr);sys.exit(3)

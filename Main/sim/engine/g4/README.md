@@ -3,6 +3,9 @@
 本目录保存真实游戏研究复现、正式整帧仿真、完整回放与板上性能证据。
 判据入口为 tools/check/check_g4_integration.py 与本节命令。
 
+范围以 `Main/doc/验证流程.md` 为准。新宿主／RTL 运行写入忽略的
+`Main/sim/build/check-runs/<运行号>/`，使用同一 --run-dir 续接；下文 logs 指历史证据。
+
 从仓库根在 WSL 运行：
 
 ~~~text

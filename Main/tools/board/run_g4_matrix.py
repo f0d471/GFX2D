@@ -9,7 +9,9 @@ import sys
 MAIN = Path(__file__).resolve().parents[2]
 ROOT = MAIN.parent
 APP = MAIN/'sw/apps/game/gfx2dGame'
-LOGS = MAIN/'sim/engine/g4/logs'
+sys.path.insert(0,str(MAIN/'tools/check'))
+from check_run import session
+LOGS = session().logs('g4')
 BOARD = Path(__file__).with_name('board_run.py')
 
 

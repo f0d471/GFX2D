@@ -8,9 +8,23 @@ import re
 import subprocess
 import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[3];MAIN=ROOT/'Main'
-LOGS=MAIN/'sim/engine/frontend/logs'
+from check_run import session
+LOGS=session().logs('frontend')
 PROJECTS={'bin':(MAIN/'sim/engine/frontend/syn_bin','engine_bin_syn','clk'),
           'main':(MAIN/'fpga/gfx2d_ti60','gfx2d_ti60','core_clk')}
+
+def timing_slacks(timing):
+    begin=timing.index('Setup (Max) Clock Relationship')
+    section=timing[begin:timing.index('NOTE: Values',begin)]
+    hold=section.index('Hold (Min) Clock Relationship')
+    result=[]
+    for kind,body in [('setup',section[:hold]),('hold',section[hold:])]:
+        rows=re.findall(r'^\s*(\S+)\s+(\S+)\s+[-\d.]+\s+([-\d.]+)\s+\(',body,re.M)
+        if not rows:raise RuntimeError('missing '+kind+' clock relationships')
+        for source,destination,value in rows:
+            result.append({'clock':source,'to_clock':destination,'kind':kind,'slack_ns':float(value)})
+    if any(row['slack_ns']<0 for row in result):raise RuntimeError('negative slack')
+    return result
 def build(tag):
     folder,name,_=PROJECTS[tag]
     installation=os.environ.get('EFINITY_HOME')
@@ -37,18 +51,12 @@ def collect(tag):
         raise RuntimeError(tag+' incomplete raw flow')
     place=(out/(name+'.place.rpt')).read_text(encoding='utf-8')
     timing=(out/(name+'.timing.rpt')).read_text(encoding='utf-8')
-    a=timing.index('Setup (Max) Clock Relationship');b=timing.index('NOTE: Values',a)
-    section=timing[a:b];hold=section.index('Hold (Min) Clock Relationship')
-    slacks=[]
-    for kind,body in [('setup',section[:hold]),('hold',section[hold:])]:
-        for clk,value in re.findall(r'^\s*(\w+)\s+\1\s+[-\d.]+\s+([-\d.]+)\s+\(',body,re.M):
-            slacks.append({'clock':clk,'kind':kind,'slack_ns':float(value)})
-    if not slacks or any(s['slack_ns']<0 for s in slacks):raise RuntimeError(tag+' negative slack')
+    slacks=timing_slacks(timing)
     result={k:int(re.search(p,place).group(1)) for k,p in
         [('xlr',r'XLRs:\s*(\d+)'),('ram',r'Memory Blocks:\s*(\d+)'),('dsp',r'DSP Blocks:\s*(\d+)')]}
     result['slacks']=slacks
-    result['setup_ns']=next(s['slack_ns'] for s in slacks if s['clock']==clock and s['kind']=='setup')
-    result['hold_ns']=next(s['slack_ns'] for s in slacks if s['clock']==clock and s['kind']=='hold')
+    result['setup_ns']=next(s['slack_ns'] for s in slacks if s['clock']==s['to_clock']==clock and s['kind']=='setup')
+    result['hold_ns']=next(s['slack_ns'] for s in slacks if s['clock']==s['to_clock']==clock and s['kind']=='hold')
     if tag=='bin' and result['ram']>8:raise RuntimeError('分桶增量超过 8 RAM')
     warn=(out/(name+'.warn.log')).read_text(encoding='utf-8',errors='replace')
     start=warn.rfind('// Efinity Synthesis Started')
@@ -63,11 +71,11 @@ def collect(tag):
     result['scope']='dynamic observation wrapper; not protocol validation' if tag=='bin' else 'complete SoC; 100MHz; unchanged SDK/cache/scan clocks'
     return result
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--build',nargs='+',choices=PROJECTS);p.add_argument('--collect',action='store_true')
+    p=argparse.ArgumentParser();p.add_argument('--build',nargs='+',choices=PROJECTS);p.add_argument('--collect',action='store_true');p.add_argument('--projects',nargs='+',choices=PROJECTS)
     a=p.parse_args();LOGS.mkdir(exist_ok=True)
     for tag in a.build or []:build(tag)
     if a.collect or a.build:
-        result={tag:collect(tag) for tag in PROJECTS}
+        result={tag:collect(tag) for tag in (a.projects or a.build or PROJECTS)}
         (LOGS/'f5_synthesis.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
         print('F5 SYNTHESIS PASS '+json.dumps(result,ensure_ascii=False),flush=True)
 if __name__=='__main__':main()

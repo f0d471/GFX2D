@@ -1,0 +1,37 @@
+{
+  "logs/board/build.log": {
+    "size": 195,
+    "mtime_ns": 1791828931017150100,
+    "sha256": "28b99fc42147b8fea8aa395ecfa46c24a4dd6bd693f1273d0be64766b57df0ae"
+  },
+  "logs/board/control.log": {
+    "size": 1751,
+    "mtime_ns": 1791828956211424700,
+    "sha256": "ae269134a25edfed2571e20a0e5a213f906eec6595b64ba14f8d48952bc79b39"
+  },
+  "logs/board/debug.log": {
+    "size": 203,
+    "mtime_ns": 1791828929927478500,
+    "sha256": "c884be693e1cf3e1fc3efdf4ba37957b60d2eec51a7c117b6735d7acf075ddab"
+  },
+  "logs/board/engine.log": {
+    "size": 1281,
+    "mtime_ns": 1791828956067654500,
+    "sha256": "b1748b82704e682c061b3b7d5948be480de23815f60a2cde0194ed0ca36a87ce"
+  },
+  "logs/board/result.json": {
+    "size": 275,
+    "mtime_ns": 1791828956238338000,
+    "sha256": "d37fcbcdcf1e91345769cb97753bc38ef62723372bc4fe2943cbf6494fc71030"
+  },
+  "logs/board/usb.log": {
+    "size": 130,
+    "mtime_ns": 1791828924050675600,
+    "sha256": "e2312dace9e639c05fc0759abddef9f64d159f84a2cd894c49b560c9b150f926"
+  },
+  "logs/runner/board.log": {
+    "size": 134,
+    "mtime_ns": 1791828956371786300,
+    "sha256": "d4ea6c084335c713638f83877859811b3a00bb39199bdf72b87259a712f8fbe9"
+  }
+}

@@ -9,7 +9,9 @@ import re
 import subprocess
 import sys
 ROOT=Path(__file__).resolve().parents[3]
-MAIN=ROOT/'Main';LOGS=MAIN/'sim/engine/frontend/logs';BUILD=MAIN/'sim/engine/frontend/build/f4'
+MAIN=ROOT/'Main'
+from check_run import paths
+BUILD,LOGS=paths('frontend','f4')
 JOBS={
  'tests':('test/instanceTest','instanceTest',False,''),
  'tests-final':('test/instanceTest','instanceTest',False,''),

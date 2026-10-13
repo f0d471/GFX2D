@@ -1,0 +1,50 @@
+{
+  "archive-review": {
+    "archive": "archive-review/records.zip",
+    "size": 56757,
+    "sha256": "cf3b308b307e01ebe6df14cf3f06d77bbe66978702072f3353cf0f9f42e59693",
+    "log_manifest": "archive-review/archive-files.json"
+  },
+  "early-banner-diagnostic": {
+    "archive": "early-banner-diagnostic/records.zip",
+    "size": 59579,
+    "sha256": "4633b7703ce88113a7881ee8e3c5e49106ea6d0e451c2c92c0a8c3a169bb67ae",
+    "log_manifest": "early-banner-diagnostic/archive-files.json"
+  },
+  "engine-board": {
+    "archive": "engine-board/records.zip",
+    "size": 48457,
+    "sha256": "2dca6fd346df43d1392b41bce07b2fd096da1fca5943ce5e11e6c8799188a515",
+    "log_manifest": "engine-board/archive-files.json"
+  },
+  "host-rtl": {
+    "archive": "host-rtl/records.zip",
+    "size": 85141,
+    "sha256": "afabb1ca797689fe9374351dcc9d28757d45299f68fcd0bc97898c786dfa852f",
+    "log_manifest": "host-rtl/archive-files.json"
+  },
+  "instance-pb-board": {
+    "archive": "instance-pb-board/records.zip",
+    "size": 96191,
+    "sha256": "31aea48174ab08ed27d13f2872db20b0789002a5520578d1707235938dbfa8ab",
+    "log_manifest": "instance-pb-board/archive-files.json"
+  },
+  "synthesis-build": {
+    "archive": "synthesis-build/records.zip",
+    "size": 122114,
+    "sha256": "508442797db265263bb842e15839bfa51110d4df1d63fb7c672166a07334efe2",
+    "log_manifest": "synthesis-build/archive-files.json"
+  },
+  "timing-review": {
+    "archive": "timing-review/records.zip",
+    "size": 114029,
+    "sha256": "7b5e635dcc9adcc8b0739468817f415b5560f214324132c26a3f3b13c9afe184",
+    "log_manifest": "timing-review/archive-files.json"
+  },
+  "workflow": {
+    "archive": "workflow/records.zip",
+    "size": 6946,
+    "sha256": "e1b040c02a55259c07d6d4a975bcf09b6f7088760930d1b3546703eea5bb5703",
+    "log_manifest": "workflow/archive-files.json"
+  }
+}

@@ -32,6 +32,9 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 
 ## 规则
 
+检查范围、档位与证据复用统一见 [验证流程](../doc/验证流程.md)，唯一清单由
+`python3 tools/check/validate.py --list` 给出。正常／变异判据保留，日常按模块与消费者选择。
+
 `engine/tex/` 为正式 TEX（片上纹理）验证：APB 全窗口、两种读延迟、TEX/DDR 请求重叠
 与流隔离、PERF、错误、复位及四个定向变异，共 6/6。研究探针另行保留，
 入口和证据见 [tex/README](engine/tex/README.md)。
@@ -117,4 +120,5 @@ check_g4_integration.py --rtl 使用 8 MiB 随机反压模型，检查 TEX/BAND�
 
 绘制前端的方案研究在 [engine/frontend](engine/frontend/README.md)：
 1680 份真实状态的阶段记录计数与生产构造观察点等价，以及既有整机 CSV 的分型回归。
-目前没有新增前端 RTL、板测或性能验收结果。
+实例与硬件保序分桶已完成 RTL、板测与验收，入口与证据范围见该目录 README；
+新运行默认写入忽略的 `sim/build/check-runs/`，历史 logs 保留其版本边界。

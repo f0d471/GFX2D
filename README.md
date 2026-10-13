@@ -11,7 +11,8 @@
 
 接手顺序：先看 [`Main/doc/赛题二总体设计.md`](Main/doc/赛题二总体设计.md)（打算怎么做），
 再看 [`Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md`](Engineering/TechReports/platform/01-从零搭起可上板的硬件基线.md)（现在的基线是怎么来的），
-动手前看 [`Main/doc/开发环境.md`](Main/doc/开发环境.md)（工具与命令）。
+动手前看 [`Main/doc/验证流程.md`](Main/doc/验证流程.md) 选择检查范围与档位，
+再按 [`Main/doc/开发环境.md`](Main/doc/开发环境.md) 执行工具与命令。
 
 ## 需要另外准备的东西
 

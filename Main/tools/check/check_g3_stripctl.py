@@ -4,12 +4,12 @@ import argparse
 import json
 import re
 import subprocess
+from check_run import paths
 from pathlib import Path
 MAIN=Path(__file__).resolve().parents[2]
 ROOT=MAIN.parent
 SIM=MAIN/'sim/engine/stripctl'
-BUILD=SIM/'build'
-LOGS=SIM/'logs'
+BUILD,LOGS=paths('stripctl','stripctl')
 LIB=[MAIN/'sw/lib'/p for p in ('gfx/list.c','gfx/strip.c','gfx/strip_plan.c','gfx/check.c','gfx/exec_sw.c','core/format.c')]
 RTL=[MAIN/'rtl/engine'/p for p in ('engine_bounds.v','engine_packet_check.v','engine_pb_dma.v','engine_bin.v','engine_pb.v','engine_top.v','engine_regs.v','engine_cmd.v','engine_inst.v','engine_geom.v','engine_pix.v','engine_blend.v','engine_mover.v','engine_tex.v','engine_band.v')]
 RTL += [MAIN/'rtl/vendor/verilog-axi'/p for p in ('axi_dma_rd.v','axi_dma_wr.v')]
@@ -35,7 +35,7 @@ def cc(name,src,defines=(),san=True):
 def rtl(name,sh,defines=(),want='PASS',evidence=None):
     run(name+'_compile',['iverilog','-g2012','-s','tb_stripctl','-Ptb_stripctl.SH='+str(sh),
         '-I'+str(MAIN/'rtl/engine'),*['-D'+x for x in defines],'-o',BUILD/(name+'.vvp'),SIM/'tb_stripctl.v',*RTL])
-    out=run(name,['vvp','-n',BUILD/(name+'.vvp'),'+case=build/scene'+str(sh)],SIM,evidence=evidence)
+    out=run(name,['vvp','-n',BUILD/(name+'.vvp'),'+case='+str(BUILD/('scene'+str(sh)))],SIM,evidence=evidence)
     if 'RESULT: '+want not in out or 'WATCHDOG' in out:raise RuntimeError(name+' RTL result')
     return out
 

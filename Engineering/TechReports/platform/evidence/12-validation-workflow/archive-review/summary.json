@@ -1,0 +1,10 @@
+{
+  "run_id": "20261013-125212-04586586",
+  "revision": "942104eacfb1f46a16e08f283c1a0c97b5fe51db",
+  "profile": "acceptance",
+  "checks": {
+    "f4.review_archive": "PASS"
+  },
+  "source_snapshot": "records.zip/run.json",
+  "scope": "historical snapshot; no new current-source acceptance"
+}

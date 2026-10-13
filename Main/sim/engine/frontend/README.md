@@ -13,6 +13,10 @@ RTL，SDK、时钟和 Flash 保持。16KB 对照只复用整机条带接入时�
 
 ## 判据与命令
 
+范围、档位与证据复用见 `Main/doc/验证流程.md`。下文 logs 是已归档证据入口；
+新运行进入忽略的 `Main/sim/build/check-runs/<运行号>/logs/frontend`。
+同轮命令显式传入相同 `--run-dir` 与 `--profile`，避免把历史日志混入新结果。
+
 从仓库根在 WSL 运行：
 
 ```text
@@ -119,9 +123,9 @@ planned+模板；5 为底色缓存，6 为动态 prepass，7/8/9 分别是动态
 以下命令在 WSL 的仓库根运行，全部独立产物在本目录忽略的 build/f4 下：
 
 ~~~text
-python3 Main/tools/check/check_f4_instances.py --models --rtl --mutations --protocols --lease --v2 --research --profile
-EFINITY_HOME="<EFINITY_WSL>" python3 Main/tools/check/check_f4_instances.py --legacy
-python3 Main/tools/check/check_f4_instances.py --collect
+python3 Main/tools/check/check_f4_instances.py --run-dir Main/sim/build/check-runs/<运行号> --models --rtl --mutations --protocols --lease --research --timed-profile
+EFINITY_HOME="<EFINITY_WSL>" python3 Main/tools/check/check_f4_instances.py --run-dir Main/sim/build/check-runs/<运行号> --legacy
+python3 Main/tools/check/check_f4_instances.py --run-dir Main/sim/build/check-runs/<运行号> --collect
 ~~~
 
 <EFINITY_WSL> 是开发环境手册所列 Efinity 安装目录的 WSL 路径。
@@ -130,6 +134,8 @@ python3 Main/tools/check/check_f4_instances.py --collect
 --mutations 覆盖六类定向变异，--protocols 覆盖稀疏 stride 跨页、完整错误身份、
 数组读错/超时排空、预取超时完整身份与软复位恢复；--lease 检查双帧独占、忙时重用与过期 generation。
 --v2 在独立目录复跑条带控制的两套万张与 16/32 行 RTL，不覆盖其历史证据。
+--legacy 已包含 --v2；显式重复选择自动去重。快速档通过公共 `--profile quick` 选择；
+原有无参数的 --profile 是 TIMED 诊断开关，需使用 --timed-profile，见检查工具 README。
 
 Windows 下用开发环境手册所列 Efinity Python 运行 run_f4_board.py。--build 可选
  tests-final、fallback、ab、verify、nmax-base、nmax-inst；--run 使用相同名称，
@@ -146,10 +152,11 @@ mode0 标量与 mode10 实例（预热 8、三轮各 30），verify 是独立诊
 成立；直通实例通过 GFX_FRONTEND_INST=1 显式启用，默认 0。
 
 --research 重建修复的研究编码器，核对 17 组与边界，并将三份输入生成到忽略目录
-后做 C 编译与全字节回环。--profile 在同一 TIMED 完整引擎 fixture 上记录数组
+后做 C 编译与全字节回环。--timed-profile 在同一 TIMED 完整引擎 fixture 上记录数组
 取数、解析、几何和像素出口拍，阶段区间可重叠，不作为板上分段周期。
---collect 严格核对所有正式结果、当前程序结束边界、完整逻辑统计和旧位流身份，
-生成唯一 f4_results.json。原子批构造、完整解码与实际测量产物通过其清单关联。
+--collect 汇总本轮正式宿主／RTL组并写入 f4_results.json；板测和综合保持独立范围。
+旧完整资料由 --review-archive --archive-dir <仓内历史日志目录> 复核，输出进入新轮，
+不据此证明当前部署。原子批构造、完整解码与实际测量产物通过各自清单关联。
 
 ## 硬件分桶与引用列表
 

@@ -63,6 +63,7 @@ set -u
 
 MAIN="$(cd "$(dirname "$0")/../.." && pwd)"
 SW="$MAIN/sw"
+source "$MAIN/tools/check/check_common.sh"
 HOST_CC="${HOST_CC:-gcc}"
 RISCV_BIN="${RISCV_BIN:-riscv-none-elf-}"
 TX_C="$MAIN/tools/check/check_sw8_tx.c"
@@ -81,12 +82,7 @@ note() { printf '    %s\n'   "$1"; }
 # 跑一次 mk/host.mk 的 test 目标。$1 = 产物目录名，$2 = INJECT（可空）。
 # stdout 与 stderr 一起进日志：sanitizer 的报告打在 stderr，test 目标本身不看它。
 run_libtest() {
-    local dir="$TMP/$1"
-    if [ -n "$2" ]; then
-        make -C "$SW" -f mk/host.mk test OBJDIR="$dir" INJECT="$2" >"$dir.log" 2>&1
-    else
-        make -C "$SW" -f mk/host.mk test OBJDIR="$dir" >"$dir.log" 2>&1
-    fi
+    check_libtest "$TMP/$1" "$2"
 }
 
 # 某一组的 ok 行数恰好是 $2、没有 FAIL 行。$1 = 组的前缀字母，$3 = 名字
@@ -226,7 +222,7 @@ if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
         grep -iE 'warning|error' "$TMP/b_ti60.log" | head -5 | while read -r l; do note "$l"; done
     fi
 else
-    note "M6 跳过：RISCV_BIN=$RISCV_BIN 找不到交叉编译器（跳过不算通过）"
+    check_missing "M6 RISCV_BIN=$RISCV_BIN 找不到交叉编译器"
 fi
 if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
     if make -C "$APP" -s RISCV_BIN="$RISCV_BIN" OBJDIR="$TMP/b_stg3" EXTRA_CFLAGS="-DSTG_FIELD=3" \
@@ -250,17 +246,9 @@ echo "== M8 搜索跑在弹幕场上（gfx2dGame 的 app 测试，64 位 ASan/UB
 # 选项从 mk/host.mk 取，与 check_sw7_game.sh 的实体池项同一做法
 FLAGS="$(make -C "$SW" -s --no-print-directory -f mk/host.mk OBJDIR="$TMP/flags" \
          --eval 'sw8_print_flags: ; @echo -std=gnu11 -O$(OPT) -g $(WARN)' sw8_print_flags 2>/dev/null)"
-build_app() {   # $1 = 产物名，$2 = 64|32
-    local extra="-m32"
-    [ "$2" = "64" ] && extra="-fsanitize=address,undefined"
-    # shellcheck disable=SC2086
-    "$HOST_CC" $FLAGS $extra -I"$SW/lib" -I"$APP/src" -o "$TMP/$1" \
-        "$APP"/test/*.c "$APP"/src/game/stg_*.c "$SW"/lib/core/*.c "$SW"/lib/gfx/*.c -lm \
-        >"$TMP/$1.build.log" 2>&1
-}
-if [ -n "$FLAGS" ] && build_app app64 64 && build_app app32 32; then
-    "$TMP/app64" >"$TMP/app64.txt" 2>"$TMP/app64.err"; r64=$?
-    "$TMP/app32" >"$TMP/app32.txt" 2>&1; r32=$?
+if [ -n "$FLAGS" ] && check_app_test "$TMP"; then
+    r64=0
+    r32=0
     ny_ok=$(grep -cE '^Y[0-9] .* ok$' "$TMP/app64.txt")
     ny_bad=$(grep -cE '^Y[0-9] .* FAIL$' "$TMP/app64.txt")
     if [ "$r64" -eq 0 ] && [ "$r32" -eq 0 ] && cmp -s "$TMP/app64.txt" "$TMP/app32.txt" &&
@@ -385,7 +373,9 @@ fi
 
 # ---------------------------------------------------------------- M12 模式 3 在终符上搜索
 echo "== M12 模式 3 在终符上搜索（默认构建，GFX2D_START_MODE=3，模拟时钟，无窗口） =="
-if make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/m3" EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_EXIT=1" \
+if [ "$GFX_CHECK_PROFILE" = quick ]; then
+    check_na "M12 生产模式完整 N_max 双进程搜索属于 acceptance/release；快速档保留 M7/M8/M9 状态机与弹幕场检查"
+elif make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/m3" EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_EXIT=1" \
         >"$TMP/m3.build.log" 2>&1; then
     # 两个进程同时跑：墙钟下的实测帧率各不相同，模拟时钟的结果若受它影响，两份日志就会分叉
     SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 "$TMP/m3/gfx2dGame" 2>/dev/null | tr -d '\r' >"$TMP/m3b.log" &
@@ -510,7 +500,9 @@ fi
 # ---------------------------------------------------------------- M14 日志不阻塞长跑
 echo "== M14 日志不阻塞长跑（模式 2、36000 帧、GFX2D_TX_BUDGET=192、按 60 Hz 节拍，约 10 分钟） =="
 if [ "${SW8_SKIP_LONG:-0}" = 1 ]; then
-    note "M14 跳过：SW8_SKIP_LONG=1（跳过不算通过）"
+    check_missing "M14 SW8_SKIP_LONG=1，日志长跑未执行"
+elif [ "$GFX_CHECK_PROFILE" = quick ]; then
+    check_na "M14 十分钟日志长跑属于 acceptance/release；快速档仍校验三个模式的 CSV 与日志队列"
 elif make -C "$APP" -s PLATFORM=host OBJDIR="$TMP/long" \
         EXTRA_CFLAGS="-DGFX2D_START_MODE=2 -DGFX2D_FRAMES=36000" >"$TMP/long.build.log" 2>&1; then
     SDL_VIDEODRIVER=dummy GFX2D_TX_BUDGET=192 "$TMP/long/gfx2dGame" 2>"$TMP/long.err" | tr -d '\r' >"$TMP/long.log"
@@ -642,5 +634,4 @@ else
     bad "M17i 缺搜索日志时没有报出来（退出码 $ri），缺数据会被当成出齐了"
 fi
 
-printf 'fail %d\ndone\n' "$FAIL"
-[ "$FAIL" -eq 0 ]
+check_finish

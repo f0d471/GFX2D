@@ -1,11 +1,14 @@
 # BAND 条带数据面验证与前期研究
 
-正式数据面已实现并于 2026-10-08 验收，默认 `run.sh` 为正式验证。主帧控制仍未启用，
+正式数据面已实现并于 2026-10-08 验收，默认 `run.sh` 为正式验证。主帧控制已接入，
 研究探针与历史证据继续保留。
 
 ## 正式复现
 
 WSL 中从仓库根执行，需 gcc、ASan/UBSan、iverilog、vvp 和 Python 3：
+
+范围以 `Main/doc/验证流程.md` 为准。新运行的 build 与 logs 位于
+`Main/sim/build/check-runs/<运行号>/`，续接命令必须传同一 `--run-dir`；本目录 logs 保留历史证据。
 
 ```text
 bash Main/sim/engine/band/run.sh
@@ -24,7 +27,7 @@ geom/pix/blend/mover/BAND/TEX 与两个 DMA 核；内存逐 128 位对软件执�
 | `tb_engine_band_path.v` | 全部真实数据面核、软件金标准、三相计时和数据/流纪律 |
 | `syn_engine_band.v` | 全变量输入、按 valid 分相观测，防止同源输出 XOR 裁剪 RAM |
 
-独立工程在 build/formal/syn，按开发环境手册运行四步后：
+独立工程在该轮 build/band/syn，按开发环境手册运行四步后（使用准备时的同一 --run-dir）：
 
 ```text
 python3 Main/tools/check/check_g2_band.py --collect-syn

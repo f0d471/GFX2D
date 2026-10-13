@@ -72,6 +72,7 @@ set -u
 
 MAIN="$(cd "$(dirname "$0")/../.." && pwd)"
 SW="$MAIN/sw"
+source "$MAIN/tools/check/check_common.sh"
 GEN="$MAIN/tools/check/gen_sin_tab.py"
 SIN_TAB="$SW/lib/core/sin_tab.c"
 APP="$SW/apps/game/gfx2dGame"
@@ -94,12 +95,7 @@ PAT_EXP="$APP/test/stg_patterns.txt"
 # 跑一次 mk/host.mk 的 test 目标。$1 = 产物目录名，$2 = INJECT（可空）。
 # stdout 与 stderr 一起进日志：sanitizer 的报告打在 stderr，test 目标本身不看它。
 run_libtest() {
-    local dir="$TMP/$1"
-    if [ -n "$2" ]; then
-        make -C "$SW" -f mk/host.mk test OBJDIR="$dir" INJECT="$2" >"$dir.log" 2>&1
-    else
-        make -C "$SW" -f mk/host.mk test OBJDIR="$dir" >"$dir.log" 2>&1
-    fi
+    check_libtest "$TMP/$1" "$2"
 }
 
 # ---------------------------------------------------------------- 正弦表
@@ -193,9 +189,14 @@ build_stg() {
         >"$TMP/$1.build.log" 2>&1
 }
 
-if build_stg stg64 64 "" && build_stg stg32 32 ""; then
-    "$TMP/stg64" >"$TMP/stg64.txt" 2>"$TMP/stg64.err"; rc64=$?
-    "$TMP/stg32" >"$TMP/stg32.txt" 2>"$TMP/stg32.err"; rc32=$?
+if check_app_test "$TMP"; then
+    for bits in 64 32; do
+        ln -s "$TMP/app$bits" "$TMP/stg$bits"
+        cp "$TMP/app$bits.txt" "$TMP/stg$bits.txt"
+        cp "$TMP/app$bits.err" "$TMP/stg$bits.err"
+    done
+    rc64=0
+    rc32=0
     if [ "$rc64" -eq 0 ] && [ "$rc32" -eq 0 ] && grep -q '^fail 0$' "$TMP/stg64.txt" &&
        grep -q '^done$' "$TMP/stg64.txt" && cmp -s "$TMP/stg64.txt" "$TMP/stg32.txt"; then
         ok "G4 app 测试 64/32 逐字节相同、fail 0、done（$(grep -cE ' ok$' "$TMP/stg64.txt") 行 ok）"
@@ -437,7 +438,7 @@ if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
         fi
     done
 else
-    note "G11 跳过：RISCV_BIN=$RISCV_BIN 找不到交叉编译器（跳过不算通过）"
+    check_missing "G11 RISCV_BIN=$RISCV_BIN 找不到交叉编译器"
 fi
 
 # ---------------------------------------------------------------- 自机与规则
@@ -608,7 +609,9 @@ if "$HOST_CC" -O2 -std=gnu11 -Wall -Wextra -Werror -I"$SW/lib" -I"$APP/src" -o "
         grep -E '^err|^fail' "$TMP/gsc_verify.txt" | head -4 | while read -r l; do note "$l"; done
     fi
     if [ "${SW7_SKIP_SEARCH:-0}" = 1 ]; then
-        note "G16b 跳过：SW7_SKIP_SEARCH=1（搜索器重生成约 5 分钟；跳过不算通过）"
+        check_missing "G16b SW7_SKIP_SEARCH=1，录像重搜未执行"
+    elif [ "$GFX_CHECK_PROFILE" = quick ]; then
+        check_na "G16b 录像重搜属于 acceptance/release；快速档仍复核已有录像与生产回放"
     else
         t0=$(date +%s)
         "$GSC_BIN" --out "$TMP/stg_clear_re.g2dr" >"$TMP/gsc_out.txt" 2>&1
@@ -713,5 +716,4 @@ else
     tail -5 "$TMP/h_s1.log" | while read -r l; do note "$l"; done
 fi
 
-printf 'fail %d\ndone\n' "$FAIL"
-[ "$FAIL" -eq 0 ]
+check_finish

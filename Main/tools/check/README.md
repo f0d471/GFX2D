@@ -1,5 +1,17 @@
 # check：提交前检查与规格校验
 
+检查范围、档位与状态统一见 [验证流程](../../doc/验证流程.md)。
+`python3 Main/tools/check/validate.py --list` 是唯一可执行清单；表中的“提交前”指受影响项，
+不要求每次运行全部工具。新复跑输出进入忽略的 `Main/sim/build/check-runs/`，历史 logs 不覆盖。
+
+| 公共入口 | 用途 |
+| --- | --- |
+| `validate.py` | 显示范围、去重执行、输入身份与汇总、核对后归档 |
+| `check_run.py` | 同轮输入／参数核对、PASS / FAIL / INCOMPLETE 状态、独立输出目录 |
+| `check_common.sh` / `check_host.sh` | 库与应用正常测试同轮复用、缺项与不适用状态 |
+| `test_validation.py` | 去重、缺项、证据过期、范围变化与板测完成边界的行为反例 |
+| `check_board_smoke.py` | 当前 JTAG、两次调试连接、引擎重建与功能采集；自动定位 UART，不写 Flash |
+
 | 文件 | 用途 | 什么时候跑 |
 | --- | --- | --- |
 | `check_frontend.py` | 绘制前端的 sanitizer、成功封表/错误差分、独立像素、生产变异、完整宿主回放、异步流水与板测日志拒绝检查 | `--models --legacy --pipeline`；`--host flat strip planned template both static prepass combo`；`--summarize --production` 汇总成本和最终流水；单份板测用 `--board-log` 配合 `--modes` / `--scenes`，见 `Main/sim/engine/frontend/README.md` |
@@ -344,7 +356,7 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw7_game.sh'
 
 各项判据与口径写在下面表里。不要板子；
 要主机 gcc、`gcc-multilib`、`libsdl2-dev`（`mk/host.mk` 解析时就要 `sdl2-config`）、`python3` 与 Pillow（弹幕场判据先打包素材）；
-板上构建项要交叉工具链，找不到时跳过，跳过不算通过。全套在本机约十几分钟，其中「可玩」一项的重新搜索约 5 分钟（`SW7_SKIP_SEARCH=1` 跳过，跳过不算通过）。
+板上构建项缺交叉工具链时返回 INCOMPLETE。正式档包含约 5 分钟的录像重搜；quick 档将它记为不适用，仍验证既有录像与生产回放。显式 SW7_SKIP_SEARCH=1 返回 INCOMPLETE。
 
 | 项 | 内容 |
 | --- | --- |
@@ -429,7 +441,9 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh'
 
 各项判据与口径写在下面表里。
 要主机 gcc、`gcc-multilib`、`libsdl2-dev`、`python3` 与 Pillow（M9 先打包素材）；M6 要交叉工具链，找不到时跳过，跳过不算通过。
-M12 在本机约 7 分钟、M14 约 10 分钟，全套约 20 多分钟；`SW8_SKIP_LONG=1` 跳过 M14（跳过不算通过）。
+正式档保留 M12 生产模式双进程完整搜索（原记录约 7 分钟）和 M14 十分钟长跑；
+quick 档明确排除这两项，仍保留状态机、弹幕场搜索、模式与 CSV 判据。
+显式 SW8_SKIP_LONG=1 使 M14 未执行，整体返回 INCOMPLETE。
 
 | 项 | 内容 |
 | --- | --- |
@@ -479,28 +493,31 @@ g4_game_dump.c 是生产游戏的 RTL 工件导出器，由 --rtl 编译调用�
 
 ## 通用实例路径
 
-check_f4_instances.py 在 WSL 运行，提供 --models、--rtl、--mutations、--protocols、
+check_f4_instances.py 在 WSL 运行，公共 --run-dir 与 --profile 选择本轮证据与档位；提供 --models、--rtl、--mutations、--protocols、
 --lease、--v2 与 --legacy。独立像素金标准、完整引擎、错误排空与过期 lease
 判据及日志见 `Main/sim/engine/frontend/README.md`。
 run_f4_board.py 在 Windows 的 Efinity Python 下重建与串行采集；部署 BIN 与 bit
-集中登记在 f4_artifacts.json。板测不写 Flash，结束条件使用完整 done 行。
+集中登记在本轮 frontend/f4_artifacts.json。板测不写 Flash，结束条件使用完整 done 行。
+--legacy 已包含 --v2；重复选择时仅执行一次。
 
-实例路径的 --research 提供研究工具与输入回环复现，--profile 提供 TIMED 阶段诊断，
---collect 从原始证据严格生成唯一汇总 f4_results.json。
+实例路径的 --research 提供研究工具与输入回环复现，--timed-profile 提供 TIMED 阶段诊断，
+--collect 只汇总本轮正式宿主／RTL组，输出 f4_results.json；板测与综合单独登记。
+--review-archive --archive-dir <仓内历史日志目录> 复核旧完整档案，保留原目录，结果进入新轮 archive-review。
 
 ## check_f5_bin.py / run_f5_synthesis.py / run_f5_board.py
 
 硬件保序分桶与 PB v1 的独立判据和串行板测。按开发环境手册选择 WSL、
-Efinity Python 与 EFINITY_HOME，命令从仓库根运行：
+Efinity Python 与 EFINITY_HOME，命令从仓库根运行；以下为正式全量示例，
+各命令必须使用同一 --run-dir 和 acceptance 档，普通修改按验证流程选子集：
 
 ~~~text
-wsl -e python3 Main/tools/check/check_f5_bin.py --research --models --bin --frame --mutations --protocols --game --replay --lease --legacy --legacy-all
-EFINITY_HOME="<EFINITY_WSL>" python3 Main/tools/check/check_f5_bin.py --platform
-python3 Main/tools/check/check_f5_bin.py --collect
-python Main/tools/check/run_f5_synthesis.py --build bin main --collect
-python Main/tools/check/run_f5_board.py --build tests legacy v2 research verify ab combo pressure nmax replay
-python Main/tools/check/run_f5_board.py --run tests legacy v2 research verify ab combo pressure nmax replay --program
-python Main/tools/check/run_f5_board.py --collect
+python3 Main/tools/check/check_f5_bin.py --run-dir Main/sim/build/check-runs/<运行号> --profile acceptance --research --models --bin --frame --mutations --protocols --game --replay --lease --legacy --legacy-all --ddr-log
+EFINITY_HOME="<EFINITY_WSL>" python3 Main/tools/check/check_f5_bin.py --run-dir Main/sim/build/check-runs/<运行号> --profile acceptance --platform
+python3 Main/tools/check/check_f5_bin.py --run-dir Main/sim/build/check-runs/<运行号> --profile acceptance --collect
+python Main/tools/check/run_f5_synthesis.py --run-dir Main/sim/build/check-runs/<运行号> --profile acceptance --build bin main --collect
+python Main/tools/check/run_f5_board.py --run-dir Main/sim/build/check-runs/<运行号> --profile acceptance --build tests legacy v2 research verify ab combo pressure nmax replay
+python Main/tools/check/run_f5_board.py --run-dir Main/sim/build/check-runs/<运行号> --profile acceptance --run tests legacy v2 research verify ab combo pressure nmax replay --program
+python Main/tools/check/run_f5_board.py --run-dir Main/sim/build/check-runs/<运行号> --profile acceptance --collect
 ~~~
 
 --research 严格复现17个冻结输入每桶计数及修复后的万张原型；--models 生成独立
@@ -519,6 +536,10 @@ f5_game_dump.c 是真实生产输入与独立标量金标准导出器，由 --ga
 3600场确认；压力构建 REF_CAP=32768，其余8192。--collect 独立检查结束边界、
 74组CRC、153组冻结状态与27组背景组合、四个长时确认和完整9208帧逐行结果。
 部署身份只登记到 logs/f5_artifacts.json，最终消费者写 f5_board_results.json。
+
+这里的 logs 指该轮 logs/frontend；--platform 包含 --platform-hw。
+跨 WSL/Windows 续用同轮时保持相同的 profile、RISCV_BIN 等已登记参数；
+quick 档分桶 RTL 为 64 张，完整 --collect 拒绝快速或缺项结果。
 
 ## run_f5_jtag_capture.py
 
@@ -539,5 +560,6 @@ JTAG加载核对字节数，周期性短暂停CPU读header，完成后dump原始
 该诊断暂停与日志开销使周期不适合性能比较，f5_jtag_*.json明确标记。
 
 纯sink的ASan/UBSan判据为sim/engine/frontend/test_ddr_log.c，覆盖标准CRC32金值、
+入口为 check_f5_bin.py --ddr-log 或 validate.py --checks ddr-log；完整汇总不再依赖手工生成该日志。
 分块done、伪done和溢出保护。部署身份仍进入唯一f5_artifacts.json；JTAG功能
 日志带单独产物键，普通UART性能日志不替换。

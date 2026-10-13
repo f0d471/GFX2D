@@ -10,8 +10,8 @@ import os
 
 MAIN=Path(__file__).resolve().parents[2]
 ROOT=MAIN.parent
-LOGS=MAIN/'sim/engine/frontend/logs'
-BUILD=MAIN/'sim/engine/frontend/build'
+from check_run import paths
+BUILD,LOGS=paths('frontend','frontend')
 
 def register(path):
     dest=LOGS/'artifacts.json'

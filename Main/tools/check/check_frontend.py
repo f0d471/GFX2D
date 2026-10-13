@@ -13,8 +13,8 @@ import sys
 MAIN=Path(__file__).resolve().parents[2]
 ROOT=MAIN.parent
 SIM=MAIN/'sim/engine/frontend'
-BUILD=SIM/'build'
-LOGS=SIM/'logs'
+from check_run import paths
+BUILD,LOGS=paths('frontend','frontend')
 APP=MAIN/'sw/apps/game/gfx2dGame'
 LIB=MAIN/'sw/lib'
 VARIANTS={'flat':'','strip':'-DG4_STRIP_RENDER=1',

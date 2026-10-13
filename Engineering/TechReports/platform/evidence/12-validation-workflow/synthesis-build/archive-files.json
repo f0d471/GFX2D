@@ -1,0 +1,52 @@
+{
+  "logs/board/usb.log": {
+    "size": 787,
+    "mtime_ns": 1791823692449276400,
+    "sha256": "4387f37ca086070fe88343ad3527df7c774b382048d1b4c4c7cc11856ae0c533"
+  },
+  "logs/frontend/f5_final_main_flow.log": {
+    "size": 230947,
+    "mtime_ns": 1791823691338184800,
+    "sha256": "adeeb8c538db70bd3d283ac6b577d4fcc67d21087f3a03d173acbe09d60b0cf9"
+  },
+  "logs/frontend/f5_final_main_hier_util.rpt": {
+    "size": 77163,
+    "mtime_ns": 1791823691337190100,
+    "sha256": "46e73aaf5fd302f13cb69f28ca567b9a9a002cab78f627e61d9296c4a1486076"
+  },
+  "logs/frontend/f5_final_main_place.rpt": {
+    "size": 2019,
+    "mtime_ns": 1791823691335221800,
+    "sha256": "67a658061db98d65467041f35d904abde488468f144e86ae8fa4db6385d37e1b"
+  },
+  "logs/frontend/f5_final_main_timing.rpt": {
+    "size": 952954,
+    "mtime_ns": 1791823691337190100,
+    "sha256": "e28700219dfb60772bf030339f5a09ebee5e43e7430f4c1d8689ae4207d20016"
+  },
+  "logs/frontend/f5_final_main_warnings.log": {
+    "size": 62336,
+    "mtime_ns": 1791823691338184800,
+    "sha256": "b642957ca0489cdc5392624a4b2922d7f257875250b80edcf3e967eb356f9360"
+  },
+  "logs/frontend/f5_main_synthesis_flow.log": {
+    "size": 1242,
+    "mtime_ns": 1791823691301566700,
+    "sha256": "0001d92979522ae4ed7bbb07dcbdb48cc70fdc41ffd7b7026c41190ac7ba0d69"
+  },
+  "logs/frontend/f5_synthesis.json": {
+    "size": 1911,
+    "mtime_ns": 1791823691339200900,
+    "sha256": "c4952b3f3d7c12f23b78d298e165bbda327646edcda173cb7af670c53c10ad8b"
+  },
+  "logs/runner/board.log": {
+    "size": 154,
+    "mtime_ns": 1791823692449276400,
+    "sha256": "eba536b209c4c114a136307cc33b6bc849157f80ec446da241f955b147570c3b"
+  },
+  "logs/runner/synthesis.log": {
+    "size": 1244,
+    "mtime_ns": 1791823691339200900,
+    "sha256": "f9abcd77f28373774de403070b36f0a735bba2aed558baa3af332359502a4296"
+  }
+}

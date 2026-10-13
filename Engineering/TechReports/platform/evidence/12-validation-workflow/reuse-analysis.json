@@ -1,0 +1,36 @@
+{
+  "prior_run": "20261013-005209-3878cef1",
+  "production_inputs_unchanged": true,
+  "changed_tool_files": [
+    "Main/tools/check/check_board_smoke.py",
+    "Main/tools/check/check_common.sh",
+    "Main/tools/check/check_f4_instances.py",
+    "Main/tools/check/check_f5_bin.py",
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/localize_paths.py",
+    "Main/tools/check/run_f5_synthesis.py",
+    "Main/tools/check/test_validation.py",
+    "Main/tools/check/validate.py"
+  ],
+  "unchanged_function_bodies": {
+    "Main/tools/check/check_f4_instances.py": [
+      "models",
+      "compile_rtl",
+      "rtl_cases",
+      "rtl",
+      "mutations",
+      "protocols",
+      "lease"
+    ],
+    "Main/tools/check/check_f5_bin.py": [
+      "run",
+      "models",
+      "compile_rtl",
+      "bin",
+      "frame",
+      "mutations",
+      "protocols",
+      "lease"
+    ]
+  }
+}

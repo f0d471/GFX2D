@@ -128,6 +128,9 @@ PC 的素材包路径由 `mk/host.mk` 的 `ASSETS_PAK` 编进 `bsp/host`（取�
 
 ## 主机侧单元测试与结构判据
 
+检查范围以 `../doc/验证流程.md` 为准；日常用 `tools/check/validate.py` 选择相关项。
+库与应用正常测试在同轮复用，不因同时选择游戏和统计专项重复编跑。
+
 ```
 wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host test'    # 或 cd sw && make -f mk/host.mk test
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw_layers.sh'

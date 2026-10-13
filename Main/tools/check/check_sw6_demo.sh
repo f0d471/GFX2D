@@ -31,6 +31,7 @@
 set -u
 
 MAIN="$(cd "$(dirname "$0")/../.." && pwd)"
+source "$MAIN/tools/check/check_common.sh"
 ROOT="$(cd "$MAIN/.." && pwd)"
 APP="$MAIN/sw/apps/game/gfx2dGame"
 LOGS="$APP/logs"
@@ -60,6 +61,11 @@ tail_lines() { tail -n "${1:-6}"; }
 # 判据模式（默认构建是演示模式），快速档时另加帧数上限并换期望日志
 JUDGE_CFLAGS="-DSW6_JUDGE=1"
 EXPECT="$LOGS/sw6_judge.log"
+if [ "$GFX_CHECK_PROFILE" = quick ]; then
+    SW6_QUICK=1
+elif [ "${SW6_QUICK:-0}" = 1 ]; then
+    check_missing "SW6_QUICK=1 不能完成 acceptance/release 的全量 Demo"
+fi
 if [ "${SW6_QUICK:-0}" = "1" ]; then
     JUDGE_CFLAGS="$JUDGE_CFLAGS -DSW6_FRAMES=120"
     EXPECT="$LOGS/sw6_judge_quick.log"
@@ -327,14 +333,10 @@ if command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
 else
     # 工具链装在 WSL 里、不在 PATH 上是常态（doc/开发环境.md 第 11 节的 <RISCV_BIN>），
     # 所以找不到时先怀疑没传 RISCV_BIN，而不是没装。跳过不算通过：验收前必须带上它重跑。
-    note "D10 板上目标 SKIP：找不到 ${RISCV_BIN}gcc。先确认是否漏传 RISCV_BIN，"
-    note "取值见 doc/开发环境.md 第 1、11 节：RISCV_BIN=<RISCV_BIN> bash $0；验收前必须实际跑过"
+    check_missing "D10 找不到 ${RISCV_BIN}gcc，板上目标未构建"
 fi
 
 # 收尾：把构建复位成默认的演示模式，别把注错版留在 build_host/
 make -C "$APP" -s PLATFORM=host >/dev/null 2>&1 || true
 
-printf 'fail %d\n' "$FAIL"
-printf 'done\n'
-[ "$FAIL" -eq 0 ] || exit 1
-exit 0
+check_finish

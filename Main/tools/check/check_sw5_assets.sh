@@ -23,6 +23,7 @@
 set -u
 
 MAIN="$(cd "$(dirname "$0")/../.." && pwd)"
+source "$MAIN/tools/check/check_common.sh"
 APP_DIR="$MAIN/sw/apps/test/assetTest"
 ASSETS="$MAIN/assets"
 REF_LOG="$APP_DIR/logs/pc_normal.log"
@@ -283,7 +284,11 @@ make -C "$APP_DIR" -s >/dev/null 2>&1 || true      # 复位成正常构建
 echo "== S7/S8 Flash 镜像合成 =="
 APP_BIN="$APP_DIR/build/assetTest-O2.bin"
 if [ ! -f "$APP_BIN" ]; then
-    note "没有板上产物 $APP_BIN，跳过镜像判据（板上构建：make PLATFORM=target RISCV_BIN=<RISCV_BIN>）"
+    if [ "$GFX_CHECK_PROFILE" = quick ]; then
+        check_na "S7/S8 镜像合成属于 acceptance/release；本轮未提供板上产物"
+    else
+        check_missing "S7/S8 没有板上产物 $APP_BIN，镜像判据未执行"
+    fi
 else
     if python3 "$MAIN/tools/board/make_flash_image.py" --app "$APP_BIN" \
             --out "$TMP/flash.hex" >"$TMP/img.log" 2>&1; then
@@ -382,7 +387,4 @@ else
     bad "S9 这些非生成文件没有登记许可：$missing"
 fi
 
-printf 'fail %d\n' "$FAIL"
-printf 'done\n'
-[ "$FAIL" -eq 0 ] || exit 1
-exit 0
+check_finish

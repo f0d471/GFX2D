@@ -215,8 +215,9 @@ def gen_h():
     a("#endif")
     return "\n".join(L) + "\n"
 
-VH_PATH = Path("rtl/engine/engine_regs_offsets.vh")
-H_PATH = Path("sw/bsp/include/gfx_regs.h")
+MAIN = Path(__file__).resolve().parents[2]
+VH_PATH = MAIN / "rtl/engine/engine_regs_offsets.vh"
+H_PATH = MAIN / "sw/bsp/include/gfx_regs.h"
 
 def main():
     ap = argparse.ArgumentParser()
@@ -232,7 +233,7 @@ def main():
                 bad.append(str(p))
         if bad:
             print("regs_gen --check: 产物与真源不一致：", ", ".join(bad))
-            print("在 Main/ 下跑 python3 tools/check/regs_gen.py 重新生成。")
+            print("运行 Main/tools/check/regs_gen.py 重新生成。")
             return 1
         print("regs_gen --check: 通过。")
         return 0

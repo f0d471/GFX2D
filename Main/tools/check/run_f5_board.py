@@ -10,7 +10,9 @@ import subprocess
 import sys
 import zlib
 ROOT=Path(__file__).resolve().parents[3]
-MAIN=ROOT/'Main';SIM=MAIN/'sim/engine/frontend';LOGS=SIM/'logs';BUILD=SIM/'build/f5'
+MAIN=ROOT/'Main';SIM=MAIN/'sim/engine/frontend'
+from check_run import paths, session
+BUILD,LOGS=paths('frontend','f5')
 PROBE='-I../../game/gfx2dGame/src -DFRONTEND_MODE_LAST=14 -DFRONTEND_ITERATIONS=30 -DFRONTEND_EXECUTE=1'
 JOBS={
  'tests':('test/pbTest','pbTest',False,''),
@@ -63,7 +65,7 @@ def synthesis():
 def capture(job,program):
     bit=synthesis();register(binary(job))
     log=LOGS/('f5_board_'+job+'.log')
-    args=[sys.executable,str(MAIN/'tools/board/board_run.py'),'--bin',str(binary(job)),
+    args=[sys.executable,str(MAIN/'tools/board/board_run.py'),'--port',os.environ.get('GFX_CHECK_PORT','COM11'),'--bin',str(binary(job)),
           '--stop-line','done','--seconds',str(10800 if job=='replay' else 3600 if job=='nmax' else 1200),'--log',str(log)]
     args+=['--bit',str(bit)] if program else ['--no-program']
     print('F5 BOARD START '+job,flush=True)
@@ -218,7 +220,7 @@ def collect(jobs=None):
             if p.returncode:raise RuntimeError('pressure: '+p.stdout+p.stderr)
             result[job]['summary']=next(x for x in body.splitlines() if x.startswith('csvsum,'))
         if job=='replay':result[job].update(compare(LOGS/'f5_replay_host_flat.log',path,False,True))
-    result['artifacts_manifest']='Main/sim/engine/frontend/logs/f5_artifacts.json'
+    result['artifacts_manifest']=(LOGS/'f5_artifacts.json').relative_to(ROOT).as_posix()
     result['bitstream']='Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit'
     complete=set(selected)==set(JOBS)
     result['scope']='full' if complete else 'partial'

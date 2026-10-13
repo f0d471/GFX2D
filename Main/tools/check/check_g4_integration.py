@@ -12,8 +12,8 @@ from pathlib import Path
 MAIN = Path(__file__).resolve().parents[2]
 ROOT = MAIN.parent
 SIM = MAIN / 'sim/engine/g4'
-BUILD = SIM / 'build'
-LOGS = SIM / 'logs'
+from check_run import paths
+BUILD, LOGS = paths('g4', 'g4')
 APP = MAIN / 'sw/apps/game/gfx2dGame'
 
 

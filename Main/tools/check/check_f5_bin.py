@@ -5,18 +5,21 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import sys
+from check_run import IncompleteCheck, paths, session
 
 ROOT = Path(__file__).resolve().parents[3]
 MAIN = ROOT / 'Main'
 SIM = MAIN / 'sim/engine/frontend'
-BUILD = SIM / 'build/f5'
-LOGS = SIM / 'logs'
+BUILD, LOGS = paths('frontend', 'f5')
 
 def run(tag, args, timeout=600):
     p = subprocess.run(list(map(str, args)), cwd=ROOT, capture_output=True,
                        text=True, timeout=timeout)
     body = p.stdout + p.stderr
     (LOGS / ('f5_' + tag + '.log')).write_text(body, encoding='utf-8')
+    if p.returncode == 3:
+        raise IncompleteCheck(tag + ': 必需项未执行')
     if p.returncode:
         raise RuntimeError(tag + ': ' + body[-3000:])
     return body
@@ -66,9 +69,12 @@ def compile_rtl(tag,top,defines=(),params=()):
 
 def bin():
     binary=compile_rtl('bin','tb_engine_bin')
-    out=run('bin',['vvp','-n',binary,'+CASES='+str(BUILD/'bin_cases.dat')],timeout=3600)
-    assert 'RESULT: PASS F5 BIN scenes=      10000 errors=          0' in out
-    print('F5 BIN PASS scenes=10000 exact_header_metadata_refs_padding',flush=True)
+    import re
+    count=64 if session().profile=='quick' else 10000
+    args=['vvp','-n',binary,'+CASES='+str(BUILD/'bin_cases.dat'),'+LIMIT='+str(count)]
+    out=run('bin',args,timeout=3600)
+    assert re.search(r'RESULT: PASS F5 BIN scenes=\s*'+str(count)+r' errors=\s*0\b',out),out[-2000:]
+    print('F5 BIN PASS scenes='+str(count)+' scope='+session().profile,flush=True)
 
 def frame():
     binary=compile_rtl('frame','tb_engine_pb')
@@ -150,6 +156,12 @@ def lease():
         *sorted((MAIN/'sw/lib/gfx').glob('*.c')),MAIN/'sw/lib/core/format.c','-o',BUILD/'fallback'])
     print(run('fallback',[BUILD/'fallback']).strip(),flush=True)
 
+def ddr_log():
+    run('ddr_log_compile',['gcc','-std=c11','-O1','-g','-Wall','-Wextra','-Werror',
+        '-fsanitize=address,undefined','-fno-pie','-no-pie','-I'+str(MAIN/'sw/bsp/include'),
+        SIM/'test_ddr_log.c','-o',BUILD/'ddr_log'])
+    assert 'F5 DDR LOG PASS' in run('ddr_log',[BUILD/'ddr_log'])
+
 def legacy():
     spec=importlib.util.spec_from_file_location('f4_compat',MAIN/'tools/check/check_f4_instances.py')
     m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -170,19 +182,24 @@ def platform():
     """仓库规定的提交检查；应用构建串行，避免共享生成物互相覆盖。"""
     import os
     if not (Path(os.environ.get('EFINITY_HOME',''))/'sim_models/verilog/efx_srl8.v').exists():
-        raise RuntimeError('按开发环境设置 WSL 的 EFINITY_HOME 后再运行 --platform')
-    prefix=str(next(Path.home().glob('opt/xpack-riscv-none-elf-gcc-13.4.0-*/bin/riscv-none-elf-gcc')))[:-3]
+        raise IncompleteCheck('按开发环境设置 WSL 的 EFINITY_HOME 后再运行 --platform')
+    prefix=os.environ.get('RISCV_BIN')
+    if not prefix:
+        compiler=next(Path.home().glob('opt/xpack-riscv-none-elf-gcc-13.4.0-*/bin/riscv-none-elf-gcc'),None)
+        if compiler is None:raise IncompleteCheck('缺少交叉工具链，设置 RISCV_BIN')
+        prefix=str(compiler)[:-3]
     env=dict(os.environ,RISCV_BIN=prefix)
-    run('platform_unit',['make','-C',MAIN/'sw','-f','mk/host.mk','test'],timeout=1800)
+    run('platform_unit',['bash',MAIN/'tools/check/check_host.sh','lib'],timeout=1800)
     print('F5 PLATFORM PASS unit64/32',flush=True)
     for tag,script in [('layers','check_sw_layers.sh'),('sw6','check_sw6_demo.sh'),
                        ('sw7','check_sw7_game.sh'),('sw8','check_sw8_stats.sh')]:
         p=subprocess.run(['bash',str(MAIN/'tools/check'/script)],cwd=ROOT,env=env,
                          capture_output=True,text=True,timeout=1800)
         (LOGS/('f5_platform_'+tag+'.log')).write_text(p.stdout+p.stderr,encoding='utf-8')
+        if p.returncode==3:raise IncompleteCheck(tag+': 必需项未执行')
         assert p.returncode==0,(tag,(p.stdout+p.stderr)[-2500:])
         print('F5 PLATFORM PASS '+tag,flush=True)
-    platform_hw()
+    session().perform('f5.platform_hw',platform_hw)
 
 def platform_hw():
     for name in ['hdmi','apb_probe','axi_probe','axi_mux_guard','display','engine/blend']:
@@ -191,6 +208,8 @@ def platform_hw():
         print('F5 PLATFORM PASS '+name,flush=True)
 
 def collect():
+    if session().profile=='quick':raise RuntimeError('快速档不能生成完整验收汇总')
+    session().require(['f5.'+name for name in ['research','models','bin','frame','mutations','protocols','game','replay','lease','legacy','legacy_all','platform','ddr_log']])
     from check_g4_integration import compare
     def body(name):return (LOGS/(name+'.log')).read_text(encoding='utf-8',errors='replace')
     def require(name,marker):
@@ -235,14 +254,19 @@ def collect():
 
 def main():
     p = argparse.ArgumentParser()
-    names=['research','models','bin','frame','mutations','protocols','game','replay','lease','legacy','legacy_all','platform','platform_hw','collect']
+    names=['research','models','bin','frame','mutations','protocols','game','replay','lease','legacy','legacy_all','platform','platform_hw','ddr_log','collect']
     for name in names:p.add_argument('--'+name.replace('_','-'),dest=name,action='store_true')
     a = p.parse_args()
     BUILD.mkdir(parents=True, exist_ok=True)
     LOGS.mkdir(exist_ok=True)
     if not any(getattr(a,name) for name in names):p.error('至少选择一组判据')
-    for name in names:
-        if getattr(a,name):globals()[name]()
+    selected=[name for name in names if getattr(a,name)]
+    if any(name in selected for name in ['bin','mutations']) and 'models' not in selected:
+        selected.insert(0,'models')
+    for name in selected:
+        session().perform('f5.'+name,globals()[name])
+    print('F5 CHECK PASS scope='+session().profile+' run='+str(session().path.relative_to(ROOT)),flush=True)
 
 if __name__ == '__main__':
-    main()
+    try:main()
+    except IncompleteCheck as error:print('INCOMPLETE '+str(error),file=sys.stderr);sys.exit(3)

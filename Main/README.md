@@ -176,7 +176,7 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
 
 - **`sdk/` 只读**：它是 SoC IP 的生成物，重新生成时整个目录会被覆盖。项目对 sdk 的需求
   （板级封装、驱动包装、地址映射）一律放 `sw/bsp/` 覆盖，不改 sdk 本身；
-  提交前跑 `check_sw_layers.sh`，其中一项就是 `git diff --quiet HEAD -- Main/sdk`。
+  改软件结构、构建或 BSP 接口时跑 `check_sw_layers.sh`，其中一项就是 `git diff --quiet HEAD -- Main/sdk`。
 - **分层由编译结构保证**：`sw/lib/` 编的时候只有 `-Isw/lib`，应用编的时候没有 sdk 的头文件路径。
   越界不是靠人遵守，是编不过。见 `sw/README.md`。
 - **vendor 目录不改**：`rtl/vendor/` 下是厂商与第三方代码，必须改时在 `rtl/README.md` 里登记。
@@ -187,20 +187,10 @@ DDR3 与 Flash 的分区规划见 `doc/赛题二总体设计.md` 2.1、2.2 节�
   提交前暂存源码，跑一次 `--restore` 与 `--check --tracked`；不入库的本机工作资料可另用全目录 `--check`。
 - **判据要能注错见红**：每个仿真除了正常用例，必须有把逻辑改错后会 FAIL 的用例，
   否则不算验证过。
-- **提交前**：`hdmi`、`apb_probe` 两个仿真各 3/3，`axi_probe` 5/5，`axi_mux_guard` 17/17，
-  `display` 全过，`engine/blend` 9/9（含 50462976 个向量的全定义域穷举，整套约 7 分钟），
-  `engine/mover` 17/17（四个正常用例、六个注错与从机定时模式，需要 `EFINITY_HOME`），
-  `engine/geom` 27/27（三组输入逐条比对、两个握手用例、五个注错），
-  `engine/pix` 25/25（研究探针、单元、乒乓、混合核/搬运/几何/像素四层真实通路、跨命令写后读），
-  `engine/ctrl` 4/4（159 向量端到端、定向命令、两个注错见红），
-  `engine/frame` 16/16（十一整帧 CRC 对 golden、基础 Demo 两帧、定时从机性能、SLVERR 注错），
-  `engine/tex` 6/6、`engine/band` 17/17（真实全部数据面、状态/排空/参数、八个变异），
-  Efinity 编译四步 PASS 且无负 slack，`--check --tracked` 与寄存器真源检查通过。
-  改了 `sw/` 下走新构建的程序（`gfx2dGame`、`cup3d`、`assetTest` 等）还要过 `sw/README.md` 里的两套构建、
-  主机侧单元测试与 `tools/check/check_sw_layers.sh`；改了 `gfx2dGame`、`lib/gfx` 的执行器或素材还要过
-  `tools/check/check_sw6_demo.sh`（十项，含四个方程的注错见红与 Sanitizer）；改了 `lib/core/fixmath`、正弦表、
-  `gfx2dGame` 的 `src/game/stg_*`、弹幕场入口或批量提交还要过 `tools/check/check_sw7_game.sh`（带 `RISCV_BIN`）；改了普查、模拟时钟、
-  帧时间直方图、日志队列、`board_tx_room()`、`N_max` 状态机或压力负载还要过 `tools/check/check_sw8_stats.sh`（带 `RISCV_BIN`）。
+- **提交前检查按影响选择**：[验证流程](doc/验证流程.md) 是范围、档位与证据复用的唯一规则；
+  `python3 tools/check/validate.py --list` 给出唯一检查清单。先核对改动与消费者，
+  执行所选项并登记 PASS / FAIL / INCOMPLETE 与不适用原因。文档改动不触发硬件回归，
+  RTL 改动仍需综合与时序检查，正式采用候选仍需该候选的完整回放与相关板测。
 - **数字要标明来源**：估算与推测必须写清楚，实测要给命令和结果。
 - **状态与机制写全**：README 与 `doc/` 写当前是什么样，机制、结论与实测数据就地写清，
   不写开发流水，引用只落在 Main 之内。

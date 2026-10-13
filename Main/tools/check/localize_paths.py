@@ -137,23 +137,29 @@ def walk():
                 yield rel, path
 
 
-def check(tracked_only=False):
-    hits = []
-    tracked = None
+def candidates(tracked_only=False):
     if tracked_only:
         p = subprocess.run(["git", "-c", "safe.directory=" + ROOT.replace("\\", "/"),
                             "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
         if p.returncode:
             print("无法读取 Git 文件清单：" + p.stderr)
-            return 1
-        tracked = set(p.stdout.split("\0"))
-    for rel, path in walk():
-        if tracked is not None and rel not in tracked:
-            continue
+            raise RuntimeError("无法读取 Git 文件清单：" + p.stderr)
+        files = [(rel, os.path.join(ROOT, rel)) for rel in p.stdout.split("\0") if rel]
+        files = [(rel, path) for rel, path in files
+                 if os.path.splitext(rel)[1] in TEXT_SUFFIX or os.path.basename(rel) in ("README", "Makefile", "makefile")]
+    else:
+        files = walk()
+    for rel, path in files:
         if rel in ALLOW:
             continue
         if rel.startswith(SKIP_PREFIXES) and rel[len("Main/"):] not in TARGETS:
             continue
+        yield rel, path
+
+
+def check(tracked_only=False):
+    hits = []
+    for rel, path in candidates(tracked_only):
         try:
             text = read(path)
         except (UnicodeDecodeError, OSError):

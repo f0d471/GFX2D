@@ -88,9 +88,9 @@ expect_build_fail() {   # $1 = OBJDIR，$2 = 注入文件名，$3 = 判据名
 
 # 工具链在不在，决定第 2、3、4 项能不能做
 if ! command -v "${RISCV_BIN}gcc" >/dev/null 2>&1; then
-    printf 'RISCV_BIN=%s 找不到交叉编译器，第 2、3、4 项要它。\n' "$RISCV_BIN"
+    printf 'INCOMPLETE RISCV_BIN=%s 找不到交叉编译器，第 2、3、4 项要它。\n' "$RISCV_BIN"
     printf '用 RISCV_BIN=<工具链前缀> 指定，见 doc/开发环境.md 第 1、11 节。\n'
-    exit 1
+    exit 3
 fi
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,92 @@
+{
+  "logs/board/bin-driver.log": {
+    "size": 157,
+    "mtime_ns": 1791827872354326900,
+    "sha256": "af714d5fa56d4d6df5b4aa178784dd56a369d3bf8af171eb122d8c1e57f8e7ac"
+  },
+  "logs/board/build.log": {
+    "size": 195,
+    "mtime_ns": 1791827506711404200,
+    "sha256": "28b99fc42147b8fea8aa395ecfa46c24a4dd6bd693f1273d0be64766b57df0ae"
+  },
+  "logs/board/control.log": {
+    "size": 1751,
+    "mtime_ns": 1791827531937220500,
+    "sha256": "b460edd43f8173b1a1926da4ba89e2d08633a0d843352620804f721e0a9c595f"
+  },
+  "logs/board/debug.log": {
+    "size": 203,
+    "mtime_ns": 1791827505109405500,
+    "sha256": "903ef9a310ba19503c7345cf4390ab0fa8b1103c7ec20041bfdf9f34f8cdde94"
+  },
+  "logs/board/engine.log": {
+    "size": 1281,
+    "mtime_ns": 1791827531812363400,
+    "sha256": "ab64bdaf48eae0143d856e378000de8bb5f97053bbe31ecbed92664f178888a6"
+  },
+  "logs/board/instances-driver.log": {
+    "size": 133,
+    "mtime_ns": 1791827849691772800,
+    "sha256": "fe40c80632474159698fa670aa000878be60464dace989dff0f9d92dd2199e4d"
+  },
+  "logs/board/result.json": {
+    "size": 275,
+    "mtime_ns": 1791827531960993400,
+    "sha256": "d37fcbcdcf1e91345769cb97753bc38ef62723372bc4fe2943cbf6494fc71030"
+  },
+  "logs/board/usb.log": {
+    "size": 130,
+    "mtime_ns": 1791827499226678800,
+    "sha256": "e2312dace9e639c05fc0759abddef9f64d159f84a2cd894c49b560c9b150f926"
+  },
+  "logs/frontend/f4_artifacts.json": {
+    "size": 431,
+    "mtime_ns": 1791827838892118900,
+    "sha256": "dd501f5ac4e66711890db182525d68224aed86c34d273eb865ca17c06626b318"
+  },
+  "logs/frontend/f4_board_tests-final.log": {
+    "size": 10839,
+    "mtime_ns": 1791827849542245000,
+    "sha256": "f66ea3317402b037451fe8b85f03614da67c2df3d0d68d9d88aaf7a23766a631"
+  },
+  "logs/frontend/f5_artifacts.json": {
+    "size": 413,
+    "mtime_ns": 1791827855569329400,
+    "sha256": "14e442d7154651323b4a2ddd677f8672c3b8967e852b4750776342c76d316c76"
+  },
+  "logs/frontend/f5_board_partial_results.json": {
+    "size": 573,
+    "mtime_ns": 1791827872353330600,
+    "sha256": "81283e9a29ffcabd8a423b608c0ce3fd522bd869aac50a7bc54ddd9b6e9e5a40"
+  },
+  "logs/frontend/f5_board_tests.log": {
+    "size": 8195,
+    "mtime_ns": 1791827872190338400,
+    "sha256": "399ceee0d183445ee29bcbae67dc274bc8092239896789464cde2dde4c19367f"
+  },
+  "logs/frontend/f5_board_tests_control.log": {
+    "size": 8717,
+    "mtime_ns": 1791827872343519700,
+    "sha256": "52b6c95d18dfadaed9901a9b0a85160b22cd36f2d7ce125beacdb53a033c40f5"
+  },
+  "logs/frontend/f5_final_main_hier_util.rpt": {
+    "size": 77163,
+    "mtime_ns": 1791827855560498700,
+    "sha256": "46e73aaf5fd302f13cb69f28ca567b9a9a002cab78f627e61d9296c4a1486076"
+  },
+  "logs/frontend/f5_final_main_place.rpt": {
+    "size": 2019,
+    "mtime_ns": 1791827855553969900,
+    "sha256": "67a658061db98d65467041f35d904abde488468f144e86ae8fa4db6385d37e1b"
+  },
+  "logs/frontend/f5_final_main_timing.rpt": {
+    "size": 952954,
+    "mtime_ns": 1791827855553969900,
+    "sha256": "e28700219dfb60772bf030339f5a09ebee5e43e7430f4c1d8689ae4207d20016"
+  },
+  "logs/runner/board.log": {
+    "size": 134,
+    "mtime_ns": 1791827532076739300,
+    "sha256": "e2b684917d57b28fc24fbb2ece32f6129ccbc67e3189cae4fe1514e7ae23b9f0"
+  }
+}
