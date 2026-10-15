@@ -1,0 +1,4 @@
+=== 烧写比特流 E:\Workspace\Efinix\Main\bit\board_release_20261015\gfx2d_ti60.bit
+=== 调试通路检查：连续两次会话各读一次 PC
+  第 1 次：OK 0x00012080
+  第 2 次：OK 0x00012080

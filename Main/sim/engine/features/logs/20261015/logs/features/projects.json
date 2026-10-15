@@ -1,0 +1,9 @@
+{
+  "projects": [
+    "Main/sim/build/check-runs/20261015-162126-b775e948/build/features/full",
+    "Main/sim/build/check-runs/20261015-162126-b775e948/build/features/no_alpha",
+    "Main/sim/build/check-runs/20261015-162126-b775e948/build/features/no_ext",
+    "Main/sim/build/check-runs/20261015-162126-b775e948/build/features/copy_add"
+  ],
+  "scope": "standalone variable-input mapping; not whole-SoC area or timing"
+}

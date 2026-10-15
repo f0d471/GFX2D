@@ -191,3 +191,70 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 `engine_bin.v` 的正文曾因重排使整机映射 +1606 XLR（60064→61670，超过 Ti60F225 的
 60800 上限，pnr 拒绝；端口声明与头注释的重排无影响），故该文件正文保持原排版，
 注释改造只动头注释与端口块；重排其他模块后必须以整机综合复核资源。
+
+同一现象在**同一源码重复综合**下也有量级：七个代表档跑两轮，XLR 跨轮差 −1059~+1121
+（约 2~3%），而 RAM 与 DSP 两轮完全一致。所以绝对 XLR 只在同一轮内可比，
+报某档余量必须用同轮读数，或同轮多次综合取区间。
+
+## 7 可选机制开关
+
+### 7.1 宏与依赖
+
+九个自写文件都 `` `include "engine_feature.vh" ``（生成物，见 7.5 节）。
+宏是**存在式**的：`` `ifdef GFX_HAS_xxx `` 命中即该机制存在，不定义即整块离开编译输入。
+
+| 位 | 宏 | 依赖 |
+| --- | --- | --- |
+| 结构 | `GFX_HAS_TEX` | 无 |
+| 结构 | `GFX_HAS_BAND_HW` | 无 |
+| 结构 | `GFX_HAS_STRIP` | `BAND_HW` |
+| 结构 | `GFX_HAS_INST` | 无 |
+| 结构 | `GFX_HAS_PB` | `BAND_HW` 与 `INST` |
+| 像素 | `GFX_ALPHA` | 无 |
+| 像素 | `GFX_EQ_EXT` | 无 |
+| 像素 | `GFX_KEY` | 无 |
+| 交付 | `GFX_DELIVERY` | 要求 `ALPHA` 与 `KEY` |
+
+只有两条依赖边：`PB → BAND_HW`、`PB → INST`、`STRIP → BAND_HW`。
+合法配置是向下封闭集，结构位 32 种输入中合法 16、非法 16。
+计数与依赖的单一真源是 [`../../tools/check/feature_config.py`](../../tools/check/feature_config.py)，
+导入时自检，改动依赖会在那里停住。
+
+### 7.2 关闭态契约
+
+| 项 | 契约 |
+| --- | --- |
+| 保留寄存器 | 偏移与位号不变，读回 0 |
+| 关闭机制对应的寄存器 | 从读/写映射摘掉：读报错、写拒绝 |
+| CTRL 不支持的位 | 写入该位的整次访问拒绝，且不改其它字段 |
+| 无实例 | `ERROR_INSTANCE` 恒 `0xFFFFFFFF`，`PERF[9]` 恒 0 |
+| 无 PB | `PERF[10..13]` 恒 0；INST 仍开时 `PERF[9]` 正常 |
+| 无 TEX | BLIT 源空间只允许 DDR(0)，`space=1` 归 `BAD_SPACE` |
+| 无条带模式 | `CAPS` 不变（无专属位），只能靠「无条带表取数」与「CTRL.BAND 被拒」判 |
+
+### 7.3 能力位与默认后端
+
+`CAPS` 是能力掩码：它说明这块硬件**具备**什么，不说明默认走哪条后端。
+全开硬件与 `GFX_FRONTEND_BIN=0` 并存是正常配置。
+把默认后端翻转记成硬件构型变化会走错证据链，两者必须分别断言。
+
+### 7.4 新增文件要做的两件事
+
+1. 文件头加 `` `include "engine_feature.vh" ``，否则构型构建时该文件里的
+   `` `ifdef `` 会被当成未定义而静默走关闭分支。
+2. 若新文件属于某个可选机制，把文件名加进 `feature_config.py` 的对应源列表，
+   否则它在关闭该机制的构型里仍会进编译输入。
+
+### 7.5 生成物与判据
+
+`tools/check/feature_build.py` 生成 `engine_feature.vh`、`engine_config_guard.vh`、
+`engine_config_error_modules.vh`、`engine_regs_offsets.vh` 与软件侧 `gfx_feature.h`，
+都不手改。`--sync` 写默认全功能构型、`--check` 校验。
+
+判据入口：`validate.py --checks feature-caps feature-elab feature-probe feature-contract`
+（WSL），`feature-netlist` 与 `feature-synthesis` 走 Windows Efinity，
+清单与逐项用法见 `tools/check/README.md`。
+
+按构型的整机四步读数只在同一轮内可比：七个代表档跑两轮，
+XLR 跨轮差 −1059~+1121（约 2~3%），RAM 与 DSP 两轮一致。
+报某档余量必须用同轮读数，或同轮多次综合取区间。

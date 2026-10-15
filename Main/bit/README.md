@@ -17,6 +17,19 @@
 
 不入版本库。Efinity 编译后在 `fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit`，`.gitignore` 已排除 `outflow/`。
 
+## board_release_*/
+
+每次整机编译留一份的上板复现包：比特流加配套程序，并随包带上 OpenOCD 配置与 `cpu0.yaml`，
+所以脱离本仓库也能把游戏跑起来。不入版本库（`.gitignore` 按 `Main/bit/board_release_*/` 排除）。
+
+| 目录 | 内容 | 实测 |
+| --- | --- | --- |
+| `board_release_20261015/` | 干净工作区（提交 `6c2d59c`）编译：`gfx2d_ti60.bit`/`.hex`、`gfx2dGame-O2-perf.bin`（硬件 DDR 后端、240 帧判据构建）、`gfx2d_debug.cfg`、`cpu0.yaml`、上板原始日志 | 2026-10-15 上板 `fail 0`、60 fps、掉帧 0、`faults 0`、扫描 FIFO 最低 336 拍；整机 60064 XLR / 172 RAM / 23 DSP，`core_clk` setup/hold +0.104/+0.022 ns |
+
+程序从板上 Flash 的 `0x400000` 读素材，素材被改写后日志里 `pak` 行的 CRC 会对不上。
+复现步骤（含不依赖工程的裸命令）见各目录自己的 `README.md`；文件摘要以各目录的
+`manifest.json` 为唯一清单，本文件不重复抄录。
+
 ## flash_backup/
 
 板上 Flash 的整片备份，不入版本库（每份 24MB）。

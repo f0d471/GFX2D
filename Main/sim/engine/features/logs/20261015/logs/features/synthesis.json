@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "variants": {
+    "full": {
+      "primitive_instances": {
+        "EFX_DSP48": 1,
+        "EFX_RAM10": 0
+      },
+      "scope": "standalone mapping; not pnr or SoC resource delta"
+    },
+    "no_alpha": {
+      "primitive_instances": {
+        "EFX_DSP48": 1,
+        "EFX_RAM10": 0
+      },
+      "scope": "standalone mapping; not pnr or SoC resource delta"
+    },
+    "no_ext": {
+      "primitive_instances": {
+        "EFX_DSP48": 1,
+        "EFX_RAM10": 0
+      },
+      "scope": "standalone mapping; not pnr or SoC resource delta"
+    },
+    "copy_add": {
+      "primitive_instances": {
+        "EFX_DSP48": 0,
+        "EFX_RAM10": 0
+      },
+      "scope": "standalone mapping; not pnr or SoC resource delta"
+    }
+  }
+}

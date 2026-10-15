@@ -1,0 +1,5 @@
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/delivery_0000010.v:14: error: Unknown module type: GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA
+2 error(s) during elaboration.
+*** These modules were missing:
+        GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA referenced 1 times.
+***

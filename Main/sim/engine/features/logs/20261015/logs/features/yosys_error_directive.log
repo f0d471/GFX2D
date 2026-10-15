@@ -1,0 +1,5 @@
+
+-- Running command `read_verilog /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/error_directive.v' --
+
+1. Executing Verilog-2005 frontend: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/error_directive.v
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/error_directive.v:1: ERROR: Unimplemented compiler directive or undefined macro `error.

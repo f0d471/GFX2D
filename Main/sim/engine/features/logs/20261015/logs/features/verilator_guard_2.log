@@ -1,0 +1,14 @@
+%Error: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_2.v:14:1: Cannot find file containing module: 'GFX_CONFIG_ERROR_PB_REQUIRES_INST'
+   14 | GFX_CONFIG_ERROR_PB_REQUIRES_INST bad_inst();
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%Error: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_2.v:14:1: This may be because there's no search path specified with -I<dir>.
+   14 | GFX_CONFIG_ERROR_PB_REQUIRES_INST bad_inst();
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ... Looked in:
+             GFX_CONFIG_ERROR_PB_REQUIRES_INST
+             GFX_CONFIG_ERROR_PB_REQUIRES_INST.v
+             GFX_CONFIG_ERROR_PB_REQUIRES_INST.sv
+             obj_dir/GFX_CONFIG_ERROR_PB_REQUIRES_INST
+             obj_dir/GFX_CONFIG_ERROR_PB_REQUIRES_INST.v
+             obj_dir/GFX_CONFIG_ERROR_PB_REQUIRES_INST.sv
+%Error: Exiting due to 2 error(s)

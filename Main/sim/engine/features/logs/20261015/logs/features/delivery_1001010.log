@@ -1,0 +1,9 @@
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/delivery_1001010.v:8: error: Unknown module type: GFX_CONFIG_ERROR_PB_REQUIRES_BAND
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/delivery_1001010.v:11: error: Unknown module type: GFX_CONFIG_ERROR_PB_REQUIRES_INST
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/delivery_1001010.v:16: error: Unknown module type: GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA
+4 error(s) during elaboration.
+*** These modules were missing:
+        GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA referenced 1 times.
+        GFX_CONFIG_ERROR_PB_REQUIRES_BAND referenced 1 times.
+        GFX_CONFIG_ERROR_PB_REQUIRES_INST referenced 1 times.
+***

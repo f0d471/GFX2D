@@ -1,0 +1,23 @@
+{
+  "profile": "quick",
+  "scope": "engine optional-feature preliminary research",
+  "checks": [
+    "features.models",
+    "features.blend-models",
+    "features.synthesis",
+    "features.board"
+  ],
+  "commands": [
+    "WSL python3 Main/tools/check/research_engine_features.py --profile quick --models --prepare-synthesis --blend-models",
+    "Windows Efinity Python Main/tools/check/research_engine_features.py --profile quick --run-dir <RUN> --synthesis",
+    "Windows Efinity Python Main/tools/check/research_engine_features.py --profile quick --run-dir <RUN> --board --bit Main/bit/board_release_20261015/gfx2d_ti60.bit --collect"
+  ],
+  "not_applicable": [
+    "production RTL feature implementation",
+    "cut-down SoC four-stage build",
+    "cut-down bitstream board validation",
+    "Nmax",
+    "Flash boot",
+    "HDMI and physical key observation"
+  ]
+}

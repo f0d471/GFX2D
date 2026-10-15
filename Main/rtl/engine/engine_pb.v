@@ -11,6 +11,7 @@
 //   3. ERROR 头在排空完成后尽力写入（ERROR_WRITE），非法工作区不写
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_pb #(parameter integer STRIP_H = 16) (
     input  wire         clk,

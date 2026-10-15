@@ -13,7 +13,14 @@
 //   4. 子模块注错由 `ifdef INJ_xxx 选择 compile 输入，本层不透传参数
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 `include "engine_regs_offsets.vh"
+
+// 配置守卫的对侧声明：守卫不满足时例化这些模块，让 elaboration 与综合在开工前失败。
+// 模块体为空，合法性由 feature_config.py 在生成输入前判定；这里只在漏检时兜底。
+`default_nettype wire
+`include "engine_config_error_modules.vh"
+`default_nettype none
 
 module engine_top #(
     parameter integer STRIP_H = 16,
@@ -103,28 +110,65 @@ module engine_top #(
     wire [3:0]  wr_stat_cidx;
     wire        tmo_evt, tmo_dir;
 
-    // PB 前端与旧命令层两套通路，按 pb_active 选择
-    wire bin_mode, pb_busy, pb_building, pb_abort, pb_done, pb_failed, pb_command_go;
-    reg  pb_active;
+    // PB 前端与旧命令层两套通路。无 PB 时只有旧命令层一条通路，bin_mode 恒 0，
+    // 下面所有二选一退化成直连（`ifdef 的启用分支保持原表达式，不用常量 mux 替代）。
+    wire bin_mode;
+    // 这些网在两种构型下都存在：有 PB 时由 engine_pb 驱动，无 PB 时接常量，
+    // 使 engine_regs 与 engine_mover 的例化不需要按构型改写端口列表。
+    wire pb_busy, pb_building, pb_abort, pb_done, pb_failed, pb_command_go;
     wire [31:0] pb_base, pb_bytes, draw_cap, ref_cap, pb_error_index, pb_error_instance, pb_error_tag;
-    wire [3:0]  pb_error_code, pb_error_stage, pb_src_id, pb_dst_id;
-    wire        pb_perf_cmd, pb_perf_instance, pb_rd_beat, pb_wr_beat;
+    wire [3:0]  pb_error_code, pb_error_stage;
+    wire        pb_perf_instance, pb_perf_cmd;
     wire [1:0]  pb_ref_add;
+    wire [31:0] pw_addr;
+    wire [11:0] pw_bytes;
+    wire        pw_valid, pw_ready, pw_data_valid, pw_data_ready, pw_status, pw_error;
+    wire [127:0] pw_data;
+    wire        pb_rd_beat, pb_wr_beat;
+`ifdef GFX_HAS_PB
+    reg  pb_active;
+    wire [3:0]  pb_src_id, pb_dst_id;
     wire [255:0] pb_command_packet;
     wire [63:0]  pb_command_clip;
-    wire [31:0] pb_fd_addr, pw_addr;
-    wire [11:0] pb_fd_bytes, pw_bytes;
+    wire [31:0] pb_fd_addr;
+    wire [11:0] pb_fd_bytes;
     wire [3:0]  pb_fd_cidx;
-    wire        pb_fd_valid, pb_fd_instance, pb_fs_ready, pw_valid, pw_ready, pw_data_valid, pw_data_ready, pw_status, pw_error;
-    wire [127:0] pw_data;
+    wire        pb_fd_valid, pb_fd_instance, pb_fs_ready;
+`else
+    // bin_mode 由 engine_regs 的 CTRL 位驱动，这里不能再赋值（会双重驱动）。
+    // 无 PB 时把 CTRL 的能力位摘掉，写 BIN 位不再产生 PB 路径；见 engine_regs 的 CAPS。
+    assign pb_busy    = 1'b0;
+    assign pb_building= 1'b0;
+    assign pb_abort   = 1'b0;
+    assign pb_done    = 1'b0;
+    assign pb_failed  = 1'b0;
+    assign pb_command_go = 1'b0;
+    assign pb_error_index = 32'd0;
+    assign pb_error_instance = 32'd0;
+    assign pb_error_tag = 32'd0;
+    assign pb_error_code = 4'd0;
+    assign pb_error_stage = 4'd0;
+    assign pb_perf_instance = 1'b0;
+    assign pb_perf_cmd = 1'b0;
+    assign pb_ref_add = 2'd0;
+    assign pw_valid   = 1'b0;
+    assign pw_data_valid = 1'b0;
+    assign pw_addr    = 32'd0;
+    assign pw_bytes   = 12'd0;
+    assign pw_data    = 128'd0;
+`endif
     wire [31:0]  old_fd_addr;
     wire [11:0]  old_fd_bytes;
     wire [3:0]   old_fd_cidx, old_surf_ra_id, old_surf_rb_id;
     wire         old_fd_valid, old_fd_instance, old_fs_tready;
     wire         old_band_enable, old_band_start, old_band_flush, old_band_abort;
-    wire [31:0]  old_band_bg_base, old_band_dst_base, pb_bg_base, pb_target_base;
-    wire [4:0]   old_band_bg_slog2, old_band_dst_slog2, pb_bg_slog2, pb_target_slog2;
-    wire [15:0]  old_band_y0, old_band_frame_height, pb_y0, pb_height;
+    wire [31:0]  old_band_bg_base, old_band_dst_base;
+    wire [4:0]   old_band_bg_slog2, old_band_dst_slog2;
+    wire [15:0]  old_band_y0, old_band_frame_height;
+`ifdef GFX_HAS_PB
+    wire [31:0]  pb_bg_base, pb_target_base;
+    wire [4:0]   pb_bg_slog2, pb_target_slog2;
+    wire [15:0]  pb_y0, pb_height;
     wire         pb_band_start, pb_band_flush;
 
     // 后端选择随门铃锁存；控制层复位或软复位回旧路径
@@ -140,17 +184,30 @@ module engine_top #(
     assign fs_tready = pb_active ? pb_fs_ready : old_fs_tready;
     assign surf_ra_id = pb_active ? pb_src_id : old_surf_ra_id;
     assign surf_rb_id = pb_active ? pb_dst_id : old_surf_rb_id;
-    assign band_enable = pb_active ? pb_busy : old_band_enable;
-    assign band_start = pb_active ? pb_band_start : old_band_start;
-    assign band_flush = pb_active ? pb_band_flush : old_band_flush;
-    assign band_abort = pb_active ? pb_abort : old_band_abort;
-    assign band_bg_base = pb_active ? pb_bg_base : old_band_bg_base;
-    assign band_dst_base = pb_active ? pb_target_base : old_band_dst_base;
-    assign band_bg_slog2 = pb_active ? pb_bg_slog2 : old_band_bg_slog2;
-    assign band_dst_slog2 = pb_active ? pb_target_slog2 : old_band_dst_slog2;
-    assign band_y0 = pb_active ? pb_y0 : old_band_y0;
-    assign band_frame_height = pb_active ? pb_height : old_band_frame_height;
+`else
+    assign fd_addr = old_fd_addr;
+    assign fd_bytes = old_fd_bytes;
+    assign fd_cidx = old_fd_cidx;
+    assign fd_instance = old_fd_instance;
+    assign fd_valid = old_fd_valid;
+    assign fs_tready = old_fs_tready;
+    assign surf_ra_id = old_surf_ra_id;
+    assign surf_rb_id = old_surf_rb_id;
+`endif
+`ifdef GFX_HAS_BAND_HW
+    assign band_enable = old_band_enable;
+    assign band_start = old_band_start;
+    assign band_flush = old_band_flush;
+    assign band_abort = old_band_abort;
+    assign band_bg_base = old_band_bg_base;
+    assign band_dst_base = old_band_dst_base;
+    assign band_bg_slog2 = old_band_bg_slog2;
+    assign band_dst_slog2 = old_band_dst_slog2;
+    assign band_y0 = old_band_y0;
+    assign band_frame_height = old_band_frame_height;
+`endif
 
+`ifdef GFX_HAS_PB
     engine_pb #(.STRIP_H(STRIP_H)) u_pb (
         .clk(clk), .rst(rst_ctrl || soft_pending), .go(kick && bin_mode), .band_mode(band_mode),
         .list_base(list_base), .list_count(list_count),
@@ -182,10 +239,12 @@ module engine_top #(
         .pw_addr(pw_addr), .pw_bytes(pw_bytes), .pw_valid(pw_valid), .pw_ready(pw_ready),
         .pw_data(pw_data), .pw_data_valid(pw_data_valid),
         .pw_data_ready(pw_data_ready), .pw_status(pw_status), .pw_error(pw_error));
+`endif
 
     // TEX 装载窗口（第 4~7 页）与片上读流
     wire [31:0] regs_prdata;
     wire        regs_pready, regs_pslverr;
+`ifdef GFX_HAS_TEX
     wire        tex_psel;
     wire [31:0] tex_prdata;
     wire        tex_pready, tex_pslverr;
@@ -202,6 +261,7 @@ module engine_top #(
     wire [3:0]  tx_stat_cidx;
     wire [1:0]  tx_stat_buf;
     wire        tx_busy;
+`endif
 
     // 几何层（命令、描述符、边带）
     wire        geom_start;
@@ -272,8 +332,12 @@ module engine_top #(
                     band_perf_rd;
     wire [11:0] perf_rdb_beats = (fd_valid && fd_ready) ? {4'b0, fd_bytes[11:4]}
                                                         : band_perf_rd ? 12'd160 : g_rd_beats;
+`ifdef GFX_HAS_PB
     wire perf_wrb = (pw_valid && pw_ready) || (g_wr_valid && g_wr_ready && !g_wr_band) ||
                     band_perf_wr;
+`else
+    wire perf_wrb = (g_wr_valid && g_wr_ready && !g_wr_band) || band_perf_wr;
+`endif
     wire perf_wait = (m_axi_arvalid && !m_axi_arready)
                   || (m_axi_rvalid  && !m_axi_rready)
                   || (m_axi_awvalid && !m_axi_awready)
@@ -282,10 +346,17 @@ module engine_top #(
 
     // APB 分选：第 0 页寄存器、第 4~7 页 TEX；psel 已含两处页门控
     wire apb_hit_regs = (paddr[15:12] == 4'h0);
+`ifdef GFX_HAS_TEX
     wire apb_hit_tex  = (paddr[15:14] == 2'b01);
     assign prdata  = apb_hit_regs ? regs_prdata : tex_prdata;
     assign pready  = apb_hit_regs ? regs_pready : tex_pready;
     assign pslverr = apb_hit_regs ? regs_pslverr : tex_pslverr;
+`else
+    // 无 TEX：第 4~7 页回到顶层未映射页的常量应答（PREADY=1、PSLVERR=1、PRDATA=0）
+    assign prdata  = regs_prdata;
+    assign pready  = regs_pready;
+    assign pslverr = regs_pslverr || !apb_hit_regs;
+`endif
 
     // 寄存器层
     engine_regs #(.STRIP_H(STRIP_H)) u_regs (
@@ -293,6 +364,7 @@ module engine_top #(
         .paddr(paddr[11:0]), .psel(psel && apb_hit_regs), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(regs_prdata), .pready(regs_pready), .pslverr(regs_pslverr),
         .cmd_busy(cmd_busy || pb_busy), .pb_busy(pb_busy),
+`ifdef GFX_HAS_PB
         .err_set(pb_active ? (pb_done && pb_failed) : err_set),
         .err_code(pb_active ? pb_error_code : err_code),
         .err_index(pb_active ? pb_error_index : err_index),
@@ -301,22 +373,39 @@ module engine_top #(
         .err_stage(pb_active ? pb_error_stage : 4'd0),
         .perf_instance(pb_active ? pb_perf_instance : perf_instance),
         .done_set(pb_active ? (pb_done && !pb_failed) : done_set),
+`else
+        .err_set(err_set), .err_code(err_code),
+        .err_index(err_index), .err_tag(err_tag),
+        .err_instance(err_instance), .err_stage(4'd0),
+        .perf_instance(perf_instance), .done_set(done_set),
+`endif
         .kick(kick), .list_base(list_base), .list_count(list_count),
         .band_mode(band_mode), .bin_mode(bin_mode),
         .pb_base(pb_base), .pb_bytes(pb_bytes), .draw_cap(draw_cap), .ref_cap(ref_cap),
         .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
         .soft_rst_done(drain_done), .soft_rst_pending(soft_pending),
         .irq_b(irq_b),
+`ifdef GFX_HAS_PB
         .perf_cmd(pb_active ? pb_perf_cmd : commit),
         .perf_refs(pb_active ? pb_ref_add : 2'd0),
         .perf_bin(pb_building), .perf_real_mode(pb_active),
         .perf_axi_rd(m_axi_rvalid && m_axi_rready), .perf_axi_wr(m_axi_wvalid && m_axi_wready),
         .perf_pb_rd(pb_active && pb_rd_beat), .perf_pb_wr(pb_active && pb_wr_beat),
+`else
+        .perf_cmd(commit), .perf_refs(2'd0),
+        .perf_bin(1'b0), .perf_real_mode(1'b0),
+        .perf_axi_rd(m_axi_rvalid && m_axi_rready), .perf_axi_wr(m_axi_wvalid && m_axi_wready),
+        .perf_pb_rd(1'b0), .perf_pb_wr(1'b0),
+`endif
         .perf_pixel_en(sb_valid && sb_ready), .perf_pixel_npx(sb_npx),
         .perf_key_en(perf_key_valid_w), .perf_key_lanes(perf_key_lanes_w),
         .perf_rdb(perf_rdb), .perf_rdb_beats(perf_rdb_beats),
         .perf_wrb(perf_wrb),
+`ifdef GFX_HAS_PB
         .perf_wrb_beats((pw_valid && pw_ready) ? {4'd0, pw_bytes[11:4]} : (band_perf_wr ? 12'd160 : g_wr_beats)),
+`else
+        .perf_wrb_beats(band_perf_wr ? 12'd160 : g_wr_beats),
+`endif
         .perf_wait(perf_wait), .perf_busy(cmd_busy || pb_busy),
         .surf_ra_id(surf_ra_id), .surf_rb_id(surf_rb_id),
         .surf_ra_w0(surf_ra_w0), .surf_ra_w1(surf_ra_w1), .surf_ra_w2(surf_ra_w2),
@@ -326,11 +415,25 @@ module engine_top #(
     // 命令层
     engine_cmd #(.STRIP_H(STRIP_H)) u_cmd (
         .clk(clk), .rst(rst_ctrl),
+`ifdef GFX_HAS_PB
         .kick((kick && !bin_mode) || pb_command_go),
         .external_mode(pb_command_go), .external_packet(pb_command_packet), .external_clip(pb_command_clip),
+`else
+        .kick(kick && !bin_mode),
+        .external_mode(1'b0), .external_packet(256'd0), .external_clip(64'd0),
+`endif
         .list_base(list_base), .list_count(list_count),
-        .band_mode(band_mode && !pb_active), .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
+`ifdef GFX_HAS_PB
+        .band_mode(band_mode && !pb_active),
+`else
+        .band_mode(band_mode),
+`endif
+        .lstrips(lstrips), .strip_log2(strip_log2), .band_surfs(band_surfs),
+`ifdef GFX_HAS_PB
         .soft_rst(soft_pending || pb_abort), .preserve_clip(pb_abort && !soft_pending),
+`else
+        .soft_rst(soft_pending), .preserve_clip(1'b1),
+`endif
         .band_enable(old_band_enable), .band_start(old_band_start), .band_flush(old_band_flush), .band_abort(old_band_abort),
         .band_bg_base(old_band_bg_base), .band_dst_base(old_band_dst_base),
         .band_bg_slog2(old_band_bg_slog2), .band_dst_slog2(old_band_dst_slog2),
@@ -349,8 +452,13 @@ module engine_top #(
         .surf_rb_w0(surf_rb_w0), .surf_rb_w1(surf_rb_w1), .surf_rb_w2(surf_rb_w2),
         .fd_addr(old_fd_addr), .fd_bytes(old_fd_bytes), .fd_cidx(old_fd_cidx),
         .fd_instance(old_fd_instance), .fs_instance(fs_instance), .rd_stat_instance(rd_stat_instance),
+`ifdef GFX_HAS_PB
         .fd_valid(old_fd_valid), .fd_ready(fd_ready && !pb_active),
         .fs_tdata(fs_tdata), .fs_tlast(fs_tlast), .fs_tvalid(fs_tvalid && !pb_active),
+`else
+        .fd_valid(old_fd_valid), .fd_ready(fd_ready),
+        .fs_tdata(fs_tdata), .fs_tlast(fs_tlast), .fs_tvalid(fs_tvalid),
+`endif
         .fs_tready(old_fs_tready), .fs_cidx(fs_cidx),
         .rd_stat_valid(rd_stat_valid), .rd_stat_fetch(rd_stat_fetch),
         .rd_stat_err(rd_stat_err), .rd_stat_cidx(rd_stat_cidx),
@@ -372,9 +480,14 @@ module engine_top #(
     );
 
     // 几何层
+    // 几何与像素阵列在 PB 中止时一起清；无 PB 时只有控制层复位这一条。
+`ifdef GFX_HAS_PB
+    wire geom_rst = rst_ctrl || pb_abort;
+`else
+    wire geom_rst = rst_ctrl;
+`endif
     engine_geom #(.MAX_BEATS(192), .STRIP_H(STRIP_H)) u_geom (
-        .clk(clk), .rst(rst_ctrl || pb_abort),
-        .start(geom_start),
+        .clk(clk), .rst(geom_rst),        .start(geom_start),
         .op(i1_op), .eq(i1_eq), .key_en(i1_key_en),
         .key_w5(i1_key), .const_w4(i1_w4), .c(i1_c), .sfmt(i1_sfmt),
         .src_base(i1_src_base), .src_w(i1_src_w), .src_h(i1_src_h),
@@ -401,7 +514,7 @@ module engine_top #(
 
     // 计算阵列与计算核心
     engine_pix u_pix (
-        .clk(clk), .rst(rst_ctrl || pb_abort),
+        .clk(clk), .rst(geom_rst),
         .sb_row(sb_row), .sb_npx(sb_npx), .sb_beats(sb_beats),
         .sb_lead_dst(sb_lead_dst), .sb_lead_src(sb_lead_src),
         .sb_op(sb_op), .sb_eq(sb_eq), .sb_key_en(sb_key_en), .sb_key(sb_key),
@@ -416,12 +529,26 @@ module engine_top #(
     );
 
     // 搬运层（AXI 事务层）
-    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13), .ENABLE_BAND(1), .BAND_STRIP_H(STRIP_H)) u_mover (
+`ifdef GFX_HAS_BAND_HW
+    localparam integer MOVER_BAND = 1;
+`else
+    localparam integer MOVER_BAND = 0;
+`endif
+    engine_mover #(.AXI_MAX_BURST_LEN(192), .TMO_WIDTH(13),
+                   .ENABLE_BAND(MOVER_BAND), .BAND_STRIP_H(STRIP_H)) u_mover (
         .clk(clk), .rst(mover_rst),
+`ifdef GFX_HAS_PB
         .pw_addr(pw_addr), .pw_bytes(pw_bytes), .pw_valid(pw_valid), .pw_ready(pw_ready),
         .pw_data(pw_data), .pw_data_valid(pw_data_valid), .pw_data_ready(pw_data_ready),
         .pw_status(pw_status), .pw_error(pw_error),
         .pb_rd_beat(pb_rd_beat), .pb_wr_beat(pb_wr_beat),
+`else
+        // 无 PB：小事务写通路整组接常量，写仲裁退回条带与像素两条
+        .pw_addr(32'd0), .pw_bytes(12'd0), .pw_valid(1'b0), .pw_ready(pw_ready),
+        .pw_data(128'd0), .pw_data_valid(1'b0), .pw_data_ready(pw_data_ready),
+        .pw_status(pw_status), .pw_error(pw_error),
+        .pb_rd_beat(pb_rd_beat), .pb_wr_beat(pb_wr_beat),
+`endif
         .band_perf_rd(band_perf_rd), .band_perf_wr(band_perf_wr),
         .rd_addr(g_rd_addr), .rd_bytes(g_rd_bytes), .rd_buf(g_rd_buf),
         .rd_cidx(g_rd_cidx), .rd_tex(g_rd_tex),
@@ -435,12 +562,14 @@ module engine_top #(
         .band_loaded(band_loaded), .band_flushed(band_flushed), .band_active(), .band_busy(band_busy),
         .band_error(band_error), .band_error_code(band_error_code),
         .rd_valid(g_rd_valid), .rd_ready(g_rd_ready),
+`ifdef GFX_HAS_TEX
         .tx_addr(tx_addr), .tx_bytes(tx_bytes), .tx_buf(tx_buf), .tx_cidx(tx_cidx),
         .tx_valid(tx_valid), .tx_ready(tx_ready),
         .tx_rs_tdata(tx_rs_tdata), .tx_rs_tvalid(tx_rs_tvalid),
         .tx_rs_tlast(tx_rs_tlast), .tx_rs_buf(tx_rs_buf),
         .tx_stat_valid(tx_stat_valid), .tx_stat_ready(tx_stat_ready), .tx_stat_cidx(tx_stat_cidx),
         .tx_stat_buf(tx_stat_buf), .tx_busy(tx_busy),
+`endif
         .fd_addr(fd_addr), .fd_bytes(fd_bytes), .fd_cidx(fd_cidx),
         .fd_instance(fd_instance), .fs_instance(fs_instance), .rd_stat_instance(rd_stat_instance),
         .fd_valid(fd_valid), .fd_ready(fd_ready),
@@ -475,6 +604,7 @@ module engine_top #(
     );
 
     // TEX 装载窗口：第 4~7 页的 16 KiB scratchpad
+`ifdef GFX_HAS_TEX
     assign tex_psel = psel && apb_hit_tex;
     engine_tex #(.READ_LATENCY(TEX_READ_LATENCY)) u_tex (
         .clk(clk), .rst(rst_ctrl),
@@ -487,6 +617,12 @@ module engine_top #(
         .stat_valid(tx_stat_valid), .stat_ready(tx_stat_ready), .stat_cidx(tx_stat_cidx),
         .stat_buf(tx_stat_buf), .busy(tx_busy)
     );
+`endif
+
+    // 配置合法性守卫：依赖不满足时引用未定义模块，让 elaboration 与综合在开工前失败。
+    // 例化点是 engine_config_guard.vh 的分支，模块声明在 engine_config_error_modules.vh。
+    wire _gfx_config_guard_unused;
+`include "engine_config_guard.vh"
 
 endmodule
 `default_nettype wire

@@ -12,6 +12,7 @@
 //   4. 发出顺序 = 边带 → 读源 → 读目的 → 写目的，测试台按同序期望（geom_model.py）
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_geom #(
     parameter integer STRIP_H = 16,

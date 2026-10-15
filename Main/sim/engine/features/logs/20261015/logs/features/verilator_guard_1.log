@@ -1,0 +1,14 @@
+%Error: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_1.v:11:1: Cannot find file containing module: 'GFX_CONFIG_ERROR_PB_REQUIRES_BAND'
+   11 | GFX_CONFIG_ERROR_PB_REQUIRES_BAND bad_band();
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%Error: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_1.v:11:1: This may be because there's no search path specified with -I<dir>.
+   11 | GFX_CONFIG_ERROR_PB_REQUIRES_BAND bad_band();
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ... Looked in:
+             GFX_CONFIG_ERROR_PB_REQUIRES_BAND
+             GFX_CONFIG_ERROR_PB_REQUIRES_BAND.v
+             GFX_CONFIG_ERROR_PB_REQUIRES_BAND.sv
+             obj_dir/GFX_CONFIG_ERROR_PB_REQUIRES_BAND
+             obj_dir/GFX_CONFIG_ERROR_PB_REQUIRES_BAND.v
+             obj_dir/GFX_CONFIG_ERROR_PB_REQUIRES_BAND.sv
+%Error: Exiting due to 2 error(s)

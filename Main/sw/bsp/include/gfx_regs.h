@@ -49,7 +49,9 @@
 #define GFX_ID_VALUE     0x47465801u  /* "GFX" << 8 | 版本 */
 #define GFX_ID_VERSION   0x01u
 
-/* CAPS 位掩码 */
+/* CAPS 位掩码；GFX_CAPS_VALUE 是复位值，随构型（见 tools/check/feature_config.py）。
+ * 能力位表示这块硬件具备什么，不表示默认走哪条后端路径；
+ * 默认后端另见 renderer 的 GFX_FRONTEND_* 与运行时的 GFX2D_START_BACKEND。 */
 #define GFX_CAPS_KEY_M   0x00000001u
 #define GFX_CAPS_KEY_S   0
 #define GFX_CAPS_ALPHA_PM_M   0x00000002u

@@ -12,6 +12,7 @@
 //   4. 本模块不解释命令 ABI、不遍历帧级命令表，start/flush 与描述符口由上层驱动
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_band #(
     parameter integer WIDTH_PIXELS = 640,

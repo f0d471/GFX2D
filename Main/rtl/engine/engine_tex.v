@@ -12,6 +12,7 @@
 //   4. 消费者恒 ready，本模块没有 ready 口、不做 skid buffer；注错开关见 engine-manual.md
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_tex #(
     parameter integer READ_LATENCY = 1

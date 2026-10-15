@@ -11,6 +11,7 @@
 //   3. en 为 0 三级一起保持；eq>5 已被控制层拒绝，case 的 default 按 5 算
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_blend (
     input  wire       clk,
@@ -41,16 +42,19 @@ module engine_blend (
                 sel_m1   = 9'sd0;
                 sel_m2   = 9'sd0;
             end
+`ifdef GFX_ALPHA
             3'd1: begin //  ALPHA    Fs=255 Fd=255-a
                 sel_base = {1'b0, src};
                 sel_m1   = $signed({1'b0, dst});
                 sel_m2   = $signed({1'b0, (8'd255 - a)});
             end
+`endif
             3'd2: begin // ADD      Fs=255 Fd=255
                 sel_base = {1'b0, src} + {1'b0, dst};
                 sel_m1   = 9'sd0;
                 sel_m2   = 9'sd0;
             end
+`ifdef GFX_EQ_EXT
             3'd3: begin // CONST    Fs=c   Fd=255-c
 
 `ifdef INJ_WRONG_EQ // 注错：base 与 m1 都取错，恒等不成立
@@ -68,11 +72,21 @@ module engine_blend (
                 sel_m1   = $signed({1'b0, src});
                 sel_m2   = $signed({1'b0, dst});
             end
+`endif
+`ifdef GFX_ALPHA
             default: begin // ALPHA 非预乘  Fs=a Fd=255-a
                 sel_base = {1'b0, dst};
                 sel_m1   = $signed({1'b0, src}) - $signed({1'b0, dst});
                 sel_m2   = $signed({1'b0, a});
             end
+`else
+            // 无 ALPHA：未使能的方程号按 COPY 处理，避免出现组合环或不定值
+            default: begin
+                sel_base = {1'b0, src};
+                sel_m1   = 9'sd0;
+                sel_m2   = 9'sd0;
+            end
+`endif
         endcase
     end
 

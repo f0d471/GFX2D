@@ -16,6 +16,7 @@
 //   6. v1-TEX：BLIT 源允许 space=1，目的必须 DDR；源结构多查对齐与 16KiB 界
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 `include "engine_regs_offsets.vh"
 
 // 结构谓词：末像素 base + ((h-1)<<stride_log2) + (w-1)*4 + 3 ≤ 0xFFFFFFFF。
@@ -236,7 +237,11 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     wire [4:0]  cbuf_walo = rq_off + fe_tot[4:0];
     wire [5:0]  cbuf_wa   = {rq_half, cbuf_walo};
     wire [5:0] cbuf_ra = (st == S_HADDR || st == S_HWAIT || st == S_HREAD)
-                      ? {3'd0, hdr_beat} : {half, k[3:0], rd_word};
+              `ifdef GFX_HAS_STRIP
+        ? {3'd0, hdr_beat} : {half, k[3:0], rd_word};
+`else
+        ? {half, k[3:0], rd_word} : {half, k[3:0], rd_word};
+`endif
 
     always @(posedge clk) begin
         if (fs_fire) cbuf[cbuf_wa] <= fs_tdata;
@@ -296,6 +301,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     wire [31:0] rq_a1    = rq_addr + {22'd0, rq_n1, 5'd0};
 
     // 实例取数与命令取数共用一条 FD 流：批量取数期间 FE 持有所有权
+`ifdef GFX_HAS_INST
     wire        inst_fd_valid, inst_fd_ready, inst_fs_ready, inst_busy, inst_valid, inst_error;
     wire [31:0] inst_fd_addr, inst_xy, inst_uv, inst_next_id;
     wire [11:0] inst_fd_bytes;
@@ -326,6 +332,16 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     assign fd_cidx = command_owner ? rq_ctx : inst_fd_cidx;
     assign fd_valid = (command_owner || inst_fd_valid) && !soft_rst;
     assign fs_tready = ((fs_instance === 1'b1) ? inst_fs_ready : (fe_st == F_POLL)) && !soft_rst;
+`else
+    // 无实例：FD 流只有命令取数一个所有者，FS 流只有取数引擎一个消费者
+    wire command_owner = fe_st == F_ISSUE;
+    assign fd_instance = 1'b0;
+    assign fd_addr = (fe_d == 2'd0) ? rq_addr : rq_a1;
+    assign fd_bytes = {7'd0, (fe_d == 0) ? rq_n1 : (rq_n - rq_n1)} << 5;
+    assign fd_cidx = rq_ctx;
+    assign fd_valid = command_owner && !soft_rst;
+    assign fs_tready = (fe_st == F_POLL) && !soft_rst;
+`endif
     wire fe_done     = (fe_st == F_PULSE);      // 一拍，负载 fe_err
     wire fe_busy_any = (fe_st != F_IDLE);
     assign fe_cidx_err = fe_cidx_err_r;
@@ -393,22 +409,35 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         S_HWAIT=18, S_HREAD=19, S_BNEXT=20, S_BSTART=21, S_BLOAD=22,
         S_BFLUSH=23, S_BWAIT=24, S_CFG_WAIT=25, S_DISPATCH=26, S_INEXT=27;
     reg [4:0] st;
+`ifdef GFX_HAS_STRIP
     reg bmode, cfg_phase, cfg_bad_q;
-    reg [4:0] chk_q;
     reg [4:0] strip_id;
     reg [5:0] strips_r;
     reg [3:0] bg_id, dst_id;
     reg [31:0] table_base, counts [0:31];
     reg [2:0] hdr_beat;
+`else
+    // 无命令层条带模式：bmode 恒 0，条带表与逐条带循环不在编译输入里。
+    // 条带握手口留给 PB 直投使用（见 engine_top 的 band_* 二选一）。
+    wire bmode = 1'b0;
+`endif
+    reg [4:0] chk_q;
     assign band_enable = bmode && busy_r;
-    assign band_y0 = {11'd0, strip_id} * STRIP_H;
     assign band_start = st == S_BSTART && !soft_rst;
     assign band_flush = st == S_BFLUSH && !soft_rst;
     assign band_abort = st == S_TERM && pend_err && bmode &&
                         !active && !geom_busy && !fe_busy_any;
+`ifdef GFX_HAS_STRIP
+    assign band_y0 = {11'd0, strip_id} * STRIP_H;
     wire [31:0] global_k = bmode ? {17'd0, strip_id, 10'd0} + k : k;
     wire [31:0] global_bi = bmode ? {17'd0, strip_id, 10'd0} + bi : bi;
     wire [31:0] global_nbi = bmode ? {17'd0, strip_id, 10'd0} + n_bi : n_bi;
+`else
+    assign band_y0 = 16'd0;
+    wire [31:0] global_k = k;
+    wire [31:0] global_bi = bi;
+    wire [31:0] global_nbi = n_bi;
+`endif
 
     reg        busy_r;
     reg [31:0] base_r;
@@ -449,17 +478,28 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     wire [3:0]   c_srcid  = cmd_full[19:16];
     wire [3:0]   c_dstid  = cmd_full[23:20];
 
+`ifdef GFX_HAS_STRIP
     assign surf_ra_id = cfg_phase ? bg_id : c_srcid;
     assign surf_rb_id = cfg_phase ? dst_id : c_dstid;
+`else
+    assign surf_ra_id = c_srcid;
+    assign surf_rb_id = c_dstid;
+`endif
 
     wire is_fill_c = (c_op == OP_FILL);
+`ifdef GFX_HAS_INST
     wire is_inst_c = (c_op == 8'h05);
+`else
+    // 无实例：op 0x05 不在合法操作码集合里，走 BAD_OPCODE
+    wire is_inst_c = 1'b0;
+`endif
     wire is_blit_c = (c_op == OP_BLIT) || is_inst_c;
     wire op_ok_c   = (c_op == OP_NOP) || is_fill_c || is_blit_c
                    || (c_op == OP_CLIP) || (c_op == OP_END);
 
     wire scalar_f_bad, f_bad_c;
     ec_fields u_fields(.cmd(cmd_full), .bad(scalar_f_bad));
+`ifdef GFX_HAS_INST
     wire [15:0] inst_stride = cmd_full[175:160];
     wire [1:0]  inst_layout = cmd_full[177:176];
     wire [24:0] inst_length = (cmd_full[79:64] == 0) ? 25'd0 :
@@ -473,15 +513,42 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         (!cmd_full[12] && cmd_full[159:128] != 0) ||
         (c_eq != 3 && cmd_full[31:24] != 0) || inst_limit > 33'h100000000;
     assign f_bad_c=is_inst_c?inst_fields_bad:scalar_f_bad;
-    wire eq_bad_c = (c_eq > 4'd5);
+`else
+    assign f_bad_c=scalar_f_bad;
+`endif
+`ifdef GFX_ALPHA
+`ifdef GFX_EQ_EXT
+    // ALPHA 与 EQ_EXT 都开：六个方程全合法
+    wire eq_ok_c = (c_eq <= 4'd5);
+`else
+    // 只有 EQ_EXT 关：ALPHA 预乘/直通（1、5）合法，CONST/MUL（3、4）不合法
+    wire eq_ok_c = (c_eq == 4'd0) || (c_eq == 4'd1) || (c_eq == 4'd2) || (c_eq == 4'd5);
+`endif
+`else
+`ifdef GFX_EQ_EXT
+    // 只有 ALPHA 关：CONST/MUL（3、4）合法，ALPHA（1、5）不合法
+    wire eq_ok_c = (c_eq <= 4'd4) && (c_eq != 4'd1);
+`else
+    // 两者都关：只剩 COPY 与 ADD
+    wire eq_ok_c = (c_eq == 4'd0) || (c_eq == 4'd2);
+`endif
+`endif
+    wire eq_bad_c = !eq_ok_c;
 
     wire src_ok_c, dst_ok_c;
     ec_struct_ok u_ssrc(.s0(surf_ra_w0), .s1(surf_ra_w1), .s2(surf_ra_w2), .ok(src_ok_c));
     ec_struct_ok u_sdst(.s0(surf_rb_w0), .s1(surf_rb_w1), .s2(surf_rb_w2), .ok(dst_ok_c));
 
     // v1-TEX：BLIT 源放行 space=1，其余非 DDR 仍报 BAD_SPACE
+`ifdef GFX_HAS_TEX
     wire [1:0] src_space_c = surf_ra_w2[9:8];
     wire sp_src_bad = is_blit_c && (src_space_c == 2'd2 || src_space_c == 2'd3);
+`else
+    // 无 TEX：源空间只允许 DDR(0)，space=1 及 2/3 都报 BAD_SPACE。
+    // 若只在 src_ok_c 那一侧拒绝，space=1 会落到 BAD_SURFACE，与 2.6 节的契约不符。
+    wire [1:0] src_space_c = surf_ra_w2[9:8];
+    wire sp_src_bad = is_blit_c && (src_space_c != 2'd0);
+`endif
     wire sp_dst_bad = (is_fill_c || is_blit_c) && (surf_rb_w2[9:8] != 2'd00);
     wire sp_bad_c   = sp_src_bad || sp_dst_bad;
 
@@ -517,6 +584,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
 
     // 优先链（注错位 0：对调 space/format 两步，验收必须见红）
     // v2 表面反馈不能因分桶而改变读到的画面；按完整 backing 区间拒绝别名。
+`ifdef GFX_HAS_STRIP
     wire [47:0] src_end = {16'd0,surf_ra_w0} +
         (({32'd0,surf_ra_w1[31:16]}-48'd1) << surf_ra_w2[4:0]) +
         {30'd0,surf_ra_w1[15:0],2'd0};
@@ -541,6 +609,12 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         {16'd0,surf_rb_w1[31:16]} != strips_r*STRIP_H ||
         surf_rb_w1[31:16]>480 || surf_ra_w2[9:8]!=0 || surf_rb_w2[9:8]!=0 ||
         surf_ra_w2[15:12]!=0 || surf_rb_w2[15:12]!=0 || cfg_alias_bad;
+`else
+    // 无命令层条带模式：条带专属的别名、局部域与配置检查都不存在
+    wire feedback_bad = 1'b0;
+    wire local_bad    = 1'b0;
+    wire cfg_bad      = 1'b0;
+`endif
     wire [4:0] v_norm = (!op_ok_c || (bmode && is_inst_c))    ? {1'b1, EC_ERR_BAD_OPCODE}
                       : f_bad_c     ? {1'b1, EC_ERR_BAD_FIELD}
                       : eq_bad_c    ? {1'b1, EC_ERR_BAD_EQUATION}
@@ -587,9 +661,14 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         if (rst || soft_rst) begin
             st <= S_IDLE; busy_r <= 1'b0;
             external_r<=0;
+`ifdef GFX_HAS_INST
             inst_go<=0;inst_active<=0;inst_id<=0;inst_count<=0;inst_packet<=0;
+`endif
             err_instance<=32'hffffffff;perf_instance<=0;
-            bmode<=0;cfg_phase<=0;cfg_bad_q<=0;chk_q<=0;strip_id<=0;strips_r<=0;bg_id<=0;dst_id<=0;hdr_beat<=0;
+`ifdef GFX_HAS_STRIP
+            bmode<=0;cfg_phase<=0;cfg_bad_q<=0;strip_id<=0;strips_r<=0;bg_id<=0;dst_id<=0;hdr_beat<=0;
+`endif
+            chk_q<=0;
             band_bg_base<=0;band_dst_base<=0;band_bg_slog2<=0;band_dst_slog2<=0;
             band_frame_height<=0;
             err_set <= 1'b0; done_set <= 1'b0; commit <= 1'b0;
@@ -609,7 +688,10 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
             commit     <= 1'b0;
             start      <= 1'b0;
             fe_start_q <= 1'b0;
-            inst_go<=0;perf_instance<=0;
+`ifdef GFX_HAS_INST
+            inst_go<=0;
+`endif
+            perf_instance<=0;
 
             // 预取请求等 FE 空闲再发（S_FETCH/S_SWITCH 出口那一拍 FE 可能还在 F_PULSE）
             if (pf_armed && fe_ready) begin
@@ -626,10 +708,14 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                 // IDLE
                 S_IDLE: if (kick) begin
                     external_r<=(external_mode === 1'b1);
-                    inst_active<=0;err_instance<=32'hffffffff;
+`ifdef GFX_HAS_INST
+                    inst_active<=0;
+`endif
+                    err_instance<=32'hffffffff;
                     busy_r  <= 1'b1;
                     base_r  <= list_base;
                     count_r <= list_count;
+`ifdef GFX_HAS_STRIP
                     bmode <= (band_mode === 1'b1);
                     cfg_phase <= (band_mode === 1'b1);
                     strip_id <= 0;
@@ -647,6 +733,14 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                             pend_err<=1;err_code<=EC_ERR_BAD_FIELD;err_index<=0;err_tag<=0;st<=S_TERM;
                         end else st<=S_CFG;
                     end else if (list_count == 32'd0) begin
+`else
+                    // 无命令层条带模式：门铃后的 CTRL.BAND 不生效，只有直投与标量命令两条入口
+                    if(external_mode === 1'b1)begin
+                        count_r<=1;bi<=0;k<=0;bn<=1;nst<=N_IDLE;
+                        pend_err<=0;pend_done<=0;pf_armed<=0;
+                        w0<=external_packet[127:0];w1<=external_packet[255:128];st<=S_RUN;
+                    end else if (list_count == 32'd0) begin
+`endif
                         pend_done <= 1'b1;              // COUNT=0：直接成功
                         st        <= S_TERM;
                     end else if (list_base[4:0] != 5'd0) begin
@@ -756,17 +850,23 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end else if (chk_q[4]) begin
                         pend_err  <= 1'b1;
                         err_code  <= chk_q[3:0];
+`ifdef GFX_HAS_INST
                         err_instance<=inst_active?inst_id:32'hffffffff;
+`else
+                        err_instance<=32'hffffffff;
+`endif
                         err_index <= global_k;
                         err_tag   <= w1[127:96];
                         st        <= S_TERM;
                     end else begin
                         case (c_op)
+`ifdef GFX_HAS_INST
                             8'h05: begin
                                 if(w0[95:64]==0)begin commit<=1;st<=S_ADV;end
                                 else begin inst_packet<=cmd_full;inst_count<=w0[79:64];
                                            inst_active<=1;inst_go<=1;st<=S_INEXT;end
                             end
+`endif
                             OP_NOP: begin
                                 commit <= 1'b1;
                                 st     <= S_ADV;
@@ -793,6 +893,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end
                 end
 
+`ifdef GFX_HAS_INST
                 S_INEXT: begin
                     if(inst_error || tmo_evt)begin
                         pend_err<=1;err_code<=tmo_evt?EC_ERR_TIMEOUT:inst_error_code;
@@ -808,6 +909,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                         inst_id<=inst_next_id;st<=S_RUN;
                     end
                 end
+`endif
 
                 // 下发几何层
                 S_ISSUE: if (!geom_busy && !active) begin
@@ -833,7 +935,11 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     `ifdef INJ_STRIP_LOCAL_Y
                     i1_dst_y <= $signed(w0[95:80]);
 `else
+`ifdef GFX_HAS_STRIP
                     i1_dst_y <= bmode ? $signed(w0[95:80] + band_y0) : $signed(w0[95:80]);
+`else
+                    i1_dst_y <= $signed(w0[95:80]);
+`endif
 `endif
                     i1_w       <= w0[111:96];
                     i1_h       <= w0[127:112];
@@ -844,7 +950,11 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     i1_clip_y1 <= external_r?external_clip[63:48]:(bmode ? 16'sd479 : clip_y1);
                     i1_cidx    <= k[3:0];
                     start      <= 1'b1;
+`ifdef GFX_HAS_INST
                     perf_instance<=inst_active;
+`else
+                    perf_instance<=1'b0;
+`endif
                     active     <= 1'b1;
                     tag_cur    <= w1[127:96];
                     st         <= S_ACTIVE;
@@ -852,18 +962,24 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
 
                 // 等活动命令完成
                 S_ACTIVE: begin
+`ifdef GFX_HAS_INST
 `ifdef INJ_INST_EARLY_DONE
                     if(inst_active && geom_busy)done_set<=1;
 `endif
 `ifdef INJ_INST_STATE
                     if(inst_active)inst_packet[127:96]<=0;
 `endif
+`endif
                     if (wr_stat_valid && wr_stat_err) begin
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_BUS_WRITE;
                         err_index <= global_k;
                         err_tag   <= tag_cur;
+`ifdef GFX_HAS_INST
                         err_instance<=inst_active?inst_id:32'hffffffff;
+`else
+                        err_instance<=32'hffffffff;
+`endif
                         // 末行的写状态本身就是完成回报：错误与完成同拍时也要撤 active，
                         // 否则 S_TERM 等一个已经来过的 last_row，永远收不了尾
                         if (wr_stat_last_row)
@@ -874,28 +990,42 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                         err_code  <= EC_ERR_BUS_READ;
                         err_index <= global_k;
                         err_tag   <= tag_cur;
+`ifdef GFX_HAS_INST
                         err_instance<=inst_active?inst_id:32'hffffffff;
+`else
+                        err_instance<=32'hffffffff;
+`endif
                         st        <= S_TERM;
                     end else if (tmo_evt) begin
                         pend_err  <= 1'b1;
                         err_code  <= EC_ERR_TIMEOUT;
                         err_index <= global_k;
                         err_tag   <= tag_cur;
+`ifdef GFX_HAS_INST
                         err_instance<=inst_active?((tmo_instance === 1'b1)?inst_next_id:inst_id):32'hffffffff;
+`else
+                        err_instance<=32'hffffffff;
+`endif
                         st        <= S_TERM;
                     end else if (
                                (wr_stat_valid && wr_stat_last_row)
                               || (geom_cmd_done && geom_done_cidx == k[3:0])) begin
                         // 非空命令的末行写状态 / 空命令的 cmd_done
                         active<=0;
+`ifdef GFX_HAS_INST
                         if(inst_active && inst_id+32'd1!={16'd0,inst_count})st<=S_INEXT;
                         else begin commit<=1;st<=S_ADV;end
+`else
+                        commit<=1;st<=S_ADV;
+`endif
                     end
                 end
 
                 // 推进
                 S_ADV: begin
+`ifdef GFX_HAS_INST
                     inst_active<=0;
+`endif
                     k <= k + 32'd1;
                     if ({1'b0, k} + 33'd1 >= {1'b0, bi} + {1'b0, bn})
                         st <= S_SWITCH;
@@ -906,8 +1036,12 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                 // 批切换
                 S_SWITCH: begin
                     if ({1'b0, bi} + {1'b0, bn} >= {1'b0, count_r}) begin
+`ifdef GFX_HAS_STRIP
                         if(bmode) st<=S_BFLUSH;
                         else begin pend_done<=1'b1;st<=S_TERM;end
+`else
+                        pend_done<=1'b1;st<=S_TERM;
+`endif
                     end else if (per) begin
                         // 逐条回退消耗完失败批：整批取下一批，回到批量模式。
                         // k 在 S_ADV 已推进到 bi+bn = 下一批的批首。
@@ -1011,6 +1145,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                 end
 
                 // 条带相位：表头收 4 拍，跨条带不预取；正常 flush 后才开放下一段
+`ifdef GFX_HAS_STRIP
                 S_CFG: begin cfg_bad_q<=cfg_bad;st<=S_CFG_WAIT;end
                 S_CFG_WAIT: begin
                     if(cfg_bad_q) begin
@@ -1071,13 +1206,18 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     if({1'b0,strip_id}+6'd1==strips_r) begin pend_done<=1;st<=S_TERM;end
                     else begin strip_id<=strip_id+1'b1;st<=S_BNEXT;end
                 end
+`endif
 
                 // 收尾：等在途命令与预取流全部静止才置 done_set/err_set——DONE/ERR 置位即引擎已空闲
                 S_TERM: begin
                     if ((wr_stat_valid && wr_stat_last_row)
                      || (geom_cmd_done && geom_done_cidx == k[3:0]))
                         active <= 1'b0;
-                    if (!active && !fe_busy_any && !inst_busy && !geom_busy &&
+                    if (!active && !fe_busy_any &&
+`ifdef GFX_HAS_INST
+                        !inst_busy &&
+`endif
+                        !geom_busy &&
                         (!bmode || (pend_err ? drain_done : !band_busy))) begin
                         err_set  <= pend_err;
                         done_set <= pend_done;

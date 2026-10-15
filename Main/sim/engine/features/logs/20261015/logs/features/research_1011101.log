@@ -1,0 +1,5 @@
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/research_1011101.v:9: error: Unknown module type: GFX_CONFIG_ERROR_PB_REQUIRES_BAND
+2 error(s) during elaboration.
+*** These modules were missing:
+        GFX_CONFIG_ERROR_PB_REQUIRES_BAND referenced 1 times.
+***

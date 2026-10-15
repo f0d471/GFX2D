@@ -51,7 +51,7 @@ localparam [3:0] EC_PERF_PB_WR_BEAT = 4'd13;
 localparam [31:0] EC_ID_VALUE = 32'h47465801;
 localparam [7:0]  EC_ID_VERSION = 8'h01;
 
-// CAPS 位位号
+// CAPS 位位号；复位值随构型（见 tools/check/feature_config.py）
 localparam EC_CAPS_KEY_LO = 0;
 localparam EC_CAPS_KEY_W  = 1;
 localparam EC_CAPS_KEY_VALUE = 1;

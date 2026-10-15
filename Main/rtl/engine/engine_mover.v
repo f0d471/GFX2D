@@ -16,6 +16,7 @@
 //   7. 注错开关见 engine-manual.md
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_mover #(
     parameter integer AXI_MAX_BURST_LEN = 192,
@@ -186,7 +187,9 @@ module engine_mover #(
     reg  [3:0]  wr_ctx_cidx;
     reg         wr_ctx_last_row;
 
-    // BAND 条带面的连接线（ENABLE_BAND=0 时全接 0）
+    // BAND 条带面的连接线（GFX_HAS_BAND_HW 未定义时全接 0）。
+    // 参数 ENABLE_BAND 由顶层从同一宏派生；两者不一致时编译期停住，
+    // 否则会出现「宏说没有条带、参数说有条带」的错配。
     wire rd_is_band = ENABLE_BAND ? rd_band : 1'b0;
     wire wr_is_band = ENABLE_BAND ? wr_band : 1'b0;
     wire b_start_ready, b_flush_ready, b_loading, b_flushing, b_rbusy, b_wbusy;
@@ -204,42 +207,56 @@ module engine_mover #(
     wire [1:0]   b_rsbuf, b_rstatbuf;
     wire [3:0]   b_rcidx, b_wcidx;
     wire         b_rready, b_wready_desc, b_wsready, b_rfire, b_wfire, b_rstat_ready, b_wstat_ready;
-    generate if(ENABLE_BAND!=0) begin : g_band
-        engine_band #(.STRIP_H(BAND_STRIP_H)) u_band(
-            .clk(clk),.rst(rst),.cancel(drain_hold),.err_clr(err_clr),
-            .start(b_start_fire),.start_ready(b_start_ready),.flush(b_flush_fire),.flush_ready(b_flush_ready),
-            .bg_base(band_bg_base),.dst_base(band_dst_base),
-            .bg_slog2(band_bg_slog2),.dst_slog2(band_dst_slog2),
-            .strip_y0(band_y0),.frame_height(band_frame_height),
-            .loaded(band_loaded),.flushed(band_flushed),.active(band_active),.busy(band_busy),
-            .loading(b_loading),.flushing(b_flushing),.error(band_error),.error_code(band_error_code),
-            .dma_rd_addr(b_rd_addr),.dma_rd_bytes(b_rd_bytes),.dma_rd_valid(b_rd_valid),.dma_rd_ready(b_rd_ready),
-            .dma_rdata(core_rs_tdata),.dma_rvalid(core_rs_tvalid && rd_ctx_bg),.dma_rlast(core_rs_tlast),.dma_rready(),
-            .dma_rd_done(rd_stat_v && rd_ctx_bg),.dma_rd_error(rd_err_r),
-            .dma_wr_addr(b_wr_addr),.dma_wr_bytes(b_wr_bytes),.dma_wr_valid(b_wr_valid),.dma_wr_ready(b_wr_ready),
-            .dma_wdata(b_wdata),.dma_wvalid(b_wvalid),.dma_wready(b_wready),
-            .dma_wr_done(wr_stat_v && wr_ctx_flush),.dma_wr_error(wr_err_r),.dma_idle(b_bus_idle),
-            .rd_addr(rd_addr),.rd_bytes(rd_bytes),.rd_buf(rd_buf),.rd_cidx(rd_cidx),.rd_valid(b_rfire),.rd_ready(b_rready),
-            .rs_data(b_rsdata),.rs_valid(b_rsvalid),.rs_last(b_rslast),.rs_buf(b_rsbuf),
-            .rd_stat_valid(b_rstat),.rd_stat_error(b_rerr),.rd_stat_cidx(b_rcidx),.rd_stat_buf(b_rstatbuf),
-            .rd_stat_ready(b_rstat_ready),.rd_busy(b_rbusy),
-            .wr_addr(wr_addr),.wr_bytes(wr_bytes),.wr_cidx(wr_cidx),.wr_last_row(wr_last_row),
-            .wr_valid(b_wfire),.wr_ready(b_wready_desc),.ws_data(ws_tdata),.ws_keep(ws_tkeep),
-            .ws_valid(ws_tvalid && b_wbusy && !drain_hold),.ws_ready(b_wsready),
-            .wr_stat_valid(b_wstat),.wr_stat_error(b_werr),.wr_stat_cidx(b_wcidx),.wr_stat_last_row(b_wlast),
-            .wr_stat_ready(b_wstat_ready),.wr_busy(b_wbusy));
+`ifdef GFX_HAS_BAND_HW
+    // 宏开时按参数在“带条带”与“仅接常量”之间选；参数与宏不一致由上层构建入口拦住。
+    // 单模块套件可以直接例化 mover 而不接条带数据面，这一分支使那些套件保持可用。
+    generate if (ENABLE_BAND != 0) begin : g_band
+    engine_band #(.STRIP_H(BAND_STRIP_H)) u_band(
+        .clk(clk),.rst(rst),.cancel(drain_hold),.err_clr(err_clr),
+        .start(b_start_fire),.start_ready(b_start_ready),.flush(b_flush_fire),.flush_ready(b_flush_ready),
+        .bg_base(band_bg_base),.dst_base(band_dst_base),
+        .bg_slog2(band_bg_slog2),.dst_slog2(band_dst_slog2),
+        .strip_y0(band_y0),.frame_height(band_frame_height),
+        .loaded(band_loaded),.flushed(band_flushed),.active(band_active),.busy(band_busy),
+        .loading(b_loading),.flushing(b_flushing),.error(band_error),.error_code(band_error_code),
+        .dma_rd_addr(b_rd_addr),.dma_rd_bytes(b_rd_bytes),.dma_rd_valid(b_rd_valid),.dma_rd_ready(b_rd_ready),
+        .dma_rdata(core_rs_tdata),.dma_rvalid(core_rs_tvalid && rd_ctx_bg),.dma_rlast(core_rs_tlast),.dma_rready(),
+        .dma_rd_done(rd_stat_v && rd_ctx_bg),.dma_rd_error(rd_err_r),
+        .dma_wr_addr(b_wr_addr),.dma_wr_bytes(b_wr_bytes),.dma_wr_valid(b_wr_valid),.dma_wr_ready(b_wr_ready),
+        .dma_wdata(b_wdata),.dma_wvalid(b_wvalid),.dma_wready(b_wready),
+        .dma_wr_done(wr_stat_v && wr_ctx_flush),.dma_wr_error(wr_err_r),.dma_idle(b_bus_idle),
+        .rd_addr(rd_addr),.rd_bytes(rd_bytes),.rd_buf(rd_buf),.rd_cidx(rd_cidx),.rd_valid(b_rfire),.rd_ready(b_rready),
+        .rs_data(b_rsdata),.rs_valid(b_rsvalid),.rs_last(b_rslast),.rs_buf(b_rsbuf),
+        .rd_stat_valid(b_rstat),.rd_stat_error(b_rerr),.rd_stat_cidx(b_rcidx),.rd_stat_buf(b_rstatbuf),
+        .rd_stat_ready(b_rstat_ready),.rd_busy(b_rbusy),
+        .wr_addr(wr_addr),.wr_bytes(wr_bytes),.wr_cidx(wr_cidx),.wr_last_row(wr_last_row),
+        .wr_valid(b_wfire),.wr_ready(b_wready_desc),.ws_data(ws_tdata),.ws_keep(ws_tkeep),
+        .ws_valid(ws_tvalid && b_wbusy && !drain_hold),.ws_ready(b_wsready),
+        .wr_stat_valid(b_wstat),.wr_stat_error(b_werr),.wr_stat_cidx(b_wcidx),.wr_stat_last_row(b_wlast),
+        .wr_stat_ready(b_wstat_ready),.wr_busy(b_wbusy));
     end else begin : g_no_band
-        assign b_start_ready=0;assign b_flush_ready=0;
-        assign band_loaded=0;assign band_flushed=0;assign band_active=0;assign band_busy=0;
-        assign band_error=0;assign band_error_code=0;assign b_loading=0;assign b_flushing=0;
-        assign b_rbusy=0;assign b_wbusy=0;assign b_rd_addr=0;assign b_wr_addr=0;
-        assign b_rd_bytes=0;assign b_wr_bytes=0;assign b_rd_valid=0;assign b_wr_valid=0;
-        assign b_wdata=0;assign b_wvalid=0;assign b_rsdata=0;assign b_rsvalid=0;assign b_rslast=0;
-        assign b_rstat=0;assign b_rerr=0;assign b_wstat=0;assign b_werr=0;assign b_wlast=0;
-        assign b_rsbuf=0;assign b_rstatbuf=0;assign b_rcidx=0;assign b_wcidx=0;
-        assign b_rready=0;assign b_wready_desc=0;assign b_wsready=0;
+        assign b_start_ready=0; assign b_flush_ready=0;
+        assign band_loaded=0; assign band_flushed=0; assign band_active=0; assign band_busy=0;
+        assign band_error=0; assign band_error_code=0; assign b_loading=0; assign b_flushing=0;
+        assign b_rbusy=0; assign b_wbusy=0; assign b_rd_addr=0; assign b_wr_addr=0;
+        assign b_rd_bytes=0; assign b_wr_bytes=0; assign b_rd_valid=0; assign b_wr_valid=0;
+        assign b_wdata=0; assign b_wvalid=0; assign b_rsdata=0; assign b_rsvalid=0; assign b_rslast=0;
+        assign b_rstat=0; assign b_rerr=0; assign b_wstat=0; assign b_werr=0; assign b_wlast=0;
+        assign b_rsbuf=0; assign b_rstatbuf=0; assign b_rcidx=0; assign b_wcidx=0;
+        assign b_rready=0; assign b_wready_desc=0; assign b_wsready=0;
     end endgenerate
-
+`else
+    // 无条带数据面：全部条带网接常量，b_* 的使用点保持单一写法。
+    assign b_start_ready=0; assign b_flush_ready=0;
+    assign band_loaded=0; assign band_flushed=0; assign band_active=0; assign band_busy=0;
+    assign band_error=0; assign band_error_code=0; assign b_loading=0; assign b_flushing=0;
+    assign b_rbusy=0; assign b_wbusy=0; assign b_rd_addr=0; assign b_wr_addr=0;
+    assign b_rd_bytes=0; assign b_wr_bytes=0; assign b_rd_valid=0; assign b_wr_valid=0;
+    assign b_wdata=0; assign b_wvalid=0; assign b_rsdata=0; assign b_rsvalid=0; assign b_rslast=0;
+    assign b_rstat=0; assign b_rerr=0; assign b_wstat=0; assign b_werr=0; assign b_wlast=0;
+    assign b_rsbuf=0; assign b_rstatbuf=0; assign b_rcidx=0; assign b_wcidx=0;
+    assign b_rready=0; assign b_wready_desc=0; assign b_wsready=0;
+`endif
     // 复位排空状态机
     reg draining;
     reg drain_served;        // 这一次请求已经完成过，等 drain_req 撤下才清

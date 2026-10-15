@@ -1,0 +1,14 @@
+%Error: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_3.v:22:1: Cannot find file containing module: 'GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY'
+   22 | GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY bad_key();
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%Error: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_3.v:22:1: This may be because there's no search path specified with -I<dir>.
+   22 | GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY bad_key();
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ... Looked in:
+             GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY
+             GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY.v
+             GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY.sv
+             obj_dir/GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY
+             obj_dir/GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY.v
+             obj_dir/GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY.sv
+%Error: Exiting due to 2 error(s)

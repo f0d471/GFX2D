@@ -10,6 +10,7 @@
 //   2. op 为 BLIT/BLIT_INST（2/5）时源有效区按 (dx-sx, dy-sy) 反推后参与求交
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_bounds #(parameter integer STRIP_H = 16) (
     input  wire [255:0] packet,

@@ -10,6 +10,7 @@
 //   2. PB 写走独立 owner 通路，128 位数据原样转发，不做字节抑制
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_pb_dma (
     input  wire         clk,

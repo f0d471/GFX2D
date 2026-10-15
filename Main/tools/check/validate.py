@@ -45,6 +45,18 @@ add('bin',[sys.executable,P+'check_f5_bin.py','--models','--bin','--frame','--mu
     '硬件分桶、完整引擎、变异、错误与 lease')
 add('bin-game',[sys.executable,P+'check_f5_bin.py','--game','--replay'],'分桶生产帧与完整宿主回放',['pack'])
 add('research',[sys.executable,P+'check_f5_bin.py','--research'],'冻结研究输入复现')
+add('feature-research',[sys.executable,P+'research_engine_features.py','--models','--prepare-synthesis','--blend-models'],
+    '可选机制配置、编译守卫与混合核研究；不代表裁剪整机验收')
+add('feature-netlist',[sys.executable,P+'feature_netlist.py','--tree-root','Main/sim/build/feature-trees',
+                       '--out','Main/sim/build/feature-trees/netlist.json'],
+    '按构型的 netlist 结构检查：关闭的机制不得在综合网表里留下信号（Windows，先跑综合）')
+add('feature-caps',[sys.executable,P+'check_feature_caps.py'],'特性清单与两份生成物的 CAPS 同源一致')
+add('feature-elab',[sys.executable,P+'check_feature_elab.py'],
+    '七代表档与合法/非法结构组合的配置穷举 elaboration（自建源树）')
+add('feature-probe',[sys.executable,P+'check_feature_probe.py'],
+    '关闭的机制离开编译输入：实例化点与源码内容两种判据')
+add('feature-contract',[sys.executable,P+'check_feature_contract.py'],
+    '按构型的禁用契约与六条依赖守卫反例')
 add('ddr-log',[sys.executable,P+'check_f5_bin.py','--ddr-log'],'DDR 日志 sink 的字节／CRC／溢出边界')
 add('synthesis',[sys.executable,P+'run_f5_synthesis.py','--build','main','--collect'],'整机编译与资源时序（Windows）')
 add('synthesis-report',[sys.executable,P+'run_f5_synthesis.py','--collect','--projects','main'],'已有整机报告的全时钟关系复核（Windows）')
@@ -61,6 +73,13 @@ for name,item in CHECKS.items():
     elif name=='regs':inputs=[P+'regs_gen.py','Main/rtl/engine/engine_regs_offsets.vh','Main/sw/bsp/include/gfx_regs.h']
     elif name=='semantics':inputs=[P+'check_cmd_semantics.py','Main/doc/赛题二总体设计.md']
     elif name=='ddr-log':inputs=[P+'check_f5_bin.py','Main/sw/bsp/include/board_ddr_log.h','Main/sim/engine/frontend/test_ddr_log.c']
+    elif name.startswith('feature-'):
+        # 特性构型的判据同时依赖 RTL、配置真源、构建入口与仿真侧脚本。
+        inputs=['Main/rtl/**','Main/sim/engine/features/**',
+                P+'feature_config.py',P+'feature_build.py',P+'feature_netlist.py',
+                P+'check_feature_caps.py',P+'check_feature_elab.py',
+                P+'check_feature_probe.py',P+'check_feature_contract.py',
+                P+'regs_gen.py','Main/sw/bsp/include/gfx_feature.h']
     elif name in ('synthesis','synthesis-report','board'):inputs=HARDWARE
     elif name in ('lib','app','layers','pc','assets','demo','game','stats','pack'):inputs=SOFTWARE
     else:inputs=RTL_INPUTS

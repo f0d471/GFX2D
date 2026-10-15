@@ -1,0 +1,1114 @@
+{
+  "status": "PASS",
+  "scope": "research configuration and guard probes; no production feature implementation",
+  "versions": {
+    "iverilog": "Icarus Verilog version 12.0 (stable) ()",
+    "verilator": "Verilator 5.032 2025-01-01 rev (Debian 5.032-1)",
+    "yosys": "Yosys 0.52 (git sha1 fee39a3284c90249e1d9684cf6944ffbbcbb8f90)"
+  },
+  "legal_structural_configurations": [
+    {
+      "TEX": 0,
+      "BAND": 0,
+      "INST": 0,
+      "PB": 0
+    },
+    {
+      "TEX": 0,
+      "BAND": 0,
+      "INST": 1,
+      "PB": 0
+    },
+    {
+      "TEX": 0,
+      "BAND": 1,
+      "INST": 0,
+      "PB": 0
+    },
+    {
+      "TEX": 0,
+      "BAND": 1,
+      "INST": 1,
+      "PB": 0
+    },
+    {
+      "TEX": 0,
+      "BAND": 1,
+      "INST": 1,
+      "PB": 1
+    },
+    {
+      "TEX": 1,
+      "BAND": 0,
+      "INST": 0,
+      "PB": 0
+    },
+    {
+      "TEX": 1,
+      "BAND": 0,
+      "INST": 1,
+      "PB": 0
+    },
+    {
+      "TEX": 1,
+      "BAND": 1,
+      "INST": 0,
+      "PB": 0
+    },
+    {
+      "TEX": 1,
+      "BAND": 1,
+      "INST": 1,
+      "PB": 0
+    },
+    {
+      "TEX": 1,
+      "BAND": 1,
+      "INST": 1,
+      "PB": 1
+    }
+  ],
+  "research_valid": 80,
+  "delivery_valid": 20,
+  "guard_configurations": [
+    {
+      "configuration": "research_0000000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0000001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0000010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0000011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0000100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0000101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0000110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0000111",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0001000",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0001001",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0001010",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0001011",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0001100",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0001101",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0001110",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0001111",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0010000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0010001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0010010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0010011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0010100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0010101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0010110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0010111",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0011000",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0011001",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0011010",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0011011",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0011100",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0011101",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0011110",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0011111",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0100000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0100001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0100010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0100011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0100100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0100101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0100110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0100111",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0101000",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0101001",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0101010",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0101011",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0101100",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0101101",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0101110",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0101111",
+      "accepted": false
+    },
+    {
+      "configuration": "research_0110000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0110001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0110010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0110011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0110100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0110101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0110110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0110111",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0111000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0111001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0111010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0111011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0111100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0111101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0111110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_0111111",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1000000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1000001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1000010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1000011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1000100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1000101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1000110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1000111",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1001000",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1001001",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1001010",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1001011",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1001100",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1001101",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1001110",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1001111",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1010000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1010001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1010010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1010011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1010100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1010101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1010110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1010111",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1011000",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1011001",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1011010",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1011011",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1011100",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1011101",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1011110",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1011111",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1100000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1100001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1100010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1100011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1100100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1100101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1100110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1100111",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1101000",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1101001",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1101010",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1101011",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1101100",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1101101",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1101110",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1101111",
+      "accepted": false
+    },
+    {
+      "configuration": "research_1110000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1110001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1110010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1110011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1110100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1110101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1110110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1110111",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1111000",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1111001",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1111010",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1111011",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1111100",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1111101",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1111110",
+      "accepted": true
+    },
+    {
+      "configuration": "research_1111111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0000000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0000001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0000010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0000011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0000100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0000101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0000110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0000111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0001000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0001001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0001010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0001011",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0001100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0001101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0001110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0001111",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0010000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0010001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0010010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0010011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0010100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0010101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0010110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0010111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0011000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0011001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0011010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0011011",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0011100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0011101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0011110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0011111",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0100000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0100001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0100010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0100011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0100100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0100101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0100110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0100111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0101000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0101001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0101010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0101011",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0101100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0101101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0101110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0101111",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0110000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0110001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0110010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0110011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0110100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0110101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0110110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0110111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0111000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0111001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0111010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0111011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_0111100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0111101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0111110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_0111111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1000000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1000001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1000010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1000011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1000100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1000101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1000110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1000111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1001000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1001001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1001010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1001011",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1001100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1001101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1001110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1001111",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1010000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1010001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1010010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1010011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1010100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1010101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1010110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1010111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1011000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1011001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1011010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1011011",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1011100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1011101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1011110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1011111",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1100000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1100001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1100010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1100011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1100100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1100101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1100110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1100111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1101000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1101001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1101010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1101011",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1101100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1101101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1101110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1101111",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1110000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1110001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1110010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1110011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1110100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1110101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1110110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1110111",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1111000",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1111001",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1111010",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1111011",
+      "accepted": true
+    },
+    {
+      "configuration": "delivery_1111100",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1111101",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1111110",
+      "accepted": false
+    },
+    {
+      "configuration": "delivery_1111111",
+      "accepted": true
+    }
+  ],
+  "portable_guard_cases_per_tool": 5,
+  "representative_caps": {
+    "A0": "0x0000040F",
+    "A1": "0x0000144F",
+    "A2": "0x0000142F",
+    "A3": "0x0000046F",
+    "A4": "0x0000146F",
+    "A5": "0x0000346F"
+  },
+  "error_directive_exit_codes": {
+    "iverilog": 0,
+    "verilator": 1,
+    "yosys": 1
+  },
+  "define_zero_still_enabled": true
+}

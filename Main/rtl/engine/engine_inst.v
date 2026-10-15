@@ -11,6 +11,7 @@
 //   3. tready 反压由读核 FIFO 吸收，本层每拍数据必须被缓存吞下
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_inst (
     input  wire         clk,

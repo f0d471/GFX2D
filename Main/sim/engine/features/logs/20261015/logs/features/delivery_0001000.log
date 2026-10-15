@@ -1,0 +1,11 @@
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/delivery_0001000.v:6: error: Unknown module type: GFX_CONFIG_ERROR_PB_REQUIRES_BAND
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/delivery_0001000.v:9: error: Unknown module type: GFX_CONFIG_ERROR_PB_REQUIRES_INST
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/delivery_0001000.v:14: error: Unknown module type: GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/delivery_0001000.v:17: error: Unknown module type: GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY
+5 error(s) during elaboration.
+*** These modules were missing:
+        GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA referenced 1 times.
+        GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY referenced 1 times.
+        GFX_CONFIG_ERROR_PB_REQUIRES_BAND referenced 1 times.
+        GFX_CONFIG_ERROR_PB_REQUIRES_INST referenced 1 times.
+***

@@ -18,7 +18,7 @@ if [ -z "${EFINITY_HOME:-}" ] || [ ! -f "$EFINITY_HOME/sim_models/verilog/efx_sr
 fi
 
 RTL=../../../rtl
-SRC="$RTL/engine/engine_mover.v \
+SRC="$RTL/engine/engine_mover.v $RTL/engine/engine_band.v \
      $RTL/vendor/verilog-axi/axi_dma_rd.v $RTL/vendor/verilog-axi/axi_dma_wr.v \
      $RTL/vendor/axi_mux/Axi_Mux.v $EFINITY_HOME/sim_models/verilog/efx_srl8.v \
      ../../axi_probe/axi_ram_model.v tb_engine_mover.v"
@@ -31,7 +31,7 @@ total=0
 run_case() {
     local name=$1
     shift
-    if ! iverilog -g2012 -I "$RTL/vendor/axi_mux" -o "$BUILD/$name.vvp" "$@" $SRC \
+    if ! iverilog -g2012 -I "$RTL/engine" -I "$RTL/vendor/axi_mux" -o "$BUILD/$name.vvp" "$@" $SRC \
             > "$BUILD/$name.compile.log" 2>&1; then
         echo "RESULT: COMPILE-ERROR (see $BUILD/$name.compile.log)"
         return

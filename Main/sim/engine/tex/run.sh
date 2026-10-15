@@ -25,7 +25,7 @@ RTL_FILES="$RTL/engine/engine_tex.v $RTL/engine/engine_geom.v $RTL/engine/engine
 
 run_case() {  # <名字> <期望 PASS|FAIL> [注错开关]
     local name="$1" want="$2" inj="${3:-}"
-    if ! iverilog -g2012 -s tb_engine_tex -DCASE='"build/tex_sprites"' $inj \
+    if ! iverilog -g2012 -I "$RTL/engine" -s tb_engine_tex -DCASE='"build/tex_sprites"' $inj \
          ${G1_EXTRA_DEFS:-} -I $RTL/engine -o build/$name.vvp tb_engine_tex.v $RTL_FILES; then
         echo "$name: COMPILE-FAIL"
         bad=1

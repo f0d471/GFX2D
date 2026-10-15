@@ -37,7 +37,10 @@ def validate_engine(body):
     if boundary not in body:raise RuntimeError('缺少本次程序加载边界')
     body=body.split(boundary,1)[1]
     # 横幅可能早于 OpenOCD 返回；本次身份由加载证据及边界后的完整功能集合共同确定。
-    for marker in ['COUNT32 ok', 'TEX-CAPS ok', 'TEX-LOAD ok', 'PERF-BUSY ok', 'STRESS ok']:
+    # CAPS-BACKEND-PAIR 是本工作点新增的判据：能力位与默认后端必须分开断言，
+    # 缺了它「引擎能分桶但默认不走分桶」这条就没有板上证据。
+    for marker in ['COUNT32 ok', 'TEX-CAPS ok', 'CAPS-BACKEND-PAIR ok', 'TEX-LOAD ok',
+                   'PERF-BUSY ok', 'STRESS ok']:
         if marker not in body:raise RuntimeError('缺少引擎功能判据: '+marker)
     lines=[line.strip() for line in body.splitlines()]
     if [line for line in lines if re.fullmatch(r'fail \d+',line)]!=['fail 0'] or 'done' not in lines:

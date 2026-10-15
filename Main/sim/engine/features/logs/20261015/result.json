@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "profile": "quick",
+  "scope": "engine optional-feature preliminary research; production implementation not started",
+  "checks": {
+    "features.models": {
+      "status": "PASS",
+      "attempt": 1,
+      "seconds": 22.644,
+      "details": {
+        "log": "Main/sim/build/check-runs/20261015-162126-b775e948/logs/features/models.json"
+      }
+    },
+    "features.blend-models": {
+      "status": "PASS",
+      "attempt": 1,
+      "seconds": 12.379,
+      "details": {
+        "log": "Main/sim/build/check-runs/20261015-162126-b775e948/logs/features/blend_models.json"
+      }
+    },
+    "features.synthesis": {
+      "status": "PASS",
+      "attempt": 1,
+      "seconds": 8.0,
+      "details": {
+        "log": "Main/sim/build/check-runs/20261015-162126-b775e948/logs/features/synthesis.json"
+      }
+    },
+    "features.board": {
+      "status": "PASS",
+      "attempt": 1,
+      "seconds": 36.969,
+      "details": {
+        "log": "Main/sim/build/check-runs/20261015-162126-b775e948/logs/features/board.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+`line 1 "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/error_directive.v" 1
+ 
+module feature_guard; endmodule
+
+`line 4 "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/error_directive.v" 0
+%Error: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/error_directive.v:1:8: "invalid configuration"
+    1 | `error "invalid configuration"
+      |        ^~~~~~~~~~~~~~~~~~~~~~~
+%Error: Exiting due to 1 error(s)

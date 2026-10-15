@@ -13,6 +13,7 @@
 //   5. 混合核五个输入必须由寄存器直接驱动；注错开关见 engine-manual.md
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_pix (
     input  wire         clk,
@@ -47,8 +48,8 @@ module engine_pix (
     // 写流（本层 → 搬运层），没有 tlast
     output reg  [127:0] ws_tdata,       // 每拍 4 像素，X 字节最高位 = 1 表示不写
     output wire [15:0]  ws_tkeep,
-    output reg          ws_tvalid,
-    input  wire         ws_tready,
+    output reg          ws_tvalid,      // 写流有效
+    input  wire         ws_tready,      // 写流背压
 
     // 色键跳过事件（控制层 PERF_KEY_SKIP 计数源）
     // 与输出写流同拍寄存色键掩码，写流握手时才计数。
@@ -60,17 +61,18 @@ module engine_pix (
     localparam [1:0] PS_IDLE = 2'd0, PS_PRE = 2'd1,
                      PS_RUN = 2'd2, PS_DRAIN = 2'd3;
 
-    // 同一个时钟使能管住每一级，包括行缓冲读口与 12 个核。
-`ifdef INJ_EN_NOTREADY
-    wire en = 1'b1;                       // 注错：流水不看 tready
+    // 时钟使能：流水各级与 12 个核同一门控
+`ifdef INJ_EN_NOTREADY // 注错：流水不看 tready
+    wire en = 1'b1;                      
 `else
     wire en = (ws_tready || !ws_tvalid);
 `endif
-`ifdef INJ_CORE_NOEN
-    wire en_core = 1'b1;                  // 注错：只让 12 个核不看流水停
+`ifdef INJ_CORE_NOEN // 注错：只让 12 个核不看流水停
+    wire en_core = 1'b1;                 
 `else
     wire en_core = en;
 `endif
+
     assign ws_tkeep = 16'hffff;
     assign rs_tready = 1'b1;
 
@@ -128,14 +130,15 @@ module engine_pix (
     wire dst_we = !rst && rs_tvalid && rs_buf[1] && occupied[rs_buf[0]];
     wire [8:0] src_waddr = {rs_buf[0], h_src_count[rs_buf[0]]};
     wire [8:0] dst_waddr = {rs_buf[0], h_dst_count[rs_buf[0]]};
+
+
     // 目的只存每个像素的 RGB，X 字节不进 RAM
-    wire [95:0] dst_wdata = {rs_tdata[119:96], rs_tdata[87:64],
-                             rs_tdata[55:32], rs_tdata[23:0]};
-    reg [127:0] src_mem [0:511];
-    reg [95:0] dst_mem [0:511];
+    reg [95:0] q_dst;   
     reg [127:0] q_src;
-    reg [95:0] q_dst;
+    reg [95:0] dst_mem [0:511];
+    reg [127:0] src_mem [0:511];
     reg [8:0] src_raddr, dst_raddr;
+    wire [95:0] dst_wdata = {rs_tdata[119:96], rs_tdata[87:64], rs_tdata[55:32], rs_tdata[23:0]};
     // FILL 不读源块，COPY 不读目的块（读出值不进通路，关掉读使能省功耗）
     wire src_re = en && (pst == PS_PRE || pst == PS_RUN) && r_blit;
     wire dst_re = en && (pst == PS_PRE || pst == PS_RUN) && r_read_dst;
@@ -194,46 +197,54 @@ module engine_pix (
         end
     end
 
-    // 周期 3：旋转、色键、a 选择、掩码（组合，落寄存器）
-    wire [31:0] w [0:7];
-    assign w[0] = r_prev[31:0];  assign w[1] = r_prev[63:32];
-    assign w[2] = r_prev[95:64]; assign w[3] = r_prev[127:96];
-    assign w[4] = r_cur[31:0];   assign w[5] = r_cur[63:32];
-    assign w[6] = r_cur[95:64];  assign w[7] = r_cur[127:96];
-    wire [31:0] px0 = (st_use == 3'd0) ? w[0] : (st_use == 3'd1) ? w[1] :
-                      (st_use == 3'd2) ? w[2] : w[3];
-    wire [31:0] px1 = (st_use == 3'd0) ? w[1] : (st_use == 3'd1) ? w[2] :
-                      (st_use == 3'd2) ? w[3] : w[4];
-    wire [31:0] px2 = (st_use == 3'd0) ? w[2] : (st_use == 3'd1) ? w[3] :
-                      (st_use == 3'd2) ? w[4] : w[5];
-    wire [31:0] px3 = (st_use == 3'd0) ? w[3] : (st_use == 3'd1) ? w[4] :
-                      (st_use == 3'd2) ? w[5] : w[6];
-    // FILL 的源是常量，不读源块（DMA2D 的 R2M 同法）
+    // 周期 3：准备计算核心的五个输入
+    wire [31:0] w [0:7];  // 源像素
+    assign w[0] = r_prev[31:0];  
+    assign w[1] = r_prev[63:32];
+    assign w[2] = r_prev[95:64]; 
+    assign w[3] = r_prev[127:96];
+    assign w[4] = r_cur[31:0];   
+    assign w[5] = r_cur[63:32];
+    assign w[6] = r_cur[95:64];  
+    assign w[7] = r_cur[127:96];
+
+    // 旋转：按 st 从窗口里取连续 4 个，可跨两格
+    wire [31:0] px0 = (st_use == 3'd0) ? w[0] : (st_use == 3'd1) ? w[1] : (st_use == 3'd2) ? w[2] : w[3];
+    wire [31:0] px1 = (st_use == 3'd0) ? w[1] : (st_use == 3'd1) ? w[2] : (st_use == 3'd2) ? w[3] : w[4];
+    wire [31:0] px2 = (st_use == 3'd0) ? w[2] : (st_use == 3'd1) ? w[3] : (st_use == 3'd2) ? w[4] : w[5];
+    wire [31:0] px3 = (st_use == 3'd0) ? w[3] : (st_use == 3'd1) ? w[4] : (st_use == 3'd2) ? w[5] : w[6];
+
+    // 源操作数：BLIT 取源块旋转结果，FILL 取命令常量字
     wire [31:0] s0 = r_blit ? px0 : r_w4;
     wire [31:0] s1 = r_blit ? px1 : r_w4;
     wire [31:0] s2 = r_blit ? px2 : r_w4;
     wire [31:0] s3 = r_blit ? px3 : r_w4;
-`ifdef INJ_SKIP_KEY
-    wire [3:0] keys = 4'd0;               // 注错：跳过色键，命中的像素照写
+
+`ifdef INJ_SKIP_KEY // 注错：跳过色键，命中的像素照写
+    wire [3:0] keys = 4'd0;              
+`else    // 色键：源字整字比较，FILL 恒不命中
+`ifdef GFX_KEY
+    wire [3:0] keys = r_blit && r_key_en ? {s3 == r_key, s2 == r_key, s1 == r_key, s0 == r_key} : 4'd0;
 `else
-    wire [3:0] keys = r_blit && r_key_en ?
-                      {s3 == r_key, s2 == r_key, s1 == r_key, s0 == r_key} : 4'd0;
+    // 无色键：比较链与跳过计数不在编译输入里
+    wire [3:0] keys = 4'd0;
 `endif
-    // a：BLIT 的 XRGB 源取 255；FILL 一律取 w4[31:24]（规范条款 §4.2）
+`endif
+
+    // alpha：XRGB 源取 255，其余取源字高字节；FILL 落在后一支（规范 §4.2）
     wire [7:0] a0 = (r_blit && r_sfmt == FMT_XRGB) ? 8'hff : s0[31:24];
     wire [7:0] a1 = (r_blit && r_sfmt == FMT_XRGB) ? 8'hff : s1[31:24];
     wire [7:0] a2 = (r_blit && r_sfmt == FMT_XRGB) ? 8'hff : s2[31:24];
     wire [7:0] a3 = (r_blit && r_sfmt == FMT_XRGB) ? 8'hff : s3[31:24];
     wire [3:0] mask_now;
-`ifdef INJ_DROP_MASK
-    assign mask_now = (r_k2 == 8'd0) ? 4'hf :        // 注错：丢首拍掩码
-                      (r_k2 == (r_beats - 8'd1)) ? r_last_mask : 4'hf;
-`else
-    assign mask_now = (r_k2 == 8'd0) ? r_first_mask :
-                      (r_k2 == (r_beats - 8'd1)) ? r_last_mask : 4'hf;
+
+`ifdef INJ_DROP_MASK // 注错：丢首拍掩码
+    assign mask_now = (r_k2 == 8'd0) ? 4'hf : (r_k2 == (r_beats - 8'd1)) ? r_last_mask : 4'hf;
+`else      // 掩码：本拍哪些槽位属于本行，按拍号在首拍/末拍/满拍之间选
+    assign mask_now = (r_k2 == 8'd0) ? r_first_mask : (r_k2 == (r_beats - 8'd1)) ? r_last_mask : 4'hf;
 `endif
 
-    // 混合核的五个输入全由寄存器直接驱动：旋转与色键的组合逻辑不能挂在核第一级前面
+    // 核输入寄存器：旋转与色键的组合逻辑止于此，不进核第一级
     reg [127:0] r_px;
     reg [95:0] r_dst2;
     reg [31:0] r_a;
@@ -241,8 +252,12 @@ module engine_pix (
     reg r_v2;
     always @(posedge clk) begin
         if (rst) begin
-            r_px <= 128'd0; r_dst2 <= 96'd0; r_a <= 32'd0;
-            r_keys <= 4'd0; r_mask <= 4'd0; r_v2 <= 1'b0;
+            r_px <= 128'd0; 
+            r_dst2 <= 96'd0; 
+            r_a <= 32'd0;
+            r_keys <= 4'd0; 
+            r_mask <= 4'd0; 
+            r_v2 <= 1'b0;
         end else if (en) begin
             r_px <= {s3, s2, s1, s0};
             r_dst2 <= r_read_dst ? r_dst : 96'd0;
@@ -253,41 +268,78 @@ module engine_pix (
         end
     end
 
-    // 周期 4~6：12 个混合核（4 像素 × RGB）
+    // 周期 4~6：混合计算
     wire [95:0] color;
     genvar p, ch;
-    generate
+    generate  // 混合阵列：4 像素 × 3 通道，源按 32 位、结果按 24 位打包
         for (p = 0; p < 4; p = p + 1) begin : pixel
             for (ch = 0; ch < 3; ch = ch + 1) begin : channel
                 engine_blend u_blend (
-                    .clk(clk), .en(en_core),
+                    .clk(clk), 
+                    .en(en_core),
                     .src(r_px[p*32+ch*8 +: 8]),
                     .dst(r_dst2[p*24+ch*8 +: 8]),
-                    .a(r_a[p*8 +: 8]), .c(r_c), .eq(r_eq),
+                    .a(r_a[p*8 +: 8]), 
+                    .c(r_c), 
+                    .eq(r_eq),
                     .out(color[p*24+ch*8 +: 8]));
             end
         end
     endgenerate
 
     // 色键、掩码与 valid 的延迟像，与混合核的三级寄存器逐级对齐
+`ifdef GFX_KEY
     reg [3:0] key_d1, key_d2, key_d3, mask_d1, mask_d2, mask_d3;
+`else
+    reg [3:0] mask_d1, mask_d2, mask_d3;
+`endif
     reg v_d1, v_d2, v_d3, v_d4;
     always @(posedge clk) begin
         if (rst) begin
-            key_d1 <= 0; key_d2 <= 0; key_d3 <= 0;
-            mask_d1 <= 0; mask_d2 <= 0; mask_d3 <= 0;
-            v_d1 <= 0; v_d2 <= 0; v_d3 <= 0; v_d4 <= 0;
+`ifdef GFX_KEY
+            key_d1 <= 0;
+            key_d2 <= 0;
+            key_d3 <= 0;
+`endif
+
+            mask_d1 <= 0; 
+            mask_d2 <= 0; 
+            mask_d3 <= 0;
+
+            v_d1 <= 0; 
+            v_d2 <= 0; 
+            v_d3 <= 0; 
+            v_d4 <= 0;
         end else if (en) begin
-            key_d1 <= r_keys; key_d2 <= key_d1; key_d3 <= key_d2;
-            mask_d1 <= r_mask; mask_d2 <= mask_d1; mask_d3 <= mask_d2;
-            v_d1 <= r_v2; v_d2 <= v_d1; v_d3 <= v_d2; v_d4 <= v_d3;
+`ifdef GFX_KEY
+            key_d1 <= r_keys;
+            key_d2 <= key_d1;
+            key_d3 <= key_d2;
+`endif
+
+            mask_d1 <= r_mask; 
+            mask_d2 <= mask_d1; 
+            mask_d3 <= mask_d2;
+
+            v_d1 <= r_v2; 
+            v_d2 <= v_d1; 
+            v_d3 <= v_d2; 
+            v_d4 <= v_d3;
         end
     end
 
     // 周期 7：合并「不写」标记，输出 X 字节只有标记位
+`ifdef GFX_KEY
     wire [3:0] no_write = key_d3 | ~mask_d3;
+`else
+    wire [3:0] no_write = ~mask_d3;
+`endif
     // 计数掩码与 ws_tdata 同拍寄存，否则握手时看到的是下一拍
+`ifdef GFX_KEY
     reg [3:0] ws_key_lanes;
+`else
+    reg [3:0] ws_key_lanes;
+`endif
     assign perf_key_lanes = ws_key_lanes;
     assign perf_key_valid = ws_tvalid && ws_tready;
     wire [127:0] next_data = {
@@ -297,10 +349,17 @@ module engine_pix (
         (no_write[0] ? 8'h80 : 8'h00), color[23:0]};
     always @(posedge clk) begin
         if (rst) begin
-            ws_tdata <= 128'd0; ws_tvalid <= 1'b0; ws_key_lanes <= 4'd0;
+            ws_tdata <= 128'd0; ws_tvalid <= 1'b0;
+`ifdef GFX_KEY
+            ws_key_lanes <= 4'd0;
+`endif
         end else if (en) begin
             ws_tdata <= next_data; ws_tvalid <= v_d4;
+`ifdef GFX_KEY
             ws_key_lanes <= key_d3 & mask_d3;
+`else
+            ws_key_lanes <= 4'd0;
+`endif
         end
     end
 

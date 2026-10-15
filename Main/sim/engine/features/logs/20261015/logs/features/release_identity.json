@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "object": "Main/bit/board_release_20261015/gfx2d_ti60.bit",
+  "consumer": "frozen baseline deployment matches release manifest",
+  "comparison": "cached run artifact identity against release manifest; no duplicate hash",
+  "on_mismatch": "reject frozen baseline attribution"
+}

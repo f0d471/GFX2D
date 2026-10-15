@@ -12,6 +12,7 @@
 //   3. count/offset/cursor 压缩保存但外部目录/PERF 为 32 位，标量哨兵无损恢复
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 module engine_bin #(parameter integer STRIP_H = 16) (
     input  wire         clk,
     input  wire         rst,

@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "variants": {
+    "full": {
+      "equations": [
+        0,
+        2,
+        1,
+        5,
+        3,
+        4
+      ],
+      "checks": 29997
+    },
+    "no_alpha": {
+      "equations": [
+        0,
+        2,
+        3,
+        4
+      ],
+      "checks": 29997
+    },
+    "no_ext": {
+      "equations": [
+        0,
+        2,
+        1,
+        5
+      ],
+      "checks": 29997
+    },
+    "copy_add": {
+      "equations": [
+        0,
+        2
+      ],
+      "checks": 29997
+    }
+  },
+  "scope": "isolated research RTL; enabled equations and pipeline stalls"
+}

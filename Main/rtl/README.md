@@ -48,6 +48,15 @@
 | `engine_geom.v` | 几何层。接一条过了十步检查的 FILL 或 BLIT，五者求交、逐行迭代（每行 4 拍）、按 16 字节对齐的覆盖区间发读源、读目的、写目的的描述符（不跨 4KB、不超过 192 拍），每行先发一条边带；`rd_buf = {源/目的, 行号最低位}`，每一行开始之前查 `row_free[行号最低位]`；零面积命令回一拍 `cmd_done`。`engine_top.v` 已例化并接入 SoC 网表 |
 | `engine_pix.v` | 计算阵列与片上缓存。源 512×128、目的 512×96（X 字节不存）两块行缓冲，各放两行乒乓；两拍窗口的像素旋转、首末拍掩码与色键（比原始存储字），在 X 字节最高位打「不写」标记；12 个 `engine_blend` 的四像素通路，FILL 的 a 一律取 `w4[31:24]`；七拍流水挂一个时钟使能 `en = ws_tready \|\| !ws_tvalid`，写核停时整条停。读流恒 ready，写流没有 `tlast`（由搬运层按拍数打），`row_free[1:0]` 在该半写流末拍被写核收走之后拉高。`engine_top.v` 已例化并接入 SoC 网表 |
 | `engine_top.v`、`engine_regs.v`、`engine_cmd.v` | 控制层：APB 寄存器、命令表批量取数、十步检查、错误三元组与性能计数；`engine_top` 例化混合/搬运/几何/计算四层，各文件已列进工程源文件列表。159 向量端到端与定向用例、单独综合和板卡基线均已验收，已接入 SoC 顶层。条带表头/三相循环、局部 y 转换、反馈拒绝及排空已并入，见 `engine-manual.md`。寄存器偏移由 `tools/check/regs_gen.py` 生成，不手改 `.vh` |
+| `engine_feature.vh`、`engine_config_guard.vh`、`engine_config_error_modules.vh`、`engine_regs_offsets.vh` | 生成物，由 `tools/check/feature_build.py` 写出，不手改。四份都落在本目录，所以 RTL 用同目录 `` `include "engine_feature.vh" `` 即可，不需要额外的 include 路径；`--sync` 重生成、`--check` 校验 |
+
+**每个引擎 RTL 文件都必须 `` `include "engine_feature.vh" ``**（放在文件头、`` `default_nettype `` 之后）。
+可选机制由它定义的宏进出编译输入：`` `ifdef GFX_HAS_xxx `` 命中即该机制存在，不定义即整块离开编译输入，
+不做「输入接常量、寄存器照留」的裁剪。九个自写文件当前都带这一行，新增文件要一并加上，
+否则构型构建时那些 `` `ifdef `` 会被当成未定义而静默走关闭分支。
+构型定义、依赖边、CAPS 编码与七个代表档见 [`../../tools/check/feature_config.py`](../../tools/check/feature_config.py)；
+生成、同步与校验用 [`../../tools/check/feature_build.py`](../../tools/check/feature_build.py)，
+按构型的判据入口见 [`../../tools/check/README.md`](../../tools/check/README.md)。
 
 混合、搬运、几何、计算、控制与片上纹理的六个文件各有若干处注错（变异测试），各包在 `` `ifdef INJ_xxx `` 内：
 不定义时那些行进不了编译输入，RTL 的干净形态就是正式配置，不依赖综合器把常量分支优化掉。

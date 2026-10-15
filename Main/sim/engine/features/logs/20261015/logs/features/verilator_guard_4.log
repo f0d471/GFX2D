@@ -1,0 +1,14 @@
+%Error: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_4.v:19:1: Cannot find file containing module: 'GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA'
+   19 | GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA bad_alpha();
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+%Error: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_4.v:19:1: This may be because there's no search path specified with -I<dir>.
+   19 | GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA bad_alpha();
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ... Looked in:
+             GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA
+             GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA.v
+             GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA.sv
+             obj_dir/GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA
+             obj_dir/GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA.v
+             obj_dir/GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA.sv
+%Error: Exiting due to 2 error(s)

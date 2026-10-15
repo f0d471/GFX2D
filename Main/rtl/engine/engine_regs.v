@@ -13,6 +13,7 @@
 //   4. PERF 事件由计算阵列经顶层汇入，WAIT_DDR/BUSY 按电平每拍计一，引擎空闲自然不动
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 `include "engine_regs_offsets.vh"
 
 module engine_regs #(parameter integer STRIP_H = 16) (
@@ -140,18 +141,43 @@ module engine_regs #(parameter integer STRIP_H = 16) (
                    || (paddr == EC_REG_ERROR_INDEX) || (paddr == EC_REG_ERROR_TAG)
                    || (paddr == EC_REG_ERROR_INSTANCE)
                    || (paddr == EC_REG_LIST_BASE)   || (paddr == EC_REG_LIST_COUNT)
+`ifdef GFX_HAS_STRIP
                    || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
-                   || (paddr == EC_REG_BAND_SURF) || surf_addr || perf_addr;
+                   || (paddr == EC_REG_BAND_SURF)
+`endif
+                   || surf_addr || perf_addr;
     wire pb_addr = paddr == EC_REG_PB_BASE || paddr == EC_REG_PB_BYTES ||
                    paddr == EC_REG_DRAW_CAP || paddr == EC_REG_REF_CAP;
     wire wr_mapped = (paddr == EC_REG_CTRL) || (paddr == EC_REG_IRQ_EN)
                    || (paddr == EC_REG_IRQ_STAT) || (paddr == EC_REG_LIST_BASE)
                    || (paddr == EC_REG_LIST_COUNT) || (paddr == EC_REG_DOORBELL)
+`ifdef GFX_HAS_STRIP
                    || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
-                   || (paddr == EC_REG_BAND_SURF) || pb_addr || surf_addr;
+                   || (paddr == EC_REG_BAND_SURF)
+`endif
+`ifdef GFX_HAS_PB
+                   || pb_addr
+`endif
+                   || surf_addr;
     wire pb_write_block = (pb_addr && cmd_busy) || (surf_addr && (pb_busy === 1'b1));
+    // 写入不支持的 CTRL 位（本构型没有的 BAND/BIN）必须整次拒绝，不改其它字段。
+`ifdef GFX_HAS_BAND_HW
+`ifdef GFX_HAS_PB
+    wire ctrl_unsupported = 1'b0;
+`else
+    wire ctrl_unsupported = pwrite && (paddr == EC_REG_CTRL) && pwdata[EC_CTRL_BIN_BIT];
+`endif
+`else
+`ifdef GFX_HAS_PB
+    wire ctrl_unsupported = pwrite && (paddr == EC_REG_CTRL) && pwdata[EC_CTRL_BAND_BIT];
+`else
+    wire ctrl_unsupported = pwrite && (paddr == EC_REG_CTRL) &&
+                            (pwdata[EC_CTRL_BAND_BIT] || pwdata[EC_CTRL_BIN_BIT]);
+`endif
+`endif
     // APB 主机在 ACCESS 的结束边沿采样 PSLVERR；同一边沿才置寄存器会晚一拍。
-    assign pslverr = access && (pwrite ? (!wr_mapped || pb_write_block || (wr_door && !door_accepted))
+    assign pslverr = access && (pwrite ? (!wr_mapped || pb_write_block || ctrl_unsupported
+                                          || (wr_door && !door_accepted))
                                        : !(rd_mapped || pb_addr || paddr == EC_REG_ERROR_STAGE));
 
     // SURF 译码：每项 3 字、步长 12 字节。12 不是 2 的幂，
@@ -278,8 +304,16 @@ module engine_regs #(parameter integer STRIP_H = 16) (
             // 写
             if (wr_ctrl) begin
                 ctrl_en <= pwdata[EC_CTRL_EN_BIT];
+`ifdef GFX_HAS_BAND_HW
                 ctrl_band <= pwdata[EC_CTRL_BAND_BIT];
+`else
+                ctrl_band <= 1'b0;      // 无条带硬件：BAND 位不接受置位
+`endif
+`ifdef GFX_HAS_PB
                 if (!cmd_busy) bin_mode <= pwdata[EC_CTRL_BIN_BIT];
+`else
+                bin_mode <= 1'b0;       // 无 PB：BIN 位不接受置位，后端恒走直通命令层
+`endif
                 if (cnt_clr)
                     for (i = 0; i < EC_PERF_COUNT; i = i + 1) perf[i] <= 32'd0;
                 if (pwdata[EC_CTRL_SOFT_RST_BIT] && !soft_pending)

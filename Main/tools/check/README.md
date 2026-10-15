@@ -23,6 +23,15 @@
 | `check_g2_band.py` | 条带缓冲正式数据面：软件执行器金标准与 ASan/UBSan、真实全部核/协议/参数、八个定向变异；独立综合准备/采集、主综合复核、板测身份与功能登记 | 默认由 band/run.sh 跑 17 项；综合用 --prepare-syn/--collect-syn、--collect-main；新板测用 --record-board，未变产物不重复登记 |
 | `localize_paths.py` | 展开、还原厂商生成物里的绝对路径；扫描整个仓库里的机器专属路径 | 克隆后 `--apply`；提交前暂存源码，`--restore` 再 `--check --tracked`；全目录检查用 `--check` |
 | `regs_gen.py` | 寄存器数字的单一真源，生成 `rtl/engine/engine_regs_offsets.vh` 与供 BSP 驱动使用的 `sw/bsp/include/gfx_regs.h` | 改寄存器偏移或位号后重生成；提交前在 `Main/` 下运行 `python3 tools/check/regs_gen.py --check` |
+| `research_engine_features.py` | 可选机制前期研究：配置穷举、编译守卫、隔离真实混合核像素/停顿与厂商map；显式冻结位流的基线板测 | `validate.py --checks feature-research --profile quick` 先显示范围；完整分步用法见 `sim/engine/features/README.md`，不代表裁剪整机验收 |
+| `feature_config.py` | 引擎可选机制的配置真源：五结构位、三像素位、交付标志、依赖边、CAPS 位映射与七个代表档；导入时自检合法计数 | 被 `feature_build.py`、`regs_gen.py`、`check_feature_caps.py` 与仿真侧脚本共用；改依赖或位映射只改这里 |
+| `feature_build.py` | 引擎裁剪构建入口：按构型生成 `engine_feature.vh`、守卫片段、按构型 CAPS 与工程源列表，并铺一棵自包含源树 | `--sync` 写默认构型到 `rtl/engine/` 与 `sw/bsp/include/`，`--check` 校验一致；非法构型在生成任何产物前拒绝 |
+| `check_feature_caps.py` | 特性清单、`regs_gen` 生成物与 `gfx_feature.h` 三处 CAPS 必须同源一致 | `validate.py --checks feature-caps`；防构建入口某处走独立算法导致软件按错的能力位选后端 |
+| `check_feature_elab.py` | 七代表档与合法/非法结构组合的配置穷举 elaboration | `validate.py --checks feature-elab`；自建源树到临时目录，跑完删 |
+| `check_feature_probe.py` | 关闭的机制离开编译输入：实例化点与源码内容两种判据 | `validate.py --checks feature-probe`；STRIP 不增减例化，只能用源码内容判 |
+| `check_feature_contract.py` | 按构型的禁用契约与六条依赖守卫反例 | `validate.py --checks feature-contract`；CAPS 位、CTRL 不支持位、保留寄存器读写、无实例哨兵 |
+| `feature_synthesis.py` | 按构型跑整机四步并收集同阶段资源与全时钟时序 | Windows + `EFINITY_HOME`；`--tree-root` 指向构型源树根，逐档写 `synthesis.json`，超容量的档记 FAIL 并继续 |
+| `feature_netlist.py` | netlist 结构检查：关闭的机制不得在综合网表里留下信号 | `validate.py --checks feature-netlist`；读 map 网表，pnr 超容量的档同样可判 |
 | `g1_research.py` | TEX 装载窗口前期研究：完整 APB 地址集合、热集布局、四 bank RAM 端口实验、软件金标准对真实像素路径的同步读延迟与 valid 变异；`--prepare-syn` 生成隔离 RAM 工程；`--record-board` 核对本次整机板测产物身份 | WSL 中从仓库根运行 `python3 Main/tools/check/g1_research.py`；范围与原始证据见 `Main/sim/engine/tex/README.md` |
 | `g2_research.py` | 条带缓冲前期研究：紧凑映射、RAM 掩码/分段、真实 geom/pix 代理、DMA 三相与排空；隔离 RAM 工程与原始报告；板测基线复核 | 从仓库根运行 `python3 Main/tools/check/g2_research.py`；`--prepare-syn`/`--collect-syn` 与 `--check-board` 用法见 `Main/sim/engine/band/README.md` |
 | `check_g3_stripctl.py` | 条带控制与命令接口的正式生产库对拍、错误三元组、完整 engine_top 与软件/RTL 变异；综合和板测采集 | 仓库根运行 `python3 Main/tools/check/check_g3_stripctl.py`；16/32 行同表，sanitizer/普通构建各 10000 张；`--collect-syn`/`--collect-board` 只采集；见 `Main/sim/engine/stripctl/README.md` |

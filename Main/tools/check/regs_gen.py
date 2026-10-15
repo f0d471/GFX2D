@@ -82,7 +82,20 @@ SURF_SLOTS = 16
 PERF_COUNT = len(PERF_NAMES)
 
 # ---- 生成 -------------------------------------------------------------------
-def gen_vh():
+def field_values(caps_value):
+    """CAPS 各位的取值：按构型把该位是否置 1 摊进 (名, 位, 宽, 值) 表。
+
+    caps_value 为 None 时用全功能复位值。偏移与位号不随构型改变，
+    所以只影响 CAPS 的复位值，不影响两份产物的其余部分。
+    """
+    if caps_value is None:
+        return CAPS_FIELDS
+    return [(name, lo, width, (caps_value >> lo) & ((1 << width) - 1))
+            for name, lo, width, _ in CAPS_FIELDS]
+
+
+def gen_vh(caps_value=None):
+    value = CAPS_VALUE if caps_value is None else caps_value
     L = []
     a = L.append
     a("// 由 tools/check/regs_gen.py 生成，是寄存器语义的单一真源，不要手改；")
@@ -113,12 +126,12 @@ def gen_vh():
     a(f"localparam [31:0] EC_ID_VALUE = 32'h{ID_VALUE:08X};")
     a(f"localparam [7:0]  EC_ID_VERSION = 8'h{ID_VERSION:02X};")
     a("")
-    a("// CAPS 位位号")
-    for n, lo, width, value in CAPS_FIELDS:
-        a(f"localparam EC_CAPS_{n}_LO = {lo};")
-        a(f"localparam EC_CAPS_{n}_W  = {width};")
-        a(f"localparam EC_CAPS_{n}_VALUE = {value};")
-    a(f"localparam [31:0] EC_CAPS_VALUE = 32'h{CAPS_VALUE:08X};")
+    a("// CAPS 位位号；复位值随构型（见 tools/check/feature_config.py）")
+    for name, lo, width, reset in field_values(caps_value):
+        a(f"localparam EC_CAPS_{name}_LO = {lo};")
+        a(f"localparam EC_CAPS_{name}_W  = {width};")
+        a(f"localparam EC_CAPS_{name}_VALUE = {reset};")
+    a(f"localparam [31:0] EC_CAPS_VALUE = 32'h{value:08X};")
     a("")
     a("// CTRL 位位号（SOFT_RST/CNT_CLR 写 1 自清）")
     for n, b in CTRL_BITS:
@@ -149,7 +162,8 @@ def gen_vh():
     a("`endif")
     return "\n".join(L) + "\n"
 
-def gen_h():
+def gen_h(caps_value=None):
+    value = CAPS_VALUE if caps_value is None else caps_value
     L = []
     a = L.append
     a("/* 由 tools/check/regs_gen.py 生成，是寄存器语义的单一真源，不要手改；")
@@ -179,12 +193,14 @@ def gen_h():
     a(f"#define GFX_ID_VALUE     0x{ID_VALUE:08X}u  /* \"GFX\" << 8 | 版本 */")
     a(f"#define GFX_ID_VERSION   0x{ID_VERSION:02X}u")
     a("")
-    a("/* CAPS 位掩码 */")
+    a("/* CAPS 位掩码；GFX_CAPS_VALUE 是复位值，随构型（见 tools/check/feature_config.py）。")
+    a(" * 能力位表示这块硬件具备什么，不表示默认走哪条后端路径；")
+    a(" * 默认后端另见 renderer 的 GFX_FRONTEND_* 与运行时的 GFX2D_START_BACKEND。 */")
     for n, lo, width, _ in CAPS_FIELDS:
         mask = ((1 << width) - 1) << lo
         a(f"#define GFX_CAPS_{n}_M   0x{mask:08X}u")
         a(f"#define GFX_CAPS_{n}_S   {lo}")
-    a(f"#define GFX_CAPS_VALUE   0x{CAPS_VALUE:08X}u")
+    a(f"#define GFX_CAPS_VALUE   0x{value:08X}u")
     a("")
     a("/* CTRL 位（SOFT_RST/CNT_CLR 写 1 自清，读恒 0） */")
     for n, b in CTRL_BITS:
@@ -222,10 +238,17 @@ H_PATH = MAIN / "sw/bsp/include/gfx_regs.h"
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="只校验产物与真源一致")
+    ap.add_argument("--caps-value", help="按构型覆盖 CAPS 复位值（十六进制，如 0x0000144F）；"
+                                        "只在生成到别的目录时使用，配合 --out-dir")
+    ap.add_argument("--out-dir", help="把两份产物写到该目录而不是仓库内的默认位置")
     args = ap.parse_args()
 
-    vh, h = gen_vh(), gen_h()
+    caps_value = int(args.caps_value, 16) if args.caps_value else None
+    vh, h = gen_vh(caps_value), gen_h(caps_value)
     if args.check:
+        if caps_value is not None or args.out_dir:
+            print("regs_gen --check: 不与按构型生成同时使用。")
+            return 1
         bad = []
         for p, txt in [(VH_PATH, vh), (H_PATH, h)]:
             cur = p.read_text(encoding="utf-8") if p.exists() else None
@@ -238,9 +261,18 @@ def main():
         print("regs_gen --check: 通过。")
         return 0
 
-    VH_PATH.write_text(vh, encoding="utf-8", newline="\n")
-    H_PATH.write_text(h, encoding="utf-8", newline="\n")
-    print(f"生成 {VH_PATH} 与 {H_PATH}。")
+    if args.out_dir:
+        out = Path(args.out_dir).resolve()
+        out.mkdir(parents=True, exist_ok=True)
+        vh_path, h_path = out / VH_PATH.name, out / H_PATH.name
+    else:
+        if caps_value is not None:
+            print("regs_gen: --caps-value 只与 --out-dir 一起用，避免覆盖默认全功能产物。")
+            return 1
+        vh_path, h_path = VH_PATH, H_PATH
+    vh_path.write_text(vh, encoding="utf-8", newline="\n")
+    h_path.write_text(h, encoding="utf-8", newline="\n")
+    print(f"生成 {vh_path} 与 {h_path}。")
     return 0
 
 if __name__ == "__main__":

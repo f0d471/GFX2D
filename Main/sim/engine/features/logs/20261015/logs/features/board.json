@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "crc_cases": 22,
+  "scope": "frozen full-feature baseline only; no cut-down bitstream, no Flash write, no Nmax claim",
+  "port": "COM11",
+  "caps": "0x0000346F",
+  "bit": "Main/bit/board_release_20261015/gfx2d_ti60.bit"
+}

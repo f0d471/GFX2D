@@ -1,0 +1,2 @@
+BLEND_FEATURE PASS checks=29997
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/full/tb.v:36: $finish called at 300006000000000000 (1ps)

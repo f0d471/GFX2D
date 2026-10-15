@@ -1,0 +1,12 @@
+
+-- Running command `read_verilog /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_3.v; hierarchy -check -top feature_guard' --
+
+1. Executing Verilog-2005 frontend: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_3.v
+Parsing Verilog input from `/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261015-162126-b775e948/build/features/portable_guard_3.v' to AST representation.
+Generating RTLIL representation for module `\feature_guard'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+
+2.1. Analyzing design hierarchy..
+ERROR: Module `\GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY' referenced in module `\feature_guard' in cell `\bad_key' is not part of the design.

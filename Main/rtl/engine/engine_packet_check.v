@@ -10,6 +10,7 @@
 //   2. 错误码语义见同目录 engine-manual.md
 //==============================================================================================//
 `default_nettype none
+`include "engine_feature.vh"
 
 module engine_packet_check (
     input  wire         clk,

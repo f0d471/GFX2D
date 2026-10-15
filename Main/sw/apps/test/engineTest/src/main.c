@@ -36,6 +36,7 @@
 
 #include "board.h"
 #include "gfx_engine.h"
+#include "gfx_feature.h"   /* 本构型的编译时预期能力，由 tools/check/feature_build.py 生成 */
 #include "gfx/gfx.h"
 #include "core/crc32.h"
 
@@ -442,12 +443,24 @@ static void dir_key(gfx_list *l, int dst)
 
 /* --- v1-TEX：能力位、装载窗口与错误三元组 ---------------------------------- */
 
+/* 默认后端：本判据程序不请求分桶后端；能力位与它必须分开断言。 */
+#ifndef GFX_FRONTEND_BIN
+#define GFX_FRONTEND_BIN 0
+#endif
+
 static void run_tex_caps(void)
 {
     uint32_t caps = 0u;
 
+    /* 运行时 CAPS 必须与本构型的编译时预期逐位相符（gfx_feature.h，由构建入口生成）。
+     * 能力位只说明硬件具备什么，不说明默认走哪条后端；下面把默认后端单独断一次。 */
     ok_line("TEX-CAPS", gfx_engine_caps_read(&caps) == GFX_ENG_OK
-                       && caps == GFX_CAPS_VALUE);
+                       && GFX_FEATURE_CAPS_MATCH(caps));
+
+    /* 能力位与默认后端的配对断言：引擎能分桶（CAPS.BIN=1），但本程序的默认后端不是分桶。
+     * 这一条防的是「把默认后端翻转记成硬件构型变化」——两种改动的证据链不同。 */
+    ok_line("CAPS-BACKEND-PAIR", (caps & GFX_CAPS_BIN_M) == 0u
+                              || GFX_FRONTEND_BIN == 0);
 }
 
 static void run_tex_busy(void)
