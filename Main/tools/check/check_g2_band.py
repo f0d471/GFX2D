@@ -21,7 +21,7 @@ BUILD,LOGS=paths('band','band')
 def compile_run(name,bench,defines=(),params=(),expect='PASS',evidence=None):
     rtl=[MAIN/'rtl/engine'/p for p in ('engine_band.v','engine_mover.v','engine_geom.v','engine_pix.v','engine_blend.v','engine_tex.v')]
     rtl += [MAIN/'rtl/vendor/verilog-axi/axi_dma_rd.v',MAIN/'rtl/vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
-    argv=['iverilog','-g2012','-s',bench.stem,'-DCASE="'+str(BUILD/('empty' if 'EMPTY_CASE' in defines else 'scene'))+'"']
+    argv=['iverilog','-g2012','-I'+str(MAIN/'rtl/engine'),'-s',bench.stem,'-DCASE="'+str(BUILD/('empty' if 'EMPTY_CASE' in defines else 'scene'))+'"']
     argv += ['-D'+x for x in defines]
     argv += ['-P'+bench.stem+'.'+x for x in params]
     argv += ['-o',str(BUILD/(name+'.vvp')),str(bench),*[str(x) for x in rtl]]

@@ -18,6 +18,6 @@ for preset in B0 B1 B2 B3 B4 B5 B6; do
 done
 
 # 逐个跑；某个构型超器件上限时 pnr 会失败，脚本对该档记 FAIL 并继续。
-unset PYTHONHOME
+# 本进程需要 PYTHONHOME 才能启动；厂商子进程的环境由 feature_synthesis.py 自行摘除。
 "$PY" Main/tools/check/feature_synthesis.py --tree-root "$WORK" \
   --out "$WORK/synthesis.json"
