@@ -125,30 +125,6 @@ module engine_pix (
                      (q_count != 2'd0) && h_src_done[next_half] &&
                      h_dst_done[next_half];
 
-    // 行缓冲：一行跨 4KB 时读流有两个 tlast，两段共用同一个写指针，读齐按拍数判
-    wire src_we = !rst && rs_tvalid && !rs_buf[1] && occupied[rs_buf[0]];
-    wire dst_we = !rst && rs_tvalid && rs_buf[1] && occupied[rs_buf[0]];
-    wire [8:0] src_waddr = {rs_buf[0], h_src_count[rs_buf[0]]};
-    wire [8:0] dst_waddr = {rs_buf[0], h_dst_count[rs_buf[0]]};
-
-
-    // 目的只存每个像素的 RGB，X 字节不进 RAM
-    reg [95:0] q_dst;   
-    reg [127:0] q_src;
-    reg [95:0] dst_mem [0:511];
-    reg [127:0] src_mem [0:511];
-    reg [8:0] src_raddr, dst_raddr;
-    wire [95:0] dst_wdata = {rs_tdata[119:96], rs_tdata[87:64], rs_tdata[55:32], rs_tdata[23:0]};
-    // FILL 不读源块，COPY 不读目的块（读出值不进通路，关掉读使能省功耗）
-    wire src_re = en && (pst == PS_PRE || pst == PS_RUN) && r_blit;
-    wire dst_re = en && (pst == PS_PRE || pst == PS_RUN) && r_read_dst;
-    always @(posedge clk) begin
-        if (src_we) src_mem[src_waddr] <= rs_tdata;
-        if (dst_we) dst_mem[dst_waddr] <= dst_wdata;
-        if (src_re) q_src <= src_mem[src_raddr];
-        if (dst_re) q_dst <= dst_mem[dst_raddr];
-    end
-
     // 当前行的参数，开行时从该半装入，整行不变；排空之后才换下一行的
     reg r_blit, r_key_en, r_read_dst;
     reg [2:0] r_eq;
@@ -162,7 +138,7 @@ module engine_pix (
     reg [7:0] cnt_k, out_count, drain_count;
     reg running;
 
-    // 周期 0：地址
+    // 周期 0：地址。纯组合、不占拍，本级只算出 RAM 的读地址
     wire rot_off = (r_ls >= r_ld);
     wire [2:0] st_raw = rot_off ? ({1'b0, r_ls} - {1'b0, r_ld})
                                  : ({1'b0, r_ls} + 3'd4 - {1'b0, r_ld});
@@ -172,9 +148,34 @@ module engine_pix (
     wire [2:0] st_use = st_raw;
 `endif
     wire [7:0] src_k = cnt_k + {7'd0, rot_off};
+    reg [8:0] src_raddr, dst_raddr;
     always @* begin
         src_raddr = {r_half, (pst == PS_PRE ? 8'd0 : src_k)};
         dst_raddr = {r_half, cnt_k};
+    end
+
+    // 周期 1：行缓冲读出。同步 RAM 的读出自带一拍，q_src/q_dst 在时钟沿拿到
+    //   上一拍地址对应的数据；这一拍是 NOTE 2「延迟 7 拍」的第 1 拍。
+    // 写侧：读流入的拍按 src_we/dst_we 装进行缓冲，一行跨 4KB 时读流有两个
+    //   tlast，两段共用同一个写指针，读齐按拍数判
+    wire src_we = !rst && rs_tvalid && !rs_buf[1] && occupied[rs_buf[0]];
+    wire dst_we = !rst && rs_tvalid && rs_buf[1] && occupied[rs_buf[0]];
+    wire [8:0] src_waddr = {rs_buf[0], h_src_count[rs_buf[0]]};
+    wire [8:0] dst_waddr = {rs_buf[0], h_dst_count[rs_buf[0]]};
+    // 读侧：目的只存每个像素的 RGB，X 字节不进 RAM；FILL 不读源块，COPY 不读
+    //   目的块（读出值不进通路，关掉读使能省功耗）
+    reg [95:0] q_dst;
+    reg [127:0] q_src;
+    reg [95:0] dst_mem [0:511];
+    reg [127:0] src_mem [0:511];
+    wire [95:0] dst_wdata = {rs_tdata[119:96], rs_tdata[87:64], rs_tdata[55:32], rs_tdata[23:0]};
+    wire src_re = en && (pst == PS_PRE || pst == PS_RUN) && r_blit;
+    wire dst_re = en && (pst == PS_PRE || pst == PS_RUN) && r_read_dst;
+    always @(posedge clk) begin
+        if (src_we) src_mem[src_waddr] <= rs_tdata;
+        if (dst_we) dst_mem[dst_waddr] <= dst_wdata;
+        if (src_re) q_src <= src_mem[src_raddr];
+        if (dst_re) q_dst <= dst_mem[dst_raddr];
     end
 
     // 周期 2：数据级
