@@ -124,7 +124,7 @@ F4/F5 为通用实例与硬件空间引用，F6 按关键路径条件启动：
 无 KEY 静默执行、无 PB 软复位保留裁剪框、游戏无 TEX 误计失败共八处；
 160 构型功能矩阵与六个变异、七档重建综合/网表/同 BIN 107 例板测、B0 采用与
 生产游戏板测通过，第二次独立验收复现在
-[engine 第 16 章](../TechReports/engine/16-引擎特性开关与配置边界.md) 3.10 与第七节。
+[engine 第 15 章](../TechReports/engine/15-引擎可选机制与配置边界.md) 3.10 与第七节。
 主工程默认构型已切至 B0 交付基本档（36780 XLR / 105 RAM / 16 DSP），
 B5 只余 731 XLR 登记在案；证据索引在 `Main/sim/engine/features/logs/20261016-repair/README.md`。
 
@@ -141,13 +141,13 @@ N_max 与完整硬件 9208 帧回放在开发轮与验收复现轮均过（验�
 fifo_min 322），见 [engine 第 14 章](../TechReports/engine/14-硬件分桶与引用列表.md)；
 总览 3.2 采用门槛已满足，开关 GFX_FRONTEND_BIN 默认 0，切换默认联动作品材料另行推进。
 
-引擎可选开关于 2026-10-16 验收归档、条目已删除：前期研究在
-[engine 第 15 章](../TechReports/engine/15-引擎可选机制与配置边界.md)，生产实现与
-[独立验收](../TechReports/engine/16-引擎特性开关与配置边界.md)在 engine 第 16 章第七节——
-四项配置检查、11 套件回归、七档整机四步（与开发验收轮逐位一致，B5 59652 XLR fit）、
-netlist 结构检查、功能板测与七档裁剪位流 CAPS 读回全部独立复现。
-登记欠账不变：逐档功能板测、命令编码按键反例、B5 余量评估口径；
-GFX_FRONTEND_BIN/GFX_FRONTEND_INST 默认 0 与交付构型采用另行推进。
+引擎可选开关于 2026-10-16 验收归档、条目已删除：前期研究、生产实现与
+[独立验收](../TechReports/engine/15-引擎可选机制与配置边界.md)都在 engine 第 15 章——
+初版四项配置检查、11 套件回归、七档整机四步、netlist 结构检查、功能板测与七档
+裁剪位流 CAPS 读回独立复现；关闭态修复后第二次验收复现 160 构型功能矩阵、
+frame/ctrl 整帧、主工程 B0 综合与 featureTest/游戏板测。
+欠账见该章第六节：160 构型逐档部署、B5 余量 731 XLR 的扩容评估、
+9208 帧完整回放与 N_max 重搜暂缓；GFX_FRONTEND_BIN/GFX_FRONTEND_INST 默认 0 不变。
 
 方案研究、来源与宿主研究结果见 [engine 第 11 章](../TechReports/engine/11-绘制前端方案研究.md)。
 
