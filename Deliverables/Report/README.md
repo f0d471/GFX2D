@@ -23,9 +23,21 @@
 ```
 
 依赖该目录缓存的 python-docx / PIL / matplotlib / fitz（随龙芯项目部署，离线可用）。
+页眉横幅图 `build_report_docx.py` 取自 `.work/tpl/word/media/image1.png`；
+该目录不入库，缺失时从 `报告模板.docx` 解包同名条目恢复。
 PDF 预览与验收：LibreOfficePortable（安装目录按本机配置）headless 转 PDF，
 fitz 按 100 dpi 出 PNG 逐页目视。文档无 Word COM，不使用目录域；
 正文标题用内置 Heading 样式，便于评审方在自己的 Word/WPS 里自行生成目录。
+
+成品被人工直改后、同步 `parts/` 之前先跑比对脚本（与构建同环境）：
+
+```
+%LOCALAPPDATA%\loongarch-report-py312\python.exe diff_user_edits.py
+```
+
+脚本输出「只在成品 docx」（疑似人工直改，需回写源）与「只在 parts 源」
+（重建会重置）两个清单；归一化已覆盖题注编号、表格对齐行与构建指令行，
+当前基线双向差异为 0。
 
 ## 引用登记
 
