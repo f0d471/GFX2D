@@ -205,6 +205,19 @@ module engine_top #(
     assign band_dst_slog2 = old_band_dst_slog2;
     assign band_y0 = old_band_y0;
     assign band_frame_height = old_band_frame_height;
+`else
+    // 无条带硬件：出向条带网接常量。geom 的求交按 band_enable=0 走全帧窗口，
+    // mover 的无条带形态不消费这些输入；悬空会在 RTL 仿真里把 x 传进几何窗口。
+    assign band_enable = 1'b0;
+    assign band_start = 1'b0;
+    assign band_flush = 1'b0;
+    assign band_abort = 1'b0;
+    assign band_bg_base = 32'd0;
+    assign band_dst_base = 32'd0;
+    assign band_bg_slog2 = 5'd0;
+    assign band_dst_slog2 = 5'd0;
+    assign band_y0 = 16'd0;
+    assign band_frame_height = 16'd0;
 `endif
 
 `ifdef GFX_HAS_PB

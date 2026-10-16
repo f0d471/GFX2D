@@ -249,7 +249,7 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 
 `tools/check/feature_build.py` 生成 `engine_feature.vh`、`engine_config_guard.vh`、
 `engine_config_error_modules.vh`、`engine_regs_offsets.vh` 与软件侧 `gfx_feature.h`，
-都不手改。`--sync` 写默认全功能构型、`--check` 校验。
+都不手改。`--sync` 写主工程默认构型（`feature_config.CANONICAL`，现为 B5 全功能档）、`--check` 校验。
 
 判据入口：`validate.py --checks feature-caps feature-elab feature-probe feature-contract`
 （WSL），`feature-netlist` 与 `feature-synthesis` 走 Windows Efinity，

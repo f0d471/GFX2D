@@ -176,6 +176,12 @@ PRESETS = {
     'B6': dict(TEX=1, BAND_HW=1, STRIP=0, INST=1, PB=0, EQ_EXT=1, ALPHA=1, KEY=1, DELIVERY=1),
 }
 
+# 主工程仓库内产物的默认构型：B5 全功能档。曾切到 B0 交付基本档，因裁剪档
+# BLIT 源读死锁（frame/ctrl 首次在裁剪档跑整帧暴露，见 Todo「裁剪档BLIT死锁」）
+# 回滚；CANONICAL 机制本身保留——regs_gen 无参默认与 --sync 都跟随这里，
+# 修好裁剪档功能后把这里改回 B0 并 --sync 即完成切换。
+CANONICAL = 'B5'
+
 # 每个开关对应的源文件：关闭时从编译输入里整出。
 FEATURE_SOURCES = {
     'TEX': ('rtl/engine/engine_tex.v',),

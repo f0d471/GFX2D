@@ -16,6 +16,12 @@ import argparse
 import sys
 from pathlib import Path
 
+try:
+    import feature_config as _fc
+except ImportError:  # 被其它目录的模块导入时兜底；直接以脚本运行时脚本目录已在 sys.path
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import feature_config as _fc
+
 # ---- 真源表 -----------------------------------------------------------------
 # (名字, 偏移, 属性, 位域列表)。属性：RO/RW/WO；位域 = (字段, 高位, 低位, 复位值)，
 # 位域只进 .h 的宏名；.vh 另给每个寄存器的偏移与整字位宽。
@@ -57,6 +63,11 @@ CAPS_FIELDS = [("KEY", 0, 1, 1), ("ALPHA_PM", 1, 1, 1),
                ("LANES", 8, 4, 4), ("INST", 12, 1, 1), ("BIN", 13, 1, 1)]
 CAPS_VALUE = sum(value << lo for _, lo, _, value in CAPS_FIELDS)
 
+
+def default_caps():
+    """主工程仓库内产物的 CAPS 复位值：跟随 feature_config.CANONICAL 构型。"""
+    return _fc.caps(_fc.parse_name(_fc.CANONICAL))
+
 # TEX 装载窗口（v1-TEX profile 定案）：APB Slave0 的第 4~7 页，
 # 页内偏移 0x4000 起 16 KiB，CPU 地址 0xF810_4000~0xF810_7FFF。
 TEX_WINDOW = 0x4000
@@ -85,7 +96,8 @@ PERF_COUNT = len(PERF_NAMES)
 def field_values(caps_value):
     """CAPS 各位的取值：按构型把该位是否置 1 摊进 (名, 位, 宽, 值) 表。
 
-    caps_value 为 None 时用全功能复位值。偏移与位号不随构型改变，
+    caps_value 为 None 时用主工程默认构型（feature_config.CANONICAL）的复位值。
+    偏移与位号不随构型改变，
     所以只影响 CAPS 的复位值，不影响两份产物的其余部分。
     """
     if caps_value is None:
@@ -95,7 +107,7 @@ def field_values(caps_value):
 
 
 def gen_vh(caps_value=None):
-    value = CAPS_VALUE if caps_value is None else caps_value
+    value = default_caps() if caps_value is None else caps_value
     L = []
     a = L.append
     a("// 由 tools/check/regs_gen.py 生成，是寄存器语义的单一真源，不要手改；")
@@ -127,7 +139,7 @@ def gen_vh(caps_value=None):
     a(f"localparam [7:0]  EC_ID_VERSION = 8'h{ID_VERSION:02X};")
     a("")
     a("// CAPS 位位号；复位值随构型（见 tools/check/feature_config.py）")
-    for name, lo, width, reset in field_values(caps_value):
+    for name, lo, width, reset in field_values(value):
         a(f"localparam EC_CAPS_{name}_LO = {lo};")
         a(f"localparam EC_CAPS_{name}_W  = {width};")
         a(f"localparam EC_CAPS_{name}_VALUE = {reset};")
@@ -163,7 +175,7 @@ def gen_vh(caps_value=None):
     return "\n".join(L) + "\n"
 
 def gen_h(caps_value=None):
-    value = CAPS_VALUE if caps_value is None else caps_value
+    value = default_caps() if caps_value is None else caps_value
     L = []
     a = L.append
     a("/* 由 tools/check/regs_gen.py 生成，是寄存器语义的单一真源，不要手改；")
@@ -267,7 +279,7 @@ def main():
         vh_path, h_path = out / VH_PATH.name, out / H_PATH.name
     else:
         if caps_value is not None:
-            print("regs_gen: --caps-value 只与 --out-dir 一起用，避免覆盖默认全功能产物。")
+            print("regs_gen: --caps-value 只与 --out-dir 一起用，避免覆盖默认构型产物。")
             return 1
         vh_path, h_path = VH_PATH, H_PATH
     vh_path.write_text(vh, encoding="utf-8", newline="\n")

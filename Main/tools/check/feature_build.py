@@ -243,7 +243,10 @@ def populate_tree(config, out):
         shutil.copyfile(out / name, engine / name)
 
 
-CANONICAL_CONFIG = 'B5'
+# 主工程默认构型跟随 feature_config.CANONICAL（现为 B5 全功能档；切 B0 的
+# 尝试因裁剪档 BLIT 源读死锁回滚，见 Todo「裁剪档BLIT死锁」）。切换 = 改
+# CANONICAL 后重跑 --sync 与 regs_gen，再整机综合复核。
+CANONICAL_CONFIG = fc.CANONICAL
 
 
 def write_feature_files(config, name, out):

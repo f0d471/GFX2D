@@ -24,6 +24,7 @@
 // 两张表的用例按 cnt.hex 拆成两次提交（SET_CLIP 状态跨提交保持，与软件执行器一致）。
 `timescale 1ns/1ps
 `default_nettype none
+`include "engine_regs_offsets.vh"
 `ifndef CASE
 `define CASE "build/frames/frame0"
 `endif
@@ -148,6 +149,20 @@ module tb_engine_frame #(
             if (g >= 2000000) begin
                 errors = errors + 1;
                 $display("TIMEOUT-WAIT base=%08x status=%08x", base, s);
+                $display("PROBE fd_v=%b fd_r=%b rd_v=%b rd_r=%b rd_cidx=%0d geom_busy=%b cmd_st=%0d arv=%b arr=%b rv=%b rr=%b",
+                         u_eng.fd_valid, u_eng.fd_ready, u_eng.g_rd_valid, u_eng.g_rd_ready,
+                         u_eng.g_rd_cidx, u_eng.geom_busy, u_eng.u_cmd.st,
+                         u_eng.m_axi_arvalid, u_eng.m_axi_arready,
+                         u_eng.m_axi_rvalid, u_eng.m_axi_rready);
+                $display("PROBE2 rd_busy=%b seen=%b sdone=%b stat_v=%b last_fire=%b core_rdy=%b open=%b rdy_band=%b rdy_tex=%b",
+                         u_eng.u_mover.rd_busy, u_eng.u_mover.rd_status_seen, u_eng.u_mover.rd_stream_done,
+                         u_eng.u_mover.rd_status_valid, u_eng.u_mover.rs_last_fire,
+                         u_eng.u_mover.rd_core_ready, u_eng.u_mover.rd_open,
+                         u_eng.u_mover.rd_is_band, u_eng.u_mover.rd_tex);
+                $display("PROBE3 rd_addr=%08x rd_bytes=%03x beats=%0d dsc_addr=%08x dsc_bytes=%03x arlen=%0d",
+                         u_eng.g_rd_addr, u_eng.g_rd_bytes, u_eng.g_rd_beats,
+                         u_eng.u_mover.dsc_addr, u_eng.u_mover.dsc_bytes,
+                         u_eng.m_axi_arlen);
                 code = 32'hdead;
             end else begin
                 code = s[7:4];
@@ -179,6 +194,18 @@ module tb_engine_frame #(
     reg [31:0] code, code2, id, caps;
     integer t0, t_submit;
 
+    // +VCD=<文件>：转储引擎核心四层的波形，供挂死与数据错的定位
+    initial begin
+        reg [1023:0] vcd;
+        if ($value$plusargs("VCD=%s", vcd)) begin
+            $dumpfile(vcd);
+            $dumpvars(0, u_eng.u_cmd);
+            $dumpvars(0, u_eng.u_geom);
+            $dumpvars(0, u_eng.u_mover);
+            $dumpvars(0, u_eng.u_regs);
+        end
+    end
+
     initial begin
         $readmemh({`CASE, ".cmd.hex"}, cmd_rom);
         $readmemh({`CASE, ".surf.hex"}, surf_rom);
@@ -190,13 +217,14 @@ module tb_engine_frame #(
         repeat(5) @(negedge clk); rst=0;
         repeat(2) @(negedge clk);
 
-        // ID 与 CAPS 在位（ID="GFX"<<8|1；CAPS 复位值 0x0000046F，TEX/BAND 位为 1）
+        // ID 与 CAPS 在位（ID="GFX"<<8|1；CAPS 复位值随构型，EC_CAPS_VALUE
+        // 来自 engine_regs_offsets.vh，与本构型的特性清单同源）
         apb_rd(12'h000, id);
         if (id !== 32'h4746_5801) begin
             errors = errors + 1; $display("ID-FAIL %08x", id);
         end
         apb_rd(12'h004, caps);
-        if ((caps & 32'h0000_146F) !== 32'h0000_146F) begin
+        if (caps !== EC_CAPS_VALUE) begin
             errors = errors + 1; $display("CAPS-FAIL %08x", caps);
         end
 
