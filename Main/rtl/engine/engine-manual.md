@@ -215,7 +215,7 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 | 像素 | `GFX_KEY` | 无 |
 | 交付 | `GFX_DELIVERY` | 要求 `ALPHA` 与 `KEY` |
 
-只有两条依赖边：`PB → BAND_HW`、`PB → INST`、`STRIP → BAND_HW`。
+有三条依赖边：`PB → BAND_HW`、`PB → INST`、`STRIP → BAND_HW`。
 合法配置是向下封闭集，结构位 32 种输入中合法 16、非法 16。
 计数与依赖的单一真源是 [`../../tools/check/feature_config.py`](../../tools/check/feature_config.py)，
 导入时自检，改动依赖会在那里停住。
@@ -230,6 +230,9 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 | 无实例 | `ERROR_INSTANCE` 恒 `0xFFFFFFFF`，`PERF[9]` 恒 0 |
 | 无 PB | `PERF[10..13]` 恒 0；INST 仍开时 `PERF[9]` 正常 |
 | 无 TEX | BLIT 源空间只允许 DDR(0)，`space=1` 归 `BAD_SPACE` |
+| 无色键 | 请求色键的 BLIT/实例包归 `BAD_FIELD`，不能静默执行普通 BLIT |
+| 条带共享参数 | `LSTRIPS/STRIP_H/BAND_SURF` 在 STRIP 或 PB 存在时映射；两者都无时读写报错 |
+| 无 STRIP | 独立 `CTRL.BAND` 写拒绝；PB 存在时允许同次写 `BAND|BIN`，由 PB 控制条带 |
 | 无条带模式 | `CAPS` 不变（无专属位），只能靠「无条带表取数」与「CTRL.BAND 被拒」判 |
 
 ### 7.3 能力位与默认后端
@@ -249,12 +252,22 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 
 `tools/check/feature_build.py` 生成 `engine_feature.vh`、`engine_config_guard.vh`、
 `engine_config_error_modules.vh`、`engine_regs_offsets.vh` 与软件侧 `gfx_feature.h`，
-都不手改。`--sync` 写主工程默认构型（`feature_config.CANONICAL`，现为 B5 全功能档）、`--check` 校验。
+都不手改。`--sync` 写主工程默认构型（`feature_config.CANONICAL`，现为 B0 基本档）及综合模式，`--check` 校验。
 
-判据入口：`validate.py --checks feature-caps feature-elab feature-probe feature-contract`
-（WSL），`feature-netlist` 与 `feature-synthesis` 走 Windows Efinity，
+判据入口：`validate.py --checks feature-caps feature-elab feature-probe feature-contract feature-function`
+（WSL），`feature-synthesis` 与 `feature-board` 走 Windows Efinity，
 清单与逐项用法见 `tools/check/README.md`。
 
-按构型的整机四步读数只在同一轮内可比：七个代表档跑两轮，
-XLR 跨轮差 −1059~+1121（约 2~3%），RAM 与 DSP 两轮一致。
-报某档余量必须用同轮读数，或同轮多次综合取区间。
+主工程默认是 B0 基本档，像素能力全开。全结构构型的综合模式为 speed2，
+其它构型为 speed，均由 feature_config.synthesis_mode 生成并登记到 config.json。
+不同模式的资源差不能直接作为单机制成本。
+历史两轮来自不同构建目录，不能据此断言严格同输入存在随机波动。
+报告余量需绑定源码、目录、综合模式、时钟和实际产物；跨构型或跨轮比较保留这些边界。
+
+### 7.6 关闭态与后端切换
+
+无 TEX 时 mover 的九个输入接空闲常量，不能省略端口后让共用读路消费 z。
+无 PB 时软复位仍恢复全游戏区 clip；只有 PB 内部中止可以保留 clip。
+门铃按当前 CTRL.BIN 选择新请求，pb_active 仅说明在途事务的所有者，不能用它
+决定新请求是否进入 STRIP。TEX 能力不存在属于正常裁剪，游戏跳过热集装载；
+能力存在但装载或 CRC 失败仍记录错误。

@@ -1,0 +1,13 @@
+--- B0/engine_top.v
++++ B0-tied/engine_top.v
+@@ -582,6 +582,10 @@
+         .tx_rs_tlast(tx_rs_tlast), .tx_rs_buf(tx_rs_buf),
+         .tx_stat_valid(tx_stat_valid), .tx_stat_ready(tx_stat_ready), .tx_stat_cidx(tx_stat_cidx),
+         .tx_stat_buf(tx_stat_buf), .tx_busy(tx_busy),
++`else
++        .tx_ready(1'b0), .tx_rs_tdata(128'd0), .tx_rs_tvalid(1'b0),
++        .tx_rs_tlast(1'b0), .tx_rs_buf(2'd0), .tx_stat_valid(1'b0),
++        .tx_stat_cidx(4'd0), .tx_stat_buf(2'd0), .tx_busy(1'b0),
+ `endif
+         .fd_addr(fd_addr), .fd_bytes(fd_bytes), .fd_cidx(fd_cidx),
+         .fd_instance(fd_instance), .fs_instance(fs_instance), .rd_stat_instance(rd_stat_instance),

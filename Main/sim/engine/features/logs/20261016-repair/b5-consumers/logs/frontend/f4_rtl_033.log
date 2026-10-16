@@ -1,0 +1,6 @@
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:229: $readmemh(/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261016-172358-85d08be1/build/f4/fixtures/case33.cmd.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:234: $readmemh(/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261016-172358-85d08be1/build/f4/fixtures/case33.init.hex): Not enough words in the file for the requested range [0:8191].
+PROFILE fetch_cycles=109 decode_cycles=240 geometry_cycles=610 pixel_output_beats=63
+FRAME cycles=1170 rd_burst=56 rd_beat=145 wr_burst=26 wr_beat=63 pixel=181 key=0 cmd=4 mem_bad=0
+RESULT: PASS (frame, software executor golden)
+/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:401: $finish called at 21305000 (1ps)

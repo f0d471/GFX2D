@@ -24,6 +24,7 @@
 // XRGB 目的的 X 字节恒为 0，所有内存期望只对比低 24 位。
 `timescale 1ns/1ps
 `default_nettype none
+`include "engine_regs_offsets.vh"
 module tb_engine_top;
     reg clk = 1'b0;
     reg rst = 1'b1;
@@ -812,9 +813,9 @@ module tb_engine_top;
         end
         apb_rd(12'h004, caps_rd);
         checks = checks + 1;
-        if ((caps_rd & 32'h0000_146f) !== 32'h0000_146f) begin
+        if (caps_rd !== EC_CAPS_VALUE) begin
             errors = errors + 1;
-            $display("CAPS-FAIL got=%08x exp=0000146f", caps_rd);
+            $display("CAPS-FAIL got=%08x exp=%08x", caps_rd, EC_CAPS_VALUE);
         end
 
         parse_vectors;

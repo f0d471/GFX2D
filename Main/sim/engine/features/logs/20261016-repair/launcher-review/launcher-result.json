@@ -1,0 +1,60 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "case": "syntax-synth_presets.sh",
+      "exit": 0,
+      "expected": 0
+    },
+    {
+      "case": "syntax-regress_suites.sh",
+      "exit": 0,
+      "expected": 0
+    },
+    {
+      "case": "missing-install",
+      "exit": 3,
+      "expected": 3
+    },
+    {
+      "case": "missing-python",
+      "exit": 3,
+      "expected": 3
+    },
+    {
+      "case": "outside-output",
+      "exit": 1,
+      "expected": 1
+    },
+    {
+      "case": "linked-preset",
+      "exit": 1,
+      "expected": 1
+    },
+    {
+      "case": "configured-invocations",
+      "exit": 0,
+      "expected": 0
+    },
+    {
+      "case": "propagate-tool-error",
+      "exit": 9,
+      "expected": 9
+    },
+    {
+      "case": "suite-without-vendor",
+      "exit": 0,
+      "expected": 0
+    },
+    {
+      "case": "suite-failed-process-with-pass-text",
+      "exit": 1,
+      "expected": 1
+    },
+    {
+      "case": "suite-failed-result-with-zero-process",
+      "exit": 1,
+      "expected": 1
+    }
+  ]
+}

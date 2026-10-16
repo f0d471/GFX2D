@@ -1,0 +1,37 @@
+{
+  "logs/b5-speed2/experiment.py.log": {
+    "size": 2278,
+    "mtime_ns": 1792144876521168000,
+    "sha256": "23e7ac1c59d87a531354364391ddbf4d03d993c8596ff50ffad28dbaea3372f9"
+  },
+  "logs/b5-speed2/flow.log": {
+    "size": 1626,
+    "mtime_ns": 1792145391023832400,
+    "sha256": "e5dc764e553cbc58e25fd1c22e2941cd6caa7d0daaaddc3768366dd75ebd62ab"
+  },
+  "logs/b5-speed2/place.rpt": {
+    "size": 2020,
+    "mtime_ns": 1792145391023832400,
+    "sha256": "c6d27b158a2c76a1b79a3c8d9eb7d6d4cc30cac6ec1ff2611f019f93f21e91de"
+  },
+  "logs/b5-speed2/project-input.xml": {
+    "size": 12316,
+    "mtime_ns": 1792144876755331900,
+    "sha256": "bda10aab1c5ce5ffbd9d39140fbebadc6bbb5509ac5cbb0707fae5a77585dc35"
+  },
+  "logs/b5-speed2/synthesis.json": {
+    "size": 2488,
+    "mtime_ns": 1792145391025844800,
+    "sha256": "78d8d3e8d7ef7790bab45ec471db3d4dbb78eeeacc31208f1adabbb557b7b9ee"
+  },
+  "logs/b5-speed2/timing.rpt": {
+    "size": 964772,
+    "mtime_ns": 1792145391024840400,
+    "sha256": "507feadc0aa688e7ab577bfc1c1c1bc1b26036b0f43c9168ed48bc67e9583982"
+  },
+  "logs/b5-speed2/warn.log": {
+    "size": 84671,
+    "mtime_ns": 1792145391024840400,
+    "sha256": "252a6173ba32596180750ca548c4affd3a3ac05f0ea43226e49d958c29235cf8"
+  }
+}

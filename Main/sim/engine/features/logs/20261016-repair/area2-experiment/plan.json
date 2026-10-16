@@ -1,0 +1,12 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "b5-area2"
+  ],
+  "scope": "B5 full features, unchanged RTL, vendor documented area synthesis mode",
+  "parameters": {
+    "mode": "area2",
+    "seed": 1,
+    "placer_effort_level": 2
+  }
+}

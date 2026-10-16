@@ -1,0 +1,91 @@
+{
+  "config": "11011-111-d",
+  "preset": null,
+  "caps": "0x0000346F",
+  "flags": {
+    "TEX": true,
+    "BAND_HW": true,
+    "STRIP": false,
+    "INST": true,
+    "PB": true,
+    "EQ_EXT": true,
+    "ALPHA": true,
+    "KEY": true,
+    "DELIVERY": true
+  },
+  "sources": [
+    "top/gfx2d_top.v",
+    "bus/apb_probe.v",
+    "bus/axi_probe_master.v",
+    "bus/axi_mux_guard.v",
+    "bus/scanout_stub.v",
+    "display/display_top.v",
+    "display/display_fetch.v",
+    "display/display_fifo.v",
+    "display/display_out.v",
+    "engine/engine_blend.v",
+    "engine/engine_pix.v",
+    "engine/engine_geom.v",
+    "engine/engine_band.v",
+    "engine/engine_mover.v",
+    "engine/engine_regs.v",
+    "engine/engine_cmd.v",
+    "engine/engine_bounds.v",
+    "engine/engine_packet_check.v",
+    "engine/engine_pb_dma.v",
+    "engine/engine_bin.v",
+    "engine/engine_pb.v",
+    "engine/engine_inst.v",
+    "engine/engine_tex.v",
+    "engine/engine_top.v",
+    "vendor/verilog-axi/axi_dma_rd.v",
+    "vendor/verilog-axi/axi_dma_wr.v",
+    "vendor/axi_mux/Axi_Mux.v",
+    "vendor/ddr3_controller/ddr3_parameter.vh",
+    "vendor/ddr3_controller/ddr3_top.v",
+    "vendor/ddr3_controller/local_bus_ctl/local_bus_ctl.v",
+    "vendor/ddr3_controller/memory_bus_ctl/memory_bus_ctl.v",
+    "vendor/ddr3_controller/axi4_bus_ctl/axi4_bus_ctl.v",
+    "vendor/ddr3_controller/phy_ctl/ddr_mpr_rdlvl.v",
+    "vendor/ddr3_controller/phy_ctl/ddr_phy_if.v",
+    "vendor/ddr3_controller/phy_ctl/phy_ctl.v",
+    "vendor/ddr3_controller/phy_ctl/ddr_phy_wrcal.v",
+    "vendor/ddr3_controller/phy_ctl/ddr_phy_rdlvl_dqs.v",
+    "vendor/ddr3_controller/phy_ctl/ddr_calibration_ini.v",
+    "vendor/ddr3_controller/phy_ctl/ddr_phy_wrlvl.v",
+    "vendor/ddr3_controller/common/efx_fifo_v2.3/efx_fifo_wrapper.v",
+    "vendor/ddr3_controller/lb2_axi_clk.v",
+    "hdmi/hdmi_tx.v",
+    "hdmi/color_bar_rgb.v",
+    "hdmi/dvi_encoder.v",
+    "hdmi/encode.v"
+  ],
+  "excluded_sources": [],
+  "guards": [
+    {
+      "owner": "PB",
+      "needs": "BAND_HW",
+      "module": "GFX_CONFIG_ERROR_PB_REQUIRES_BAND_HW"
+    },
+    {
+      "owner": "PB",
+      "needs": "INST",
+      "module": "GFX_CONFIG_ERROR_PB_REQUIRES_INST"
+    },
+    {
+      "owner": "STRIP",
+      "needs": "BAND_HW",
+      "module": "GFX_CONFIG_ERROR_STRIP_REQUIRES_BAND_HW"
+    },
+    {
+      "owner": "DELIVERY",
+      "needs": "ALPHA",
+      "module": "GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA"
+    },
+    {
+      "owner": "DELIVERY",
+      "needs": "KEY",
+      "module": "GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY"
+    }
+  ]
+}

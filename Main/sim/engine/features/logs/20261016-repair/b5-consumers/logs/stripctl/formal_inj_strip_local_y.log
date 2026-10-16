@@ -1,0 +1,8 @@
+PIXEL-FAIL y=         16 word=          0 got=3c17f2cda8835e3914efcaa5805b3611 exp=0010203000201014002010100020100c
+PIXEL-FAIL y=         16 word=          1 got=8c67421df8d3ae89643f1af5d0ab8661 exp=0020102800201024002010200020101c
+PIXEL-FAIL y=         16 word=          2 got=dcb7926d4823fed9b48f6a4520fbd6b1 exp=0020103800201014002010100020100c
+PIXEL-FAIL y=         16 word=          3 got=2c07e2bd98734e2904dfba95704b2601 exp=0020102800201024002010200020101c
+G3 FRAME SH=         16 diff=      74240 cmd_reads=         67 pixel_reads=        530 writes=        480 DDR_beats=     78668
+G3 checks=      20414 errors=          1
+RESULT: FAIL
+/mnt/e/Workspace/Efinix/Main/sim/engine/stripctl/tb_stripctl.v:288: $finish called at 4509435000 (1ps)

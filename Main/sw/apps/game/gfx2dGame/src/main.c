@@ -1163,7 +1163,11 @@ static int run_modes(void)
     stg_modes_set_log(&s_logq);
     stg_chord_init(&s_chord);
 #ifdef __riscv
-    if (boot_tex() != 0) {
+    uint32_t tex_caps = 0u;
+    if (gfx_engine_caps_read(&tex_caps) == GFX_ENG_OK && !(tex_caps & GFX_CAPS_TEX_M)) {
+        s_tex_ready = 0;
+        board_puts("tex unavailable caps\r\n");
+    } else if (boot_tex() != 0) {
         s_fail++;
         s_tex_ready = 0;
         board_puts("tex err 热集装载或 CRC 自校验失败，HW/TEX 后端不可用\r\n");

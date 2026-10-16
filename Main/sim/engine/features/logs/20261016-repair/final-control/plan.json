@@ -1,0 +1,25 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "ctrl"
+  ],
+  "changed": null,
+  "commands": {
+    "ctrl": [
+      "bash",
+      "Main/sim/engine/ctrl/run.sh"
+    ]
+  },
+  "timeouts": {
+    "ctrl": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/rtl/**",
+    "Main/sim/**",
+    "Main/sw/**",
+    "Main/assets/**",
+    "Main/tools/check/**"
+  ]
+}

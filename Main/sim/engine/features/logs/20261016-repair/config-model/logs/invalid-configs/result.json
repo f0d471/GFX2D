@@ -1,0 +1,1416 @@
+{
+  "legal": 160,
+  "rejected": 352,
+  "inputs": 512,
+  "rejections": [
+    {
+      "config": "00000-000-d",
+      "reason": "INVALID 00000-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00000-001-d",
+      "reason": "INVALID 00000-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00000-010-d",
+      "reason": "INVALID 00000-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00000-100-d",
+      "reason": "INVALID 00000-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00000-101-d",
+      "reason": "INVALID 00000-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00000-110-d",
+      "reason": "INVALID 00000-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00001-000",
+      "reason": "INVALID 00001-000: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00001-000-d",
+      "reason": "INVALID 00001-000-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00001-001",
+      "reason": "INVALID 00001-001: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00001-001-d",
+      "reason": "INVALID 00001-001-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00001-010",
+      "reason": "INVALID 00001-010: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00001-010-d",
+      "reason": "INVALID 00001-010-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00001-011",
+      "reason": "INVALID 00001-011: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00001-011-d",
+      "reason": "INVALID 00001-011-d: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00001-100",
+      "reason": "INVALID 00001-100: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00001-100-d",
+      "reason": "INVALID 00001-100-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00001-101",
+      "reason": "INVALID 00001-101: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00001-101-d",
+      "reason": "INVALID 00001-101-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00001-110",
+      "reason": "INVALID 00001-110: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00001-110-d",
+      "reason": "INVALID 00001-110-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00001-111",
+      "reason": "INVALID 00001-111: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00001-111-d",
+      "reason": "INVALID 00001-111-d: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "00010-000-d",
+      "reason": "INVALID 00010-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00010-001-d",
+      "reason": "INVALID 00010-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00010-010-d",
+      "reason": "INVALID 00010-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00010-100-d",
+      "reason": "INVALID 00010-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00010-101-d",
+      "reason": "INVALID 00010-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00010-110-d",
+      "reason": "INVALID 00010-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00011-000",
+      "reason": "INVALID 00011-000: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00011-000-d",
+      "reason": "INVALID 00011-000-d: PB 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00011-001",
+      "reason": "INVALID 00011-001: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00011-001-d",
+      "reason": "INVALID 00011-001-d: PB 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00011-010",
+      "reason": "INVALID 00011-010: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00011-010-d",
+      "reason": "INVALID 00011-010-d: PB 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00011-011",
+      "reason": "INVALID 00011-011: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00011-011-d",
+      "reason": "INVALID 00011-011-d: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00011-100",
+      "reason": "INVALID 00011-100: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00011-100-d",
+      "reason": "INVALID 00011-100-d: PB 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00011-101",
+      "reason": "INVALID 00011-101: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00011-101-d",
+      "reason": "INVALID 00011-101-d: PB 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00011-110",
+      "reason": "INVALID 00011-110: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00011-110-d",
+      "reason": "INVALID 00011-110-d: PB 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00011-111",
+      "reason": "INVALID 00011-111: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00011-111-d",
+      "reason": "INVALID 00011-111-d: PB 需要 BAND_HW"
+    },
+    {
+      "config": "00100-000",
+      "reason": "INVALID 00100-000: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00100-000-d",
+      "reason": "INVALID 00100-000-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00100-001",
+      "reason": "INVALID 00100-001: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00100-001-d",
+      "reason": "INVALID 00100-001-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00100-010",
+      "reason": "INVALID 00100-010: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00100-010-d",
+      "reason": "INVALID 00100-010-d: STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00100-011",
+      "reason": "INVALID 00100-011: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00100-011-d",
+      "reason": "INVALID 00100-011-d: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00100-100",
+      "reason": "INVALID 00100-100: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00100-100-d",
+      "reason": "INVALID 00100-100-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00100-101",
+      "reason": "INVALID 00100-101: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00100-101-d",
+      "reason": "INVALID 00100-101-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00100-110",
+      "reason": "INVALID 00100-110: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00100-110-d",
+      "reason": "INVALID 00100-110-d: STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00100-111",
+      "reason": "INVALID 00100-111: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00100-111-d",
+      "reason": "INVALID 00100-111-d: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-000",
+      "reason": "INVALID 00101-000: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-000-d",
+      "reason": "INVALID 00101-000-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00101-001",
+      "reason": "INVALID 00101-001: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-001-d",
+      "reason": "INVALID 00101-001-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00101-010",
+      "reason": "INVALID 00101-010: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-010-d",
+      "reason": "INVALID 00101-010-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00101-011",
+      "reason": "INVALID 00101-011: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-011-d",
+      "reason": "INVALID 00101-011-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-100",
+      "reason": "INVALID 00101-100: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-100-d",
+      "reason": "INVALID 00101-100-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00101-101",
+      "reason": "INVALID 00101-101: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-101-d",
+      "reason": "INVALID 00101-101-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00101-110",
+      "reason": "INVALID 00101-110: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-110-d",
+      "reason": "INVALID 00101-110-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00101-111",
+      "reason": "INVALID 00101-111: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00101-111-d",
+      "reason": "INVALID 00101-111-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-000",
+      "reason": "INVALID 00110-000: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-000-d",
+      "reason": "INVALID 00110-000-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00110-001",
+      "reason": "INVALID 00110-001: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-001-d",
+      "reason": "INVALID 00110-001-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00110-010",
+      "reason": "INVALID 00110-010: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-010-d",
+      "reason": "INVALID 00110-010-d: STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00110-011",
+      "reason": "INVALID 00110-011: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-011-d",
+      "reason": "INVALID 00110-011-d: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-100",
+      "reason": "INVALID 00110-100: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-100-d",
+      "reason": "INVALID 00110-100-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00110-101",
+      "reason": "INVALID 00110-101: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-101-d",
+      "reason": "INVALID 00110-101-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00110-110",
+      "reason": "INVALID 00110-110: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-110-d",
+      "reason": "INVALID 00110-110-d: STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00110-111",
+      "reason": "INVALID 00110-111: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00110-111-d",
+      "reason": "INVALID 00110-111-d: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-000",
+      "reason": "INVALID 00111-000: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-000-d",
+      "reason": "INVALID 00111-000-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00111-001",
+      "reason": "INVALID 00111-001: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-001-d",
+      "reason": "INVALID 00111-001-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00111-010",
+      "reason": "INVALID 00111-010: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-010-d",
+      "reason": "INVALID 00111-010-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00111-011",
+      "reason": "INVALID 00111-011: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-011-d",
+      "reason": "INVALID 00111-011-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-100",
+      "reason": "INVALID 00111-100: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-100-d",
+      "reason": "INVALID 00111-100-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00111-101",
+      "reason": "INVALID 00111-101: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-101-d",
+      "reason": "INVALID 00111-101-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "00111-110",
+      "reason": "INVALID 00111-110: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-110-d",
+      "reason": "INVALID 00111-110-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "00111-111",
+      "reason": "INVALID 00111-111: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "00111-111-d",
+      "reason": "INVALID 00111-111-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "01000-000-d",
+      "reason": "INVALID 01000-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01000-001-d",
+      "reason": "INVALID 01000-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01000-010-d",
+      "reason": "INVALID 01000-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01000-100-d",
+      "reason": "INVALID 01000-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01000-101-d",
+      "reason": "INVALID 01000-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01000-110-d",
+      "reason": "INVALID 01000-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01001-000",
+      "reason": "INVALID 01001-000: PB 需要 INST"
+    },
+    {
+      "config": "01001-000-d",
+      "reason": "INVALID 01001-000-d: PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01001-001",
+      "reason": "INVALID 01001-001: PB 需要 INST"
+    },
+    {
+      "config": "01001-001-d",
+      "reason": "INVALID 01001-001-d: PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01001-010",
+      "reason": "INVALID 01001-010: PB 需要 INST"
+    },
+    {
+      "config": "01001-010-d",
+      "reason": "INVALID 01001-010-d: PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01001-011",
+      "reason": "INVALID 01001-011: PB 需要 INST"
+    },
+    {
+      "config": "01001-011-d",
+      "reason": "INVALID 01001-011-d: PB 需要 INST"
+    },
+    {
+      "config": "01001-100",
+      "reason": "INVALID 01001-100: PB 需要 INST"
+    },
+    {
+      "config": "01001-100-d",
+      "reason": "INVALID 01001-100-d: PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01001-101",
+      "reason": "INVALID 01001-101: PB 需要 INST"
+    },
+    {
+      "config": "01001-101-d",
+      "reason": "INVALID 01001-101-d: PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01001-110",
+      "reason": "INVALID 01001-110: PB 需要 INST"
+    },
+    {
+      "config": "01001-110-d",
+      "reason": "INVALID 01001-110-d: PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01001-111",
+      "reason": "INVALID 01001-111: PB 需要 INST"
+    },
+    {
+      "config": "01001-111-d",
+      "reason": "INVALID 01001-111-d: PB 需要 INST"
+    },
+    {
+      "config": "01010-000-d",
+      "reason": "INVALID 01010-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01010-001-d",
+      "reason": "INVALID 01010-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01010-010-d",
+      "reason": "INVALID 01010-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01010-100-d",
+      "reason": "INVALID 01010-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01010-101-d",
+      "reason": "INVALID 01010-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01010-110-d",
+      "reason": "INVALID 01010-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01011-000-d",
+      "reason": "INVALID 01011-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01011-001-d",
+      "reason": "INVALID 01011-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01011-010-d",
+      "reason": "INVALID 01011-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01011-100-d",
+      "reason": "INVALID 01011-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01011-101-d",
+      "reason": "INVALID 01011-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01011-110-d",
+      "reason": "INVALID 01011-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01100-000-d",
+      "reason": "INVALID 01100-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01100-001-d",
+      "reason": "INVALID 01100-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01100-010-d",
+      "reason": "INVALID 01100-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01100-100-d",
+      "reason": "INVALID 01100-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01100-101-d",
+      "reason": "INVALID 01100-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01100-110-d",
+      "reason": "INVALID 01100-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01101-000",
+      "reason": "INVALID 01101-000: PB 需要 INST"
+    },
+    {
+      "config": "01101-000-d",
+      "reason": "INVALID 01101-000-d: PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01101-001",
+      "reason": "INVALID 01101-001: PB 需要 INST"
+    },
+    {
+      "config": "01101-001-d",
+      "reason": "INVALID 01101-001-d: PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01101-010",
+      "reason": "INVALID 01101-010: PB 需要 INST"
+    },
+    {
+      "config": "01101-010-d",
+      "reason": "INVALID 01101-010-d: PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01101-011",
+      "reason": "INVALID 01101-011: PB 需要 INST"
+    },
+    {
+      "config": "01101-011-d",
+      "reason": "INVALID 01101-011-d: PB 需要 INST"
+    },
+    {
+      "config": "01101-100",
+      "reason": "INVALID 01101-100: PB 需要 INST"
+    },
+    {
+      "config": "01101-100-d",
+      "reason": "INVALID 01101-100-d: PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01101-101",
+      "reason": "INVALID 01101-101: PB 需要 INST"
+    },
+    {
+      "config": "01101-101-d",
+      "reason": "INVALID 01101-101-d: PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01101-110",
+      "reason": "INVALID 01101-110: PB 需要 INST"
+    },
+    {
+      "config": "01101-110-d",
+      "reason": "INVALID 01101-110-d: PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01101-111",
+      "reason": "INVALID 01101-111: PB 需要 INST"
+    },
+    {
+      "config": "01101-111-d",
+      "reason": "INVALID 01101-111-d: PB 需要 INST"
+    },
+    {
+      "config": "01110-000-d",
+      "reason": "INVALID 01110-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01110-001-d",
+      "reason": "INVALID 01110-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01110-010-d",
+      "reason": "INVALID 01110-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01110-100-d",
+      "reason": "INVALID 01110-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01110-101-d",
+      "reason": "INVALID 01110-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01110-110-d",
+      "reason": "INVALID 01110-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01111-000-d",
+      "reason": "INVALID 01111-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01111-001-d",
+      "reason": "INVALID 01111-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01111-010-d",
+      "reason": "INVALID 01111-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01111-100-d",
+      "reason": "INVALID 01111-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "01111-101-d",
+      "reason": "INVALID 01111-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "01111-110-d",
+      "reason": "INVALID 01111-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10000-000-d",
+      "reason": "INVALID 10000-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10000-001-d",
+      "reason": "INVALID 10000-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10000-010-d",
+      "reason": "INVALID 10000-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10000-100-d",
+      "reason": "INVALID 10000-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10000-101-d",
+      "reason": "INVALID 10000-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10000-110-d",
+      "reason": "INVALID 10000-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10001-000",
+      "reason": "INVALID 10001-000: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10001-000-d",
+      "reason": "INVALID 10001-000-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10001-001",
+      "reason": "INVALID 10001-001: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10001-001-d",
+      "reason": "INVALID 10001-001-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10001-010",
+      "reason": "INVALID 10001-010: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10001-010-d",
+      "reason": "INVALID 10001-010-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10001-011",
+      "reason": "INVALID 10001-011: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10001-011-d",
+      "reason": "INVALID 10001-011-d: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10001-100",
+      "reason": "INVALID 10001-100: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10001-100-d",
+      "reason": "INVALID 10001-100-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10001-101",
+      "reason": "INVALID 10001-101: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10001-101-d",
+      "reason": "INVALID 10001-101-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10001-110",
+      "reason": "INVALID 10001-110: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10001-110-d",
+      "reason": "INVALID 10001-110-d: PB 需要 BAND_HW；PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10001-111",
+      "reason": "INVALID 10001-111: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10001-111-d",
+      "reason": "INVALID 10001-111-d: PB 需要 BAND_HW；PB 需要 INST"
+    },
+    {
+      "config": "10010-000-d",
+      "reason": "INVALID 10010-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10010-001-d",
+      "reason": "INVALID 10010-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10010-010-d",
+      "reason": "INVALID 10010-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10010-100-d",
+      "reason": "INVALID 10010-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10010-101-d",
+      "reason": "INVALID 10010-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10010-110-d",
+      "reason": "INVALID 10010-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10011-000",
+      "reason": "INVALID 10011-000: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10011-000-d",
+      "reason": "INVALID 10011-000-d: PB 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10011-001",
+      "reason": "INVALID 10011-001: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10011-001-d",
+      "reason": "INVALID 10011-001-d: PB 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10011-010",
+      "reason": "INVALID 10011-010: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10011-010-d",
+      "reason": "INVALID 10011-010-d: PB 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10011-011",
+      "reason": "INVALID 10011-011: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10011-011-d",
+      "reason": "INVALID 10011-011-d: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10011-100",
+      "reason": "INVALID 10011-100: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10011-100-d",
+      "reason": "INVALID 10011-100-d: PB 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10011-101",
+      "reason": "INVALID 10011-101: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10011-101-d",
+      "reason": "INVALID 10011-101-d: PB 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10011-110",
+      "reason": "INVALID 10011-110: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10011-110-d",
+      "reason": "INVALID 10011-110-d: PB 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10011-111",
+      "reason": "INVALID 10011-111: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10011-111-d",
+      "reason": "INVALID 10011-111-d: PB 需要 BAND_HW"
+    },
+    {
+      "config": "10100-000",
+      "reason": "INVALID 10100-000: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10100-000-d",
+      "reason": "INVALID 10100-000-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10100-001",
+      "reason": "INVALID 10100-001: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10100-001-d",
+      "reason": "INVALID 10100-001-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10100-010",
+      "reason": "INVALID 10100-010: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10100-010-d",
+      "reason": "INVALID 10100-010-d: STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10100-011",
+      "reason": "INVALID 10100-011: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10100-011-d",
+      "reason": "INVALID 10100-011-d: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10100-100",
+      "reason": "INVALID 10100-100: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10100-100-d",
+      "reason": "INVALID 10100-100-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10100-101",
+      "reason": "INVALID 10100-101: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10100-101-d",
+      "reason": "INVALID 10100-101-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10100-110",
+      "reason": "INVALID 10100-110: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10100-110-d",
+      "reason": "INVALID 10100-110-d: STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10100-111",
+      "reason": "INVALID 10100-111: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10100-111-d",
+      "reason": "INVALID 10100-111-d: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-000",
+      "reason": "INVALID 10101-000: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-000-d",
+      "reason": "INVALID 10101-000-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10101-001",
+      "reason": "INVALID 10101-001: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-001-d",
+      "reason": "INVALID 10101-001-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10101-010",
+      "reason": "INVALID 10101-010: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-010-d",
+      "reason": "INVALID 10101-010-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10101-011",
+      "reason": "INVALID 10101-011: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-011-d",
+      "reason": "INVALID 10101-011-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-100",
+      "reason": "INVALID 10101-100: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-100-d",
+      "reason": "INVALID 10101-100-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10101-101",
+      "reason": "INVALID 10101-101: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-101-d",
+      "reason": "INVALID 10101-101-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10101-110",
+      "reason": "INVALID 10101-110: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-110-d",
+      "reason": "INVALID 10101-110-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10101-111",
+      "reason": "INVALID 10101-111: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10101-111-d",
+      "reason": "INVALID 10101-111-d: PB 需要 BAND_HW；PB 需要 INST；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-000",
+      "reason": "INVALID 10110-000: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-000-d",
+      "reason": "INVALID 10110-000-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10110-001",
+      "reason": "INVALID 10110-001: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-001-d",
+      "reason": "INVALID 10110-001-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10110-010",
+      "reason": "INVALID 10110-010: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-010-d",
+      "reason": "INVALID 10110-010-d: STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10110-011",
+      "reason": "INVALID 10110-011: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-011-d",
+      "reason": "INVALID 10110-011-d: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-100",
+      "reason": "INVALID 10110-100: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-100-d",
+      "reason": "INVALID 10110-100-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10110-101",
+      "reason": "INVALID 10110-101: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-101-d",
+      "reason": "INVALID 10110-101-d: STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10110-110",
+      "reason": "INVALID 10110-110: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-110-d",
+      "reason": "INVALID 10110-110-d: STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10110-111",
+      "reason": "INVALID 10110-111: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10110-111-d",
+      "reason": "INVALID 10110-111-d: STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-000",
+      "reason": "INVALID 10111-000: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-000-d",
+      "reason": "INVALID 10111-000-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10111-001",
+      "reason": "INVALID 10111-001: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-001-d",
+      "reason": "INVALID 10111-001-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10111-010",
+      "reason": "INVALID 10111-010: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-010-d",
+      "reason": "INVALID 10111-010-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10111-011",
+      "reason": "INVALID 10111-011: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-011-d",
+      "reason": "INVALID 10111-011-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-100",
+      "reason": "INVALID 10111-100: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-100-d",
+      "reason": "INVALID 10111-100-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10111-101",
+      "reason": "INVALID 10111-101: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-101-d",
+      "reason": "INVALID 10111-101-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "10111-110",
+      "reason": "INVALID 10111-110: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-110-d",
+      "reason": "INVALID 10111-110-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "10111-111",
+      "reason": "INVALID 10111-111: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "10111-111-d",
+      "reason": "INVALID 10111-111-d: PB 需要 BAND_HW；STRIP 需要 BAND_HW"
+    },
+    {
+      "config": "11000-000-d",
+      "reason": "INVALID 11000-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11000-001-d",
+      "reason": "INVALID 11000-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11000-010-d",
+      "reason": "INVALID 11000-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11000-100-d",
+      "reason": "INVALID 11000-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11000-101-d",
+      "reason": "INVALID 11000-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11000-110-d",
+      "reason": "INVALID 11000-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11001-000",
+      "reason": "INVALID 11001-000: PB 需要 INST"
+    },
+    {
+      "config": "11001-000-d",
+      "reason": "INVALID 11001-000-d: PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11001-001",
+      "reason": "INVALID 11001-001: PB 需要 INST"
+    },
+    {
+      "config": "11001-001-d",
+      "reason": "INVALID 11001-001-d: PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11001-010",
+      "reason": "INVALID 11001-010: PB 需要 INST"
+    },
+    {
+      "config": "11001-010-d",
+      "reason": "INVALID 11001-010-d: PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11001-011",
+      "reason": "INVALID 11001-011: PB 需要 INST"
+    },
+    {
+      "config": "11001-011-d",
+      "reason": "INVALID 11001-011-d: PB 需要 INST"
+    },
+    {
+      "config": "11001-100",
+      "reason": "INVALID 11001-100: PB 需要 INST"
+    },
+    {
+      "config": "11001-100-d",
+      "reason": "INVALID 11001-100-d: PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11001-101",
+      "reason": "INVALID 11001-101: PB 需要 INST"
+    },
+    {
+      "config": "11001-101-d",
+      "reason": "INVALID 11001-101-d: PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11001-110",
+      "reason": "INVALID 11001-110: PB 需要 INST"
+    },
+    {
+      "config": "11001-110-d",
+      "reason": "INVALID 11001-110-d: PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11001-111",
+      "reason": "INVALID 11001-111: PB 需要 INST"
+    },
+    {
+      "config": "11001-111-d",
+      "reason": "INVALID 11001-111-d: PB 需要 INST"
+    },
+    {
+      "config": "11010-000-d",
+      "reason": "INVALID 11010-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11010-001-d",
+      "reason": "INVALID 11010-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11010-010-d",
+      "reason": "INVALID 11010-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11010-100-d",
+      "reason": "INVALID 11010-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11010-101-d",
+      "reason": "INVALID 11010-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11010-110-d",
+      "reason": "INVALID 11010-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11011-000-d",
+      "reason": "INVALID 11011-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11011-001-d",
+      "reason": "INVALID 11011-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11011-010-d",
+      "reason": "INVALID 11011-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11011-100-d",
+      "reason": "INVALID 11011-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11011-101-d",
+      "reason": "INVALID 11011-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11011-110-d",
+      "reason": "INVALID 11011-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11100-000-d",
+      "reason": "INVALID 11100-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11100-001-d",
+      "reason": "INVALID 11100-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11100-010-d",
+      "reason": "INVALID 11100-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11100-100-d",
+      "reason": "INVALID 11100-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11100-101-d",
+      "reason": "INVALID 11100-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11100-110-d",
+      "reason": "INVALID 11100-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11101-000",
+      "reason": "INVALID 11101-000: PB 需要 INST"
+    },
+    {
+      "config": "11101-000-d",
+      "reason": "INVALID 11101-000-d: PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11101-001",
+      "reason": "INVALID 11101-001: PB 需要 INST"
+    },
+    {
+      "config": "11101-001-d",
+      "reason": "INVALID 11101-001-d: PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11101-010",
+      "reason": "INVALID 11101-010: PB 需要 INST"
+    },
+    {
+      "config": "11101-010-d",
+      "reason": "INVALID 11101-010-d: PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11101-011",
+      "reason": "INVALID 11101-011: PB 需要 INST"
+    },
+    {
+      "config": "11101-011-d",
+      "reason": "INVALID 11101-011-d: PB 需要 INST"
+    },
+    {
+      "config": "11101-100",
+      "reason": "INVALID 11101-100: PB 需要 INST"
+    },
+    {
+      "config": "11101-100-d",
+      "reason": "INVALID 11101-100-d: PB 需要 INST；DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11101-101",
+      "reason": "INVALID 11101-101: PB 需要 INST"
+    },
+    {
+      "config": "11101-101-d",
+      "reason": "INVALID 11101-101-d: PB 需要 INST；DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11101-110",
+      "reason": "INVALID 11101-110: PB 需要 INST"
+    },
+    {
+      "config": "11101-110-d",
+      "reason": "INVALID 11101-110-d: PB 需要 INST；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11101-111",
+      "reason": "INVALID 11101-111: PB 需要 INST"
+    },
+    {
+      "config": "11101-111-d",
+      "reason": "INVALID 11101-111-d: PB 需要 INST"
+    },
+    {
+      "config": "11110-000-d",
+      "reason": "INVALID 11110-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11110-001-d",
+      "reason": "INVALID 11110-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11110-010-d",
+      "reason": "INVALID 11110-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11110-100-d",
+      "reason": "INVALID 11110-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11110-101-d",
+      "reason": "INVALID 11110-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11110-110-d",
+      "reason": "INVALID 11110-110-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11111-000-d",
+      "reason": "INVALID 11111-000-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11111-001-d",
+      "reason": "INVALID 11111-001-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11111-010-d",
+      "reason": "INVALID 11111-010-d: DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11111-100-d",
+      "reason": "INVALID 11111-100-d: DELIVERY 需要 ALPHA；DELIVERY 需要 KEY"
+    },
+    {
+      "config": "11111-101-d",
+      "reason": "INVALID 11111-101-d: DELIVERY 需要 ALPHA"
+    },
+    {
+      "config": "11111-110-d",
+      "reason": "INVALID 11111-110-d: DELIVERY 需要 KEY"
+    }
+  ],
+  "complete": true
+}

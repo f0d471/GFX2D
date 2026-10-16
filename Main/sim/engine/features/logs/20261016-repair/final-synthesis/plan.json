@@ -1,0 +1,16 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "feature-synthesis"
+  ],
+  "scope": "final configuration; seven previously compiled trees accepted only after generated input equivalence, copied bit identity and all clock/netlist checks",
+  "commands": {
+    "feature-synthesis": [
+      "check_feature_synthesis.py",
+      "--reuse-from",
+      "speed-initial",
+      "--reuse-b5",
+      "speed2-experiment"
+    ]
+  }
+}

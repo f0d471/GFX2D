@@ -1,0 +1,35 @@
+import sys, os, json, shlex, shutil
+from pathlib import Path
+repo=Path(r'E:\Workspace\Efinix')
+sys.path.insert(0,str(repo/'Main/tools/check'))
+import validate
+from check_run import Session, command, write_json
+from check_feature_board import validate_capture, parser_negatives
+from check_board_smoke import uart_port
+main_run=repo/'Main/sim/build/check-runs/20261016-171352-cd3f74e3'
+progress=json.loads((main_run/'logs/feature-synthesis/synthesis.json').read_text())
+assert 'B6' not in progress, 'Wait for primary board sequence before supplemental deployment'
+current=Session(profile='acceptance',input_patterns=validate.CHECKS['feature-board']['inputs'])
+print('RUN '+current.path.relative_to(repo).as_posix(),flush=True)
+logs=current.logs('pb-no-strip-board'); shutil.copyfile(__file__,logs/'experiment.py')
+write_json(current.path/'plan.json',{'profile':'acceptance','checks':['pb-no-strip-board'],'scope':'supplemental PB=1 STRIP=0 functional board; same binary as seven presets'})
+build=main_run/'build/feature-board/app';app=repo/'Main/sw/apps/test/featureTest'
+relative=os.path.relpath(build,app).replace('\\','/')
+script='toolchain="$(find "$HOME/opt" -path "*/bin/riscv-none-elf-gcc" -print -quit)"; test -n "$toolchain" || exit 3; make -C Main/sw/apps/test/featureTest -j8 OBJDIR='+shlex.quote(relative)+' RISCV_BIN="${toolchain%gcc}"'
+command(['wsl.exe','--exec','bash','-c',script],logs/'build.log')
+binary=build/'featureTest-O2.bin'
+bit=repo/'Main/sim/build/check-runs/20261016-172537-5b3779e1/build/pb-no-strip/11011-111-d/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit'
+current.artifact(binary);current.artifact(bit)
+port=uart_port()
+def perform():
+    control=command([sys.executable,repo/'Main/tools/board/board_run.py','--bit',bit,'--bin',binary,'--port',port,'--stop-line','done','--seconds','90','--log',logs/'serial.log'],logs/'control.log',timeout=300)
+    assert str(binary.stat().st_size)+' bytes written at address' in control
+    body=(logs/'serial.log').read_text(encoding='utf-8-sig')
+    result=validate_capture(body,0x346f)
+    write_json(logs/'parser-negatives.json',parser_negatives(body,0x346f))
+    result.update({'port':port,'config':'11011-111-d','binary':binary.relative_to(repo).as_posix(),'bit':bit.relative_to(repo).as_posix()})
+    write_json(logs/'result.json',result)
+    return {'log':(logs/'serial.log').relative_to(repo).as_posix(),'config':'11011-111-d','cases':result['cases']}
+current.perform('check:pb-no-strip-board',perform,reusable=False)
+write_json(current.path/'result.json',{'status':'PASS','profile':'acceptance','checks':['pb-no-strip-board'],'run_id':current.path.name})
+print('PB NO STRIP BOARD PASS port='+port,flush=True)

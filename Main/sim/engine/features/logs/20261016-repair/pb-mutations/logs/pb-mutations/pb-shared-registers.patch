@@ -1,0 +1,20 @@
+--- engine_regs.v
++++ pb-shared-registers/engine_regs.v
+@@ -144,7 +144,7 @@
+ `ifdef GFX_HAS_STRIP
+                    || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
+                    || (paddr == EC_REG_BAND_SURF)
+-`elsif GFX_HAS_PB
++`elsif GFX_DISABLED_SHARED_CONFIG
+                    || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
+                    || (paddr == EC_REG_BAND_SURF)
+ `endif
+@@ -157,7 +157,7 @@
+ `ifdef GFX_HAS_STRIP
+                    || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
+                    || (paddr == EC_REG_BAND_SURF)
+-`elsif GFX_HAS_PB
++`elsif GFX_DISABLED_SHARED_CONFIG
+                    || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
+                    || (paddr == EC_REG_BAND_SURF)
+ `endif

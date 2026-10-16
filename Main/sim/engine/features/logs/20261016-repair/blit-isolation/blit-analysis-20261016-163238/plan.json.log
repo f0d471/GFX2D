@@ -1,0 +1,12 @@
+{
+  "profile": "quick",
+  "scope": "isolated diagnostic; not acceptance",
+  "production_changes": false,
+  "cases": [
+    "B1/frame1",
+    "B2/frame1",
+    "B0-tied/frame1"
+  ],
+  "prior_B0_baseline": "blit-analysis-20261016-162811",
+  "diagnostic_poll_limit": 60000
+}

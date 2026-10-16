@@ -59,6 +59,46 @@ class WorkflowTests(unittest.TestCase):
         for _ in range(2):self.current.perform('board',lambda:calls.append(1),reusable=False)
         self.assertEqual(calls,[1,1])
 
+    def test_feature_board_cli_reexecutes_physical_check_and_keeps_synthesis_budget(self):
+        calls=[]
+        def execute(args,log,**kwargs):
+            calls.append((args[0],kwargs['timeout']))
+            log.parent.mkdir(parents=True,exist_ok=True)
+            log.write_text('PASS\n')
+            return 'PASS\n'
+        checks={
+            'feature-synthesis':{'command':['fake-synthesis'],'purpose':'fixture',
+                                 'dependencies':[],'inputs':[self.relative],'timeout':18000},
+            'feature-board':{'command':['fake-board'],'purpose':'fixture',
+                             'dependencies':['feature-synthesis'],'inputs':[self.relative],'timeout':3600}}
+        argv=['validate.py','--checks','feature-board','--run','--run-dir',str(self.current.path)]
+        with patch.dict(validate.CHECKS,checks),patch.object(validate,'Session',return_value=self.current), \
+             patch.object(validate,'command',side_effect=execute),patch.object(sys,'argv',argv), \
+             contextlib.redirect_stdout(io.StringIO()):
+            validate.main()
+            validate.main()
+        self.assertEqual(calls,[('fake-synthesis',18000),('fake-board',3600),('fake-board',3600)])
+
+    def test_compiler_reuse_ignores_gui_state_but_rejects_changed_mode_or_rtl(self):
+        module=self.module('check_feature_synthesis')
+        old=self.directory/'old';expected=self.directory/'expected'
+        for tree in (old,expected):
+            (tree/'rtl').mkdir(parents=True)
+            (tree/'rtl/unit.v').write_text('module unit; endmodule\n')
+            project=tree/'fpga/gfx2d_ti60';project.mkdir(parents=True)
+            (project/'gfx2d_ti60.peri.xml').write_text('<peri/>')
+            (project/'gfx2d_ti60.xml').write_text('<project last_run_state="pass"><mode value="speed"/></project>')
+        xml=expected/'fpga/gfx2d_ti60/gfx2d_ti60.xml'
+        xml.write_text('<project last_run_state=""><mode value="speed"/></project>')
+        self.assertTrue(module.matching_inputs(old,expected)[0])
+        xml.write_text('<project last_run_state="pass"><mode value="speed2"/></project>')
+        self.assertFalse(module.matching_inputs(old,expected)[0])
+        xml.write_text('<project last_run_state="pass"><mode value="speed"/></project>')
+        source=expected/'rtl/unit.v';stamp=source.stat().st_mtime_ns
+        source.write_text('module unit; wire changed; endmodule\n')
+        os.utime(source,ns=(stamp,stamp))
+        self.assertFalse(module.matching_inputs(old,expected)[0])
+
     def test_missing_output_is_incomplete_and_reexecuted(self):
         log=self.current.logs('runner')/'normal.log'
         def produce():
@@ -212,9 +252,10 @@ class WorkflowTests(unittest.TestCase):
         for line in (check_run.ROOT/'Main/sw/lib/test/golden.txt').read_text().splitlines():
             name,crc=line.split()
             rows += [name+' '+crc+' '+crc+' ok','TEX-'+name+' '+crc+' '+crc+' ok']
-        body='engineTest current\nENG id ok\n# --- 程序已加载，以下才是它的输出 ---\nCOUNT32 ok\nTEX-CAPS ok\nTEX-LOAD ok\nPERF-BUSY ok\nSTRESS ok\n'+'\n'.join(rows)+'\nfail 0\ndone\n'
+        body='engineTest current\nENG id ok\n# --- 程序已加载，以下才是它的输出 ---\nCOUNT32 ok\nTEX-CAPS ok\nCAPS-BACKEND-PAIR ok\nTEX-LOAD ok\nPERF-BUSY ok\nSTRESS ok\n'+'\n'.join(rows)+'\nfail 0\ndone\n'
         self.assertEqual(validate_engine(body)['status'],'PASS')
         for changed in [body.replace('fail 0','fail 1'),body.replace('STRESS ok',''),
+                        body.replace('CAPS-BACKEND-PAIR ok',''),
                         body.replace('done\n','nmax done\n'),body.replace('# --- 程序已加载，以下才是它的输出 ---',''),body+'# serial lost\n',
                         body.replace(rows[0]+'\n',''),body+rows[0]+'\n',body.replace(rows[0],rows[0].replace('9cd34cb7','00000000'))]:
             with self.assertRaises(RuntimeError):validate_engine(changed)

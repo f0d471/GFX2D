@@ -14,8 +14,9 @@ from check_run import IncompleteCheck, ROOT, RUNS, Session, command, git, identi
 CHECKS = {}
 
 
-def add(name, args, purpose, dependencies=()):
-    CHECKS[name] = {'command': list(map(str, args)), 'purpose': purpose, 'dependencies': list(dependencies)}
+def add(name, args, purpose, dependencies=(), timeout=1800):
+    CHECKS[name] = {'command': list(map(str, args)), 'purpose': purpose,
+                    'dependencies': list(dependencies), 'timeout': timeout}
 
 
 P = 'Main/tools/check/'
@@ -57,10 +58,17 @@ add('feature-probe',[sys.executable,P+'check_feature_probe.py'],
     '关闭的机制离开编译输入：实例化点与源码内容两种判据')
 add('feature-contract',[sys.executable,P+'check_feature_contract.py'],
     '按构型的禁用契约与六条依赖守卫反例')
+add('feature-function',[sys.executable,P+'check_feature_function.py'],
+    '160 个合法构型的真实绘制、关闭态错误三元组、原子拒绝与六个定向变异')
+add('feature-synthesis',[sys.executable,P+'check_feature_synthesis.py'],
+    '本轮七代表档整机四步、全时钟时序与网表结构（Windows）',timeout=18000)
+add('feature-board',[sys.executable,P+'check_feature_board.py'],
+    '同一 BIN 的七代表档部署与独立 CRC 功能板测（Windows）',['feature-synthesis'],timeout=3600)
 add('ddr-log',[sys.executable,P+'check_f5_bin.py','--ddr-log'],'DDR 日志 sink 的字节／CRC／溢出边界')
 add('synthesis',[sys.executable,P+'run_f5_synthesis.py','--build','main','--collect'],'整机编译与资源时序（Windows）')
 add('synthesis-report',[sys.executable,P+'run_f5_synthesis.py','--collect','--projects','main'],'已有整机报告的全时钟关系复核（Windows）')
 add('board',[sys.executable,P+'check_board_smoke.py'],'部署、调试与引擎功能采集（Windows）')
+add('board-game',[sys.executable,P+'check_board_game.py'],'当前位流的生产 HW/DDR 游戏 240 帧（Windows）',timeout=1200)
 
 # 输入模式是保守依赖范围；按工作点复核，可在此收窄或补齐消费者。
 COMMON=['Main/tools/check/check_run.py','Main/tools/check/validate.py']
@@ -78,9 +86,12 @@ for name,item in CHECKS.items():
         inputs=['Main/rtl/**','Main/sim/engine/features/**',
                 P+'feature_config.py',P+'feature_build.py',P+'feature_netlist.py',
                 P+'check_feature_caps.py',P+'check_feature_elab.py',
-                P+'check_feature_probe.py',P+'check_feature_contract.py',
-                P+'regs_gen.py','Main/sw/bsp/include/gfx_feature.h']
-    elif name in ('synthesis','synthesis-report','board'):inputs=HARDWARE
+                P+'check_feature_probe.py',P+'check_feature_contract.py',P+'check_feature_function.py',
+                P+'check_feature_synthesis.py',P+'feature_synthesis.py',P+'check_feature_board.py',
+                P+'regs_gen.py','Main/sw/bsp/include/gfx_feature.h',
+                'Main/sw/apps/test/featureTest/**','Main/sw/bsp/**','Main/sw/mk/**','Main/sdk/**',
+                'Main/tools/board/**','Main/fpga/**','Main/sw/lib/**',P+'check_board_smoke.py']
+    elif name in ('synthesis','synthesis-report','board','board-game'):inputs=HARDWARE
     elif name in ('lib','app','layers','pc','assets','demo','game','stats','pack'):inputs=SOFTWARE
     else:inputs=RTL_INPUTS
     item['inputs']=list(dict.fromkeys(COMMON+inputs))
@@ -244,6 +255,7 @@ def main():
     if not selected:parser.error('提供 --checks 或 --changed；--list 查看唯一清单')
     plan={'profile':args.profile,'checks':selected,'changed':changed,
           'commands':{name:CHECKS[name]['command'] for name in selected},
+          'timeouts':{name:CHECKS[name]['timeout'] for name in selected},
           'input_patterns':list(dict.fromkeys(pattern for name in selected for pattern in CHECKS[name]['inputs']))}
     for name in selected:print('PLAN '+name+' '+CHECKS[name]['purpose'])
     print('SCOPE '+args.profile+'；计划按影响范围复核后加 --run 执行')
@@ -258,10 +270,10 @@ def main():
         print('START '+name,flush=True)
         def execute(name=name):
             log=current.logs('runner')/(name+'.log')
-            output=command(CHECKS[name]['command'],log)
+            output=command(CHECKS[name]['command'],log,timeout=CHECKS[name]['timeout'])
             return {'log':log.relative_to(ROOT).as_posix(),
                     'not_applicable':re.findall(r'^NOT_APPLICABLE .*$',output,re.M)}
-        current.perform('check:'+name,execute,reusable=name!='board')
+        current.perform('check:'+name,execute,reusable=name not in ('board','feature-board','board-game'))
         print('PASS '+name,flush=True)
     current.require(['check:'+name for name in selected])
     write_json(current.path/'result.json',{'status':'PASS','profile':current.profile,'checks':selected,'run_id':current.path.name})

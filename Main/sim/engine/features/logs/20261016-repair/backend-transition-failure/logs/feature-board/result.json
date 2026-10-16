@@ -1,0 +1,40 @@
+{
+  "variants": [
+    {
+      "preset": "B0",
+      "port": "COM11",
+      "status": "PASS",
+      "cases": 12,
+      "caps": "0x0000040F"
+    },
+    {
+      "preset": "B1",
+      "port": "COM11",
+      "status": "PASS",
+      "cases": 12,
+      "caps": "0x0000140F"
+    },
+    {
+      "preset": "B2",
+      "port": "COM11",
+      "status": "PASS",
+      "cases": 13,
+      "caps": "0x0000144F"
+    },
+    {
+      "preset": "B3",
+      "port": "COM11",
+      "status": "PASS",
+      "cases": 14,
+      "caps": "0x0000146F"
+    },
+    {
+      "preset": "B4",
+      "port": "COM11",
+      "status": "PASS",
+      "cases": 14,
+      "caps": "0x0000046F"
+    }
+  ],
+  "complete": false
+}

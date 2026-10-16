@@ -1,0 +1,32 @@
+=== 烧写比特流 E:\Workspace\Efinix\Main\sim\build\check-runs\20261016-183103-ffccd7f1\build\feature-presets\B3\fpga\gfx2d_ti60\outflow\gfx2d_ti60.bit
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   71074 bytes written at address 0x00001000
+   downloaded 71074 bytes in 3.936778s (17.631 KiB/s)
+=== 等串口采集结束（上限 90 秒）
+--- 串口输出（E:\Workspace\Efinix\Main\sim\build\check-runs\20261016-184235-24ae1a6b\logs\feature-board\B3.serial.log）---
+# COM11 @ 115200 8N1, opened 18:43:27
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+featureTest
+caps 0000146f
+CASE fill crc a0ce3d70 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE copy crc c5670690 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE alpha crc b8940114 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE add crc 9f3a9e08 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE const crc fdeecc92 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE mul crc d8110d66 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE straight crc cd657864 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE key crc 0749d548 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE sequence crc c5670690 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE opcode crc 0749d548 code 00000001 index 00000000 tag 5a123456 bad 00000000
+CASE recovery crc c5670690 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE instance crc c5670690 code 00000000 index 00000000 tag 00000000 bad 00000000
+CASE tex crc c5670690 code 00000000 index 00000000 tag 00000000 bad 00000000
+PB absent ok
+CASE strip crc cec869f1 code 00000000 index 00000000 tag 00000000 bad 00000000
+fail 0
+done
+
+# closed 18:43:34, 1177 bytes

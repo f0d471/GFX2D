@@ -1,0 +1,7 @@
+RUN Main/sim/build/check-runs/20261016-184234-ccef0072
+Traceback (most recent call last):
+  File "E:\Workspace\Efinix\Main\tools\check\check_board_game.py", line 75, in <module>
+    main()
+  File "E:\Workspace\Efinix\Main\tools\check\check_board_game.py", line 48, in main
+    raise RuntimeError('本次游戏报错或串口丢失')
+RuntimeError: 本次游戏报错或串口丢失

@@ -1,0 +1,7 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "invalid-configs"
+  ],
+  "scope": "all 512 model inputs; every illegal input rejected before artifact creation"
+}

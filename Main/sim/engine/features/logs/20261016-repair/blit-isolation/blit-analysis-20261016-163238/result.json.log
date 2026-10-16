@@ -1,0 +1,48 @@
+{
+  "scope": {
+    "profile": "quick",
+    "scope": "isolated diagnostic; not acceptance",
+    "production_changes": false,
+    "cases": [
+      "B1/frame1",
+      "B2/frame1",
+      "B0-tied/frame1"
+    ],
+    "prior_B0_baseline": "blit-analysis-20261016-162811",
+    "diagnostic_poll_limit": 60000
+  },
+  "results": [
+    {
+      "case": "B1-frame1",
+      "exit_code": 0,
+      "result": "RESULT: FAIL (frame)",
+      "seconds": 9.58,
+      "dangling_inputs": [
+        "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/engine/engine_top.v:551: warning: Instantiating module engine_mover with dangling input port 29 (tx_ready) floating.",
+        "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/engine/engine_top.v:551: warning: Instantiating module engine_mover with dangling input port 30 (tx_rs_tdata) floating.",
+        "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/engine/engine_top.v:551: warning: Instantiating module engine_mover with dangling input port 31 (tx_rs_tvalid) floating.",
+        "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/engine/engine_top.v:551: warning: Instantiating module engine_mover with dangling input port 32 (tx_rs_tlast) floating.",
+        "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/engine/engine_top.v:551: warning: Instantiating module engine_mover with dangling input port 33 (tx_rs_buf) floating.",
+        "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/engine/engine_top.v:551: warning: Instantiating module engine_mover with dangling input port 34 (tx_stat_valid) floating.",
+        "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/engine/engine_top.v:551: warning: Instantiating module engine_mover with dangling input port 36 (tx_stat_cidx) floating.",
+        "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/engine/engine_top.v:551: warning: Instantiating module engine_mover with dangling input port 37 (tx_stat_buf) floating.",
+        "/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/engine/engine_top.v:551: warning: Instantiating module engine_mover with dangling input port 38 (tx_busy) floating."
+      ]
+    },
+    {
+      "case": "B2-frame1",
+      "exit_code": 0,
+      "result": "RESULT: PASS (frame, software executor golden)",
+      "seconds": 3.88,
+      "dangling_inputs": []
+    },
+    {
+      "case": "B0-tied-frame1",
+      "exit_code": 0,
+      "result": "RESULT: PASS (frame, software executor golden)",
+      "seconds": 4.21,
+      "dangling_inputs": []
+    }
+  ],
+  "complete": true
+}

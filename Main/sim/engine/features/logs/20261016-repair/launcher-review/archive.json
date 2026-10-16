@@ -1,0 +1,7 @@
+{
+  "kind": "launcher_behavior_review",
+  "status": "PASS",
+  "cases": 11,
+  "scope": "environment, output containment, symlink rejection and exit propagation; mocked compiler",
+  "hardware_or_synthesis_rerun": false
+}

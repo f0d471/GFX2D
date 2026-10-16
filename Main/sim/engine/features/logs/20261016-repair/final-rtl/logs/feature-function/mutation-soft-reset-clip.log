@@ -1,0 +1,20 @@
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+FEATURE-FUNCTION-FAIL checks=6734 failures=18
+/mnt/e/Workspace/Efinix/Main/sim/engine/features/tb_feature_function.v:264: $finish called at 15360000 (1ps)

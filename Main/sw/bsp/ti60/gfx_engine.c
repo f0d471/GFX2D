@@ -204,6 +204,9 @@ int gfx_engine_submit_strips(uint32_t list_base, uint32_t lstrips,
     if(!lstrips || lstrips>30u || strip_log2<3u || strip_log2>5u || bg_id>15u || dst_id>15u ||
        (uint64_t)list_base+((uint64_t)lstrips+1u)*32768u>0x100000000ull)return GFX_ENG_E_ARG;
     if(eng_rd(GFX_STATUS)&(GFX_STATUS_BUSY|GFX_STATUS_DRAINING))return GFX_ENG_E_REJECT;
+    // CAPS.BAND 只表示数据面；确认独立 BAND 写被接受且 BIN 已清零。
+    eng_wr(GFX_CTRL,GFX_CTRL_EN|GFX_CTRL_BAND);
+    if(eng_rd(GFX_CTRL)!=(GFX_CTRL_EN|GFX_CTRL_BAND))return GFX_ENG_E_CAPS;
     eng_wr(GFX_LSTRIPS,lstrips);eng_wr(GFX_STRIP_H,strip_log2);
     eng_wr(GFX_BAND_SURF,(bg_id<<4)|dst_id);
     eng_wr(GFX_CTRL,GFX_CTRL_EN|GFX_CTRL_BAND);

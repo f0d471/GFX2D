@@ -69,10 +69,10 @@ localparam EC_CAPS_TINT_W  = 1;
 localparam EC_CAPS_TINT_VALUE = 0;
 localparam EC_CAPS_BAND_LO = 5;
 localparam EC_CAPS_BAND_W  = 1;
-localparam EC_CAPS_BAND_VALUE = 1;
+localparam EC_CAPS_BAND_VALUE = 0;
 localparam EC_CAPS_TEX_LO = 6;
 localparam EC_CAPS_TEX_W  = 1;
-localparam EC_CAPS_TEX_VALUE = 1;
+localparam EC_CAPS_TEX_VALUE = 0;
 localparam EC_CAPS_INDEX8_LO = 7;
 localparam EC_CAPS_INDEX8_W  = 1;
 localparam EC_CAPS_INDEX8_VALUE = 0;
@@ -81,11 +81,11 @@ localparam EC_CAPS_LANES_W  = 4;
 localparam EC_CAPS_LANES_VALUE = 4;
 localparam EC_CAPS_INST_LO = 12;
 localparam EC_CAPS_INST_W  = 1;
-localparam EC_CAPS_INST_VALUE = 1;
+localparam EC_CAPS_INST_VALUE = 0;
 localparam EC_CAPS_BIN_LO = 13;
 localparam EC_CAPS_BIN_W  = 1;
-localparam EC_CAPS_BIN_VALUE = 1;
-localparam [31:0] EC_CAPS_VALUE = 32'h0000346F;
+localparam EC_CAPS_BIN_VALUE = 0;
+localparam [31:0] EC_CAPS_VALUE = 32'h0000040F;
 
 // CTRL 位位号（SOFT_RST/CNT_CLR 写 1 自清）
 localparam EC_CTRL_EN_BIT = 0;

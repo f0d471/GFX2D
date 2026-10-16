@@ -1,0 +1,13 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "b5-area"
+  ],
+  "scope": "B5 full features, unchanged RTL, synthesis mode speed2",
+  "parameters": {
+    "mode": "speed2",
+    "seed": 1,
+    "placer_effort_level": 2
+  },
+  "index_reconciliation": "Copied experiment kept check:b5-area; plan now references the check actually executed. Parameters remain mode=speed2."
+}

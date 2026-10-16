@@ -1,0 +1,66 @@
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[3]
+LAUNCHER = ROOT / 'Main/sim/engine/features/synth_presets.sh'
+REGRESS = ROOT / 'Main/sim/engine/features/regress_suites.sh'
+WORK = HERE / 'launcher-work'
+if WORK.exists():
+    raise RuntimeError('refuse to overwrite launcher test workspace')
+WORK.mkdir()
+env = dict(os.environ)
+for key in ('EFINITY_HOME', 'EFINITY_PYTHON', 'PYTHONHOME'):
+    env.pop(key, None)
+results = []
+
+
+def check(name, args, environ, expected):
+    result = subprocess.run(args, env=environ, cwd=ROOT, capture_output=True, text=True)
+    with (HERE / 'launcher-review.log').open('a', encoding='utf-8') as log:
+        log.write(name + '\n' + result.stdout + result.stderr + 'exit=' + str(result.returncode) + '\n')
+    if result.returncode != expected:
+        raise RuntimeError(name + ' returned ' + str(result.returncode))
+    results.append({'case': name, 'exit': result.returncode, 'expected': expected})
+
+
+for script in (LAUNCHER, REGRESS):
+    check('syntax-' + script.name, ['bash', '-n', str(script)], env, 0)
+check('missing-install', ['bash', str(LAUNCHER), str(WORK / 'trees')], env, 3)
+missing = dict(env, EFINITY_HOME=str(WORK / 'absent'))
+check('missing-python', ['bash', str(LAUNCHER), str(WORK / 'trees')], missing, 3)
+fake = WORK / 'fake-python.sh'
+fake.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "$FAKE_CALLS"\nexit "${FAKE_EXIT:-0}"\n')
+fake.chmod(0o755)
+calls = WORK / 'calls.log'
+configured = dict(env, EFINITY_HOME=str(WORK / 'install'), EFINITY_PYTHON=str(fake), FAKE_CALLS=str(calls))
+outside = ROOT / 'Main/sim/launcher-outside-build'
+check('outside-output', ['bash', str(LAUNCHER), str(outside)], configured, 1)
+assert not outside.exists() and not calls.exists()
+trees = WORK / 'trees'
+trees.mkdir()
+(trees / 'B0').symlink_to(WORK, target_is_directory=True)
+check('linked-preset', ['bash', str(LAUNCHER), str(trees)], configured, 1)
+assert not calls.exists()
+(trees / 'B0').unlink()
+check('configured-invocations', ['bash', str(LAUNCHER), str(trees)], configured, 0)
+rows = calls.read_text().splitlines()
+assert len(rows) == 8
+assert all('--config B' + str(i) in rows[i] for i in range(7))
+assert 'feature_synthesis.py --tree-root' in rows[-1]
+check('propagate-tool-error', ['bash', str(LAUNCHER), str(trees)], dict(configured, FAKE_EXIT='9'), 9)
+suite = WORK / 'suite'
+suite.mkdir()
+relative = suite.relative_to(ROOT / 'Main/sim').as_posix()
+for name, body, expected in (
+    ('suite-without-vendor', 'echo RESULT: PASS\nexit 0\n', 0),
+    ('suite-failed-process-with-pass-text', 'echo RESULT: PASS\nexit 7\n', 1),
+    ('suite-failed-result-with-zero-process', 'echo RESULT: FAIL\nexit 0\n', 1),
+):
+    (suite / 'run.sh').write_text(body)
+    check(name, ['bash', str(REGRESS), relative], env, expected)
+(HERE / 'launcher-result.json').write_text(json.dumps({'status': 'PASS', 'cases': results}, indent=2) + '\n')
+print('LAUNCHER REVIEW PASS cases=' + str(len(results)))

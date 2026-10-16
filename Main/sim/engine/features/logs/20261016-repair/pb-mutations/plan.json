@@ -1,0 +1,8 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "pb-route",
+    "pb-shared-registers"
+  ],
+  "scope": "supplemental PB routing and shared-register mutations; expected failures"
+}

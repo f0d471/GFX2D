@@ -74,7 +74,7 @@
 #define GFX_CAPS_INST_S   12
 #define GFX_CAPS_BIN_M   0x00002000u
 #define GFX_CAPS_BIN_S   13
-#define GFX_CAPS_VALUE   0x0000346Fu
+#define GFX_CAPS_VALUE   0x0000040Fu
 
 /* CTRL 位（SOFT_RST/CNT_CLR 写 1 自清，读恒 0） */
 #define GFX_CTRL_EN     (1u << 0)

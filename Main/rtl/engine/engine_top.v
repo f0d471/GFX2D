@@ -195,6 +195,18 @@ module engine_top #(
     assign surf_rb_id = old_surf_rb_id;
 `endif
 `ifdef GFX_HAS_BAND_HW
+`ifdef GFX_HAS_PB
+    assign band_enable = pb_active ? pb_busy : old_band_enable;
+    assign band_start = pb_active ? pb_band_start : old_band_start;
+    assign band_flush = pb_active ? pb_band_flush : old_band_flush;
+    assign band_abort = pb_active ? pb_abort : old_band_abort;
+    assign band_bg_base = pb_active ? pb_bg_base : old_band_bg_base;
+    assign band_dst_base = pb_active ? pb_target_base : old_band_dst_base;
+    assign band_bg_slog2 = pb_active ? pb_bg_slog2 : old_band_bg_slog2;
+    assign band_dst_slog2 = pb_active ? pb_target_slog2 : old_band_dst_slog2;
+    assign band_y0 = pb_active ? pb_y0 : old_band_y0;
+    assign band_frame_height = pb_active ? pb_height : old_band_frame_height;
+`else
     assign band_enable = old_band_enable;
     assign band_start = old_band_start;
     assign band_flush = old_band_flush;
@@ -205,6 +217,7 @@ module engine_top #(
     assign band_dst_slog2 = old_band_dst_slog2;
     assign band_y0 = old_band_y0;
     assign band_frame_height = old_band_frame_height;
+`endif
 `else
     // 无条带硬件：出向条带网接常量。geom 的求交按 band_enable=0 走全帧窗口，
     // mover 的无条带形态不消费这些输入；悬空会在 RTL 仿真里把 x 传进几何窗口。
@@ -437,7 +450,7 @@ module engine_top #(
 `endif
         .list_base(list_base), .list_count(list_count),
 `ifdef GFX_HAS_PB
-        .band_mode(band_mode && !pb_active),
+        .band_mode(band_mode && !bin_mode),
 `else
         .band_mode(band_mode),
 `endif
@@ -445,7 +458,7 @@ module engine_top #(
 `ifdef GFX_HAS_PB
         .soft_rst(soft_pending || pb_abort), .preserve_clip(pb_abort && !soft_pending),
 `else
-        .soft_rst(soft_pending), .preserve_clip(1'b1),
+        .soft_rst(soft_pending), .preserve_clip(1'b0),
 `endif
         .band_enable(old_band_enable), .band_start(old_band_start), .band_flush(old_band_flush), .band_abort(old_band_abort),
         .band_bg_base(old_band_bg_base), .band_dst_base(old_band_dst_base),
@@ -582,6 +595,11 @@ module engine_top #(
         .tx_rs_tlast(tx_rs_tlast), .tx_rs_buf(tx_rs_buf),
         .tx_stat_valid(tx_stat_valid), .tx_stat_ready(tx_stat_ready), .tx_stat_cidx(tx_stat_cidx),
         .tx_stat_buf(tx_stat_buf), .tx_busy(tx_busy),
+`else
+        // 无 TEX：mover 的共用读路仍消费这些输入，必须给出确定的空闲值。
+        .tx_ready(1'b0), .tx_rs_tdata(128'd0), .tx_rs_tvalid(1'b0),
+        .tx_rs_tlast(1'b0), .tx_rs_buf(2'd0), .tx_stat_valid(1'b0),
+        .tx_stat_cidx(4'd0), .tx_stat_buf(2'd0), .tx_busy(1'b0),
 `endif
         .fd_addr(fd_addr), .fd_bytes(fd_bytes), .fd_cidx(fd_cidx),
         .fd_instance(fd_instance), .fs_instance(fs_instance), .rd_stat_instance(rd_stat_instance),

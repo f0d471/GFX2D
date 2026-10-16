@@ -16,13 +16,14 @@
 | [guard_negative.sh](guard_negative.sh) | 五条非法构型被构建入口拒绝且诊断指认到具体依赖；研究构型被接受 |
 | [regress_suites.sh](regress_suites.sh) | 批量跑指定仿成套件并汇总末行结果 |
 | [tb_feature_elab.v](tb_feature_elab.v) | elaboration 探针，只验通道接通，不设功能判据 |
+| [tb_feature_function.v](tb_feature_function.v) | 全引擎随机反压下的非对齐多行绘制、逐像素保护字、六方程关闭态与错误三元组、实例与 PB LOAD/EXEC/FLUSH |
 
 构型真源与构建入口：
 
 - [feature_config.py](../../../tools/check/feature_config.py)：位定义、依赖、合法性与 CAPS 计算，
   导入时断言 16 合法结构 / 128 研究 / 32 交付。
 - [feature_build.py](../../../tools/check/feature_build.py)：按构型生成特性头、CAPS 常量、
-  软件能力头与工程源列表；`--sync` 把默认全功能构型的特性头写进 `rtl/engine/`，
+  软件能力头与工程源列表；`--sync` 把默认构型的特性头及综合模式写进主工程，
   `--check` 校验它与默认构型一致。
 
 WSL 中从仓库根执行：
@@ -33,7 +34,28 @@ python3 Main/tools/check/feature_build.py --check
 bash Main/sim/engine/features/elab_all.sh
 bash Main/sim/engine/features/probe_cut.sh
 bash Main/sim/engine/features/guard_negative.sh
+python3 Main/tools/check/validate.py --checks feature-caps feature-elab feature-probe feature-contract feature-function --profile acceptance --run
 ```
+
+`feature-function` 默认运行全部 160 个合法构型；六个定向变异分别恢复 TEX 悬空、
+CTRL 拒绝写副作用、错误的 BAND 放行、关闭色键后的静默执行、软复位保留 clip
+与门铃误用上一后端，必须被检出。
+结构 elaboration 将 `dangling input port` 告警判为失败。
+条带共享寄存器在 STRIP 或 PB 存在时可用；无 STRIP 时独立 BAND 写拒绝，
+PB 可同次写入 BAND 与 BIN。不能从 CAPS.BAND 推断命令层 STRIP 存在。
+
+Windows Efinity Python 中运行 `validate.py --checks feature-board --profile acceptance --run`，
+会在本轮生成并综合七档源树，检查网表和全部时钟，再用同一 `featureTest` BIN 逐档部署。
+功能判据由外部数学模型生成 CRC，并核对错误三元组、保护字与正常结束行。
+实例、STRIP 与 PB 都实际执行；PB→STRIP 连续切换覆盖上一后端锁存的边界。
+本入口不写 Flash，完成后需部署当前主工程构型。
+
+全结构构型使用 speed2，其余构型使用 speed。编排给七档综合独立的 18000 秒预算。
+旧直接入口 [synth_presets.sh](synth_presets.sh) 沿用调用方 EFINITY_HOME/PYTHONHOME，
+可用 EFINITY_PYTHON 指定 shell 可执行的厂商 Python；输出限于 sim/build，不接受构型目录链接。
+套件汇总同样沿用调用方的 EFINITY_HOME，不内置本机安装位置。
+`check_feature_synthesis.py --reuse-from <旧源树根> --reuse-b5 <独立B5源树>`
+只在编译输入逐项一致、旧四步/时序有效、复制后的位流身份一致时复用；不一致的档重建。
 
 ## 前期研究归档
 

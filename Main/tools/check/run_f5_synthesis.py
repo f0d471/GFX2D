@@ -44,7 +44,9 @@ def collect(tag):
     # 命令行独立工程可保留空的 GUI 状态属性；以实际产物新鲜度和 STA 为准。
     if root.get('last_run_state') not in (None,'','pass'):raise RuntimeError(tag+' project not PASS')
     bit=out/(name+'.bit')
-    newest=max(p.stat().st_mtime_ns for p in (MAIN/'rtl/engine').glob('*.v'))
+    inputs=[*(MAIN/'rtl').rglob('*.v'),*(MAIN/'rtl').rglob('*.vh'),
+            *(folder/'sdc').glob('*.sdc')]
+    newest=max(p.stat().st_mtime_ns for p in inputs)
     if not bit.exists() or bit.stat().st_mtime_ns<newest:raise RuntimeError(tag+' stale/missing bitstream')
     flow=(out/(name+'.log')).read_text(encoding='utf-8',errors='replace')
     if not all('Stage completed: '+stage in flow for stage in ['map','interface','pnr','pgm']):

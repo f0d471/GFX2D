@@ -1,0 +1,12 @@
+{
+  "logs/invalid-configs/experiment.py.log": {
+    "size": 2125,
+    "mtime_ns": 1792143442174533200,
+    "sha256": "9ecd11c5727440ac6f4a68caf9ac7d0d0ba5474645b2354887a11a6cc06a220d"
+  },
+  "logs/invalid-configs/result.json": {
+    "size": 41665,
+    "mtime_ns": 1792143450341265900,
+    "sha256": "1728d3997fbc8c579e52cc7b194f789236185a9a76b364c60d65637eadbd7c82"
+  }
+}

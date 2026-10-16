@@ -1,0 +1,7 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "pb-no-strip-board"
+  ],
+  "scope": "supplemental PB=1 STRIP=0 functional board; same binary as seven presets"
+}

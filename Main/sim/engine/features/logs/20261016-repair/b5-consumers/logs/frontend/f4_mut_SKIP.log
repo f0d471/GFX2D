@@ -1,0 +1,16 @@
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:229: $readmemh(/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261016-172358-85d08be1/build/f4/fixtures/case66.cmd.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:234: $readmemh(/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/20261016-172358-85d08be1/build/f4/fixtures/case66.init.hex): Not enough words in the file for the requested range [0:8191].
+INSTANCE mismatch count=32 want=62 err=4294967295 index=0 tag=0
+PERF-PIXEL got=133 want=231 (pixels=832 src_oob=601)
+MEM addr=00005010 got=ff605925ff571e42ff066045ff4e5f39 want=0073786a000273560033595aff4e5f39
+MEM addr=00005020 got=ff48443bff30266dff390501ff40426f want=000521640001602e007c7f2200286435
+MEM addr=00005030 got=ff1d5a37ff3d2c45ff7c7729ff39541c want=0065112b000b13790043725d00050878
+MEM addr=00005040 got=0041517700760e0cff46606cff3e121a want=00687f470008720b00466b7f005d4523
+MEM addr=00005050 got=00181d6400280d22006b3e3c00196308 want=00181d6400280d22006b3e3c00052c67
+MEM addr=00005080 got=00065c0600640f40ff2e4f2bff0e2915 want=002d281900505323ff2e4f2bff0e2915
+MEM addr=00005090 got=002e1a3100765f5f00616370005f1b2d want=004b553d003d0e2100073d1b006a1c0e
+MEM addr=000050a0 got=00650346000b440300321702007b3d25 want=00650346000b440300657f6000631723
+PROFILE fetch_cycles=189 decode_cycles=256 geometry_cycles=208 pixel_output_beats=44
+FRAME cycles=840 rd_burst=16 rd_beat=82 wr_burst=12 wr_beat=44 pixel=133 key=0 cmd=4 mem_bad=17
+RESULT: FAIL (frame)
+/mnt/e/Workspace/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:401: $finish called at 18005000 (1ps)

@@ -1,0 +1,12 @@
+{
+  "profile": "quick",
+  "scope": "isolated diagnostic; not acceptance",
+  "production_changes": false,
+  "cases": [
+    "B0/frame0",
+    "B0/frame1",
+    "B1/frame1",
+    "B2/frame1",
+    "B0-tied/frame1"
+  ]
+}

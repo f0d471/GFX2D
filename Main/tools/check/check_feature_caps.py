@@ -29,15 +29,7 @@ def main():
     ap.add_argument('--out')
     args = ap.parse_args()
     rows, failures = [], []
-    configs = []
-    for config in fc.legal_configurations(with_pixel=False):
-        configs.append(config)
-    for pbits in ((1, 1, 1), (1, 1, 0), (1, 0, 1), (0, 1, 1), (0, 0, 1), (1, 0, 0), (0, 1, 0), (0, 0, 0)):
-        struct = {n: True for n in fc.STRUCT_NAMES}
-        pixel = dict(zip(fc.PIXEL_NAMES, (b == 1 for b in pbits)))
-        candidate = {**struct, **pixel, 'DELIVERY': pbits == (1, 1, 1)}
-        if fc.is_legal(candidate):
-            configs.append(candidate)
+    configs = fc.legal_configurations()
     seen = set()
     for config in configs:
         name = fc.name_of(config)

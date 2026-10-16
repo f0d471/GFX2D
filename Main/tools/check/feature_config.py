@@ -64,6 +64,8 @@ def parse_name(name):
         return dict(PRESETS[parts[0]])
     if len(parts) not in (2, 3):
         raise ValueError('配置名形如 结构位-像素位[-d]，例如 10110-111-d；或代表档名如 B3')
+    if len(parts) == 3 and parts[2] != 'd':
+        raise ValueError('交付标志只能是 -d')
     struct, pixel = parts[0], parts[1]
     if len(struct) != len(STRUCT_NAMES) or set(struct) - set('01'):
         raise ValueError(f'结构位必须是 {len(STRUCT_NAMES)} 位 0/1')
@@ -130,6 +132,12 @@ def enabled_macros(config):
     return macros
 
 
+def synthesis_mode(config):
+    """全结构构型需要更深的逻辑优化；其它构型保留 speed。"""
+    config = normalize(config)
+    return 'speed2' if all(config[n] for n in STRUCT_NAMES) else 'speed'
+
+
 def legal_configurations(with_pixel=True):
     """穷举合法配置。with_pixel=False 时只穷举结构位（像素位与交付位按全开取）。"""
     result = []
@@ -176,11 +184,9 @@ PRESETS = {
     'B6': dict(TEX=1, BAND_HW=1, STRIP=0, INST=1, PB=0, EQ_EXT=1, ALPHA=1, KEY=1, DELIVERY=1),
 }
 
-# 主工程仓库内产物的默认构型：B5 全功能档。曾切到 B0 交付基本档，因裁剪档
-# BLIT 源读死锁（frame/ctrl 首次在裁剪档跑整帧暴露，见 Todo「裁剪档BLIT死锁」）
-# 回滚；CANONICAL 机制本身保留——regs_gen 无参默认与 --sync 都跟随这里，
-# 修好裁剪档功能后把这里改回 B0 并 --sync 即完成切换。
-CANONICAL = 'B5'
+# 主工程交付基本档：结构机制关闭、像素能力全开。生成头、寄存器默认值与
+# 工程综合模式都跟随本配置；采用其它构型后重新同步并构建位流。
+CANONICAL = 'B0'
 
 # 每个开关对应的源文件：关闭时从编译输入里整出。
 FEATURE_SOURCES = {

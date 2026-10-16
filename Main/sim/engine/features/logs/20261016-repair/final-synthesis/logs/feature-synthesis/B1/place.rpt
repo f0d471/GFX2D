@@ -1,0 +1,58 @@
+
+Elitestek FPGA Placement and Routing.
+Version: 2026.1.132 
+Date: Fri Oct 16 17:20:17 2026
+
+Copyright (C) 2013 - 2026 Efinix, Inc. All rights reserved.
+ 
+Family: Titanium 
+Device: Ti60F225
+Top-level Entity Name: gfx2d_ti60
+
+---------- IO Interface Summary (begin) ----------
+
++------------------------+--------------+
+| Missing Interface Pins | Input/Output |
++------------------------+--------------+
+|    jtag_inst1_DRCK     |    Input     |
+|     jtag_inst1_TMS     |    Input     |
+|    jtag_inst1_RESET    |    Input     |
+|   jtag_inst1_RUNTEST   |    Input     |
+|   jtag_inst1_UPDATE    |    Input     |
+|      hdmi_pll_fb       |    Input     |
++------------------------+--------------+
+
+----------- IO Interface Summary (end) ----------
+
+
+---------- Module Resource Usage Distribution Estimates (begin) ----------
+
+'Module Resource Usage Distribution Estimates' table printed in: outflow\gfx2d_ti60.hier_util.rpt
+
+----------- Module Resource Usage Distribution Estimates (end) ----------
+
+Elapsed time for packing: 0 hours 0 minutes 3 seconds
+---------- Resource Summary (begin) ----------
+Inputs: 65 / 1703 (3.82%)
+Outputs: 243 / 2267 (10.72%)
+Global Clocks (GBUF): 10 / 32 (31.25%)
+Regional Clocks (RBUF): 1 / 32 (3.12%)
+	RBUF: Core: 0 / 16 (0.00%)
+	RBUF: Periphery: 1 / 8 (12.50%)
+	RBUF: Multi-Region: 0 / 8 (0.00%)
+XLRs: 38073 / 60800 (62.62%)
+	XLRs needed for LUT4: 17069 / 60800 (28.07%)
+	XLRs needed for LUT4 + FF: 8988 / 60800 (14.78%)
+	XLRs needed for COMB4: 0 / 60800 (0.00%)
+	XLRs needed for COMB4 + FF: 0 / 60800 (0.00%)
+	XLRs needed for Adder: 3065 / 60800 (5.04%)
+	XLRs needed for Adder + FF: 1416 / 60800 (2.33%)
+	XLRs needed for SRL8: 756 / 14720 (5.14%)
+	XLRs needed for SRL8 + FF: 0 / 14720 (0.00%)
+	XLRs needed for FF: 6689 / 60800 (11.00%)
+	XLRs needed for Routing: 90 / 60800 (0.15%)
+Memory Blocks: 107 / 256 (41.80%)
+DSP Blocks: 19 / 160 (11.88%)
+---------- Resource Summary (end) ----------
+
+Elapsed time for placement: 0 hours 0 minutes 37 seconds

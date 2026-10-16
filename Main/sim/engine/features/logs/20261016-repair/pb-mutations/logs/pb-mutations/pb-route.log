@@ -1,0 +1,2 @@
+FEATURE-FUNCTION-FAIL watchdog
+/mnt/e/Workspace/Efinix/Main/sim/engine/features/tb_feature_function.v:230: $finish called at 2000000000 (1ps)

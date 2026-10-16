@@ -498,6 +498,12 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                    || (c_op == OP_CLIP) || (c_op == OP_END);
 
     wire scalar_f_bad, f_bad_c;
+`ifdef GFX_KEY
+    wire disabled_key_bad = 1'b0;
+`else
+    // 无色键：拒绝请求色键的命令，避免接受后静默改成普通 BLIT。
+    wire disabled_key_bad = is_blit_c && cmd_full[12];
+`endif
     ec_fields u_fields(.cmd(cmd_full), .bad(scalar_f_bad));
 `ifdef GFX_HAS_INST
     wire [15:0] inst_stride = cmd_full[175:160];
@@ -512,9 +518,9 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         (inst_layout == 1 && cmd_full[223:192] != 0) ||
         (!cmd_full[12] && cmd_full[159:128] != 0) ||
         (c_eq != 3 && cmd_full[31:24] != 0) || inst_limit > 33'h100000000;
-    assign f_bad_c=is_inst_c?inst_fields_bad:scalar_f_bad;
+    assign f_bad_c=(is_inst_c?inst_fields_bad:scalar_f_bad) || disabled_key_bad;
 `else
-    assign f_bad_c=scalar_f_bad;
+    assign f_bad_c=scalar_f_bad || disabled_key_bad;
 `endif
 `ifdef GFX_ALPHA
 `ifdef GFX_EQ_EXT

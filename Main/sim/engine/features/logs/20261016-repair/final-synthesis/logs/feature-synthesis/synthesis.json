@@ -1,0 +1,758 @@
+{
+  "B0": {
+    "xlr": 36000,
+    "ram": 105,
+    "dsp": 16,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 0.543
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.382
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.301
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.433
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.354
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 33.611
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 95.575
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 49.765
+      },
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.067
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.097
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.072
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.071
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.095
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.775
+      }
+    ],
+    "own_width_warnings": 0,
+    "config": "00000-111-d",
+    "caps": "0x0000040F",
+    "synthesis_mode": "speed",
+    "sources": 37
+  },
+  "B1": {
+    "xlr": 38073,
+    "ram": 107,
+    "dsp": 19,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 0.883
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.385
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.107
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.337
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.356
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 33.395
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 95.604
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 49.713
+      },
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.077
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.03
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.044
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.068
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.072
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.097
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.594
+      }
+    ],
+    "own_width_warnings": 0,
+    "config": "00010-111-d",
+    "caps": "0x0000140F",
+    "synthesis_mode": "speed",
+    "sources": 38
+  },
+  "B2": {
+    "xlr": 38380,
+    "ram": 123,
+    "dsp": 19,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 1.111
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.305
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.324
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.148
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.26
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 33.833
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 95.528
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 50.015
+      },
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.023
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.097
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.072
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.091
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.101
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.734
+      }
+    ],
+    "own_width_warnings": 0,
+    "config": "10010-111-d",
+    "caps": "0x0000144F",
+    "synthesis_mode": "speed",
+    "sources": 39
+  },
+  "B3": {
+    "xlr": 44305,
+    "ram": 165,
+    "dsp": 19,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 0.656
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.231
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.403
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.222
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.35
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 33.504
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 95.573
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 49.283
+      },
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.084
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.027
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.097
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.07
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.047
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.099
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.636
+      }
+    ],
+    "own_width_warnings": 0,
+    "config": "11110-111-d",
+    "caps": "0x0000146F",
+    "synthesis_mode": "speed",
+    "sources": 40
+  },
+  "B4": {
+    "xlr": 41785,
+    "ram": 163,
+    "dsp": 16,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 0.324
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.319
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.38
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.216
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.29
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 32.872
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 95.635
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 50.064
+      },
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.076
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.03
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.097
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.072
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.091
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.097
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.587
+      }
+    ],
+    "own_width_warnings": 0,
+    "config": "11100-111-d",
+    "caps": "0x0000046F",
+    "synthesis_mode": "speed",
+    "sources": 39
+  },
+  "B5": {
+    "xlr": 60310,
+    "ram": 172,
+    "dsp": 23,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 0.237
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.323
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.51
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.232
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.297
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 32.691
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 94.757
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 49.545
+      },
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.071
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.059
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.103
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.039
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.089
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.097
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.774
+      }
+    ],
+    "own_width_warnings": 0,
+    "config": "11111-111-d",
+    "caps": "0x0000346F",
+    "synthesis_mode": "speed2",
+    "sources": 45
+  },
+  "B6": {
+    "xlr": 38605,
+    "ram": 123,
+    "dsp": 19,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 0.711
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.34
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.322
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.42
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.288
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 33.212
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 95.428
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 49.93
+      },
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.094
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.027
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.098
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.072
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.091
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.099
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.635
+      }
+    ],
+    "own_width_warnings": 0,
+    "config": "11010-111-d",
+    "caps": "0x0000146F",
+    "synthesis_mode": "speed",
+    "sources": 40
+  }
+}

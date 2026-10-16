@@ -1,0 +1,31 @@
+import sys,shutil,contextlib,importlib
+from pathlib import Path
+repo=Path('/mnt/e/Workspace/Efinix');sys.path.insert(0,str(repo/'Main/tools/check'))
+import check_run,validate,feature_build as fb
+from check_run import Session,write_json
+current=Session(profile='acceptance',input_patterns=validate.COMMON+validate.RTL_INPUTS)
+check_run._SESSION=current
+print('RUN '+current.path.relative_to(repo).as_posix(),flush=True)
+logs=current.logs('runner');shutil.copyfile(__file__,logs/'experiment.py.log')
+tree=current.build('b5-consumer-rtl');fb.build('B5',tree)
+shadow=current.build('b5-main')
+(shadow/'rtl').symlink_to(tree/'rtl',target_is_directory=True)
+for name in ('sw','tools','sim','assets','sdk'):(shadow/name).symlink_to(repo/'Main'/name,target_is_directory=True)
+write_json(current.path/'plan.json',{'profile':'acceptance','checks':['instances','bin'],'config':'B5','scope':'production check functions with explicit generated B5 RTL; canonical remains B0','commands':{'instances':['check_f4_instances.main','RTL=B5 generated tree'],'bin':['check_f5_bin.main','MAIN=isolated view using B5 RTL and unchanged production software']}})
+options=['--models','--rtl','--mutations','--protocols','--lease']
+f4=importlib.import_module('check_f4_instances');f4.RTL=tree/'rtl'
+def instances():
+    sys.argv=['check_f4_instances.py',*options]
+    with (logs/'instances.log').open('w') as output,contextlib.redirect_stdout(output):f4.main()
+    return {'log':(logs/'instances.log').relative_to(repo).as_posix(),'config':'B5'}
+current.perform('check:instances',instances)
+print('CURRENT B5 INSTANCES PASS',flush=True)
+f5=importlib.import_module('check_f5_bin');f5.MAIN=shadow
+f5_options=['--models','--bin','--frame','--mutations','--protocols','--lease']
+def bin_check():
+    sys.argv=['check_f5_bin.py',*f5_options]
+    with (logs/'bin.log').open('w') as output,contextlib.redirect_stdout(output):f5.main()
+    return {'log':(logs/'bin.log').relative_to(repo).as_posix(),'config':'B5'}
+current.perform('check:bin',bin_check)
+write_json(current.path/'result.json',{'status':'PASS','profile':'acceptance','checks':['instances','bin'],'run_id':current.path.name,'config':'B5'})
+print('CURRENT B5 CONSUMERS PASS',flush=True)

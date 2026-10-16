@@ -1,0 +1,97 @@
+{
+  "logs/board/build.log": {
+    "size": 936,
+    "mtime_ns": 1792147554300234600,
+    "sha256": "f744bb0f6dfd4fc4c41e594c7fd8569cde5bd2651f577b7942d0b3ed164cf02c"
+  },
+  "logs/board/control.log": {
+    "size": 1603,
+    "mtime_ns": 1792147561650955800,
+    "sha256": "efbcf166faa670221da223eceeaf50403ce8ac3c6f451361cc586a6a4fade1eb"
+  },
+  "logs/board/debug.log": {
+    "size": 203,
+    "mtime_ns": 1792147548267075800,
+    "sha256": "c884be693e1cf3e1fc3efdf4ba37957b60d2eec51a7c117b6735d7acf075ddab"
+  },
+  "logs/board/engine.log": {
+    "size": 1159,
+    "mtime_ns": 1792147561517816100,
+    "sha256": "2a82e87aee062f8a86fdc0f5f3537a7d0365fd02dac7dd92ec6c3e31113b1fcd"
+  },
+  "logs/board/result.json": {
+    "size": 233,
+    "mtime_ns": 1792147561684528900,
+    "sha256": "d5e137c27e012093c3e85f54023efc190deb7f155a7189a8c30890a2a5f126f5"
+  },
+  "logs/board/usb.log": {
+    "size": 130,
+    "mtime_ns": 1792147542319002500,
+    "sha256": "e2312dace9e639c05fc0759abddef9f64d159f84a2cd894c49b560c9b150f926"
+  },
+  "logs/board-game/build.log": {
+    "size": 2096,
+    "mtime_ns": 1792147586523930100,
+    "sha256": "c9ba7efd848ac7947ce97f4750dc0fb766394f93c6c52e5d1624ffc9d61d3da6"
+  },
+  "logs/board-game/control.log": {
+    "size": 2325,
+    "mtime_ns": 1792147610866131400,
+    "sha256": "0a435faa369e415e6c3dab8a7377f77aed01f5f3045bc4b7b263568ff146d50d"
+  },
+  "logs/board-game/serial.log": {
+    "size": 1808,
+    "mtime_ns": 1792147610734459700,
+    "sha256": "88727b471a56ce0e303406e9a51e64eac248d3803201aad79b6f920ed818589d"
+  },
+  "logs/frontend/f5_final_main_flow.log": {
+    "size": 228270,
+    "mtime_ns": 1792147540418909900,
+    "sha256": "8ea597da64a4ebff78c641d1ec78ee62b1686601369ddc50d57da9d43890bacd"
+  },
+  "logs/frontend/f5_final_main_hier_util.rpt": {
+    "size": 72995,
+    "mtime_ns": 1792147540418909900,
+    "sha256": "212eeb4235cb96eba2fc357594c9903ced7b19d06bebbbe8750333b3e5c1f769"
+  },
+  "logs/frontend/f5_final_main_place.rpt": {
+    "size": 2016,
+    "mtime_ns": 1792147540417407400,
+    "sha256": "461d85f630c981adba29b680053448a78e69c1d3d55f45628aa18a7b3d7e2ab9"
+  },
+  "logs/frontend/f5_final_main_timing.rpt": {
+    "size": 989061,
+    "mtime_ns": 1792147540417407400,
+    "sha256": "254d65f28d8febbd7bfae0c2c0878c53e1a8c0673e065e8958f50ce42f93abb9"
+  },
+  "logs/frontend/f5_final_main_warnings.log": {
+    "size": 61042,
+    "mtime_ns": 1792147540421330900,
+    "sha256": "95463ba91dbbd9092b95ac317b21f19588d20faf63a6aa4f80022282a387498d"
+  },
+  "logs/frontend/f5_main_synthesis_flow.log": {
+    "size": 1242,
+    "mtime_ns": 1792147540374270700,
+    "sha256": "0001d92979522ae4ed7bbb07dcbdb48cc70fdc41ffd7b7026c41190ac7ba0d69"
+  },
+  "logs/frontend/f5_synthesis.json": {
+    "size": 2509,
+    "mtime_ns": 1792147540421904300,
+    "sha256": "19f68c858167b85b37bd8c3c403daf421d06c0fdb3c46def8915e37d7dc1003f"
+  },
+  "logs/runner/board-game.log": {
+    "size": 388,
+    "mtime_ns": 1792147610889618000,
+    "sha256": "02a6bc5f0292b41f23b643f8303d50b72f1c37ea8a8e4548d58d672ea1681e2a"
+  },
+  "logs/runner/board.log": {
+    "size": 134,
+    "mtime_ns": 1792147561851214800,
+    "sha256": "55cdc9c8916800e4a4f30412cfeb75c0378e5b57a38577a866b0a9ba7705cf4a"
+  },
+  "logs/runner/synthesis.log": {
+    "size": 1698,
+    "mtime_ns": 1792147540421904300,
+    "sha256": "bf5a3a87df984bc38343f6ba30dc0ccfa0252e1ba1bdc1387547e3060a39b6ff"
+  }
+}

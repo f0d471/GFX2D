@@ -1,0 +1,10 @@
+[
+  "missing-boundary",
+  "serial-loss",
+  "duplicate-case",
+  "missing-case",
+  "nonzero-fail",
+  "wrong-crc",
+  "wrong-error-tag",
+  "wrong-caps"
+]

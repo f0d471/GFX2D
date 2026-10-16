@@ -1,0 +1,12 @@
+{
+  "logs/b5-area/experiment.py.log": {
+    "size": 2260,
+    "mtime_ns": 1792144452762211400,
+    "sha256": "4e49c6142f52ccebf6d2c4a260609b81add5feab3eac4eac0c8314b425766cb4"
+  },
+  "logs/b5-area/project-input.xml": {
+    "size": 12314,
+    "mtime_ns": 1792144453032615300,
+    "sha256": "eb17436e83fa7634bb56187da53216ed85422bf604429ca376a7e58995cd596a"
+  }
+}

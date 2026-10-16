@@ -18,10 +18,17 @@ for extra in engine_tex engine_band engine_inst engine_bounds engine_packet_chec
   [ -f "rtl/engine/$extra.v" ] && files+=("rtl/engine/$extra.v")
 done
 
-iverilog -g2012 -I rtl/engine -o build_elab.vvp -s tb_feature_elab "$TB" "${files[@]}"
+iverilog -g2012 -Wportbind -I rtl/engine -o build_elab.vvp -s tb_feature_elab "$TB" "${files[@]}" \
+  > build_elab.compile.log 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then
+  cat build_elab.compile.log
   echo "ELAB-FAIL $TREE"
+  exit 1
+fi
+if grep -q 'dangling input port' build_elab.compile.log; then
+  cat build_elab.compile.log
+  echo "ELAB-FAIL $TREE: dangling input port"
   exit 1
 fi
 out=$(vvp build_elab.vvp)

@@ -1,0 +1,246 @@
+命令语义规格一致性校验（命令 ABI v1）
+工具：tools/check/check_cmd_semantics.py
+
+(A) 结构审计：检查优先级十步各有反例
+  fetch         取记录（FETCH）                     反例 1 条 ok
+  opcode        操作码（BAD_OPCODE）                反例 1 条 ok
+  fields        保留/未用字段（BAD_FIELD）             反例 53 条 ok
+  equation      方程（BAD_EQUATION）               反例 1 条 ok
+  src_surface   源表面（BAD_SURFACE）               反例 2 条 ok
+  dst_surface   目的表面（BAD_SURFACE）              反例 12 条 ok
+  space         space（BAD_SPACE）               反例 6 条 ok
+  format        format（BAD_FORMAT）             反例 14 条 ok
+  fill_premult  FILL 预乘约束（BAD_PREMULT）         反例 3 条 ok
+  overlap       BLIT 重叠（OVERLAP）               反例 3 条 ok
+
+(B) 结构审计：字段矩阵的「必须为 0」集合与第二组反例集合相等
+  矩阵零集 == 反例集 ok
+
+(C) 结构审计：BLIT 的方程×源格式 18 个组合逐个有向量
+  eq=0(COPY          ) fmt=0(XRGB8888         ) -> OK         ok
+  eq=0(COPY          ) fmt=1(ARGB8888_PREMULT ) -> OK         ok
+  eq=0(COPY          ) fmt=2(ARGB8888_STRAIGHT) -> OK         ok
+  eq=1(ALPHA         ) fmt=0(XRGB8888         ) -> OK         ok
+  eq=1(ALPHA         ) fmt=1(ARGB8888_PREMULT ) -> OK         ok
+  eq=1(ALPHA         ) fmt=2(ARGB8888_STRAIGHT) -> BAD_FORMAT ok
+  eq=2(ADD           ) fmt=0(XRGB8888         ) -> OK         ok
+  eq=2(ADD           ) fmt=1(ARGB8888_PREMULT ) -> OK         ok
+  eq=2(ADD           ) fmt=2(ARGB8888_STRAIGHT) -> OK         ok
+  eq=3(CONST         ) fmt=0(XRGB8888         ) -> OK         ok
+  eq=3(CONST         ) fmt=1(ARGB8888_PREMULT ) -> OK         ok
+  eq=3(CONST         ) fmt=2(ARGB8888_STRAIGHT) -> OK         ok
+  eq=4(MUL           ) fmt=0(XRGB8888         ) -> OK         ok
+  eq=4(MUL           ) fmt=1(ARGB8888_PREMULT ) -> OK         ok
+  eq=4(MUL           ) fmt=2(ARGB8888_STRAIGHT) -> OK         ok
+  eq=5(ALPHA_STRAIGHT) fmt=0(XRGB8888         ) -> OK         ok
+  eq=5(ALPHA_STRAIGHT) fmt=1(ARGB8888_PREMULT ) -> BAD_FORMAT ok
+  eq=5(ALPHA_STRAIGHT) fmt=2(ARGB8888_STRAIGHT) -> OK         ok
+
+(D) 结构审计：描述符结构谓词各有失败例
+  valid=0              slot 8  ok
+  base%4==0            slot 9  ok
+  width>0              slot 10 ok
+  height>0             slot 11 ok
+  2<=stride_log2       slot 12 ok
+  width*4<=1<<stride_log2 slot 14 ok
+  末像素不溢出               slot 15 ok
+  控制字保留位 [7:5]         slot 0  ok
+  控制字保留位 [11:10]       slot 0  ok
+  控制字保留位 [30:16]       slot 0  ok
+
+(E) 一致性向量：159 条
+  第 01 组（15 条）
+    nop-basic                              ch02 §4.1 ok
+    fill-copy                              ch02 §1、§4.2 + ch01 3.4 的 V 顺序 ok
+    fill-alpha                             ch02 §1、§4.2 + ch01 3.4 的 V 顺序 ok
+    fill-add                               ch02 §1、§4.2 + ch01 3.4 的 V 顺序 ok
+    fill-const                             ch02 §1、§4.2 + ch01 3.4 的 V 顺序 ok
+    fill-mul                               ch02 §1、§4.2 + ch01 3.4 的 V 顺序 ok
+    fill-alpha-straight                    ch02 §1、§4.2 + ch01 3.4 的 V 顺序 ok
+    blit-copy-xrgb                         ch02 §1、§2、§4.3 + ch01 3.4 ok
+    blit-alpha-pm                          ch02 §1、§2、§4.3 + ch01 3.4 ok
+    blit-add-xrgb                          ch02 §1、§2、§4.3 + ch01 3.4 ok
+    blit-const-straight                    ch02 §1、§2、§4.3 + ch01 3.4 ok
+    blit-mul-pm                            ch02 §1、§2、§4.3 + ch01 3.4 ok
+    blit-alpha-straight                    ch02 §1、§2、§4.3 + ch01 3.4 ok
+    set-clip-basic                         ch02 §4.4 ok
+    end-basic                              ch02 §4.1 ok
+  第 02 组（51 条）
+    nop-bad-rsvd                           ch02 §3 表：NOP 的 rsvd 必须为 0 ok
+    nop-bad-tint                           ch02 §3 表：NOP 的 tint 必须为 0 ok
+    nop-bad-eq                             ch02 §3 表：NOP 的 eq 必须为 0 ok
+    nop-bad-key                            ch02 §3 表：NOP 的 key 必须为 0 ok
+    nop-bad-src                            ch02 §3 表：NOP 的 src 必须为 0 ok
+    nop-bad-dst                            ch02 §3 表：NOP 的 dst 必须为 0 ok
+    nop-bad-c                              ch02 §3 表：NOP 的 c 必须为 0 ok
+    nop-bad-w1                             ch02 §3 表：NOP 的 w1 必须为 0 ok
+    nop-bad-w2                             ch02 §3 表：NOP 的 w2 必须为 0 ok
+    nop-bad-w3                             ch02 §3 表：NOP 的 w3 必须为 0 ok
+    nop-bad-w4                             ch02 §3 表：NOP 的 w4 必须为 0 ok
+    nop-bad-w5                             ch02 §3 表：NOP 的 w5 必须为 0 ok
+    nop-bad-w6                             ch02 §3 表：NOP 的 w6 必须为 0 ok
+    fill-bad-rsvd                          ch02 §3 表：FILL 的 rsvd 必须为 0 ok
+    fill-bad-tint                          ch02 §3 表：FILL 的 tint 必须为 0 ok
+    fill-bad-key                           ch02 §3 表：FILL 的 key 必须为 0 ok
+    fill-bad-src                           ch02 §3 表：FILL 的 src 必须为 0 ok
+    fill-bad-w1                            ch02 §3 表：FILL 的 w1 必须为 0 ok
+    fill-bad-w5                            ch02 §3 表：FILL 的 w5 必须为 0 ok
+    fill-bad-w6                            ch02 §3 表：FILL 的 w6 必须为 0 ok
+    fill-bad-c                             ch02 §3 表：FILL 的 c 必须为 0 ok
+    blit-bad-rsvd                          ch02 §3 表：BLIT 的 rsvd 必须为 0 ok
+    blit-bad-tint                          ch02 §3 表：BLIT 的 tint 必须为 0 ok
+    blit-bad-w4                            ch02 §3 表：BLIT 的 w4 必须为 0 ok
+    blit-bad-w6                            ch02 §3 表：BLIT 的 w6 必须为 0 ok
+    blit-bad-c                             ch02 §3 表：BLIT 的 c 必须为 0 ok
+    blit-bad-w5                            ch02 §3 表：BLIT 的 w5 必须为 0 ok
+    set_clip-bad-rsvd                      ch02 §3 表：SET_CLIP 的 rsvd 必须为 0 ok
+    set_clip-bad-tint                      ch02 §3 表：SET_CLIP 的 tint 必须为 0 ok
+    set_clip-bad-eq                        ch02 §3 表：SET_CLIP 的 eq 必须为 0 ok
+    set_clip-bad-key                       ch02 §3 表：SET_CLIP 的 key 必须为 0 ok
+    set_clip-bad-src                       ch02 §3 表：SET_CLIP 的 src 必须为 0 ok
+    set_clip-bad-dst                       ch02 §3 表：SET_CLIP 的 dst 必须为 0 ok
+    set_clip-bad-c                         ch02 §3 表：SET_CLIP 的 c 必须为 0 ok
+    set_clip-bad-w2                        ch02 §3 表：SET_CLIP 的 w2 必须为 0 ok
+    set_clip-bad-w4                        ch02 §3 表：SET_CLIP 的 w4 必须为 0 ok
+    set_clip-bad-w5                        ch02 §3 表：SET_CLIP 的 w5 必须为 0 ok
+    set_clip-bad-w6                        ch02 §3 表：SET_CLIP 的 w6 必须为 0 ok
+    end-bad-rsvd                           ch02 §3 表：END 的 rsvd 必须为 0 ok
+    end-bad-tint                           ch02 §3 表：END 的 tint 必须为 0 ok
+    end-bad-eq                             ch02 §3 表：END 的 eq 必须为 0 ok
+    end-bad-key                            ch02 §3 表：END 的 key 必须为 0 ok
+    end-bad-src                            ch02 §3 表：END 的 src 必须为 0 ok
+    end-bad-dst                            ch02 §3 表：END 的 dst 必须为 0 ok
+    end-bad-c                              ch02 §3 表：END 的 c 必须为 0 ok
+    end-bad-w1                             ch02 §3 表：END 的 w1 必须为 0 ok
+    end-bad-w2                             ch02 §3 表：END 的 w2 必须为 0 ok
+    end-bad-w3                             ch02 §3 表：END 的 w3 必须为 0 ok
+    end-bad-w4                             ch02 §3 表：END 的 w4 必须为 0 ok
+    end-bad-w5                             ch02 §3 表：END 的 w5 必须为 0 ok
+    end-bad-w6                             ch02 §3 表：END 的 w6 必须为 0 ok
+  第 03 组（43 条）
+    fill-dst-unregistered                  ch02 §2 描述符谓词与格式表 ok
+    fill-dst-misaligned                    ch02 §2 描述符谓词与格式表 ok
+    fill-dst-zerow                         ch02 §2 描述符谓词与格式表 ok
+    fill-dst-zeroh                         ch02 §2 描述符谓词与格式表 ok
+    fill-dst-stride1                       ch02 §2 描述符谓词与格式表 ok
+    fill-dst-widthover                     ch02 §2 描述符谓词与格式表 ok
+    fill-dst-overflow                      ch02 §2 描述符谓词与格式表 ok
+    fill-dst-tex                           ch02 §2 描述符谓词与格式表 ok
+    fill-dst-band                          ch02 §2 描述符谓词与格式表 ok
+    fill-dst-index8                        ch02 §2 描述符谓词与格式表 ok
+    fill-dst-unknown-fmt                   ch02 §2 描述符谓词与格式表 ok
+    fill-dst-argb                          ch02 §2 描述符谓词与格式表 ok
+    blit-src-unregistered                  ch02 §2 描述符谓词与格式表 ok
+    blit-dst-unregistered                  ch02 §2 描述符谓词与格式表 ok
+    blit-src-spc3                          ch02 §2 描述符谓词与格式表 ok
+    blit-dst-tex                           ch02 §2 描述符谓词与格式表 ok
+    blit-src-index8                        ch02 §2 描述符谓词与格式表 ok
+    blit-dst-index8                        ch02 §2 描述符谓词与格式表 ok
+    blit-src-unknown-fmt                   ch02 §2 描述符谓词与格式表 ok
+    blit-alpha-src-straight                ch02 §2 描述符谓词与格式表 ok
+    blit-straight-src-pm                   ch02 §2 描述符谓词与格式表 ok
+    eq0-fmt0                               ch02 §2：XRGB8888 源用于 COPY -> 合法 ok
+    eq0-fmt1                               ch02 §2：ARGB8888_PREMULT 源用于 COPY -> 合法 ok
+    eq0-fmt2                               ch02 §2：ARGB8888_STRAIGHT 源用于 COPY -> 合法 ok
+    eq1-fmt0                               ch02 §2：XRGB8888 源用于 ALPHA -> 合法 ok
+    eq1-fmt1                               ch02 §2：ARGB8888_PREMULT 源用于 ALPHA -> 合法 ok
+    eq1-fmt2                               ch02 §2：ARGB8888_STRAIGHT 源用于 ALPHA -> BAD_FOR ok
+    eq2-fmt0                               ch02 §2：XRGB8888 源用于 ADD -> 合法 ok
+    eq2-fmt1                               ch02 §2：ARGB8888_PREMULT 源用于 ADD -> 合法 ok
+    eq2-fmt2                               ch02 §2：ARGB8888_STRAIGHT 源用于 ADD -> 合法 ok
+    eq3-fmt0                               ch02 §2：XRGB8888 源用于 CONST -> 合法 ok
+    eq3-fmt1                               ch02 §2：ARGB8888_PREMULT 源用于 CONST -> 合法 ok
+    eq3-fmt2                               ch02 §2：ARGB8888_STRAIGHT 源用于 CONST -> 合法 ok
+    eq4-fmt0                               ch02 §2：XRGB8888 源用于 MUL -> 合法 ok
+    eq4-fmt1                               ch02 §2：ARGB8888_PREMULT 源用于 MUL -> 合法 ok
+    eq4-fmt2                               ch02 §2：ARGB8888_STRAIGHT 源用于 MUL -> 合法 ok
+    eq5-fmt0                               ch02 §2：XRGB8888 源用于 ALPHA_STRAIGHT -> 合法 ok
+    eq5-fmt1                               ch02 §2：ARGB8888_PREMULT 源用于 ALPHA_STRAIGHT -> ok
+    eq5-fmt2                               ch02 §2：ARGB8888_STRAIGHT 源用于 ALPHA_STRAIGHT - ok
+    fill-dst-ctrl-rsvd-5                   ch02 §2 控制字保留段 [7:5] 非零；复核定为 BAD_SURFACE ok
+    fill-dst-ctrl-rsvd-10                  ch02 §2 控制字保留段 [11:10] 非零；复核定为 BAD_SURFACE ok
+    fill-dst-ctrl-rsvd-16                  ch02 §2 控制字保留段 [30:16] 非零；复核定为 BAD_SURFACE ok
+    fill-tight-descriptor-ok               ch02 §2：width*4 <= 1<<stride_log2 的等号一侧 ok
+  第 04 组（11 条）
+    fill-alpha-premult-equal-ok            ch02 §4.2、§2 + ch01 3.4 ok
+    fill-alpha-premult-r-over              ch02 §4.2、§2 + ch01 3.4 ok
+    fill-alpha-premult-b-over              ch02 §4.2、§2 + ch01 3.4 ok
+    fill-alpha-a0-rewrites-dst             ch02 §4.2、§2 + ch01 3.4 ok
+    fill-alpha-a255                        ch02 §4.2、§2 + ch01 3.4 ok
+    fill-straight-rgb-over-a-ok            ch02 §4.2、§2 + ch01 3.4 ok
+    fill-copy-high-byte-ignored            ch02 §4.2、§2 + ch01 3.4 ok
+    fill-const-c0-identity                 ch02 §4.2、§2 + ch01 3.4 ok
+    fill-const-c255                        ch02 §4.2、§2 + ch01 3.4 ok
+    fill-mul-src-zero                      ch02 §4.2、§2 + ch01 3.4 ok
+    blit-pm-source-violates-contract       ch02 §2 预乘约束只对源素材有效，命令解释层不逐像素检查（F3） ok
+  第 05 组（14 条）
+    blit-same-surface-adjacent-ok          ch02 §4.3：半开区间不相交 ok
+    blit-same-surface-1px-overlap          ch02 §4.3：交集非空 ok
+    blit-same-surface-identical            ch02 §4.3 ok
+    blit-different-surface-overlap-ok      ch02 §4.3：不同表面号不做物理区间比较 ok
+    blit-zero-width-ok                     ch02 §4.3：零面积没有矩形 ok
+    blit-zero-height-ok                    ch02 §4.3 ok
+    blit-zero-width-bad-format             ch02 §4.3「表面和字段检查通过后跳过」可读成零面积先跳过；按 §5 十步，space ok
+    fill-zero-width-bad-dst-format         零面积 FILL 同样先过 surface/format 检查（§4.3 只写了 BLIT） ok
+    fill-zero-width-bad-premult            ch02 §4.3/§5：零面积 FILL 仍完成第九步预乘常量检查 ok
+    blit-overlap-ignores-clip              ch02 §4.3：重叠检查在裁剪之前 ok
+    blit-clip-limits-writes                ch01 3.6 四重求交 ok
+    blit-source-out-of-bounds-skips-pixel  ch01 3.6 第 5 步：源越界只跳过该像素 ok
+    blit-key-hits-all                      ch02 §4.3 + ch01 3.5：色键命中即跳过 ok
+    blit-key-misses-all                    ch02 §4.3 + ch01 3.5 ok
+  第 06 组（4 条）
+    count-zero                             ch02 §5 ok
+    count-exhausted-no-end                 ch02 §5 ok
+    end-before-illegal-record              ch02 §4.1：END 之后的记录不读取 ok
+    fetch-short-table                      ch02 §5：记录读取失败（用表内记录不足 COUNT 代表）。记录没读到，w7 未知，本 ok
+  第 07 组（10 条）
+    prio-opcode-over-field                 ch02 §5 ok
+    prio-field-over-equation               ch02 §5 ok
+    prio-field-over-surface                ch02 §5 ok
+    prio-equation-over-surface             ch02 §5 ok
+    prio-surface-over-space                ch02 §5 ok
+    prio-src-surface-over-dst-format       ch02 §5 ok
+    prio-space-over-format                 ch02 §5 ok
+    prio-format-over-premult               ch02 §5 ok
+    prio-format-over-overlap               ch02 §5 ok
+    prio-src-format-vs-dst-space           ch02 §5 十步的字面顺序（§2「分别检查」若按表面分组会得 BAD_FORMAT） ok
+  第 08 组（5 条）
+    error-no-side-effect-and-stop          ch02 §5：首错停止、前序保留、后续不读 ok
+    error-tag-separate-from-index          ch02 §5：错误码、零基索引、w7 标签三者分离 ok
+    error-blit-keeps-prior-pixels          ch02 §5 ok
+    error-first-record-still-locatable     ch02 §5 ok
+    error-in-second-list-keeps-local-index ch02 §5：多次提交时 ERROR_INDEX 仍是当前表内零基索引；前表状态保留 ok
+  第 09 组（6 条）
+    clip-inherits-across-lists             ch01 3.6：SET_CLIP 不随命令表复位 ok
+    clip-empty-skips-following             ch01 3.6：空矩形全部裁掉 ok
+    clip-truncated-to-game-area            ch01 3.6：只能缩小，超出按游戏区截断 ok
+    clip-negative-origin                   ch01 3.6：交集在游戏区内 ok
+    clip-error-keeps-previous-update       ch02 §5：错误记录本身不更新状态，此前成功的 SET_CLIP 保留 ok
+    clip-later-command-can-enlarge         ch01 3.6：新 SET_CLIP 替换旧框；只能缩小是相对游戏区 ok
+
+(F) 本轮研究补入正文并经复核定案的条目
+    fill-dst-ctrl-rsvd-5                   ch02 §2 控制字保留段 [7:5] 非零；复核定为 BAD_SURFACE
+    fill-dst-ctrl-rsvd-10                  ch02 §2 控制字保留段 [11:10] 非零；复核定为 BAD_SURFACE
+    fill-dst-ctrl-rsvd-16                  ch02 §2 控制字保留段 [30:16] 非零；复核定为 BAD_SURFACE
+    blit-pm-source-violates-contract       ch02 §2 预乘约束只对源素材有效，命令解释层不逐像素检查（F3）
+    blit-zero-width-bad-format             ch02 §4.3「表面和字段检查通过后跳过」可读成零面积先跳过；按 §5 十步，space/format 在重叠步之前 -> BAD_FORMAT
+    fill-zero-width-bad-dst-format         零面积 FILL 同样先过 surface/format 检查（§4.3 只写了 BLIT）
+    fill-zero-width-bad-premult            ch02 §4.3/§5：零面积 FILL 仍完成第九步预乘常量检查
+    fetch-short-table                      ch02 §5：记录读取失败（用表内记录不足 COUNT 代表）。记录没读到，w7 未知，本轮定 ERROR_TAG 读 0
+    prio-src-format-vs-dst-space           ch02 §5 十步的字面顺序（§2「分别检查」若按表面分组会得 BAD_FORMAT）
+  新增条目已逐条登记 ok
+
+(G) 注错自检：逐条把规则改错，向量集必须见红
+  no_premult           去掉 ALPHA FILL 的预乘约束检查 ok   见红 4 条
+  no_overlap           去掉 BLIT 重叠检查 ok   见红 3 条
+  swap_space_format    space 与 format 两步换序 ok   见红 3 条
+  zero_area_first      零面积先跳过（不再做 space/format 检查） ok   见红 3 条
+  no_fill_key_check    FILL 的色键位不检查 ok   见红 2 条
+  tag_is_index         ERROR_TAG 直接用索引代替 w7 ok   见红 7 条
+
+(H) 交换格式结构审计：多命令表边界与每表 COUNT
+  emit round-trip shape ok
+
+总判定：全部通过
+fail 0
+done

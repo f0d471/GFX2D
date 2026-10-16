@@ -1,0 +1,132 @@
+{
+  "blit-analysis-20261016-162811/logs/B0-frame0.compile.log": {
+    "size": 7778,
+    "mtime_ns": 1792139304619367900,
+    "sha256": "10d40cf7caed96b16e0ca3deb12c9148f0bd1a89b3f96064af2aad92b9f1bcd9"
+  },
+  "blit-analysis-20261016-162811/logs/B0-frame0.log": {
+    "size": 700,
+    "mtime_ns": 1792139313622828100,
+    "sha256": "a40bbfbbc4f69a3464f7db1911828c665db50982750b400bf0f56c18d657736f"
+  },
+  "blit-analysis-20261016-162811/logs/B0-frame1.compile.log": {
+    "size": 7778,
+    "mtime_ns": 1792139314260284900,
+    "sha256": "10d40cf7caed96b16e0ca3deb12c9148f0bd1a89b3f96064af2aad92b9f1bcd9"
+  },
+  "blit-analysis-20261016-162811/logs/B0-frame1.log": {
+    "size": 1850,
+    "mtime_ns": 1792139474328010100,
+    "sha256": "89cf7162ee4f1fd567f14b4550bac0211d0178d3ac595f8af70c12e2fe3730f8"
+  },
+  "blit-analysis-20261016-162811/logs/B1-frame1.compile.log": {
+    "size": 7778,
+    "mtime_ns": 1792139474896298000,
+    "sha256": "baf84e5a9a62ce557d364c2f44ff2a617d0509c59085563b448c485c694c77a7"
+  },
+  "blit-analysis-20261016-162811/logs/B1-frame1.log": {
+    "size": 409,
+    "mtime_ns": 1792139504012852200,
+    "sha256": "76f4a72a862f5812974b770dd025c9926f2d1264052841e4dbae9ae4eb03ee1a"
+  },
+  "blit-analysis-20261016-162811/logs/golden.compile.log": {
+    "size": 0,
+    "mtime_ns": 1792139291273520900,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "blit-analysis-20261016-162811/logs/golden.frame0.log": {
+    "size": 60,
+    "mtime_ns": 1792139295953979600,
+    "sha256": "2a3bf8086de86a04f6b1148cfe515eec756bcac3b94a8f0be59567a7dea6bb7c"
+  },
+  "blit-analysis-20261016-162811/logs/golden.frame1.log": {
+    "size": 54,
+    "mtime_ns": 1792139299379916700,
+    "sha256": "0b1d4574f8585735c559bba63cba648f9a52e634633e24746b717ca9caba9b97"
+  },
+  "blit-analysis-20261016-162811/plan.json.log": {
+    "size": 213,
+    "mtime_ns": 1792139291270522900,
+    "sha256": "e9af7059dabad47dcbacab060416f5e5ec8018a76debb81c9ef078cfb3a63f56"
+  },
+  "blit-analysis-20261016-162811/result.json.log": {
+    "size": 4478,
+    "mtime_ns": 1792139474382964500,
+    "sha256": "9d0ae744c90475aaa41aa4be06b74415788df92af6674ba74f84785cb211378e"
+  },
+  "blit-analysis-20261016-162811/candidate.patch": {
+    "size": 667,
+    "mtime_ns": 1792139304158663100,
+    "sha256": "207bb7782b0b9d60c1f8fa9b7d45ea153a2585d09e63420beb507f5c77c9739c"
+  },
+  "blit-analysis-20261016-163238/logs/B0-tied-frame1.compile.log": {
+    "size": 6121,
+    "mtime_ns": 1792139586305836100,
+    "sha256": "c66cc57de14ef3236256a48554894b3f5d9701a10095ef5e0e99370fa28813d7"
+  },
+  "blit-analysis-20261016-163238/logs/B0-tied-frame1.log": {
+    "size": 711,
+    "mtime_ns": 1792139590789717400,
+    "sha256": "648132f6ef6d49a147e6aac6961de942e30e5b6c4429a16891c2473f42351fb3"
+  },
+  "blit-analysis-20261016-163238/logs/B1-frame1.compile.log": {
+    "size": 7778,
+    "mtime_ns": 1792139571043911500,
+    "sha256": "b72dfb9b45f86733701190a496c84742fab9f1ef553df87a208b01304b09927c"
+  },
+  "blit-analysis-20261016-163238/logs/B1-frame1.log": {
+    "size": 1848,
+    "mtime_ns": 1792139580947938500,
+    "sha256": "ceb8364a524014d7f4876d1246a45fac60f84074ef7b16225d3ed53875d5daf7"
+  },
+  "blit-analysis-20261016-163238/logs/B2-frame1.compile.log": {
+    "size": 5956,
+    "mtime_ns": 1792139581538765000,
+    "sha256": "d0460994f43a356c7747baf2adc8ebe0ae9b2c373750585704ac58964a225b53"
+  },
+  "blit-analysis-20261016-163238/logs/B2-frame1.log": {
+    "size": 696,
+    "mtime_ns": 1792139585743313700,
+    "sha256": "8506401fa47cad87be0c61d5b406d24f7830b48389593eb9fac02f1d0a58d7d0"
+  },
+  "blit-analysis-20261016-163238/logs/golden.compile.log": {
+    "size": 0,
+    "mtime_ns": 1792139558068202000,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "blit-analysis-20261016-163238/logs/golden.frame0.log": {
+    "size": 60,
+    "mtime_ns": 1792139562903132600,
+    "sha256": "2a3bf8086de86a04f6b1148cfe515eec756bcac3b94a8f0be59567a7dea6bb7c"
+  },
+  "blit-analysis-20261016-163238/logs/golden.frame1.log": {
+    "size": 54,
+    "mtime_ns": 1792139566053135600,
+    "sha256": "0b1d4574f8585735c559bba63cba648f9a52e634633e24746b717ca9caba9b97"
+  },
+  "blit-analysis-20261016-163238/plan.json.log": {
+    "size": 269,
+    "mtime_ns": 1792139558062681200,
+    "sha256": "025909f71eeb513e5106f1f8009a52bd7a6e7344c533c369b6f4e544d6e0af60"
+  },
+  "blit-analysis-20261016-163238/result.json.log": {
+    "size": 2788,
+    "mtime_ns": 1792139590804248300,
+    "sha256": "46dfbed95f8a87eb798fdd1e5e3bf4ecba728c1284ff3693ed2124e306236d0d"
+  },
+  "blit-analysis-20261016-163238/README.md.log": {
+    "size": 4026,
+    "mtime_ns": 1792139681834334400,
+    "sha256": "ab2c3aa729f278830def8054d25aa08cc3eacda60045386d1ac14738e61547cf"
+  },
+  "blit-analysis-20261016-163238/reproduce.py.log": {
+    "size": 5358,
+    "mtime_ns": 1792139554561911900,
+    "sha256": "184184723820f2d565b9643e66330f296e71f5f16ce554ed1998881f160df76e"
+  },
+  "blit-analysis-20261016-163238/candidate.patch": {
+    "size": 667,
+    "mtime_ns": 1792139570454820700,
+    "sha256": "207bb7782b0b9d60c1f8fa9b7d45ea153a2585d09e63420beb507f5c77c9739c"
+  }
+}

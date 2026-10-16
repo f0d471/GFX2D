@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "pb-no-strip-board"
+  ],
+  "run_id": "20261016-173511-3c8a862d"
+}

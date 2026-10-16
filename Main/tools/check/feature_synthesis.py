@@ -60,6 +60,8 @@ def collect(tree: Path) -> dict:
               (('xlr', r'XLRs:\s*(\d+)'), ('ram', r'Memory Blocks:\s*(\d+)'),
                ('dsp', r'DSP Blocks:\s*(\d+)'))}
     result['slacks'] = timing_slacks(timing)
+    if any(row['slack_ns'] < 0 for row in result['slacks']):
+        raise RuntimeError('存在负时序裕量')
     # 自写 RTL 的位宽截断告警必须为 0（0.4 节第 5 项）。
     warn = (outflow / 'gfx2d_ti60.warn.log').read_text(encoding='utf-8', errors='replace')
     start = warn.rfind('// Efinity Synthesis Started')
@@ -68,6 +70,8 @@ def collect(tree: Path) -> dict:
     own = [s for s in warn.splitlines()
            if re.search(r'VERI-(1209|1330)', s) and '/rtl/engine/' in s.replace('\\', '/')]
     result['own_width_warnings'] = len(own)
+    if own:
+        raise RuntimeError('自写 RTL 位宽告警: ' + '\n'.join(own))
     return result
 
 
@@ -89,7 +93,9 @@ def main():
     out_path = Path(args.out).resolve()
     summary = json.loads(out_path.read_text(encoding='utf-8')) if out_path.is_file() else {}
     failures = []
+    summary.pop('_failures', None)
     for preset in (args.only or PRESETS):
+        summary.pop(preset, None)
         tree = root / preset
         record = json.loads((tree / 'config.json').read_text(encoding='utf-8'))
         print(f'[{preset}] 四步开始 CAPS={record["caps"]} sources={len(record["sources"])}',

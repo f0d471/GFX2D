@@ -1,0 +1,37 @@
+{
+  "logs/pb-no-strip/config.json": {
+    "size": 2674,
+    "mtime_ns": 1792149728492030600,
+    "sha256": "023e64f28c4708a3588df35f9bc328a30d47de40ca6209b24ba21a3549a2e7bf"
+  },
+  "logs/pb-no-strip/flow.log": {
+    "size": 1681,
+    "mtime_ns": 1792149728500546300,
+    "sha256": "f6d00d38b602e73faf1ab4e837f0085ba9e8bacfe3c26eab60afc6f30ff663ad"
+  },
+  "logs/pb-no-strip/place.rpt": {
+    "size": 2020,
+    "mtime_ns": 1792149728500546300,
+    "sha256": "738a8bbde5a7266a5b9df277c571b97e464178c8fa7ab62276aa3f8e9c2d7f4f"
+  },
+  "logs/pb-no-strip/synthesis.json": {
+    "size": 2479,
+    "mtime_ns": 1792149728502551400,
+    "sha256": "da357e17f464a983ea32b15e8afc6d2c82af94f0d694ead8c7c574b0772c25c8"
+  },
+  "logs/pb-no-strip/timing.rpt": {
+    "size": 993695,
+    "mtime_ns": 1792149728501541000,
+    "sha256": "fb953d6be586c06d4baca51d73db71ea8ed7e85d22b29eac3cffc14720a947f9"
+  },
+  "logs/pb-no-strip/warn.log": {
+    "size": 86548,
+    "mtime_ns": 1792149728501541000,
+    "sha256": "ee4f95ff5669a74ffa6d573330b7cf26061e56cf1299fac38920d8f5fbcba225"
+  },
+  "logs/pb-no-strip/experiment.py.log": {
+    "size": 2085,
+    "mtime_ns": 1792149388170178000,
+    "sha256": "2c313e194b234c7125be7542f99aab6d94f9cde7b61a8da2e2c3fb6e1b8e9979"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "feature-caps",
+    "feature-elab",
+    "feature-probe",
+    "feature-contract",
+    "feature-function"
+  ],
+  "run_id": "20261016-171351-c32a855c"
+}

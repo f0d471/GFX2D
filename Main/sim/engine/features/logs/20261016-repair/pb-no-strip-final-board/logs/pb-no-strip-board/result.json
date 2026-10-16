@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "cases": 14,
+  "caps": "0x0000346F",
+  "port": "COM11",
+  "config": "11011-111-d",
+  "binary": "Main/sim/build/check-runs/20261016-190653-29876126/build/feature-board/app/featureTest-O2.bin",
+  "bit": "Main/sim/build/check-runs/20261016-191627-f91e9fdd/build/pb-no-strip/11011-111-d/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit"
+}

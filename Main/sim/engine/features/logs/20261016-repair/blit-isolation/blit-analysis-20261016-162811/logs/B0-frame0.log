@@ -1,0 +1,5 @@
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-162811/B0/tb_engine_frame.v:210: $readmemh(case.cmd.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-162811/B0/tb_engine_frame.v:215: $readmemh(case.init.hex): Not enough words in the file for the requested range [0:262143].
+FRAME cycles=126897 rd_burst=1 rd_beat=4 wr_burst=480 wr_beat=76800 pixel=307200 key=0 cmd=1 mem_bad=0
+RESULT: PASS (frame, software executor golden)
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-162811/B0/tb_engine_frame.v:350: $finish called at 1270775000 (1ps)

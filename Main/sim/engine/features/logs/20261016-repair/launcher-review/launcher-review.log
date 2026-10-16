@@ -1,0 +1,36 @@
+syntax-synth_presets.sh
+exit=0
+syntax-regress_suites.sh
+exit=0
+missing-install
+INCOMPLETE EFINITY_HOME 未设置，见 Main/doc/开发环境.md
+exit=3
+missing-python
+INCOMPLETE 未找到 Efinity Python；可用 EFINITY_PYTHON 指定可执行文件
+exit=3
+outside-output
+BUILD-FAIL 输出目录必须在 Main/sim/build 内
+exit=1
+linked-preset
+BUILD-FAIL 构型目录不能是链接：B0
+exit=1
+configured-invocations
+exit=0
+propagate-tool-error
+BUILD-FAIL B0
+BUILD-FAIL B1
+BUILD-FAIL B2
+BUILD-FAIL B3
+BUILD-FAIL B4
+BUILD-FAIL B5
+BUILD-FAIL B6
+exit=9
+suite-without-vendor
+build/final-repair-review-20261016/launcher-work/suite RESULT: PASS
+exit=0
+suite-failed-process-with-pass-text
+build/final-repair-review-20261016/launcher-work/suite RESULT: PASS
+exit=1
+suite-failed-result-with-zero-process
+build/final-repair-review-20261016/launcher-work/suite RESULT: FAIL
+exit=1

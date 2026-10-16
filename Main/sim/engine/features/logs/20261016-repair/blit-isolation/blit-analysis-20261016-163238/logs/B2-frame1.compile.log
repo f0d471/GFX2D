@@ -1,0 +1,37 @@
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_config_error_modules.vh:4: warning: timescale for GFX_CONFIG_ERROR_PB_REQUIRES_BAND_HW inherited from another file.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_top.v:1: ...: The inherited timescale is here.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_config_error_modules.vh:7: warning: timescale for GFX_CONFIG_ERROR_PB_REQUIRES_INST inherited from another file.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_top.v:1: ...: The inherited timescale is here.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_config_error_modules.vh:10: warning: timescale for GFX_CONFIG_ERROR_STRIP_REQUIRES_BAND_HW inherited from another file.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_top.v:1: ...: The inherited timescale is here.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_config_error_modules.vh:13: warning: timescale for GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA inherited from another file.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_top.v:1: ...: The inherited timescale is here.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_config_error_modules.vh:16: warning: timescale for GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY inherited from another file.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_top.v:1: ...: The inherited timescale is here.
+warning: Some design elements have no explicit time unit and/or
+       : time precision. This may cause confusing timing results.
+       : Affected design elements are:
+       :   -- compilation unit
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_regs.v:221: warning: @* is sensitive to all 16 words in array 'surf_w0'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_regs.v:222: warning: @* is sensitive to all 16 words in array 'surf_w1'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_regs.v:223: warning: @* is sensitive to all 16 words in array 'surf_w2w'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:300: warning: @* is sensitive to all 7 words in array 'seg_isrd'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:300: warning: @* is sensitive to all 7 words in array 'seg_isrd'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:301: warning: @* is sensitive to all 7 words in array 'seg_isrd'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:301: warning: @* is sensitive to all 7 words in array 'seg_isrd'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:302: warning: @* is sensitive to all 7 words in array 'seg_iswr'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:302: warning: @* is sensitive to all 7 words in array 'seg_iswr'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:353: warning: @* is sensitive to all 7 words in array 'seg_addr'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:354: warning: @* is sensitive to all 7 words in array 'seg_beats'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:355: warning: @* is sensitive to all 7 words in array 'seg_dir'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:357: warning: @* is sensitive to all 7 words in array 'seg_dir'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:358: warning: @* is sensitive to all 7 words in array 'seg_dir'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:363: warning: @* is sensitive to all 7 words in array 'seg_addr'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/engine/engine_geom.v:364: warning: @* is sensitive to all 7 words in array 'seg_beats'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/vendor/axi_dma_wr.v:759: warning: @* is sensitive to all 32 words in array 'status_fifo_len'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/vendor/axi_dma_wr.v:760: warning: @* is sensitive to all 32 words in array 'status_fifo_tag'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/vendor/axi_dma_wr.v:761: warning: @* is sensitive to all 32 words in array 'status_fifo_id'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/vendor/axi_dma_wr.v:762: warning: @* is sensitive to all 32 words in array 'status_fifo_dest'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/vendor/axi_dma_wr.v:763: warning: @* is sensitive to all 32 words in array 'status_fifo_user'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/vendor/axi_dma_wr.v:771: warning: @* is sensitive to all 32 words in array 'status_fifo_last'.
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B2/vendor/axi_dma_wr.v:775: warning: @* is sensitive to all 32 words in array 'status_fifo_last'.

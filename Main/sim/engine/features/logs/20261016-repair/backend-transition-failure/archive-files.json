@@ -1,0 +1,77 @@
+{
+  "logs/feature-board/B0.control.log": {
+    "size": 1786,
+    "mtime_ns": 1792147381036698200,
+    "sha256": "ea7c82e43b8489eb5717941bfb610cfbabebc47356c230b919366b9a25575965"
+  },
+  "logs/feature-board/B0.serial.log": {
+    "size": 1176,
+    "mtime_ns": 1792147380910866900,
+    "sha256": "b803056bf56a53330c1cbb899322413ee1d1843f4d12c9c2439c7bb6b5b4c624"
+  },
+  "logs/feature-board/B1.control.log": {
+    "size": 1783,
+    "mtime_ns": 1792147392227710300,
+    "sha256": "a903d1d668c6328cda0036a64c96cd703723935c3968805023a4eac1794ba1e7"
+  },
+  "logs/feature-board/B1.serial.log": {
+    "size": 1173,
+    "mtime_ns": 1792147392091148900,
+    "sha256": "2910ef298dd49857bb4626a11469493cfa5f9b4c91954cccc2a100de006bc229"
+  },
+  "logs/feature-board/B2.control.log": {
+    "size": 1846,
+    "mtime_ns": 1792147403419352600,
+    "sha256": "6ddc0d796f5a67119d1aa33f84635465d9ba717e6185c1c87aad155b01ff57be"
+  },
+  "logs/feature-board/B2.serial.log": {
+    "size": 1236,
+    "mtime_ns": 1792147403276894000,
+    "sha256": "18293b132001cf12a5bc227a58aff27deb4f9304570223f9a8792a3f44f68367"
+  },
+  "logs/feature-board/B3.control.log": {
+    "size": 1909,
+    "mtime_ns": 1792147414660051100,
+    "sha256": "0f66166285083584dc97e09e91111eec511fe710a1eca09fcba61abbfe2dc212"
+  },
+  "logs/feature-board/B3.serial.log": {
+    "size": 1299,
+    "mtime_ns": 1792147414529117800,
+    "sha256": "4cd67fba1376ed72c1442a7477c094ba4c014da7e9dd44f9a506b2b3e1399a72"
+  },
+  "logs/feature-board/B4.control.log": {
+    "size": 1912,
+    "mtime_ns": 1792147425916648800,
+    "sha256": "7429e0eecb2c0a76ff6bfcb2338a24b5d4a6ff68e660ad93d5c56b8c4f7fd73f"
+  },
+  "logs/feature-board/B4.serial.log": {
+    "size": 1302,
+    "mtime_ns": 1792147425784562500,
+    "sha256": "001e42dbcee7088b3e5305a952f68535ddb810370d831269f8639fa6d4b8ded3"
+  },
+  "logs/feature-board/B5.control.log": {
+    "size": 1972,
+    "mtime_ns": 1792147437447296900,
+    "sha256": "d6e71f10bf26b1d09a7ddc7e505c25b234df12c594d3720c2e08f8e4fa48e865"
+  },
+  "logs/feature-board/B5.serial.log": {
+    "size": 1362,
+    "mtime_ns": 1792147437323662200,
+    "sha256": "efe2c9d8adfc04bc7fc6e18da48f5993f9496a8cde26376106c3f35c60787c4c"
+  },
+  "logs/feature-board/build.log": {
+    "size": 1000,
+    "mtime_ns": 1792147369588455200,
+    "sha256": "0e64a42100d0340c4eff568de8fca77823e92d4efb4c098e36be840f41b1fbfb"
+  },
+  "logs/feature-board/parser-negatives.json": {
+    "size": 215,
+    "mtime_ns": 1792147381058723800,
+    "sha256": "6f62ae9b7a24d2c452eaa7e3cb1b8d0b9c187df67d4b9935c570db6edf230730"
+  },
+  "logs/feature-board/result.json": {
+    "size": 724,
+    "mtime_ns": 1792147425937484200,
+    "sha256": "f6bcce32c570628195535ead13bd96868cc7611744152a70963636ce1175844e"
+  }
+}

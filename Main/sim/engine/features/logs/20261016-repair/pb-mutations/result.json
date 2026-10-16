@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "pb-route",
+    "pb-shared-registers"
+  ],
+  "run_id": "20261016-173015-3caf6125"
+}

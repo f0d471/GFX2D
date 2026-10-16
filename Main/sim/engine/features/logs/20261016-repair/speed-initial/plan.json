@@ -1,0 +1,44 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "feature-synthesis",
+    "feature-board"
+  ],
+  "changed": null,
+  "commands": {
+    "feature-synthesis": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_feature_synthesis.py"
+    ],
+    "feature-board": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_feature_board.py"
+    ]
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/rtl/**",
+    "Main/sim/engine/features/**",
+    "Main/tools/check/feature_config.py",
+    "Main/tools/check/feature_build.py",
+    "Main/tools/check/feature_netlist.py",
+    "Main/tools/check/check_feature_caps.py",
+    "Main/tools/check/check_feature_elab.py",
+    "Main/tools/check/check_feature_probe.py",
+    "Main/tools/check/check_feature_contract.py",
+    "Main/tools/check/check_feature_function.py",
+    "Main/tools/check/check_feature_synthesis.py",
+    "Main/tools/check/feature_synthesis.py",
+    "Main/tools/check/check_feature_board.py",
+    "Main/tools/check/regs_gen.py",
+    "Main/sw/bsp/include/gfx_feature.h",
+    "Main/sw/apps/test/featureTest/**",
+    "Main/sw/bsp/**",
+    "Main/sw/mk/**",
+    "Main/sdk/**",
+    "Main/tools/board/**",
+    "Main/fpga/**",
+    "Main/sw/lib/core/crc32.*"
+  ]
+}

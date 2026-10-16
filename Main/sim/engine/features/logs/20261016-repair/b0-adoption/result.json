@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "synthesis",
+    "board",
+    "board-game"
+  ],
+  "run_id": "20261016-190652-7bf53727"
+}

@@ -1,0 +1,11 @@
+{
+  "kind": "historical_diagnostic_snapshot",
+  "profile": "quick",
+  "current_inputs_revalidated": false,
+  "scope": "isolated BLIT failure and constant-input comparison; not acceptance",
+  "source_runs": [
+    "Main/sim/build/check-runs/blit-analysis-20261016-162811",
+    "Main/sim/build/check-runs/blit-analysis-20261016-163238"
+  ],
+  "raw_logs": "byte-identical; diagnostic metadata retained as .log snapshots"
+}

@@ -1,0 +1,28 @@
+import os, sys, shutil, xml.etree.ElementTree as ET
+from pathlib import Path
+repo=Path(r'E:\Workspace\Efinix');sys.path.insert(0,str(repo/'Main/tools/check'))
+import validate, feature_build as fb, feature_synthesis as fs, feature_netlist as fn
+from check_run import Session, write_json
+current=Session(profile='acceptance',input_patterns=validate.CHECKS['feature-synthesis']['inputs'])
+print('RUN '+current.path.relative_to(repo).as_posix(),flush=True)
+logs=current.logs('b5-area2');tree=current.build('b5-area2')/'B5';shutil.copyfile(__file__,logs/'experiment.py')
+write_json(current.path/'plan.json',{'profile':'acceptance','checks':['b5-area2'],'scope':'B5 full features, unchanged RTL, vendor documented area synthesis mode','parameters':{'mode':'area2','seed':1,'placer_effort_level':2}})
+def perform():
+    record=fb.build('B5',tree)
+    xml=tree/'fpga/gfx2d_ti60/gfx2d_ti60.xml';doc=ET.parse(xml)
+    node=doc.find('.//{'+fb.NS+'}synthesis/{'+fb.NS+'}param[@name="mode"]')
+    assert node is not None and node.get('value')=='speed';node.set('value','area2');doc.write(xml,encoding='utf-8',xml_declaration=True)
+    shutil.copyfile(xml,logs/'project-input.xml')
+    env=dict(os.environ)
+    for key in ('EFINITY_HOME','PYTHONHOME','EFXPT_HOME','EFXPGM_HOME','EFXDBG_HOME','EFXIPM_HOME','EFXSVF_HOME','EFXSERDESDBG_HOME','EFINITY_USER_DIR_INI'):env.pop(key,None)
+    fs.run_flow(tree,env); result=fs.collect(tree)
+    assert fn.probe(fn.netlist(tree))=={'TEX':True,'BAND_HW':True,'INST':True,'PB':True}
+    bit=tree/'fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit';current.artifact(bit)
+    shutil.copyfile(tree/'flow.log',logs/'flow.log')
+    for suffix in ('place.rpt','timing.rpt','warn.log'):shutil.copyfile(bit.parent/('gfx2d_ti60.'+suffix),logs/suffix)
+    result.update({'config':record['config'],'caps':record['caps'],'synthesis_mode':'area2','bit':bit.relative_to(repo).as_posix(),'tree':tree.relative_to(repo).as_posix()})
+    write_json(logs/'synthesis.json',result)
+    return {'log':(logs/'flow.log').relative_to(repo).as_posix(),'mode':'area2'}
+current.perform('check:b5-area',perform)
+write_json(current.path/'result.json',{'status':'PASS','profile':'acceptance','checks':['b5-area2'],'run_id':current.path.name})
+print('B5 AREA2 SYNTHESIS PASS',flush=True)

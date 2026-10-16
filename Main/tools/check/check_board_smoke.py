@@ -90,14 +90,25 @@ def main():
     current.artifact(bit)
     current.perform('board.debug',lambda:command([sys.executable,board,'--check-only','--bit',bit],logs/'debug.log'),reusable=False)
     # 构建在 WSL 内解析交叉工具链；不依赖旧 build/ 中的二进制。
-    build_script='prefix="$(find "$HOME/opt" -path "*/bin/riscv-none-elf-gcc" -print -quit)"; test -n "$prefix" || exit 3; make -C Main/sw/apps/test/engineTest -j8 OBJDIR=build_check_smoke RISCV_BIN="${prefix%gcc}"'
+    import feature_config as fc
+    config=fc.parse_name(fc.CANONICAL)
+    full=all(config[name] for name in fc.STRUCT_NAMES+fc.PIXEL_NAMES)
+    application='engineTest' if full else 'featureTest'
+    if not full and not all(config[name] for name in fc.PIXEL_NAMES):
+        raise IncompleteCheck('代表档功能程序要求完整像素能力')
+    build_script='prefix="$(find "$HOME/opt" -path "*/bin/riscv-none-elf-gcc" -print -quit)"; test -n "$prefix" || exit 3; make -C Main/sw/apps/test/'+application+' -j8 OBJDIR=build_check_smoke RISCV_BIN="${prefix%gcc}"'
     current.perform('board.build',lambda:command(['wsl.exe','-e','bash','-c',build_script],logs/'build.log'))
-    binary=ROOT/'Main/sw/apps/test/engineTest/build_check_smoke/engineTest-O2.bin'
+    binary=ROOT/('Main/sw/apps/test/'+application+'/build_check_smoke/'+application+'-O2.bin')
     current.artifact(binary)
     def capture():
         command([sys.executable,board,'--no-program','--bin',binary,'--port',port,
             '--stop-line','done','--seconds','180','--log',logs/'engine.log'],logs/'control.log',timeout=240)
-        result=validate_engine((logs/'engine.log').read_text(encoding='utf-8-sig',errors='replace'))
+        body=(logs/'engine.log').read_text(encoding='utf-8-sig',errors='replace')
+        if full:
+            result=validate_engine(body)
+        else:
+            from check_feature_board import validate_capture
+            result=validate_capture(body,fc.caps(config),config['STRIP'])
         control=(logs/'control.log').read_text(encoding='utf-8',errors='replace')
         if 'Target successfully examined' not in control or str(binary.stat().st_size)+' bytes written at address' not in control:
             raise RuntimeError('缺少本次目标识别／写入字节数')

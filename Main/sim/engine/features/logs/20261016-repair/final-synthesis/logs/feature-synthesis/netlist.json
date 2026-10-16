@@ -1,0 +1,103 @@
+{
+  "variants": {
+    "B0": {
+      "present": {
+        "TEX": false,
+        "BAND_HW": false,
+        "INST": false,
+        "PB": false
+      },
+      "expected": {
+        "TEX": false,
+        "BAND_HW": false,
+        "INST": false,
+        "PB": false
+      }
+    },
+    "B1": {
+      "present": {
+        "TEX": false,
+        "BAND_HW": false,
+        "INST": true,
+        "PB": false
+      },
+      "expected": {
+        "TEX": false,
+        "BAND_HW": false,
+        "INST": true,
+        "PB": false
+      }
+    },
+    "B2": {
+      "present": {
+        "TEX": true,
+        "BAND_HW": false,
+        "INST": true,
+        "PB": false
+      },
+      "expected": {
+        "TEX": true,
+        "BAND_HW": false,
+        "INST": true,
+        "PB": false
+      }
+    },
+    "B3": {
+      "present": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false
+      },
+      "expected": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false
+      }
+    },
+    "B4": {
+      "present": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": false,
+        "PB": false
+      },
+      "expected": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": false,
+        "PB": false
+      }
+    },
+    "B5": {
+      "present": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": true
+      },
+      "expected": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": true
+      }
+    },
+    "B6": {
+      "present": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false
+      },
+      "expected": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false
+      }
+    }
+  },
+  "failures": []
+}

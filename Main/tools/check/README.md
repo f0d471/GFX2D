@@ -30,6 +30,10 @@
 | `check_feature_elab.py` | 七代表档与合法/非法结构组合的配置穷举 elaboration | `validate.py --checks feature-elab`；自建源树到临时目录，跑完删 |
 | `check_feature_probe.py` | 关闭的机制离开编译输入：实例化点与源码内容两种判据 | `validate.py --checks feature-probe`；STRIP 不增减例化，只能用源码内容判 |
 | `check_feature_contract.py` | 按构型的禁用契约与六条依赖守卫反例 | `validate.py --checks feature-contract`；CAPS 位、CTRL 不支持位、保留寄存器读写、无实例哨兵 |
+| `check_feature_function.py` | 160 个合法构型的 FILL、六方程、色键、DDR/TEX、实例、STRIP/PB 绘制与切换、软复位；六个定向变异 | `validate.py --checks feature-function --profile acceptance --run`；日志进入本轮目录，悬空输入告警直接失败 |
+| `check_feature_synthesis.py` | 本轮自建七档源树、四步、全时钟时序及网表结构检查 | Windows：`validate.py --checks feature-synthesis --profile acceptance --run`；位流身份登记于本轮 manifest |
+| `check_feature_board.py` | 同一 BIN 的七档部署与独立 CRC 功能板测 | Windows：`validate.py --checks feature-board --profile acceptance --run`；自动先执行本轮综合；同轮续跑使用相同范围和 `--run-dir` |
+| `check_board_game.py` | 当前位流的生产 HW/DDR 游戏 240 帧，素材版本、启动场景检查、稳态帧率与扫描诊断 | Windows：`validate.py --checks synthesis board board-game --profile acceptance --run`；不重搜 N_max，不写 Flash，不代表完整关卡逐帧回放 |
 | `feature_synthesis.py` | 按构型跑整机四步并收集同阶段资源与全时钟时序 | Windows + `EFINITY_HOME`；`--tree-root` 指向构型源树根，逐档写 `synthesis.json`，超容量的档记 FAIL 并继续 |
 | `feature_netlist.py` | netlist 结构检查：关闭的机制不得在综合网表里留下信号 | `validate.py --checks feature-netlist`；读 map 网表，pnr 超容量的档同样可判 |
 | `g1_research.py` | TEX 装载窗口前期研究：完整 APB 地址集合、热集布局、四 bank RAM 端口实验、软件金标准对真实像素路径的同步读延迟与 valid 变异；`--prepare-syn` 生成隔离 RAM 工程；`--record-board` 核对本次整机板测产物身份 | WSL 中从仓库根运行 `python3 Main/tools/check/g1_research.py`；范围与原始证据见 `Main/sim/engine/tex/README.md` |

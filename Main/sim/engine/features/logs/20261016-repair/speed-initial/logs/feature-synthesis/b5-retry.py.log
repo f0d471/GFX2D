@@ -1,0 +1,28 @@
+import sys, json, shutil
+from pathlib import Path
+repo=Path(r'E:\Workspace\Efinix');sys.path.insert(0,str(repo/'Main/tools/check'))
+from check_run import Session, command, write_json
+current=Session(repo/'Main/sim/build/check-runs/20261016-171352-cd3f74e3','acceptance')
+trees=current.build('feature-presets');logs=current.logs('feature-synthesis')
+shutil.copyfile(__file__,logs/'b5-retry.py')
+failed=logs/'B5-initial-failure';failed.mkdir(exist_ok=False)
+shutil.copyfile(logs/'synthesis.json',failed/'synthesis.json')
+shutil.copyfile(logs/'flows.log',failed/'flows.log')
+shutil.copyfile(trees/'B5/flow.log',failed/'flow.log')
+for suffix in ('place.rpt','warn.log'):
+    path=trees/'B5/fpga/gfx2d_ti60/outflow'/('gfx2d_ti60.'+suffix)
+    if path.exists():shutil.copyfile(path,failed/suffix)
+def retry():
+    command([sys.executable,repo/'Main/tools/check/feature_synthesis.py','--tree-root',trees,'--out',logs/'synthesis.json','--only','B5'],logs/'B5-retry.log',timeout=1800)
+    command([sys.executable,repo/'Main/tools/check/feature_netlist.py','--tree-root',trees,'--out',logs/'netlist.json'],logs/'netlist.log')
+    summary=json.loads((logs/'synthesis.json').read_text())
+    assert set(summary)=={'B0','B1','B2','B3','B4','B5','B6'}
+    for preset in summary:
+        tree=trees/preset;out=tree/'fpga/gfx2d_ti60/outflow';dest=logs/preset;dest.mkdir(exist_ok=True)
+        shutil.copyfile(tree/'config.json',dest/'config.json');shutil.copyfile(tree/'flow.log',dest/'flow.log')
+        for suffix in ('place.rpt','timing.rpt','warn.log'):shutil.copyfile(out/('gfx2d_ti60.'+suffix),dest/suffix)
+        current.artifact(out/'gfx2d_ti60.bit')
+    write_json(logs/'retry-result.json',{'status':'PASS','scope':'six original preset passes plus B5 same-source retry','reason':'initial B5 60838 exceeds 60800 by 38','source_and_parameters_changed':False,'summary':summary})
+    return {'log':(logs/'retry-result.json').relative_to(repo).as_posix(),'retry':'B5 only; source and parameters unchanged'}
+current.perform('check:feature-synthesis',retry)
+print('FEATURE SYNTHESIS RECOVERED B5; no passed preset rebuilt',flush=True)

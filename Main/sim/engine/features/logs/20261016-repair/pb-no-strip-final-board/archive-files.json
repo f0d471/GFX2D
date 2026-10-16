@@ -1,0 +1,32 @@
+{
+  "logs/pb-no-strip-board/build.log": {
+    "size": 1000,
+    "mtime_ns": 1792150072622022200,
+    "sha256": "8d940f500a0f25f547df289e2fdb97957325199ba97e41e40f9b984d0100e70a"
+  },
+  "logs/pb-no-strip-board/control.log": {
+    "size": 1915,
+    "mtime_ns": 1792150085233504000,
+    "sha256": "454ffe78d57b6178a399adc6ea3f775bc5b2a3059ef90e5c86245ddf07bdbcc7"
+  },
+  "logs/pb-no-strip-board/parser-negatives.json": {
+    "size": 215,
+    "mtime_ns": 1792150085265042500,
+    "sha256": "6f62ae9b7a24d2c452eaa7e3cb1b8d0b9c187df67d4b9935c570db6edf230730"
+  },
+  "logs/pb-no-strip-board/result.json": {
+    "size": 358,
+    "mtime_ns": 1792150085266040700,
+    "sha256": "9bffd20ba11fe9cd545756fec42bd93cb3a639352b5dd9e453bef70b782aa1de"
+  },
+  "logs/pb-no-strip-board/serial.log": {
+    "size": 1299,
+    "mtime_ns": 1792150085098819900,
+    "sha256": "85e3788119117bc2883ab159ebf8d1cac9afe454d9d26475dfe713859e355336"
+  },
+  "logs/pb-no-strip-board/experiment.py.log": {
+    "size": 2689,
+    "mtime_ns": 1792150059954641600,
+    "sha256": "41c62ae466147663460a86fa9aa06e38c267491083db122f3772050e85f41513"
+  }
+}

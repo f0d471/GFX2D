@@ -1,0 +1,109 @@
+{
+  "xlr": 60310,
+  "ram": 172,
+  "dsp": 23,
+  "slacks": [
+    {
+      "clock": "core_clk",
+      "to_clock": "core_clk",
+      "kind": "setup",
+      "slack_ns": 0.237
+    },
+    {
+      "clock": "sdram_clk",
+      "to_clock": "sdram_clk",
+      "kind": "setup",
+      "slack_ns": 0.323
+    },
+    {
+      "clock": "rx_cal_clk",
+      "to_clock": "rx_cal_clk",
+      "kind": "setup",
+      "slack_ns": 0.51
+    },
+    {
+      "clock": "tx_cal_clk",
+      "to_clock": "tx_cal_clk",
+      "kind": "setup",
+      "slack_ns": 0.232
+    },
+    {
+      "clock": "tx_cal_clk_90edge",
+      "to_clock": "tx_cal_clk_90edge",
+      "kind": "setup",
+      "slack_ns": 0.297
+    },
+    {
+      "clock": "hdmi_tx_slow_clk",
+      "to_clock": "hdmi_tx_slow_clk",
+      "kind": "setup",
+      "slack_ns": 32.691
+    },
+    {
+      "clock": "jtag_inst1_TCK",
+      "to_clock": "jtag_inst1_TCK",
+      "kind": "setup",
+      "slack_ns": 94.757
+    },
+    {
+      "clock": "jtag_inst1_TCK",
+      "to_clock": "jtag_inst1_TCK",
+      "kind": "setup",
+      "slack_ns": 49.545
+    },
+    {
+      "clock": "core_clk",
+      "to_clock": "core_clk",
+      "kind": "hold",
+      "slack_ns": 0.026
+    },
+    {
+      "clock": "sdram_clk",
+      "to_clock": "sdram_clk",
+      "kind": "hold",
+      "slack_ns": 0.071
+    },
+    {
+      "clock": "rx_cal_clk",
+      "to_clock": "rx_cal_clk",
+      "kind": "hold",
+      "slack_ns": 0.059
+    },
+    {
+      "clock": "tx_cal_clk",
+      "to_clock": "tx_cal_clk",
+      "kind": "hold",
+      "slack_ns": 0.103
+    },
+    {
+      "clock": "tx_cal_clk_90edge",
+      "to_clock": "tx_cal_clk_90edge",
+      "kind": "hold",
+      "slack_ns": 0.039
+    },
+    {
+      "clock": "hdmi_tx_slow_clk",
+      "to_clock": "hdmi_tx_slow_clk",
+      "kind": "hold",
+      "slack_ns": 0.089
+    },
+    {
+      "clock": "jtag_inst1_TCK",
+      "to_clock": "jtag_inst1_TCK",
+      "kind": "hold",
+      "slack_ns": 0.097
+    },
+    {
+      "clock": "jtag_inst1_TCK",
+      "to_clock": "jtag_inst1_TCK",
+      "kind": "hold",
+      "slack_ns": 48.774
+    }
+  ],
+  "own_width_warnings": 0,
+  "config": "11111-111-d",
+  "caps": "0x0000346F",
+  "synthesis_mode": "speed2",
+  "bit": "Main/sim/build/check-runs/20261016-180116-b7e8c289/build/b5-speed2/B5/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+  "tree": "Main/sim/build/check-runs/20261016-180116-b7e8c289/build/b5-speed2/B5"
+}

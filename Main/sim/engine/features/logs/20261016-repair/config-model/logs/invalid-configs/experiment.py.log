@@ -1,0 +1,33 @@
+import sys, itertools, shutil
+from pathlib import Path
+repo=Path('/mnt/e/Workspace/Efinix'); sys.path.insert(0,str(repo/'Main/tools/check'))
+import feature_build as fb, feature_config as fc, validate
+from check_run import Session, write_json
+current=Session(profile='acceptance',input_patterns=validate.CHECKS['feature-function']['inputs'])
+logs=current.logs('invalid-configs');shutil.copyfile(__file__,logs/'experiment.py')
+write_json(current.path/'plan.json',{'profile':'acceptance','checks':['invalid-configs'],'scope':'all 512 model inputs; every illegal input rejected before artifact creation'})
+rows=[];legal=0
+def perform():
+    global legal
+    for bits in itertools.product((0,1),repeat=9):
+        tex,band,strip,inst,pb,ext,alpha,key,delivery=bits
+        allowed=(not pb or (band and inst)) and (not strip or band) and (not delivery or (alpha and key))
+        config=dict(zip(fc.ALL_NAMES,bits));name=fc.name_of(config)
+        assert fc.is_legal(config)==bool(allowed),(name,'model differs from independent dependency predicate')
+        if allowed:
+            legal+=1;continue
+        target=current.path/'build/invalid-configs'/name
+        assert not target.exists()
+        try: fb.build(name,target)
+        except SystemExit as error:
+            assert str(error).startswith('INVALID ')
+            assert not target.exists(),(name,'rejected but wrote artifacts')
+            rows.append({'config':name,'reason':str(error)})
+        else: raise AssertionError((name,'illegal entry accepted'))
+    assert legal==160 and len(rows)==352
+    write_json(logs/'result.json',{'legal':legal,'rejected':len(rows),'inputs':512,'rejections':rows,'complete':True})
+    return {'log':(logs/'result.json').relative_to(repo).as_posix(),'legal':legal,'rejected':len(rows)}
+current.perform('check:invalid-configs',perform)
+write_json(current.path/'result.json',{'status':'PASS','profile':'acceptance','checks':['invalid-configs'],'run_id':current.path.name})
+print('RUN '+current.path.relative_to(repo).as_posix(),flush=True)
+print('CONFIG MODEL PASS inputs=512 legal=160 rejected=352 no-illegal-artifacts',flush=True)

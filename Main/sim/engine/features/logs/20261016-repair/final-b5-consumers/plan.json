@@ -1,0 +1,19 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "instances",
+    "bin"
+  ],
+  "config": "B5",
+  "scope": "production check functions with explicit generated B5 RTL; canonical remains B0",
+  "commands": {
+    "instances": [
+      "check_f4_instances.main",
+      "RTL=B5 generated tree"
+    ],
+    "bin": [
+      "check_f5_bin.main",
+      "MAIN=isolated view using B5 RTL and unchanged production software"
+    ]
+  }
+}

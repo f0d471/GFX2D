@@ -1,0 +1,29 @@
+import sys, shutil, difflib
+from pathlib import Path
+repo=Path('/mnt/e/Workspace/Efinix')
+sys.path.insert(0,str(repo/'Main/tools/check'))
+import check_feature_function as f, feature_config as fc, validate
+from check_run import Session, write_json
+current=Session(profile='acceptance',input_patterns=validate.CHECKS['feature-function']['inputs'])
+print('RUN '+current.path.relative_to(repo).as_posix(),flush=True)
+build=current.build('pb-mutations'); logs=current.logs('pb-mutations')
+shutil.copyfile(__file__,logs/'experiment.py')
+tree=build/'rtl';shutil.copytree(repo/'Main/rtl',tree)
+top=tree/'engine/engine_top.v';regs=tree/'engine/engine_regs.v'
+original={p:p.read_text() for p in (top,regs)}
+jobs=[('pb-route','B5',top,original[top].replace('pb_active ? pb_band_start : old_band_start','old_band_start')),('pb-shared-registers','11011-111-d',regs,original[regs].replace('`elsif GFX_HAS_PB\n                   ||','`elsif GFX_DISABLED_SHARED_CONFIG\n                   ||'))]
+write_json(current.path/'plan.json',{'profile':'acceptance','checks':[j[0] for j in jobs],'scope':'supplemental PB routing and shared-register mutations; expected failures'})
+rows=[]
+for name,preset,path,changed in jobs:
+    assert changed!=original[path]
+    path.write_text(changed)
+    (logs/(name+'.patch')).write_text(''.join(difflib.unified_diff(original[path].splitlines(True),changed.splitlines(True),fromfile=path.name,tofile=name+'/'+path.name)))
+    def perform():
+        result=f.compile_and_run(tree,fc.parse_name(preset),name,build,logs,expect_failure=True)
+        rows.append({'mutation':name,**result})
+        return {'log':(logs/(name+'.log')).relative_to(repo).as_posix(),'expected':'functional failure'}
+    current.perform('check:'+name,perform)
+    path.write_text(original[path])
+    print('PB MUTATION detected '+name,flush=True)
+write_json(logs/'result.json',{'mutations':rows,'complete':True})
+write_json(current.path/'result.json',{'status':'PASS','profile':'acceptance','checks':[j[0] for j in jobs],'run_id':current.path.name,'expected':'both mutants fail'})

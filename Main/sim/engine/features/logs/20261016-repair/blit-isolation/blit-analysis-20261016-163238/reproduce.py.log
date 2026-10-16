@@ -1,0 +1,67 @@
+import sys, os, json, shutil, subprocess, datetime, re, difflib, time
+from pathlib import Path
+sys.dont_write_bytecode=True
+repo=Path('/mnt/e/Workspace/Efinix'); main=repo/'Main'
+sys.path.insert(0,str(main/'tools/check'))
+import feature_config as fc, feature_build as fb, regs_gen
+run=main/'sim/build/check-runs'/('blit-analysis-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
+run.mkdir(parents=True)
+print('RUN '+str(run),flush=True)
+logs=run/'logs'; logs.mkdir(); inputs=run/'inputs'; inputs.mkdir()
+plan={'profile':'quick','scope':'isolated diagnostic; not acceptance','production_changes':False,'cases':['B1/frame1','B2/frame1','B0-tied/frame1'], 'prior_B0_baseline':'blit-analysis-20261016-162811', 'diagnostic_poll_limit':60000}
+(run/'plan.json').write_text(json.dumps(plan,indent=2)+'\n')
+def execute(args,log,cwd=run):
+    with log.open('w') as f:
+        p=subprocess.run(list(map(str,args)),cwd=cwd,stdout=f,stderr=subprocess.STDOUT)
+    return p.returncode
+lib=main/'sw/lib'; chk=main/'tools/check'
+gcc=['gcc','-O2','-std=c11','-Wall','-Wextra','-Werror','-I'+str(lib),'-o',run/'pix_cases_dump',chk/'pix_cases_dump.c']+[lib/p for p in ['gfx/list.c','gfx/strip.c','gfx/strip_plan.c','gfx/check.c','gfx/exec_sw.c','gfx/cases.c','core/format.c']]
+if execute(gcc,logs/'golden.compile.log'):raise SystemExit('golden compile failed')
+for frame in (0,1):
+    if execute([run/'pix_cases_dump','--frame',frame,inputs/f'frame{frame}'],logs/f'golden.frame{frame}.log'):raise SystemExit('golden export failed')
+engnames=['engine_tex','engine_top','engine_regs','engine_cmd','engine_inst','engine_bounds','engine_packet_check','engine_pb_dma','engine_bin','engine_pb','engine_geom','engine_pix','engine_blend','engine_band','engine_mover']
+trees={}; sources={}
+for preset in ('B0','B1','B2'):
+    tree=run/preset; engine=tree/'engine'; shutil.copytree(main/'rtl/engine',engine,ignore=shutil.ignore_patterns('__pycache__'))
+    config=fc.parse_name(preset)
+    for name,content in {'engine_feature.vh':fb.feature_header(fc.name_of(config),config),'engine_config_guard.vh':fb.guard_header(config),'engine_config_error_modules.vh':fb.error_modules(config),'engine_regs_offsets.vh':regs_gen.gen_vh(fc.caps(config))}.items():
+        (engine/name).write_text(content)
+    (tree/'config.json').write_text(json.dumps(config,indent=2)+'\n')
+    vendor=tree/'vendor'; vendor.mkdir()
+    for name in ('axi_dma_rd.v','axi_dma_wr.v'):shutil.copyfile(main/'rtl/vendor/verilog-axi'/name,vendor/name)
+    shutil.copyfile(main/'sim/axi_probe/axi_ram_model.v',tree/'axi_ram_model.v')
+    shutil.copyfile(main/'sim/axi_probe/axi_timed_model.vh',tree/'axi_timed_model.vh') if (main/'sim/axi_probe/axi_timed_model.vh').exists() else None
+    (tree/'tb_engine_frame.v').write_text((main/'sim/engine/frame/tb_engine_frame.v').read_text().replace('2000000','60000'))
+    excluded={Path(p).name for flag,paths in fc.FEATURE_SOURCES.items() if not config[flag] for p in paths}
+    sources[preset]=[engine/(name+'.v') for name in engnames if name+'.v' not in excluded]+[vendor/'axi_dma_rd.v',vendor/'axi_dma_wr.v',tree/'axi_ram_model.v']
+    trees[preset]=tree
+base=trees['B0']; candidate=run/'B0-tied'; shutil.copytree(base,candidate)
+top=candidate/'engine/engine_top.v'; before=top.read_text()
+marker='        .tx_stat_buf(tx_stat_buf), .tx_busy(tx_busy),\n`endif'
+replacement='''        .tx_stat_buf(tx_stat_buf), .tx_busy(tx_busy),
+`else
+        .tx_ready(1'b0), .tx_rs_tdata(128'd0), .tx_rs_tvalid(1'b0),
+        .tx_rs_tlast(1'b0), .tx_rs_buf(2'd0), .tx_stat_valid(1'b0),
+        .tx_stat_cidx(4'd0), .tx_stat_buf(2'd0), .tx_busy(1'b0),
+`endif'''
+assert before.count(marker)==1
+candidate_text=before.replace(marker,replacement)
+top.write_text(candidate_text)
+(run/'candidate.patch').write_text(''.join(difflib.unified_diff(before.splitlines(True),candidate_text.splitlines(True),fromfile='B0/engine_top.v',tofile='B0-tied/engine_top.v')))
+trees['B0-tied']=candidate
+sources['B0-tied']=[candidate/p.relative_to(base) for p in sources['B0']]
+rows=[]
+for preset,frame in [('B1',1),('B2',1),('B0-tied',1)]:
+    tree=trees[preset]; case=f'{preset}-frame{frame}'; work=run/case; work.mkdir()
+    for ext in ('cmd','surf','init','exp','cnt','stats'):shutil.copyfile(inputs/f'frame{frame}.{ext}.hex',work/f'case.{ext}.hex')
+    cmd=['iverilog','-g2012','-Wall','-s','tb_engine_frame','-DCASE="case"','-I',tree/'engine','-I',tree,'-I',main/'sim/axi_probe','-o',work/'sim.vvp',tree/'tb_engine_frame.v']+sources[preset]
+    (work/'compile-command.json').write_text(json.dumps(list(map(str,cmd)),indent=2)+'\n')
+    rc=execute(cmd,logs/(case+'.compile.log'),work)
+    if rc:print('COMPILE FAIL '+case,flush=True);raise SystemExit(rc)
+    started=time.monotonic(); rc=execute(['vvp','-n',work/'sim.vvp'],logs/(case+'.log'),work)
+    output=(logs/(case+'.log')).read_text(); result=re.findall(r'^RESULT:.*$',output,re.M)
+    dangling=re.findall(r'.*dangling input port.*', (logs/(case+'.compile.log')).read_text())
+    row={'case':case,'exit_code':rc,'result':result[-1] if result else 'MISSING','seconds':round(time.monotonic()-started,2),'dangling_inputs':dangling}
+    rows.append(row); print(json.dumps(row),flush=True)
+    (run/'result.json').write_text(json.dumps({'scope':plan,'results':rows,'complete':len(rows)==3},indent=2)+'\n')
+print('DIAGNOSTIC COMPLETE '+str(run),flush=True)

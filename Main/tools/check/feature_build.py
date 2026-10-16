@@ -130,8 +130,9 @@ def guard_header(config):
         '',
     ]
     for owner, need, module in fc.GUARDS:
-        owner_macro = 'GFX_DELIVERY' if owner == 'DELIVERY' else f'GFX_HAS_{owner}'
-        need_macro = 'GFX_DELIVERY' if need == 'DELIVERY' else f'GFX_HAS_{need}'
+        macros = {name: macro for name, macro, _ in fc.STRUCTURE + fc.PIXEL + (fc.DELIVERY,)}
+        owner_macro = macros[owner]
+        need_macro = macros[need]
         instance = 'u_config_error_' + module.replace('GFX_CONFIG_ERROR_', '').lower()
         lines += [f'`ifdef {owner_macro}',
                   f'  `ifndef {need_macro}',
@@ -210,6 +211,10 @@ def project_xml(config, xml_path, tree_root):
         design.insert(index + offset, ET.Element(
             f'{{{NS}}}design_file', name='../../rtl/' + relative,
             version='default', library='default'))
+    mode = root.find(f'{{{NS}}}synthesis/{{{NS}}}param[@name="mode"]')
+    if mode is None:
+        raise ValueError('模板缺少 synthesis.mode')
+    mode.set('value', fc.synthesis_mode(config))
     tree.write(xml_path, encoding='utf-8', xml_declaration=True)
 
 
@@ -243,9 +248,7 @@ def populate_tree(config, out):
         shutil.copyfile(out / name, engine / name)
 
 
-# 主工程默认构型跟随 feature_config.CANONICAL（现为 B5 全功能档；切 B0 的
-# 尝试因裁剪档 BLIT 源读死锁回滚，见 Todo「裁剪档BLIT死锁」）。切换 = 改
-# CANONICAL 后重跑 --sync 与 regs_gen，再整机综合复核。
+# 主工程构型跟随配置真源；同步头、寄存器与综合模式后重建位流。
 CANONICAL_CONFIG = fc.CANONICAL
 
 
@@ -258,9 +261,9 @@ def write_feature_files(config, name, out):
 
 
 def sync_canonical():
-    """把默认全功能构型的特性头写进 rtl/engine/ 与 sw 侧默认 include。
+    """把默认构型的特性头与综合模式同步到主工程。
 
-    仓库内的 RTL 与各个仿真、应用构建都以全功能构型为默认：
+    仓库内的 RTL、仿真与应用构建使用配置真源指定的默认构型：
     特性头与 engine_top.v 同目录，所以 RTL 用同目录 `include 即可；
     软件侧另给一份到 sw/bsp/include，使 engineTest 一类程序默认就能做
     「编译时预期能力 vs 运行时 CAPS」的配对判据。
@@ -277,6 +280,15 @@ def sync_canonical():
     if sw.is_dir():
         (sw / 'gfx_feature.h').write_text(software_header(name, config),
                                           encoding='utf-8', newline='\n')
+    ET.register_namespace('efx', NS)
+    ET.register_namespace('xsi', 'http://www.w3.org/2001/XMLSchema-instance')
+    project = ET.parse(TEMPLATE_XML)
+    mode = project.find(f'{{{NS}}}synthesis/{{{NS}}}param[@name="mode"]')
+    if mode is None:
+        raise ValueError('主工程缺少 synthesis.mode')
+    if mode.get('value') != fc.synthesis_mode(config):
+        mode.set('value', fc.synthesis_mode(config))
+        project.write(TEMPLATE_XML, encoding='utf-8', xml_declaration=True)
     return name
 
 
@@ -293,6 +305,9 @@ def check_canonical():
     }
     bad = [f for f, text in expected.items()
            if (out / f).read_text(encoding='utf-8') != text]
+    mode = ET.parse(TEMPLATE_XML).find(f'{{{NS}}}synthesis/{{{NS}}}param[@name="mode"]')
+    if mode is None or mode.get('value') != fc.synthesis_mode(config):
+        bad.append('fpga/gfx2d_ti60/gfx2d_ti60.xml synthesis.mode')
     sw = MAIN / 'sw' / 'bsp' / 'include' / 'gfx_feature.h'
     if sw.is_file() and sw.read_text(encoding='utf-8') != software_header(name, config):
         bad.append('sw/bsp/include/gfx_feature.h')
@@ -332,6 +347,7 @@ def build(config_name, out_dir):
         'config': name,
         'preset': config_name if config_name in fc.PRESETS else None,
         'caps': f'0x{caps:08X}',
+        'synthesis_mode': fc.synthesis_mode(config),
         'flags': {k: bool(config[k]) for k in fc.ALL_NAMES},
         'sources': list(enabled_rtl(config)),
         'excluded_sources': sorted({s for flag, srcs in FEATURE_SOURCES.items()

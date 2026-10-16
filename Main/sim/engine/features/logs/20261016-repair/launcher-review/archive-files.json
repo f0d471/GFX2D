@@ -1,0 +1,27 @@
+{
+  "check_launchers.py.log": {
+    "size": 3027,
+    "mtime_ns": 1792160344179656000,
+    "sha256": "e571a857871c94ae4d890a4f998ac790bca49a7ba7abbf681a951c95bc14802d"
+  },
+  "launcher-review.log": {
+    "size": 870,
+    "mtime_ns": 1792160364028030600,
+    "sha256": "a2c1ad3cba50d192ff8e441c759760a7ae2eaa6487569f70f1af59c672ae3603"
+  },
+  "launcher-result.json": {
+    "size": 1025,
+    "mtime_ns": 1792160364032058000,
+    "sha256": "57113fed6bb02f9ceeae6aab4795dcf91f5f99139f8ddb2c6915f07f1d86c432"
+  },
+  "synth_presets.sh.log": {
+    "size": 1609,
+    "mtime_ns": 1792160263744723900,
+    "sha256": "638d90e9130875d1b8ff993afc0451e464110309c248b4c7fd1a04fda7bc66f9"
+  },
+  "regress_suites.sh.log": {
+    "size": 1525,
+    "mtime_ns": 1792160263214763100,
+    "sha256": "45f93375383e4393486c0099b0e6e02b937ce0863400bd826771cec1d83d91d0"
+  }
+}

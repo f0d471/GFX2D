@@ -1,0 +1,100 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "regs",
+    "semantics",
+    "workflow",
+    "mover",
+    "pix",
+    "geom",
+    "ctrl",
+    "frame",
+    "tex",
+    "band",
+    "stripctl",
+    "instances",
+    "bin"
+  ],
+  "changed": null,
+  "commands": {
+    "regs": [
+      "/usr/bin/python3",
+      "Main/tools/check/regs_gen.py",
+      "--check"
+    ],
+    "semantics": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_cmd_semantics.py"
+    ],
+    "workflow": [
+      "/usr/bin/python3",
+      "Main/tools/check/test_validation.py"
+    ],
+    "mover": [
+      "bash",
+      "Main/sim/engine/mover/run.sh"
+    ],
+    "pix": [
+      "bash",
+      "Main/sim/engine/pix/run.sh"
+    ],
+    "geom": [
+      "bash",
+      "Main/sim/engine/geom/run.sh"
+    ],
+    "ctrl": [
+      "bash",
+      "Main/sim/engine/ctrl/run.sh"
+    ],
+    "frame": [
+      "bash",
+      "Main/sim/engine/frame/run.sh"
+    ],
+    "tex": [
+      "bash",
+      "Main/sim/engine/tex/run.sh"
+    ],
+    "band": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_g2_band.py"
+    ],
+    "stripctl": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_g3_stripctl.py"
+    ],
+    "instances": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_f4_instances.py",
+      "--models",
+      "--rtl",
+      "--mutations",
+      "--protocols",
+      "--lease"
+    ],
+    "bin": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_f5_bin.py",
+      "--models",
+      "--bin",
+      "--frame",
+      "--mutations",
+      "--protocols",
+      "--lease"
+    ]
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/tools/check/regs_gen.py",
+    "Main/rtl/engine/engine_regs_offsets.vh",
+    "Main/sw/bsp/include/gfx_regs.h",
+    "Main/tools/check/check_cmd_semantics.py",
+    "Main/doc/赛题二总体设计.md",
+    "Main/tools/check/**",
+    "Main/sw/lib/test/golden.txt",
+    "Main/rtl/**",
+    "Main/sim/**",
+    "Main/sw/**",
+    "Main/assets/**"
+  ]
+}

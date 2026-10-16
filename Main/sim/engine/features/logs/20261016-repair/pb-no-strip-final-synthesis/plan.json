@@ -1,0 +1,7 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "pb-no-strip-synthesis"
+  ],
+  "scope": "supplemental explicit configuration; TEX=1 BAND_HW=1 STRIP=0 INST=1 PB=1"
+}

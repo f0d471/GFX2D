@@ -1,0 +1,62 @@
+# 裁剪档 BLIT 死锁定向分析
+
+本轮仅分析与隔离诊断，生产源码、CANONICAL=B5 和板卡未改动。基线提交为 0f16896。
+范围为 quick 定向帧对照，不是 frame 全套、工作点验收、综合或板测。
+
+## 机制与根因
+
+特性真源为 ../../../../tools/check/feature_config.py，五结构位为 TEX/BAND_HW/STRIP/INST/PB，
+三像素位为 EQ_EXT/ALPHA/KEY，另有 DELIVERY 标志。
+依赖边为 PB→BAND_HW、PB→INST、STRIP→BAND_HW；合法结构组合 16 种。
+B0 结构位全关但像素位全开，保留 CONST/MUL、两种 ALPHA 与色键。
+
+engine_top.v 的 u_mover 例化在 GFX_HAS_TEX 分支关闭时省略整组 tx_* 连接；
+engine_mover.v 的对应输入端口与共用读路逻辑仍存在。
+Icarus -Wall 给出 tx_ready、tx_rs_tdata、tx_rs_tvalid、tx_rs_tlast、tx_rs_buf、
+tx_stat_valid、tx_stat_cidx、tx_stat_buf、tx_busy 共 9 个 dangling input port 告警。
+
+既有 frame/build/f1diag.vcd 显示：1.915 us 切入像素上下文时 rd_ctx_cmd=0、
+rd_ctx_bg=0、rd_drain_help=0、rs_tready=1，但 tx_busy=z、tx_data_blocks=x、
+core_rs_tready=x。50 us 时 rd_status_seen=1、rd_stream_done=0、rd_busy=1。
+因此状态先到并不能解除读门控，缺失的末拍握手是悬空输入污染读路的结果。
+相关源码为 engine_top.v 的 TEX 端口连接分支与 engine_mover.v 的
+tex_data_blocks、core_rs_tready、rs_last_fire、rd_gate_done 逻辑。
+
+## 本轮对照
+
+| 构型与用例 | 判据结果 | 原始输出 |
+| --- | --- | --- |
+| B0 frame0（FILL） | PASS，mem_bad=0 | [日志](../blit-analysis-20261016-162811/logs/B0-frame0.log) |
+| B0 frame1（BLIT） | TIMEOUT，seen=1/sdone=0 | [日志](../blit-analysis-20261016-162811/logs/B0-frame1.log) |
+| B1 frame1（BLIT） | TIMEOUT | [日志](logs/B1-frame1.log) |
+| B2 frame1（BLIT） | PASS，mem_bad=0 | [日志](logs/B2-frame1.log) |
+| B0 输入接常量副本 frame1 | PASS，mem_bad=0 | [日志](logs/B0-tied-frame1.log) |
+
+B0 原始反例使用测试台原始 2000000 次 APB 轮询上限。
+后续三例只在隔离测试台将上限改为 60000 次；正常 frame1 约 2652 周期，远低于该上限。
+两轮金标准分别由当前 pix_cases_dump.c 与软件执行器生成，未使用旧 got.hex。
+B0/B1 均有上述 9 个悬空输入告警；B2 与接常量副本均没有这些告警。
+vvp 遇到测试台 RESULT: FAIL 仍返回 0，本次按 RESULT 与内存/计数器判据读取结果。
+首轮 B1 长等待已中止，不作为有效用例；其余未完成首轮范围不汇总为通过。
+
+## 候选修复与后续范围
+
+[candidate.patch](candidate.patch) 只给 engine_top 的无 TEX 分支补齐 9 个输入常量，
+没有改 mover 门控、DMA 核或命令取数。候选只存在于 B0-tied/ 副本中。
+此结果支持根因与修复方向，尚未验证全部帧、ctrl、B5 回归、综合及时序、板测。
+
+影响面应按 TEX=0 选择，不能仅按 BAND_HW=0 选择。
+B2 在关闭 BAND_HW 且保留 TEX 的情况下通过该帧，支持将两类关闭态问题分开处理。
+推广到全部无 TEX 的合法组合属于源码推断，尚未逐组合仿真。
+正式修复后需补 B0/B1 与有 BAND_HW 但无 TEX 的代表组合，运行受影响 frame/ctrl/mover，
+核对 B5 分支、受影响整机综合与时序；采用 B0 前还需生产游戏板测。
+配置判据应增加悬空输入告警门禁与逐构型的基本 FILL/DDR BLIT 功能向量。
+
+## 证据入口
+
+- [plan.json](plan.json)：三个短等待对照的实际范围与参数。
+- [result.json](result.json)：三个用例的原始判定与编译告警。
+- [candidate.patch](candidate.patch)：隔离副本的唯一 RTL 差异。
+- B0/B1/B2/：原始源码副本及按构型生成的头；B0-tied/：候选副本。
+- reproduce.py：本轮隔离诊断脚本快照，复现前需按当前环境核对路径与已存在的基线日志。
+- ../blit-analysis-20261016-162811/：本轮 B0 FILL 与原始等待上限 BLIT 反例的日志、源码和输入。

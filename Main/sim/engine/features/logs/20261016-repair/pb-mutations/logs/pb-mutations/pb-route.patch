@@ -1,0 +1,11 @@
+--- engine_top.v
++++ pb-route/engine_top.v
+@@ -197,7 +197,7 @@
+ `ifdef GFX_HAS_BAND_HW
+ `ifdef GFX_HAS_PB
+     assign band_enable = pb_active ? pb_busy : old_band_enable;
+-    assign band_start = pb_active ? pb_band_start : old_band_start;
++    assign band_start = old_band_start;
+     assign band_flush = pb_active ? pb_band_flush : old_band_flush;
+     assign band_abort = pb_active ? pb_abort : old_band_abort;
+     assign band_bg_base = pb_active ? pb_bg_base : old_band_bg_base;

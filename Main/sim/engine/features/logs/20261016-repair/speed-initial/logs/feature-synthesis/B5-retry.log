@@ -1,0 +1,3 @@
+[B5] 四步开始 CAPS=0x0000346F sources=45
+[B5] FAIL 四步未全过，缺: ['pnr', 'pgm'] (returncode=1)
+FAILED: B5

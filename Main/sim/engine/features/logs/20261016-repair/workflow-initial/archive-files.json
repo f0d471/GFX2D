@@ -1,0 +1,17 @@
+{
+  "logs/runner/regs.log": {
+    "size": 28,
+    "mtime_ns": 1792142343475659000,
+    "sha256": "6d1fa6b50005b053fb1677ccf50d7d9cae33cdfc7ca995f5c4ca3d69195adacd"
+  },
+  "logs/runner/semantics.log": {
+    "size": 18515,
+    "mtime_ns": 1792142356258342500,
+    "sha256": "72353a1f9497f863e7413572f9b235dc26e86cf5464ed2fb5860d68ef0665694"
+  },
+  "logs/runner/workflow.log": {
+    "size": 4012,
+    "mtime_ns": 1792142372979659100,
+    "sha256": "0a4de900fc60e9a41babf0a612806a4d303871ebc9eb12b2f9bc2a4bdade70d1"
+  }
+}

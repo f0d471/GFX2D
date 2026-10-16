@@ -1,0 +1,15 @@
+[B0] 四步开始 CAPS=0x0000040F sources=37
+[B0] PASS xlr=36000 ram=105 dsp=16 own_warn=0
+[B1] 四步开始 CAPS=0x0000140F sources=38
+[B1] PASS xlr=38073 ram=107 dsp=19 own_warn=0
+[B2] 四步开始 CAPS=0x0000144F sources=39
+[B2] PASS xlr=38380 ram=123 dsp=19 own_warn=0
+[B3] 四步开始 CAPS=0x0000146F sources=40
+[B3] PASS xlr=44305 ram=165 dsp=19 own_warn=0
+[B4] 四步开始 CAPS=0x0000046F sources=39
+[B4] PASS xlr=41785 ram=163 dsp=16 own_warn=0
+[B5] 四步开始 CAPS=0x0000346F sources=45
+[B5] FAIL 四步未全过，缺: ['pnr', 'pgm'] (returncode=1)
+[B6] 四步开始 CAPS=0x0000146F sources=40
+[B6] PASS xlr=38605 ram=123 dsp=19 own_warn=0
+FAILED: B5

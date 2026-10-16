@@ -1,0 +1,27 @@
+ELAB-PASS /tmp/gfx-feature-elab-23lxrlku/B0
+ELAB-PASS /tmp/gfx-feature-elab-23lxrlku/B1
+ELAB-PASS /tmp/gfx-feature-elab-23lxrlku/B2
+ELAB-PASS /tmp/gfx-feature-elab-23lxrlku/B3
+ELAB-PASS /tmp/gfx-feature-elab-23lxrlku/B4
+ELAB-PASS /tmp/gfx-feature-elab-23lxrlku/B5
+ELAB-PASS /tmp/gfx-feature-elab-23lxrlku/B6
+合法结构组合 16 种
+  ELAB-PASS 00000-111-d
+  ELAB-PASS 00010-111-d
+  ELAB-PASS 01000-111-d
+  ELAB-PASS 01010-111-d
+  ELAB-PASS 01011-111-d
+  ELAB-PASS 01100-111-d
+  ELAB-PASS 01110-111-d
+  ELAB-PASS 01111-111-d
+  ELAB-PASS 10000-111-d
+  ELAB-PASS 10010-111-d
+  ELAB-PASS 11000-111-d
+  ELAB-PASS 11010-111-d
+  ELAB-PASS 11011-111-d
+  ELAB-PASS 11100-111-d
+  ELAB-PASS 11110-111-d
+  ELAB-PASS 11111-111-d
+非法结构组合 16 种，逐个验证被拒
+非法组合拒绝验证完成
+FEATURE ELAB PASS：七代表档 + 合法/非法结构组合两层都符合预期

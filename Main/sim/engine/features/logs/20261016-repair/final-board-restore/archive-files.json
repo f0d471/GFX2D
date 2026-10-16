@@ -1,0 +1,32 @@
+{
+  "logs/board-game/build.log": {
+    "size": 2096,
+    "mtime_ns": 1792150948800117000,
+    "sha256": "2312d16e69ada35dca5fcae8fed20081c0e8063c7d40b1bc6c4ac550adfbf2a0"
+  },
+  "logs/board-game/control.log": {
+    "size": 2277,
+    "mtime_ns": 1792150973991394800,
+    "sha256": "91549c52f65bcef474eb1e9d0a511db7a1ac4d17f343082efb64037362a5aee6"
+  },
+  "logs/board-game/result.json": {
+    "size": 356,
+    "mtime_ns": 1792150974160824700,
+    "sha256": "b31f9316b9a18a7bf020f4edafd2818e337f3cc112eb5303f6d2b64dfb76be5e"
+  },
+  "logs/board-game/serial.log": {
+    "size": 1760,
+    "mtime_ns": 1792150973870214800,
+    "sha256": "f65000b0e0fe50bcee65d6a9e78b54a1e738fa2d96be8472570aecf9dc875fe3"
+  },
+  "logs/board-game/validation.log": {
+    "size": 153,
+    "mtime_ns": 1792150974138950500,
+    "sha256": "bfabe55deb630e4b52d19526d00890857b8dabc454db7c131f56f636d508adc9"
+  },
+  "logs/runner/board-game.log": {
+    "size": 110,
+    "mtime_ns": 1792150974162330100,
+    "sha256": "edab28e538676ea793f2f46773321258a47a67770051f8035c47a7ae99110a0a"
+  }
+}

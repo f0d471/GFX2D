@@ -1,0 +1,16 @@
+import sys,json,shutil
+from pathlib import Path
+repo=Path(r'E:\Workspace\Efinix');sys.path.insert(0,str(repo/'Main/tools/check'))
+from check_run import Session,write_json
+from check_feature_synthesis import completed
+current=Session(repo/'Main/sim/build/check-runs/20261016-183103-ffccd7f1','acceptance')
+logs=current.logs('feature-synthesis');shutil.copyfile(__file__,logs/'collect.py.log')
+write_json(current.path/'plan.json',{'profile':'acceptance','checks':['feature-synthesis'],'scope':'final configuration; seven previously compiled trees accepted only after generated input equivalence, copied bit identity and all clock/netlist checks','commands':{'feature-synthesis':['check_feature_synthesis.py','--reuse-from','speed-initial','--reuse-b5','speed2-experiment']}})
+def collect():
+    data=json.loads((logs/'synthesis.json').read_text())
+    assert set(data)=={'B0','B1','B2','B3','B4','B5','B6'}
+    for preset in data:completed(current.build('feature-presets')/preset)
+    return {'log':(logs/'synthesis.json').relative_to(repo).as_posix(),'source':'verified compiler input reuse; no passed preset rebuilt'}
+current.perform('check:feature-synthesis',collect)
+write_json(current.path/'result.json',{'status':'PASS','profile':'acceptance','checks':['feature-synthesis'],'run_id':current.path.name})
+print('FINAL SYNTHESIS COLLECTION PASS',flush=True)

@@ -19,12 +19,12 @@
   `endif
 `endif
 `ifdef GFX_DELIVERY
-  `ifndef GFX_HAS_ALPHA
+  `ifndef GFX_ALPHA
     GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA u_config_error_delivery_requires_alpha();
   `endif
 `endif
 `ifdef GFX_DELIVERY
-  `ifndef GFX_HAS_KEY
+  `ifndef GFX_KEY
     GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY u_config_error_delivery_requires_key();
   `endif
 `endif

@@ -9,7 +9,7 @@ TB="$(cd "$(dirname "$0")" && pwd)/tb_feature_contract.v"
 fail=0
 for tree in B0 B1 B2 B3 B4 B5 B6; do
   dir="$WORK/$tree"
-  [ -d "$dir/rtl/engine" ] || { echo "  SKIP $tree（无源树）"; continue; }
+  [ -d "$dir/rtl/engine" ] || { echo "  INCOMPLETE $tree（无源树）"; exit 3; }
   cd "$dir"
   files=(
     rtl/engine/engine_top.v rtl/engine/engine_regs.v rtl/engine/engine_cmd.v

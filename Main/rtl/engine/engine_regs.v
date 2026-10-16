@@ -127,7 +127,7 @@ module engine_regs #(parameter integer STRIP_H = 16) (
     wire wr_access = access && pwrite;
     wire rd_setup  = psel && !penable && !pwrite;
 
-    wire wr_ctrl = wr_access && (paddr == EC_REG_CTRL);
+    wire wr_ctrl = wr_access && (paddr == EC_REG_CTRL) && !ctrl_unsupported;
     wire wr_door = wr_access && (paddr == EC_REG_DOORBELL);
     wire door_accepted = wr_door && ctrl_en && !cmd_busy && !soft_pending;
 
@@ -144,6 +144,9 @@ module engine_regs #(parameter integer STRIP_H = 16) (
 `ifdef GFX_HAS_STRIP
                    || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
                    || (paddr == EC_REG_BAND_SURF)
+`elsif GFX_HAS_PB
+                   || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
+                   || (paddr == EC_REG_BAND_SURF)
 `endif
                    || surf_addr || perf_addr;
     wire pb_addr = paddr == EC_REG_PB_BASE || paddr == EC_REG_PB_BYTES ||
@@ -154,6 +157,9 @@ module engine_regs #(parameter integer STRIP_H = 16) (
 `ifdef GFX_HAS_STRIP
                    || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
                    || (paddr == EC_REG_BAND_SURF)
+`elsif GFX_HAS_PB
+                   || (paddr == EC_REG_LSTRIPS) || (paddr == EC_REG_STRIP_H)
+                   || (paddr == EC_REG_BAND_SURF)
 `endif
 `ifdef GFX_HAS_PB
                    || pb_addr
@@ -161,20 +167,20 @@ module engine_regs #(parameter integer STRIP_H = 16) (
                    || surf_addr;
     wire pb_write_block = (pb_addr && cmd_busy) || (surf_addr && (pb_busy === 1'b1));
     // 写入不支持的 CTRL 位（本构型没有的 BAND/BIN）必须整次拒绝，不改其它字段。
-`ifdef GFX_HAS_BAND_HW
+`ifdef GFX_HAS_STRIP
+    wire ctrl_band_bad = 1'b0;
+`elsif GFX_HAS_PB
+    // PB 自行驱动条带；无 STRIP 时 BAND 只与同次写入的 BIN 一起接受。
+    wire ctrl_band_bad = pwdata[EC_CTRL_BAND_BIT] && !pwdata[EC_CTRL_BIN_BIT];
+`else
+    wire ctrl_band_bad = pwdata[EC_CTRL_BAND_BIT];
+`endif
 `ifdef GFX_HAS_PB
-    wire ctrl_unsupported = 1'b0;
+    wire ctrl_bin_bad = 1'b0;
 `else
-    wire ctrl_unsupported = pwrite && (paddr == EC_REG_CTRL) && pwdata[EC_CTRL_BIN_BIT];
+    wire ctrl_bin_bad = pwdata[EC_CTRL_BIN_BIT];
 `endif
-`else
-`ifdef GFX_HAS_PB
-    wire ctrl_unsupported = pwrite && (paddr == EC_REG_CTRL) && pwdata[EC_CTRL_BAND_BIT];
-`else
-    wire ctrl_unsupported = pwrite && (paddr == EC_REG_CTRL) &&
-                            (pwdata[EC_CTRL_BAND_BIT] || pwdata[EC_CTRL_BIN_BIT]);
-`endif
-`endif
+    wire ctrl_unsupported = pwrite && (paddr == EC_REG_CTRL) && (ctrl_band_bad || ctrl_bin_bad);
     // APB 主机在 ACCESS 的结束边沿采样 PSLVERR；同一边沿才置寄存器会晚一拍。
     assign pslverr = access && (pwrite ? (!wr_mapped || pb_write_block || ctrl_unsupported
                                           || (wr_door && !door_accepted))
@@ -249,10 +255,14 @@ module engine_regs #(parameter integer STRIP_H = 16) (
             EC_REG_ERROR_TAG:     rdata_mux = err_tag_r;
             EC_REG_ERROR_INSTANCE: rdata_mux = err_instance_r;
             EC_REG_ERROR_STAGE:   rdata_mux = {28'd0, err_stage_r};
+`ifdef GFX_HAS_PB
             EC_REG_PB_BASE:       rdata_mux = pb_base;
             EC_REG_PB_BYTES:      rdata_mux = pb_bytes;
             EC_REG_DRAW_CAP:      rdata_mux = draw_cap;
             EC_REG_REF_CAP:       rdata_mux = ref_cap;
+`else
+            EC_REG_PB_BASE, EC_REG_PB_BYTES, EC_REG_DRAW_CAP, EC_REG_REF_CAP: rdata_mux = 32'd0;
+`endif
             EC_REG_LIST_BASE:     rdata_mux = list_base_r;
             EC_REG_LIST_COUNT:    rdata_mux = list_count_r;
             EC_REG_LSTRIPS:       rdata_mux = lstrips_r;
@@ -304,10 +314,12 @@ module engine_regs #(parameter integer STRIP_H = 16) (
             // 写
             if (wr_ctrl) begin
                 ctrl_en <= pwdata[EC_CTRL_EN_BIT];
-`ifdef GFX_HAS_BAND_HW
+`ifdef GFX_HAS_STRIP
                 ctrl_band <= pwdata[EC_CTRL_BAND_BIT];
+`elsif GFX_HAS_PB
+                ctrl_band <= pwdata[EC_CTRL_BAND_BIT] && pwdata[EC_CTRL_BIN_BIT];
 `else
-                ctrl_band <= 1'b0;      // 无条带硬件：BAND 位不接受置位
+                ctrl_band <= 1'b0;      // 无命令层条带模式：BAND 位不接受置位
 `endif
 `ifdef GFX_HAS_PB
                 if (!cmd_busy) bin_mode <= pwdata[EC_CTRL_BIN_BIT];
@@ -326,13 +338,13 @@ module engine_regs #(parameter integer STRIP_H = 16) (
                 list_base_r <= pwdata;
             end else if (wr_access && paddr == EC_REG_LIST_COUNT) begin
                 list_count_r <= pwdata;
-            end else if (wr_access && paddr == EC_REG_LSTRIPS) begin
+            end else if (wr_access && wr_mapped && paddr == EC_REG_LSTRIPS) begin
                 lstrips_r <= pwdata;
-            end else if (wr_access && paddr == EC_REG_STRIP_H) begin
+            end else if (wr_access && wr_mapped && paddr == EC_REG_STRIP_H) begin
                 strip_log2_r <= pwdata;
-            end else if (wr_access && paddr == EC_REG_BAND_SURF) begin
+            end else if (wr_access && wr_mapped && paddr == EC_REG_BAND_SURF) begin
                 band_surfs_r <= pwdata;
-            end else if (wr_access && pb_addr && !pb_write_block) begin
+            end else if (wr_access && wr_mapped && pb_addr && !pb_write_block) begin
                 case (paddr)
                     EC_REG_PB_BASE: pb_base <= pwdata;
                     EC_REG_PB_BYTES: pb_bytes <= pwdata;

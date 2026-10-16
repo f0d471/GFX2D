@@ -1,0 +1,23 @@
+--- guard_negative.sh ---
+ENTRY-PASS pb-needs-band：拒绝并指明原因（PB 需要 BAND_HW）
+ENTRY-PASS pb-needs-inst：拒绝并指明原因（PB 需要 INST）
+ENTRY-PASS strip-needs-band：拒绝并指明原因（STRIP 需要 BAND_HW）
+ENTRY-PASS delivery-needs-key：拒绝并指明原因（DELIVERY 需要 KEY）
+ENTRY-PASS delivery-needs-alpha：拒绝并指明原因（DELIVERY 需要 ALPHA）
+ENTRY-PASS research-config：研究构型被接受
+--- contract_all.sh ---
+  [B0] CONTRACT-PASS checks=31
+  [B0] /mnt/e/Workspace/Efinix/Main/sim/engine/features/tb_feature_contract.v:225: $finish called at 890000 (1ps)
+  [B1] CONTRACT-PASS checks=30
+  [B1] /mnt/e/Workspace/Efinix/Main/sim/engine/features/tb_feature_contract.v:225: $finish called at 890000 (1ps)
+  [B2] CONTRACT-PASS checks=30
+  [B2] /mnt/e/Workspace/Efinix/Main/sim/engine/features/tb_feature_contract.v:225: $finish called at 890000 (1ps)
+  [B3] CONTRACT-PASS checks=25
+  [B3] /mnt/e/Workspace/Efinix/Main/sim/engine/features/tb_feature_contract.v:225: $finish called at 650000 (1ps)
+  [B4] CONTRACT-PASS checks=26
+  [B4] /mnt/e/Workspace/Efinix/Main/sim/engine/features/tb_feature_contract.v:225: $finish called at 650000 (1ps)
+  [B5] CONTRACT-PASS checks=21
+  [B5] /mnt/e/Workspace/Efinix/Main/sim/engine/features/tb_feature_contract.v:225: $finish called at 410000 (1ps)
+  [B6] CONTRACT-PASS checks=30
+  [B6] /mnt/e/Workspace/Efinix/Main/sim/engine/features/tb_feature_contract.v:225: $finish called at 890000 (1ps)
+FEATURE CONTRACT PASS：七档禁用契约与守卫反例都符合预期

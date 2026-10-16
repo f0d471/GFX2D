@@ -2,6 +2,11 @@
 // 由 feature_contract.sh 对每个构型源树编译本文件；期望值由 `ifdef 决定。
 `timescale 1ns/1ps
 `include "engine_feature.vh"
+`ifdef GFX_HAS_STRIP
+`define FEATURE_BAND_REGS
+`elsif GFX_HAS_PB
+`define FEATURE_BAND_REGS
+`endif
 
 // 断言用宏：本机 iverilog 12 对带 integer 端口的老式 task 解析不稳，避免用任务。
 `define CHECK(name, got, want) \
@@ -125,9 +130,9 @@ module tb_feature_contract;
 `endif
         `CHECK("CAPS.LANES=4", rd[11:8], 4);
 
-        // CTRL.BAND：条带硬件不在时写 1 必须整次拒绝，且读回为 0。
-`ifdef GFX_HAS_BAND_HW
-        apb_write(REG_CTRL, 32'h0000_000A, werr);   // EN|BAND
+        // CTRL.BAND 选择命令层条带模式，由 STRIP 控制；PB 自行驱动条带数据面。
+`ifdef GFX_HAS_STRIP
+        apb_write(REG_CTRL, 32'h0000_0009, werr);   // EN|BAND
         `CHECK("CTRL.BAND 写被接受", werr, 0);
 `else
         apb_write(REG_CTRL, 32'h0000_0001, werr);   // EN
@@ -137,10 +142,32 @@ module tb_feature_contract;
 `endif
         apb_read(REG_CTRL, rd, rerr);
         `CHECK("CTRL 读回无错", rerr, 0);
-`ifdef GFX_HAS_BAND_HW
+        `CHECK("CTRL.EN 保留", rd[0], 1);
+`ifdef GFX_HAS_STRIP
         `CHECK("CTRL.BAND 读回 1", rd[3], 1);
 `else
         `CHECK("CTRL.BAND 读回 0", rd[3], 0);
+`endif
+        // 被拒绝的访问不能改变 EN，也不能触发软复位清空表面。
+        apb_write(REG_CTRL, 32'h1, werr);
+        apb_write(12'h048, 32'h80000008, werr);
+`ifndef GFX_HAS_STRIP
+        apb_write(REG_CTRL, 32'h0000000E, werr);
+        `CHECK("无 STRIP 拒绝 BAND|SOFT_RST|CNT_CLR", werr, 1);
+        repeat (12) @(negedge clk);
+        apb_read(REG_CTRL, rd, rerr);
+        `CHECK("拒绝 BAND 后 EN 不变", rd[0], 1);
+        apb_read(12'h048, rd, rerr);
+        `CHECK("拒绝 BAND 不清表面", rd, 32'h80000008);
+`endif
+`ifndef GFX_HAS_PB
+        apb_write(REG_CTRL, 32'h00000016, werr);
+        `CHECK("无 PB 拒绝 BIN|SOFT_RST|CNT_CLR", werr, 1);
+        repeat (12) @(negedge clk);
+        apb_read(REG_CTRL, rd, rerr);
+        `CHECK("拒绝 BIN 后 EN 不变", rd[0], 1);
+        apb_read(12'h048, rd, rerr);
+        `CHECK("拒绝 BIN 不清表面", rd, 32'h80000008);
 `endif
 `ifdef GFX_HAS_PB
         `CHECK("CTRL.BIN 读回 0（未写）", rd[4], 0);
@@ -150,19 +177,19 @@ module tb_feature_contract;
 
         // 条带寄存器：无命令层条带模式时读 0、写拒绝。
         apb_read(REG_LSTRIPS, rd, rerr);
-`ifdef GFX_HAS_STRIP
+`ifdef FEATURE_BAND_REGS
         `CHECK("LSTRIPS 读无错", rerr, 0);
 `else
         `CHECK("LSTRIPS 读有错", rerr, 1);
 `endif
         apb_write(REG_LSTRIPS, 32'h0000_0004, werr);
-`ifdef GFX_HAS_STRIP
+`ifdef FEATURE_BAND_REGS
         `CHECK("LSTRIPS 写被接受", werr, 0);
 `else
         `CHECK("LSTRIPS 写被拒绝", werr, 1);
 `endif
         apb_read(REG_BAND_SURF, rd, rerr);
-`ifdef GFX_HAS_STRIP
+`ifdef FEATURE_BAND_REGS
         `CHECK("BAND_SURF 读无错", rerr, 0);
 `else
         `CHECK("BAND_SURF 读有错", rerr, 1);
@@ -178,6 +205,8 @@ module tb_feature_contract;
 `else
         apb_write(REG_REF_CAP, 32'h0000_0100, werr);
         `CHECK("REF_CAP 写被拒绝", werr, 1);
+        apb_read(REG_REF_CAP, rd, rerr);
+        `CHECK("无 PB 的 REF_CAP 保持零", rd, 0);
 `endif
 
         // ERROR_INSTANCE：无实例时恒为无实例哨兵。

@@ -1,0 +1,21 @@
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/tb_engine_frame.v:210: $readmemh(case.cmd.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: /mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/tb_engine_frame.v:215: $readmemh(case.init.hex): Not enough words in the file for the requested range [0:262143].
+TIMEOUT-WAIT base=00240000 status=00000001
+PROBE fd_v=0 fd_r=0 rd_v=1 rd_r=0 rd_cidx=0 geom_busy=1 cmd_st=12 arv=0 arr=1 rv=0 rr=0
+PROBE2 rd_busy=1 seen=1 sdone=0 stat_v=0 last_fire=0 core_rdy=1 open=0 rdy_band=0 rdy_tex=0
+PROBE3 rd_addr=00200100 rd_bytes=100 beats=16 dsc_addr=00200100 dsc_bytes=100 arlen=15
+LIST1-ERR code=57005
+PERF-PIXEL got=128 want=4096 (pixels=4096 src_oob=0)
+PERF-WRBEAT reg=16 obs=0
+PERF-WRBURST reg=1 obs=0
+MEM addr=00065190 got=00cb35f400ca32f400c92ff400c82cf4 want=00151103000e11020007110100001100
+MEM addr=000651a0 got=00cf41f400ce3ef400cd3bf400cc38f4 want=00311107002a110600231105001c1104
+MEM addr=000651b0 got=00d34df400d24af400d147f400d044f4 want=004d110b0046110a003f110900381108
+MEM addr=000651c0 got=00d759f400d656f400d553f400d450f4 want=0069110f0062110e005b110d0054110c
+MEM addr=000651d0 got=00db65f400da62f400d95ff400d85cf4 want=00851113007e11120077111100701110
+MEM addr=000651e0 got=00df71f400de6ef400dd6bf400dc68f4 want=00a11117009a111600931115008c1114
+MEM addr=000651f0 got=00e37df400e27af400e177f400e074f4 want=00bd111b00b6111a00af111900a81118
+MEM addr=00065200 got=00e789f400e686f400e583f400e480f4 want=00d9111f00d2111e00cb111d00c4111c
+FRAME cycles=180009 rd_burst=2 rd_beat=20 wr_burst=1 wr_beat=16 pixel=128 key=0 cmd=0 mem_bad=1024
+RESULT: FAIL (frame)
+/mnt/e/Workspace/Efinix/Main/sim/build/check-runs/blit-analysis-20261016-163238/B1/tb_engine_frame.v:350: $finish called at 1801895000 (1ps)

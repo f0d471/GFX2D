@@ -3,7 +3,7 @@
 # 机制专项套件（tex、band）在主工程构型关闭对应机制时记 NOT_APPLICABLE：
 # 它们的测试台绑定被裁机制才有例化点（如 u_eng.tx_busy），关闭档跑不了属预期。
 # 用法（仓根）：bash Main/sim/engine/features/regress_suites.sh [套件相对 sim/ 的路径...]
-set -u
+set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
 cd "$ROOT/Main/sim"
 FEATURE_H=$ROOT/Main/rtl/engine/engine_feature.vh
@@ -12,7 +12,7 @@ if [ ${#suites[@]} -eq 0 ]; then
   suites=(engine/blend engine/pix engine/tex engine/frame engine/geom engine/ctrl \
           engine/mover engine/band display apb_probe hdmi)
 fi
-export EFINITY_HOME=${EFINITY_HOME:-/mnt/c/Efinity/2026.1}
+# 依赖厂商模型的套件沿用调用方的 EFINITY_HOME，取值见 doc/开发环境.md。
 fail=0
 for s in "${suites[@]}"; do
   printf '%-16s ' "$s"
@@ -27,7 +27,9 @@ for s in "${suites[@]}"; do
       fi ;;
   esac
   last=$( cd "$s" && timeout 1800 bash run.sh 2>&1 | tail -1 )
+  rc=$?
   echo "$last"
+  if [ "$rc" -ne 0 ]; then fail=1; continue; fi
   case "$last" in
     *OK*|*PASS*) : ;;
     *) fail=1 ;;
