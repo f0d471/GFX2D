@@ -58,8 +58,7 @@ module engine_pix (
 );
     localparam [7:0] OP_BLIT = 8'd2;
     localparam [3:0] FMT_XRGB = 4'd0;
-    localparam [1:0] PS_IDLE = 2'd0, PS_PRE = 2'd1,
-                     PS_RUN = 2'd2, PS_DRAIN = 2'd3;
+    localparam [1:0] PS_IDLE = 2'd0, PS_PRE = 2'd1, PS_RUN = 2'd2, PS_DRAIN = 2'd3;
 
     // 时钟使能：流水各级与 12 个核同一门控
 `ifdef INJ_EN_NOTREADY // 注错：流水不看 tready
@@ -67,86 +66,43 @@ module engine_pix (
 `else
     wire en = (ws_tready || !ws_tvalid);
 `endif
+
 `ifdef INJ_CORE_NOEN // 注错：只让 12 个核不看流水停
     wire en_core = 1'b1;                 
 `else
     wire en_core = en;
 `endif
 
-    assign ws_tkeep = 16'hffff;
-    assign rs_tready = 1'b1;
+    // 端口常量
+    assign ws_tkeep = 16'hffff;  // 写流：128 位一拍 = 16 字节，tkeep 每位表示哪个字节有效
+    assign rs_tready = 1'b1;     // 读流：本层永远能收
 
-    // 首末拍掩码，边带握手那一拍算：第 beat 拍的四个槽谁属于本行。
-    // 一拍的行把行尾也算进首拍掩码，所以像素通路只在首拍/末拍/满拍三者里选。
-    function [3:0] row_mask;
-        input [1:0] lead;
-        input [10:0] pixels;
-        input [7:0] beat;
-        reg [11:0] first, limit, pos;
-        integer t;
-        begin
-            first = {10'd0, lead};
-            limit = first + {1'b0, pixels};
-            row_mask = 4'b0000;
-            for (t = 0; t < 4; t = t + 1) begin
-                pos = {2'd0, beat, 2'b00} + t;
-                row_mask[t] = (pos >= first) && (pos < limit);
-            end
-        end
-    endfunction
-
-    // 行队列按边带握手先后记下半号；一半放出前不会再收边带，队列两项总是不同的半
+    // 半占用与行队列：边带握手在这一组进出，周期 1 的写使能按 occupied 判哪一半能收
     reg [1:0] occupied;
     reg row_queue [0:1];
     reg q_rd, q_wr;
     reg [1:0] q_count;
-    wire sb_fire = sb_valid && sb_ready;
     assign row_free = ~occupied;
     assign sb_ready = !rst && !occupied[sb_row[0]] && (q_count != 2'd2);
+    wire sb_fire = sb_valid && sb_ready;
 
-    // 每一半的行参数与读入计数，边带握手时装入
-    reg h_blit [0:1], h_key_en [0:1], h_read_dst [0:1];
-    reg [2:0] h_eq [0:1];
-    reg [31:0] h_key [0:1], h_w4 [0:1];
-    reg [7:0] h_c [0:1];
-    reg [3:0] h_sfmt [0:1];
-    reg [1:0] h_ls [0:1], h_ld [0:1];
-    reg [7:0] h_beats [0:1], h_src_need [0:1];
-    reg [7:0] h_src_count [0:1], h_dst_count [0:1];
-    reg h_src_done [0:1], h_dst_done [0:1];
-    reg [3:0] h_first_mask [0:1], h_last_mask [0:1];
-    // 源要读的拍数 = ceil((ls + npx) / 4)，与几何层源覆盖区间的拍数相同
-    wire [11:0] src_sum = {1'b0, sb_npx} + {10'd0, sb_lead_src} + 12'd3;
-    wire [7:0] src_need = src_sum[9:2];
-    wire next_half = row_queue[q_rd];
+    // 行状态：周期 0 的预热地址要按它选，状态机在文末
     reg [1:0] pst;
-    // 开行条件：队头那一半要用的源、目的都已读齐（FILL 不等源，不读目的的行不等目的）
-    wire row_start = !rst && en && (pst == PS_IDLE) &&
-                     (q_count != 2'd0) && h_src_done[next_half] &&
-                     h_dst_done[next_half];
 
-    // 当前行的参数，开行时从该半装入，整行不变；排空之后才换下一行的
-    reg r_blit, r_key_en, r_read_dst;
-    reg [2:0] r_eq;
-    reg [31:0] r_key, r_w4;
-    reg [7:0] r_c;
-    reg [3:0] r_sfmt;
+    // 流水 7 拍：0 地址 → 1 行缓冲读出 → 2 数据级 → 3 旋转/色键/a/掩码 → 4~6 混合核 → 7 合并不写标记
+    // 周期 0：地址。纯组合、不占拍，本级只算出 RAM 的读地址
     reg [1:0] r_ls, r_ld;
     reg r_half;
-    reg [7:0] r_beats;
-    reg [3:0] r_first_mask, r_last_mask;
-    reg [7:0] cnt_k, out_count, drain_count;
-    reg running;
-
-    // 周期 0：地址。纯组合、不占拍，本级只算出 RAM 的读地址
+    reg [7:0] cnt_k;
     wire rot_off = (r_ls >= r_ld);
-    wire [2:0] st_raw = rot_off ? ({1'b0, r_ls} - {1'b0, r_ld})
-                                 : ({1'b0, r_ls} + 3'd4 - {1'b0, r_ld});
+    wire [2:0] st_raw = rot_off ? ({1'b0, r_ls} - {1'b0, r_ld}) : ({1'b0, r_ls} + 3'd4 - {1'b0, r_ld});
+
 `ifdef INJ_ROT_OFF
     wire [2:0] st_use = (st_raw + 3'd1);  // 注错：旋转错一个位置
 `else
     wire [2:0] st_use = st_raw;
 `endif
+
     wire [7:0] src_k = cnt_k + {7'd0, rot_off};
     reg [8:0] src_raddr, dst_raddr;
     always @* begin
@@ -154,23 +110,26 @@ module engine_pix (
         dst_raddr = {r_half, cnt_k};
     end
 
-    // 周期 1：行缓冲读出。同步 RAM 的读出自带一拍，q_src/q_dst 在时钟沿拿到
-    //   上一拍地址对应的数据；这一拍是 NOTE 2「延迟 7 拍」的第 1 拍。
-    // 写侧：读流入的拍按 src_we/dst_we 装进行缓冲，一行跨 4KB 时读流有两个
-    //   tlast，两段共用同一个写指针，读齐按拍数判
+    // 每一半的读入计数：边带握手时装入，随读流每拍递增，下一拍的写地址就是它
+    reg [7:0] h_src_count [0:1], h_dst_count [0:1];
+
+    // 周期 1：行缓冲的装入与同步读出
+    // 装入：读流入的拍按半写进行缓冲，写指针 = {半, 计数}，读齐按拍数判不看 rs_tlast
     wire src_we = !rst && rs_tvalid && !rs_buf[1] && occupied[rs_buf[0]];
     wire dst_we = !rst && rs_tvalid && rs_buf[1] && occupied[rs_buf[0]];
     wire [8:0] src_waddr = {rs_buf[0], h_src_count[rs_buf[0]]};
     wire [8:0] dst_waddr = {rs_buf[0], h_dst_count[rs_buf[0]]};
-    // 读侧：目的只存每个像素的 RGB，X 字节不进 RAM；FILL 不读源块，COPY 不读
-    //   目的块（读出值不进通路，关掉读使能省功耗）
+    // 目的只存每个像素的 RGB，X 字节不进 RAM
     reg [95:0] q_dst;
     reg [127:0] q_src;
     reg [95:0] dst_mem [0:511];
     reg [127:0] src_mem [0:511];
     wire [95:0] dst_wdata = {rs_tdata[119:96], rs_tdata[87:64], rs_tdata[55:32], rs_tdata[23:0]};
+    // 读使能：FILL 不读源块，COPY 不读目的块，读出值不进通路，关掉省功耗
+    reg r_blit, r_read_dst;
     wire src_re = en && (pst == PS_PRE || pst == PS_RUN) && r_blit;
     wire dst_re = en && (pst == PS_PRE || pst == PS_RUN) && r_read_dst;
+    // 同步读：地址在周期 0 给出，数据这一拍才落进 q_src/q_dst
     always @(posedge clk) begin
         if (src_we) src_mem[src_waddr] <= rs_tdata;
         if (dst_we) dst_mem[dst_waddr] <= dst_wdata;
@@ -179,15 +138,18 @@ module engine_pix (
     end
 
     // 周期 2：数据级
-    // 两拍窗口：r_prev 是前拍、r_cur 是当前拍；r_k2 与 r_cur 同级（拍号链多一级）
-    reg [127:0] r_cur, r_prev;
+    reg [127:0] r_cur, r_prev;  // 两拍窗口：r_prev 是前拍，r_cur 是本拍
     reg [95:0] r_dst;
     reg [7:0] r_k, r_k2;
     reg r_v1;
     always @(posedge clk) begin
         if (rst) begin
-            r_cur <= 128'd0; r_prev <= 128'd0; r_dst <= 96'd0;
-            r_k <= 8'd0; r_k2 <= 8'd0; r_v1 <= 1'b0;
+            r_cur <= 128'd0; 
+            r_prev <= 128'd0; 
+            r_dst <= 96'd0;
+            r_k <= 8'd0; 
+            r_k2 <= 8'd0; 
+            r_v1 <= 1'b0;
         end else if (en) begin
             r_cur <= q_src;
             r_prev <= r_cur;
@@ -199,6 +161,11 @@ module engine_pix (
     end
 
     // 周期 3：准备计算核心的五个输入
+    reg r_key_en;
+    reg [31:0] r_key, r_w4;
+    reg [3:0] r_sfmt;
+    reg [7:0] r_beats;
+    reg [3:0] r_first_mask, r_last_mask;
     wire [31:0] w [0:7];  // 源像素
     assign w[0] = r_prev[31:0];  
     assign w[1] = r_prev[63:32];
@@ -224,12 +191,11 @@ module engine_pix (
 `ifdef INJ_SKIP_KEY // 注错：跳过色键，命中的像素照写
     wire [3:0] keys = 4'd0;              
 `else    // 色键：源字整字比较，FILL 恒不命中
-`ifdef GFX_KEY
-    wire [3:0] keys = r_blit && r_key_en ? {s3 == r_key, s2 == r_key, s1 == r_key, s0 == r_key} : 4'd0;
-`else
-    // 无色键：比较链与跳过计数不在编译输入里
-    wire [3:0] keys = 4'd0;
-`endif
+    `ifdef GFX_KEY
+        wire [3:0] keys = r_blit && r_key_en ? {s3 == r_key, s2 == r_key, s1 == r_key, s0 == r_key} : 4'd0;
+    `else    // 无色键：比较链与跳过计数不在编译输入里
+        wire [3:0] keys = 4'd0;
+    `endif
 `endif
 
     // alpha：XRGB 源取 255，其余取源字高字节；FILL 落在后一支（规范 §4.2）
@@ -270,6 +236,8 @@ module engine_pix (
     end
 
     // 周期 4~6：混合计算
+    reg [2:0] r_eq;
+    reg [7:0] r_c;
     wire [95:0] color;
     genvar p, ch;
     generate  // 混合阵列：4 像素 × 3 通道，源按 32 位、结果按 24 位打包
@@ -288,7 +256,7 @@ module engine_pix (
         end
     endgenerate
 
-    // 色键、掩码与 valid 的延迟像，与混合核的三级寄存器逐级对齐
+    // 周期 4~6 的延迟像：色键、掩码与 valid 与混合核的三级寄存器逐级对齐
 `ifdef GFX_KEY
     reg [3:0] key_d1, key_d2, key_d3, mask_d1, mask_d2, mask_d3;
 `else
@@ -297,6 +265,7 @@ module engine_pix (
     reg v_d1, v_d2, v_d3, v_d4;
     always @(posedge clk) begin
         if (rst) begin
+            
 `ifdef GFX_KEY
             key_d1 <= 0;
             key_d2 <= 0;
@@ -312,6 +281,7 @@ module engine_pix (
             v_d3 <= 0; 
             v_d4 <= 0;
         end else if (en) begin
+
 `ifdef GFX_KEY
             key_d1 <= r_keys;
             key_d2 <= key_d1;
@@ -364,7 +334,14 @@ module engine_pix (
         end
     end
 
+    // 每一半的读齐标志：源按 src_need 拍、目的按本行写拍数判
+    reg h_src_done [0:1], h_dst_done [0:1];
+    wire next_half = row_queue[q_rd];
+    // 开行条件：队头那一半要用的源、目的都已读齐（FILL 不等源，不读目的的行不等目的）
+    wire row_start = !rst && en && (pst == PS_IDLE) && (q_count != 2'd0) && h_src_done[next_half] && h_dst_done[next_half];
+
     // 本行写流的末拍被写核收走：放出这一半
+    reg [7:0] out_count;
     wire last_out = ws_tvalid && ws_tready &&
                     (out_count == (r_beats - 8'd1));
     always @(posedge clk) begin
@@ -373,16 +350,53 @@ module engine_pix (
         else if (ws_tvalid && ws_tready) out_count <= out_count + 8'd1;
     end
 
-    // 每一半的占用、行参数与读入计数
-    // 读齐按本行对齐后的总拍数判，不看 rs_tlast（拆段时一行有两个）
+    // 每一半的行参数：边带握手时装入，开行时整组搬进当前行寄存器，整行不变
+    reg h_blit [0:1], h_key_en [0:1], h_read_dst [0:1];
+    reg [2:0] h_eq [0:1];
+    reg [31:0] h_key [0:1], h_w4 [0:1];
+    reg [7:0] h_c [0:1];
+    reg [3:0] h_sfmt [0:1];
+    reg [1:0] h_ls [0:1], h_ld [0:1];
+    reg [7:0] h_beats [0:1], h_src_need [0:1];
+    reg [3:0] h_first_mask [0:1], h_last_mask [0:1];
+
+    // 源要读的拍数 = ceil((ls + npx) / 4)，与几何层源覆盖区间的拍数相同
+    wire [11:0] src_sum = {1'b0, sb_npx} + {10'd0, sb_lead_src} + 12'd3;
+    wire [7:0] src_need = src_sum[9:2];
+
+    // 首末拍掩码：第 beat 拍的四个槽谁属于本行；一拍的行把行尾也算进首拍
+    function [3:0] row_mask;
+        input [1:0] lead;
+        input [10:0] pixels;
+        input [7:0] beat;
+        reg [11:0] first, limit, pos;
+        integer t;
+        begin
+            first = {10'd0, lead};
+            limit = first + {1'b0, pixels};
+            row_mask = 4'b0000;
+            for (t = 0; t < 4; t = t + 1) begin
+                pos = {2'd0, beat, 2'b00} + t;
+                row_mask[t] = (pos >= first) && (pos < limit);
+            end
+        end
+    endfunction
+
+    // 每一半的占用、行参数装入与读入计数
     always @(posedge clk) begin
         if (rst) begin
             occupied <= 2'b00;
-            q_rd <= 1'b0; q_wr <= 1'b0; q_count <= 2'd0;
-            h_src_count[0] <= 0; h_src_count[1] <= 0;
-            h_dst_count[0] <= 0; h_dst_count[1] <= 0;
-            h_src_done[0] <= 0; h_src_done[1] <= 0;
-            h_dst_done[0] <= 0; h_dst_done[1] <= 0;
+            q_rd <= 1'b0; 
+            q_wr <= 1'b0; 
+            q_count <= 2'd0;
+            h_src_count[0] <= 0; 
+            h_src_count[1] <= 0;
+            h_dst_count[0] <= 0; 
+            h_dst_count[1] <= 0;
+            h_src_done[0] <= 0; 
+            h_src_done[1] <= 0;
+            h_dst_done[0] <= 0; 
+            h_dst_done[1] <= 0;
         end else begin
             if (sb_fire) begin
                 occupied[sb_row[0]] <= 1'b1;
@@ -424,14 +438,28 @@ module engine_pix (
     end
 
     // 行状态机：发完等 8 拍排空再回 PS_IDLE（下一行参数寄存器要等它），另一半读入照常
+    reg running;
+    reg [7:0] drain_count;
     always @(posedge clk) begin
         if (rst) begin
-            pst <= PS_IDLE; cnt_k <= 8'd0; drain_count <= 8'd0;
+            pst <= PS_IDLE; 
+            cnt_k <= 8'd0; 
+            drain_count <= 8'd0;
             running <= 1'b0;
-            r_blit <= 0; r_key_en <= 0; r_read_dst <= 0; r_eq <= 0;
-            r_key <= 0; r_w4 <= 0; r_c <= 0; r_sfmt <= 0;
-            r_ls <= 0; r_ld <= 0; r_half <= 0;
-            r_beats <= 0; r_first_mask <= 0; r_last_mask <= 0;
+            r_blit <= 0; 
+            r_key_en <= 0; 
+            r_read_dst <= 0; 
+            r_eq <= 0;
+            r_key <= 0; 
+            r_w4 <= 0; 
+            r_c <= 0; 
+            r_sfmt <= 0;
+            r_ls <= 0; 
+            r_ld <= 0; 
+            r_half <= 0;
+            r_beats <= 0; 
+            r_first_mask <= 0; 
+            r_last_mask <= 0;
         end else if (en) begin
             case (pst)
                 PS_IDLE: if (row_start) begin
@@ -452,18 +480,24 @@ module engine_pix (
                     cnt_k <= 8'd0;
                     // off = 1 的行先预热一拍
                     if (h_ls[next_half] >= h_ld[next_half]) begin
-                        running <= 1'b0; pst <= PS_PRE;
+                        running <= 1'b0; 
+                        pst <= PS_PRE;
                     end else begin
-                        running <= 1'b1; pst <= PS_RUN;
+                        running <= 1'b1; 
+                        pst <= PS_RUN;
                     end
                 end
                 PS_PRE: begin
-                    cnt_k <= 8'd0; running <= 1'b1; pst <= PS_RUN;
+                    cnt_k <= 8'd0; 
+                    running <= 1'b1; 
+                    pst <= PS_RUN;
                 end
                 PS_RUN: begin
                     if (cnt_k + 8'd1 >= r_beats) begin
-                        cnt_k <= 8'd0; running <= 1'b0;
-                        drain_count <= 8'd7; pst <= PS_DRAIN;
+                        cnt_k <= 8'd0; 
+                        running <= 1'b0;
+                        drain_count <= 8'd7; 
+                        pst <= PS_DRAIN;
                     end else cnt_k <= cnt_k + 8'd1;
                 end
                 PS_DRAIN: begin
