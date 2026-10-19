@@ -54,9 +54,9 @@
 可选机制由它定义的宏进出编译输入：`` `ifdef GFX_HAS_xxx `` 命中即该机制存在，不定义即整块离开编译输入，
 不做「输入接常量、寄存器照留」的裁剪。九个自写文件当前都带这一行，新增文件要一并加上，
 否则构型构建时那些 `` `ifdef `` 会被当成未定义而静默走关闭分支。
-构型定义、依赖边、CAPS 编码与七个代表档见 [`../../tools/check/feature_config.py`](../../tools/check/feature_config.py)；
-生成、同步与校验用 [`../../tools/check/feature_build.py`](../../tools/check/feature_build.py)，
-按构型的判据入口见 [`../../tools/check/README.md`](../../tools/check/README.md)。
+构型定义、依赖边、CAPS 编码与七个代表档见 [`../tools/check/feature_config.py`](../tools/check/feature_config.py)；
+生成、同步与校验用 [`../tools/check/feature_build.py`](../tools/check/feature_build.py)，
+按构型的判据入口见 [`../tools/check/README.md`](../tools/check/README.md)。
 
 混合、搬运、几何、计算、控制与片上纹理的六个文件各有若干处注错（变异测试），各包在 `` `ifdef INJ_xxx `` 内：
 不定义时那些行进不了编译输入，RTL 的干净形态就是正式配置，不依赖综合器把常量分支优化掉。
