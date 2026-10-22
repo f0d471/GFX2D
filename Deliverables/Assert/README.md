@@ -19,7 +19,7 @@
 | 子目录 | 放什么 | 要求 |
 | --- | --- | --- |
 | `figures/src/` | 自己画的图的源码：HTML（内含 SVG） | 一张图一个源文件，文件名与导出图同名 |
-| `figures/src/report/visio/` | 报告结构图的 Visio 源（2026-10-22 起，组员绘制），文件名与导出图同名 | 改图在 Visio 里改源后重新导出 PNG，不直接改导出图 |
+| `figures/src/report/visio/` | 报告七张结构图源（2026-10-22 组员 Visio 重绘；10-23 起图源切换为同名 `.drawio`，vsdx 留作历史参照），配套 `render_all.sh`+`fix.py` 一键从 vsdx 重建出 PNG | 改图改 `.drawio` 后跑 `render_all.sh` 重出，不直接改导出图 |
 | `figures/` | 从源码导出的 PNG 或 SVG | 只放导出结果，不手改 |
 | `photos/` | 板卡、显示器画面的实拍 | 文件名写拍的是什么和日期 |
 | `measurements/` | 上板录屏、串口输出截图、计数器导出的 CSV | 每个子目录写清是哪个程序、哪个比特流、哪天录的 |

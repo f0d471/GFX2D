@@ -46,10 +46,11 @@ fitz 按 100 dpi 出 PNG 逐页目视。文档无 Word COM，不使用目录域�
 [`../Assert/figures/src/report/`](../Assert/figures/src/report/)，
 导出图在 [`../Assert/figures/report/`](../Assert/figures/report/)；
 数据图由 `src/report/plot_report_*.py` 从 SW9 日志生成，不手改。
-rep_system / rep_dbuf / rep_engine / rep_swlayers / rep_assets 五张结构图自
-2026-10-22 起改由 Visio 绘制（组员维护），源文件在其
-[`../Assert/figures/src/report/visio/`](../Assert/figures/src/report/visio/)，
-改图改 Visio 源后重新导出，其余图仍走 HTML / plot 流程。
+rep_system / rep_ddrmap / rep_scanout / rep_dbuf / rep_engine / rep_swlayers /
+rep_assets 七张结构图 2026-10-22 起由组员 Visio 重绘入库；10-23 起图源切换为
+draw.io（`.drawio`，同目录），由 `render_all.sh` + `fix.py` 从 vsdx 一键重建并
+出图（含字体规范化与文字溢出修补，图 5 的 AXI4 笔误已修），vsdx 留作历史参照；
+其余图仍走 HTML / plot 流程。
 
 ## G4 更新
 

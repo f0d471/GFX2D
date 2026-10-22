@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="Electron">
+  <diagram name="页-1" id="Page-1">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="0" page="0" pageScale="1" pageWidth="5000" pageHeight="3500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;font style=&quot;font-size:16.93px;font-family:SimSun;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;b&gt;前台帧缓冲&lt;br/&gt;&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#7f7f7f;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;FRONT_BASE&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#7f7f7f;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;行跨 4096&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#7f7f7f;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;B&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#7f7f7f;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#7f7f7f;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;640X480&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#7f7f7f;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#7f7f7f;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;XRGB8888&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#feffff;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;&lt;/font&gt;&lt;/div&gt;" tags="background" id="2">
+          <mxCell parent="1" style="verticalAlign=middle;align=center;vsdxID=1;fillColor=#eff1d8;gradientColor=none;shape=stencil(nZBLDoAgDERP0z3SIyjew0SURgSD+Lu9kMZoXLhwN9O+tukAlrNpJg1SzDH4QW/URgNYgZTkjA4UkwJUgGXng+6DX1zLfmoymdXo17xh5zmRJ6Q42BWCfc2oJfdAr+Yv+AP9Cb7OJ3H/2JG1HNGz/84klThPVCc=);strokeColor=#c5cb70;strokeWidth=2;points=[[0.5,1,0],[1,0.5,0],[0.5,0,0],[0,0.5,0],[0.5,0.5,0]];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" vertex="1">
+            <mxGeometry height="120" width="122" x="147" y="290" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;font style=&quot;font-size:19.76px;font-family:SimSun;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;b&gt;display_fetch&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:19.76px;font-family:SimSun;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;b&gt;&lt;br/&gt;&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;FIFO水位触发&lt;br/&gt;每行一笔160拍读&lt;br/&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;S0&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;只读 &lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;b&gt;·&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt; 一笔在途&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#feffff;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;&lt;/font&gt;&lt;/div&gt;" tags="background" id="3">
+          <mxCell parent="1" style="verticalAlign=middle;align=center;vsdxID=2;fillColor=#dff4fc;gradientColor=none;shape=stencil(nZBLDoAgDERP0z3SIyjew0SURgSD+Lu9kMZoXLhwN9O+tukAlrNpJg1SzDH4QW/URgNYgZTkjA4UkwJUgGXng+6DX1zLfmoymdXo17xh5zmRJ6Q42BWCfc2oJfdAr+Yv+AP9Cb7OJ3H/2JG1HNGz/84klThPVCc=);strokeColor=#1499e9;strokeWidth=2;points=[[0.5,1,0],[1,0.5,0],[0.5,0,0],[0,0.5,0],[0.5,0.5,0]];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" vertex="1">
+            <mxGeometry height="120" width="145" x="299" y="290" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;p style=&quot;text-align:center;margin-left:0;margin-right:0;margin-top:0px;margin-bottom:0px;text-indent:0;vertical-align:middle;direction:ltr;&quot;&gt;&lt;font style=&quot;font-size:16.93px;font-family:SimSun;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;b&gt;前台帧缓冲&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#7f7f7f;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;512&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;拍异步 &lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;FIFO&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;100 MHz-&amp;gt; 25.2MHZ&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;唯一跨时钟域&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#feffff;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;&lt;/font&gt;&lt;/p&gt;&lt;/div&gt;" tags="background" id="4">
+          <mxCell parent="1" style="verticalAlign=middle;align=center;vsdxID=3;fillColor=#eff1d8;gradientColor=none;shape=stencil(nZBLDoAgDERP0z3SIyjew0SURgSD+Lu9kMZoXLhwN9O+tukAlrNpJg1SzDH4QW/URgNYgZTkjA4UkwJUgGXng+6DX1zLfmoymdXo17xh5zmRJ6Q42BWCfc2oJfdAr+Yv+AP9Cb7OJ3H/2JG1HNGz/84klThPVCc=);strokeColor=#c5cb70;strokeWidth=2;points=[[0.5,1,0],[1,0.5,0],[0.5,0,0],[0,0.5,0],[0.5,0.5,0]];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" vertex="1">
+            <mxGeometry height="120" width="145" x="474" y="290" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;font style=&quot;font-size:19.76px;font-family:SimSun;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;b&gt;display_out&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:19.76px;font-family:SimSun;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;b&gt;&lt;br/&gt;&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;128位拍拆4像素&lt;br/&gt;对齐相位&lt;br/&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;SRC:&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt; &lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;彩条 / 帧缓冲&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#feffff;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;&lt;/font&gt;&lt;/div&gt;" tags="background" id="5">
+          <mxCell parent="1" style="verticalAlign=middle;align=center;vsdxID=4;fillColor=#dff4fc;gradientColor=none;shape=stencil(nZBLDoAgDERP0z3SIyjew0SURgSD+Lu9kMZoXLhwN9O+tukAlrNpJg1SzDH4QW/URgNYgZTkjA4UkwJUgGXng+6DX1zLfmoymdXo17xh5zmRJ6Q42BWCfc2oJfdAr+Yv+AP9Cb7OJ3H/2JG1HNGz/84klThPVCc=);strokeColor=#1499e9;strokeWidth=2;points=[[0.5,1,0],[1,0.5,0],[0.5,0,0],[0,0.5,0],[0.5,0.5,0]];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" vertex="1">
+            <mxGeometry height="120" width="145" x="649" y="290" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;font style=&quot;font-size:19.76px;font-family:SimSun;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;b&gt;hdmi_tx&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:19.76px;font-family:SimSun;color:#000000;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;b&gt;&lt;br/&gt;&lt;/b&gt;&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;TMDS&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;编码640&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;x480@60HZ&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#feffff;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;&lt;br/&gt;&lt;/font&gt;&lt;/div&gt;" tags="background" id="6">
+          <mxCell parent="1" style="verticalAlign=middle;align=center;vsdxID=5;fillColor=#dff4fc;gradientColor=none;shape=stencil(nZBLDoAgDERP0z3SIyjew0SURgSD+Lu9kMZoXLhwN9O+tukAlrNpJg1SzDH4QW/URgNYgZTkjA4UkwJUgGXng+6DX1zLfmoymdXo17xh5zmRJ6Q42BWCfc2oJfdAr+Yv+AP9Cb7OJ3H/2JG1HNGz/84klThPVCc=);strokeColor=#1499e9;strokeWidth=2;points=[[0.5,1,0],[1,0.5,0],[0.5,0,0],[0,0.5,0],[0.5,0.5,0]];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" vertex="1">
+            <mxGeometry height="120" width="145" x="824" y="290" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;双缓冲切换(&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;SWAP_REQ&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;场消隐期锁存&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;FRONT_BASE)&lt;/font&gt;&lt;font style=&quot;font-size:14.11px;font-family:SimSun;color:#595959;direction:ltr;letter-spacing:0px;line-height:120%;opacity:1&quot;&gt;见图4;上电默认输出八色彩条，欠载计数恒为0&lt;br/&gt;&lt;/font&gt;&lt;/div&gt;" tags="background" id="7">
+          <mxCell parent="1" style="verticalAlign=middle;align=center;vsdxID=10;fillColor=none;gradientColor=none;shape=stencil(nZBLDoAgDERP0z3SIyjew0SURgSD+Lu9kMZoXLhwN9O+tukAlrNpJg1SzDH4QW/URgNYgZTkjA4UkwJUgGXng+6DX1zLfmoymdXo17xh5zmRJ6Q42BWCfc2oJfdAr+Yv+AP9Cb7OJ3H/2JG1HNGz/84klThPVCc=);strokeColor=none;points=[];labelBackgroundColor=none;rounded=0;html=1;whiteSpace=wrap;" vertex="1">
+            <mxGeometry height="28" width="723" x="78" y="424" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="连接线" id="8">
+          <mxCell edge="1" parent="1" source="5" style="vsdxID=9;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeColor=#156082;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="6">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="连接线" id="9">
+          <mxCell edge="1" parent="1" source="4" style="vsdxID=8;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeColor=#156082;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="5">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="连接线" id="10">
+          <mxCell edge="1" parent="1" source="3" style="vsdxID=7;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeColor=#156082;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="4">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" tags="连接线" id="11">
+          <mxCell edge="1" parent="1" source="2" style="vsdxID=6;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=5;strokeColor=#156082;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="3">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint as="offset" />
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
