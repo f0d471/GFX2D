@@ -14,6 +14,8 @@
 
 | 文件 | 用途 | 什么时候跑 |
 | --- | --- | --- |
+| `check_rast.py` / `rast_model.py` | R1：128B setup、C 增量/直接求值与 Python/Fraction 独立模型；两层 fuzz、舍入穷举、三类变异和双目标构建；交换 JSON 写本轮 logs/rast | `validate.py --checks rast --profile acceptance --run`，需 RISCV_BIN；板上执行归 R3 |
+| `gen_recip_tab.py` | 核对 1024 项 Q1.30 倒数种子表，纯整数生成 | 默认核对；改变生成式时用 `--write` 后执行 rast 与受影响库回归 |
 | `check_frontend.py` | 绘制前端的 sanitizer、成功封表/错误差分、独立像素、生产变异、完整宿主回放、异步流水与板测日志拒绝检查 | `--models --legacy --pipeline`；`--host flat strip planned template both static prepass combo`；`--summarize --production` 汇总成本和最终流水；单份板测用 `--board-log` 配合 `--modes` / `--scenes`，见 `Main/sim/engine/frontend/README.md` |
 | `run_frontend_board.py` | Windows 调用 WSL 编译并用现有 board_run 做 JTAG/DDR 装载，集中登记部署 BIN | 指定 `--tag`、`--flags=...`；`--bit` 可复用候选 bit，默认不写 Flash；首次加载 bit 后可 `--no-program` |
 | `validate_frontend_board.py` | 顺序执行绘制前端的独立 CRC/PERF/padding、缓存与阶段计量、同 BIN 两缓存、采样、切换和失败回归 | Windows 的 Efinity Python 运行；可用 `--wait-log` 等已启动的成本矩阵结束；需独占 COM11/JTAG，日志入 frontend/logs |

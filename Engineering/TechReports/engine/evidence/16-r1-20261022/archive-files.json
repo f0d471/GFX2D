@@ -1,0 +1,122 @@
+{
+  "logs/rast/geometry-vectors.json": {
+    "size": 15426,
+    "mtime_ns": 1792621646107751700,
+    "sha256": "1f8a2905755dbdb840cf1a14edfda9dc52543c954b787d6df5ecb4cbc29963eb"
+  },
+  "logs/rast/golden-observed.txt": {
+    "size": 65,
+    "mtime_ns": 1792621655042218400,
+    "sha256": "db5d2a40e5a2182749af55eaf1b97a97b9df6b7f2b618ca4f3187dd9af90425c"
+  },
+  "logs/rast/hand-vectors.json": {
+    "size": 18294,
+    "mtime_ns": 1792621643886566700,
+    "sha256": "9a7da0e858fea6ef39d024191b445af9d71958cb6588f7d0a44e465cbefe726d"
+  },
+  "logs/rast/host-build.log": {
+    "size": 804,
+    "mtime_ns": 1792621670121789600,
+    "sha256": "99e99d4884255f7f858a384c34b810fc515dfd1db180acd31c2753fa5aa1537f"
+  },
+  "logs/rast/host-run.log": {
+    "size": 21,
+    "mtime_ns": 1792621682709828300,
+    "sha256": "b73bc84ef5062af4577dc0f7c3f9881824bc39b38cbd57f1c3f8ad18a4ca01da"
+  },
+  "logs/rast/raster-vectors.json": {
+    "size": 38988,
+    "mtime_ns": 1792621655034766600,
+    "sha256": "3a1b2e796837ad1e7938f42ac599f811fb3c08efdebe09070d74dc7ce2a6ac88"
+  },
+  "logs/rast/RAST_ALL_EDGES-build.log": {
+    "size": 0,
+    "mtime_ns": 1792621657511665300,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/RAST_ALL_EDGES.log": {
+    "size": 596,
+    "mtime_ns": 1792621658799272200,
+    "sha256": "0cc54d58315105f6e29a6e4bf1a565232d8df68332f50c953f28d479adc2892c"
+  },
+  "logs/rast/RAST_NO_16-build.log": {
+    "size": 0,
+    "mtime_ns": 1792621658804774200,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/RAST_NO_16.log": {
+    "size": 596,
+    "mtime_ns": 1792621660550244300,
+    "sha256": "0cc54d58315105f6e29a6e4bf1a565232d8df68332f50c953f28d479adc2892c"
+  },
+  "logs/rast/RAST_NO_GUARD-build.log": {
+    "size": 0,
+    "mtime_ns": 1792621660556547200,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/RAST_NO_GUARD.log": {
+    "size": 111,
+    "mtime_ns": 1792621662502883800,
+    "sha256": "a17a31c6300e22726a47ba7c606c7617f0975c63895191a7c127debd07ef6612"
+  },
+  "logs/rast/recip-table.log": {
+    "size": 30,
+    "mtime_ns": 1792621642283637400,
+    "sha256": "f78af93c04b7f7d0c928425922c780c8b3e667512a51797f8cc4055502eaca1c"
+  },
+  "logs/rast/sanitize-build.log": {
+    "size": 0,
+    "mtime_ns": 1792621655047419200,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/sanitize.log": {
+    "size": 26,
+    "mtime_ns": 1792621657493661500,
+    "sha256": "a3e9a0349983003423bd4039d15bc186381af95e1cc43645ffb6910464f5dcfa"
+  },
+  "logs/rast/shared-build.log": {
+    "size": 0,
+    "mtime_ns": 1792621642304478000,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/summary.json": {
+    "size": 384,
+    "mtime_ns": 1792621683300397000,
+    "sha256": "fab61bf0667a1832c0d2033f60638d84e90af7106746c577151c64f195ce68a7"
+  },
+  "logs/rast/target-build.log": {
+    "size": 1063,
+    "mtime_ns": 1792621682630803400,
+    "sha256": "5f4b63e077318a6fd6276cae0474c9db2ab65ca1f6e2f1caaff2f8dfd9acebec"
+  },
+  "logs/rast/target-disassembly.log": {
+    "size": 926006,
+    "mtime_ns": 1792621683256310900,
+    "sha256": "144c712ebab3b403fb445f5037618d21f807b1f4105d9d1c7468e58b256bbb2f"
+  },
+  "logs/runner/app.log": {
+    "size": 15259,
+    "mtime_ns": 1792621768775225200,
+    "sha256": "f45fae920d19f9a4cdef5ddd2ab767c77da8488c42968d86b89eab6e21b3ea21"
+  },
+  "logs/runner/lib.log": {
+    "size": 516,
+    "mtime_ns": 1792621589400021200,
+    "sha256": "56d03790549ca4e006824e1f9f5739794ffc01a4909d218c1e45e06e1c492ea0"
+  },
+  "logs/runner/paths.log": {
+    "size": 43,
+    "mtime_ns": 1792621843553699700,
+    "sha256": "8c4a318ed63d25bf5bf17c487f7e15de30ce85fc899acd8609b9a3e6195e26a4"
+  },
+  "logs/runner/rast.log": {
+    "size": 471,
+    "mtime_ns": 1792621683306570700,
+    "sha256": "6182522c3ca4f6f45f0675966cb42dac758b44a5b59913dcd90805e0387a27d4"
+  },
+  "logs/runner/workflow.log": {
+    "size": 3679,
+    "mtime_ns": 1792621812349801700,
+    "sha256": "3c4712e38b5a1ffa943600d358a3e8e70def29f320da8d2619ea016fef139c0a"
+  }
+}

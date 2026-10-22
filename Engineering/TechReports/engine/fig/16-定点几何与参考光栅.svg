@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="800" viewBox="0 0 1240 800">
+  <rect width="1240" height="800" fill="white"/>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#222"/></marker>
+    <marker id="future" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#888"/></marker>
+  </defs>
+  <g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="17" fill="#111">
+    <text x="40" y="38" font-size="24">R1：视空间出口、CPU setup 与三份光栅模型</text>
+    <g fill="white" stroke="#222" stroke-width="1.5">
+      <rect x="40" y="220" width="280" height="100"/>
+      <rect x="40" y="380" width="280" height="100"/>
+      <rect x="420" y="380" width="280" height="100"/>
+      <rect x="860" y="220" width="330" height="100"/>
+      <rect x="860" y="380" width="330" height="100"/>
+      <rect x="860" y="60" width="330" height="100"/>
+      <rect x="420" y="560" width="280" height="100"/>
+    </g>
+    <g fill="white" stroke="#888" stroke-width="1.5" stroke-dasharray="7 5">
+      <rect x="40" y="60" width="280" height="100"/>
+      <rect x="860" y="560" width="330" height="100"/>
+    </g>
+    <text x="60" y="92">small3dlib / rast_from_s3l</text>
+    <text x="60" y="120">视空间 Q.9 → Q16.16</text>
+    <text x="60" y="147">场景接入留 R4</text>
+    <text x="60" y="252">rast_setup_view</text>
+    <text x="60" y="280">near/far 裁剪、投影与视口</text>
+    <text x="60" y="307">输入与矩阵 Q16.16</text>
+    <text x="60" y="412">rast_setup_polygon</text>
+    <text x="60" y="440">guard band、扇形拆分</text>
+    <text x="60" y="467">边缘 / 属性梯度 / bbox</text>
+    <text x="440" y="412">rast_record 主表</text>
+    <text x="440" y="440">128B / little endian</text>
+    <text x="440" y="467">32B 对齐，属性原点 Q12.4</text>
+    <text x="880" y="92">rast_model.py</text>
+    <text x="880" y="120">整数 / Fraction 几何</text>
+    <text x="880" y="147">独立期望记录与逐像素结果</text>
+    <text x="880" y="252">rast_ref_run</text>
+    <text x="880" y="280">增量边缘与 48 位属性</text>
+    <text x="880" y="307">条带 color(u32) / depth(u16)</text>
+    <text x="880" y="412">rast_ref2_run</text>
+    <text x="880" y="440">每个采样点直接代入平面</text>
+    <text x="880" y="467">同一记录，独立运算路径</text>
+    <text x="440" y="592">rast_bin</text>
+    <text x="440" y="620">30 段 [u16 count, u16 0]</text>
+    <text x="440" y="647">保序 u16 主表索引</text>
+    <text x="880" y="592">engine_rlst / engine_rast</text>
+    <text x="880" y="620">R2 接口：128B + 条带子表</text>
+    <text x="880" y="647">RTL / BAND / TEX 接入待实现</text>
+    <g fill="none" stroke="#222" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M180 320 V380"/>
+      <path d="M320 430 H420"/>
+      <path d="M560 480 V560"/>
+      <path d="M700 430 H860"/>
+      <path d="M700 400 H780 V270 H860"/>
+      <path d="M1025 160 V220"/>
+    </g>
+    <g fill="none" stroke="#888" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#future)">
+      <path d="M180 160 V220"/>
+      <path d="M700 460 H750 V580 H860"/>
+      <path d="M700 620 H860"/>
+    </g>
+    <text x="330" y="414" font-size="14">Q12.4</text>
+    <text x="710" y="415" font-size="14">128B</text>
+    <text x="40" y="720">图例：黑色实线为已实现 C / Python 数据接口；灰色虚线为后续场景或 RTL 接入。</text>
+    <text x="40" y="752">线宽 2px 表示记录/调用接口；框线 1.5px 表示软件模块边界。颜色只区分实现状态。</text>
+  </g>
+</svg>

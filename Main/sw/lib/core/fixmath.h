@@ -95,4 +95,27 @@ static inline void fx_vel(int32_t speed, uint16_t a, int32_t *vx, int32_t *vy)
    对双精度参考的误差见主机测试的登记值，判据是小于正弦表的一格（64 BAM）。 */
 uint16_t fx_atan2(int32_t y, int32_t x);
 
+/* --- Q16.16 三维数学 ------------------------------------------------------ */
+
+#define FX16_ONE 65536
+typedef int32_t fx16_t;
+typedef struct { fx16_t v[4]; } fx16_vec4;
+typedef struct { fx16_t v[16]; } fx16_mat4; /* 行主序，列向量 */
+
+/* 饱和到 s32；最近舍入，半值向 +∞。除零按分子符号饱和，0/0=0。
+   recip 是 1024 项种子 + 一次 Newton + 余数校正；div 是精确长除。 */
+int64_t fx16_floor_div(int64_t n, int64_t d); /* d > 0 */
+int64_t fx16_round_div(int64_t n, int64_t d); /* d > 0 */
+fx16_t fx16_sat(int64_t x);
+fx16_t fx16_mul(fx16_t a, fx16_t b);
+fx16_t fx16_div(fx16_t a, fx16_t b);
+fx16_t fx16_recip(fx16_t a);
+void fx16_identity(fx16_mat4 *m);
+void fx16_mat_vec(const fx16_mat4 *m, const fx16_vec4 *v, fx16_vec4 *out);
+void fx16_mat_mul(const fx16_mat4 *a, const fx16_mat4 *b, fx16_mat4 *out);
+int fx16_perspective(fx16_mat4 *m, uint16_t fov_y, fx16_t aspect,
+                     fx16_t near_z, fx16_t far_z);
+/* NDC Q16.16 -> Q12.4 raw；y 轴翻转；不在这里做 guard-band 裁剪。 */
+int32_t fx16_viewport(fx16_t ndc, int32_t extent, int flip);
+
 #endif /* GFX2D_CORE_FIXMATH_H */

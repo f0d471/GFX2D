@@ -27,6 +27,8 @@ add('workflow', [sys.executable, P+'test_validation.py'], '编排、缺项、证
 add('pack', [sys.executable, 'Main/tools/assets/pack_assets.py'], '准备实际素材输入')
 add('lib', ['bash', P+'check_host.sh', 'lib'], '库的正常 64/32 位与 sanitizer')
 add('app', ['bash', P+'check_host.sh', 'app'], '游戏应用的正常 64/32 位与 sanitizer')
+add('rast', [sys.executable, P+'check_rast.py'],
+    'R1 定点/128B setup/两参考器/独立有理数模型/10万光栅与1万几何/变异/双目标', ['lib'])
 for name, script, purpose in [('layers','check_sw_layers.sh','软件分层与构建'),
     ('pc','check_sw4_pc.sh','PC 显示、输入与录像'),('assets','check_sw5_assets.sh','素材与镜像'),
     ('demo','check_sw6_demo.sh','基础 Demo'),('game','check_sw7_game.sh','游戏规则、回放与相关变异'),
@@ -80,6 +82,7 @@ for name,item in CHECKS.items():
     elif name=='workflow':inputs=['Main/tools/check/**','Main/sw/lib/test/golden.txt']
     elif name=='regs':inputs=[P+'regs_gen.py','Main/rtl/engine/engine_regs_offsets.vh','Main/sw/bsp/include/gfx_regs.h']
     elif name=='semantics':inputs=[P+'check_cmd_semantics.py','Main/doc/赛题二总体设计.md']
+    elif name=='rast':inputs=SOFTWARE + ['Main/doc/三维数值契约.md']
     elif name=='ddr-log':inputs=[P+'check_f5_bin.py','Main/sw/bsp/include/board_ddr_log.h','Main/sim/engine/frontend/test_ddr_log.c']
     elif name.startswith('feature-'):
         # 特性构型的判据同时依赖 RTL、配置真源、构建入口与仿真侧脚本。
@@ -122,6 +125,8 @@ def suggest(changed):
         if name.startswith('Main/tools/check/'):
             recognized=True
             selected.append('workflow')
+            if Path(name).name in ('rast_model.py','rast_check.c','gen_recip_tab.py'):
+                selected.append('rast')
             if Path(name).name in ('check_common.sh','check_host.sh'):
                 selected += ['lib','app','game','stats']
             for key, value in CHECKS.items():
@@ -130,8 +135,13 @@ def suggest(changed):
         if name.startswith('Main/sw/lib/'):
             recognized=True
             selected.append('lib')
-            if '/gfx/' in name:selected += ['instances','bin','stripctl']
+            if '/rast_' in name or 'test_rast' in name or 'rast_golden' in name or 'recip_tab' in name:
+                selected.append('rast')
+            elif '/gfx/' in name:selected += ['instances','bin','stripctl']
             if any(x in name for x in ('fixmath','sin_tab')):selected += ['app','game']
+        if name.startswith('Main/sw/apps/test/rastTest/'):
+            recognized=True
+            selected.append('rast')
         if name.startswith('Main/sw/apps/game/'):
             recognized=True
             selected += ['app','game']

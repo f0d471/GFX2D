@@ -20,6 +20,7 @@
 ******************************************************************************/
 
 #include "core/fixmath.h"
+#include <limits.h>
 
 /* 多项式在 t = y/x 上的定点位数，原文的 fixShift。t 落在 [0, 1) 里，即 [0, 2^15)。 */
 #define ATAN_FP         15
@@ -80,4 +81,123 @@ uint16_t fx_atan2(int32_t y, int32_t x)
     /* 加起来可能恰好是 65536（紧贴 2π），截成 uint16 就是 0，正是同一个方向。 */
     return (uint16_t)(oct * BAM_OCTANT + (uint32_t)((dphi + 2) >> 2));
 #endif
+}
+
+/* Q16.16 部分自研；乘积用 int64，rv32im 的 gcc 降成 mul/mulh。
+   矩阵逐项舍入再饱和相加，避免四个极值乘积相加越出 int64。 */
+int64_t fx16_floor_div(int64_t n, int64_t d)
+{
+    int64_t q = n / d;
+    return q - (n % d < 0);
+}
+
+int64_t fx16_round_div(int64_t n, int64_t d)
+{
+    int64_t q = n / d, rem = n % d;
+    if (rem < 0) { --q; rem += d; }
+    return q + (rem >= d - d / 2);
+}
+
+fx16_t fx16_sat(int64_t x)
+{
+    return x > INT32_MAX ? INT32_MAX : x < INT32_MIN ? INT32_MIN : (int32_t)x;
+}
+
+fx16_t fx16_mul(fx16_t a, fx16_t b)
+{
+    return fx16_sat(fx16_round_div((int64_t)a * b, FX16_ONE));
+}
+
+fx16_t fx16_div(fx16_t a, fx16_t b)
+{
+    uint64_t n, q = 0, rem = 0;
+    uint32_t den;
+    int neg = (a < 0) != (b < 0);
+    if (!b) return a > 0 ? INT32_MAX : a < 0 ? INT32_MIN : 0;
+    n = (uint64_t)(a < 0 ? -(int64_t)a : a) * FX16_ONE;
+    den = (uint32_t)(b < 0 ? -(int64_t)b : b);
+    for (int i = 47; i >= 0; --i) {
+        rem = rem * 2 + ((n >> i) & 1u);
+        if (rem >= den) { rem -= den; q |= UINT64_C(1) << i; }
+    }
+    q += neg ? rem * 2 > den : rem * 2 >= den;
+    return fx16_sat(neg ? -(int64_t)q : (int64_t)q);
+}
+
+static const uint32_t recip_seed[1024] = {
+#include "recip_tab.inc"
+};
+
+fx16_t fx16_recip(fx16_t a)
+{
+    uint32_t mag, norm, y;
+    int exp = 0;
+    int64_t result;
+    if (!a) return INT32_MAX;
+    mag = (uint32_t)(a < 0 ? -(int64_t)a : a);
+    for (uint32_t t = mag; t > 1; t >>= 1) ++exp;
+    norm = exp <= 30 ? mag << (30 - exp) : mag >> (exp - 30);
+    y = recip_seed[(norm - (1u << 30)) >> 20];
+    y = (uint32_t)(((uint64_t)y * ((UINT64_C(2) << 30) -
+         (((uint64_t)norm * y) >> 30))) >> 30);
+    result = exp <= 2 ? (int64_t)y * (1u << (2 - exp)) :
+             fx16_round_div(y, INT64_C(1) << (exp - 2));
+    /* 一次 Newton 约 20 位有效精度；小除数的 raw 误差会被放大。
+       用整数余数修回精确结果（最多 1024 步），不再调用除法器。 */
+    int64_t rem = (INT64_C(1) << 32) - result * mag;
+    while (rem < 0) { --result; rem += mag; }
+    while (rem >= mag) { ++result; rem -= mag; }
+    result += a < 0 ? rem * 2 > mag : rem * 2 >= mag;
+    return fx16_sat(a < 0 ? -result : result);
+}
+
+void fx16_identity(fx16_mat4 *m)
+{
+    for (int i = 0; i < 16; ++i) m->v[i] = i % 5 == 0 ? FX16_ONE : 0;
+}
+
+void fx16_mat_vec(const fx16_mat4 *m, const fx16_vec4 *v, fx16_vec4 *out)
+{
+    fx16_vec4 t;
+    for (int i = 0; i < 4; ++i) {
+        int64_t sum = 0;
+        for (int j = 0; j < 4; ++j) sum += fx16_mul(m->v[i * 4 + j], v->v[j]);
+        t.v[i] = fx16_sat(sum);
+    }
+    *out = t;
+}
+
+void fx16_mat_mul(const fx16_mat4 *a, const fx16_mat4 *b, fx16_mat4 *out)
+{
+    fx16_mat4 t;
+    for (int j = 0; j < 4; ++j) {
+        fx16_vec4 col, result;
+        for (int i = 0; i < 4; ++i) col.v[i] = b->v[i * 4 + j];
+        fx16_mat_vec(a, &col, &result);
+        for (int i = 0; i < 4; ++i) t.v[i * 4 + j] = result.v[i];
+    }
+    *out = t;
+}
+
+int fx16_perspective(fx16_mat4 *m, uint16_t fov_y, fx16_t aspect,
+                     fx16_t near_z, fx16_t far_z)
+{
+    fx16_t cot, span;
+    if (fov_y < 128 || fov_y >= 32768 || aspect <= 0 ||
+        near_z <= 0 || far_z <= near_z) return -1;
+    span = far_z - near_z;
+    cot = fx16_div(fx_cos(fov_y / 2), fx_sin(fov_y / 2));
+    for (int i = 0; i < 16; ++i) m->v[i] = 0;
+    m->v[0] = fx16_div(cot, aspect);
+    m->v[5] = cot;
+    m->v[10] = fx16_sat(fx16_round_div(-((int64_t)far_z + near_z) * FX16_ONE, span));
+    m->v[11] = fx16_sat(fx16_round_div(-(int64_t)2 * far_z * near_z, span));
+    m->v[14] = -FX16_ONE;
+    return 0;
+}
+
+int32_t fx16_viewport(fx16_t ndc, int32_t extent, int flip)
+{
+    int64_t n = flip ? (int64_t)FX16_ONE - ndc : (int64_t)FX16_ONE + ndc;
+    return fx16_sat(fx16_round_div(n * extent * 8, FX16_ONE));
 }

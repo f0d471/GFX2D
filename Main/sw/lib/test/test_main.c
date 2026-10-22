@@ -23,6 +23,7 @@
 #include "test_nmax.h"
 #include "test_replay.h"
 #include "test_stats.h"
+#include "test_rast.h"
 
 /* 两个平台的区别就在这几行的字面量上：只要有一处类型宽度不对，
    32 位那份测试会先编不过，而不是等到板上才发现。 */
@@ -265,6 +266,7 @@ int main(int argc, char **argv)
     g_fail += test_census_run();
     g_fail += test_stats_run();
     g_fail += test_nmax_run();
+    g_fail += test_rast_run();
 
     {
         char     line[48];

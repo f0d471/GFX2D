@@ -27,6 +27,7 @@ class WorkflowTests(unittest.TestCase):
         self.environment.start()
         for key in ('GFX_CHECK_RUN_DIR','GFX_CHECK_PROFILE','GFX_CHECK_SHARED'):
             os.environ.pop(key,None)
+        self.real_source_files=check_run.source_files
         self.inputs=patch.object(check_run,'source_files',return_value=[self.relative])
         self.inputs.start()
         self.cache=patch.object(check_run,'CACHE_DIR',self.directory/'cache')
@@ -158,6 +159,20 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(validate.suggest(['Main/doc/开发环境.md']),['paths'])
         self.assertIn('display',validate.suggest(['Main/rtl/display/display_out.v']))
         with self.assertRaises(ValueError):validate.suggest(['unknown/module.c'])
+
+    def test_rast_scope_and_shared_library_dependency(self):
+        self.assertEqual(validate.expand(['rast','lib','rast']), ['lib','rast'])
+        for name in ['Main/sw/lib/gfx/rast_setup.c', 'Main/sw/lib/test/rast_ref2.c',
+                     'Main/tools/check/rast_model.py', 'Main/sw/apps/test/rastTest/src/main.c']:
+            selected = validate.suggest([name])
+            self.assertIn('rast', selected)
+            self.assertNotIn('instances', selected)
+
+    def test_generated_integer_table_is_an_identity_input(self):
+        # 被 C include 的倒数种子改变后，lib/rast 的旧 PASS 必须失效。
+        name = 'Main/sw/lib/core/recip_tab.inc'
+        with patch.object(check_run,'source_files',self.real_source_files):
+            self.assertIn(name, check_run.selected_sources(['Main/sw/lib/core/**']))
 
     def test_input_scope_excludes_unrelated_source(self):
         other=self.directory/'other.v';other.write_text('module other; endmodule\n')

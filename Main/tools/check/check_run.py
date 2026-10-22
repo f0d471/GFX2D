@@ -14,7 +14,7 @@ import fnmatch
 ROOT = Path(__file__).resolve().parents[3]
 RUNS = ROOT / 'Main/sim/build/check-runs'
 CACHE_DIR = RUNS / 'cache'
-SOURCE_SUFFIXES = {'.c', '.h', '.v', '.vh', '.py', '.sh', '.ps1', '.mk',
+SOURCE_SUFFIXES = {'.c', '.h', '.inc', '.v', '.vh', '.py', '.sh', '.ps1', '.mk',
                    '.xml', '.sdc', '.json', '.bin', '.dat', '.txt', '.g2dr', '.png', '.bdf',
                    '.hex', '.ld', '.cfg', '.yaml', '.yml'}
 _SESSION = None

@@ -17,8 +17,8 @@ sw/
     ti60/          板上实现 + linker/gfx2d.ld
     host/          PC 实现：SDL2 显示与键盘，DDR 分区用一块内存模拟
   lib/             纯 C，两边都编，不依赖任何平台
-    core/          CRC32、xorshift32、轻量格式化输出、Q.8 定点与正弦表、帧时间直方图与日志队列
-    gfx/           命令表构造层（含批量提交 gfx_blit_run）、软件执行器、十一个整帧用例（命令 ABI v1）、按方程的普查
+    core/          CRC32、xorshift32、轻量格式化输出、Q.8/BAM 与 Q16.16 三维数学、帧时间直方图与日志队列
+    gfx/           命令表构造层、软件执行器、整帧用例与普查；rast_setup/rast_ref 为三维 setup 与参考光栅
     test/          主机侧单元测试（另含 CRC32 与软件执行器的独立参考实现、两组一致性向量）
     s3l/           第三方：small3dlib（CC0，header-only 的整数 3D 光栅器），见下
   apps/            应用，只写应用，按用途分三类（见下）
@@ -44,6 +44,7 @@ sw/
 
 | 程序 | 说明 |
 | --- | --- |
+| `apps/test/rastTest/` | R1 双目标入口：host.mk/target.mk 编同一套定点几何、128B setup 与条带参考光栅；主机定向/穷举/fuzz/变异由 `validate.py --checks rast` 执行，数值与 ABI 见 [三维数值契约](../doc/三维数值契约.md)。板上执行与硬件对拍由 R3 承接 |
 | `apps/probe/frontendBench/` | 真实游戏构造与受控访存基准。固定两型六档及通关录像状态；三次各 1000 帧，记录周期分位数、实际可见数、物理记录与有效字节 CRC；候选与执行开关、复现入口见 [frontend/README](../sim/engine/frontend/README.md) |
 | `apps/game/gfx2dGame/` | 基础 Demo（赛题基础要求 3）：场景 A 大量方块随机移动、场景 B 三张整屏图快速切换，每帧一条命令表交给软件执行器，双缓冲呈现。默认编**演示模式**（实时输入），`EXTRA_CFLAGS=-DSW6_JUDGE=1` 编**判据模式**（回放两段入库录像、逐帧打日志）。串起来跑的是 `Main/tools/check/check_sw6_demo.sh`。期望输出见下。另有游戏本体的代码在 `src/game/stg_*`（实体池 `stg_pool`、弹种表 `stg_kind`、发射器 `stg_emit`、五种弹型 `stg_pattern` 与弹幕场 `stg_field`），它们的主机测试在 `test/`，由 `Main/tools/check/check_sw7_game.sh` 编译运行；弹型判据的期望文件 `test/stg_patterns.txt` 由 `Main/tools/check/gen_stg_patterns.py` 生成。`EXTRA_CFLAGS=-DSTG_FIELD=<n>` 换成弹幕场的入口（1 演示、2 判据、3 `N_max` 搜索、4 游戏的判据入口），见下「弹幕场入口」。 |
 | `apps/game/cup3d/` | 纯软件 3D 光栅器在扫描输出的帧缓冲上转一只茶杯。三个用途：用真实负载量软件渲染的像素吞吐、让扫描输出跑在会动会遮挡的负载下、对外演示。320×240 光栅，1:1 贴在 640×480 的正中间。期望输出见下 |
