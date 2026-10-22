@@ -1,0 +1,4 @@
+WARNING: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:229: $readmemh(/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261023-010904-daec70eb/build/f4/fixtures/case66.cmd.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:234: $readmemh(/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261023-010904-daec70eb/build/f4/fixtures/case66.init.hex): Not enough words in the file for the requested range [0:8191].
+RESULT: FAIL (watchdog)
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:189: $finish called at 2000000000 (1ps)

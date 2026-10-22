@@ -1,0 +1,12 @@
+{
+  "logs/shell-paths.log": {
+    "size": 106,
+    "mtime_ns": 1792691104443660100,
+    "sha256": "5f3be6f01dfcebf040db6f98cd0debf8773390d5e857c49135c544cfbf62b77e"
+  },
+  "logs/runner/paths.log": {
+    "size": 44,
+    "mtime_ns": 1792691046520154000,
+    "sha256": "3b755baf9fdbfdcc7c416fc28c429adb429e4b0ef7b4d2b592caf2018aa13a2e"
+  }
+}

@@ -112,15 +112,48 @@ def generate_records(count):
     return records
 
 
+def directed_records():
+    """共享边、RAW、KEY、负梯度、guard 原点、CLAMP 与非零局部行。"""
+    records = []
+    def triangle(x, y, z, flags=2, u=0, v=0, color=0xff804020):
+        return model.setup([(x*16, y*16, z, u, v, color),
+                            ((x+4)*16, y*16, z, u, v, color),
+                            (x*16, (y+4)*16, z, u, v, color)], flags)[0]
+    records += [triangle(0,0,100), triangle(0,0,200), triangle(0,0,100), triangle(0,0,50)]
+    records += model.setup([(64,0,100,0,0,0xff112233),(64,64,100,0,0,0xff112233),
+                            (0,64,100,0,0,0xff112233)],2)
+    records += [triangle(200,10,90), triangle(0,15,80), triangle(635,474,70)]
+    for x, flags, u, v in [(10,7,0,0),(10,3,16,0),(20,5,16,0),(30,1,0,16),
+                            (40,7,16,16),(50,4,0,0),(60,0,0,0),(70,3,65535,65535)]:
+        records.append(triangle(x,0,100,flags,u,v))
+    raw = bytearray(triangle(100,4,100,7))
+    struct.pack_into('<hh',raw,120,-4096,-4096)
+    for off in model.GRADS: struct.pack_into('<ii',raw,off,-65537,32769)
+    records.append(bytes(raw))
+    raw=bytearray(triangle(300,0,100))
+    struct.pack_into('<ii',raw,44,32768,0)
+    records.append(bytes(raw))
+    # 同一像素的前后两条记录；长反压时移除三角形屏障会读到旧深度。
+    for z in (10,20,30,40):
+        raw=bytearray(triangle(0,0,z))
+        struct.pack_into('<hhhh',raw,72,0,0,0,0)
+        records.append(bytes(raw))
+    # 合法的常量覆盖平面，用来检查连续采样、行首累加和全部 TEX bank。
+    raw=bytearray(triangle(128,8,50,3,0,0))
+    for off in (4,16,28): struct.pack_into('<iii',raw,off,0,0,16)
+    struct.pack_into('<hhhh',raw,72,128,255,8,9)
+    struct.pack_into('<ii',raw,56,65536,0)
+    records.append(bytes(raw))
+    return records
+
+
 def check_against_r1(records):
     """前 16 条记录与 R1 归档 raster-vectors.json 的 fixtures 逐字节比对。"""
-    fixture = Path('Engineering/TechReports/engine/evidence/16-r1-20261022/logs/rast/raster-vectors.json')
-    if not fixture.exists():
-        return 'R1-FIXTURE-MISSING'
-    vectors = json.loads(fixture.read_text(encoding='utf-8'))['vectors']
-    for case, rec in enumerate(r['record'] for r in vectors):
+    fixture = Path(__file__).resolve().parents[2] / 'sim/engine/rast/r1-records.json'
+    vectors = json.loads(fixture.read_text(encoding='utf-8'))
+    for case, rec in enumerate(vectors):
         if bytes.fromhex(rec) != records[case]:
-            return f'R1-FIXTURE-DIFFERS at case {case}'
+            raise AssertionError(f'R1-FIXTURE-DIFFERS at case {case}')
     return 'R1-FIXTURE-MATCH'
 
 
@@ -170,10 +203,15 @@ def main():
     parser.add_argument('--count', type=int, default=100000)
     parser.add_argument('--out', required=True, help='输出前缀（三件：<p>.main.bin <p>.frame.bin）')
     parser.add_argument('--skip-r1-check', action='store_true')
+    parser.add_argument('--reference-lib', help='同输入交叉检查两份 C 参考器的动态库')
+    parser.add_argument('--directed', action='store_true')
     args = parser.parse_args()
 
-    records = generate_records(args.count)
-    if not args.skip_r1_check and args.count >= 16:
+    records = directed_records() if args.directed else generate_records(args.count)
+    args.count = len(records)
+    if not 0 < args.count <= 131070:
+        parser.error('count 必须在 1..131070 范围内')
+    if not args.directed and not args.skip_r1_check and args.count >= 16:
         print('SELF-CHECK', check_against_r1(records))
     digest = zlib.crc32(b''.join(records)) & 0xffffffff
     print(f'RECORD-DIGEST crc32={digest:08x} count={args.count}')
@@ -192,6 +230,7 @@ def main():
     # exp.bin：每帧每条带 10240×(u32 color, u32 z)（定宽，供 $fread 直接索引）。
     half = (args.count + 1) // 2
     halves = [(0, records[:half]), (half, records[half:])] if args.count > 65535 else [(0, records)]
+    stats = dict(records=args.count, frames=len(halves), refs=0, l1_commits=0, l2_commits=0)
     with open(out.with_suffix('.frame.bin'), 'wb') as fa, \
          open(out.with_name(out.stem + '_l1.frame.bin'), 'wb') as fb, \
          open(out.with_name(out.stem + '.exp.bin'), 'w+b') as fe, \
@@ -202,7 +241,13 @@ def main():
         for li, (offset, chunk) in enumerate(halves):
             sub, sub_offsets, states, commits = build_frame(chunk, False, offset)
             sub1, _, states1, commits1 = build_frame(chunk, True, offset)
+            if args.reference_lib:
+                cross_c(chunk, states, False, args.reference_lib)
+                cross_c(chunk, states1, True, args.reference_lib)
             total_commits += commits
+            stats['refs'] += sum(struct.unpack_from('<H', sub, p)[0] for p in sub_offsets)
+            stats['l1_commits'] += commits1
+            stats['l2_commits'] += commits
             for fx, sx in ((fa, states), (fb, states1)):
                 fx.write(struct.pack('<II', offset, len(sub)))
                 fx.write(struct.pack('<%dI' % STRIPS, *sub_offsets))
@@ -214,6 +259,26 @@ def main():
                 for color, z in states1[s]:
                     fe1.write(struct.pack('<II', color, z))
         print(f'EXPORT PASS records={args.count} frames={len(halves)} commits={total_commits}')
+    out.with_suffix('.stats.json').write_text(json.dumps(stats, indent=2)+'\n', encoding='utf-8')
+
+
+def cross_c(records, states, l1, library):
+    """同一条带初值、atlas 和记录顺序分别交给两份 C 参考器。"""
+    import ctypes as ct
+    from check_rast import Record, Target, load
+    lib = load(Path(library).resolve())
+    data = [r if not l1 else struct.pack('<I', struct.unpack_from('<I', r)[0] & ~1) + r[4:]
+            for r in records]
+    array = (Record * len(data))(*(Record((ct.c_uint8 * 128).from_buffer_copy(r)) for r in data))
+    texture = (ct.c_uint32 * 4096)(*atlas_texture())
+    for name in ('rast_ref_run', 'rast_ref2_run'):
+        for strip, state in enumerate(states):
+            colors = (ct.c_uint32 * 10240)(*([BG] * 10240))
+            depths = (ct.c_uint16 * 10240)(*([65535] * 10240))
+            target = Target(colors, depths, 640, strip, texture, 64, 64, 64, KEY)
+            assert getattr(lib, name)(array, len(data), ct.byref(target)) == 0
+            assert list(zip(colors, depths)) == state, (name, l1, strip)
+    print(f'CROSS-C PASS records={len(records)} L1={int(l1)} refs=2 strips=30', flush=True)
 
 
 if __name__ == '__main__':

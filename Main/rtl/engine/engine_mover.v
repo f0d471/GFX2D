@@ -86,8 +86,14 @@ module engine_mover #(
     output wire [127:0]          fsr_tdata,    // 光栅表读流（与 fs 互斥）
     output wire                  fsr_tvalid,
     output wire                  fsr_tlast,
+    output wire [15:0]           fsr_tkeep,
     input  wire                  fsr_tready,
     output wire                  rd_stat_raster, // 光栅表读状态脉冲（负载同 rd_stat_*)
+    input  wire                  ras_lease,
+    input  wire [13:0]           ras_wr_pix,
+    input  wire [31:0]           ras_wr_data,
+    input  wire                  ras_wr_valid,
+    output wire                  ras_wr_ready,
 `endif
 
     // 读流（搬运层 → 计算阵列）
@@ -246,8 +252,16 @@ module engine_mover #(
         .wr_valid(b_wfire),.wr_ready(b_wready_desc),.ws_data(ws_tdata),.ws_keep(ws_tkeep),
         .ws_valid(ws_tvalid && b_wbusy && !drain_hold),.ws_ready(b_wsready),
         .wr_stat_valid(b_wstat),.wr_stat_error(b_werr),.wr_stat_cidx(b_wcidx),.wr_stat_last_row(b_wlast),
-        .wr_stat_ready(b_wstat_ready),.wr_busy(b_wbusy));
+        .wr_stat_ready(b_wstat_ready),.wr_busy(b_wbusy)
+`ifdef GFX_HAS_RAST
+        ,.ras_lease(ras_lease),.ras_wr_pix(ras_wr_pix),.ras_wr_data(ras_wr_data),
+        .ras_wr_valid(ras_wr_valid),.ras_wr_ready(ras_wr_ready)
+`endif
+    );
     end else begin : g_no_band
+`ifdef GFX_HAS_RAST
+        assign ras_wr_ready = 1'b0;
+`endif
         assign b_start_ready=0; assign b_flush_ready=0;
         assign band_loaded=0; assign band_flushed=0; assign band_active=0; assign band_busy=0;
         assign band_error=0; assign band_error_code=0; assign b_loading=0; assign b_flushing=0;
@@ -260,6 +274,9 @@ module engine_mover #(
     end endgenerate
 `else
     // 无条带数据面：全部条带网接常量，b_* 的使用点保持单一写法。
+`ifdef GFX_HAS_RAST
+    assign ras_wr_ready = 1'b0;
+`endif
     assign b_start_ready=0; assign b_flush_ready=0;
     assign band_loaded=0; assign band_flushed=0; assign band_active=0; assign band_busy=0;
     assign band_error=0; assign band_error_code=0; assign b_loading=0; assign b_flushing=0;
@@ -469,6 +486,7 @@ module engine_mover #(
     assign fsr_tdata      = core_rs_tdata;
     assign fsr_tvalid     = core_rs_tvalid && rd_ctx_raster && !rd_drain_help;
     assign fsr_tlast      = core_rs_tlast;
+    assign fsr_tkeep      = core_rs_tkeep;
     assign rd_stat_raster = legacy_rd_stat && rd_ctx_raster;
 `endif
 

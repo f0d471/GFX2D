@@ -1,0 +1,5 @@
+WARNING: tb_engine_frame.v:210: $readmemh(frames/frame5.cmd.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: tb_engine_frame.v:215: $readmemh(frames/frame5.init.hex): Not enough words in the file for the requested range [0:262143].
+FRAME cycles=7425 rd_burst=129 rd_beat=2054 wr_burst=144 wr_beat=2624 pixel=10496 key=0 cmd=2 mem_bad=0
+RESULT: PASS (frame, software executor golden)
+tb_engine_frame.v:350: $finish called at 76055000 (1ps)

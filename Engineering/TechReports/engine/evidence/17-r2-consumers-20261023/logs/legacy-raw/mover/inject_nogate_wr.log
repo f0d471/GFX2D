@@ -1,0 +1,5 @@
+ERR 上一笔写还没结束就接受了下一个写描述符
+ERR 写状态的命令索引 7 != 6
+STAT rd_viol=0 wr_viol=0 rd_out=0 wr_out=0 ar=8 aw=4 multi=0 unal=0 x4k=0 rrb=0 tmo=0
+RESULT: FAIL (2 errors)
+tb_engine_mover.v:892: $finish called at 2680000 (1ps)

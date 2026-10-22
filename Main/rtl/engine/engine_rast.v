@@ -14,9 +14,9 @@
 //   2. 本模块只认槽寄存器里的记录；记录字段合法性在这里校验（BAD_FIELD=2），
 //      索引/流协议归 engine_rlst；首错后停止提交但继续退休在途像素
 //   3. 三角形屏障：扫描结束且 in_flight=0 才置槽空闲（深度拒绝/色键跳过也算
-//      退休）；不依赖 BRAM WRITE_FIRST 或跨三角形旁路（见 R2 条目 4.5 反例）
-//   4. z 读口每像素至多一笔在途，返回级配 1 深 skid；TEX 请求按序流水，
-//      发射前扣 credit（≤TEX_LATENCY 笔未返回），响应无 ready 也有槽可落
+//      退休）；不依赖 BRAM WRITE_FIRST 或跨三角形旁路
+//   4. z/TEX 返回按固定延迟对齐，先落 8 项寄存器队列；发射至提交共用 8 个
+//      credit，响应无 ready，提交端停顿不会丢失返回；配置在整帧期间保持
 //   5. 调制 /255 用精确整数恒等式 (x+1+(x>>8))>>8（值域 0..65152 穷举零误差）
 //   6. 注错开关见 engine-manual.md；TEX_LATENCY 必须与 engine_tex.READ_LATENCY
 //      一致（由构建入口保证）
@@ -41,6 +41,7 @@ module engine_rast #(
     input  wire [1:0]   rp_slot_v,
     input  wire [15:0]  rp_index,
     input  wire [4:0]   rp_strip,
+    input  wire [15:0]  rp_ordinal,
     output wire [1:0]   rp_free,        // ~slot_busy
 
     // BAND 光栅写口（租约由帧层给 engine_band；本模块只发写）
@@ -71,7 +72,7 @@ module engine_rast #(
     output reg          err_valid,
     output reg  [3:0]   err_code,
     output reg  [15:0]  err_index,
-    output reg  [31:0]  err_tag,        // {11'd0, strip, ordinal(=index)}
+    output reg  [31:0]  err_tag,        // {11'd0, strip, ref_ordinal}
 
     // 仿真观测（综合悬空）
     output reg  [31:0]  dbg_retire_cnt
@@ -86,6 +87,7 @@ module engine_rast #(
     reg        slot_busy0, slot_busy1;
     reg [15:0] busy_idx0, busy_idx1;
     reg [4:0]  busy_strip0, busy_strip1;
+    reg [15:0] busy_ord0, busy_ord1;
     assign rp_free = {~slot_busy1, ~slot_busy0};
 
     always @(posedge clk) begin
@@ -101,6 +103,7 @@ module engine_rast #(
     // 活动槽选择（M_VALID 期锁定；deliver 也可落在另一槽）
     reg         act_sel;
     wire [15:0] act_index = act_sel ? busy_idx1 : busy_idx0;
+    wire [15:0] act_ordinal = act_sel ? busy_ord1 : busy_ord0;
     wire [4:0]  act_strip = act_sel ? busy_strip1 : busy_strip0;
     wire [31:0] w_flags = act_sel ? slot1[0]  : slot0[0];
     wire signed [31:0] w_a0 = act_sel ? slot1[1]  : slot0[1];
@@ -150,11 +153,11 @@ module engine_rast #(
                       (w_y0 < 16'sd0) || (w_y1 < w_y0) || (w_y1 > 16'sd479);
     wire origin_bad = (w_ox < -16'sd4096) || (w_ox > 16'sd14335) ||
                       (w_oy < -16'sd4096) || (w_oy > 16'sd11775);
-    // |g|<2^30 ⟺ g ∉ {+2^30, −2^30}（契约保守界的边界值）
+    // 严格检查整个界外区间，不能只拒绝两个边界值。
     function grad_bad;
         input signed [31:0] g;
         begin
-            grad_bad = (g == 32'sd1073741824) || (g == -32'sd1073741824);
+            grad_bad = (g >= 32'sd1073741824) || (g <= -32'sd1073741824);
         end
     endfunction
     wire grad_bad_all =
@@ -179,9 +182,7 @@ module engine_rast #(
 
     // ============================================================ z RAM（四 bank，2048+512×16b）
     localparam integer ZBIG = 2048;
-    reg [15:0] z_big   [0:3][0:ZBIG-1];
-    reg [15:0] z_small [0:3][0:511];
-    reg [15:0] z_rdq [0:3];
+    wire [15:0] z_rdq [0:3];
 
     // 读口：扫描发射级驱动；写口：提交与清零复用（帧层保证清零不与扫描重叠）
     wire        zrd_en;
@@ -200,32 +201,27 @@ module engine_rast #(
     wire [11:0] zwr_row  = clr_we ? clr_row : zwr_pix[13:2];
     wire [15:0] zwr_dat  = clr_we ? 16'hFFFF : zwr_data;
 
-    integer zb;
-    always @(posedge clk) begin
-        if (zrd_en) begin
-            for (zb = 0; zb < 4; zb = zb + 1) begin
-                if (zrd_bank == zb[1:0])
-                    z_rdq[zb] <= (zrd_row >= ZBIG) ? z_small[zb][zrd_row - ZBIG]
-                                                   : z_big[zb][zrd_row[10:0]];
+    // 各段各自保留同步输出寄存器，段选随读地址延迟一拍。
+    // 不能在一个动态索引的二维数组上混写四 bank，否则工具会展开为 FF。
+    genvar bank;
+    generate for(bank=0;bank<4;bank=bank+1) begin : g_zbank
+        reg [15:0] mem_big [0:2047];
+        reg [15:0] mem_small [0:511];
+        reg [15:0] q_big,q_small;
+        reg q_sel;
+        always @(posedge clk) begin
+            if(zrd_en && zrd_bank==bank) begin
+                q_sel <= zrd_row >= ZBIG;
+                if(zrd_row >= ZBIG) q_small <= mem_small[zrd_row[8:0]];
+                else q_big <= mem_big[zrd_row[10:0]];
+            end
+            if(clr_we || (zwr_en && zwr_bank==bank)) begin
+                if(zwr_row >= ZBIG) mem_small[zwr_row[8:0]] <= zwr_dat;
+                else mem_big[zwr_row[10:0]] <= zwr_dat;
             end
         end
-    end
-
-    // 写：清零每拍打四个 bank 同一行号；提交只写像素所在 bank
-    integer zw;
-    always @(posedge clk) begin
-        if (zwr_we) begin
-            if (clr_we) begin
-                for (zw = 0; zw < 4; zw = zw + 1) begin
-                    if (clr_row >= ZBIG) z_small[zw][clr_row - ZBIG] <= 16'hFFFF;
-                    else                 z_big[zw][clr_row[10:0]]   <= 16'hFFFF;
-                end
-            end else begin
-                if (zwr_row >= ZBIG) z_small[zwr_bank][zwr_row - ZBIG] <= zwr_dat;
-                else                 z_big[zwr_bank][zwr_row[10:0]]   <= zwr_dat;
-            end
-        end
-    end
+        assign z_rdq[bank]=q_sel?q_small:q_big;
+    end endgenerate
     reg        clr_busy;
     reg [11:0] clr_cnt;
     assign z_clear_busy = clr_busy;
@@ -260,13 +256,14 @@ module engine_rast #(
     reg  [9:0]  i_cur, i_end, j_cur, j_end;
     reg  [13:0] row_base;
     reg  [3:0]  jms;                    // 条带内行号（pix = row_base + i）
-    reg  [47:0] acc0, acc1, acc2, acc3, acc4, acc5;
-    reg  [31:0] e_row0, e_row1, e_row2; // 行首边缘值
-    reg  [31:0] e_cur0, e_cur1, e_cur2; // 当前像素边缘值
+    reg signed [47:0] acc0, acc1, acc2, acc3, acc4, acc5;
+    reg signed [47:0] ar0, ar1, ar2, ar3, ar4, ar5;
+    reg signed [31:0] e_row0, e_row1, e_row2; // 行首边缘值
+    reg signed [31:0] e_cur0, e_cur1, e_cur2; // 当前像素边缘值
     reg         bias_pos0, bias_pos1, bias_pos2;
     reg  [9:0]  i0v, j0v;
     reg signed [16:0] dx0v, dy0v;
-    reg  [2:0]  in_flight;
+    reg  [3:0]  in_flight;
 
     // 记录量化/调制的逐像素标志（fire0 锁进流水）
     wire tex_en_f = w_flags[0];
@@ -278,7 +275,11 @@ module engine_rast #(
     function signed [31:0] q16;
         input [47:0] a;
         begin
+`ifdef INJ_RAST_ROUND
+            q16 = a[47:16];
+`else
             q16 = a[47:16] + {31'd0, a[15]};
+`endif
         end
     endfunction
     function [15:0] clamp_z;
@@ -292,14 +293,18 @@ module engine_rast #(
         input signed [31:0] q;
         input [12:0] lim;
         begin
-            clamp_uv = (q < 0) ? 13'd0 : ({19'd0, q[15:0]} > {6'd0, lim}) ? lim : q[12:0];
+            clamp_uv = (q < 0) ? 13'd0 : (q > $signed({19'd0, lim})) ? lim : q[12:0];
         end
     endfunction
     wire [12:0] uw_lim = tex_width - 13'd1;
     wire [12:0] uh_lim = tex_height - 13'd1;
     // 配置检查：(height-1)*stride + width ≤ 4096（atlas 不回绕）
     wire tex_cfg_bad = w_flags[0] &&
-                       ({12'd0, (tex_height - 13'd1)} << tex_slog2) + {13'd0, tex_width} > 25'd4096;
+        (tex_width == 0 || tex_height == 0 || tex_width > 4096 ||
+         tex_height > 4096 || tex_slog2 > 12 ||
+         {12'd0, tex_width} > (25'd1 << tex_slog2) ||
+         (({12'd0, tex_height} - 25'd1) << tex_slog2) +
+           {12'd0, tex_width} > 25'd4096);
 `endif
     function [7:0] clamp_255;
         input signed [31:0] q;
@@ -350,118 +355,151 @@ module engine_rast #(
     reg signed [31:0] c_er [0:2];
     reg  [9:0]  i1v, j1v;
     reg  [3:0]  jmsv;
-    reg  [1:0]  tf_out;
 
     // 发射操作数（组合，按 init_cnt 选）——见 INIT 时序块的 case
 
-    // ============================================================ 扫描流水（P0..P3，commit 在 P3）
-    // 载荷：pix/covered/z_q/u/v/rgb/tex 标志/eta；L=1 在 P1→P2 取样，L=2 在 P2→P3
-    reg         p0_v, p1_v, p2_v, p3_v;
-    reg  [13:0] p0_pix, p1_pix, p2_pix, p3_pix;
-    reg         p0_cov, p1_cov, p2_cov;
-    reg  [15:0] p0_zq, p1_zq, p2_zq, p3_zq;
-    reg         p1_zpass, p2_zpass;
-    reg         p0_tex, p1_tex, p2_tex;
-    reg  [1:0]  p0_eta, p1_eta, p2_eta;
-    reg         p0_texe, p1_texe, p2_texe;
-    reg         p0_vce, p1_vce, p2_vce;
-    reg  [31:0] p1_texel, p2_texel;
-    reg  [23:0] p0_rgb, p1_rgb, p2_rgb, p3_col;
-    reg         p3_wr;
-
-    // z 返回 skid（1 深）
-    reg         skid_v;
-    reg  [15:0] skid_dat;
-    reg         zrd_en_q;
-    reg  [13:0] zrd_pix_q;
-
-    // TEX 请求/响应（深度 = TEX_LATENCY）
-    reg  [31:0] tf_mem [0:1];
-    reg  [1:0]  tf_cnt;
-    wire [31:0] tf_head = tf_mem[0];
-
-    // ============================================================ 组合：提交/读口/量化边界
-    wire p3_retire = p3_v && (!p3_wr || ras_wr_ready || canceled);
-    wire adv2 = !p3_v || p3_retire;
-    wire adv1 = !p2_v || adv2;
-    wire adv0 = !p1_v || adv1;
-    wire skid_ok = !skid_v || adv0;
+    // 固定延迟读响应先落 FIFO，再进入可停顿的调制/提交级。
+    // in_flight 覆盖从发射到退休的全部存储，预留 8 个槽，返回端永不反压。
+    localparam integer RL = TEX_LATENCY;
+    reg [RL-1:0] mv;
+    reg [13:0] mp [0:RL-1];
+    reg [15:0] mz [0:RL-1];
+    reg [23:0] mc [0:RL-1];
+    reg [RL-1:0] mcover, mtex, mkey;
+    reg [15:0] z_align;
+    wire [15:0] z_response = (RL == 1) ? z_rdq[mp[0][1:0]] : z_align;
+    wire [87:0] response [0:7];
+    reg [3:0] resp_wp, resp_rp;
+    wire [87:0] head = response[resp_rp[2:0]];
+    reg mul_v, mul_wr, mul_tex;
+    reg [13:0] mul_pix;
+    reg [15:0] mul_z;
+    reg [23:0] mul_rgb;
+`ifdef GFX_HAS_RAST_TEX
+    reg [15:0] mul_r, mul_g, mul_b;
+`endif
+    reg out_v, out_wr;
+    reg [13:0] out_pix;
+    reg [15:0] out_z;
+    reg [23:0] out_rgb;
+    wire stopping = canceled || cancel || err_hold;
+    wire retire = out_v && (!out_wr || ras_wr_ready || stopping);
+    wire out_ready = !out_v || retire;
+    wire mul_ready = !mul_v || out_ready;
+    wire resp_pop = resp_wp != resp_rp && mul_ready;
+    wire resp_push = mv[RL-1];
 `ifdef GFX_HAS_RAST_TEX
     wire tex_req_now = cov_now && tex_en_f;
-    wire tex_ok = !tex_req_now || ((tf_out < TEX_LATENCY) && samp_ready);
+    wire tex_ok = !tex_req_now || samp_ready;
+    wire [31:0] response_texel = samp_rdata;
+`ifdef INJ_RAST_KEY_MISS
+    wire response_key = 1'b0;
+`else
+    wire response_key = mtex[RL-1] && mkey[RL-1] && response_texel == ras_key;
+`endif
+    wire tex_cfg_bad_c = tex_cfg_bad;
+    assign samp_valid = scan_active && !stopping &&
+        (in_flight < 4'd8 || retire) && tex_req_now;
+    wire [12:0] samp_address = (qv_c << tex_slog2) + qu_c;
+    assign samp_word = samp_address[11:0]; // 配置检查保证地址 <4096。
 `else
     wire tex_req_now = 1'b0;
     wire tex_ok = 1'b1;
+    wire [31:0] response_texel = 32'd0;
+    wire response_key = 1'b0;
+    wire tex_cfg_bad_c = 1'b0;
 `endif
-    wire fire0 = scan_active && adv0 && skid_ok && tex_ok && !canceled;
-
-    wire commit_fire = p3_v && p3_wr && ras_wr_ready && !canceled;
-    assign ras_wr_valid = p3_v && p3_wr && !canceled;
-    assign ras_wr_pix = p3_pix;
-    assign ras_wr_data = {8'd0, p3_col};
+    wire fire0 = scan_active && !stopping && !clr_busy && tex_ok &&
+        (in_flight < 4'd8 || retire);
+`ifdef INJ_RAST_Z_REVERSE
+    wire response_write = mcover[RL-1] && mz[RL-1] > z_response && !response_key;
+`else
+    wire response_write = mcover[RL-1] && mz[RL-1] < z_response && !response_key;
+`endif
+    // 浅返回队列用寄存器。按项写使能避免 8×88 被映成数块 RAM。
+    genvar response_slot;
+    generate for(response_slot=0;response_slot<8;response_slot=response_slot+1) begin : g_response
+        reg [87:0] payload;
+        always @(posedge clk) if(resp_push && resp_wp[2:0]==response_slot)
+            payload <= {mp[RL-1],mz[RL-1],mc[RL-1],response_texel,response_write,mtex[RL-1]};
+        assign response[response_slot]=payload;
+    end endgenerate
+    wire commit_fire = out_v && out_wr && ras_wr_ready && !stopping;
+    assign ras_wr_valid = out_v && out_wr && !stopping;
+    assign ras_wr_pix = out_pix;
+    assign ras_wr_data = {8'd0, out_rgb};
+`ifdef INJ_RAST_PARTIAL_COMMIT
+    assign zwr_en = out_v && out_wr && !stopping;
+`else
     assign zwr_en = commit_fire;
-    assign zwr_pix = p3_pix;
-    assign zwr_data = p3_zq;
+`endif
+    assign zwr_pix = out_pix;
+    assign zwr_data = out_z;
     assign zrd_en = fire0 && cov_now;
     assign zrd_pix = pix_now;
 
-    // z 返回：读次拍有效；未推进则进 skid
-    wire [15:0] z_ret = z_rdq[p0_pix[1:0]];
-    wire [15:0] z_old_now = skid_v ? skid_dat : z_ret;
-    wire zpass_now = $signed({1'b0, p0_zq}) < $signed({1'b0, z_old_now});
-
-    //调制 /255：(x + 1 + (x>>8)) >> 8，x = texel×c + 127 ≤ 65152（穷举精确）
-    function [7:0] modch;
-        input [7:0] t;
-        input [7:0] c;
-        reg [15:0] x;
+    // x = texel*c+127，精确实现 floor(x/255)，无除法器。
+    function [7:0] div255;
+        input [15:0] product;
+        reg [16:0] x;
         begin
-            x = t * c + 16'd127;
-            modch = (x + 9'd1 + {1'b0, x[15:8]}) >> 8;
+            x = {1'b0, product} + 17'd127;
+            x = x + 17'd1 + (x >> 8);
+            div255 = x[15:8]; // 最大 65407，最高位恒 0。
         end
     endfunction
-    wire [7:0] cr_v = p2_vce ? p2_rgb[23:16] : 8'd255;
-    wire [7:0] cg_v = p2_vce ? p2_rgb[15:8]  : 8'd255;
-    wire [7:0] cb_v = p2_vce ? p2_rgb[7:0]   : 8'd255;
-    wire [31:0] texel_eff = p2_texel;
-    wire tex_have = p2_tex;
-    wire key_hit = tex_have && key_en_f && (texel_eff == ras_key_c);
-    wire [23:0] col_mod = p2_texe ?
-        {modch(texel_eff[23:16], cr_v), modch(texel_eff[15:8], cg_v), modch(texel_eff[7:0], cb_v)} :
-        {cr_v, cg_v, cb_v};
-
-    // TEX pop 对齐：L=1 在 P0→P1（与 z 同口），L=2 在 P1→P2
+    integer mi;
+    always @(posedge clk) begin
+        if (rst) begin
+            mv <= 0;
+            resp_wp <= 0; resp_rp <= 0;
+            mul_v <= 0; out_v <= 0; in_flight <= 0;
+        end else begin
+            in_flight <= in_flight + (fire0 ? 4'd1 : 4'd0) - (retire ? 4'd1 : 4'd0);
+            mv[0] <= fire0;
+            mp[0] <= pix_now; mz[0] <= qz_c;
+            mc[0] <= vc_en_f ? {qr_c, qg_c, qb_c} : 24'hffffff;
+            mcover[0] <= cov_now; mtex[0] <= tex_req_now; mkey[0] <= key_en_f;
+            z_align <= z_rdq[mp[0][1:0]];
+            for (mi = 1; mi < RL; mi = mi + 1) begin
+                mv[mi] <= mv[mi-1]; mp[mi] <= mp[mi-1]; mz[mi] <= mz[mi-1];
+                mc[mi] <= mc[mi-1]; mcover[mi] <= mcover[mi-1];
+                mtex[mi] <= mtex[mi-1]; mkey[mi] <= mkey[mi-1];
+            end
+            if (resp_push) begin
+                resp_wp <= resp_wp + 4'd1;
+            end
+            if (mul_ready) begin
+                mul_v <= resp_pop;
+                if (resp_pop) begin
+                    resp_rp <= resp_rp + 4'd1;
+                    {mul_pix, mul_z, mul_rgb} <= head[87:34];
+                    mul_wr <= head[1]; mul_tex <= head[0];
 `ifdef GFX_HAS_RAST_TEX
-    wire tf_push = samp_rvalid;
-    wire [31:0] tf_push_dat = samp_rdata;
-    wire tf_pop = (TEX_LATENCY == 1) ? (adv0 && p0_tex && (p0_eta == 2'd1)) :
-                  (adv1 && p1_tex && (p1_eta == 2'd1));
-    assign samp_valid = fire0 && tex_req_now;
-    assign samp_word = {1'b0, (qv_c << tex_slog2) + {1'b0, qu_c}};
-`else
-    wire tf_push = 1'b0;
-    wire [31:0] tf_push_dat = 32'd0;
-    wire tf_pop = 1'b0;
+                    mul_r <= head[57:50] * head[25:18];
+                    mul_g <= head[49:42] * head[17:10];
+                    mul_b <= head[41:34] * head[9:2];
 `endif
-
-    // ============================================================ 补充组合
+                end
+            end
+            if (out_ready) begin
+                out_v <= mul_v; out_pix <= mul_pix; out_z <= mul_z;
+                out_wr <= mul_wr;
 `ifdef GFX_HAS_RAST_TEX
-    wire        tex_fire = samp_valid && samp_ready;
-    wire [31:0] ras_key_c = ras_key;
-    wire        tex_cfg_bad_c = tex_cfg_bad;
+                out_rgb <= mul_tex ? {div255(mul_r), div255(mul_g), div255(mul_b)} : mul_rgb;
 `else
-    wire        tex_fire = 1'b0;
-    wire [31:0] ras_key_c = 32'd0;
-    wire        tex_cfg_bad_c = 1'b0;
+                out_rgb <= mul_rgb;
 `endif
-    wire signed [17:0] dx0s = {{1{dx0v[16]}}, dx0v};
-    wire signed [17:0] dy0s = {{1{dy0v[16]}}, dy0v};
-    wire [15:0] j0_low = {act_strip, 4'd0};
+            end
+        end
+    end
+
+    wire signed [17:0] dx0s = {dx0v[16], dx0v};
+    wire signed [17:0] dy0s = {dy0v[16], dy0v};
+    wire [15:0] j0_low = {7'd0, act_strip, 4'd0};
     wire [15:0] j1_high = j0_low + 16'd15;
-
-    // ============================================================ 扫描流水时序
-    wire [31:0] attr_gx [0:5];
-    wire [31:0] attr_gy [0:5];
+    wire signed [47:0] attr_gx [0:5];
+    wire signed [47:0] attr_gy [0:5];
     assign attr_gx[0] = {{16{w_gzx[31]}}, w_gzx};
     assign attr_gy[0] = {{16{w_gzy[31]}}, w_gzy};
     assign attr_gx[1] = {{16{w_gux[31]}}, w_gux};
@@ -475,99 +513,6 @@ module engine_rast #(
     assign attr_gx[5] = {{16{w_gbx[31]}}, w_gbx};
     assign attr_gy[5] = {{16{w_gby[31]}}, w_gby};
 
-    wire texel_join1 = (TEX_LATENCY == 1) && p0_tex && (p0_eta == 2'd1);
-    wire texel_join2 = (TEX_LATENCY == 2) && p1_tex && (p1_eta == 2'd1);
-
-    // TEX FIFO（深度 2 ≥ TEX_LATENCY）与在途计数
-    // 占用 ≤ TEX_LATENCY 由发射 credit 保证；push 隐含 cnt ≤ 1
-    wire [1:0] tf_wp = tf_cnt - (tf_pop ? 2'd1 : 2'd0);
-    always @(posedge clk) begin
-        if (rst) begin
-            tf_cnt <= 2'd0;
-            tf_out <= 2'd0;
-        end else begin
-            if (tf_pop) begin
-                tf_mem[0] <= tf_mem[1];
-            end
-            if (tf_push) begin
-                tf_mem[tf_wp[0]] <= tf_push_dat;
-            end
-            tf_cnt <= tf_cnt + (tf_push ? 2'd1 : 2'd0) - (tf_pop ? 2'd1 : 2'd0);
-            tf_out <= tf_out + (tex_fire ? 2'd1 : 2'd0) - (tf_push ? 2'd1 : 2'd0);
-        end
-    end
-
-    // P0..P3 移位与在途像素计数
-    always @(posedge clk) begin
-        if (rst) begin
-            p0_v <= 1'b0; p1_v <= 1'b0; p2_v <= 1'b0; p3_v <= 1'b0;
-            in_flight <= 3'd0;
-            skid_v <= 1'b0;
-            zrd_en_q <= 1'b0;
-        end else begin
-            in_flight <= in_flight + (fire0 ? 3'd1 : 3'd0) - (p3_retire ? 3'd1 : 3'd0);
-
-            if (fire0) begin
-                p0_v <= 1'b1;
-                p0_pix <= pix_now;
-                p0_cov <= cov_now;
-                p0_zq <= qz_c;
-                p0_tex <= tex_req_now;
-                p0_eta <= (TEX_LATENCY == 1) ? 2'd1 : 2'd2;
-                p0_texe <= tex_en_f;
-                p0_vce <= vc_en_f;
-                p0_rgb <= {qr_c, qg_c, qb_c};
-            end else if (adv0) begin
-                p0_v <= 1'b0;
-            end
-
-            if (adv0) begin
-                p1_v <= p0_v;
-                p1_pix <= p0_pix;
-                p1_cov <= p0_cov;
-                p1_zq <= p0_zq;
-                p1_zpass <= zpass_now;
-                p1_tex <= p0_tex;
-                p1_eta <= p0_eta - 2'd1;
-                p1_texe <= p0_texe;
-                p1_vce <= p0_vce;
-                p1_rgb <= p0_rgb;
-                p1_texel <= texel_join1 ? tf_head : 32'd0;
-            end
-
-            if (adv1) begin
-                p2_v <= p1_v;
-                p2_pix <= p1_pix;
-                p2_cov <= p1_cov;
-                p2_zq <= p1_zq;
-                p2_zpass <= p1_zpass;
-                p2_tex <= p1_tex;
-                p2_eta <= p1_eta - 2'd1;
-                p2_texe <= p1_texe;
-                p2_vce <= p1_vce;
-                p2_rgb <= p1_rgb;
-                p2_texel <= texel_join2 ? tf_head : p1_texel;
-            end
-
-            if (adv2) begin
-                p3_v <= p2_v;
-                p3_pix <= p2_pix;
-                p3_zq <= p2_zq;
-                p3_wr <= p2_cov && p2_zpass && !(p2_tex && key_en_f && (texel_eff == ras_key_c));
-                p3_col <= col_mod;
-            end
-
-            // z 返回 skid：读次拍有效，推进失败则捕获一次
-            if (zrd_en_q && !adv0) begin
-                skid_v <= 1'b1;
-                skid_dat <= z_ret;
-            end else if (adv0 && skid_v) begin
-                skid_v <= 1'b0;
-            end
-            zrd_en_q <= zrd_en;
-        end
-    end
-
     // ============================================================ 主时序：DSP/FSM
     always @(posedge clk) begin
         if (rst) begin
@@ -579,25 +524,26 @@ module engine_rast #(
             slot_busy1 <= 1'b0;
             err_valid <= 1'b0;
             init_cnt <= 4'd0;
-            in_flight <= 3'd0;
             dbg_retire_cnt <= 32'd0;
         end else begin
             err_valid <= 1'b0;
             if (cancel && !canceled) canceled <= 1'b1;
-            if (canceled && state == M_IDLE && !slot_busy0 && !slot_busy1) canceled <= 1'b0;
+            if (canceled && !cancel && state == M_IDLE && !slot_busy0 && !slot_busy1) begin
+                canceled <= 1'b0; err_hold <= 1'b0;
+            end
 
             // ---- 参数槽登记 ----
             if (rp_valid) begin
                 if (rp_slot_v[0] == 1'b0) begin
-                    slot_busy0 <= 1'b1; busy_idx0 <= rp_index; busy_strip0 <= rp_strip;
+                    slot_busy0 <= 1'b1; busy_idx0 <= rp_index; busy_strip0 <= rp_strip; busy_ord0 <= rp_ordinal;
                 end else begin
-                    slot_busy1 <= 1'b1; busy_idx1 <= rp_index; busy_strip1 <= rp_strip;
+                    slot_busy1 <= 1'b1; busy_idx1 <= rp_index; busy_strip1 <= rp_strip; busy_ord1 <= rp_ordinal;
                 end
             end
 
             case (state)
                 M_IDLE: begin
-                    if (canceled) begin
+                    if (canceled || cancel || err_hold) begin
                         // 取消：丢掉已交付未启动的记录
                         slot_busy0 <= 1'b0;
                         slot_busy1 <= 1'b0;
@@ -608,15 +554,23 @@ module engine_rast #(
                 end
 
                 M_VALID: begin
+`ifdef INJ_RAST_BIAS_REVERSE
+                    bias_pos0 <= !((w_a0 > 32'sd0) || (w_a0 == 32'sd0 && w_b0 > 32'sd0));
+`else
                     bias_pos0 <= (w_a0 > 32'sd0) || (w_a0 == 32'sd0 && w_b0 > 32'sd0);
+`endif
                     bias_pos1 <= (w_a1 > 32'sd0) || (w_a1 == 32'sd0 && w_b1 > 32'sd0);
                     bias_pos2 <= (w_a2 > 32'sd0) || (w_a2 == 32'sd0 && w_b2 > 32'sd0);
                     if (record_bad || tex_cfg_bad_c) begin
                         err_valid  <= 1'b1;
                         err_code   <= EC_BAD_FIELD;
                         err_index  <= act_index;
-                        err_tag    <= {11'd0, act_strip, act_index};
+                        err_tag    <= {11'd0, act_strip, act_ordinal};
                         err_hold   <= 1'b1;
+                        if (act_sel) slot_busy1 <= 1'b0; else slot_busy0 <= 1'b0;
+                        state <= M_IDLE;
+                    end else if (w_y1 < $signed(j0_low) || w_y0 > $signed(j1_high)) begin
+                        dbg_retire_cnt <= dbg_retire_cnt + 32'd1;
                         if (act_sel) slot_busy1 <= 1'b0; else slot_busy0 <= 1'b0;
                         state <= M_IDLE;
                     end else begin
@@ -624,7 +578,7 @@ module engine_rast #(
                         i1v  <= w_x1[9:0];
                         j0v  <= (w_y0 > j0_low) ? w_y0[9:0] : j0_low[9:0];
                         j1v  <= (w_y1 < j1_high) ? w_y1[9:0] : j1_high[9:0];
-                        jmsv <= ((w_y0 > j0_low) ? (w_y0 - j0_low) : 16'd0);
+                        jmsv <= (w_y0 > j0_low) ? w_y0[3:0] : 4'd0;
                         dx0v <= (w_x0 <<< 4) - w_ox;
                         dy0v <= (((w_y0 > j0_low) ? w_y0 : j0_low) <<< 4) - w_oy;
                         init_cnt <= 4'd0;
@@ -716,21 +670,21 @@ module engine_rast #(
                     end
                     // 捕获（发射次拍落位）
                     case (init_cnt)
-                        4'd1: begin ep_en[0] <= dsp_p[0]; ep_ed[0] <= dsp_p[1];
-                                    ep_en[1] <= dsp_p[2]; ep_ed[1] <= dsp_p[3]; end
-                        4'd2: begin ep_en[2] <= dsp_p[0]; ep_ed[2] <= dsp_p[1];
-                                    pxh[0] <= dsp_p[2]; pxl[0] <= dsp_p[3]; end
-                        4'd3: begin pyh[0] <= dsp_p[0]; pyl[0] <= dsp_p[1];
-                                    pxh[1] <= dsp_p[2]; pxl[1] <= dsp_p[3]; end
-                        4'd4: begin pyh[1] <= dsp_p[0]; pyl[1] <= dsp_p[1];
-                                    pxh[2] <= dsp_p[2]; pxl[2] <= dsp_p[3]; end
-                        4'd5: begin pyh[2] <= dsp_p[0]; pyl[2] <= dsp_p[1];
-                                    pxh[3] <= dsp_p[2]; pxl[3] <= dsp_p[3]; end
-                        4'd6: begin pyh[3] <= dsp_p[0]; pyl[3] <= dsp_p[1];
-                                    pxh[4] <= dsp_p[2]; pxl[4] <= dsp_p[3]; end
-                        4'd7: begin pyh[4] <= dsp_p[0]; pyl[4] <= dsp_p[1];
-                                    pxh[5] <= dsp_p[2]; pxl[5] <= dsp_p[3]; end
-                        4'd8: begin pyh[5] <= dsp_p[0]; pyl[5] <= dsp_p[1]; end
+                        4'd1: begin ep_en[0] <= dsp_p[0][25:0]; ep_ed[0] <= dsp_p[1][25:0];
+                                    ep_en[1] <= dsp_p[2][25:0]; ep_ed[1] <= dsp_p[3][25:0]; end
+                        4'd2: begin ep_en[2] <= dsp_p[0][25:0]; ep_ed[2] <= dsp_p[1][25:0];
+                                    pxh[0] <= dsp_p[2][29:0]; pxl[0] <= dsp_p[3][30:0]; end
+                        4'd3: begin pyh[0] <= dsp_p[0][29:0]; pyl[0] <= dsp_p[1][30:0];
+                                    pxh[1] <= dsp_p[2][29:0]; pxl[1] <= dsp_p[3][30:0]; end
+                        4'd4: begin pyh[1] <= dsp_p[0][29:0]; pyl[1] <= dsp_p[1][30:0];
+                                    pxh[2] <= dsp_p[2][29:0]; pxl[2] <= dsp_p[3][30:0]; end
+                        4'd5: begin pyh[2] <= dsp_p[0][29:0]; pyl[2] <= dsp_p[1][30:0];
+                                    pxh[3] <= dsp_p[2][29:0]; pxl[3] <= dsp_p[3][30:0]; end
+                        4'd6: begin pyh[3] <= dsp_p[0][29:0]; pyl[3] <= dsp_p[1][30:0];
+                                    pxh[4] <= dsp_p[2][29:0]; pxl[4] <= dsp_p[3][30:0]; end
+                        4'd7: begin pyh[4] <= dsp_p[0][29:0]; pyl[4] <= dsp_p[1][30:0];
+                                    pxh[5] <= dsp_p[2][29:0]; pxl[5] <= dsp_p[3][30:0]; end
+                        4'd8: begin pyh[5] <= dsp_p[0][29:0]; pyl[5] <= dsp_p[1][30:0]; end
                         4'd9: begin
                             c_es[0] <= ep_en[0] + ep_ed[0];
                             c_es[1] <= ep_en[1] + ep_ed[1];
@@ -755,24 +709,34 @@ module engine_rast #(
                             c_sum[3] <= c_a1[3] + c_a2[3] + 48'sd8;
                             c_sum[4] <= c_a1[4] + c_a2[4] + 48'sd8;
                             c_sum[5] <= c_a1[5] + c_a2[5] + 48'sd8;
+`ifdef INJ_RAST_EDGE_SCALE
+                            c_er[0] <= w_c0 + c_es[0];
+`else
                             c_er[0] <= w_c0 + (c_es[0] <<< 4);
+`endif
                             c_er[1] <= w_c1 + (c_es[1] <<< 4);
                             c_er[2] <= w_c2 + (c_es[2] <<< 4);
                         end
                         4'd11: begin
-                            acc0 <= {16'd0, w_z0, 16'd0} + (c_sum[0] >>> 4);
-                            acc1 <= {20'd0, w_u0, 12'd0} + (c_sum[1] >>> 4);
-                            acc2 <= {20'd0, w_v0, 12'd0} + (c_sum[2] >>> 4);
-                            acc3 <= {24'd0, w_col0[23:16], 16'd0} + (c_sum[3] >>> 4);
-                            acc4 <= {24'd0, w_col0[15:8],  16'd0} + (c_sum[4] >>> 4);
-                            acc5 <= {24'd0, w_col0[7:0],   16'd0} + (c_sum[5] >>> 4);
+                            acc0 <= $signed({16'd0, w_z0, 16'd0}) + (c_sum[0] >>> 4);
+                            ar0 <= $signed({16'd0, w_z0, 16'd0}) + (c_sum[0] >>> 4);
+                            acc1 <= $signed({20'd0, w_u0, 12'd0}) + (c_sum[1] >>> 4);
+                            ar1 <= $signed({20'd0, w_u0, 12'd0}) + (c_sum[1] >>> 4);
+                            acc2 <= $signed({20'd0, w_v0, 12'd0}) + (c_sum[2] >>> 4);
+                            ar2 <= $signed({20'd0, w_v0, 12'd0}) + (c_sum[2] >>> 4);
+                            acc3 <= $signed({24'd0, w_col0[23:16], 16'd0}) + (c_sum[3] >>> 4);
+                            ar3 <= $signed({24'd0, w_col0[23:16], 16'd0}) + (c_sum[3] >>> 4);
+                            acc4 <= $signed({24'd0, w_col0[15:8],  16'd0}) + (c_sum[4] >>> 4);
+                            ar4 <= $signed({24'd0, w_col0[15:8],  16'd0}) + (c_sum[4] >>> 4);
+                            acc5 <= $signed({24'd0, w_col0[7:0],   16'd0}) + (c_sum[5] >>> 4);
+                            ar5 <= $signed({24'd0, w_col0[7:0],   16'd0}) + (c_sum[5] >>> 4);
                             e_row0 <= c_er[0]; e_cur0 <= c_er[0];
                             e_row1 <= c_er[1]; e_cur1 <= c_er[1];
                             e_row2 <= c_er[2]; e_cur2 <= c_er[2];
                             i_cur <= i0v; j_cur <= j0v; i_end <= i1v; j_end <= j1v;
-                            row_base <= 14'd0;
+                            row_base <= {10'd0, jmsv} * 14'd640;
                             jms <= jmsv;
-                            scan_active <= 1'b1;
+                            scan_active <= !stopping;
                             state <= M_SCAN;
                         end
                         default: ;
@@ -781,6 +745,7 @@ module engine_rast #(
                 end
 
                 M_SCAN: begin
+                    if (stopping) scan_active <= 1'b0;
                     // 行进与属性累加（fire0 驱动）
                     if (fire0) begin
                         if (i_cur == i_end) begin
@@ -791,9 +756,9 @@ module engine_rast #(
                             e_row0 <= e_row0 + w_b0; e_cur0 <= e_row0 + w_b0;
                             e_row1 <= e_row1 + w_b1; e_cur1 <= e_row1 + w_b1;
                             e_row2 <= e_row2 + w_b2; e_cur2 <= e_row2 + w_b2;
-                            acc0 <= acc0 + attr_gy[0]; acc1 <= acc1 + attr_gy[1];
-                            acc2 <= acc2 + attr_gy[2]; acc3 <= acc3 + attr_gy[3];
-                            acc4 <= acc4 + attr_gy[4]; acc5 <= acc5 + attr_gy[5];
+                            acc0 <= ar0 + attr_gy[0]; ar0 <= ar0 + attr_gy[0]; acc1 <= ar1 + attr_gy[1]; ar1 <= ar1 + attr_gy[1];
+                            acc2 <= ar2 + attr_gy[2]; ar2 <= ar2 + attr_gy[2]; acc3 <= ar3 + attr_gy[3]; ar3 <= ar3 + attr_gy[3];
+                            acc4 <= ar4 + attr_gy[4]; ar4 <= ar4 + attr_gy[4]; acc5 <= ar5 + attr_gy[5]; ar5 <= ar5 + attr_gy[5];
                             if (j_cur == j_end) scan_active <= 1'b0;
                         end else begin
                             i_cur <= i_cur + 10'd1;
@@ -805,7 +770,11 @@ module engine_rast #(
                             acc4 <= acc4 + attr_gx[4]; acc5 <= acc5 + attr_gx[5];
                         end
                     end
-                    if (!scan_active && in_flight == 3'd0) begin
+`ifdef INJ_RAST_NO_BARRIER
+                    if (!scan_active || stopping) begin
+`else
+                    if ((!scan_active || stopping) && in_flight == 4'd0) begin
+`endif
                         dbg_retire_cnt <= dbg_retire_cnt + 32'd1;
                         if (act_sel) slot_busy1 <= 1'b0; else slot_busy0 <= 1'b0;
                         state <= M_IDLE;

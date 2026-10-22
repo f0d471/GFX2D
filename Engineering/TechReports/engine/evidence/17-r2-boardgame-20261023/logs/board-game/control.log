@@ -1,0 +1,30 @@
+=== 烧写比特流 E:\Workspace\FPGA\Efinix\Main\fpga\gfx2d_ti60\outflow\gfx2d_ti60.bit
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   142550 bytes written at address 0x00001000
+   downloaded 142550 bytes in 8.003476s (17.394 KiB/s)
+=== 等串口采集结束（上限 120 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\20261023-055753-b55e00a3\logs\board-game\serial.log）---
+# COM11 @ 115200 8N1, opened 05:58:20
+gfx2dGame MODES
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+tex unavailable caps
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+csv,0,game,hw,59,1,0,0,0,196,377982,0,537250,11894,435703,0,266,192,2,0,0,0,0,2,334782,43200,0,0,0,0,11554,22312866,610862,127111,567104,1510524,5883765,5270872,18758953,pipeline,warming,527578,0,60,59000
+csv,1,game,hw,60,0,0,0,0,196,377980,0,538505,12764,491491,587385,284,192,2,0,0,0,0,2,334780,43200,0,0,0,0,23306,44991712,1227677,256374,1143787,3046591,11863803,10633982,37845646,pipeline,cpu,530334,318111,60,60000
+csv,2,game,hw,60,0,3,0,0,198,357694,0,584624,30497,496860,612390,264,193,1,2,0,0,0,2,335806,21600,288,0,0,0,35877,66588960,1920815,413756,1736825,4041281,17582639,15797994,57027044,pipeline,cpu,567456,319689,60,60000
+csv,3,game,hw,60,0,19,0,0,215,360510,0,598844,53224,497326,636135,304,194,1,18,0,0,0,2,336318,21600,2592,0,0,0,48895,88304896,2688978,589462,2340433,5082791,23335244,21104315,76915594,pipeline,cpu,583130,331475,60,60000
+csvsum,240,241,1,598844,598844,4,0
+diag fifo_min 336 samples 240 zero 0 under 0 irqA 728 irqB 240 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 05:58:42, 1638 bytes

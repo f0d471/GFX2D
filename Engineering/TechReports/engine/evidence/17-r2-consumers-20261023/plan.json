@@ -1,0 +1,128 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "tex",
+    "band",
+    "stripctl",
+    "instances",
+    "bin",
+    "frame",
+    "mover",
+    "ctrl",
+    "feature-elab",
+    "feature-probe",
+    "workflow",
+    "regs"
+  ],
+  "changed": null,
+  "commands": {
+    "tex": [
+      "bash",
+      "Main/sim/engine/tex/run.sh"
+    ],
+    "band": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_g2_band.py"
+    ],
+    "stripctl": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_g3_stripctl.py"
+    ],
+    "instances": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_f4_instances.py",
+      "--models",
+      "--rtl",
+      "--mutations",
+      "--protocols",
+      "--lease"
+    ],
+    "bin": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_f5_bin.py",
+      "--models",
+      "--bin",
+      "--frame",
+      "--mutations",
+      "--protocols",
+      "--lease"
+    ],
+    "frame": [
+      "bash",
+      "Main/sim/engine/frame/run.sh"
+    ],
+    "mover": [
+      "bash",
+      "Main/sim/engine/mover/run.sh"
+    ],
+    "ctrl": [
+      "bash",
+      "Main/sim/engine/ctrl/run.sh"
+    ],
+    "feature-elab": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_feature_elab.py"
+    ],
+    "feature-probe": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_feature_probe.py"
+    ],
+    "workflow": [
+      "/usr/bin/python3",
+      "Main/tools/check/test_validation.py"
+    ],
+    "regs": [
+      "/usr/bin/python3",
+      "Main/tools/check/regs_gen.py",
+      "--check"
+    ]
+  },
+  "timeouts": {
+    "tex": 1800,
+    "band": 1800,
+    "stripctl": 1800,
+    "instances": 1800,
+    "bin": 1800,
+    "frame": 1800,
+    "mover": 1800,
+    "ctrl": 1800,
+    "feature-elab": 1800,
+    "feature-probe": 1800,
+    "workflow": 1800,
+    "regs": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/rtl/**",
+    "Main/sim/**",
+    "Main/sw/**",
+    "Main/assets/**",
+    "Main/tools/check/**",
+    "Main/sim/engine/features/**",
+    "Main/tools/check/feature_config.py",
+    "Main/tools/check/feature_build.py",
+    "Main/tools/check/feature_netlist.py",
+    "Main/tools/check/check_feature_caps.py",
+    "Main/tools/check/check_feature_elab.py",
+    "Main/tools/check/check_feature_probe.py",
+    "Main/tools/check/check_feature_contract.py",
+    "Main/tools/check/check_feature_function.py",
+    "Main/tools/check/check_feature_synthesis.py",
+    "Main/tools/check/feature_synthesis.py",
+    "Main/tools/check/check_feature_board.py",
+    "Main/tools/check/regs_gen.py",
+    "Main/sw/bsp/include/gfx_feature.h",
+    "Main/sw/apps/test/featureTest/**",
+    "Main/sw/bsp/**",
+    "Main/sw/mk/**",
+    "Main/sdk/**",
+    "Main/tools/board/**",
+    "Main/fpga/**",
+    "Main/sw/lib/**",
+    "Main/tools/check/check_board_smoke.py",
+    "Main/sw/lib/test/golden.txt",
+    "Main/rtl/engine/engine_regs_offsets.vh",
+    "Main/sw/bsp/include/gfx_regs.h"
+  ]
+}

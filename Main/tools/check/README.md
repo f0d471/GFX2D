@@ -71,6 +71,23 @@
 | `e7_output_check.py` | 软件执行器性能负载的**独立输出复算器**：按逐像素混合方程与 `list.c` 的位域，从初始帧缓冲与纹理重画一帧，逐项核对板上整帧 CRC32 和每个可见像素的 32 位加和；要求两面各九项恰好 18 行、无重复或未知项，且有 `fail 0` 和 `done` | 判定板上吞吐数字有效性的硬判据；板上日志格式变了（`<名字> fbN ... crc 0x... pxsum 0x...`）要同步改 `parse_log` |
 | `e8_entity_abi.c` | 独立调用 `gfx_blit`，对 64 个图集索引及双记录 w7 标签逐字节检查实体路径命令打包符合 BLIT ABI，另查 8 个 x/y 出屏边界及 AoS/SoA 一致性 | 改实体命令生成、图集映射或 gfx ABI 时 |
 
+## check_r2.py / check_r2_synthesis.py / rast_stream.py
+
+`validate.py` 的 `rlst`、`rast-ports`、`rast-rtl` 分别覆盖列表协议、核心/新端口、
+真实 AXI 全链；quick 200 条，acceptance/release 十万条，L1/L2/L2二拍各跑完整流。
+流生成器使用 R1 同种子，并用 Main 内固定记录校验前 16 条；同输入同时交叉两份 C
+参考器。详见 [`../../sim/engine/rast/README.md`](../../sim/engine/rast/README.md)。
+
+Windows `r2-synthesis` 自建隔离源树：L1/L2 独立四步、20 块 z RAM/1 块索引 RAM、
+4/7 DSP 结构和内部时序，再完成 B0/B3 整机四步及全部时钟关系检查。
+运行前按开发环境设置 Efinity。输出由公共 Session 登记，不改生产默认构型，
+不部署位流或写 Flash。`rast` 仍专指 R1 软件验证。
+
+旧 TEX、BAND、STRIP 与实例套件用 `feature_build.write_headers` 在本轮 build/include
+生成 B3，PB 套件生成 B5，并将其放在默认头目录之前。命令行等价形式是
+`feature_build.py --config B3 --out-dir <忽略目录>/include --headers-only`。
+特性、guard 和 CAPS 来自同一真源；这避免在默认 B0 下误编译一个要求 TEX/条带的套件。
+
 ## localize_paths.py
 
 ```

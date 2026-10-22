@@ -254,8 +254,9 @@ module engine_band #(
     wire [AW-1:0] ras_word = ras_pix[RAST_PIX_AW-1:2];
     wire [1:0]    ras_lane = ras_pix[1:0];
     wire ras_hold = rd_busy || wr_busy || cancel || (ram_re && (ram_ra == ras_word));
-    assign ras_wr_ready = ras_lease && !ras_hold;
-    wire ras_fire = ras_lease && ras_wr_valid && !ras_hold;
+    assign ras_wr_ready = ras_lease && phase == EXEC &&
+                          ras_pix < WIDTH_PIXELS*STRIP_H && !ras_hold;
+    wire ras_fire = ras_wr_valid && ras_wr_ready;
 `else
     wire [31:0]  ras_dat = 32'd0;
     wire [AW-1:0] ras_word = {AW{1'b0}};

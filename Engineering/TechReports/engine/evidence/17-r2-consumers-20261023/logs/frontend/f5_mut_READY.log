@@ -1,0 +1,3 @@
+FAIL scene=          0 failed=0 code= 0 stage= 0 index=         0 state= 0
+FATAL: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_bin.v:131: F5 BIN model mismatch
+       Time: 8560000  Scope: tb_engine_bin

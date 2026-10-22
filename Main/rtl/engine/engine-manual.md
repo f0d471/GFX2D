@@ -45,7 +45,7 @@ ALPHA 预乘不限定 src ≤ a：BLIT 的源像素来自表面，没有逐个�
 
 错误码（`EC_ERR_*`，落在 STATUS[7:4]）：0 OK、1 BAD_OPCODE、2 BAD_FIELD、3 BAD_EQUATION、
 4 BAD_SURFACE、5 BAD_SPACE、6 BAD_FORMAT、7 OVERLAP、8 BAD_PREMULT、9 FETCH、
-10 BUS_READ、11 BUS_WRITE、12 TIMEOUT。
+10 BUS_READ、11 BUS_WRITE、12 TIMEOUT、13 BAD_INDEX（三维子表索引/保留位）。
 
 ERROR_STAGE：0 旧路径/无错、1 包级、2 实例、3 分桶计数/容量、4 PB 写、5 引用执行、6 BAND。
 
@@ -233,6 +233,8 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 | 无色键 | 请求色键的 BLIT/实例包归 `BAD_FIELD`，不能静默执行普通 BLIT |
 | 条带共享参数 | `LSTRIPS/STRIP_H/BAND_SURF` 在 STRIP 或 PB 存在时映射；两者都无时读写报错 |
 | 无 STRIP | 独立 `CTRL.BAND` 写拒绝；PB 存在时允许同次写 `BAND|BIN`，由 PB 控制条带 |
+| 无 RAST（单元扩展） | 生产源清单不包含 rlst/rast；mover raster FS 与 BAND 光栅口整块离开编译输入；现有二维口保持。三维 CSR 尚未集成 |
+| 无 RAST_TEX（单元扩展） | 三维采样口、KEY 比较与三路调制乘法离开编译；L1 保留旧 TEX；TEX_EN=1 的记录报 BAD_FIELD，无 TEX 的 KEY_EN 忽略 |
 | 无条带模式 | `CAPS` 不变（无专属位），只能靠「无条带表取数」与「CTRL.BAND 被拒」判 |
 
 ### 7.3 能力位与默认后端
@@ -271,3 +273,90 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 门铃按当前 CTRL.BIN 选择新请求，pb_active 仅说明在途事务的所有者，不能用它
 决定新请求是否进入 STRIP。TEX 能力不存在属于正常裁剪，游戏跳过热集装载；
 能力存在但装载或 CRC 失败仍记录错误。
+
+## 8 三维取数与光栅单元
+
+`engine_rlst`、`engine_rast` 是独立验证的三维单元。当前生产 B0～B6 源文件清单
+不包含它们；三维 CSR、CAPS、B7 与整帧调度尚未接入。单元构建以
+`GFX_HAS_RAST` 打开 mover 的第三类 FD 和 BAND 写口，以 `GFX_HAS_RAST_TEX`
+打开 TEX 采样口。L1 保留旧 `GFX_HAS_TEX`，只裁掉三维采样/调制。
+三维数据的永久定义见 [`../../doc/三维数值契约.md`](../../doc/三维数值契约.md)。
+
+### 8.1 列表、参数槽与条带边界
+
+主表为连续 128B 记录，基址 32B 对齐；子表基址 16B 对齐，每带顺序存
+`u16 count, u16 reserved=0, count*u16 index`，30 段之间不填充。
+`SUB_BYTES` 是真实偶数字节长度，末尾物理空间补到 16B。主表索引必须小于
+`TRI_COUNT`，同一索引允许重复；非空帧检查两个区域的 33 位终点，禁止地址回绕。
+配置从 go 到 busy 撤下保持不变。TRI_COUNT=0 不发 FD；帧控制应直接绕过三维相位。
+
+取数器使用 64 项 u16 FIFO、单拍序列化缓存和两个独立参数槽。每笔子表描述符
+最多 128B，发出前按有效 u16 项数预留整个批次容量；已发拍数/起点锁存到完成，
+不使用仍在变化的剩余长度判断完成。主表跨页按 96+32、64+64、32+96 字节重组。
+`fs_keep` 必须全 1，`fs_cidx/st_cidx` 必须匹配描述符，last 必须对应其最后一拍。
+状态可以早到；owner 到流末拍和状态均完成才释放。协议错误停止新请求；取消后
+继续接收已发事务，未验证记录不会产生 `rp_valid`。
+
+| 接口 | 单位与完成条件 |
+| --- | --- |
+| FD / raster FS | 字节地址、16B 倍数长度；mover 的 `fd_raster` 锁存在 owner 内，返回 `fsr_tdata/keep/valid/last`，状态为 `rd_stat_raster`，完整记录身份不截成 4 位 tag |
+| `rp_we/slot/wa/wd` | 一拍写 128b，即四个连续 u32；wa 是首词号 0、4…28 |
+| `rp_valid/slot_v/index/strip/ordinal` | 完整记录交付脉冲；槽捕获后对应 `rp_free` 撤下，待该三角形全部像素退休再释放 |
+| `strip_req/cur_strip` | 请求下一条带；控制者并行启动背景 LOAD 与 z-clear |
+| `strip_ack` | LOAD 与 z-clear 均完成后拉高；保持至本带排空、2D/FLUSH 完成后撤下 |
+| `strip_done` | 本带引用全部交付、两个参数槽及像素流水均空；不是“最后索引已取完” |
+| `frame_done` | 第 30 带 ack 撤下后完成；错误另外检查，取消不产生正常完成 |
+
+子表索引越界或保留位错误为 BAD_INDEX(13)，取数/协议/逻辑长度错误为 FETCH(9)，
+配置与记录字段错误为 BAD_FIELD(2)。诊断 index 为完整主表索引，头部错误用 FFFF；
+tag 为 `{11'd0,strip[4:0],ref_ordinal[15:0]}`。ERROR_STAGE=7 由后续三维控制集成映射，
+当前单元输出不表示现有 CSR 已扩展。字段首错后停止执行；控制者以 cancel 排空并恢复。
+
+### 8.2 像素、深度与采样
+
+边缘值为有符号 32 位，属性初值、当前值和行首值均为有符号 48 位。
+四个 19×18 乘法器分 8 拍发射 30 项部分积，随后归并；初值先把两个方向的
+乘积相加再做 /16 舍入，不能拆成两次舍入。换行由保存的行首加 gy，避免带入
+上一行最后一列的 gx。扫描区域为 bbox 与条带交集，空交集直接退休。
+
+z 为四 bank 的 2048+512×16b 分段 RAM，各段有独立同步输出，段选延迟一拍。
+每拍清四个深度，清带共 2560 拍，值 FFFF。逐像素严格 LESS；一条三角形扫描
+结束后必须等待全部像素退休才换参数，解决相邻三角形访问同深度的 RAW。
+KEY 比较原始 32 位 texel，命中同时跳过颜色与深度；无 TEX 时忽略 KEY。
+
+| 新端口 | 地址/数据 | 相位、返回与反压 |
+| --- | --- | --- |
+| BAND `ras_lease, ras_wr_pix/data/valid/ready` | pix 为 14b 条带局部线性像素号，范围 0…10239；word=pix>>2，lane=pix[1:0]；只写该 lane，颜色高 8 位为 0 | 仅已 LOAD 的 EXEC 接受，租约期间拒绝旧读写与 FLUSH；输出停顿时数据保持，cancel 当拍无提交；越界不受理 |
+| TEX `samp_valid/ready/word, samp_rvalid/data` | word 为 12b texel 词号，bank=word[1:0]、row=word[11:2] | 固定 READ_LATENCY=1/2，按序且 II=1；响应无 ready；旧描述符优先，同拍不会双受理；旧流/采样在途清空后交接，APB 装载由空闲期软件纪律保证 |
+| RAST 返回队列 | 8 项寄存器，保存 pix/z/RGB/texel/提交条件 | 发射至退休共用 8 个 credit，涵盖尚未返回、已缓存和提交停顿项；两拍 TEX 另对齐 z 返回 |
+
+`commit = out_valid && out_write && band_ready && !cancel` 是色/z 唯一写事件。
+深度失败、KEY 命中、取消项同样退休。TEX 调制每通道用一个乘法器，随后按精确
+`(texel*c+127)/255` 方程量化；无三维采样时这三路乘法器不进入编译。
+TEX_LATENCY 必须等于 engine_tex.READ_LATENCY，且仅允许 1/2。
+
+### 8.3 判据与注错
+
+入口为 `validate.py` 的 `rlst`、`rast-ports`、`rast-rtl`、Windows `r2-synthesis`。
+acceptance 对十万条记录分别执行 L1、L2 一拍、L2 两拍，按每帧实际条带引用数
+核对交付/退休及参考提交总数，每带同时比较颜色、深度及 DDR 写回。两份 C 参考器与 Python
+先在相同输入上交叉；R1 的同种子前 16 条字节记录另作冻结检查。
+同一核与真实 TEX 在 L=1/2 下分别验证连续 64 像素 II=1、长反压和提交沿取消；
+FD 另作 CMD/RAST/INST/CMD 交接，末拍停顿时请求侧类别/tag 的改变不影响旧返回。
+
+| 宏 | 指定判据 |
+| --- | --- |
+| `INJ_RAST_EDGE_SCALE`、`INJ_RAST_BIAS_REVERSE` | 定向覆盖/共享边逐像素比较 |
+| `INJ_RAST_Z_REVERSE`、`INJ_RAST_ROUND` | 严格 LESS 与提交半值深度 |
+| `INJ_RLST_DROP_TAIL` | 三种跨页记录逐词重组 |
+| `INJ_RLST_CREDIT` | 余 16 项时不得发 64 项请求 |
+| `INJ_RAST_KEY_MISS` | 原始 texel 命中时颜色与深度均保持 |
+| `INJ_RLST_OWNER_EARLY` | 状态早到，流仍未收齐 |
+| `INJ_RLST_SUB_OFFSET` | 拍内偏移与完整逻辑子表长度 |
+| `INJ_RAST_PIX_TRUNC` | 非零局部行、高像素号及其它 lane 保持 |
+| `INJ_RAST_PARTIAL_COMMIT` | ready=0 时色/z 均不得写 |
+| `INJ_RAST_NO_BARRIER` | 连续 64 点必须完整退休及双槽长反压 RAW |
+| `INJ_RAST_SAMP_EARLY` | TEX 全地址域连续换 bank，逐笔检查固定延迟 |
+
+关闭态以真实生产源清单和旧二维消费者检查为准，不能用裁掉旧 TEX 的构型代替 L1。
+本节没有三维整机性能或板上通过结论。

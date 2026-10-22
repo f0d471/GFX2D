@@ -260,6 +260,19 @@ def write_feature_files(config, name, out):
         error_modules(config), encoding='utf-8', newline='\n')
 
 
+def write_headers(config_name, out_dir):
+    """单元套件使用隔离构型头，不改生产默认，也不复制整机 SDK。"""
+    config = fc.parse_name(config_name)
+    reasons = fc.check(config)
+    if reasons:
+        raise ValueError('INVALID '+config_name+': '+'；'.join(reasons))
+    out = Path(out_dir).resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    write_feature_files(config, fc.name_of(config), out)
+    (out/'engine_regs_offsets.vh').write_text(regs_gen.gen_vh(fc.caps(config)), encoding='utf-8', newline='\n')
+    return out
+
+
 def sync_canonical():
     """把默认构型的特性头与综合模式同步到主工程。
 
@@ -366,6 +379,7 @@ def main():
     ap.add_argument('--list', action='store_true', help='列出代表档与合法结构组合')
     ap.add_argument('--sync', action='store_true', help='把默认构型的特性头写进 rtl/engine/')
     ap.add_argument('--check', action='store_true', help='校验 rtl/engine/ 的特性头与默认构型一致')
+    ap.add_argument('--headers-only', action='store_true', help='只向隔离目录写构型/寄存器头，不清目录或修改默认构型')
     args = ap.parse_args()
     if args.sync:
         print('SYNC ' + sync_canonical())
@@ -385,6 +399,10 @@ def main():
         return 0
     if not args.config or not args.out_dir:
         ap.error('需要 --config 与 --out-dir')
+    if args.headers_only:
+        write_headers(args.config, args.out_dir)
+        print('HEADERS '+args.config)
+        return 0
     record = build(args.config, args.out_dir)
     print(f"BUILT {record['config']} CAPS={record['caps']} sources={len(record['sources'])} "
           f"excluded={len(record['excluded_sources'])}")

@@ -105,7 +105,8 @@ module engine_tex #(
     wire [9:0]  samp_row  = samp_word[11:2];
     wire        rd_port_re = issue || samp_fire || (apb_rd_req && !busy_r && samp_cnt == 2'd0);
     wire [9:0]  rd_port_ra = issue ? ra_cur : (samp_fire ? samp_row : apb_row);
-    assign samp_ready = !busy_r && (samp_cnt < READ_LATENCY);
+    assign samp_ready = !busy_r && !req_valid && !apb_access && !apb_rd_setup &&
+                        ((samp_cnt < READ_LATENCY) || samp_done);
     assign req_ready  = !busy_r && (samp_cnt == 2'd0);
 `else
     wire        rd_port_re = issue || (apb_rd_req && !busy_r);
@@ -206,17 +207,17 @@ module engine_tex #(
 `ifdef GFX_HAS_RAST_TEX
     // 采样响应：固定 L 拍，bank 选择与 valid 同延迟；注错提前一级见红
     reg        sv1, sv2;
-    reg [1:0]  sb1, sb2;
-    reg [31:0] sd1, sd2;
+    reg [1:0]  sb1;
+    reg [31:0] sd2;
     always @(posedge clk) begin
         if (rst) begin
             sv1 <= 1'b0; sv2 <= 1'b0;
-            sb1 <= 2'd0; sb2 <= 2'd0;
-            sd1 <= 32'd0; sd2 <= 32'd0;
+            sb1 <= 2'd0;
+            sd2 <= 32'd0;
             samp_cnt <= 2'd0;
         end else begin
-            sv1 <= samp_fire; sb1 <= samp_word[1:0]; sd1 <= bank_q;
-            sv2 <= sv1;       sb2 <= sb1;            sd2 <= sd1;
+            sv1 <= samp_fire; sb1 <= samp_word[1:0];
+            sv2 <= sv1; sd2 <= bank_q[32*sb1 +: 32];
             samp_cnt <= samp_cnt + (samp_fire ? 2'd1 : 2'd0) - (samp_rvalid ? 2'd1 : 2'd0);
         end
     end
@@ -227,7 +228,7 @@ module engine_tex #(
                                              : bank_q[32*sb1 +: 32];
 `else
     assign samp_rvalid = (READ_LATENCY == 1) ? sv1 : sv2;
-    assign samp_rdata  = (READ_LATENCY == 1) ? sd1 : sd2;
+    assign samp_rdata  = (READ_LATENCY == 1) ? bank_q[32*sb1 +: 32] : sd2;
 `endif
 `endif
 

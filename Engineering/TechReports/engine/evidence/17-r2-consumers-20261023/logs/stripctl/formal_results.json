@@ -1,0 +1,19 @@
+{
+  "software": {
+    "scenes_sanitized": 10000,
+    "scenes_release": 10000,
+    "skipped": 0,
+    "production_mutations_red": 4
+  },
+  "rtl16": {
+    "checks": 29376,
+    "errors": 0,
+    "frame_word_differences": 0
+  },
+  "rtl32": {
+    "checks": 36293,
+    "errors": 0,
+    "frame_word_differences": 0
+  },
+  "rtl_mutations_red": 3
+}

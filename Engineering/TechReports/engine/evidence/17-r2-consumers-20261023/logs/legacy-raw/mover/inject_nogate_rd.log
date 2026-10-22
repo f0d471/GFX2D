@@ -1,0 +1,6 @@
+ERR 像素读流数据不符：字 260 got 5a5a5a5a5a5a5a5a5a5a5a5a00000200 want 5a5a5a5a5a5a5a5a5a5a5a5a00000104
+ERR 像素读流数据不符：字 261 got 5a5a5a5a5a5a5a5a5a5a5a5a00000201 want 5a5a5a5a5a5a5a5a5a5a5a5a00000105
+ERR 像素读流拍数 2 != 4
+STAT rd_viol=4 wr_viol=0 rd_out=0 wr_out=0 ar=2 aw=0 multi=0 unal=0 x4k=0 rrb=0 tmo=0
+RESULT: FAIL (看门狗：仿真没有自己结束)
+tb_engine_mover.v:902: $finish called at 4000000000 (1ps)

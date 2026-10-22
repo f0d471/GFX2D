@@ -1,0 +1,77 @@
+{
+  "logs/board/build.log": {
+    "size": 476,
+    "mtime_ns": 1792705951971672400,
+    "sha256": "24f74997aa8c2c5fa07af7c110927bc554e397fe6e27b1d77c8c8fae6d9e242d"
+  },
+  "logs/board/control.log": {
+    "size": 1608,
+    "mtime_ns": 1792705960542841900,
+    "sha256": "2f9eab00b14a8c9c871080d07ac4d034e66c9b367e541a519905e298901036c4"
+  },
+  "logs/board/debug.log": {
+    "size": 208,
+    "mtime_ns": 1792705940786698600,
+    "sha256": "09fb2cc8e20ead949b48bbd9b9ab5f09fe98d84dcab53f3336b2e9c22edb0b19"
+  },
+  "logs/board/engine.log": {
+    "size": 1159,
+    "mtime_ns": 1792705960413673800,
+    "sha256": "b482f1b0c53470aea1b07fabeda7b52a09d3e1c379ebf2d9b793d27199678f8e"
+  },
+  "logs/board/result.json": {
+    "size": 233,
+    "mtime_ns": 1792705960578164500,
+    "sha256": "d5e137c27e012093c3e85f54023efc190deb7f155a7189a8c30890a2a5f126f5"
+  },
+  "logs/board/usb.log": {
+    "size": 130,
+    "mtime_ns": 1792705934436382100,
+    "sha256": "e2312dace9e639c05fc0759abddef9f64d159f84a2cd894c49b560c9b150f926"
+  },
+  "logs/frontend/f5_final_main_flow.log": {
+    "size": 233204,
+    "mtime_ns": 1792705931616691300,
+    "sha256": "b4a425e4c835065f09fe28b648e195e52e3411d4031171c8e202e5216200809b"
+  },
+  "logs/frontend/f5_final_main_hier_util.rpt": {
+    "size": 72995,
+    "mtime_ns": 1792705931616691300,
+    "sha256": "5a791c231fdc9e1728568d312b7bf3e6ea72293839c4e3bd0e8361752ea8dd00"
+  },
+  "logs/frontend/f5_final_main_place.rpt": {
+    "size": 2018,
+    "mtime_ns": 1792705931614684500,
+    "sha256": "e93c5c0ad9a012a236a224bd9f4c634e6ec41311b523cd86814cdd4d3227b969"
+  },
+  "logs/frontend/f5_final_main_timing.rpt": {
+    "size": 969818,
+    "mtime_ns": 1792705931614684500,
+    "sha256": "65bc7a4d0eff696cc73e02bc3e1f62eed91677c2106d6bce111bfa80f6e0237c"
+  },
+  "logs/frontend/f5_final_main_warnings.log": {
+    "size": 62899,
+    "mtime_ns": 1792705931617713000,
+    "sha256": "fb9407c40fdb97407863eb0ce2e9ec82cfc7f257125d4528d8b474aba0199d4d"
+  },
+  "logs/frontend/f5_main_synthesis_flow.log": {
+    "size": 1262,
+    "mtime_ns": 1792705931576525100,
+    "sha256": "8265dde858d64a3f5314480164a302aa50e2c1c2c0df86786b4399406921045b"
+  },
+  "logs/frontend/f5_synthesis.json": {
+    "size": 2508,
+    "mtime_ns": 1792705931617713000,
+    "sha256": "ca2ad99114496e925a74af12afcebdc3a46eafe22d96ac8b7300e602509a253a"
+  },
+  "logs/runner/board.log": {
+    "size": 134,
+    "mtime_ns": 1792705960706304300,
+    "sha256": "92c40e8e297293dc34c9b6ddd4eeac309fbdf79a3056671015bbdef3787153e1"
+  },
+  "logs/runner/synthesis.log": {
+    "size": 1697,
+    "mtime_ns": 1792705931617713000,
+    "sha256": "d8585fa7167097071671503aac47d2e6e14775485b91d0e92bd82aba7d33329f"
+  }
+}

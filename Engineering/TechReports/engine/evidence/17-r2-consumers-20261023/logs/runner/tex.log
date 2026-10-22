@@ -1,0 +1,8 @@
+HEADERS B3
+normal: RESULT: PASS
+normal_latency2: RESULT: PASS
+inj_valid: RESULT: FAIL (inject, as expected)
+inj_unalign: RESULT: FAIL (inject, as expected)
+inj_stat: RESULT: FAIL (inject, as expected)
+inj_stream: RESULT: FAIL (inject, as expected)
+SIM OK: 6 checks as expected

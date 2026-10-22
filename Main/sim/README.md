@@ -1,7 +1,7 @@
 # sim：仿真
 
 用 WSL 里的 iverilog 跑；含 `Axi_Mux` 的套件需要 Efinity 的原语模型。
-每个子目录一个 `run.sh`，进去直接运行：
+旧模块的子目录以 `run.sh` 运行，Python 套件使用表中对应的 `validate.py` 检查名：
 
 ```
 wsl -e bash -c 'bash sim/<目录>/run.sh'
@@ -11,6 +11,7 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 
 | 目录 | 被测模块 | 用例 |
 | --- | --- | --- |
+| `engine/rlst/`、`engine/rast/` | 三维取数、光栅、BAND/TEX 新口 | `validate.py --checks rlst rast-ports rast-rtl`；真实 mover/AXI、L1/L2/L2二拍、两份 C 参考器、协议/取消/十三类注错；acceptance 使用十万条记录 |
 | `hdmi/` | `rtl/hdmi/hdmi_tx.v` 整条通路 | 正常 + 2 个注错 |
 | `apb_probe/` | `rtl/bus/apb_probe.v` | 正常 + 2 个注错 |
 | `axi_probe/` | `rtl/bus/axi_probe_master.v` 与 `rtl/vendor/axi_mux/Axi_Mux.v`，两个主机并发 | 正常 + 4 个注错。需要 `EFINITY_HOME` 指向 Efinity 安装目录（取 `EFX_SRL8` 原语模型） |

@@ -1,0 +1,6 @@
+VEC-FAIL #75: code=6 idx=0 tag=00000000 exp=5/0/00000000
+VEC-FAIL #145: code=6 idx=0 tag=00000000 exp=5/0/00000000
+VEC-FAIL #148: code=6 idx=0 tag=00000000 exp=5/0/00000000
+checks=5070 errors=3 vectors=159 vec_fail=3
+RESULT: FAIL (3 errors)
+tb_engine_top.v:831: $finish called at 120145000 (1ps)

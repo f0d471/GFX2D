@@ -7,7 +7,7 @@
 //   内）与条带边界握手。单 FSM 串行推进：子表突发 → 表头/索引解析 → 记录取回。
 //
 // NOTE:
-//   1. 字节 ABI 与组织见 Main/doc/三维数值契约.md 与 R2 条目 2.1/2.2；记录字段
+//   1. 字节 ABI 与组织见 Main/doc/三维数值契约.md 与 engine-manual.md；记录字段
 //      合法性归 engine_rast（消费端校验），本层只查索引/游标/流协议
 //   2. FD owner 保持到「状态脉冲已捕获且读流 tlast 已握手」；取消不打断在途
 //      描述符：canceled 置位后各状态自行 divert，在途流与状态照常吞完才收尾
@@ -19,7 +19,7 @@
 //   5. 取数/流协议失败 FETCH(9)，索引越界或子表保留位非 0 归 BAD_INDEX(13)；
 //      记录字段坏归 rast 的 BAD_FIELD(2)。首错后不再开始新工作，协议照常排空
 //   6. 每条带都发 strip_req/strip_done（count=0 的条带只花头部成本）；
-//      strip_ack 为电平，帧层备好该条带（z 已清）后拉高，strip_done 后撤下
+//      strip_ack 为电平，帧层备好条带后拉高，排空并写回后撤下才进入下一带
 //   7. 注错开关见 engine-manual.md；TRI_COUNT=0 的全帧绕过由帧层不启动本模块
 //==============================================================================================//
 `default_nettype none
@@ -48,9 +48,12 @@ module engine_rlst (
     input  wire [127:0] fs_data,
     input  wire         fs_valid,
     input  wire         fs_last,
+    input  wire [15:0]  fs_keep,
+    input  wire [3:0]   fs_cidx,
     output wire         fs_ready,
     input  wire         st_valid,       // 光栅表读状态（mover 的 rd_stat_raster）
     input  wire         st_error,
+    input  wire [3:0]   st_cidx,
 
     // 参数槽出口（槽寄存器在 engine_rast 内；128b/拍直写 4 个连续词）
     output wire         rp_we,
@@ -61,6 +64,7 @@ module engine_rlst (
     output reg  [1:0]   rp_slot_v,
     output reg  [15:0]  rp_index,
     output reg  [4:0]   rp_strip,
+    output reg  [15:0]  rp_ordinal,
     input  wire [1:0]   rp_free,        // 电平，位 per 槽：1=该槽无已交付未启动、
                                         //   也无在途三角形（rast 从 rp_valid 起占用）
     // 条带边界（strip_req 后帧层备好该条带并拉高 strip_ack；strip_done 后撤下）
@@ -78,13 +82,14 @@ module engine_rlst (
     localparam [4:0] S_IDLE = 0, S_SUB_REQ = 1, S_SUB_RECV = 2, S_CNT0 = 3, S_CNT1 = 4,
                      S_RSVD0 = 5, S_RSVD1 = 6, S_REQA = 7, S_REQB = 8, S_IDX = 9,
                      S_REC_PREP = 10, S_REC_REQ = 11, S_REC_RECV = 12, S_REC_NEXT = 13,
-                     S_REC_LAST = 14, S_STRIP_DONE = 15, S_HALT = 16;
+                     S_REC_LAST = 14, S_STRIP_DONE = 15, S_HALT = 16,
+                     S_STRIP_ACK_LOW = 17;
 
     // go 期配置检查用的包络总长（含 pad；sub_bytes ≤ 2^24，和至多加 15）
     function [24:0] env_of;
         input [23:0] bytes;
         begin
-            env_of = {1'b0, bytes} + 25'd15;
+            env_of = ({1'b0, bytes} + 25'd15) & 25'h1fffff0;
         end
     endfunction
 
@@ -113,7 +118,7 @@ module engine_rlst (
     reg          b_v;
     wire [6:0]   f_pending = b_v ? {4'd0, b_last - b_k} + 7'd1 : 7'd0;
     wire [6:0]   fifo_used = (fifo_wp - fifo_rp) + f_pending;
-    wire         fifo_has  = fifo_used != 7'd0;
+    wire         fifo_has  = fifo_wp != fifo_rp;
     wire [15:0]  fifo_q    = fifo_mem[fifo_rp[5:0]];
 
     // ---------------------------------------------------------------- 子表突发计划
@@ -121,21 +126,27 @@ module engine_rlst (
     reg  [24:0]  env_total, env_left;  // 包络总长/剩余（含 pad）
     reg  [31:0]  sub_p;                // 当前突发物理起始（完成时按已发拍数推进）
     reg  [3:0]   s_beats, s_recv;
+    reg  [23:0]  s_rel;
     reg          s_stat_seen, s_stat_err, s_last_seen, s_proto_bad;
     wire [12:0]  s_page_left = 13'd4096 - {1'b0, sub_p[11:0]};
     wire [24:0]  s_cap_env   = env_left;
     wire [24:0]  s_cap_page  = {13'd0, s_page_left};
-    wire [24:0]  s_chunk     = (s_cap_env < 25'd128) ? s_cap_env :
-                               (s_cap_page < 25'd128) ? s_cap_page : 25'd128;
+    wire [24:0]  s_limit     = (s_cap_env < 25'd128) ? s_cap_env : 25'd128;
+    wire [24:0]  s_chunk     = (s_cap_page < s_limit) ? s_cap_page : s_limit;
     wire [3:0]   s_chunk_beats = s_chunk[7:4];
     wire [23:0]  s_logic_done  = env_total[23:0] - env_left[23:0];
     wire [24:0]  s_logic_left25 = {1'b0, sub_bytes} - {1'b0, s_logic_done};
     wire [24:0]  s_chunk_valid = (s_logic_left25 < s_chunk) ? s_logic_left25 : s_chunk;
-    wire         s_reserve_ok  = ({1'b0, fifo_used} + {1'b0, s_chunk_valid[6:0]}) <= 7'd64;
+`ifdef INJ_RLST_CREDIT
+    wire         s_reserve_ok = 1'b1;
+`else
+    wire         s_reserve_ok  = ({1'b0, fifo_used} + s_chunk_valid[7:1]) <= 8'd64;
+`endif
 
     // ---------------------------------------------------------------- 表头/游走
     reg  [4:0]   strip;
     reg  [15:0]  count_lo, head_count, head_left, rsvd_acc, ref_ord, cur_idx;
+    reg  [23:0]  parse_bytes;
 
     // ---------------------------------------------------------------- 记录通道
     reg  [31:0]  r_addr;
@@ -148,7 +159,7 @@ module engine_rlst (
     reg          r_slot_ok, r_stat_seen, r_stat_err, r_last_seen, r_bad;
     reg          r_pending_valid;
     wire [31:0]  rec_addr_cand = tri_base + {cur_idx, 7'd0};
-    wire [32:0]  rec_end33     = {1'b0, tri_base} + {17'd0, cur_idx, 7'd0};
+    wire [32:0]  rec_end33     = {1'b0, tri_base} + {10'd0, cur_idx, 7'd0} + 33'd127;
     wire [12:0]  r_page_left   = 13'd4096 - {1'b0, rec_addr_cand[11:0]};
     wire [7:0]   r_frag1       = (r_page_left < 12'd128) ? r_page_left[7:0] : 8'd128;
     wire         slot_any_free = rp_free[1] || rp_free[0];
@@ -161,8 +172,8 @@ module engine_rlst (
     // ========================================================================
     // 组合输出：FD / FS / rp
     // ========================================================================
-    wire grant_rec   = (state == S_REC_REQ) && r_slot_ok && !canceled;
-    wire grant_sub   = (state == S_SUB_REQ) && s_reserve_ok && !grant_rec && !canceled;
+    wire grant_rec   = (state == S_REC_REQ) && r_slot_ok && !canceled && !cancel;
+    wire grant_sub   = (state == S_SUB_REQ) && s_reserve_ok && !grant_rec && !canceled && !cancel;
     assign fd_valid  = grant_rec || grant_sub;
     assign fd_addr   = grant_rec ? r_addr : sub_p;
     assign fd_bytes  = grant_rec ? {4'd0, r_frag_len[7:4], 4'd0}
@@ -178,19 +189,23 @@ module engine_rlst (
     wire rec_beat   = (state == S_REC_RECV) && fs_acc;
     wire sub_beat   = (state == S_SUB_RECV) && fs_acc;
 
-    assign rp_we   = rec_beat;
+    assign rp_we   = rec_beat && r_recv < r_beats && !canceled && !cancel;
     assign rp_slot = r_slot;
-    assign rp_wa   = r_frag_off[6:2] + {1'b0, r_recv[2:0], 2'b00};
+    assign rp_wa   = r_frag_off[6:2] + {r_recv[2:0], 2'b00};
     assign rp_wd   = fs_data;
 
     assign busy = started;
 
     // 下一拍的拍缓存基偏移与本拍有效 u16 数（sub_bytes 偶、b_rel 偶 → 全 u16）
-    wire [23:0]  b_rel_next = s_logic_done + {s_recv, 4'd0};
+`ifdef INJ_RLST_SUB_OFFSET
+    wire [23:0]  b_rel_next = s_rel + {s_recv, 5'd0};
+`else
+    wire [23:0]  b_rel_next = s_rel + {s_recv, 4'd0};
+`endif
     wire [24:0]  rel_to_go  = {1'b0, sub_bytes} - {1'b0, b_rel_next};
     wire [3:0]   beat_cnt   = rel_to_go[24] ? 4'd0 :
                               (rel_to_go >= 25'd16) ? 4'd8 :
-                              {2'd0, rel_to_go[23:1]} + {3'd0, rel_to_go[0]};
+                              {1'd0, rel_to_go[3:1]};
 
     // ========================================================================
     // 主时序（单进程单 FSM）
@@ -204,17 +219,20 @@ module engine_rlst (
             b_v       <= 1'b0;
             rp_valid  <= 1'b0;
             r_pending_valid <= 1'b0;
+            strip_req <= 1'b0; strip_done <= 1'b0; frame_done <= 1'b0;
+            error <= 1'b0;
         end else begin
             // 单拍脉冲默认值
             rp_valid   <= 1'b0;
             strip_req  <= 1'b0;
             strip_done <= 1'b0;
             frame_done <= 1'b0;
-            if (r_pending_valid) begin
+            if (r_pending_valid && !cancel && !canceled) begin
                 rp_valid    <= 1'b1;
                 rp_slot_v   <= r_slot;
                 rp_index    <= r_index;
                 rp_strip    <= r_strip;
+                rp_ordinal  <= r_ord;
                 r_pending_valid <= 1'b0;
             end
             // 取消只举旗，不打断在途描述符（各状态自行 divert）
@@ -231,6 +249,7 @@ module engine_rlst (
                     sub_state   <= 2'd0;
                     strip       <= 5'd0;
                     ref_ord     <= 16'd0;
+                    parse_bytes <= 24'd0;
                     b_v         <= 1'b0;
                     fifo_wp     <= 6'd0;
                     fifo_rp     <= 6'd0;
@@ -239,18 +258,23 @@ module engine_rlst (
                     error_index <= 16'hFFFF;
                     error_tag   <= 32'd0;
                     // 配置静态检查：对齐与 33b 终点
-                    if (sub_base[3:0] != 4'd0 || tri_base[4:0] != 5'd0 ||
-                        ({2'b00, sub_base} + {9'd0, env_of(sub_bytes)}) > 34'h1_0000_0000)
+                    if (tri_count == 16'd0) state <= S_HALT;
+                    else if (sub_base[3:0] != 4'd0 || tri_base[4:0] != 5'd0 ||
+                        sub_bytes[0] || sub_bytes < 24'd120 ||
+                        ({1'b0, tri_base} + {10'd0, tri_count, 7'd0}) > 33'h100000000 ||
+                        ({2'b00, sub_base} + {9'd0, env_of(sub_bytes)}) > 34'h1_0000_0000) begin
+                        error <= 1'b1; error_code <= EC_ERR_BAD_FIELD;
                         state <= S_HALT;
-                    else
-                        state <= (sub_bytes == 24'd0) ? S_HALT : S_SUB_REQ;
+                    end else state <= (tri_count == 16'd0) ? S_HALT : S_SUB_REQ;
                 end
 
                 // ---------------------------------------------------- 子表通道
-                S_SUB_REQ: if (sub_fd_fire) begin
+                S_SUB_REQ: if (canceled || cancel) state <= S_HALT;
+                else if (sub_fd_fire) begin
                     sub_state   <= 2'd1;
                     s_beats     <= s_chunk_beats;
                     s_recv      <= 4'd0;
+                    s_rel       <= s_logic_done;
                     s_stat_seen <= 1'b0;
                     s_last_seen <= 1'b0;
                     s_stat_err  <= 1'b0;
@@ -263,17 +287,24 @@ module engine_rlst (
                         b_rel    <= b_rel_next;
                         b_v      <= (beat_cnt != 4'd0);
                         b_k      <= 3'd0;
-                        b_last   <= beat_cnt - 4'd1;
+                        b_last   <= beat_cnt[2:0] - 3'd1;
                         s_recv   <= s_recv + 4'd1;
-                        env_left <= env_left - 25'd16;
+                        if (fs_last) s_last_seen <= 1'b1;
+                        if (fs_keep != 16'hffff || fs_cidx != 4'd0 ||
+                            fs_last != (s_recv == s_beats - 4'd1)) s_proto_bad <= 1'b1;
                     end
                     if (st_valid) begin
                         s_stat_seen <= 1'b1;
-                        if (st_error) s_stat_err <= 1'b1;
+                        if (st_error || st_cidx != 4'd0) s_stat_err <= 1'b1;
                     end
-                    if (s_recv == s_chunk_beats && !b_v && s_stat_seen) begin
+`ifdef INJ_RLST_OWNER_EARLY
+                    if (s_stat_seen) begin
+`else
+                    if ((s_recv == s_beats || s_last_seen) && !b_v && s_stat_seen) begin
+`endif
                         sub_state <= 2'd0;
                         sub_p     <= sub_p + {s_beats, 4'd0};
+                        env_left  <= env_left - {s_beats, 4'd0};
                         if (canceled || error || s_proto_bad || s_stat_err) begin
                             if (s_proto_bad || s_stat_err)
                                 fail_latch(EC_ERR_FETCH, 16'hFFFF, strip, ref_ord);
@@ -290,6 +321,7 @@ module engine_rlst (
                     head_count <= fifo_q;
                     head_left  <= fifo_q;
                     fifo_rp    <= fifo_rp + 7'd1;
+                    parse_bytes <= parse_bytes + 24'd2;
                     state      <= S_RSVD0;
                 end else if (env_left != 25'd0) begin
                     ret_state <= S_CNT0;
@@ -302,6 +334,7 @@ module engine_rlst (
                 S_RSVD0: if (canceled) state <= S_HALT;
                          else if (fifo_has) begin
                     fifo_rp <= fifo_rp + 7'd1;
+                    parse_bytes <= parse_bytes + 24'd2;
                     if (fifo_q != 16'd0) begin
                         fail_latch(EC_ERR_BAD_INDEX, 16'hFFFF, strip, ref_ord);  // 保留位非 0
                         state <= S_HALT;
@@ -318,7 +351,8 @@ module engine_rlst (
 
 
                 // ---------------------------------------------------- 条带握手
-                S_REQA: begin
+                S_REQA: if (canceled || cancel) state <= S_HALT;
+                else begin
                     strip_req <= 1'b1;
                     cur_strip <= strip;
                     state     <= S_REQB;
@@ -335,6 +369,7 @@ module engine_rlst (
                        else if (fifo_has && slot_any_free) begin
                     cur_idx <= fifo_q;
                     fifo_rp <= fifo_rp + 7'd1;
+                    parse_bytes <= parse_bytes + 24'd2;
                     state   <= S_REC_PREP;
                 end else if (!fifo_has && env_left != 25'd0) begin
                     ret_state <= S_IDX;
@@ -367,6 +402,7 @@ module engine_rlst (
                         r_slot_ok    <= 1'b1;
                         r_recv       <= 4'd0;
                         r_stat_seen  <= 1'b0;
+                        r_last_seen  <= 1'b0;
                         r_stat_err   <= 1'b0;
                         r_bad        <= 1'b0;
                         state        <= S_REC_REQ;
@@ -377,13 +413,15 @@ module engine_rlst (
                 S_REC_RECV: begin
                     if (st_valid) begin
                         r_stat_seen <= 1'b1;
-                        if (st_error) r_stat_err <= 1'b1;
+                        if (st_error || st_cidx != 4'd0) r_stat_err <= 1'b1;
                     end
                     if (rec_beat) begin
                         r_recv <= r_recv + 4'd1;
+                        if (fs_last) r_last_seen <= 1'b1;
+                        if (fs_keep != 16'hffff || fs_cidx != 4'd0 ||
+                            fs_last != (r_recv == r_beats - 4'd1)) r_bad <= 1'b1;
                     end
-                    if (r_recv == r_beats && r_stat_seen && !rec_beat) begin
-                        r_slot_ok <= 1'b0;
+                    if ((r_recv == r_beats || r_last_seen) && r_stat_seen && !rec_beat) begin
                         state     <= S_REC_NEXT;
                     end
                 end
@@ -393,14 +431,19 @@ module engine_rlst (
                     end else if (r_bad || r_stat_err) begin
                         fail_latch(EC_ERR_FETCH, r_index, r_strip, r_ord);
                         state <= S_HALT;
-                    end else if (!r_frag_final) begin
-                        r_addr       <= r_addr + {4'd0, r_frag_len, 4'd0};
+                    end else if (!r_frag_final
+`ifdef INJ_RLST_DROP_TAIL
+                                 && 1'b0
+`endif
+                    ) begin
+                        r_addr       <= r_addr + {24'd0, r_frag_len};
                         r_frag_off   <= r_frag_len;
                         r_frag_len   <= 8'd128 - r_frag_len;
                         r_frag_final <= 1'b1;
                         r_beats      <= (8'd128 - r_frag_len) >> 4;
                         r_recv       <= 4'd0;
                         r_stat_seen  <= 1'b0;
+                        r_last_seen  <= 1'b0;
                         r_stat_err   <= 1'b0;
                         r_bad        <= 1'b0;
                         state        <= S_REC_REQ;
@@ -409,14 +452,25 @@ module engine_rlst (
                         state           <= S_REC_LAST;
                     end
                 end
-                S_REC_LAST: if (error) state <= S_HALT;
-                            else if (head_left == 16'd0) state <= S_STRIP_DONE;
-                            else state <= S_IDX;
+                S_REC_LAST: if (error || canceled || cancel) state <= S_HALT;
+                            else if (!r_pending_valid && !rp_valid && !rp_free[r_slot[0]]) begin
+                                if (head_left == 16'd0) state <= S_STRIP_DONE;
+                                else state <= S_IDX;
+                            end
 
                 // ---------------------------------------------------- 条带收尾
-                S_STRIP_DONE: begin
+                S_STRIP_DONE: if (canceled || cancel) state <= S_HALT;
+                else if (rp_free == 2'b11 && !rp_valid && !r_pending_valid) begin
                     strip_done <= 1'b1;
-                    if (strip == 5'd29) state <= S_HALT;
+                    state <= S_STRIP_ACK_LOW;
+                end
+                S_STRIP_ACK_LOW: if (canceled || cancel) state <= S_HALT;
+                else if (!strip_ack) begin
+                    if (strip == 5'd29) begin
+                        if (parse_bytes != sub_bytes)
+                            fail_latch(EC_ERR_FETCH, 16'hffff, strip, ref_ord);
+                        state <= S_HALT;
+                    end
                     else begin
                         strip <= strip + 5'd1;
                         state <= S_CNT0;
@@ -425,7 +479,8 @@ module engine_rlst (
 
                 // ---------------------------------------------------- 收尾
                 S_HALT: if (!b_v) begin
-                    frame_done <= !canceled;
+                    frame_done <= !canceled && !cancel;
+                    r_pending_valid <= 1'b0;
                     started    <= 1'b0;
                     state      <= S_IDLE;
                 end

@@ -1,0 +1,7 @@
+PROBE_COVER negative_edge=fffffff0 actual_cov=1 expected=0
+PROBE_NEGATIVE_GRADIENT actual_acc=4301455360 expected=6488064 increment_width=32
+PROBE_ROW_START actual_acc=7274496 expected=7208960
+PROBE_INITIAL_OFFSET pix=200 expected=6600 jms=10
+PROBE_NEGATIVE_INIT actual=0fffffffffff expected=ffffffffffff
+PROBE_TERMINAL_COUNTER j=1 end=0 active=0 fire=0 expected_no_more_fire
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r2-review-20261022-223936/tb_micro.v:43: $finish called at 146000 (1ps)

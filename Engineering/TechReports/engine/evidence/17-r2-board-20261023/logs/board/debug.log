@@ -1,0 +1,4 @@
+=== 烧写比特流 E:\Workspace\FPGA\Efinix\Main\fpga\gfx2d_ti60\outflow\gfx2d_ti60.bit
+=== 调试通路检查：连续两次会话各读一次 PC
+  第 1 次：OK 0x00012080
+  第 2 次：OK 0x00012080

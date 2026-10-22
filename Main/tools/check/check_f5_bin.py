@@ -7,11 +7,14 @@ from pathlib import Path
 import subprocess
 import sys
 from check_run import IncompleteCheck, paths, session
+from feature_build import write_headers
 
 ROOT = Path(__file__).resolve().parents[3]
 MAIN = ROOT / 'Main'
 SIM = MAIN / 'sim/engine/frontend'
 BUILD, LOGS = paths('frontend', 'f5')
+INCLUDE = write_headers('B5', BUILD/'include')
+GFX_CORE = [MAIN/'sw/lib/core'/p for p in ('format.c','fixmath.c','sin_tab.c')]
 
 def run(tag, args, timeout=600):
     p = subprocess.run(list(map(str, args)), cwd=ROOT, capture_output=True,
@@ -44,7 +47,7 @@ def research():
     flags = ['gcc', '-std=c11', '-O1', '-g', '-I' + str(MAIN / 'sw/lib'),
              '-fsanitize=address,undefined', '-fno-pie', '-no-pie']
     run('research_compile', flags + [SIM / 'f5_pb_fuzz.c',
-        *sorted((MAIN / 'sw/lib/gfx').glob('*.c')), MAIN / 'sw/lib/core/format.c',
+        *sorted((MAIN / 'sw/lib/gfx').glob('*.c')), *GFX_CORE,
         '-o', BUILD / 'research'])
     out = run('research_review', [BUILD / 'research', '10000'])
     assert '10000 通过 / 0 容量跳过 / 0 失败' in out
@@ -54,7 +57,7 @@ def research():
 def models():
     flags=['gcc','-std=c11','-O1','-g','-Wall','-Wextra','-Werror','-I'+str(MAIN/'sw/lib'),
            '-fsanitize=address,undefined','-fno-pie','-no-pie']
-    src=[*sorted((MAIN/'sw/lib/gfx').glob('*.c')),MAIN/'sw/lib/core/format.c']
+    src=[*sorted((MAIN/'sw/lib/gfx').glob('*.c')),*GFX_CORE]
     run('host_compile',flags+[SIM/'test_pb.c',*src,'-o',BUILD/'host'])
     print(run('host',[BUILD/'host',BUILD/'bin_cases.dat']).strip(),flush=True)
     run('bounds_compile',flags+[SIM/'test_pb_bounds.c',*src,'-o',BUILD/'bounds'])
@@ -63,7 +66,7 @@ def models():
 def compile_rtl(tag,top,defines=(),params=()):
     src=[SIM/(top+'.v'),*sorted((MAIN/'rtl/engine').glob('*.v')),
          MAIN/'rtl/vendor/verilog-axi/axi_dma_rd.v',MAIN/'rtl/vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
-    run(tag+'_compile',['iverilog','-g2012','-s',top,'-I'+str(MAIN/'rtl/engine'),
+    run(tag+'_compile',['iverilog','-g2012','-s',top,'-I'+str(INCLUDE),'-I'+str(MAIN/'rtl/engine'),
                        *['-D'+d for d in defines],*params,'-o',BUILD/(tag+'.vvp'),*src])
     return BUILD/(tag+'.vvp')
 
@@ -150,10 +153,10 @@ def lease():
            '-fdata-sections','-Wl,--gc-sections','-DGFX_FRONTEND_BIN=1',
            '-I'+str(MAIN/'sw/lib'),'-I'+str(MAIN/'sw/bsp/include'),'-I'+str(game)]
     run('lease_compile',flags+[SIM/'test_pb_lease.c',game/'renderer.c',MAIN/'sw/bsp/memmap.c',
-        *sorted((MAIN/'sw/lib/gfx').glob('*.c')),MAIN/'sw/lib/core/format.c','-o',BUILD/'lease'])
+        *sorted((MAIN/'sw/lib/gfx').glob('*.c')),*GFX_CORE,'-o',BUILD/'lease'])
     print(run('lease',[BUILD/'lease']).strip(),flush=True)
     run('fallback_compile',flags+['-D__riscv',SIM/'test_pb_fallback.c',game/'renderer.c',MAIN/'sw/bsp/memmap.c',
-        *sorted((MAIN/'sw/lib/gfx').glob('*.c')),MAIN/'sw/lib/core/format.c','-o',BUILD/'fallback'])
+        *sorted((MAIN/'sw/lib/gfx').glob('*.c')),*GFX_CORE,'-o',BUILD/'fallback'])
     print(run('fallback',[BUILD/'fallback']).strip(),flush=True)
 
 def ddr_log():

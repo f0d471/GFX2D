@@ -4,9 +4,9 @@
 # 已知偏差:vsdx 直转的文字可能溢出边框(axi_mux_guard、SPI Flash MB 等),报告成图前须先在
 # draw.io GUI 里把图修好另存 .drawio,再喂给本脚本;直接喂 vsdx 只适合快速预览。
 # 用法:bash vsdx_export.sh <文件.vsdx|文件.drawio> [输出目录]   输出目录缺省 ./_preview
-# 依赖:C:\Program Files\draw.io\draw.io.exe(v32 测试过)、WSL python3 + PIL。
+# 依赖:Windows draw.io CLI(v32 测试过)、WSL python3 + PIL。可用 DRAWIO 指定安装位置。
 set -euo pipefail
-DRAWIO="/c/Program Files/draw.io/draw.io.exe"
+DRAWIO="${DRAWIO:-$(cygpath -u "${PROGRAMFILES:?}/draw.io/draw.io.exe")}"
 SRC="$(cd "$(dirname "$0")" && pwd)"
 to_mnt() { local w d; w="$(cygpath -w "$1")"; d="$(printf %s "${w:0:1}" | tr 'A-Z' 'a-z')"; echo "/mnt/$d/${w:3}" | tr '\\' '/'; }
 in="$(ls "$1")"; name="$(basename "${in%.*}")"

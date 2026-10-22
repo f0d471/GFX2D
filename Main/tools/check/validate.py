@@ -29,6 +29,12 @@ add('lib', ['bash', P+'check_host.sh', 'lib'], '库的正常 64/32 位与 saniti
 add('app', ['bash', P+'check_host.sh', 'app'], '游戏应用的正常 64/32 位与 sanitizer')
 add('rast', [sys.executable, P+'check_rast.py'],
     'R1 定点/128B setup/两参考器/独立有理数模型/10万光栅与1万几何/变异/双目标', ['lib'])
+for name,group,purpose in [('rlst','rlst','R2 取数/FIFO/分片/协议/取消'),
+    ('rast-ports','ports','R2 核心 RAW/取消/II=1、TEX L=1/2 与关闭态'),
+    ('rast-rtl','rtl','R2 两参考器/真实 AXI 十万条 L1/L2/L2二拍/十三变异')]:
+    add(name,[sys.executable,P+'check_r2.py','--group',group],purpose,timeout=10800)
+add('r2-synthesis',[sys.executable,P+'check_r2_synthesis.py'],
+    'R2 独立 L1/L2 RAM/DSP/时序及 B0/B3 整机四步（Windows）',timeout=18000)
 for name, script, purpose in [('layers','check_sw_layers.sh','软件分层与构建'),
     ('pc','check_sw4_pc.sh','PC 显示、输入与录像'),('assets','check_sw5_assets.sh','素材与镜像'),
     ('demo','check_sw6_demo.sh','基础 Demo'),('game','check_sw7_game.sh','游戏规则、回放与相关变异'),
@@ -83,6 +89,15 @@ for name,item in CHECKS.items():
     elif name=='regs':inputs=[P+'regs_gen.py','Main/rtl/engine/engine_regs_offsets.vh','Main/sw/bsp/include/gfx_regs.h']
     elif name=='semantics':inputs=[P+'check_cmd_semantics.py','Main/doc/赛题二总体设计.md']
     elif name=='rast':inputs=SOFTWARE + ['Main/doc/三维数值契约.md']
+    elif name in ('rlst','rast-ports','rast-rtl'):
+        inputs=['Main/rtl/engine/**','Main/rtl/vendor/verilog-axi/**',
+                'Main/sim/engine/rlst/**','Main/sim/engine/rast/**','Main/sim/axi_probe/axi_ram_model.v',
+                'Main/sw/lib/**','Main/doc/三维数值契约.md',P+'check_r2.py',P+'check_rast.py',
+                P+'rast_stream.py',P+'rast_model.py',P+'feature_build.py',P+'feature_config.py',P+'regs_gen.py']
+    elif name=='r2-synthesis':
+        inputs=['Main/rtl/**','Main/fpga/**','Main/sdk/**',
+                'Main/sim/engine/frontend/syn_bin/*.xml',P+'check_r2_synthesis.py',
+                P+'feature_build.py',P+'feature_config.py',P+'feature_synthesis.py',P+'regs_gen.py']
     elif name=='ddr-log':inputs=[P+'check_f5_bin.py','Main/sw/bsp/include/board_ddr_log.h','Main/sim/engine/frontend/test_ddr_log.c']
     elif name.startswith('feature-'):
         # 特性构型的判据同时依赖 RTL、配置真源、构建入口与仿真侧脚本。
@@ -157,7 +172,8 @@ def suggest(changed):
         if name.startswith('Main/rtl/engine/'):
             recognized=True
             part = Path(name).stem.removeprefix('engine_')
-            selected.append(part if part in CHECKS else 'ctrl')
+            if part in ('rlst','rast'):selected += ['rlst','rast-ports','rast-rtl']
+            else:selected.append(part if part in CHECKS else 'ctrl')
             selected += ['frame','instances','bin','synthesis']
         if name.startswith(('Main/rtl/top/','Main/rtl/bus/','Main/fpga/','Main/sdk/')):
             recognized=True

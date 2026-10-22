@@ -1,0 +1,2 @@
+FATAL: Main/sim/engine/rast/tb_rast_core.v:54: atomic writes
+       Time: 52505000  Scope: tb_rast_core

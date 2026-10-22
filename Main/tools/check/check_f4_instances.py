@@ -8,10 +8,13 @@ import re
 from pathlib import Path
 import subprocess
 from check_run import IncompleteCheck, paths, session
+from feature_build import write_headers
 ROOT=Path(__file__).resolve().parents[3]
 MAIN=ROOT/'Main'
 SIM=MAIN/'sim/engine/frontend'
 BUILD,LOGS=paths('frontend','f4')
+INCLUDE=write_headers('B3',BUILD/'include')
+GFX_CORE=[MAIN/'sw/lib/core'/p for p in ('format.c','fixmath.c','sin_tab.c')]
 RTL=MAIN/'rtl'
 def run(tag,args,cwd=ROOT,timeout=600):
     p=subprocess.run(list(map(str,args)),cwd=cwd,capture_output=True,text=True,timeout=timeout)
@@ -21,7 +24,7 @@ def run(tag,args,cwd=ROOT,timeout=600):
     if p.returncode:raise RuntimeError(tag+' exit '+str(p.returncode)+': '+body[-2000:])
     return body
 def models():
-    src=[SIM/'test_instances.c',*sorted((MAIN/'sw/lib/gfx').glob('*.c')),MAIN/'sw/lib/core/format.c']
+    src=[SIM/'test_instances.c',*sorted((MAIN/'sw/lib/gfx').glob('*.c')),*GFX_CORE]
     flags=['gcc','-O1','-g','-std=c11','-Wall','-Wextra','-Werror','-I'+str(MAIN/'sw/lib')]
     run('host_compile',flags+src+['-o',BUILD/'host'])
     out=run('host',[BUILD/'host',BUILD/'fixtures'])
@@ -33,7 +36,7 @@ def models():
 def compile_rtl(tag,defines=()):
     sources=[SIM/'tb_engine_instances.v',*sorted((RTL/'engine').glob('*.v')),
         RTL/'vendor/verilog-axi/axi_dma_rd.v',RTL/'vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
-    run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(RTL/'engine')]+
+    run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(INCLUDE),'-I'+str(RTL/'engine')]+
         ['-D'+d for d in defines]+['-o',BUILD/(tag+'.vvp')]+sources)
     return BUILD/(tag+'.vvp')
 def rtl_cases(profile):
@@ -63,7 +66,7 @@ def protocols():
     for tag,n,params in cases:
         sources=[SIM/'tb_engine_instances.v',*sorted((RTL/'engine').glob('*.v')),
             RTL/'vendor/verilog-axi/axi_dma_rd.v',RTL/'vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
-        run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(RTL/'engine'),*params,'-o',BUILD/(tag+'.vvp'),*sources])
+        run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(INCLUDE),'-I'+str(RTL/'engine'),*params,'-o',BUILD/(tag+'.vvp'),*sources])
         out=run(tag,['vvp','-n',BUILD/(tag+'.vvp'),'+CASE='+str(BUILD/'fixtures'/('case%02d'%n))])
         assert 'RESULT: PASS' in out and 'FAIL' not in out,tag+': '+out[-2500:]
         print('F4 PROTOCOL PASS '+tag,flush=True)
@@ -72,7 +75,7 @@ def lease():
     flags=['gcc','-O1','-g','-std=c11','-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections','-Wl,--gc-sections','-DGFX_FRONTEND_INST=1',
         '-I'+str(MAIN/'sw/lib'),'-I'+str(MAIN/'sw/bsp/include'),'-I'+str(game)]
     run('lease_compile',flags+[SIM/'test_instance_lease.c',game/'renderer.c',MAIN/'sw/bsp/memmap.c',
-        *sorted((MAIN/'sw/lib/gfx').glob('*.c')),MAIN/'sw/lib/core/format.c','-o',BUILD/'lease'])
+        *sorted((MAIN/'sw/lib/gfx').glob('*.c')),*GFX_CORE,'-o',BUILD/'lease'])
     print(run('lease',[BUILD/'lease']).strip(),flush=True)
 def v2():
     import importlib.util

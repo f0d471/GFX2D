@@ -1,0 +1,5 @@
+  continuous write: 16 beats, 2 bubbles
+  paused write: 16 beats done
+  read first beat: 25 cycles after AR handshake
+RESULT: PASS
+tb_slave_timed.v:116: $finish called at 780000 (1ps)

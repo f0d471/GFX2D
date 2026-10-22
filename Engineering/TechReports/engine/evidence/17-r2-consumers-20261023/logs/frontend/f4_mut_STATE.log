@@ -1,0 +1,15 @@
+WARNING: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:229: $readmemh(/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261023-010904-daec70eb/build/f4/fixtures/case66.cmd.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:234: $readmemh(/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261023-010904-daec70eb/build/f4/fixtures/case66.init.hex): Not enough words in the file for the requested range [0:8191].
+PERF-PIXEL got=0 want=231 (pixels=832 src_oob=601)
+MEM addr=00005010 got=ff605925ff571e42ff066045ff4e5f39 want=0073786a000273560033595aff4e5f39
+MEM addr=00005020 got=ff48443bff30266dff390501ff40426f want=000521640001602e007c7f2200286435
+MEM addr=00005030 got=ff1d5a37ff3d2c45ff7c7729ff39541c want=0065112b000b13790043725d00050878
+MEM addr=00005040 got=ff0f3614ff261669ff46606cff3e121a want=00687f470008720b00466b7f005d4523
+MEM addr=00005050 got=ff112375ff53521dff3b5022ff7e0e72 want=00181d6400280d22006b3e3c00052c67
+MEM addr=00005060 got=ff37040bff27783bff1f0c51ff1f7342 want=ff37040bff27783b002924350038777e
+MEM addr=00005080 got=ff560328ff3c4706ff2e4f2bff0e2915 want=002d281900505323ff2e4f2bff0e2915
+MEM addr=00005090 got=ff2c5912ff376e6fff67461dff527059 want=004b553d003d0e2100073d1b006a1c0e
+PROFILE fetch_cycles=189 decode_cycles=496 geometry_cycles=0 pixel_output_beats=0
+FRAME cycles=831 rd_burst=4 rd_beat=42 wr_burst=0 wr_beat=0 pixel=0 key=0 cmd=4 mem_bad=37
+RESULT: FAIL (frame)
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:401: $finish called at 17915000 (1ps)

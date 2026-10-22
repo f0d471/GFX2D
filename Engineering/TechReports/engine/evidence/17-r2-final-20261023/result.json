@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "rlst",
+    "rast-ports",
+    "rast-rtl"
+  ],
+  "run_id": "20261023-003904-821e985f"
+}
