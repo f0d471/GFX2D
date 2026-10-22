@@ -120,6 +120,7 @@ localparam [3:0] EC_ERR_FETCH = 4'd9;
 localparam [3:0] EC_ERR_BUS_READ = 4'd10;
 localparam [3:0] EC_ERR_BUS_WRITE = 4'd11;
 localparam [3:0] EC_ERR_TIMEOUT = 4'd12;
+localparam [3:0] EC_ERR_BAD_INDEX = 4'd13;
 
 // TEX 装载窗口（v1-TEX profile）：APB Slave0 页内偏移，
 // 不是第 0 页寄存器表的 12 位偏移；CPU 地址 = 0xF810_0000 + EC_TEX_WINDOW。

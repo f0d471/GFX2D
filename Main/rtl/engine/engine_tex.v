@@ -50,6 +50,18 @@ module engine_tex #(
     output wire [3:0]   stat_cidx,
     output wire [1:0]   stat_buf,
     output wire         busy          // 描述符在途（受理起到状态握手止）
+
+    // R2 光栅采样口：12b texel 词地址（bank=[1:0]，行=[11:2]，不得混用字节地址）。
+    // 按序固定延迟 L 拍返回，响应无 ready；发射前调用方扣 credit（≤L 笔未返回）。
+    // 与 APB 装载/legacy 读流互斥：模式交接等待旧请求收尾，停止发射后在途响应仍被接收。
+`ifdef GFX_HAS_RAST_TEX
+    ,
+    input  wire         samp_valid,
+    output wire         samp_ready,
+    input  wire [11:0]  samp_word,
+    output wire         samp_rvalid,
+    output wire [31:0]  samp_rdata
+`endif
 );
 
     // APB 译码
@@ -84,11 +96,26 @@ module engine_tex #(
     wire        str_fire = req_valid && req_ready;
     wire        issue    = busy_r && (left != 12'd0) && !stat_r;
 
-    // 宽读口：读流优先（见文件头）；APB 读只在流不占口的那一拍真正发生
+    // 宽读口：读流优先（见文件头）；APB 读只在流不占口的那一拍真正发生；
+    // R2 采样口与 legacy 流互斥（各自等对方在途清零），同拍竞争不存在
+`ifdef GFX_HAS_RAST_TEX
+    reg  [1:0]  samp_cnt;          // 已发射未返回的采样笔数（≤ READ_LATENCY）
+    wire        samp_fire = samp_valid && samp_ready;
+    wire        samp_done = samp_rvalid;   // 响应无 ready，到达即收
+    wire [9:0]  samp_row  = samp_word[11:2];
+    wire        rd_port_re = issue || samp_fire || (apb_rd_req && !busy_r && samp_cnt == 2'd0);
+    wire [9:0]  rd_port_ra = issue ? ra_cur : (samp_fire ? samp_row : apb_row);
+    assign samp_ready = !busy_r && (samp_cnt < READ_LATENCY);
+    assign req_ready  = !busy_r && (samp_cnt == 2'd0);
+`else
     wire        rd_port_re = issue || (apb_rd_req && !busy_r);
     wire [9:0]  rd_port_ra = issue ? ra_cur : apb_row;
+`endif
 
+`ifdef GFX_HAS_RAST_TEX
+`else
     assign req_ready = !busy_r;
+`endif
     assign busy      = busy_r;
 
     // 一级同步读，q1/v1/l1 为可选的第二级；注错让 valid/last 提前一级。
@@ -175,6 +202,34 @@ module engine_tex #(
         else if (apb_rd_setup)    prd_wsel <= apb_wsel;
     end
     assign prdata = apb_access ? bank_q[32*prd_wsel +: 32] : 32'd0;
+
+`ifdef GFX_HAS_RAST_TEX
+    // 采样响应：固定 L 拍，bank 选择与 valid 同延迟；注错提前一级见红
+    reg        sv1, sv2;
+    reg [1:0]  sb1, sb2;
+    reg [31:0] sd1, sd2;
+    always @(posedge clk) begin
+        if (rst) begin
+            sv1 <= 1'b0; sv2 <= 1'b0;
+            sb1 <= 2'd0; sb2 <= 2'd0;
+            sd1 <= 32'd0; sd2 <= 32'd0;
+            samp_cnt <= 2'd0;
+        end else begin
+            sv1 <= samp_fire; sb1 <= samp_word[1:0]; sd1 <= bank_q;
+            sv2 <= sv1;       sb2 <= sb1;            sd2 <= sd1;
+            samp_cnt <= samp_cnt + (samp_fire ? 2'd1 : 2'd0) - (samp_rvalid ? 2'd1 : 2'd0);
+        end
+    end
+`ifdef INJ_RAST_SAMP_EARLY
+    // 注错：valid/data 提前一拍，与 RAM 读出 错拍（连续换 bank 时见红）
+    assign samp_rvalid = (READ_LATENCY == 1) ? samp_fire : sv1;
+    assign samp_rdata  = (READ_LATENCY == 1) ? bank_q[32*samp_word[1:0] +: 32]
+                                             : bank_q[32*sb1 +: 32];
+`else
+    assign samp_rvalid = (READ_LATENCY == 1) ? sv1 : sv2;
+    assign samp_rdata  = (READ_LATENCY == 1) ? sd1 : sd2;
+`endif
+`endif
 
 endmodule
 `default_nettype wire

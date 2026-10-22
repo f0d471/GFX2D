@@ -83,11 +83,12 @@ STATUS_CODE_HI, STATUS_CODE_LO = 7, 4                     # [7:4] 错误码
 # 中断位（IRQ_EN 读写；IRQ_STAT 写 1 清）
 IRQ_BITS = [("LIST_DONE", 0), ("ERROR", 1)]
 
-# 错误码（0~9 为检查类错误；10~12 为硬件独有的总线读、总线写与超时错误）
+# 错误码（0~9 为检查类错误；10~12 为硬件独有的总线读、总线写与超时错误；
+# 13 为 R2 三维列表取数追加的 BAD_INDEX，不重排旧值）
 ERR_CODES = [("OK", 0), ("BAD_OPCODE", 1), ("BAD_FIELD", 2), ("BAD_EQUATION", 3),
              ("BAD_SURFACE", 4), ("BAD_SPACE", 5), ("BAD_FORMAT", 6), ("OVERLAP", 7),
              ("BAD_PREMULT", 8), ("FETCH", 9), ("BUS_READ", 10), ("BUS_WRITE", 11),
-             ("TIMEOUT", 12)]
+             ("TIMEOUT", 12), ("BAD_INDEX", 13)]
 
 SURF_SLOTS = 16
 PERF_COUNT = len(PERF_NAMES)

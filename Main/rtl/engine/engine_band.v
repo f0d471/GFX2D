@@ -16,7 +16,8 @@
 
 module engine_band #(
     parameter integer WIDTH_PIXELS = 640,
-    parameter integer STRIP_H = 16
+    parameter integer STRIP_H = 16,
+    parameter integer RAST_PIX_AW = $clog2(WIDTH_PIXELS*STRIP_H)   // R2 光栅像素号位宽
 )(
     input  wire         clk,
     input  wire         rst,
@@ -98,6 +99,17 @@ module engine_band #(
     output reg          wr_stat_last_row,
     input  wire         wr_stat_ready,
     output wire         wr_busy
+
+    // R2 光栅写口：RAST 相位内独占 RAM 写口；租约由帧层举着，期间 legacy
+    // 本地读/写与 flush 一律不受理；退出前所有光栅像素已退休（rast 屏障保证）
+`ifdef GFX_HAS_RAST
+    ,
+    input  wire         ras_lease,
+    input  wire [RAST_PIX_AW-1:0] ras_wr_pix,  // 条带内线性像素号，<WIDTH*STRIP_H
+    input  wire [31:0]  ras_wr_data,    // {8'd0, RGB}[23:0] 有效；高 8 位强制 0
+    input  wire         ras_wr_valid,
+    output wire         ras_wr_ready
+`endif
 );
 
     localparam integer ROW_WORDS = WIDTH_PIXELS/4;
@@ -111,6 +123,13 @@ module engine_band #(
     localparam [3:0] EMPTY = 0, LOAD_REQ = 1, LOAD_DATA = 2, LOAD_WAIT = 3,
                      EXEC = 4, FLUSH_REQ = 5, FLUSH_DATA = 6, FLUSH_WAIT = 7, CANCEL = 8;
     localparam [3:0] E_CFG = 1, E_RANGE = 2, E_READ = 3, E_WRITE = 4, E_LENGTH = 5;
+
+    // R2 光栅租约块：无 RAST 构型恒 0（新口整块不进编译输入）
+`ifdef GFX_HAS_RAST
+    wire lease_blk = ras_lease;
+`else
+    wire lease_blk = 1'b0;
+`endif
 
     reg [3:0]  phase;
     reg [31:0] r_bg, r_dst, bg_cursor, dst_cursor;
@@ -149,7 +168,7 @@ module engine_band #(
 `ifdef INJ_BAND_EARLY_FLUSH
     assign flush_ready = (phase == EXEC) && !cancel; // 注错：flush 提前，本地流没收尾
 `else
-    assign flush_ready = (phase == EXEC) && !rd_busy && !wr_busy && !cancel;
+    assign flush_ready = (phase == EXEC) && !rd_busy && !wr_busy && !cancel && !lease_blk;
 `endif
     assign active   = phase == EXEC;
     assign busy     = phase != EMPTY;
@@ -206,8 +225,8 @@ module engine_band #(
 
     assign rd_busy = rd_pending || r_reading || read_v || rd_stat_valid;
     assign wr_busy = wr_pending || w_writing || wr_stat_valid;
-    assign rd_ready = active && !rd_busy && !cancel && !flush_fire;
-    assign wr_ready = active && !wr_busy && !cancel && !flush_fire;
+    assign rd_ready = active && !rd_busy && !cancel && !flush_fire && !lease_blk;
+    assign wr_ready = active && !wr_busy && !cancel && !flush_fire && !lease_blk;
     wire local_rd_fire = rd_valid && rd_ready;
     wire local_wr_fire = wr_valid && wr_ready;
     wire local_rd_bad  = rd_pending && !desc_ok(rd_addr_q, rd_bytes_q);
@@ -223,18 +242,40 @@ module engine_band #(
     // 写流的现有消费者输出全 keep；局部写不静默接收半字掩码。
     wire bad_keep = pixel_write && ws_keep != 16'hffff;
     wire fill_write = (phase == LOAD_DATA) && dma_rvalid && !cancel && load_left != 0;
-    wire [AW-1:0] ram_wa = fill_write ? load_index : write_index;
-    // 像素写丢弃 X 字节，背景/flush 完整写入 128 位
+    // R2 光栅写：单 lane 写使能，词号 = 像素号>>2；与在途读同址时退让一拍
+`ifdef GFX_HAS_RAST
+`ifdef INJ_RAST_PIX_TRUNC
+    // 注错：像素号截到 11 位，每 2048 个位置别名一次
+    wire [RAST_PIX_AW-1:0] ras_pix = {{(RAST_PIX_AW-11){1'b0}}, ras_wr_pix[10:0]};
+`else
+    wire [RAST_PIX_AW-1:0] ras_pix = ras_wr_pix;
+`endif
+    wire [31:0]  ras_dat = ras_wr_data;
+    wire [AW-1:0] ras_word = ras_pix[RAST_PIX_AW-1:2];
+    wire [1:0]    ras_lane = ras_pix[1:0];
+    wire ras_hold = rd_busy || wr_busy || cancel || (ram_re && (ram_ra == ras_word));
+    assign ras_wr_ready = ras_lease && !ras_hold;
+    wire ras_fire = ras_lease && ras_wr_valid && !ras_hold;
+`else
+    wire [31:0]  ras_dat = 32'd0;
+    wire [AW-1:0] ras_word = {AW{1'b0}};
+    wire [1:0]    ras_lane = 2'd0;
+    wire ras_fire = 1'b0;
+`endif
+    wire [AW-1:0] ram_wa = fill_write ? load_index : ras_fire ? ras_word : write_index;
+    // 像素写丢弃 X 字节，背景/flush 完整写入 128 位，光栅写高 8 位强制 0
     wire [127:0] ram_wd = fill_write ? dma_rdata :
+        ras_fire ? {4{8'd0, ras_dat[23:0]}} :
         {8'd0, ws_data[119:96], 8'd0, ws_data[87:64], 8'd0, ws_data[55:32], 8'd0, ws_data[23:0]};
     wire [3:0] ram_we;
+    wire [3:0] ras_we_vec = {4{ras_fire}} & (4'b0001 << ras_lane);
     genvar p;
     generate for (p = 0; p < 4; p = p + 1) begin : pixel_enable
 `ifdef INJ_BAND_PIXEL_MASK
-        assign ram_we[p] = !rst && (fill_write || (pixel_write && !bad_keep)); // 注错：bit31 不写标记失效
+        assign ram_we[p] = !rst && (fill_write || (pixel_write && !bad_keep) || ras_we_vec[p]); // 注错：bit31 不写标记失效
 `else
         assign ram_we[p] = !rst && (fill_write ||
-            (pixel_write && !bad_keep && !ws_data[32*p+31]));
+            (pixel_write && !bad_keep && !ws_data[32*p+31]) || ras_we_vec[p]);
 `endif
     end endgenerate
 

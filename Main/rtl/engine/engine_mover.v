@@ -80,6 +80,16 @@ module engine_mover #(
     input  wire                  fd_valid,
     output wire                  fd_ready,
 
+    // R2 光栅表取数类：fd_raster=1 的描述符归光栅通道，读流/状态不再进命令 cbuf
+`ifdef GFX_HAS_RAST
+    input  wire                  fd_raster,    // 描述符类别：0 命令/实例，1 光栅表
+    output wire [127:0]          fsr_tdata,    // 光栅表读流（与 fs 互斥）
+    output wire                  fsr_tvalid,
+    output wire                  fsr_tlast,
+    input  wire                  fsr_tready,
+    output wire                  rd_stat_raster, // 光栅表读状态脉冲（负载同 rd_stat_*)
+`endif
+
     // 读流（搬运层 → 计算阵列）
     output wire [127:0]          rs_tdata,     // 像素读流，进行缓冲
     output wire [15:0]           rs_tkeep,
@@ -180,6 +190,9 @@ module engine_mover #(
     reg         rd_ctx_instance;
     reg         rd_ctx_cmd;      // 在途读描述符来源：0 像素读、1 FD；命令/实例由 rd_ctx_instance 区分
     reg         rd_ctx_bg, wr_ctx_flush;
+`ifdef GFX_HAS_RAST
+    reg         rd_ctx_raster;   // 光栅表类（rd_ctx_cmd 同时为 0，fs 流不见光栅拍）
+`endif
     reg         rd_busy, wr_busy;
     wire        drain_hold;
     reg  [1:0]  rd_ctx_buf;
@@ -361,7 +374,15 @@ module engine_mover #(
     wire        tex_rs_pix    = tx_rs_tvalid && !drain_hold;
     wire        band_rs_pix   = b_rsvalid && !drain_hold;
     assign      core_rs_tready = rd_drain_help ? 1'b1
-                               : (rd_ctx_bg ? 1'b1 : (rd_ctx_cmd ? fs_tready : (rs_tready && !tx_data_blocks)));
+                               : (rd_ctx_bg ? 1'b1 :
+`ifdef GFX_HAS_RAST
+                                 (rd_ctx_raster ? fsr_tready :
+`endif
+                                 (rd_ctx_cmd ? fs_tready : (rs_tready && !tx_data_blocks)))
+`ifdef GFX_HAS_RAST
+                                 )
+`endif
+                                 ;
     assign      rs_tvalid      = core_rs_pix || tex_rs_pix || band_rs_pix;
     assign      fs_tvalid      = core_rs_tvalid &&  rd_ctx_cmd && !rd_drain_help;
     assign      rs_tdata       = band_rs_pix ? b_rsdata : (tex_rs_pix ? tx_rs_tdata : core_rs_tdata);
@@ -392,12 +413,20 @@ module engine_mover #(
             rd_ctx_bg      <= 1'b0;
             rd_ctx_buf     <= 2'd0;
             rd_ctx_cidx    <= 4'd0;
+`ifdef GFX_HAS_RAST
+            rd_ctx_raster  <= 1'b0;
+`endif
         end else begin
             if (rd_fire) begin
                 rd_busy        <= 1'b1;
                 rd_status_seen <= 1'b0;
                 rd_stream_done <= 1'b0;
+`ifdef GFX_HAS_RAST
+                rd_ctx_cmd     <= rd_pick_fd && !fd_raster;
+                rd_ctx_raster  <= rd_pick_fd && fd_raster;
+`else
                 rd_ctx_cmd     <= rd_pick_fd;
+`endif
                 rd_ctx_instance<=rd_pick_fd && (fd_instance === 1'b1);
                 rd_ctx_bg      <= rd_pick_bg;
                 rd_ctx_buf     <= rd_pick_fd ? 2'd0 : rd_buf;
@@ -435,6 +464,13 @@ module engine_mover #(
     // DDR 状态无反压口；本地状态遇到同拍 DDR 状态时保留到下一拍。
     assign tx_stat_ready = !legacy_rd_stat;
     assign b_rstat_ready = !legacy_rd_stat && !tx_stat_valid;
+`ifdef GFX_HAS_RAST
+    // 光栅表读流与状态：与 fs 互斥（rd_ctx_cmd 对光栅类恒 0），顶层不汇聚
+    assign fsr_tdata      = core_rs_tdata;
+    assign fsr_tvalid     = core_rs_tvalid && rd_ctx_raster && !rd_drain_help;
+    assign fsr_tlast      = core_rs_tlast;
+    assign rd_stat_raster = legacy_rd_stat && rd_ctx_raster;
+`endif
 
     // 写侧：门控与排空补拍
     wire        wr_core_ready;   // 写核描述符口 ready
@@ -567,6 +603,9 @@ module engine_mover #(
     wire wr_axi_hs = (m_axi_awvalid && m_axi_awready) || (m_axi_wvalid && m_axi_wready)
                   || (m_axi_bvalid && m_axi_bready);
     wire rd_hs     = rd_fire || tx_fire || rs_fire || tx_rs_tvalid
+`ifdef GFX_HAS_RAST
+                   || fsr_tvalid
+`endif
                    || rd_status_valid || tx_stat_valid || rd_axi_hs || b_rfire || b_rsvalid || b_rstat;
     wire wr_hs     = wr_fire || ws_core_fire || wr_status_valid || wr_axi_hs || b_wfire ||
                      (ws_tvalid && b_wsready && b_wbusy) || b_wstat;
