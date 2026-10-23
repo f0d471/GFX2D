@@ -23,7 +23,7 @@
 <div class="n ctl" style="left:350px;top:480px;width:240px;height:70px"><div class="t">axi_mux_guard</div></div>
 
 <div class="n ext" style="left:856px;top:110px;width:170px;height:90px"><div class="t">HDMI 显示器</div>
-<div class="s">640×480 @ 60</div></div>
+<div class="s">640×480 @ 60 Hz</div></div>
 <div class="n ext" style="left:856px;top:470px;width:170px;height:90px"><div class="t">上位机</div>
 <div class="s">串口日志 / 输入</div></div>
 <div class="n mem" style="left:46px;top:676px;width:220px;height:64px"><div class="t" style="font-size:20px">SPI Flash 8 MB</div></div>
@@ -32,6 +32,7 @@
   <defs>
     <marker id="aB" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="16" refX="14" refY="7" orient="auto"><path d="M1,1 L14,7 L1,13" stroke="#3F668B" stroke-width="2.2"/></marker>
     <marker id="aR" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="13" refX="12" refY="5.5" orient="auto"><path d="M1,1 L12,5.5 L1,10" stroke="#E8546B" stroke-width="1.8"/></marker>
+    <marker id="aG" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="13" refX="12" refY="5.5" orient="auto"><path d="M1,1 L12,5.5 L1,10" stroke="#87929E" stroke-width="1.8"/></marker>
   </defs>
   <!-- AXI 数据通路 -->
   <line x1="470" y1="220" x2="470" y2="308" stroke="#3F668B" stroke-width="2.6" marker-end="url(#aB)"/>
@@ -48,8 +49,8 @@
   <polyline points="390,220 390,250 262,250 262,294" stroke="#E8546B" stroke-width="1.8" stroke-dasharray="2 4" marker-end="url(#aR)"/>
   <polyline points="650,220 650,282 292,282 292,294" stroke="#E8546B" stroke-width="1.8" stroke-dasharray="2 4" marker-end="url(#aR)"/>
   <!-- 外设 -->
-  <polyline points="852,585 130,585 130,526" stroke="#87929E" stroke-width="1.8" marker-end="url(#aR)"/>
-  <line x1="90" y1="676" x2="90" y2="526" stroke="#87929E" stroke-width="1.8" marker-end="url(#aR)"/>
+  <polyline points="852,585 130,585 130,526" stroke="#87929E" stroke-width="1.8" marker-end="url(#aG)"/>
+  <line x1="90" y1="676" x2="90" y2="526" stroke="#87929E" stroke-width="1.8" marker-end="url(#aG)"/>
 </svg>
 
 <div class="lbl" style="left:484px;top:252px">S1</div>
@@ -67,7 +68,7 @@
 
 <div class="lg" style="left:540px;top:640px;line-height:1.5">
 <span class="bx" style="border-color:#4A7FD0;background:#EDF3FB"></span>数据通路（AXI4 ×128 @100 MHz）<br>
-<span class="bx" style="border-color:#E8546B;background:#FBEEF0"></span>APB（虚线）· 中断（点线）<br>
+<span class="bx" style="border-color:#E8546B;background:#FBEEF0"></span>控制与发起 · APB（虚线）· 中断（点线）<br>
 <span class="bx" style="border-color:#67BA4A;background:#EEF7E9"></span>自研计算　<span class="bx" style="border-color:#A37A1C;background:#F9F2E1"></span>存储　<span class="bx" style="border-color:#87929E;background:#F4F5F7"></span>外部
 </div>
 </div></body></html>

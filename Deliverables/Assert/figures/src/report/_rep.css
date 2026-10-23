@@ -2,7 +2,10 @@
    框内只放名称与关键词，细节进正文。画布 ≤1000px 宽，正文级文字 ≥16px
    （14.4 cm 版心下折算 ≥6.5 pt，标题 ≥22px ≈ 9 pt）。
    颜色语义与 Assert/README.md 一致：蓝=数据通路，红=控制/寄存器，
-   绿=计算，金=存储与缓冲，灰=外部器件，灰虚线=未接入。 */
+   绿=计算，金=存储与缓冲，灰=外部器件，灰虚线=未接入。
+   预算/上限线一律规范红 #E8546B（实测确认档线用金）；图内不写"图N"式
+   交叉引用（改用图名）。导出后按 14.4 cm 版心宽核对：正文级文字 ≥7.5pt
+   等效，无文字重叠/裁切/孤字断词，串行逐张目检。 */
 html, body { margin: 0; padding: 0; background: #FFFFFF; }
 body { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; color: #1D2733;
        -webkit-font-smoothing: antialiased; }

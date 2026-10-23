@@ -29,8 +29,8 @@ ax.annotate("约 24 倍", xy=(0.16, 55), fontsize=11, color=INK, ha="center",
             bbox=dict(boxstyle="round,pad=0.25", fc="#EDF3FB", ec="#4A7FD0", lw=0.8))
 ax.annotate("软件存量未稳态", xy=(0.84, 36), fontsize=11, color=INK, ha="center",
             bbox=dict(boxstyle="round,pad=0.25", fc="#EDF3FB", ec="#4A7FD0", lw=0.8))
-ax.axhline(60, color="#67BA4A", lw=1.0, ls="--")
-ax.text(1.46, 61.5, "60 FPS", fontsize=10, color="#2E7D4F", ha="right")
+ax.axhline(60, color="#E8546B", lw=1.0, ls="--")
+ax.text(1.46, 61.5, "60 FPS", fontsize=10, color="#B23A48", ha="right")
 
 ax.set_xticks(x)
 ax.set_xticklabels(groups, fontsize=11)
