@@ -272,16 +272,25 @@ def build():
                      before=6, after=12)
             p.paragraph_format.page_break_before = True
         elif line.startswith("### "):
-            para(doc, line[4:], size=12, bold=True, hei=True, indent=False,
-                 before=8, after=4, keep_with_next=True)
+            p = para(doc, line[4:], size=12, bold=True, hei=True, indent=False,
+                     before=8, after=4, keep_with_next=True)
+            if pending_pb:
+                p.paragraph_format.page_break_before = True
+                pending_pb = False
         elif line.startswith("## "):
-            para(doc, line[3:], size=14, bold=True, hei=True, indent=False,
-                 before=10, after=5, keep_with_next=True)
+            p = para(doc, line[3:], size=14, bold=True, hei=True, indent=False,
+                     before=10, after=5, keep_with_next=True)
+            if pending_pb:
+                p.paragraph_format.page_break_before = True
+                pending_pb = False
         elif line.startswith("TC|"):
             tab_no += 1
-            para(doc, f"表{tab_no}　{line[3:]}", size=10.5, hei=True, bold=True,
-                 align=WD_ALIGN_PARAGRAPH.CENTER, indent=False, before=8, after=4,
-                 keep_with_next=True)
+            p = para(doc, f"表{tab_no}　{line[3:]}", size=10.5, hei=True, bold=True,
+                     align=WD_ALIGN_PARAGRAPH.CENTER, indent=False, before=8, after=4,
+                     keep_with_next=True)
+            if pending_pb:
+                p.paragraph_format.page_break_before = True
+                pending_pb = False
         elif line.startswith("FIG|"):
             seg = line.split("|")
             path, caption = seg[1], seg[2]
