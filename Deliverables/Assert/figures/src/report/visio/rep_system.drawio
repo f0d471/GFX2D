@@ -216,7 +216,7 @@
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points">
-                <mxPoint x="372.8" y="556" />
+                <mxPoint x="372.00" y="556" />
               </Array>
             </mxGeometry>
           </mxCell>
@@ -233,7 +233,7 @@
           </mxCell>
         </UserObject>
         <UserObject label="" tags="连接线" id="42">
-          <mxCell edge="1" parent="1" source="4" style="vsdxID=45;edgeStyle=none;dashed=1;dashPattern=2.00 2.00;startArrow=none;endArrow=block;startSize=5;endSize=2;strokeColor=#fd809f;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0093457943925233;exitY=0.9636363636363636;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.4827586206896552;entryDx=0;entryDy=0;entryPerimeter=0;" target="14">
+          <mxCell edge="1" parent="1" source="4" style="vsdxID=45;edgeStyle=none;dashed=1;dashPattern=2.00 2.00;startArrow=none;endArrow=block;startSize=5;endSize=2;strokeColor=#fd809f;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=1.0093457943925233;exitY=0.9545454545;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.4827586206896552;entryDx=0;entryDy=0;entryPerimeter=0;" target="14">
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points" />
@@ -248,7 +248,7 @@
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points">
-                <mxPoint x="544.8" y="559" />
+                <mxPoint x="544.00" y="559" />
               </Array>
             </mxGeometry>
           </mxCell>
@@ -278,13 +278,13 @@
               <mxPoint x="-1" as="offset" />
               <Array as="points">
                 <mxPoint x="366" y="464.5" />
-                <mxPoint x="640.11" y="464.5" />
+                <mxPoint x="640.00" y="464.5" />
               </Array>
             </mxGeometry>
           </mxCell>
         </UserObject>
         <UserObject label="&lt;div style=&quot;font-size: 1px&quot;&gt;&lt;/div&gt;" tags="连接线" id="48">
-          <mxCell edge="1" parent="1" source="4" style="vsdxID=24;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=2;strokeColor=#0b76a0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;align=center;exitX=1.0093457943925233;exitY=0.34545454545454546;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="9">
+          <mxCell edge="1" parent="1" source="4" style="vsdxID=24;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=2;strokeColor=#0b76a0;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;align=center;exitX=1.0093457943925233;exitY=0.3545454545;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="9">
             <mxGeometry relative="1" as="geometry">
               <mxPoint as="offset" />
               <Array as="points" />
@@ -299,7 +299,7 @@
             <mxGeometry relative="1" as="geometry">
               <mxPoint x="-1" as="offset" />
               <Array as="points">
-                <mxPoint x="331.38" y="718" />
+                <mxPoint x="331.00" y="718" />
               </Array>
             </mxGeometry>
           </mxCell>

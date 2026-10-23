@@ -166,6 +166,30 @@ for arr in cells['46'][2].findall('Array'):
             if p.get('x') == '331':
                 p.set('x', '285')
 print('  APB 0xF810_0000 moved left to x=274, bus left end -> 285')
+
+
+def wp_set(cid, idx, axis, val):
+    """改第 idx 个折点的坐标;vsdx 导入的折点与图形锚点常差零点几单位,渲染成斜线。"""
+    for arr in cells[cid][2].findall('Array'):
+        if arr.get('as') == 'points':
+            arr.findall('mxPoint')[idx].set(axis, '%.2f' % val)
+            return
+    raise SystemExit('wp_set: no waypoints in ' + cid)
+
+
+def frac_set(cid, key, val):
+    c = cells[cid][1]
+    c.set('style', re.sub(key + r'=[-0-9.]+', '%s=%.10f' % (key, val), c.get('style')))
+
+
+# 取直:5 条线在 vsdx 里端点/折点各差 0.4~1 单位,按 5.5px/单位渲染后是 2~5px 的斜线
+wp_set('39', 0, 'x', 372.0)                        # 中断_A 落 CPU 的竖段(原 372.8)
+wp_set('44', 0, 'x', 544.0)                        # S0 落 Axi_Mux 的竖段(原 544.8)
+wp_set('50', 0, 'x', 331.0)                        # UART0 落 CPU 的竖段(原 331.4)
+wp_set('47', 1, 'x', 640.0)                        # E000 落 display 的竖段(原 640.1)
+frac_set('42', 'exitY', (683.0 - 578.0) / 110.0)   # CPU->guard 横段(y 684->683)
+frac_set('48', 'exitY', (617.0 - 578.0) / 110.0)   # CPU->Axi_Mux 横段(y 616->617)
+print('  straightened: 39/44/50/47 verticals, 42/48 horizontals')
 save(tree, 'rep_system')
 
 # ---------- rep_swlayers: 右侧注释 + 图例 ----------
