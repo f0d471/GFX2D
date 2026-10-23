@@ -5,13 +5,13 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-plt.rcParams["font.family"] = ["Microsoft YaHei"]
+plt.rcParams["font.family"] = ["SimSun"]
 plt.rcParams["axes.unicode_minus"] = False
 
 BLUE, GRAY = "#4A7FD0", "#87929E"
 INK = "#1D2733"
 
-fig, ax = plt.subplots(figsize=(7.0, 3.1), dpi=200)
+fig, ax = plt.subplots(figsize=(7.0, 3.1), dpi=400)
 fig.subplots_adjust(left=0.09, right=0.97, top=0.86, bottom=0.16)
 
 groups = ["普通游戏（模式 2）", "压力关卡（负载旋钮 1744）"]

@@ -4,7 +4,7 @@ ROOT = Path(__file__).resolve().parents[5]
 import csv
 import matplotlib
 matplotlib.use("Agg")
-matplotlib.rcParams["font.family"] = ["Microsoft YaHei"]
+matplotlib.rcParams["font.family"] = ["SimSun"]
 matplotlib.rcParams["axes.unicode_minus"] = False
 import matplotlib.pyplot as plt
 
@@ -25,7 +25,7 @@ ft = [int(r[hdr.index("ft_max")]) / CYCLES_PER_MS for r in rows]
 nact = [int(r[hdr.index("n_active")]) for r in rows]
 BUDGET = 1_666_667 / CYCLES_PER_MS
 
-fig, ax = plt.subplots(figsize=(7.2, 3.2), dpi=200)
+fig, ax = plt.subplots(figsize=(7.2, 3.2), dpi=400)
 fig.subplots_adjust(left=0.09, right=0.90, top=0.86, bottom=0.17)
 ax.plot(range(len(ft)), ft, "-", color=BLUE, lw=1.4, marker="o", ms=2.5,
         label="该秒最长帧时间（左轴）")

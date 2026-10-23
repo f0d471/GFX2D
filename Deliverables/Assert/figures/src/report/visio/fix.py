@@ -115,8 +115,139 @@ def save(tree, name):
                 st = c.get('style')
                 if st and 'overflow=width' in st:
                     c.set('style', st.replace('overflow=width;', '').replace('overflow=width', ''))
+    normalize(tree, name)
     tree.write(f'{OUT}/{name}.fixed.drawio', encoding='utf-8', xml_declaration=True)
     print(f'saved {name}.fixed.drawio')
+
+
+# ---------- 全局规整:色板 / 箭头 / 线宽 / 术语 / 字号 ----------
+# 只归并"同义近重复"的颜色,保留语义色相;描边取深一档保证白底对比 >= 4.5:1,
+# 填充统一为同族浅色,避免同一语义在不同图里出现 2~3 个近似值。
+PALETTE = {
+    # fills: 计算 / 数据通路 / 存储 / 外部 / 告警 / 高亮
+    '#ecffed': '#e8f5e9', '#d9f2d0': '#e8f5e9', '#eef7e9': '#e8f5e9',
+    '#dff4fc': '#e3f2fd', '#eaf8fd': '#e3f2fd', '#edf3fb': '#e3f2fd',
+    '#eff1d8': '#fff8e1', '#e8ebc7': '#fff8e1', '#fbf2d9': '#fff8e1', '#f5f8e0': '#fff8e1',
+    '#e9e8ec': '#eceff1', '#e4e4e4': '#eceff1',
+    '#fee2fe': '#fce4ec', '#fb95d2': '#f8bbd0', '#ccd280': '#fff59d',
+    # strokes
+    '#128a0f': '#2e7d32', '#0c88ba': '#1565c0', '#156082': '#1565c0',
+    '#1499e9': '#1565c0', '#0b76a0': '#1565c0',
+    '#fe2e38': '#c62828', '#ee0000': '#c62828', '#ff0000': '#c62828',
+    '#c5cb70': '#8d6e00', '#a9ac3e': '#8d6e00', '#ceb024': '#8d6e00',
+    '#8d8f34': '#8d6e00', '#757b2d': '#8d6e00', '#7a7c2c': '#8d6e00',
+    '#fd809f': '#c2185b', '#fb95d2': '#c2185b',
+    '#7f7f7f': '#616161', '#a5a5a5': '#9e9e9e', '#b8b8b8': '#9e9e9e',
+    '#d8d8d8': '#bdbdbd', '#0c0c0c': '#212121',
+}
+
+# 术语/单位:与正文口径统一(MHz、SoC、DSP 前留空格、去掉零宽字符与悬空星号)
+WORDS = [
+    ('25.2Mhz', '25.2 MHz'), ('25.2MHZ', '25.2 MHz'),
+    ('Sapphire Soc', 'Sapphire SoC'),
+    ('12DSP', '12 DSP'), ('LIST_*', 'LIST'), (' LIST *', ' LIST'),
+    ('\u200b', ''), ('\u200c', ''), ('\u200d', ''),
+    ('APB 0xF810 _', 'APB 0xF810_'),
+    ('TMDS编码640x480@60HZ', 'TMDS 640×480@60'),
+    ('检测 / 屏蔽', '检测/屏蔽'),
+    ('CPU 生成命令', 'CPU 命令'), ('引擎渲染后台', '引擎渲染'),
+    ('屏幕呈现前台', '屏幕呈现'), ('保持前帧（掉帧）', '保持前帧'),
+    ('定点·CRC·正弦表·统计', '定点·CRC·统计'),
+]
+
+# 字号(单位)调整:只放大到几何上放得下的档位,不动已经是主标题的大字
+FONT_BUMP = {
+    'rep_system':  {8.47: 9.6},
+    'rep_ddrmap':  {11.29: 14.5, 14.11: 14.5},
+    'rep_dbuf':    {25.4: 35.6, 33.87: 47.4},
+    'rep_engine':  {8.47: 9.6},
+    'rep_assets':  {8.47: 9.2},
+}
+
+# 重写整条标签容易与图形自带文字叠字,这里留空;过长标签用手工短语替换处理
+REBUILD = {}
+
+# 图4 的整句注释移到图注,图内只留结构
+DROP_TEXT = {
+    'rep_dbuf': ['CPU填第N帧命令表与引擎渲染第N-1帧并行',
+                 '菱形为消隐期切换点',
+                 'list_done 晚于消隐'],
+}
+
+
+ZERO = re.compile('[\u200b\u200c\u200d\ufeff]')
+
+
+def normalize(tree, name):
+    bumps = FONT_BUMP.get(name, {})
+    drops = DROP_TEXT.get(name, [])
+
+    def fix_text(raw):
+        if not raw:
+            return raw
+        raw = ZERO.sub('', raw)          # 零宽字符会让后面的短语匹配失败,先清掉
+        for a, b in WORDS:
+            raw = raw.replace(a, b)
+        for a, b in bumps.items():
+            raw = raw.replace('font-size:%gpx' % a, 'font-size:%gpx' % b)
+        return raw
+
+    for el in tree.getroot().iter():
+        if el.tag == 'UserObject':
+            if el.get('label') is not None:
+                el.set('label', fix_text(el.get('label')))
+            c = el.find('mxCell')
+        else:
+            c = el if el.tag == 'mxCell' else None
+        if c is None:
+            continue
+        if c.get('value') is not None:
+            c.set('value', fix_text(c.get('value')))
+        st = c.get('style') or ''
+        st2 = re.sub(r'strokeWidth=[0-9.]+;?', '', st)          # 线宽统一走默认
+        st2 = re.sub(r'(startSize|endSize)=[0-9.]+', r'\1=4', st2)  # 箭头统一大小
+        if c.get('edge') == '1':
+            # 显式补齐,否则未写的边仍用 drawio 默认值,同一张图里箭头大小还会不一致
+            if 'endSize=' not in st2:
+                st2 += 'endSize=4;'
+            if 'startSize=' not in st2:
+                st2 += 'startSize=4;'
+        for a, b in PALETTE.items():
+            st2 = st2.replace(a, b).replace(a.upper(), b)
+        c.set('style', st2)
+
+    # 个别过长标签按行重写(保证不压框线)
+    for key, lines in REBUILD.get(name, []):
+        for el in tree.getroot().iter():
+            c = el.find('mxCell') if el.tag == 'UserObject' else (el if el.tag == 'mxCell' else None)
+            if c is None:
+                continue
+            raw = (el.get('label') if el.tag == 'UserObject' else c.get('value')) or ''
+            if key not in re.sub(r'<[^>]+>', '', raw):
+                continue
+            html = '<div style="font-size:1px">' + ''.join(
+                '<p style="text-align:center;margin:0;line-height:115%%;">'
+                '<font style="font-size:%.1fpx;font-family:SimSun;color:#1d2733">%s</font></p>' % (s, t)
+                for s, t in lines) + '</div>'
+            if el.tag == 'UserObject':
+                el.set('label', html)
+            else:
+                c.set('value', html)
+
+    # 丢掉整句注释(标签清空):按去空白后的纯文本匹配,避免标记/空格差异漏掉
+    if drops:
+        for el in tree.getroot().iter():
+            c = el.find('mxCell') if el.tag == 'UserObject' else (el if el.tag == 'mxCell' else None)
+            if c is None:
+                continue
+            v = (el.get('label') if el.tag == 'UserObject' else c.get('value')) or ''
+            plain = re.sub(r'\s+', '', re.sub(r'<[^>]+>', '', v))
+            if any(re.sub(r'\s+', '', d) in plain for d in drops):
+                if el.tag == 'UserObject':
+                    el.set('label', '')
+                else:
+                    c.set('value', '')
+
 
 # ---------- rep_engine: AX14 -> AXI4 ----------
 tree, root, cells = load('rep_engine')

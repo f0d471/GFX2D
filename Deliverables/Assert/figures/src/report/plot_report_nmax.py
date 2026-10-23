@@ -6,7 +6,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-plt.rcParams["font.family"] = ["Microsoft YaHei"]
+plt.rcParams["font.family"] = ["SimSun"]
 plt.rcParams["axes.unicode_minus"] = False
 
 LOG = ROOT / "Main/sw/apps/game/gfx2dGame/logs/sw9_perf_hw_nmax.log"
@@ -34,7 +34,7 @@ for line in open(LOG, encoding="utf-8", errors="replace"):
         if g:
             cur["result"] = (int(g.group(1)), int(g.group(2)))
 
-fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.2), dpi=200, sharey=False)
+fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.2), dpi=400, sharey=False)
 fig.subplots_adjust(left=0.08, right=0.98, top=0.82, bottom=0.18, wspace=0.24)
 
 for ax, sec, label in zip(axes, sections, ["16×16 标准弹", "8×8 小弹"]):
@@ -48,7 +48,7 @@ for ax, sec, label in zip(axes, sections, ["16×16 标准弹", "8×8 小弹"]):
         ax.axhspan(0, nmax, color="#EEF7E9", zorder=0)
         ax.axhline(nmax, color=GOLD, lw=1.0, ls="--", zorder=2)
         xytext = (420, 1150) if "16" in label else (700, 1750)
-        ax.annotate(f"N_max = {nmax}", xy=(knob, nmax), xytext=xytext,
+        ax.annotate("$N_{max}$ = %d" % nmax, xy=(knob, nmax), xytext=xytext,
                     fontsize=11, color=INK,
                     arrowprops=dict(arrowstyle="-", color=GOLD, lw=0.8))
     ax.set_title(label + f"（结果旋钮 {sec['result'][1]}）", fontsize=11.5)
