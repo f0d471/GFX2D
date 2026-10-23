@@ -45,6 +45,30 @@ def set_font(run, size, bold=False, hei=False, color=None):
         f.color.rgb = color
 
 
+def add_runs(p, text, size, bold=False, hei=False, color=None):
+    """正文/表格统一出口:支持 **加粗**,并把 N_max 排成 N + 下标 max。"""
+    for seg in re.split(r"(\*\*.+?\*\*)", text):
+        if not seg:
+            continue
+        if seg.startswith("**") and seg.endswith("**"):
+            core, is_bold = seg[2:-2], True
+        else:
+            core, is_bold = seg, bold
+        for part in re.split(r"(N_max)", core):
+            if not part:
+                continue
+            if part == "N_max":
+                r = p.add_run("N")
+                set_font(r, size, is_bold, hei, color)
+                r2 = p.add_run("max")
+                set_font(r2, size, is_bold, hei, color)
+                r2.font.subscript = True
+            else:
+                r = p.add_run(part)
+                set_font(r, size, is_bold, hei, color)
+    return p
+
+
 def para(doc, text="", size=12, bold=False, hei=False, align=None, indent=True,
          spacing=1.5, before=0, after=0, color=None, keep_with_next=False):
     p = doc.add_paragraph()
@@ -59,15 +83,7 @@ def para(doc, text="", size=12, bold=False, hei=False, align=None, indent=True,
     if indent:
         pf.first_line_indent = Pt(size * 2)
     if text:
-        for seg in re.split(r"(\*\*.+?\*\*)", text):
-            if not seg:
-                continue
-            if seg.startswith("**") and seg.endswith("**"):
-                r = p.add_run(seg[2:-2])
-                set_font(r, size, bold=True, hei=hei, color=color)
-            else:
-                r = p.add_run(seg)
-                set_font(r, size, bold, hei, color)
+        add_runs(p, text, size, bold, hei, color)
     return p
 
 
@@ -95,8 +111,7 @@ def add_table(doc, rows, widths_cm):
             cell.text = ""
             p = cell.paragraphs[0]
             p.paragraph_format.line_spacing = 1.15
-            r = p.add_run(text)
-            set_font(r, 10.5, bold=(i == 0))
+            add_runs(p, text, 10.5, bold=(i == 0))
             if i == 0:
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 shade(cell, "EDF0F3")
