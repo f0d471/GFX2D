@@ -200,13 +200,16 @@ def build():
         elif line == "#ABSTRACT":
             para(doc, "摘　要", size=14, bold=True, hei=True,
                  align=WD_ALIGN_PARAGRAPH.CENTER, indent=False,
-                 before=12, after=8)
+                 before=8, after=6)
             body = []
             while i < len(lines) and lines[i].strip() != "#END":
                 body.append(lines[i].strip())
                 i += 1
             i += 1  # 消费 #END 行
-            para(doc, "".join(body), indent=True)
+            # 摘要按源文件分行排版:每行一段,空行跳过
+            for seg in body:
+                if seg:
+                    para(doc, seg, indent=True, after=2)
         elif line == "[[PAGEBREAK]]":
             doc.add_page_break()
         elif line.startswith("#附|"):
