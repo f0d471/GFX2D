@@ -1,0 +1,26 @@
+CHECK-FAIL reject BAND preserves EN got=00000000 want=00000001
+CHECK-FAIL reject BAND preserves PERF got=00000000 want=00000008
+CHECK-FAIL reject BIN preserves EN got=00000000 want=00000001
+CHECK-FAIL reject BIN preserves PERF got=00000000 want=00000008
+CHECK-FAIL door accepted got=00000001 want=00000000
+CHECK-FAIL completed got=00000000 want=00000001
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+CHECK-FAIL destination and guards got=00102030 want=00604020
+FEATURE-FUNCTION-FAIL checks=6737 failures=24
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/features/tb_feature_function.v:276: $finish called at 315000000 (1ps)

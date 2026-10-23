@@ -7,8 +7,18 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 
 ## 现在的状态
 
+当前开发默认构型是B0。可选B7已接入固定功能三维条带光栅：CPU setup、
+第1页影子参数、单一门铃/帧控制、片上颜色/z、纹理与HUD分相执行。
+B7本轮构建59623 XLR/187 RAM/26 DSP，core setup/hold +0.762/+0.026ns；
+11帧三方CRC、显示健康及错误/复位恢复已上板验证。HW/TEX记录性N_max为1870/1969，
+各3600场确认，不作为门槛。JTAG位流与程序保存在本地忽略目录
+`bit/board_release_r3_20261023/`，使用方法见目录README；Flash未改，完整3D演示另行开发。
+接口与复现入口见`rtl/engine/engine-manual.md`第8节和`sim/engine/r3/README.md`。
+
+以下早期整机资源/性能数字保留其历史构型与验收边界。
+
 整机已实现直通引擎、片上纹理（TEX）、条带模式（BAND，ABI v2）、游戏条带后端
-与硬件分桶（PB）绘制前端。当前整机 60064 XLR / 172 RAM / 23 DSP，
+与硬件分桶（PB）绘制前端。早期PB构型为 60064 XLR / 172 RAM / 23 DSP，
 `core_clk` setup/hold +0.104/+0.022 ns，所有时钟非负，`CAPS=0x0000346F`，
 Flash 内容未改写。游戏条带后端接入、`N_max` 与 16 KiB cache 对照已于
 2026-10-09 验收：4KB 同位流 `N_max` 直通/TEX 1891/2237，条带 424/505；

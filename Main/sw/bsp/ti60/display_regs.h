@@ -5,6 +5,7 @@
 #define DISP_BASE           0xF810E000u
 #define DISP_ID             (DISP_BASE + 0x000u)
 #define DISP_CTRL           (DISP_BASE + 0x008u)
+#define DISP_RESPERR        (DISP_BASE + 0x034u)
 #define DISP_BACK_BASE      (DISP_BASE + 0x010u)
 #define DISP_SWAP_REQ       (DISP_BASE + 0x014u)
 #define DISP_IRQ_EN         (DISP_BASE + 0x0D0u)

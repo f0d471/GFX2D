@@ -1,0 +1,1134 @@
+{
+  "variants": [
+    {
+      "config": "0000000-000",
+      "status": "PASS",
+      "checks": 6747
+    },
+    {
+      "config": "0000000-001",
+      "status": "PASS",
+      "checks": 6745
+    },
+    {
+      "config": "0000000-010",
+      "status": "PASS",
+      "checks": 6743
+    },
+    {
+      "config": "0000000-011",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0000000-011-d",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0000000-100",
+      "status": "PASS",
+      "checks": 6743
+    },
+    {
+      "config": "0000000-101",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0000000-110",
+      "status": "PASS",
+      "checks": 6739
+    },
+    {
+      "config": "0000000-111",
+      "status": "PASS",
+      "checks": 6737
+    },
+    {
+      "config": "0000000-111-d",
+      "status": "PASS",
+      "checks": 6737
+    },
+    {
+      "config": "0001000-000",
+      "status": "PASS",
+      "checks": 6745
+    },
+    {
+      "config": "0001000-001",
+      "status": "PASS",
+      "checks": 6743
+    },
+    {
+      "config": "0001000-010",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0001000-011",
+      "status": "PASS",
+      "checks": 6739
+    },
+    {
+      "config": "0001000-011-d",
+      "status": "PASS",
+      "checks": 6739
+    },
+    {
+      "config": "0001000-100",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0001000-101",
+      "status": "PASS",
+      "checks": 6739
+    },
+    {
+      "config": "0001000-110",
+      "status": "PASS",
+      "checks": 6737
+    },
+    {
+      "config": "0001000-111",
+      "status": "PASS",
+      "checks": 6735
+    },
+    {
+      "config": "0001000-111-d",
+      "status": "PASS",
+      "checks": 6735
+    },
+    {
+      "config": "0100000-000",
+      "status": "PASS",
+      "checks": 6747
+    },
+    {
+      "config": "0100000-001",
+      "status": "PASS",
+      "checks": 6745
+    },
+    {
+      "config": "0100000-010",
+      "status": "PASS",
+      "checks": 6743
+    },
+    {
+      "config": "0100000-011",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0100000-011-d",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0100000-100",
+      "status": "PASS",
+      "checks": 6743
+    },
+    {
+      "config": "0100000-101",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0100000-110",
+      "status": "PASS",
+      "checks": 6739
+    },
+    {
+      "config": "0100000-111",
+      "status": "PASS",
+      "checks": 6737
+    },
+    {
+      "config": "0100000-111-d",
+      "status": "PASS",
+      "checks": 6737
+    },
+    {
+      "config": "0101000-000",
+      "status": "PASS",
+      "checks": 6745
+    },
+    {
+      "config": "0101000-001",
+      "status": "PASS",
+      "checks": 6743
+    },
+    {
+      "config": "0101000-010",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0101000-011",
+      "status": "PASS",
+      "checks": 6739
+    },
+    {
+      "config": "0101000-011-d",
+      "status": "PASS",
+      "checks": 6739
+    },
+    {
+      "config": "0101000-100",
+      "status": "PASS",
+      "checks": 6741
+    },
+    {
+      "config": "0101000-101",
+      "status": "PASS",
+      "checks": 6739
+    },
+    {
+      "config": "0101000-110",
+      "status": "PASS",
+      "checks": 6737
+    },
+    {
+      "config": "0101000-111",
+      "status": "PASS",
+      "checks": 6735
+    },
+    {
+      "config": "0101000-111-d",
+      "status": "PASS",
+      "checks": 6735
+    },
+    {
+      "config": "0101100-000",
+      "status": "PASS",
+      "checks": 23130
+    },
+    {
+      "config": "0101100-001",
+      "status": "PASS",
+      "checks": 23128
+    },
+    {
+      "config": "0101100-010",
+      "status": "PASS",
+      "checks": 23126
+    },
+    {
+      "config": "0101100-011",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0101100-011-d",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0101100-100",
+      "status": "PASS",
+      "checks": 23126
+    },
+    {
+      "config": "0101100-101",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0101100-110",
+      "status": "PASS",
+      "checks": 23122
+    },
+    {
+      "config": "0101100-111",
+      "status": "PASS",
+      "checks": 23120
+    },
+    {
+      "config": "0101100-111-d",
+      "status": "PASS",
+      "checks": 23120
+    },
+    {
+      "config": "0110000-000",
+      "status": "PASS",
+      "checks": 23130
+    },
+    {
+      "config": "0110000-001",
+      "status": "PASS",
+      "checks": 23128
+    },
+    {
+      "config": "0110000-010",
+      "status": "PASS",
+      "checks": 23126
+    },
+    {
+      "config": "0110000-011",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0110000-011-d",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0110000-100",
+      "status": "PASS",
+      "checks": 23126
+    },
+    {
+      "config": "0110000-101",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0110000-110",
+      "status": "PASS",
+      "checks": 23122
+    },
+    {
+      "config": "0110000-111",
+      "status": "PASS",
+      "checks": 23120
+    },
+    {
+      "config": "0110000-111-d",
+      "status": "PASS",
+      "checks": 23120
+    },
+    {
+      "config": "0110010-000",
+      "status": "PASS",
+      "checks": 23130
+    },
+    {
+      "config": "0110010-001",
+      "status": "PASS",
+      "checks": 23128
+    },
+    {
+      "config": "0110010-010",
+      "status": "PASS",
+      "checks": 23126
+    },
+    {
+      "config": "0110010-011",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0110010-011-d",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0110010-100",
+      "status": "PASS",
+      "checks": 23126
+    },
+    {
+      "config": "0110010-101",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0110010-110",
+      "status": "PASS",
+      "checks": 23122
+    },
+    {
+      "config": "0110010-111",
+      "status": "PASS",
+      "checks": 23120
+    },
+    {
+      "config": "0110010-111-d",
+      "status": "PASS",
+      "checks": 23120
+    },
+    {
+      "config": "0111000-000",
+      "status": "PASS",
+      "checks": 23128
+    },
+    {
+      "config": "0111000-001",
+      "status": "PASS",
+      "checks": 23126
+    },
+    {
+      "config": "0111000-010",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0111000-011",
+      "status": "PASS",
+      "checks": 23122
+    },
+    {
+      "config": "0111000-011-d",
+      "status": "PASS",
+      "checks": 23122
+    },
+    {
+      "config": "0111000-100",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0111000-101",
+      "status": "PASS",
+      "checks": 23122
+    },
+    {
+      "config": "0111000-110",
+      "status": "PASS",
+      "checks": 23120
+    },
+    {
+      "config": "0111000-111",
+      "status": "PASS",
+      "checks": 23118
+    },
+    {
+      "config": "0111000-111-d",
+      "status": "PASS",
+      "checks": 23118
+    },
+    {
+      "config": "0111010-000",
+      "status": "PASS",
+      "checks": 23128
+    },
+    {
+      "config": "0111010-001",
+      "status": "PASS",
+      "checks": 23126
+    },
+    {
+      "config": "0111010-010",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0111010-011",
+      "status": "PASS",
+      "checks": 23122
+    },
+    {
+      "config": "0111010-011-d",
+      "status": "PASS",
+      "checks": 23122
+    },
+    {
+      "config": "0111010-100",
+      "status": "PASS",
+      "checks": 23124
+    },
+    {
+      "config": "0111010-101",
+      "status": "PASS",
+      "checks": 23122
+    },
+    {
+      "config": "0111010-110",
+      "status": "PASS",
+      "checks": 23120
+    },
+    {
+      "config": "0111010-111",
+      "status": "PASS",
+      "checks": 23118
+    },
+    {
+      "config": "0111010-111-d",
+      "status": "PASS",
+      "checks": 23118
+    },
+    {
+      "config": "0111100-000",
+      "status": "PASS",
+      "checks": 39513
+    },
+    {
+      "config": "0111100-001",
+      "status": "PASS",
+      "checks": 39511
+    },
+    {
+      "config": "0111100-010",
+      "status": "PASS",
+      "checks": 39509
+    },
+    {
+      "config": "0111100-011",
+      "status": "PASS",
+      "checks": 39507
+    },
+    {
+      "config": "0111100-011-d",
+      "status": "PASS",
+      "checks": 39507
+    },
+    {
+      "config": "0111100-100",
+      "status": "PASS",
+      "checks": 39509
+    },
+    {
+      "config": "0111100-101",
+      "status": "PASS",
+      "checks": 39507
+    },
+    {
+      "config": "0111100-110",
+      "status": "PASS",
+      "checks": 39505
+    },
+    {
+      "config": "0111100-111",
+      "status": "PASS",
+      "checks": 39503
+    },
+    {
+      "config": "0111100-111-d",
+      "status": "PASS",
+      "checks": 39503
+    },
+    {
+      "config": "1000000-000",
+      "status": "PASS",
+      "checks": 6744
+    },
+    {
+      "config": "1000000-001",
+      "status": "PASS",
+      "checks": 6742
+    },
+    {
+      "config": "1000000-010",
+      "status": "PASS",
+      "checks": 6740
+    },
+    {
+      "config": "1000000-011",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1000000-011-d",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1000000-100",
+      "status": "PASS",
+      "checks": 6740
+    },
+    {
+      "config": "1000000-101",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1000000-110",
+      "status": "PASS",
+      "checks": 6736
+    },
+    {
+      "config": "1000000-111",
+      "status": "PASS",
+      "checks": 6734
+    },
+    {
+      "config": "1000000-111-d",
+      "status": "PASS",
+      "checks": 6734
+    },
+    {
+      "config": "1001000-000",
+      "status": "PASS",
+      "checks": 6742
+    },
+    {
+      "config": "1001000-001",
+      "status": "PASS",
+      "checks": 6740
+    },
+    {
+      "config": "1001000-010",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1001000-011",
+      "status": "PASS",
+      "checks": 6736
+    },
+    {
+      "config": "1001000-011-d",
+      "status": "PASS",
+      "checks": 6736
+    },
+    {
+      "config": "1001000-100",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1001000-101",
+      "status": "PASS",
+      "checks": 6736
+    },
+    {
+      "config": "1001000-110",
+      "status": "PASS",
+      "checks": 6734
+    },
+    {
+      "config": "1001000-111",
+      "status": "PASS",
+      "checks": 6732
+    },
+    {
+      "config": "1001000-111-d",
+      "status": "PASS",
+      "checks": 6732
+    },
+    {
+      "config": "1100000-000",
+      "status": "PASS",
+      "checks": 6744
+    },
+    {
+      "config": "1100000-001",
+      "status": "PASS",
+      "checks": 6742
+    },
+    {
+      "config": "1100000-010",
+      "status": "PASS",
+      "checks": 6740
+    },
+    {
+      "config": "1100000-011",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1100000-011-d",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1100000-100",
+      "status": "PASS",
+      "checks": 6740
+    },
+    {
+      "config": "1100000-101",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1100000-110",
+      "status": "PASS",
+      "checks": 6736
+    },
+    {
+      "config": "1100000-111",
+      "status": "PASS",
+      "checks": 6734
+    },
+    {
+      "config": "1100000-111-d",
+      "status": "PASS",
+      "checks": 6734
+    },
+    {
+      "config": "1101000-000",
+      "status": "PASS",
+      "checks": 6742
+    },
+    {
+      "config": "1101000-001",
+      "status": "PASS",
+      "checks": 6740
+    },
+    {
+      "config": "1101000-010",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1101000-011",
+      "status": "PASS",
+      "checks": 6736
+    },
+    {
+      "config": "1101000-011-d",
+      "status": "PASS",
+      "checks": 6736
+    },
+    {
+      "config": "1101000-100",
+      "status": "PASS",
+      "checks": 6738
+    },
+    {
+      "config": "1101000-101",
+      "status": "PASS",
+      "checks": 6736
+    },
+    {
+      "config": "1101000-110",
+      "status": "PASS",
+      "checks": 6734
+    },
+    {
+      "config": "1101000-111",
+      "status": "PASS",
+      "checks": 6732
+    },
+    {
+      "config": "1101000-111-d",
+      "status": "PASS",
+      "checks": 6732
+    },
+    {
+      "config": "1101100-000",
+      "status": "PASS",
+      "checks": 23127
+    },
+    {
+      "config": "1101100-001",
+      "status": "PASS",
+      "checks": 23125
+    },
+    {
+      "config": "1101100-010",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1101100-011",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1101100-011-d",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1101100-100",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1101100-101",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1101100-110",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1101100-111",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1101100-111-d",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1110000-000",
+      "status": "PASS",
+      "checks": 23127
+    },
+    {
+      "config": "1110000-001",
+      "status": "PASS",
+      "checks": 23125
+    },
+    {
+      "config": "1110000-010",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1110000-011",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1110000-011-d",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1110000-100",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1110000-101",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1110000-110",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1110000-111",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1110000-111-d",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1110010-000",
+      "status": "PASS",
+      "checks": 23127
+    },
+    {
+      "config": "1110010-001",
+      "status": "PASS",
+      "checks": 23125
+    },
+    {
+      "config": "1110010-010",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1110010-011",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1110010-011-d",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1110010-100",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1110010-101",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1110010-110",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1110010-111",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1110010-111-d",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1110011-000",
+      "status": "PASS",
+      "checks": 23127
+    },
+    {
+      "config": "1110011-001",
+      "status": "PASS",
+      "checks": 23125
+    },
+    {
+      "config": "1110011-010",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1110011-011",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1110011-011-d",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1110011-100",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1110011-101",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1110011-110",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1110011-111",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1110011-111-d",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1111000-000",
+      "status": "PASS",
+      "checks": 23125
+    },
+    {
+      "config": "1111000-001",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1111000-010",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1111000-011",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1111000-011-d",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1111000-100",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1111000-101",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1111000-110",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1111000-111",
+      "status": "PASS",
+      "checks": 23115
+    },
+    {
+      "config": "1111000-111-d",
+      "status": "PASS",
+      "checks": 23115
+    },
+    {
+      "config": "1111010-000",
+      "status": "PASS",
+      "checks": 23125
+    },
+    {
+      "config": "1111010-001",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1111010-010",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1111010-011",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1111010-011-d",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1111010-100",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1111010-101",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1111010-110",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1111010-111",
+      "status": "PASS",
+      "checks": 23115
+    },
+    {
+      "config": "1111010-111-d",
+      "status": "PASS",
+      "checks": 23115
+    },
+    {
+      "config": "1111011-000",
+      "status": "PASS",
+      "checks": 23125
+    },
+    {
+      "config": "1111011-001",
+      "status": "PASS",
+      "checks": 23123
+    },
+    {
+      "config": "1111011-010",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1111011-011",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1111011-011-d",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1111011-100",
+      "status": "PASS",
+      "checks": 23121
+    },
+    {
+      "config": "1111011-101",
+      "status": "PASS",
+      "checks": 23119
+    },
+    {
+      "config": "1111011-110",
+      "status": "PASS",
+      "checks": 23117
+    },
+    {
+      "config": "1111011-111",
+      "status": "PASS",
+      "checks": 23115
+    },
+    {
+      "config": "1111011-111-d",
+      "status": "PASS",
+      "checks": 23115
+    },
+    {
+      "config": "1111100-000",
+      "status": "PASS",
+      "checks": 39510
+    },
+    {
+      "config": "1111100-001",
+      "status": "PASS",
+      "checks": 39508
+    },
+    {
+      "config": "1111100-010",
+      "status": "PASS",
+      "checks": 39506
+    },
+    {
+      "config": "1111100-011",
+      "status": "PASS",
+      "checks": 39504
+    },
+    {
+      "config": "1111100-011-d",
+      "status": "PASS",
+      "checks": 39504
+    },
+    {
+      "config": "1111100-100",
+      "status": "PASS",
+      "checks": 39506
+    },
+    {
+      "config": "1111100-101",
+      "status": "PASS",
+      "checks": 39504
+    },
+    {
+      "config": "1111100-110",
+      "status": "PASS",
+      "checks": 39502
+    },
+    {
+      "config": "1111100-111",
+      "status": "PASS",
+      "checks": 39500
+    },
+    {
+      "config": "1111100-111-d",
+      "status": "PASS",
+      "checks": 39500
+    }
+  ],
+  "mutations": [
+    {
+      "mutation": "tex-floating",
+      "detected": "dangling input port",
+      "count": 1
+    },
+    {
+      "mutation": "ctrl-side-effect",
+      "detected": "functional mismatch"
+    },
+    {
+      "mutation": "band-gate",
+      "detected": "functional mismatch"
+    },
+    {
+      "mutation": "key-ignored",
+      "detected": "functional mismatch"
+    },
+    {
+      "mutation": "soft-reset-clip",
+      "detected": "functional mismatch"
+    },
+    {
+      "mutation": "backend-transition",
+      "detected": "functional mismatch"
+    }
+  ],
+  "complete": true,
+  "profile": "acceptance",
+  "scope": "directed configuration functions; not all mechanism suites"
+}

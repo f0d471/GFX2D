@@ -89,6 +89,7 @@ module engine_mover #(
     output wire [15:0]           fsr_tkeep,
     input  wire                  fsr_tready,
     output wire                  rd_stat_raster, // 光栅表读状态脉冲（负载同 rd_stat_*)
+    output wire                  raster_tmo,   // 真实在途 raster DDR 读超时，不按帧相位猜测
     input  wire                  ras_lease,
     input  wire [13:0]           ras_wr_pix,
     input  wire [31:0]           ras_wr_data,
@@ -663,6 +664,9 @@ module engine_mover #(
 
     assign tmo_evt = rd_over_evt || wr_over_evt;
     assign tmo_dir = wr_over_evt;
+`ifdef GFX_HAS_RAST
+    assign raster_tmo=rd_over_evt && !wr_over_evt && rd_busy && rd_ctx_raster;
+`endif
 
     // 两个核（源码不改）
     axi_dma_rd #(

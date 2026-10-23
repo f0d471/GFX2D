@@ -1,0 +1,11 @@
+OWNER PASS kind=0 beats=8 last-held=32
+OWNER PASS kind=2 beats=8 last-held=32
+OWNER PASS kind=1 beats=8 last-held=32
+OWNER PASS kind=0 beats=8 last-held=32
+MISMATCH f=0 strip=0 pix=6600 got=12345678/ffff want=00804020/005a
+MISMATCH f=0 strip=0 pix=6601 got=12345678/ffff want=00804020/005a
+MISMATCH f=0 strip=0 pix=6602 got=12345678/ffff want=00804020/005a
+MISMATCH f=0 strip=0 pix=6603 got=12345678/ffff want=00804020/005a
+MISMATCH f=0 strip=0 pix=7240 got=12345678/ffff want=00804020/005a
+FATAL: Main/sim/engine/rast/tb_engine_rast.v:527: BAND/z compare errors=14
+       Time: 64040000  Scope: tb_engine_rast

@@ -65,8 +65,9 @@ def main():
         import feature_config as fc
         for preset in fc.PRESETS:
             sources=fb.enabled_rtl(fc.parse_name(preset))
-            assert not any(Path(x).stem in ('engine_rlst','engine_rast') for x in sources)
-        print('CLOSED PASS B0..B6 exclude rlst/rast; legacy TEX retained by L1',flush=True)
+            present=any(Path(x).stem in ('engine_rlst','engine_rast') for x in sources)
+            assert present==bool(fc.parse_name(preset)['RAST'])
+        print('CLOSED PASS raster sources follow RAST; legacy TEX retained by L1',flush=True)
     else:
         library=build/'reference.so'
         command(['gcc','-std=gnu11','-O2','-Wall','-Wextra','-Werror','-fPIC','-shared',

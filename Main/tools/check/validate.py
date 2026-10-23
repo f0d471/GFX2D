@@ -35,6 +35,14 @@ for name,group,purpose in [('rlst','rlst','R2 取数/FIFO/分片/协议/取消')
     add(name,[sys.executable,P+'check_r2.py','--group',group],purpose,timeout=10800)
 add('r2-synthesis',[sys.executable,P+'check_r2_synthesis.py'],
     'R2 独立 L1/L2 RAM/DSP/时序及 B0/B3 整机四步（Windows）',timeout=18000)
+add('r3',[sys.executable,P+'check_r3.py'],
+    'R3 五构型顶层整帧、CSR/尾检/取消/重启与四类变异',timeout=18000)
+add('r3-synthesis',[sys.executable,P+'check_feature_synthesis.py','--only','B0','B7'],
+    'R3 B0/B7 整机四步、全时钟关系与关闭态网表',timeout=18000)
+add('r3-legacy-board',[sys.executable,P+'check_feature_board.py','--only','B0','B7'],
+    'R3 B0/B7 同 BIN 旧功能板测',['r3-synthesis'],timeout=3600)
+add('r3-board',[sys.executable,P+'check_r3_board.py'],
+    'R3 B7 十一帧双参考 CRC、故障恢复、显示健康与注错见红',['r3-synthesis'],timeout=7200)
 for name, script, purpose in [('layers','check_sw_layers.sh','软件分层与构建'),
     ('pc','check_sw4_pc.sh','PC 显示、输入与录像'),('assets','check_sw5_assets.sh','素材与镜像'),
     ('demo','check_sw6_demo.sh','基础 Demo'),('game','check_sw7_game.sh','游戏规则、回放与相关变异'),
@@ -61,13 +69,13 @@ add('feature-netlist',[sys.executable,P+'feature_netlist.py','--tree-root','Main
     '按构型的 netlist 结构检查：关闭的机制不得在综合网表里留下信号（Windows，先跑综合）')
 add('feature-caps',[sys.executable,P+'check_feature_caps.py'],'特性清单与两份生成物的 CAPS 同源一致')
 add('feature-elab',[sys.executable,P+'check_feature_elab.py'],
-    '七代表档与合法/非法结构组合的配置穷举 elaboration（自建源树）')
+    '八代表档与22合法/106非法结构组合的配置穷举 elaboration（自建源树）')
 add('feature-probe',[sys.executable,P+'check_feature_probe.py'],
     '关闭的机制离开编译输入：实例化点与源码内容两种判据')
 add('feature-contract',[sys.executable,P+'check_feature_contract.py'],
-    '按构型的禁用契约与六条依赖守卫反例')
+    '按构型的禁用契约与九条依赖互斥守卫反例')
 add('feature-function',[sys.executable,P+'check_feature_function.py'],
-    '160 个合法构型的真实绘制、关闭态错误三元组、原子拒绝与六个定向变异')
+    '220 个合法构型的真实绘制、关闭态错误三元组、原子拒绝与六个定向变异')
 add('feature-synthesis',[sys.executable,P+'check_feature_synthesis.py'],
     '本轮七代表档整机四步、全时钟时序与网表结构（Windows）',timeout=18000)
 add('feature-board',[sys.executable,P+'check_feature_board.py'],
@@ -94,10 +102,16 @@ for name,item in CHECKS.items():
                 'Main/sim/engine/rlst/**','Main/sim/engine/rast/**','Main/sim/axi_probe/axi_ram_model.v',
                 'Main/sw/lib/**','Main/doc/三维数值契约.md',P+'check_r2.py',P+'check_rast.py',
                 P+'rast_stream.py',P+'rast_model.py',P+'feature_build.py',P+'feature_config.py',P+'regs_gen.py']
-    elif name=='r2-synthesis':
+    elif name in ('r2-synthesis','r3-synthesis'):
         inputs=['Main/rtl/**','Main/fpga/**','Main/sdk/**',
                 'Main/sim/engine/frontend/syn_bin/*.xml',P+'check_r2_synthesis.py',
-                P+'feature_build.py',P+'feature_config.py',P+'feature_synthesis.py',P+'regs_gen.py']
+                P+'feature_build.py',P+'feature_config.py',P+'feature_synthesis.py',P+'regs_gen.py',
+                P+'check_feature_synthesis.py',P+'feature_netlist.py']
+    elif name=='r3':
+        inputs=['Main/rtl/**','Main/sw/lib/**','Main/sw/apps/test/rastTest/src/r3_cases.*',
+                'Main/sim/engine/r3/**','Main/sim/axi_probe/axi_ram_model.v',
+                P+'check_r3.py',P+'r3_vectors.py',P+'check_rast.py',P+'rast_model.py',
+                P+'feature_build.py',P+'feature_config.py',P+'regs_gen.py']
     elif name=='ddr-log':inputs=[P+'check_f5_bin.py','Main/sw/bsp/include/board_ddr_log.h','Main/sim/engine/frontend/test_ddr_log.c']
     elif name.startswith('feature-'):
         # 特性构型的判据同时依赖 RTL、配置真源、构建入口与仿真侧脚本。
@@ -109,7 +123,7 @@ for name,item in CHECKS.items():
                 P+'regs_gen.py','Main/sw/bsp/include/gfx_feature.h',
                 'Main/sw/apps/test/featureTest/**','Main/sw/bsp/**','Main/sw/mk/**','Main/sdk/**',
                 'Main/tools/board/**','Main/fpga/**','Main/sw/lib/**',P+'check_board_smoke.py']
-    elif name in ('synthesis','synthesis-report','board','board-game'):inputs=HARDWARE
+    elif name in ('synthesis','synthesis-report','board','board-game','r3-board','r3-legacy-board'):inputs=HARDWARE
     elif name in ('lib','app','layers','pc','assets','demo','game','stats','pack'):inputs=SOFTWARE
     else:inputs=RTL_INPUTS
     item['inputs']=list(dict.fromkeys(COMMON+inputs))
@@ -299,7 +313,8 @@ def main():
             output=command(CHECKS[name]['command'],log,timeout=CHECKS[name]['timeout'])
             return {'log':log.relative_to(ROOT).as_posix(),
                     'not_applicable':re.findall(r'^NOT_APPLICABLE .*$',output,re.M)}
-        current.perform('check:'+name,execute,reusable=name not in ('board','feature-board','board-game'))
+        current.perform('check:'+name,execute,reusable=name not in
+                        ('board','feature-board','board-game','r3-board','r3-legacy-board'))
         print('PASS '+name,flush=True)
     current.require(['check:'+name for name in selected])
     write_json(current.path/'result.json',{'status':'PASS','profile':current.profile,'checks':selected,'run_id':current.path.name})

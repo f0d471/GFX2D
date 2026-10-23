@@ -7,7 +7,7 @@ WORK=${1:-/tmp/gfx_feature_elab}
 cd "$WORK"
 fail=0
 printf '%-4s %-10s %-10s %-12s %-10s %s\n' 档 S_CFG counts table_base band_mode 结果
-for tree in B0 B1 B2 B3 B4 B5 B6; do
+for tree in B0 B1 B2 B3 B4 B5 B6 B7; do
   [ -d "$tree/rtl/engine" ] || continue
   ( cd "$tree/rtl/engine" && iverilog -g2012 -E engine_cmd.v -o "$WORK/$tree.cmd.pp.v" 2>/dev/null )
   cfg=$(grep -c 'S_CFG:' "$WORK/$tree.cmd.pp.v" || true)

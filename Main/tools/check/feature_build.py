@@ -37,6 +37,7 @@ NS = 'http://www.efinixinc.com/enf_proj'
 
 # 特性开关控制的源文件（工程模板里的相对路径用 ../../rtl/ 前缀）。
 FEATURE_SOURCES = {
+    'RAST': ('engine/engine_r3.v', 'engine/engine_rlst.v', 'engine/engine_rast.v'),
     'TEX': ('engine/engine_tex.v',),
     'BAND_HW': ('engine/engine_band.v',),
     'INST': ('engine/engine_inst.v',),
@@ -139,6 +140,11 @@ def guard_header(config):
                   f'    {module} {instance}();',
                   '  `endif',
                   '`endif']
+    macros = {n: m for n, m, _ in fc.STRUCTURE + fc.PIXEL + (fc.DELIVERY,)}
+    for first, second, module in fc.EXCLUDES:
+        lines += [f'`ifdef {macros[first]}', f'  `ifdef {macros[second]}',
+                  f'    {module} u_config_error_{first.lower()}_{second.lower()}();',
+                  '  `endif', '`endif']
     lines += ['', '`endif', '']
     return '\n'.join(lines)
 
@@ -155,6 +161,8 @@ def error_modules(config):
     lines = ['// 由 tools/check/feature_build.py 生成：守卫的对侧声明，模块体为空。',
              '// 合法性由构建入口在生成产物前拒绝；本文件只保证守卫不会伪装成黑盒错误。', '']
     for _, _, module in fc.GUARDS:
+        lines += [f'module {module}();', 'endmodule', '']
+    for _, _, module in fc.EXCLUDES:
         lines += [f'module {module}();', 'endmodule', '']
     return '\n'.join(lines)
 
@@ -366,6 +374,7 @@ def build(config_name, out_dir):
         'excluded_sources': sorted({s for flag, srcs in FEATURE_SOURCES.items()
                                     if not config[flag] for s in srcs}),
         'guards': [{'owner': o, 'needs': n, 'module': m} for o, n, m in fc.GUARDS],
+        'excludes': [{'first': a, 'second': b, 'module': m} for a,b,m in fc.EXCLUDES],
     }
     (out / 'config.json').write_text(json.dumps(record, ensure_ascii=False, indent=2) + '\n',
                                      encoding='utf-8')

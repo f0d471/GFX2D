@@ -1,17 +1,19 @@
 /* 由 tools/check/feature_build.py 生成：本构型的编译时预期能力。
  * 用于把交付物与硬件构型对上；运行时探测仍以 CAPS 寄存器为准。
  * 能力位表示这块硬件具备什么，不表示默认走哪条后端路径——
- * 本构型 00000-111-d 的默认后端由 renderer 的 GFX_FRONTEND_* 决定，与能力位无关。 */
+ * 本构型 0000000-111-d 的默认后端由 renderer 的 GFX_FRONTEND_* 决定，与能力位无关。 */
 #ifndef GFX_FEATURE_H
 #define GFX_FEATURE_H
 
-#define GFX_FEATURE_CONFIG   "00000-111-d"
+#define GFX_FEATURE_CONFIG   "0000000-111-d"
 #define GFX_FEATURE_CAPS     0x0000040Fu
 #define GFX_FEATURE_TEX   0
 #define GFX_FEATURE_BAND_HW   0
 #define GFX_FEATURE_STRIP   0
 #define GFX_FEATURE_INST   0
 #define GFX_FEATURE_PB   0
+#define GFX_FEATURE_RAST   0
+#define GFX_FEATURE_RAST_TEX   0
 #define GFX_FEATURE_EQ_EXT   1
 #define GFX_FEATURE_ALPHA   1
 #define GFX_FEATURE_KEY   1

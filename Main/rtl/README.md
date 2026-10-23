@@ -39,7 +39,7 @@
 | 文件 | 说明 |
 | --- | --- |
 | `engine_bin.v`、`engine_bounds.v`、`engine_packet_check.v` | 硬件分桶前端：COUNT/快照、顺序PREFIX与保序SCATTER；18位求交、共享字段校验、32×96桶RAM；引用保持完整逻辑身份，READY首拍最后发布 |
-| `engine_rlst.v`、`engine_rast.v` | 三维单元：64 项索引 FIFO、128B 双参数槽、跨页取数、4 DSP 位置求值、有符号增量扫描、20 RAM 深度条带、固定延迟 TEX 与色/z 原子提交。以 `rlst`、`rast-ports`、`rast-rtl` 检查；尚未进入生产预设或 SoC 调度，端口契约见 `engine-manual.md` 第 8 节 |
+| `engine_r3.v`、`engine_rlst.v`、`engine_rast.v` | B7 三维通路：第1页参数影子/门铃快照、64项索引FIFO、128B双槽、跨页取数、定点光栅和深度、固定延迟TEX与色/z原子提交。engine_cmd统一调度30带；错误/复位先排空mover再清读者。默认B0及旧B0～B6排除该源。检查为`r3`与R2三项，契约见`engine-manual.md`第8节 |
 | `engine_pb.v`、`engine_pb_dma.v` | 硬件分桶前端：PB配置/预检、逐桶LOAD/引用/metadata/坐标/旧执行器/FLUSH；复用DMA owner，PB原样写全部位，错误/复位排空 |
 | `engine_inst.v` | 实例命令前端：v1-I 直通实例展开，单个 256×32 坐标缓存、2 RAM，显式 DMA owner、跨 4 KiB 取数和首失败实例定位；已进入整机网表 |
 | `engine_tex.v` | 片上纹理：16 KiB 四 bank scratchpad，32 位 APB 装载/读回，128 位同步读流，读延迟可选 1/2 拍；状态保持到 ready。cmd/geom 传 src_tex/rd_tex，mover 允许 DDR 请求提前而保持读流单所有者顺序；已进 SoC 网表 |

@@ -7,7 +7,7 @@ WORK=${1:-/tmp/gfx_feature_elab}
 cd "$WORK"
 fail=0
 printf '%-4s %-8s %-8s %-8s %-8s %s\n' 档 TEX PB BAND INST 结果
-for tree in B0 B1 B2 B3 B4 B5 B6; do
+for tree in B0 B1 B2 B3 B4 B5 B6 B7; do
   [ -d "$tree/rtl/engine" ] || continue
   ( cd "$tree/rtl/engine" && iverilog -g2012 -E engine_top.v  -o "$WORK/$tree.top.v"   2>/dev/null
                             iverilog -g2012 -E engine_mover.v -o "$WORK/$tree.mover.v" 2>/dev/null

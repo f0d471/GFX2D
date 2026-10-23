@@ -83,6 +83,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reuse-from', help='经输入逐项比较后复用既有构型产物')
     parser.add_argument('--reuse-b5', help='B5 的独立构建树；仍须与当前生成输入一致')
+    parser.add_argument('--only',nargs='+',choices=tuple(fc.PRESETS),help='按工作点选择实际受影响构型')
     args = parser.parse_args()
     if os.name != 'nt':
         raise IncompleteCheck('构型综合使用 Windows Efinity Python')
@@ -93,7 +94,7 @@ def main():
     for key in ('EFINITY_HOME', 'PYTHONHOME', 'EFXPT_HOME', 'EFXPGM_HOME', 'EFXDBG_HOME',
                 'EFXIPM_HOME', 'EFXSVF_HOME', 'EFXSERDESDBG_HOME', 'EFINITY_USER_DIR_INI'):
         env.pop(key, None)
-    for preset in fc.PRESETS:
+    for preset in args.only or tuple(fc.PRESETS):
         expected = current.build('feature-expected') / preset
         record = fb.build(preset, expected)
         tree = trees / preset
@@ -143,7 +144,7 @@ def main():
         current.artifact(outflow / 'gfx2d_ti60.bit')
         print('FEATURE SYNTHESIS PASS ' + preset + ' xlr=' + str(result['xlr']), flush=True)
     current.verify()
-    print('FEATURE SYNTHESIS PASS presets=7; netlist and all clock relationships', flush=True)
+    print('FEATURE SYNTHESIS PASS presets='+str(len(summary))+'; netlist and all clock relationships', flush=True)
 
 
 if __name__ == '__main__':

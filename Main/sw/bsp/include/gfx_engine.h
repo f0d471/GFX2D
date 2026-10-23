@@ -70,7 +70,8 @@ int        gfx_engine_surf_set(int slot, uint32_t base, uint32_t width,
 /* TEX 装载窗口（0xF810_4000~0xF810_7FFF）：把 [offset, offset+bytes) 写成
    src 指到的内容 / 读回进 dst。bytes 是 4 的倍数且不越 16 KiB；要求引擎空闲
    （忙或排空中返回 GFX_ENG_E_REJECT），驱动纪律见设计文档 3.4 节 2026-10-07
-   定案段——硬件不加互锁，装载/读回/重登记由调用方保证不与命令表并发。
+   定案段——旧二维装载/读回/重登记由调用方保证不与命令表并发；
+   三维整帧 BUSY 另由顶层硬件拒绝 TEX APB 访问。
    src/dst 是 CPU 视角地址；装载前调用方对 src 失效缓存（数据缓存一致性规则）。 */
 int        gfx_engine_tex_write(const void *src, uint32_t offset, uint32_t bytes);
 int        gfx_engine_tex_read(void *dst, uint32_t offset, uint32_t bytes);
@@ -90,6 +91,17 @@ typedef struct {
 } gfx_engine_pb;
 int gfx_engine_submit_pb(uint32_t list_base,uint32_t list_count,const gfx_engine_pb *pb);
 int gfx_engine_error_stage_read(uint32_t *stage);
+
+/* 3D 输入均在共享池内；alloc 是真实分配包络，sub_bytes 是逻辑子表长度。
+   目的/背景表面须预先登记为 DDR XRGB 640x480；帧始终为30带。
+   返回成功仅表示受理；完成后调用者失效目的缓存再比较/present。 */
+typedef struct {
+    uint32_t tri_base, tri_alloc, sub_base, sub_alloc, sub_bytes, tri_count;
+    uint32_t ras_key, texcfg;
+} gfx_engine_raster;
+int gfx_engine_submit_raster(uint32_t list_base, uint32_t bg_id, uint32_t dst_id,
+                             const gfx_engine_raster *params);
+int gfx_engine_raster_info(uint32_t *id,uint32_t *caps,uint32_t *cycles,uint32_t *refs);
 
 /* 等当前提交结束（DONE/ERR 置位且引擎回空闲），读错误三元组。
    出参可以为 NULL（不关心那一项）。返回值是驱动层状态；引擎报错时返回

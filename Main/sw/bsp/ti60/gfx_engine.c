@@ -188,6 +188,7 @@ int gfx_engine_submit(uint32_t list_base, uint32_t list_count)
         (eng_rd(GFX_CTRL) & GFX_CTRL_EN) == 0u)
         return GFX_ENG_E_REJECT;    /* 忙、排空或 EN=0 时 DOORBELL 均会被拒收 */
 
+    if(eng_rd(GFX_CAPS)&GFX_CAPS_RAST_M) eng_wr(GFX_R3_TRI_COUNT,0u);
     eng_wr(GFX_CTRL, GFX_CTRL_EN); /* 旧入口显式选直通，允许模式往返。 */
     eng_wr(GFX_LIST_BASE, list_base);
     eng_wr(GFX_LIST_COUNT, list_count); /* 寄存器与命令层都是完整 32 位 */
@@ -205,6 +206,7 @@ int gfx_engine_submit_strips(uint32_t list_base, uint32_t lstrips,
        (uint64_t)list_base+((uint64_t)lstrips+1u)*32768u>0x100000000ull)return GFX_ENG_E_ARG;
     if(eng_rd(GFX_STATUS)&(GFX_STATUS_BUSY|GFX_STATUS_DRAINING))return GFX_ENG_E_REJECT;
     // CAPS.BAND 只表示数据面；确认独立 BAND 写被接受且 BIN 已清零。
+    if(eng_rd(GFX_CAPS)&GFX_CAPS_RAST_M) eng_wr(GFX_R3_TRI_COUNT,0u);
     eng_wr(GFX_CTRL,GFX_CTRL_EN|GFX_CTRL_BAND);
     if(eng_rd(GFX_CTRL)!=(GFX_CTRL_EN|GFX_CTRL_BAND))return GFX_ENG_E_CAPS;
     eng_wr(GFX_LSTRIPS,lstrips);eng_wr(GFX_STRIP_H,strip_log2);
@@ -239,7 +241,7 @@ int gfx_engine_error_stage_read(uint32_t *stage)
 {
     if(!stage)return GFX_ENG_E_ARG;
     if(!gfx_engine_present())return GFX_ENG_E_ABSENT;
-    *stage=(eng_rd(GFX_CAPS)&GFX_CAPS_BIN_M)?eng_rd(GFX_ERROR_STAGE):0u;
+    *stage=(eng_rd(GFX_CAPS)&(GFX_CAPS_BIN_M|GFX_CAPS_RAST_M))?eng_rd(GFX_ERROR_STAGE):0u;
     return 0;
 }
 int gfx_engine_wait(uint32_t *err_code, uint32_t *err_index, uint32_t *err_tag)

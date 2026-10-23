@@ -38,6 +38,10 @@ check pb-needs-inst    "11101-111-d" "PB 需要 INST"
 check strip-needs-band "10100-111-d" "STRIP 需要 BAND_HW"
 check delivery-needs-key "11111-110-d" "DELIVERY 需要 KEY"
 check delivery-needs-alpha "11111-101-d" "DELIVERY 需要 ALPHA"
+check rast-needs-strip "1100010-111-d" "RAST 需要 STRIP"
+check rast-tex-needs-rast "1111001-111-d" "RAST_TEX 需要 RAST"
+check rast-tex-needs-tex "0111011-111-d" "RAST_TEX 需要 TEX"
+check pb-excludes-rast "1111110-111-d" "PB 与 RAST 互斥"
 
 # 正例：研究构型（不带交付标志）必须被接受，且不得被当成交付构型拒掉。
 if python3 Main/tools/check/feature_build.py --config "11111-111" --out-dir "$WORK/research-config" \

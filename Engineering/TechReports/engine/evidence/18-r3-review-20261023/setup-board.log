@@ -1,0 +1,57 @@
+# COM11 @ 115200 8N1, opened 13:52:20
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+R3_SETUP_PROBE v2 O2 current R1 on B0
+polygon cycles=327118 count=16 per_call=20444
+view cycles=735280 count=16 per_call=45955
+bin cycles=35225 count=16 per_call=2201
+sub_bytes=632
+polygon cycles=326103 count=16 per_call=20381
+view cycles=734459 count=16 per_call=45903
+bin cycles=34103 count=16 per_call=2131
+sub_bytes=632
+polygon cycles=326103 count=16 per_call=20381
+view cycles=734459 count=16 per_call=45903
+bin cycles=34103 count=16 per_call=2131
+sub_bytes=632
+polygon cycles=650753 count=32 per_call=20336
+view cycles=1467969 count=32 per_call=45874
+bin cycles=69955 count=32 per_call=2186
+sub_bytes=1144
+polygon cycles=650976 count=32 per_call=20343
+view cycles=1468709 count=32 per_call=45897
+bin cycles=69129 count=32 per_call=2160
+sub_bytes=1144
+polygon cycles=650976 count=32 per_call=20343
+view cycles=1468709 count=32 per_call=45897
+bin cycles=69129 count=32 per_call=2160
+sub_bytes=1144
+polygon cycles=1299704 count=64 per_call=20307
+view cycles=2935854 count=64 per_call=45872
+bin cycles=282144 count=64 per_call=4408
+sub_bytes=2168
+polygon cycles=1299759 count=64 per_call=20308
+view cycles=2936204 count=64 per_call=45878
+bin cycles=284244 count=64 per_call=4441
+sub_bytes=2168
+polygon cycles=1299712 count=64 per_call=20308
+view cycles=2935988 count=64 per_call=45874
+bin cycles=284083 count=64 per_call=4438
+sub_bytes=2168
+polygon cycles=22305634 count=1100 per_call=20277
+view cycles=50445257 count=1100 per_call=45859
+bin cycles=4831833 count=1100 per_call=4392
+sub_bytes=35320
+polygon cycles=22305638 count=1100 per_call=20277
+view cycles=50445257 count=1100 per_call=45859
+bin cycles=4831833 count=1100 per_call=4392
+sub_bytes=35320
+polygon cycles=22305638 count=1100 per_call=20277
+view cycles=50445257 count=1100 per_call=45859
+bin cycles=4831833 count=1100 per_call=4392
+sub_bytes=35320
+sink=129434
+fail 0
+done
+
+# closed 13:52:31, 1907 bytes

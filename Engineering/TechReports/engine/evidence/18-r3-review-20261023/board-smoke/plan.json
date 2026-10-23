@@ -1,0 +1,26 @@
+{
+  "profile": "quick",
+  "checks": [
+    "board"
+  ],
+  "changed": null,
+  "commands": {
+    "board": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_board_smoke.py"
+    ]
+  },
+  "timeouts": {
+    "board": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/rtl/**",
+    "Main/fpga/**",
+    "Main/sdk/**",
+    "Main/sw/**",
+    "Main/tools/board/**",
+    "Main/tools/check/**"
+  ]
+}

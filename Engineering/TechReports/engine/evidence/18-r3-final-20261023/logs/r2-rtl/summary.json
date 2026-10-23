@@ -1,0 +1,111 @@
+{
+  "scope": "rtl",
+  "profile": "acceptance",
+  "cases": [
+    {
+      "name": "l1-random",
+      "expected_failure": false,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/l1-random.log"
+    },
+    {
+      "name": "l1-directed",
+      "expected_failure": false,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/l1-directed.log"
+    },
+    {
+      "name": "l2-random",
+      "expected_failure": false,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/l2-random.log"
+    },
+    {
+      "name": "l2-directed",
+      "expected_failure": false,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/l2-directed.log"
+    },
+    {
+      "name": "l2-lat2-random",
+      "expected_failure": false,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/l2-lat2-random.log"
+    },
+    {
+      "name": "l2-lat2-directed",
+      "expected_failure": false,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/l2-lat2-directed.log"
+    },
+    {
+      "name": "split-4032",
+      "expected_failure": false,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/split-4032.log"
+    },
+    {
+      "name": "split-4064",
+      "expected_failure": false,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/split-4064.log"
+    },
+    {
+      "name": "INJ_RAST_EDGE_SCALE",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RAST_EDGE_SCALE.log"
+    },
+    {
+      "name": "INJ_RAST_BIAS_REVERSE",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RAST_BIAS_REVERSE.log"
+    },
+    {
+      "name": "INJ_RAST_Z_REVERSE",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RAST_Z_REVERSE.log"
+    },
+    {
+      "name": "INJ_RAST_ROUND",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RAST_ROUND.log"
+    },
+    {
+      "name": "INJ_RLST_DROP_TAIL",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RLST_DROP_TAIL.log"
+    },
+    {
+      "name": "INJ_RLST_CREDIT",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RLST_CREDIT.log"
+    },
+    {
+      "name": "INJ_RAST_KEY_MISS",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RAST_KEY_MISS.log"
+    },
+    {
+      "name": "INJ_RLST_OWNER_EARLY",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RLST_OWNER_EARLY.log"
+    },
+    {
+      "name": "INJ_RLST_SUB_OFFSET",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RLST_SUB_OFFSET.log"
+    },
+    {
+      "name": "INJ_RAST_PIX_TRUNC",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RAST_PIX_TRUNC.log"
+    },
+    {
+      "name": "INJ_RAST_PARTIAL_COMMIT",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RAST_PARTIAL_COMMIT.log"
+    },
+    {
+      "name": "INJ_RAST_NO_BARRIER",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RAST_NO_BARRIER.log"
+    },
+    {
+      "name": "INJ_RAST_SAMP_EARLY",
+      "expected_failure": true,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rtl/INJ_RAST_SAMP_EARLY.log"
+    }
+  ]
+}

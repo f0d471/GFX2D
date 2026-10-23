@@ -28,6 +28,19 @@
 #define GFX_SURF(s, w)   (0x040 + ((s) * 12) + ((w) * 4))  /* s=0..15, w=0..2 */
 #define GFX_PERF(i)      (0x100 + (i) * 4)
 
+/* R3 第 1 页：偏移相对引擎 APB 基址 */
+#define GFX_R3_ID       0x1000u
+#define GFX_R3_CAPS       0x1004u
+#define GFX_R3_TRI_BASE       0x1008u
+#define GFX_R3_SUB_BASE       0x100Cu
+#define GFX_R3_SUB_BYTES       0x1010u
+#define GFX_R3_TRI_COUNT       0x1014u
+#define GFX_R3_RAS_KEY       0x1018u
+#define GFX_R3_TEXCFG       0x101Cu
+#define GFX_R3_PERF_CYCLES       0x1040u
+#define GFX_R3_PERF_RETIRED       0x1044u
+#define GFX_R3_DEBUG       0x1080u
+#define GFX_R3_ID_VALUE  0x52415301u
 /* 性能计数器下标 */
 #define GFX_PERF_CMD     0
 #define GFX_PERF_PIXEL     1
@@ -74,6 +87,10 @@
 #define GFX_CAPS_INST_S   12
 #define GFX_CAPS_BIN_M   0x00002000u
 #define GFX_CAPS_BIN_S   13
+#define GFX_CAPS_RAST_M   0x00004000u
+#define GFX_CAPS_RAST_S   14
+#define GFX_CAPS_RAST_TEX_M   0x00008000u
+#define GFX_CAPS_RAST_TEX_S   15
 #define GFX_CAPS_VALUE   0x0000040Fu
 
 /* CTRL 位（SOFT_RST/CNT_CLR 写 1 自清，读恒 0） */

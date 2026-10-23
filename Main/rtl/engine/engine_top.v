@@ -75,6 +75,35 @@ module engine_top #(
     output wire        dbg_fe_cidx_err   // 命令层取数流上下文一致性监视
 );
 
+`ifdef GFX_HAS_RAST
+    wire r3_enable,r3_bad,r3_selected,r3_go,r3_clear,r3_phase,r3_ack,r3_abort;
+    wire r3_clear_done,r3_req,r3_strip_done,r3_done,r3_idle,r3_quiet,r3_drain,r3_error;
+    wire [4:0] r3_strip;
+    wire [3:0] r3_code,cmd_error_stage,r3_fd_cidx;
+    wire [31:0] r3_index,r3_tag,r3_prdata,r3_fd_addr;
+    wire [11:0] r3_fd_bytes;
+    wire r3_pready,r3_pslverr,r3_fd_valid,r3_fsr_ready,rd_stat_raster;
+    wire [127:0] r3_fsr_data;
+    wire [15:0] r3_fsr_keep;
+    wire r3_fsr_valid,r3_fsr_last,ras_lease,ras_wr_valid,ras_wr_ready;
+    wire [13:0] ras_wr_pix;
+    wire [31:0] ras_wr_data;
+    wire samp_valid,samp_ready,samp_rvalid;
+    wire [11:0] samp_word;
+    wire [31:0] samp_rdata;
+    wire mover_drain_done;
+    wire raster_tmo;
+    reg r3_ctrl_recovery,r3_ctrl_reset_q;
+    always @(posedge clk) begin
+        if(!rst_ddr_n)begin r3_ctrl_recovery<=0;r3_ctrl_reset_q<=0;end
+        else begin
+            r3_ctrl_reset_q<=rst_ctrl;
+            if(rst_ctrl && !r3_ctrl_reset_q) r3_ctrl_recovery<=1;
+            if(mover_drain_done) r3_ctrl_recovery<=0;
+        end
+    end
+    assign drain_done=r3_selected ? r3_quiet:mover_drain_done;
+`endif
     // 内部连线
     wire        mover_rst = ~rst_ddr_n;
     wire        soft_pending;
@@ -185,11 +214,19 @@ module engine_top #(
     assign surf_ra_id = pb_active ? pb_src_id : old_surf_ra_id;
     assign surf_rb_id = pb_active ? pb_dst_id : old_surf_rb_id;
 `else
+`ifdef GFX_HAS_RAST
+    assign fd_addr = r3_fd_valid ? r3_fd_addr:old_fd_addr;
+    assign fd_bytes = r3_fd_valid ? r3_fd_bytes:old_fd_bytes;
+    assign fd_cidx = r3_fd_valid ? r3_fd_cidx:old_fd_cidx;
+    assign fd_instance = !r3_fd_valid && old_fd_instance;
+    assign fd_valid = r3_fd_valid || old_fd_valid;
+`else
     assign fd_addr = old_fd_addr;
     assign fd_bytes = old_fd_bytes;
     assign fd_cidx = old_fd_cidx;
     assign fd_instance = old_fd_instance;
     assign fd_valid = old_fd_valid;
+`endif
     assign fs_tready = old_fs_tready;
     assign surf_ra_id = old_surf_ra_id;
     assign surf_rb_id = old_surf_rb_id;
@@ -372,16 +409,31 @@ module engine_top #(
 
     // APB 分选：第 0 页寄存器、第 4~7 页 TEX；psel 已含两处页门控
     wire apb_hit_regs = (paddr[15:12] == 4'h0);
-`ifdef GFX_HAS_TEX
+`ifdef GFX_HAS_RAST
+    wire apb_hit_rast=(paddr[15:12]==4'h1);
+    wire apb_hit_tex=(paddr[15:14]==2'b01);
+    wire tex_locked=r3_selected;
+    assign prdata=apb_hit_regs ? regs_prdata:apb_hit_rast ? r3_prdata:
+                  apb_hit_tex && !tex_locked ? tex_prdata:32'd0;
+    assign pready=apb_hit_regs ? regs_pready:apb_hit_rast ? r3_pready:
+                  apb_hit_tex && !tex_locked ? tex_pready:1'b1;
+    assign pslverr=apb_hit_regs ? regs_pslverr:apb_hit_rast ? r3_pslverr:
+                  apb_hit_tex && !tex_locked ? tex_pslverr:psel && penable;
+`ifndef GFX_HAS_TEX
+    wire [31:0] tex_prdata;
+    wire tex_pready,tex_pslverr;
+    assign tex_prdata=0;assign tex_pready=1;assign tex_pslverr=psel && penable;
+`endif
+`elsif GFX_HAS_TEX
     wire apb_hit_tex  = (paddr[15:14] == 2'b01);
-    assign prdata  = apb_hit_regs ? regs_prdata : tex_prdata;
-    assign pready  = apb_hit_regs ? regs_pready : tex_pready;
-    assign pslverr = apb_hit_regs ? regs_pslverr : tex_pslverr;
+    assign prdata  = apb_hit_regs ? regs_prdata : apb_hit_tex ? tex_prdata:32'd0;
+    assign pready  = apb_hit_regs ? regs_pready : apb_hit_tex ? tex_pready:1'b1;
+    assign pslverr = apb_hit_regs ? regs_pslverr : apb_hit_tex ? tex_pslverr:psel && penable;
 `else
     // 无 TEX：第 4~7 页回到顶层未映射页的常量应答（PREADY=1、PSLVERR=1、PRDATA=0）
-    assign prdata  = regs_prdata;
-    assign pready  = regs_pready;
-    assign pslverr = regs_pslverr || !apb_hit_regs;
+    assign prdata  = apb_hit_regs ? regs_prdata:32'd0;
+    assign pready  = apb_hit_regs ? regs_pready:1'b1;
+    assign pslverr = apb_hit_regs ? regs_pslverr:psel && penable;
 `endif
 
     // 寄存器层
@@ -389,7 +441,11 @@ module engine_top #(
         .clk(clk), .rst(rst_ctrl),
         .paddr(paddr[11:0]), .psel(psel && apb_hit_regs), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(regs_prdata), .pready(regs_pready), .pslverr(regs_pslverr),
+`ifdef GFX_HAS_RAST
+        .cmd_busy(cmd_busy || r3_selected || r3_ctrl_recovery), .pb_busy(pb_busy),
+`else
         .cmd_busy(cmd_busy || pb_busy), .pb_busy(pb_busy),
+`endif
 `ifdef GFX_HAS_PB
         .err_set(pb_active ? (pb_done && pb_failed) : err_set),
         .err_code(pb_active ? pb_error_code : err_code),
@@ -402,7 +458,12 @@ module engine_top #(
 `else
         .err_set(err_set), .err_code(err_code),
         .err_index(err_index), .err_tag(err_tag),
-        .err_instance(err_instance), .err_stage(4'd0),
+        .err_instance(err_instance),
+`ifdef GFX_HAS_RAST
+        .err_stage(cmd_error_stage),
+`else
+        .err_stage(4'd0),
+`endif
         .perf_instance(perf_instance), .done_set(done_set),
 `endif
         .kick(kick), .list_base(list_base), .list_count(list_count),
@@ -467,6 +528,14 @@ module engine_top #(
         .band_start_ready(band_start_ready), .band_flush_ready(band_flush_ready),
         .band_loaded(band_loaded), .band_flushed(band_flushed),
         .band_busy(band_busy), .band_error(band_error), .band_error_code(band_error_code),
+`ifdef GFX_HAS_RAST
+        .ras_enable(r3_enable),.ras_cfg_bad(r3_bad),.ras_clear_done(r3_clear_done),
+        .ras_strip_req(r3_req),.ras_cur_strip(r3_strip),.ras_strip_done(r3_strip_done),
+        .ras_frame_done(r3_done),.ras_idle(r3_idle),.ras_quiet(r3_quiet),
+        .ras_error(r3_error),.ras_error_code(r3_code),.ras_error_index(r3_index),.ras_error_tag(r3_tag),
+        .ras_go(r3_go),.ras_ack(r3_ack),.ras_clear(r3_clear),.ras_phase(r3_phase),
+        .ras_abort(r3_abort),.err_stage(cmd_error_stage),
+`endif
         .drain_done(drain_done),
         .busy(cmd_busy),
         .err_set(err_set), .err_code(err_code),
@@ -481,6 +550,9 @@ module engine_top #(
 `ifdef GFX_HAS_PB
         .fd_valid(old_fd_valid), .fd_ready(fd_ready && !pb_active),
         .fs_tdata(fs_tdata), .fs_tlast(fs_tlast), .fs_tvalid(fs_tvalid && !pb_active),
+`elsif GFX_HAS_RAST
+        .fd_valid(old_fd_valid),.fd_ready(fd_ready && !r3_fd_valid),
+        .fs_tdata(fs_tdata),.fs_tlast(fs_tlast),.fs_tvalid(fs_tvalid),
 `else
         .fd_valid(old_fd_valid), .fd_ready(fd_ready),
         .fs_tdata(fs_tdata), .fs_tlast(fs_tlast), .fs_tvalid(fs_tvalid),
@@ -490,7 +562,12 @@ module engine_top #(
         .rd_stat_err(rd_stat_err), .rd_stat_cidx(rd_stat_cidx),
         .wr_stat_valid(wr_stat_valid), .wr_stat_err(wr_stat_err),
         .wr_stat_cidx(wr_stat_cidx), .wr_stat_last_row(wr_stat_last_row),
-        .tmo_evt(tmo_evt), .tmo_instance(fs_instance && !tmo_dir),
+`ifdef GFX_HAS_RAST
+        .tmo_evt(tmo_evt && !(r3_selected && raster_tmo)),
+`else
+        .tmo_evt(tmo_evt),
+`endif
+        .tmo_instance(fs_instance && !tmo_dir),
         .start(geom_start),
         .i1_op(i1_op), .i1_eq(i1_eq), .i1_key_en(i1_key_en),
         .i1_key(i1_key), .i1_w4(i1_w4), .i1_c(i1_c), .i1_sfmt(i1_sfmt),
@@ -616,8 +693,17 @@ module engine_top #(
         .rd_stat_cidx(rd_stat_cidx), .rd_stat_buf(),
         .wr_stat_valid(wr_stat_valid), .wr_stat_err(wr_stat_err),
         .wr_stat_cidx(wr_stat_cidx), .wr_stat_last_row(wr_stat_last_row),
+`ifdef GFX_HAS_RAST
+        .fd_raster(r3_fd_valid),.fsr_tdata(r3_fsr_data),.fsr_tvalid(r3_fsr_valid),
+        .fsr_tlast(r3_fsr_last),.fsr_tkeep(r3_fsr_keep),.fsr_tready(r3_fsr_ready),
+        .rd_stat_raster(rd_stat_raster),.raster_tmo(raster_tmo),.ras_lease(ras_lease),.ras_wr_pix(ras_wr_pix),
+        .ras_wr_data(ras_wr_data),.ras_wr_valid(ras_wr_valid),.ras_wr_ready(ras_wr_ready),
+        .drain_req(rst_ctrl || soft_pending || band_abort || r3_drain),
+        .drain_busy(),.drain_done(mover_drain_done),
+`else
         .drain_req(rst_ctrl || soft_pending || band_abort),
         .drain_busy(), .drain_done(drain_done),
+`endif
         .tmo_limit(EC_TMO_RESET),
         .err_clr(kick),
         .tmo_evt(tmo_evt), .tmo_dir(tmo_dir),
@@ -636,11 +722,19 @@ module engine_top #(
 
     // TEX 装载窗口：第 4~7 页的 16 KiB scratchpad
 `ifdef GFX_HAS_TEX
+`ifdef GFX_HAS_RAST
+    assign tex_psel=psel && apb_hit_tex && !tex_locked;
+`else
     assign tex_psel = psel && apb_hit_tex;
+`endif
     engine_tex #(.READ_LATENCY(TEX_READ_LATENCY)) u_tex (
         .clk(clk), .rst(rst_ctrl),
         .paddr(paddr[13:0]), .psel(tex_psel), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(tex_prdata), .pready(tex_pready), .pslverr(tex_pslverr),
+`ifdef GFX_HAS_RAST_TEX
+        .samp_valid(samp_valid),.samp_ready(samp_ready),.samp_word(samp_word),
+        .samp_rvalid(samp_rvalid),.samp_rdata(samp_rdata),
+`endif
         .req_addr(tx_addr), .req_bytes(tx_bytes), .req_buf(tx_buf), .req_cidx(tx_cidx),
         .req_valid(tx_valid), .req_ready(tx_ready),
         .rs_tdata(tx_rs_tdata), .rs_tvalid(tx_rs_tvalid),
@@ -650,6 +744,31 @@ module engine_top #(
     );
 `endif
 
+`ifdef GFX_HAS_RAST
+`ifndef GFX_HAS_RAST_TEX
+    assign samp_ready=0;assign samp_rvalid=0;assign samp_rdata=0;
+`endif
+    engine_r3 #(.TEX_LATENCY(TEX_READ_LATENCY)) u_r3(
+        .clk(clk),.rst(rst_ctrl),.kick(kick),.finish(err_set || done_set),
+        .soft_reset(soft_pending),.abort_frame(r3_abort),.band_mode(band_mode),.lstrips(lstrips),
+        .paddr(paddr[11:0]),.psel(psel && apb_hit_rast),.penable(penable),.pwrite(pwrite),
+        .pwdata(pwdata),.prdata(r3_prdata),.pready(r3_pready),.pslverr(r3_pslverr),
+        .enable(r3_enable),.cfg_bad(r3_bad),.selected(r3_selected),
+        .go(r3_go),.clear(r3_clear),.phase(r3_phase),.strip_ack(r3_ack),
+        .clear_done(r3_clear_done),.strip_req(r3_req),.cur_strip(r3_strip),
+        .strip_done(r3_strip_done),.frame_done(r3_done),.idle(r3_idle),.quiet(r3_quiet),
+        .drain_req(r3_drain),.mover_done(mover_drain_done),.timeout_event(raster_tmo),
+        .error(r3_error),.error_code(r3_code),.error_index(r3_index),.error_tag(r3_tag),
+        .fd_addr(r3_fd_addr),.fd_bytes(r3_fd_bytes),.fd_cidx(r3_fd_cidx),
+        .fd_valid(r3_fd_valid),.fd_ready(fd_ready && r3_fd_valid),
+        .fs_data(r3_fsr_data),.fs_valid(r3_fsr_valid),.fs_last(r3_fsr_last),
+        .fs_keep(r3_fsr_keep),.fs_cidx(fs_cidx),.fs_ready(r3_fsr_ready),
+        .stat_valid(rd_stat_raster),.stat_error(rd_stat_err),.stat_cidx(rd_stat_cidx),
+        .ras_lease(ras_lease),.ras_pix(ras_wr_pix),.ras_data(ras_wr_data),
+        .ras_valid(ras_wr_valid),.ras_ready(ras_wr_ready),
+        .samp_valid(samp_valid),.samp_ready(samp_ready),.samp_word(samp_word),
+        .samp_rvalid(samp_rvalid),.samp_rdata(samp_rdata));
+`endif
     // 配置合法性守卫：依赖不满足时引用未定义模块，让 elaboration 与综合在开工前失败。
     // 例化点是 engine_config_guard.vh 的分支，模块声明在 engine_config_error_modules.vh。
     wire _gfx_config_guard_unused;

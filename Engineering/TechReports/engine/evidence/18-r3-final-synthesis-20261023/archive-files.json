@@ -1,0 +1,72 @@
+{
+  "logs/feature-synthesis/netlist.json": {
+    "size": 676,
+    "mtime_ns": 1792755249409526900,
+    "sha256": "3d34f4d2eaca05658867a64f001ef23e2da1f38cd6ee1ff906b84939af1c6d83"
+  },
+  "logs/feature-synthesis/reuse.json": {
+    "size": 4,
+    "mtime_ns": 1792755249410139200,
+    "sha256": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f"
+  },
+  "logs/feature-synthesis/synthesis.json": {
+    "size": 5050,
+    "mtime_ns": 1792755249408937400,
+    "sha256": "005d19a22cbc516107c130101464e506e4152684c36624d7b4f0b9233195fd4c"
+  },
+  "logs/feature-synthesis/B0/config.json": {
+    "size": 3319,
+    "mtime_ns": 1792754604217971900,
+    "sha256": "cd32003ddd5a16b59d72fe6bdb652f4a7c5c3bf7c818d2f66e963746da4ff205"
+  },
+  "logs/feature-synthesis/B0/flow.log": {
+    "size": 1681,
+    "mtime_ns": 1792754604219160800,
+    "sha256": "5289a9413f5686422eb27a4884ba0046dc68606fde14e78f6e35512787faaae8"
+  },
+  "logs/feature-synthesis/B0/place.rpt": {
+    "size": 2018,
+    "mtime_ns": 1792754604221768200,
+    "sha256": "41ee53715448c2b6db262ed142c059e8b4026416e3b6d9176e3e55950d55ee24"
+  },
+  "logs/feature-synthesis/B0/timing.rpt": {
+    "size": 919123,
+    "mtime_ns": 1792754604223018200,
+    "sha256": "2fff4729001ffa1a7ad474e6af5f95d7972ac2d81a1d13b5c488df7dbcd866fb"
+  },
+  "logs/feature-synthesis/B0/warn.log": {
+    "size": 91288,
+    "mtime_ns": 1792754604224017100,
+    "sha256": "0b233ddfe3d9530df015baa857b0adb0d8284ed1373acbade312700a388f4d2c"
+  },
+  "logs/feature-synthesis/B7/config.json": {
+    "size": 3314,
+    "mtime_ns": 1792755249418800100,
+    "sha256": "3823be22c12c61ab92e4e703f98a76309cf03a92516c2a7fb114d73d24bee5c7"
+  },
+  "logs/feature-synthesis/B7/flow.log": {
+    "size": 1681,
+    "mtime_ns": 1792755249419313800,
+    "sha256": "e4e83731d6f89e4d209d0c0bfc4f0e79884f608923e76feb0ec19b84ee415ee3"
+  },
+  "logs/feature-synthesis/B7/place.rpt": {
+    "size": 2021,
+    "mtime_ns": 1792755249419313800,
+    "sha256": "2ac6ef4b1885f7c91bf97c1787239b67d3eb12a31a87e52f9fb187ad6fd9bf79"
+  },
+  "logs/feature-synthesis/B7/timing.rpt": {
+    "size": 926020,
+    "mtime_ns": 1792755249420358000,
+    "sha256": "4501723f6af3719645b9bebb42f3a544f6db01cfcb43002a2db107d9aebca11d"
+  },
+  "logs/feature-synthesis/B7/warn.log": {
+    "size": 92963,
+    "mtime_ns": 1792755249420358000,
+    "sha256": "ced36c7a923f8b5d66c1fa895a5b191912b5e9ec9260e0e6836100fe04b69ac9"
+  },
+  "logs/runner/r3-synthesis.log": {
+    "size": 363,
+    "mtime_ns": 1792755249684371200,
+    "sha256": "fab32a2d3017906069ccae0690cfa80a4f3fc991f91ead8172a5765c995efafd"
+  }
+}

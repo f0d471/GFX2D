@@ -1,0 +1,37 @@
+{
+  "variants": {
+    "B0": {
+      "present": {
+        "TEX": false,
+        "BAND_HW": false,
+        "INST": false,
+        "PB": false,
+        "RAST": false
+      },
+      "expected": {
+        "TEX": false,
+        "BAND_HW": false,
+        "INST": false,
+        "PB": false,
+        "RAST": false
+      }
+    },
+    "B7": {
+      "present": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false,
+        "RAST": true
+      },
+      "expected": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false,
+        "RAST": true
+      }
+    }
+  },
+  "failures": []
+}

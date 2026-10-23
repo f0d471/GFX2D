@@ -69,7 +69,7 @@ module engine_rlst (
                                         //   也无在途三角形（rast 从 rp_valid 起占用）
     // 条带边界（strip_req 后帧层备好该条带并拉高 strip_ack；strip_done 后撤下）
     output reg          strip_req,
-    output reg  [4:0]   cur_strip,
+    output wire [4:0]   cur_strip,
     input  wire         strip_ack,
     output reg          strip_done,
     output reg          frame_done,
@@ -77,7 +77,9 @@ module engine_rlst (
     output reg  [3:0]   error_code,
     output reg  [15:0]  error_index,    // 完整主表索引；头部错误用 16'hFFFF 哨兵
     output reg  [31:0]  error_tag,      // {11'd0, strip[4:0], ref_ordinal[15:0]}
-    output wire         busy
+    output wire         busy,
+    output wire [15:0]  active_index, // 超时时的描述符身份；子表/头部用 FFFF
+    output wire [31:0]  active_tag
 );
     localparam [4:0] S_IDLE = 0, S_SUB_REQ = 1, S_SUB_RECV = 2, S_CNT0 = 3, S_CNT1 = 4,
                      S_RSVD0 = 5, S_RSVD1 = 6, S_REQA = 7, S_REQB = 8, S_IDX = 9,
@@ -145,6 +147,7 @@ module engine_rlst (
 
     // ---------------------------------------------------------------- 表头/游走
     reg  [4:0]   strip;
+    assign cur_strip=strip;
     reg  [15:0]  count_lo, head_count, head_left, rsvd_acc, ref_ord, cur_idx;
     reg  [23:0]  parse_bytes;
 
@@ -168,6 +171,9 @@ module engine_rlst (
     reg  [4:0]   state;
     reg  [4:0]   ret_state;         // 弹出点续接态：FIFO 见空时先取下一段子表
     reg          started, canceled;
+    wire active_record=(state==S_REC_REQ)||(state==S_REC_RECV)||(state==S_REC_NEXT);
+    assign active_index=active_record ? r_index:16'hffff;
+    assign active_tag=active_record ? {11'd0,r_strip,r_ord}:{11'd0,strip,ref_ord};
 
     // ========================================================================
     // 组合输出：FD / FS / rp
@@ -221,6 +227,7 @@ module engine_rlst (
             r_pending_valid <= 1'b0;
             strip_req <= 1'b0; strip_done <= 1'b0; frame_done <= 1'b0;
             error <= 1'b0;
+            strip<=0;ref_ord<=0;
         end else begin
             // 单拍脉冲默认值
             rp_valid   <= 1'b0;
@@ -354,7 +361,6 @@ module engine_rlst (
                 S_REQA: if (canceled || cancel) state <= S_HALT;
                 else begin
                     strip_req <= 1'b1;
-                    cur_strip <= strip;
                     state     <= S_REQB;
                 end
                 S_REQB: if (canceled) state <= S_HALT;

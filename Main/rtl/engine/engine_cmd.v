@@ -130,6 +130,16 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     input  wire        band_busy,
     input  wire        band_error,
     input  wire [3:0]  band_error_code,
+`ifdef GFX_HAS_RAST
+    input wire ras_enable, ras_cfg_bad, ras_clear_done, ras_strip_req,
+    input wire [4:0] ras_cur_strip,
+    input wire ras_strip_done, ras_frame_done, ras_idle, ras_quiet, ras_error,
+    input wire [3:0] ras_error_code,
+    input wire [31:0] ras_error_index, ras_error_tag,
+    output reg ras_go, ras_ack,
+    output wire ras_clear, ras_phase, ras_abort,
+    output reg [3:0] err_stage,
+`endif
     input  wire        drain_done,
     input  wire        soft_rst,      // 电平：软复位请求举着，立即弃单回空闲
     output wire        busy,          // 已受理的命令表在跑（含收尾排空）
@@ -409,6 +419,15 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
         S_HWAIT=18, S_HREAD=19, S_BNEXT=20, S_BSTART=21, S_BLOAD=22,
         S_BFLUSH=23, S_BWAIT=24, S_CFG_WAIT=25, S_DISPATCH=26, S_INEXT=27;
     reg [4:0] st;
+`ifdef GFX_HAS_RAST
+    localparam [4:0] S_RAST=28, S_RFINAL=29;
+    reg ras_active, ras_load_seen;
+    assign ras_clear=ras_active && band_start && band_start_ready;
+    assign ras_phase=st==S_RAST && !soft_rst;
+    // 旧2D错误须让旧FE/geom先收尾，避免mover吞掉仍被FE等待的预取流。
+    // 非BAND的3D配置在入口已拒绝，尚未发起取数，可直接收尾。
+    assign ras_abort=ras_active && (band_abort || (!bmode && pend_err && st==S_TERM));
+`endif
 `ifdef GFX_HAS_STRIP
     reg bmode, cfg_phase, cfg_bad_q;
     reg [4:0] strip_id;
@@ -666,6 +685,9 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     always @(posedge clk) begin
         if (rst || soft_rst) begin
             st <= S_IDLE; busy_r <= 1'b0;
+`ifdef GFX_HAS_RAST
+            ras_active<=0;ras_load_seen<=0;ras_go<=0;ras_ack<=0;err_stage<=0;
+`endif
             external_r<=0;
 `ifdef GFX_HAS_INST
             inst_go<=0;inst_active<=0;inst_id<=0;inst_count<=0;inst_packet<=0;
@@ -689,6 +711,11 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                 clip_x1 <= 16'sd639; clip_y1 <= 16'sd479;
             end
         end else begin
+`ifdef GFX_HAS_RAST
+            ras_go<=0;
+            if(band_start && band_start_ready) ras_load_seen<=0;
+            else if(band_loaded) ras_load_seen<=1;
+`endif
             err_set    <= 1'b0;
             done_set   <= 1'b0;
             commit     <= 1'b0;
@@ -713,6 +740,9 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
             case (st)
                 // IDLE
                 S_IDLE: if (kick) begin
+`ifdef GFX_HAS_RAST
+                    ras_active<=ras_enable;ras_ack<=0;err_stage<=0;
+`endif
                     external_r<=(external_mode === 1'b1);
 `ifdef GFX_HAS_INST
                     inst_active<=0;
@@ -728,6 +758,12 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     strips_r <= lstrips[5:0];
                     bg_id <= band_surfs[7:4]; dst_id <= band_surfs[3:0];
                     table_base <= list_base;
+`ifdef GFX_HAS_RAST
+                    if(ras_enable && (ras_cfg_bad || STRIP_H!=16))begin
+                        pend_err<=1;pend_done<=0;err_code<=EC_ERR_BAD_FIELD;
+                        err_index<=32'hffff;err_tag<=0;err_stage<=7;st<=S_TERM;
+                    end else
+`endif
                     if(external_mode === 1'b1)begin
                         bmode<=0;cfg_phase<=0;count_r<=1;bi<=0;k<=0;bn<=1;nst<=N_IDLE;
                         pend_err<=0;pend_done<=0;pf_armed<=0;
@@ -1154,6 +1190,12 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
 `ifdef GFX_HAS_STRIP
                 S_CFG: begin cfg_bad_q<=cfg_bad;st<=S_CFG_WAIT;end
                 S_CFG_WAIT: begin
+`ifdef GFX_HAS_RAST
+                    if(ras_active && (surf_ra_w1[31:16]!=480 || surf_rb_w1[31:16]!=480)) begin
+                        pend_err<=1;err_code<=EC_ERR_BAD_FIELD;err_index<=32'hffff;
+                        err_tag<=0;err_stage<=7;st<=S_TERM;
+                    end else
+`endif
                     if(cfg_bad_q) begin
                         pend_err<=1;err_code<=EC_ERR_BAD_SURFACE;err_index<=0;err_tag<=0;st<=S_TERM;
                     end else begin
@@ -1175,7 +1217,12 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                 S_HWAIT: st<=S_HREAD;
                 S_HREAD: begin
                     for(i=0;i<4;i=i+1) counts[{hdr_beat,2'b00}+i]<=cbuf_rdata[32*i +:32];
-                    if(hdr_beat==7) st<=S_BNEXT;
+                    if(hdr_beat==7) begin
+                        st<=S_BNEXT;
+`ifdef GFX_HAS_RAST
+                        ras_go<=ras_active;
+`endif
+                    end
                     else begin hdr_beat<=hdr_beat+1'b1;st<=S_HADDR;end
                 end
                 S_BNEXT: begin
@@ -1196,7 +1243,19 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                 S_BLOAD: if(band_error || tmo_evt) begin
                     pend_err<=1;err_code<=tmo_evt ? EC_ERR_TIMEOUT : EC_ERR_BUS_READ;
                     err_index<={17'd0,strip_id,10'd0};err_tag<=0;st<=S_TERM;
-                end else if(band_loaded) begin
+                end else if(
+`ifdef GFX_HAS_RAST
+                    ras_active ? ((ras_load_seen || band_loaded) && ras_clear_done && ras_strip_req) :
+`endif
+                    band_loaded) begin
+`ifdef GFX_HAS_RAST
+                    if(ras_active) begin
+                        if(ras_cur_strip!=strip_id) begin
+                            pend_err<=1;err_code<=EC_ERR_BAD_FIELD;err_index<=32'hffff;
+                            err_tag<={11'd0,strip_id,16'hffff};err_stage<=7;st<=S_TERM;
+                        end else begin ras_ack<=1;st<=S_RAST;end
+                    end else
+`endif
                     if(count_r==0) st<=S_BFLUSH;
                     else begin
                         bn<=calc_n(base_r,0,count_r);rq_addr<=base_r;
@@ -1209,17 +1268,36 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     pend_err<=1;err_code<=tmo_evt ? EC_ERR_TIMEOUT : EC_ERR_BUS_WRITE;
                     err_index<={17'd0,strip_id,10'd0};err_tag<=0;st<=S_TERM;
                 end else if(band_flushed) begin
+`ifdef GFX_HAS_RAST
+                    ras_ack<=0;
+                    if(ras_active && {1'b0,strip_id}+6'd1==strips_r) st<=S_RFINAL;
+                    else
+`endif
                     if({1'b0,strip_id}+6'd1==strips_r) begin pend_done<=1;st<=S_TERM;end
                     else begin strip_id<=strip_id+1'b1;st<=S_BNEXT;end
                 end
 `endif
 
+`ifdef GFX_HAS_RAST
+                S_RAST: if(ras_strip_done) begin
+                    if(count_r==0) st<=S_BFLUSH;
+                    else begin
+                        bn<=calc_n(base_r,0,count_r);rq_addr<=base_r;
+                        rq_n<=calc_n(base_r,0,count_r);rq_half<=0;rq_off<=0;rq_ctx<=0;rq_pf<=0;
+                        fe_start_q<=1;st<=S_FETCH;
+                    end
+                end
+                S_RFINAL: if(ras_frame_done && ras_idle) begin pend_done<=1;st<=S_TERM;end
+`endif
                 // 收尾：等在途命令与预取流全部静止才置 done_set/err_set——DONE/ERR 置位即引擎已空闲
                 S_TERM: begin
                     if ((wr_stat_valid && wr_stat_last_row)
                      || (geom_cmd_done && geom_done_cidx == k[3:0]))
                         active <= 1'b0;
                     if (!active && !fe_busy_any &&
+`ifdef GFX_HAS_RAST
+                        (!ras_active || (pend_err ? ras_quiet : ras_idle)) &&
+`endif
 `ifdef GFX_HAS_INST
                         !inst_busy &&
 `endif
@@ -1238,6 +1316,13 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
 
                 default: st <= S_IDLE;
             endcase
+`ifdef GFX_HAS_RAST
+            if(ras_active && ras_error && busy_r && st!=S_TERM) begin
+                pend_err<=1;pend_done<=0;err_code<=ras_error_code;err_index<=ras_error_index;
+                err_tag<=ras_error_tag;err_stage<=7;st<=S_TERM;ras_ack<=0;
+                start<=0;fe_start_q<=0;pf_armed<=0;
+            end
+`endif
         end
     end
 endmodule

@@ -1,0 +1,8 @@
+FAIL ref scene=          1 beat=         11
+FAIL ref scene=          1 beat=         12
+FAIL ref scene=          1 beat=         13
+FAIL ref scene=          1 beat=         14
+FAIL ref scene=          1 beat=         18
+FAIL ref scene=          1 beat=         19
+FATAL: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_bin.v:131: F5 BIN model mismatch
+       Time: 20880000  Scope: tb_engine_bin

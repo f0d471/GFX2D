@@ -1,0 +1,6 @@
+RUN Main/sim/build/check-runs/20261023-193434-5007f558
+FEATURE SYNTHESIS REUSE B0 (verified compiler inputs)
+FEATURE SYNTHESIS PASS B0 xlr=36577
+FEATURE SYNTHESIS REUSE B7 (verified compiler inputs)
+FEATURE SYNTHESIS PASS B7 xlr=59623
+FEATURE SYNTHESIS PASS presets=2; netlist and all clock relationships

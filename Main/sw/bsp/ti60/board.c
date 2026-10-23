@@ -403,6 +403,19 @@ int board_display_diag(uint32_t *frame, uint32_t *fifo_min,
     return 0;
 }
 
+int board_display_stats_clear(void)
+{
+    if(!disp_present_in_bitstream() || (disp_rd(DISP_CTRL)&3u)!=3u)return -1;
+    disp_wr(DISP_CTRL,disp_rd(DISP_CTRL)|4u);
+    board_wait_frame();board_wait_frame();
+    return 0;
+}
+
+uint32_t board_display_response_errors(void)
+{
+    return disp_rd(DISP_RESPERR);
+}
+
 /* 板上交互演示不限时；结束由复位、断电或调试器控制。 */
 int board_should_quit(void)
 {

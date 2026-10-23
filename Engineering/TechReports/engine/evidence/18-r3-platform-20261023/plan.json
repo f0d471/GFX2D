@@ -1,0 +1,31 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "axi_mux_guard",
+    "display"
+  ],
+  "changed": null,
+  "commands": {
+    "axi_mux_guard": [
+      "bash",
+      "Main/sim/axi_mux_guard/run.sh"
+    ],
+    "display": [
+      "bash",
+      "Main/sim/display/run.sh"
+    ]
+  },
+  "timeouts": {
+    "axi_mux_guard": 1800,
+    "display": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/rtl/**",
+    "Main/sim/**",
+    "Main/sw/**",
+    "Main/assets/**",
+    "Main/tools/check/**"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "logs/r3-board/golden.log": {
+    "size": 42,
+    "mtime_ns": 1792737702244821200,
+    "sha256": "f19d4d980d5e867a7442d740e7738cb93d7d1410bcf213f42ad27552d8f039d5"
+  },
+  "logs/r3-board/normal.build.log": {
+    "size": 1106,
+    "mtime_ns": 1792737713407331200,
+    "sha256": "5684aab6b26d1480c7dee0e31cab154526de63b7efbe13ae65a99eee112bb64c"
+  },
+  "logs/r3-board/normal.control.log": {
+    "size": 2943,
+    "mtime_ns": 1792737747389226000,
+    "sha256": "774940a4d5de7ea6e04f46009f32341a701e5d8702306c2786616ccc337d957d"
+  },
+  "logs/r3-board/normal.serial.log": {
+    "size": 2356,
+    "mtime_ns": 1792737747265002500,
+    "sha256": "b46e13031531fb9370fdb7c2acd702e824c66c4677c91ebad81600765dfdad95"
+  },
+  "logs/r3-board/parser-negatives.json": {
+    "size": 190,
+    "mtime_ns": 1792737747428245500,
+    "sha256": "bf515767fadc4d9d5d57b7bbb0ac80e6480d17bf767489bf4383fda3b6dc049e"
+  },
+  "logs/r3-board/pixel-injection.build.log": {
+    "size": 1115,
+    "mtime_ns": 1792737759846805700,
+    "sha256": "2dd251fcb83281419fe84148302bc20af83e6f5dc85532bc131b1832cdf14df2"
+  },
+  "logs/r3-board/pixel-injection.control.log": {
+    "size": 1141,
+    "mtime_ns": 1792737775068210700,
+    "sha256": "03858948fc753bfb1c339a2878bd76bae99ee0cad368ac2fefaf77ef4e9d4b74"
+  },
+  "logs/r3-board/pixel-injection.serial.log": {
+    "size": 567,
+    "mtime_ns": 1792737774929185800,
+    "sha256": "07d43c1be47480a48955dc000cc1527c5d637c837cb639f3afb3973d6bcf7ffb"
+  },
+  "logs/r3-board/result.json": {
+    "size": 696,
+    "mtime_ns": 1792737775308304000,
+    "sha256": "760482614418a5cc1101c88fc9a1f79c60b9122e25baf0a3b3cdc5838585669f"
+  }
+}

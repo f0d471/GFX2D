@@ -7,7 +7,7 @@ ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
 WORK=${1:-/tmp/gfx_feature_elab}
 TB="$(cd "$(dirname "$0")" && pwd)/tb_feature_contract.v"
 fail=0
-for tree in B0 B1 B2 B3 B4 B5 B6; do
+for tree in B0 B1 B2 B3 B4 B5 B6 B7; do
   dir="$WORK/$tree"
   [ -d "$dir/rtl/engine" ] || { echo "  INCOMPLETE $tree（无源树）"; exit 3; }
   cd "$dir"
@@ -18,7 +18,7 @@ for tree in B0 B1 B2 B3 B4 B5 B6; do
     rtl/vendor/verilog-axi/axi_dma_rd.v rtl/vendor/verilog-axi/axi_dma_wr.v
   )
   for extra in engine_tex engine_band engine_inst engine_bounds engine_packet_check \
-               engine_pb_dma engine_bin engine_pb; do
+               engine_pb_dma engine_bin engine_pb engine_r3 engine_rlst engine_rast; do
     [ -f "rtl/engine/$extra.v" ] && files+=("rtl/engine/$extra.v")
   done
   if ! iverilog -g2012 -I rtl/engine -o build_contract.vvp -s tb_feature_contract \

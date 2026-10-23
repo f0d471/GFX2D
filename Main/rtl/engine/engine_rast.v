@@ -75,7 +75,8 @@ module engine_rast #(
     output reg  [31:0]  err_tag,        // {11'd0, strip, ref_ordinal}
 
     // 仿真观测（综合悬空）
-    output reg  [31:0]  dbg_retire_cnt
+    output reg  [31:0]  dbg_retire_cnt,
+    output wire         idle
 );
     localparam [3:0] EC_BAD_FIELD = 4'd2;
 
@@ -89,6 +90,7 @@ module engine_rast #(
     reg [4:0]  busy_strip0, busy_strip1;
     reg [15:0] busy_ord0, busy_ord1;
     assign rp_free = {~slot_busy1, ~slot_busy0};
+    assign idle = state == M_IDLE && !slot_busy0 && !slot_busy1 && in_flight == 0;
 
     always @(posedge clk) begin
         if (rp_we) begin

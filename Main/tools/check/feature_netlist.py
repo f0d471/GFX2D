@@ -22,8 +22,9 @@ PATTERNS = {
     'BAND_HW': 'g_band',
     'INST': 'u_engine/u_cmd/u_inst',
     'PB': 'u_engine/u_pb',
+    'RAST': 'u_engine/u_r3/u_rast',
 }
-PRESETS = ('B0', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6')
+PRESETS = ('B0', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7')
 
 
 def netlist(tree: Path) -> Path:
@@ -52,13 +53,13 @@ def main():
             continue
         flags = json.loads((tree / 'config.json').read_text(encoding='utf-8'))['flags']
         present = probe(path)
-        mismatches = [name for name in PATTERNS if present[name] != bool(flags[name])]
-        record = {'present': present, 'expected': {n: bool(flags[n]) for n in PATTERNS},
+        mismatches = [name for name in PATTERNS if present[name] != bool(flags.get(name,False))]
+        record = {'present': present, 'expected': {n: bool(flags.get(n,False)) for n in PATTERNS},
                   'source_count': json.loads((tree / 'config.json').read_text(encoding='utf-8'))['sources'].__len__()}
         results[preset] = record
         verdict = 'PASS' if not mismatches else 'FAIL ' + ','.join(mismatches)
         print(f'[{preset}] {verdict} ' +
-              ' '.join(f'{n}={int(present[n])}/{int(bool(flags[n]))}' for n in PATTERNS))
+              ' '.join(f'{n}={int(present[n])}/{int(bool(flags.get(n,False)))}' for n in PATTERNS))
         if mismatches:
             failures.append({'preset': preset, 'mismatches': mismatches})
     out = Path(args.out).resolve()

@@ -117,6 +117,9 @@ uint32_t   board_irq_engine_events(void);
 uint32_t   board_irq_faults(void);
 int        board_display_diag(uint32_t *frame, uint32_t *fifo_min,
                               uint32_t *zero_hits, uint32_t *under_beats);
+/* Clear accumulated display health counters after warmup; -1 if absent. */
+int        board_display_stats_clear(void);
+uint32_t   board_display_response_errors(void);
 
 /* 等下一个场同步。板上用场起始中断 A 并核对 FRAME_COUNT（无中断时退回轮询），
    PC 上等到下一个 60Hz 场边界。两边都有等待上界，不会停在这里不返回。

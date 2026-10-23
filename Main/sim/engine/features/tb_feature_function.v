@@ -47,7 +47,7 @@ module tb_feature_function;
         begin
             @(negedge clk);paddr=address;psel=1;penable=0;pwrite=0;
             @(negedge clk);penable=1;
-            @(negedge clk);data=prdata;psel=0;penable=0;
+            @(negedge clk);data=prdata;access_error=pslverr;psel=0;penable=0;
         end
     endtask
     task write_reg(input [15:0] address,input [31:0] data);
@@ -131,6 +131,18 @@ module tb_feature_function;
         repeat(8)@(negedge clk);rst=0;
         repeat(4)@(negedge clk);
         read_reg(16'h004,value);check("CAPS",value,EC_CAPS_VALUE);
+        read_reg(16'h1000,value);
+`ifdef GFX_HAS_RAST
+        check("RAST ID",value,EC_R3_ID_VALUE);check("RAST read",access_error,0);
+`else
+        check("RAST absent data",value,0);check("RAST absent read",access_error,1);
+`endif
+        write_reg(16'h1014,1);
+`ifdef GFX_HAS_RAST
+        check("RAST parameter write",access_error,0);write_reg(16'h1014,0);
+`else
+        check("RAST absent write",access_error,1);
+`endif
         write_reg(16'h008,1);
         surfaces(0,1);
         packet=blit_packet(0);packet[31:0]=1;packet[63:32]=0;

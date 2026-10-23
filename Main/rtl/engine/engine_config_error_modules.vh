@@ -10,8 +10,20 @@ endmodule
 module GFX_CONFIG_ERROR_STRIP_REQUIRES_BAND_HW();
 endmodule
 
+module GFX_CONFIG_ERROR_RAST_REQUIRES_STRIP();
+endmodule
+
+module GFX_CONFIG_ERROR_RAST_TEX_REQUIRES_RAST();
+endmodule
+
+module GFX_CONFIG_ERROR_RAST_TEX_REQUIRES_TEX();
+endmodule
+
 module GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA();
 endmodule
 
 module GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY();
+endmodule
+
+module GFX_CONFIG_ERROR_PB_EXCLUDES_RAST();
 endmodule

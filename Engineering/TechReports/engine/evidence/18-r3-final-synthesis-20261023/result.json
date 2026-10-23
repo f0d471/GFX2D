@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "r3-synthesis"
+  ],
+  "run_id": "20261023-191841-995c8477"
+}

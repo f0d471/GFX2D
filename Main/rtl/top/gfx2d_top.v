@@ -513,7 +513,7 @@ soc u_soc (
 //   其余           默认常量应答：PREADY=1、PSLVERR=1、PRDATA=0。
 //                  未映射页必须有模块应答，CPU 的访问才不会停住；
 //                  第 1 页随 axi_probe_master 撤下，也落进默认应答。
-wire        apb_sel_eng = (apb_paddr[15:12] == 4'h0) || (apb_paddr[15:14] == 2'b01);
+wire        apb_sel_eng = (apb_paddr[15:12]==4'h0)||(apb_paddr[15:12]==4'h1)||(apb_paddr[15:14]==2'b01);
 wire        apb_sel_sco = (apb_paddr[15:12] == 4'hE);
 wire        apb_sel_grd = (apb_paddr[15:12] == 4'hF);
 

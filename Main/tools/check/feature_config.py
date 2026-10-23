@@ -16,6 +16,8 @@ STRUCTURE = (
     ('STRIP', 'GFX_HAS_STRIP', '命令层帧级条带控制与 ABI v2 条带表'),
     ('INST', 'GFX_HAS_INST', '直通 op 0x05 与实例坐标取数'),
     ('PB', 'GFX_HAS_PB', 'PB 构建、引用执行与小事务写桥'),
+    ('RAST', 'GFX_HAS_RAST', '三维列表、深度光栅与帧调度'),
+    ('RAST_TEX', 'GFX_HAS_RAST_TEX', '光栅纹理采样、调制与色键'),
 )
 PIXEL = (
     ('EQ_EXT', 'GFX_EQ_EXT', 'CONST（eq3）与 MUL（eq4）'),
@@ -25,13 +27,18 @@ PIXEL = (
 DELIVERY = ('DELIVERY', 'GFX_DELIVERY', '交付构型标志，另要求 ALPHA 与 KEY 都为 1')
 
 # 依赖：机制 -> 它需要的机制。方向只有“机制指向硬件/前置”，没有反向边。
-DEPENDS = {'PB': ('BAND_HW', 'INST'), 'STRIP': ('BAND_HW',)}
+DEPENDS = {'PB': ('BAND_HW', 'INST'), 'STRIP': ('BAND_HW',),
+           'RAST': ('STRIP',), 'RAST_TEX': ('RAST', 'TEX')}
+EXCLUDES = (('PB', 'RAST', 'GFX_CONFIG_ERROR_PB_EXCLUDES_RAST'),)
 
 GUARDS = (
     # (条件位, 缺失位, 缺失模块名)
     ('PB', 'BAND_HW', 'GFX_CONFIG_ERROR_PB_REQUIRES_BAND_HW'),
     ('PB', 'INST', 'GFX_CONFIG_ERROR_PB_REQUIRES_INST'),
     ('STRIP', 'BAND_HW', 'GFX_CONFIG_ERROR_STRIP_REQUIRES_BAND_HW'),
+    ('RAST', 'STRIP', 'GFX_CONFIG_ERROR_RAST_REQUIRES_STRIP'),
+    ('RAST_TEX', 'RAST', 'GFX_CONFIG_ERROR_RAST_TEX_REQUIRES_RAST'),
+    ('RAST_TEX', 'TEX', 'GFX_CONFIG_ERROR_RAST_TEX_REQUIRES_TEX'),
     ('DELIVERY', 'ALPHA', 'GFX_CONFIG_ERROR_DELIVERY_REQUIRES_ALPHA'),
     ('DELIVERY', 'KEY', 'GFX_CONFIG_ERROR_DELIVERY_REQUIRES_KEY'),
 )
@@ -43,6 +50,7 @@ ALL_NAMES = STRUCT_NAMES + PIXEL_NAMES + ('DELIVERY',)
 # CAPS 位号：只登记硬件能力。STRIP 没有专属位（它只改帧级控制由谁产生），
 # 因此 CAPS 不能用来判断 STRIP 是否在构建里。
 CAPS_BIT = {'TEX': 6, 'BAND_HW': 5, 'INST': 12, 'PB': 13,
+            'RAST': 14, 'RAST_TEX': 15,
             'EQ_EXT': 3, 'ALPHA_PM': 1, 'ALPHA_ST': 2, 'KEY': 0}
 CAPS_LANES_LO, CAPS_LANES_VALUE = 8, 4
 
@@ -61,12 +69,15 @@ def parse_name(name):
     """解析配置名。结构位与像素位用 0/1 串，如 10110-111 或 10110-111-d。"""
     parts = name.split('-')
     if len(parts) == 1 and parts[0] in PRESETS:
-        return dict(PRESETS[parts[0]])
+        return normalize(PRESETS[parts[0]])
     if len(parts) not in (2, 3):
         raise ValueError('配置名形如 结构位-像素位[-d]，例如 10110-111-d；或代表档名如 B3')
     if len(parts) == 3 and parts[2] != 'd':
         raise ValueError('交付标志只能是 -d')
     struct, pixel = parts[0], parts[1]
+    # 保留已发布的五结构位配置名；新位默认为关闭。
+    if len(struct) == 5:
+        struct += '00'
     if len(struct) != len(STRUCT_NAMES) or set(struct) - set('01'):
         raise ValueError(f'结构位必须是 {len(STRUCT_NAMES)} 位 0/1')
     if len(pixel) != len(PIXEL_NAMES) or set(pixel) - set('01'):
@@ -90,6 +101,9 @@ def check(config):
         for need in ('ALPHA', 'KEY'):
             if not config[need]:
                 reasons.append(f'DELIVERY 需要 {need}')
+    for a, b, _ in EXCLUDES:
+        if config[a] and config[b]:
+            reasons.append(f'{a} 与 {b} 互斥')
     return reasons
 
 
@@ -135,7 +149,7 @@ def enabled_macros(config):
 def synthesis_mode(config):
     """全结构构型需要更深的逻辑优化；其它构型保留 speed。"""
     config = normalize(config)
-    return 'speed2' if all(config[n] for n in STRUCT_NAMES) else 'speed'
+    return 'speed2' if all(config[n] for n in STRUCT_NAMES[:5]) or config['RAST'] else 'speed'
 
 
 def legal_configurations(with_pixel=True):
@@ -182,6 +196,8 @@ PRESETS = {
     'B4': dict(TEX=1, BAND_HW=1, STRIP=1, INST=0, PB=0, EQ_EXT=1, ALPHA=1, KEY=1, DELIVERY=1),
     'B5': dict(TEX=1, BAND_HW=1, STRIP=1, INST=1, PB=1, EQ_EXT=1, ALPHA=1, KEY=1, DELIVERY=1),
     'B6': dict(TEX=1, BAND_HW=1, STRIP=0, INST=1, PB=0, EQ_EXT=1, ALPHA=1, KEY=1, DELIVERY=1),
+    'B7': dict(TEX=1, BAND_HW=1, STRIP=1, INST=1, PB=0, RAST=1, RAST_TEX=1,
+               EQ_EXT=1, ALPHA=1, KEY=1, DELIVERY=1),
 }
 
 # 主工程交付基本档：结构机制关闭、像素能力全开。生成头、寄存器默认值与
@@ -190,6 +206,7 @@ CANONICAL = 'B0'
 
 # 每个开关对应的源文件：关闭时从编译输入里整出。
 FEATURE_SOURCES = {
+    'RAST': ('rtl/engine/engine_r3.v', 'rtl/engine/engine_rlst.v', 'rtl/engine/engine_rast.v'),
     'TEX': ('rtl/engine/engine_tex.v',),
     'BAND_HW': ('rtl/engine/engine_band.v',),
     'PB': ('rtl/engine/engine_pb.v', 'rtl/engine/engine_pb_dma.v',
@@ -202,16 +219,16 @@ FEATURE_SOURCES = {
 def _self_check():
     """把计数与代表档固化成断言：以后改动 DEPENDS 或 PRESETS 会在这里停住。"""
     structures = [c for c in legal_configurations(with_pixel=False)]
-    assert len(structures) == 16, len(structures)
+    assert len(structures) == 22, len(structures)
     research = [c for c in legal_configurations() if not c['DELIVERY']]
     delivery = [c for c in legal_configurations() if c['DELIVERY']]
-    assert (len(research), len(delivery)) == (128, 32), (len(research), len(delivery))
-    assert len(research) + len(delivery) == 160
+    assert (len(research), len(delivery)) == (176, 44), (len(research), len(delivery))
+    assert len(research) + len(delivery) == 220
     # 3.3.3 节的旧表数字，必须与结构位拆分前对不上，否则说明依赖被写反了。
     assert len(structures) != 20
     for name, expected in (('B0', 0x0000040F), ('B1', 0x0000140F), ('B2', 0x0000144F),
                            ('B3', 0x0000146F), ('B4', 0x0000046F), ('B5', 0x0000346F),
-                           ('B6', 0x0000146F)):
+                           ('B6', 0x0000146F), ('B7', 0x0000D46F)):
         config = parse_name(name)
         assert not check(config), (name, check(config))
         assert caps(config) == expected, (name, hex(caps(config)))

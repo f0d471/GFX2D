@@ -1,6 +1,10 @@
 /******************************************************************************
 * @file main.c: R1 双目标入口；板上执行与硬件对拍由 R3 承接
 ******************************************************************************/
+#if defined(__riscv)
+int r3_board_main(void);
+int main(void) { return r3_board_main(); }
+#else
 #include "board.h"
 #include "gfx/rast_ref.h"
 
@@ -26,3 +30,4 @@ int main(void)
     board_puts(fail ? "rastTest fail 1\ndone\n" : "rastTest fail 0\ndone\n");
     return fail ? 1 : 0;
 }
+#endif

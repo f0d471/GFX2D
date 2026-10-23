@@ -27,6 +27,19 @@ localparam [11:0] EC_REG_REF_CAP = 12'h14C;
 localparam [11:0] EC_REG_SURF0 = 12'h040;
 localparam [11:0] EC_REG_PERF0 = 12'h100;
 
+// R3 参数页（第 1 页，无独立门铃）
+localparam [11:0] EC_R3_ID = 12'h000;
+localparam [11:0] EC_R3_CAPS = 12'h004;
+localparam [11:0] EC_R3_TRI_BASE = 12'h008;
+localparam [11:0] EC_R3_SUB_BASE = 12'h00C;
+localparam [11:0] EC_R3_SUB_BYTES = 12'h010;
+localparam [11:0] EC_R3_TRI_COUNT = 12'h014;
+localparam [11:0] EC_R3_RAS_KEY = 12'h018;
+localparam [11:0] EC_R3_TEXCFG = 12'h01C;
+localparam [11:0] EC_R3_PERF_CYCLES = 12'h040;
+localparam [11:0] EC_R3_PERF_RETIRED = 12'h044;
+localparam [11:0] EC_R3_DEBUG = 12'h080;
+localparam [31:0] EC_R3_ID_VALUE = 32'h52415301;
 // 表面表与性能计数器的下标
 localparam [4:0]  EC_SURF_SLOTS = 5'd16;
 localparam [3:0]  EC_PERF_COUNT = 4'd14;
@@ -85,6 +98,12 @@ localparam EC_CAPS_INST_VALUE = 0;
 localparam EC_CAPS_BIN_LO = 13;
 localparam EC_CAPS_BIN_W  = 1;
 localparam EC_CAPS_BIN_VALUE = 0;
+localparam EC_CAPS_RAST_LO = 14;
+localparam EC_CAPS_RAST_W  = 1;
+localparam EC_CAPS_RAST_VALUE = 0;
+localparam EC_CAPS_RAST_TEX_LO = 15;
+localparam EC_CAPS_RAST_TEX_W  = 1;
+localparam EC_CAPS_RAST_TEX_VALUE = 0;
 localparam [31:0] EC_CAPS_VALUE = 32'h0000040F;
 
 // CTRL 位位号（SOFT_RST/CNT_CLR 写 1 自清）

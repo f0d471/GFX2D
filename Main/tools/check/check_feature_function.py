@@ -86,7 +86,7 @@ def mutations(tree, build, logs):
 def main():
     current = session()
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--only', nargs='+', help='诊断构型；正式范围默认全部 160 个合法构型')
+    parser.add_argument('--only', nargs='+', help='诊断构型；正式范围默认全部 220 个合法构型')
     parser.add_argument('--no-mutations', action='store_true')
     args = parser.parse_args()
     build = current.build('feature-function')

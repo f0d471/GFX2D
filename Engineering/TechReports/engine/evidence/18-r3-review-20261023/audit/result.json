@@ -1,0 +1,263 @@
+{
+  "scope": "R3 predevelopment review, not R3 acceptance",
+  "checks": [
+    {
+      "name": "historical_false_confidence",
+      "passed": true,
+      "detail": "historical 13/13 PASS is reproducible; it is not a closure proof"
+    },
+    {
+      "name": "full_configuration_enumeration",
+      "passed": true,
+      "detail": {
+        "structures": 22,
+        "research": 176,
+        "delivery": 44,
+        "total": 220,
+        "illegal_structures": 106,
+        "illegal_full": 1828,
+        "missed_pb_rast": 3
+      }
+    },
+    {
+      "name": "preserve_all_legacy_modes",
+      "passed": true,
+      "detail": {
+        "legacy_configurations": 160,
+        "correct_changes": 0,
+        "wrong_pb_implies_speed2_changes": 30,
+        "rule": "all(original five structure bits) OR RAST -> speed2"
+      }
+    },
+    {
+      "name": "b7_caps",
+      "passed": true,
+      "detail": "0xd46f"
+    },
+    {
+      "name": "fixed_30_strips",
+      "passed": true,
+      "detail": "3D nonzero count requires BAND=1, LSTRIPS=30 and 640x480 surfaces; TRI_COUNT=0 retains existing 1..30 strip and direct modes"
+    },
+    {
+      "name": "completion_pulse_barrier",
+      "passed": true,
+      "detail": {
+        "sticky_pass": 64,
+        "naive_and_misses": 56,
+        "clear_writes": 2560,
+        "clear_accept_to_done_edges": 2561,
+        "requirement": "clear load_seen/z_seen per accepted band_start, then sticky join"
+      }
+    },
+    {
+      "name": "mover_drain_is_not_rlst_drain",
+      "passed": true,
+      "detail": "mover drain consumes/discards raster FS; canceled rlst otherwise waits forever; sticky mover_done permits transaction-local rlst reset, then join raster/TEX/z idle"
+    },
+    {
+      "name": "error_and_terminal_are_distinct",
+      "passed": true,
+      "detail": "rlst frame_done may accompany error and is suppressed on cancel; latch first error, cancel both units, recover err_hold before a subsequent frame"
+    },
+    {
+      "name": "fd_and_error_plumbing_missing",
+      "passed": true,
+      "detail": "R3 must wire all conditional mover raster/BAND and TEX sample ports, arbitrate CMD/INST/RAST by accepted descriptor, and select full error tuple"
+    },
+    {
+      "name": "tex_not_frame_locked",
+      "passed": true,
+      "detail": "port arbitration does not freeze atlas data for a frame; 3D frame busy must block TEX APB side effects; shadow CSRs remain writable"
+    },
+    {
+      "name": "real_c_cross_strip_capacity",
+      "passed": true,
+      "detail": {
+        "records": 1100,
+        "references": 33000,
+        "sub_bytes": 66120,
+        "physical_bytes": 66128,
+        "main_bytes": 140800,
+        "fetched_record_bytes": 4224000,
+        "max_sub_bytes_65535": 3932220
+      }
+    },
+    {
+      "name": "actual_rlst_cancel_witness",
+      "passed": true,
+      "detail": "actual rlst: lost FS + mover completion leaves busy stuck; post-mover local reset recovers; normal forwarded cancel drains"
+    },
+    {
+      "name": "display_live_observation",
+      "passed": true,
+      "detail": "require SRC=1, fresh SNAP_FRAME, zero/under/resperr before/during/after mixed load; standalone displayTest and PERF_WAIT_DDR do not prove mixed-load absence of underflow"
+    },
+    {
+      "name": "scan_budget_is_not_framebuffer_size",
+      "passed": true,
+      "detail": {
+        "worst_bbox_tests": 337920000,
+        "ideal_scan_seconds_at_100mhz": 3.3792,
+        "requirement": "measure sum bbox intersections, references, fetch, init/drain, CPU and flush"
+      }
+    },
+    {
+      "name": "board_probe_complete",
+      "passed": true,
+      "detail": {
+        "16": {
+          "polygon": 3.26103,
+          "view": 7.34459,
+          "bin": 0.34103,
+          "view_plus_bin_ms": 7.68562
+        },
+        "32": {
+          "polygon": 6.50976,
+          "view": 14.68709,
+          "bin": 0.69129,
+          "view_plus_bin_ms": 15.37838
+        },
+        "64": {
+          "polygon": 12.99712,
+          "view": 29.35988,
+          "bin": 2.84083,
+          "view_plus_bin_ms": 32.20071
+        },
+        "1100": {
+          "polygon": 223.05638,
+          "view": 504.45257,
+          "bin": 48.31833,
+          "view_plus_bin_ms": 552.7709
+        }
+      }
+    },
+    {
+      "name": "old_1100_budget_falsified",
+      "passed": true,
+      "detail": "synthetic deterministic no-near-clip CPU probe, not R4 or B7 frame performance"
+    }
+  ],
+  "policy": {
+    "structures": 22,
+    "research": 176,
+    "delivery": 44,
+    "total": 220
+  },
+  "structure_bit_order": [
+    "TEX",
+    "BAND_HW",
+    "STRIP",
+    "INST",
+    "PB",
+    "RAST",
+    "RAST_TEX"
+  ],
+  "legal_structures": [
+    "0000000",
+    "0001000",
+    "0100000",
+    "0101000",
+    "0101100",
+    "0110000",
+    "0110010",
+    "0111000",
+    "0111010",
+    "0111100",
+    "1000000",
+    "1001000",
+    "1100000",
+    "1101000",
+    "1101100",
+    "1110000",
+    "1110010",
+    "1110011",
+    "1111000",
+    "1111010",
+    "1111011",
+    "1111100"
+  ],
+  "incorrect_pb_mode_changes": [
+    "01011-000",
+    "01011-001",
+    "01011-010",
+    "01011-011",
+    "01011-011-d",
+    "01011-100",
+    "01011-101",
+    "01011-110",
+    "01011-111",
+    "01011-111-d",
+    "01111-000",
+    "01111-001",
+    "01111-010",
+    "01111-011",
+    "01111-011-d",
+    "01111-100",
+    "01111-101",
+    "01111-110",
+    "01111-111",
+    "01111-111-d",
+    "11011-000",
+    "11011-001",
+    "11011-010",
+    "11011-011",
+    "11011-011-d",
+    "11011-100",
+    "11011-101",
+    "11011-110",
+    "11011-111",
+    "11011-111-d"
+  ],
+  "inputs": {
+    "Main/sw/lib/core/fixmath.c": "a049d899af31f5f8e4804db1b45819a8bce40737bc8f95ee27a3816f00cd528d",
+    "Main/sw/lib/core/sin_tab.c": "9e6c236c5bd0022bb4b845022d024cffd6e8f31babf7cd39e0895aa6633f04ef",
+    "Main/sw/lib/gfx/rast_setup.c": "133b35ecb9f56d2ab6b63821ce0f152e6d700a2b69ac0cc834a8c2ba2f2e024f",
+    "Main/sw/lib/gfx/rast_ref.c": "6a32990774f3a21194b597567298380c66cdf4a33741b597a352bcf938fd6a2a",
+    "Main/sw/lib/test/rast_ref2.c": "19b2b94d0095d03be9957bbe227799a7ced84554454250e0d134ca2e9ab47706",
+    "Main/tools/check/feature_config.py": "7b6623cc9927c0f9f1e4767c44b6d98872469abae77d33e58dbd4ec4a4eff4e9",
+    "Main/tools/check/check_rast.py": "6b50c4893d4ef6843e4a52920940a95e5a7d8683d8bf384bbabce8d3b1e1f01c",
+    "Main/sw/mk/target.mk": "0f31595b66a540da69c9e62027018ec18a1c1965efeebc944c42cbb49dfced28",
+    "Main/sw/bsp/ti60/board.c": "c6c53cf814e7aeb7bad73c9d7906f4b175b1528b987a3564ea4209838e5b22af",
+    "Main/sw/bsp/ti60/gfx_engine.c": "6fdd2cb22c9150fb4da8a27f1cd96eeb1f66ce9723edc82983c2483c822855bb",
+    "Main/sw/lib/gfx/rast_setup.h": "b5e8a917802c689febb9f24bee2bf89d4aa3e1c8c9f6e83fe01fb7a821790f2b",
+    "Main/rtl/engine/engine_feature.vh": "192c486c8071c5475ababc722d52f54cb6e4f297e81ae0f0a7a21ab5a9ee7657",
+    "Engineering/TechReports/engine/evidence/18-r3-research-20261023/research.json": "c06a8f1bbcbcb6be951fb759909b2a850370fcd9dee863e473a3101fdfacd80f",
+    "Main/rtl/engine/engine_rlst.v": "c28bf4fbabb1317f92b6b66fa7ef0040551189e534afd5b1fb3f58be83e0658d",
+    "Main/rtl/engine/engine_cmd.v": "bfd8bd5db07e517c0cb79695d5431d78557f5d7c9e8687c81c7ecc41374431e5",
+    "Main/rtl/engine/engine_rast.v": "c19fe43f4c81d6a3158dfd7c07dcd8cfbf7de99e44297c2db57f8a8d83239b9a",
+    "Main/rtl/engine/engine_band.v": "008b8ba16de4b71c607c0e49352934618559c7ca1b3fd7f47d35304f5aa3a109",
+    "Main/rtl/engine/engine_mover.v": "dc0bee2af5f09b6d22538034e8b8da43fb24b7b4367cbb3fbfe41590e0c622de",
+    "Main/rtl/engine/engine_top.v": "746cb13f8ebba4fdcbf12899adb15a10f0c39b34edcfea3da718beab1ab9b58c",
+    "Main/rtl/engine/engine_tex.v": "9785038350d44bd23d32af73c72fe4b0ee23e545b40f92404f66babb29185a4e",
+    "Main/rtl/display/display_out.v": "4b94bc7240e95edc59cab7c5ff72a8a2a3c859732eca5529065df0abe16a21d0",
+    "audit.py": "ddbee19342d960b54e93956a5626030172130ffddeaadbfd44984e58e0a86fc1",
+    "tb_cancel_contract.v": "74e7145eb76c84fec7d29849e65906036f88d37e642abf3a20b933fcc0fdd62f"
+  },
+  "board_probe_medians": {
+    "16": {
+      "polygon": 3.26103,
+      "view": 7.34459,
+      "bin": 0.34103,
+      "view_plus_bin_ms": 7.68562
+    },
+    "32": {
+      "polygon": 6.50976,
+      "view": 14.68709,
+      "bin": 0.69129,
+      "view_plus_bin_ms": 15.37838
+    },
+    "64": {
+      "polygon": 12.99712,
+      "view": 29.35988,
+      "bin": 2.84083,
+      "view_plus_bin_ms": 32.20071
+    },
+    "1100": {
+      "polygon": 223.05638,
+      "view": 504.45257,
+      "bin": 48.31833,
+      "view_plus_bin_ms": 552.7709
+    }
+  }
+}

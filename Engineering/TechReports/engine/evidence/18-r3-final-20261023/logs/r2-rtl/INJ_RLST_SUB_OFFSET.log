@@ -1,0 +1,2 @@
+FATAL: Main/sim/engine/rlst/tb_engine_rlst.v:108: RLST result code=9 refs=0
+       Time: 1820000  Scope: tb_engine_rlst.run_case

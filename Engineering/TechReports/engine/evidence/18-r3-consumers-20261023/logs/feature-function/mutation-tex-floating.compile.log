@@ -1,0 +1,1 @@
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261023-150246-dee7f54a/build/feature-function/rtl/engine/engine_top.v:641: warning: Instantiating module engine_mover with dangling input port 38 (tx_busy) floating.

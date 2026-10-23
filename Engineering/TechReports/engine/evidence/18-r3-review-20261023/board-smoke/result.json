@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "quick",
+  "checks": [
+    "board"
+  ],
+  "run_id": "20261023-135611-6342d3d0"
+}

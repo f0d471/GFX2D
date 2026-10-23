@@ -1,0 +1,34 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "r3-synthesis"
+  ],
+  "changed": null,
+  "commands": {
+    "r3-synthesis": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_feature_synthesis.py",
+      "--only",
+      "B0",
+      "B7"
+    ]
+  },
+  "timeouts": {
+    "r3-synthesis": 18000
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/rtl/**",
+    "Main/fpga/**",
+    "Main/sdk/**",
+    "Main/sim/engine/frontend/syn_bin/*.xml",
+    "Main/tools/check/check_r2_synthesis.py",
+    "Main/tools/check/feature_build.py",
+    "Main/tools/check/feature_config.py",
+    "Main/tools/check/feature_synthesis.py",
+    "Main/tools/check/regs_gen.py",
+    "Main/tools/check/check_feature_synthesis.py",
+    "Main/tools/check/feature_netlist.py"
+  ]
+}

@@ -210,13 +210,16 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 | 结构 | `GFX_HAS_STRIP` | `BAND_HW` |
 | 结构 | `GFX_HAS_INST` | 无 |
 | 结构 | `GFX_HAS_PB` | `BAND_HW` 与 `INST` |
+| 结构 | `GFX_HAS_RAST` | `STRIP`；与 `PB` 互斥 |
+| 结构 | `GFX_HAS_RAST_TEX` | `RAST` 与 `TEX` |
 | 像素 | `GFX_ALPHA` | 无 |
 | 像素 | `GFX_EQ_EXT` | 无 |
 | 像素 | `GFX_KEY` | 无 |
 | 交付 | `GFX_DELIVERY` | 要求 `ALPHA` 与 `KEY` |
 
-有三条依赖边：`PB → BAND_HW`、`PB → INST`、`STRIP → BAND_HW`。
-合法配置是向下封闭集，结构位 32 种输入中合法 16、非法 16。
+结构有六条依赖边及 PB/RAST 互斥，128 个结构输入中合法22、非法106。
+完整独立枚举像素位与 DELIVERY 后合法220（research176、delivery44），非法1828。
+旧五位配置名继续接受并在末尾补两个0；规范名使用七位。
 计数与依赖的单一真源是 [`../../tools/check/feature_config.py`](../../tools/check/feature_config.py)，
 导入时自检，改动依赖会在那里停住。
 
@@ -233,8 +236,8 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 | 无色键 | 请求色键的 BLIT/实例包归 `BAD_FIELD`，不能静默执行普通 BLIT |
 | 条带共享参数 | `LSTRIPS/STRIP_H/BAND_SURF` 在 STRIP 或 PB 存在时映射；两者都无时读写报错 |
 | 无 STRIP | 独立 `CTRL.BAND` 写拒绝；PB 存在时允许同次写 `BAND|BIN`，由 PB 控制条带 |
-| 无 RAST（单元扩展） | 生产源清单不包含 rlst/rast；mover raster FS 与 BAND 光栅口整块离开编译输入；现有二维口保持。三维 CSR 尚未集成 |
-| 无 RAST_TEX（单元扩展） | 三维采样口、KEY 比较与三路调制乘法离开编译；L1 保留旧 TEX；TEX_EN=1 的记录报 BAD_FIELD，无 TEX 的 KEY_EN 忽略 |
+| 无 RAST | 源清单排除 r3/rlst/rast；第1页读写报错且读值0，CAPS[15:14]=0；mover raster FS 与 BAND 光栅口离开编译输入 |
+| 无 RAST_TEX | 三维采样口、KEY 比较与三路调制乘法离开编译；独立保留旧 TEX 能力；TEX_EN=1 的记录报 BAD_FIELD，无 TEX 的 KEY_EN 忽略 |
 | 无条带模式 | `CAPS` 不变（无专属位），只能靠「无条带表取数」与「CTRL.BAND 被拒」判 |
 
 ### 7.3 能力位与默认后端
@@ -276,10 +279,11 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 
 ## 8 三维取数与光栅单元
 
-`engine_rlst`、`engine_rast` 是独立验证的三维单元。当前生产 B0～B6 源文件清单
-不包含它们；三维 CSR、CAPS、B7 与整帧调度尚未接入。单元构建以
-`GFX_HAS_RAST` 打开 mover 的第三类 FD 和 BAND 写口，以 `GFX_HAS_RAST_TEX`
-打开 TEX 采样口。L1 保留旧 `GFX_HAS_TEX`，只裁掉三维采样/调制。
+`engine_r3` 将 `engine_rlst`、`engine_rast` 接入 engine_top；帧调度仍由 engine_cmd
+独占。B7=B3+RAST+RAST_TEX，CAPS=D46F；默认 B0 不变，旧 B0～B6 不编译三维模块。
+`GFX_HAS_RAST` 打开 mover 的第三类 FD 和 BAND 写口，`GFX_HAS_RAST_TEX`
+打开 TEX 采样口。L1 与旧 `GFX_HAS_TEX` 独立；原五结构位全开或 RAST 使用 speed2，
+其它构型保持 speed。
 三维数据的永久定义见 [`../../doc/三维数值契约.md`](../../doc/三维数值契约.md)。
 
 ### 8.1 列表、参数槽与条带边界
@@ -360,3 +364,41 @@ FD 另作 CMD/RAST/INST/CMD 交接，末拍停顿时请求侧类别/tag 的改�
 
 关闭态以真实生产源清单和旧二维消费者检查为准，不能用裁掉旧 TEX 的构型代替 L1。
 本节没有三维整机性能或板上通过结论。
+
+### 8.4 R3 参数页与帧控制
+
+第1页由gfx2d_top一级页选放行，engine_top再分选；无RAST时返回0/PSLVERR。
+寄存器偏移由regs_gen.py生成，下表为页内偏移；无独立门铃、EN或DONE。
+
+| 偏移 | 含义 |
+| --- | --- |
+| 00/04 | ID=52415301，CAPS只镜像主CAPS的15/14位 |
+| 08/0C | TRI_BASE（32B对齐）/SUB_BASE（16B对齐） |
+| 10/14 | SUB_BYTES（偶数逻辑长度，物理末拍补16B）/TRI_COUNT（≤65535） |
+| 18/1C | RAS_KEY原始ARGB / TEXCFG（v1只接受0，即64×64、64词行距） |
+| 40/44 | 本帧RAST相位周期 / 已退休条带引用数，完成后保留 |
+| 80 | DEBUG：[0]selected [1]started [2]error [3]frame_done [4]rlst_busy [5]core_idle [6]z_busy [12:10]未返回采样数 |
+
+六参数是32位shadow；门铃同拍快照，BUSY中的参数写只影响下一帧。
+TRI_COUNT=0完全绕过三维入口，忽略其它闲置参数并保留旧1～30带行为。
+非零时须BAND=1、30带、STRIP_H=16、背景/目的640×480；原始宽度、对齐、33位末端
+在启动三维取数/BAND前检查，非法报BAD_FIELD/stage7。驱动另核对真实分配、分区与别名。
+3D→2D时旧提交API清TRI_COUNT。控制层复位清shadow；软复位沿用参数保留纪律。
+
+控制器先完成旧配置/表头读取，再发一次rlst.go；每带受理band_start时同时清z，
+LOAD和z_done分别锁存后拉strip_ack进入RAST。ack维持到HUD/FLUSH结束，ras_lease
+只覆盖RAST。最后一带也先撤ack，等子表逻辑末尾检查和真正idle后才上报DONE。
+TEX APB在3D整帧BUSY期间拒绝，防止中途改atlas/抢占采样端口；旧二维构型不加此锁。
+
+首错按TIMEOUT、rlst、rast的同拍优先级锁存code/index/tag/stage，index保留完整16位，
+头部/尾部错误用FFFF哨兵，tag={11'd0,strip[4:0],ordinal[15:0]}。
+停止整帧后续绘制，不回滚已flush的带，不present失败的后缓冲。
+取消立刻挡住FD、采样和色/z提交；mover先排空并可能吞FS，锁存物理drain_done后才清rlst。
+再等core idle、z清零和TEX返回结束，汇合后才报ERR/软复位完成，恢复err_hold后才接新帧。
+控制层独立复位也屏蔽本拍像素写，复位后的新门铃在旧mover排空前保持拒绝。
+三维帧的旧2D命令若报错，先沿用旧FE/geom收尾条件，再取消三维事务；
+不能提前让mover吞掉旧FE仍在等的命令预取。三维本身的首错与软复位仍立即禁止新提交。
+
+完整顶层检查是`validate.py --checks r3`；R2三项仍检查独立核与真实AXI单元链。
+峰值每拍扫描一个bbox候选点不等于整帧吞吐，CPU几何/setup、总引用、候选点、
+取数/初始化/排空、清零和写回均须分项测量。

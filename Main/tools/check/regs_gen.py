@@ -60,7 +60,8 @@ CAPS_FIELDS = [("KEY", 0, 1, 1), ("ALPHA_PM", 1, 1, 1),
                ("ALPHA_ST", 2, 1, 1), ("MUL", 3, 1, 1),
                ("TINT", 4, 1, 0), ("BAND", 5, 1, 1),
                ("TEX", 6, 1, 1), ("INDEX8", 7, 1, 0),
-               ("LANES", 8, 4, 4), ("INST", 12, 1, 1), ("BIN", 13, 1, 1)]
+               ("LANES", 8, 4, 4), ("INST", 12, 1, 1), ("BIN", 13, 1, 1),
+               ("RAST", 14, 1, 0), ("RAST_TEX", 15, 1, 0)]
 CAPS_VALUE = sum(value << lo for _, lo, _, value in CAPS_FIELDS)
 
 
@@ -72,6 +73,10 @@ def default_caps():
 # 页内偏移 0x4000 起 16 KiB，CPU 地址 0xF810_4000~0xF810_7FFF。
 TEX_WINDOW = 0x4000
 TEX_BYTES = 16384
+R3_REGS = [('ID', 0x00), ('CAPS', 0x04), ('TRI_BASE', 0x08), ('SUB_BASE', 0x0C),
+           ('SUB_BYTES', 0x10), ('TRI_COUNT', 0x14), ('RAS_KEY', 0x18), ('TEXCFG', 0x1C),
+           ('PERF_CYCLES', 0x40), ('PERF_RETIRED', 0x44), ('DEBUG', 0x80)]
+R3_ID_VALUE = 0x52415301
 
 # CTRL 位
 CTRL_BITS = [("EN", 0), ("SOFT_RST", 1), ("CNT_CLR", 2), ("BAND", 3), ("BIN", 4)]
@@ -127,6 +132,10 @@ def gen_vh(caps_value=None):
                  ("REG_DRAW_CAP", DRAW_CAP), ("REG_REF_CAP", REF_CAP), ("REG_SURF0", SURF0), ("REG_PERF0", PERF0)]:
         a(f"localparam [11:0] EC_{n} = 12'h{o:03X};")
     a("")
+    a("// R3 参数页（第 1 页，无独立门铃）")
+    for n, o in R3_REGS:
+        a(f"localparam [11:0] EC_R3_{n} = 12'h{o:03X};")
+    a(f"localparam [31:0] EC_R3_ID_VALUE = 32'h{R3_ID_VALUE:08X};")
     a("// 表面表与性能计数器的下标")
     a(f"localparam [4:0]  EC_SURF_SLOTS = 5'd{SURF_SLOTS};")
     a(f"localparam [3:0]  EC_PERF_COUNT = 4'd{PERF_COUNT};")
@@ -197,6 +206,10 @@ def gen_h(caps_value=None):
     a(f"#define GFX_SURF(s, w)   (0x{SURF0:03X} + ((s) * 12) + ((w) * 4))  /* s=0..15, w=0..2 */")
     a(f"#define GFX_PERF(i)      (0x{PERF0:03X} + (i) * 4)")
     a("")
+    a("/* R3 第 1 页：偏移相对引擎 APB 基址 */")
+    for n, o in R3_REGS:
+        a(f"#define GFX_R3_{n}       0x{0x1000+o:04X}u")
+    a(f"#define GFX_R3_ID_VALUE  0x{R3_ID_VALUE:08X}u")
     a("/* 性能计数器下标 */")
     for i, n in enumerate(PERF_NAMES):
         a(f"#define GFX_PERF_{n}     {i}")

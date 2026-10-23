@@ -1,0 +1,20 @@
+fifo/semantics: RESULT: PASS checks=23
+fifo/inject_no_reset: RESULT: FAIL errors=7 checks=23
+display/image: RESULT: PASS checks=16 fields=10
+display/image_clk_plus: RESULT: PASS checks=16 fields=10
+display/image_clk_minus: RESULT: PASS checks=16 fields=10
+display/swap: RESULT: PASS checks=9 fields=12
+display/inflight: RESULT: PASS checks=16 fields=10
+display/level: RESULT: PASS checks=10 fields=10
+display/starve: RESULT: PASS checks=10 fields=13
+display/snapshot: RESULT: PASS checks=5 fields=24
+display/corerst: RESULT: PASS checks=6 fields=29
+display/inj_lag0: RESULT: FAIL errors=3 checks=16 fields=10
+display/inj_order: RESULT: FAIL errors=3 checks=16 fields=10
+display/inj_phase: RESULT: FAIL errors=3 checks=16 fields=10
+display/inj_no_drain: RESULT: FAIL errors=3 checks=10 fields=13
+display/inj_no_clear: RESULT: FAIL errors=5 checks=16 fields=10
+display/inj_inflight2: RESULT: FAIL errors=6 checks=16 fields=10
+display/inj_swap_now: RESULT: FAIL errors=1 checks=9 fields=12
+display/image_full: SKIPPED（要整帧跑就 FULL=1 bash run.sh）
+SIM OK

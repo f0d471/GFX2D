@@ -1,0 +1,11 @@
+{
+  "scope": "rlst",
+  "profile": "acceptance",
+  "cases": [
+    {
+      "name": "normal",
+      "expected_failure": false,
+      "log": "Main/sim/build/check-runs/20261023-191846-7ec71037/logs/r2-rlst/normal.log"
+    }
+  ]
+}

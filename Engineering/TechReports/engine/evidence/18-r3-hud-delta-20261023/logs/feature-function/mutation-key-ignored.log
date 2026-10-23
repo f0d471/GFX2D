@@ -1,0 +1,22 @@
+CHECK-FAIL error code got=00000000 want=00000002
+CHECK-FAIL error tag got=00000000 want=5a123456
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+CHECK-FAIL destination and guards got=00604020 want=00102030
+FEATURE-FUNCTION-FAIL checks=39502 failures=20
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/features/tb_feature_function.v:276: $finish called at 204360000 (1ps)

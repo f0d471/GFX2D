@@ -1,0 +1,11 @@
+PHASE strip=0 height=16 load=4247 exec=925 flush=4234
+PHASE strip=1 height=16 load=4139 exec=4220 flush=4237
+PHASE strip=2 height=16 load=4248 exec=53 flush=4223
+PHASE strip=3 height=16 load=4284 exec=53 flush=4224
+PHASE strip=4 height=16 load=4260 exec=53 flush=4231
+PHASE strip=5 height=16 load=4173 exec=1037 flush=4213
+PHASE TOTAL height=16 load=25351 exec=6341 flush=25362
+BAND FORMAL cycles=57066 fragments=25 rows=258 AR=226 AW=96 fd=0/0 early=1 preload=60
+PATH stats commands=25 read=516 write=258 stalls=0 mem_bad=0 errors=0
+RESULT: PASS (B1-B4, software executor golden)
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/band/tb_engine_band_path.v:343: $finish called at 693790000 (1ps)

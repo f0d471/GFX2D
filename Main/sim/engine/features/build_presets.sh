@@ -10,7 +10,7 @@ ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
 WORK=${1:-$ROOT/Main/sim/build/feature-trees}
 FORCE=${FORCE:-0}
 cd "$ROOT"
-for preset in B0 B1 B2 B3 B4 B5 B6; do
+for preset in B0 B1 B2 B3 B4 B5 B6 B7; do
   if [ -d "$WORK/$preset" ] && [ "$FORCE" != "1" ]; then
     echo "SKIP $preset（已存在；FORCE=1 覆盖）"
     continue

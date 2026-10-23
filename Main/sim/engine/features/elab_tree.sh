@@ -14,7 +14,7 @@ files=(
 )
 # 按构型启用的模块补进去；未启用的文件不存在于源树里也允许（源树里仍有副本）。
 for extra in engine_tex engine_band engine_inst engine_bounds engine_packet_check \
-             engine_pb_dma engine_bin engine_pb; do
+             engine_pb_dma engine_bin engine_pb engine_r3 engine_rlst engine_rast; do
   [ -f "rtl/engine/$extra.v" ] && files+=("rtl/engine/$extra.v")
 done
 

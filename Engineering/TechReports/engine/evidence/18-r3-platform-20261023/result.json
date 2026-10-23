@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "axi_mux_guard",
+    "display"
+  ],
+  "run_id": "20261023-150758-eb9cca53"
+}
