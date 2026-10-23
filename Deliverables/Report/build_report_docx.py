@@ -45,27 +45,59 @@ def set_font(run, size, bold=False, hei=False, color=None):
         f.color.rgb = color
 
 
+RED = RGBColor(0xFF, 0x00, 0x00)
+GREEN = RGBColor(0x00, 0xB0, 0x50)
+CHECK_PNG = HERE / ".work" / "check_green.png"
+
+
+def ensure_check_png():
+    """首次使用时生成「绿方块+镂空白勾」勾选图标(4x 超采样抗锯齿)。"""
+    if CHECK_PNG.exists():
+        return
+    CHECK_PNG.parent.mkdir(parents=True, exist_ok=True)
+    from PIL import Image, ImageDraw
+    s = 4
+    w = 96 * s
+    img = Image.new("RGBA", (w, w), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([0, 0, w - 1, w - 1], radius=12 * s,
+                        fill=(0, 0xB0, 0x50, 255))
+    d.line([(26 * s, 50 * s), (42 * s, 66 * s), (70 * s, 32 * s)],
+           fill=(255, 255, 255, 255), width=9 * s, joint="curve")
+    img.resize((96, 96), Image.LANCZOS).save(CHECK_PNG)
+
+
 def add_runs(p, text, size, bold=False, hei=False, color=None):
-    """正文/表格统一出口:支持 **加粗**,并把 N_max 排成 N + 下标 max。"""
-    for seg in re.split(r"(\*\*.+?\*\*)", text):
+    """正文/表格统一出口:支持 **加粗**、%%红粗%%、@@绿字@@、&&勾选图标&&,并把 N_max 排成 N + 下标 max。"""
+    for seg in re.split(r"(\*\*.+?\*\*|%%.+?%%|@@.+?@@|&&.+?&&)", text):
         if not seg:
             continue
+        if seg.startswith("&&") and seg.endswith("&&"):
+            ensure_check_png()
+            r = p.add_run()
+            r.add_picture(str(CHECK_PNG), width=Pt(9), height=Pt(9))
+            continue
+        seg_color, seg_bold = color, bold
         if seg.startswith("**") and seg.endswith("**"):
-            core, is_bold = seg[2:-2], True
+            core, seg_bold = seg[2:-2], True
+        elif seg.startswith("%%") and seg.endswith("%%"):
+            core, seg_bold, seg_color = seg[2:-2], True, RED
+        elif seg.startswith("@@") and seg.endswith("@@"):
+            core, seg_color = seg[2:-2], GREEN
         else:
-            core, is_bold = seg, bold
+            core = seg
         for part in re.split(r"(N_max)", core):
             if not part:
                 continue
             if part == "N_max":
                 r = p.add_run("N")
-                set_font(r, size, is_bold, hei, color)
+                set_font(r, size, seg_bold, hei, seg_color)
                 r2 = p.add_run("max")
-                set_font(r2, size, is_bold, hei, color)
+                set_font(r2, size, seg_bold, hei, seg_color)
                 r2.font.subscript = True
             else:
                 r = p.add_run(part)
-                set_font(r, size, is_bold, hei, color)
+                set_font(r, size, seg_bold, hei, seg_color)
     return p
 
 
@@ -200,6 +232,7 @@ def build():
         lines.append("")
 
     i = 0
+    pending_pb = False   # [[PAGEBREAK]] 待生效:下一段落页首起,不另占一行
     while i < len(lines):
         line = lines[i].rstrip()
         i += 1
@@ -226,10 +259,13 @@ def build():
                 if seg:
                     para(doc, seg, indent=True, after=2)
         elif line == "[[PAGEBREAK]]":
-            doc.add_page_break()
+            pending_pb = True
         elif line.startswith("#附|"):
-            para(doc, line.split("|", 1)[1], size=14, bold=True, hei=True,
-                 indent=False, before=14, after=6, keep_with_next=True)
+            p = para(doc, line.split("|", 1)[1], size=14, bold=True, hei=True,
+                     indent=False, before=14, after=6, keep_with_next=True)
+            if pending_pb:
+                p.paragraph_format.page_break_before = True
+                pending_pb = False
         elif line.startswith("# "):
             p = para(doc, line[2:], size=16, bold=True, hei=True,
                      align=WD_ALIGN_PARAGRAPH.CENTER, indent=False,
@@ -267,7 +303,7 @@ def build():
             if ncols == 4 and rows[0][0] == "资源":
                 widths = [4.6, 3.5, 3.4, 2.9]
             elif ncols == 3 and rows[0][0] == "类别":
-                widths = [2.2, 5.2, 7.0]
+                widths = [2.0, 5.3, 7.1]
             else:
                 widths = [14.4 / ncols] * ncols
             add_table(doc, rows, widths)

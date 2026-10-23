@@ -28,7 +28,7 @@ FIXED = {"——技术报告——", "摘 要", "AI 工具使用说明"}
 
 
 def norm(s):
-    s = s.replace("\u3000", " ").replace("**", "").replace("`", "")
+    s = s.replace("&&√&&", "").replace("\u3000", " ").replace("**", "").replace("%%", "").replace("@@", "").replace("&&", "").replace("`", "")
     s = re.sub(r"\s+", " ", s).strip()
     return CAPTION.sub("", s)
 
