@@ -196,9 +196,7 @@ def build():
         if line.startswith("#TITLE|"):
             para(doc, line.split("|", 1)[1], size=20, bold=True, hei=True,
                  align=WD_ALIGN_PARAGRAPH.CENTER, indent=False,
-                 before=24, after=6)
-            para(doc, "——技术报告——", size=12, hei=True,
-                 align=WD_ALIGN_PARAGRAPH.CENTER, indent=False, after=18)
+                 before=24, after=18)
         elif line == "#ABSTRACT":
             para(doc, "摘　要", size=14, bold=True, hei=True,
                  align=WD_ALIGN_PARAGRAPH.CENTER, indent=False,
