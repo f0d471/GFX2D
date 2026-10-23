@@ -1,0 +1,14 @@
+PASS page_decode apb_sel_eng=(apb_paddr[15:12]==4'h0)||(apb_paddr[15:14]==2'b01); 第1页=default(PSLVERR); TEX页={4,5,6,7}; R3须增 4'h1 支路
+PASS engine_top_dispatch hit_regs(页0)/hit_tex(页4~7)在；页1无支路(须新增 hit_rast 与三路 mux)
+PASS fsm_insertion S_BSTART/S_BLOAD/S_BFLUSH/S_BWAIT 在；band_start/flush 由状态直译；空表直接 FLUSH 先例在(S_BLOAD 出口)；表头 8 拍；条带 1..30、步长 32KB；RAST 相插在 S_BLOAD 出口与 2D 派发之间
+PASS doorbell_discipline kick=door_accepted 一拍；cmd 在 S_IDLE 同拍锁存 base/count/strips/table_base；R3 的 TRI_BASE/SUB_BASE/SUB_BYTES/TRI_COUNT/RAS_KEY/TEXCFG 须同一拍锁存
+PASS caps_math B3=0x146F；既有预设 bit14/15 全 0；B7=0xD46F；旧预设值不因新增位改变
+PASS dep_graph 旧 5 位合法结构 16（对上 _self_check）；新 7 位合法结构 25；research/delivery = 150/50，共 200（旧 128/32=160）
+PASS synthesis_mode 现行规则 speed2 仅 B5；显式表 {B5,B7}→speed2 对 B0~B6 逐项等价（纯扩展）
+PASS regs_map BAD_INDEX=13 已登记；4 位码剩 14/15；第 0 页最高偏移 0x138 < 0x1000；第 1 页窗口 0x1000~0x1FFF 空闲（TEX 窗口 0x4000 不变）
+PASS error_path PB 现用 stage=[0, 1, 3]，7 空闲；engine_top 错误 mux 在 err_code/err_stage 处扩 rast 三元组；ERROR_TAG={11'd0,strip[4:0],ordinal[15:0]}=32b
+PASS z_clear_budget rast 有 z_clear/z_clear_busy/z_clear_done；2560 拍/带×30=76800 拍=768.0µs@100MHz
+PASS band_tex_ports band 光栅写口=租约∧EXEC∧界内∧无保持；tex 采样口与 legacy/APB 互斥已实现；帧层只须在 RAST 相拉 ras_lease
+PASS board_path rastTest 显式留有 R3 对拍接口；驱动经 gfx_engine.c 写 LIST_BASE/DOORBELL；displayTest 欠载判据在(D_UNDER_BEATS=0)；PERF_WAIT_DDR 计数在；CRC golden 机制在；R1 冻结 16 条记录可作对拍种子
+PASS frame_capacity 目标场景 ~1100 tri：主表 140800B、子表 2340B（<4KB DDR 无压力）；TEXCFG v1 64×64 边界 (h-1)*stride+w=4096≤4096 过 rast 检查；slog2=6
+RESEARCH PASS checks=13 failed=0
