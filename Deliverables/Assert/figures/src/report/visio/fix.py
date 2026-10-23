@@ -147,6 +147,13 @@ label_sub(cells['28'], '@100 MHz', '@100 MHz)')               # 补右括号
 for tid, swx in [('28', 575), ('26', 575), ('30', 575), ('32', 640), ('33', 682)]:
     set_geom(cells[tid], x=swx + 16, w=320)   # 色块右 6px 起左对齐,加宽防换行
     align_left(cells[tid])
+# SPI0 取直:出口钉到锚点 40 (x=291) 正上方,浮动出口会朝目标偏成斜线
+for cid, e in list(cells.items()):
+    c = e[1]
+    if c.get('edge') == '1' and c.get('target') == '40':
+        st = re.sub(r'(exit|entry)[XY]=[-0-9.]+;?', '', c.get('style') or '')
+        c.set('style', st + ';exitX=0.21;exitY=0;exitDx=0;exitDy=0;')
+        print('  SPI0 edge pinned:', cid)
 save(tree, 'rep_system')
 
 # ---------- rep_swlayers: 右侧注释 + 图例 ----------

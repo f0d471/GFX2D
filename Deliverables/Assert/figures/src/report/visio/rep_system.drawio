@@ -225,7 +225,7 @@
           <mxGeometry x="291" y="688" as="geometry" />
         </mxCell>
         <UserObject label="" tags="连接线" id="41">
-          <mxCell edge="1" parent="1" source="21" style="vsdxID=87;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=2;strokeColor=#7f7f7f;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitX=0.2;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" target="40">
+          <mxCell edge="1" parent="1" source="21" style="vsdxID=87;edgeStyle=none;startArrow=none;endArrow=block;startSize=5;endSize=2;strokeColor=#7f7f7f;spacingTop=0;spacingBottom=0;spacingLeft=0;spacingRight=0;verticalAlign=middle;html=1;labelBackgroundColor=#ffffff;rounded=0;exitDx=0;exitDy=0;exitPerimeter=0;;exitDx=0;exitDy=0;;exitX=0.21;exitY=0;exitDx=0;exitDy=0;" target="40">
             <mxGeometry relative="1" as="geometry">
               <mxPoint x="9" y="-1" as="offset" />
               <Array as="points" />
