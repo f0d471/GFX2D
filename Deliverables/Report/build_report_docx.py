@@ -178,6 +178,7 @@ def build():
 
     fig_no = 0
     tab_no = 0
+    li_no = 0
     lines = []
     for f in sorted(PARTS.glob("*.md")):
         lines.extend(f.read_text(encoding="utf-8").splitlines())
@@ -189,6 +190,8 @@ def build():
         i += 1
         if not line.strip():
             continue
+        if not line.startswith("- "):
+            li_no = 0        # 项目列表逐段重新编号
 
         if line.startswith("#TITLE|"):
             para(doc, line.split("|", 1)[1], size=20, bold=True, hei=True,
@@ -254,9 +257,10 @@ def build():
             add_table(doc, rows, widths)
             para(doc, "", size=6, indent=False, after=2)
         elif line.startswith("- "):
-            p = para(doc, line[2:], size=12, indent=False, spacing=1.4)
-            p.paragraph_format.left_indent = Cm(0.74)
-            p.style = doc.styles["List Bullet"]
+            li_no += 1
+            p = para(doc, f"（{li_no}）{line[2:]}", size=12, indent=False, spacing=1.4)
+            p.paragraph_format.left_indent = Cm(1.3)
+            p.paragraph_format.first_line_indent = Cm(-1.3)
             for r in p.runs:
                 set_font(r, 12)
         else:
