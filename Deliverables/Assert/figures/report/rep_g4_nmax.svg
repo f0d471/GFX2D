@@ -95,7 +95,7 @@ L 0 3.5
      </g>
      <g id="text_5">
       <text style="font-size: 12px; font-family: 'Microsoft YaHei', 'DejaVu Sans', sans-serif" transform="translate(615.501174 278.267742)">4KB 分桶＋</text>
-      <text style="font-size: 12px; font-family: 'Microsoft YaHei', 'DejaVu Sans', sans-serif" transform="translate(598.369299 291.433992)">参数缓冲（本轮）</text>
+      <text style="font-size: 12px; font-family: 'Microsoft YaHei', 'DejaVu Sans', sans-serif" transform="translate(598.369299 291.433992)">参数缓冲</text>
      </g>
     </g>
    </g>
@@ -345,7 +345,7 @@ z
    </g>
   </g>
   <g id="text_25">
-   <text style="font-size: 10px; font-family: 'Microsoft YaHei', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #526174" x="369.749219" y="325.872" transform="rotate(-0 369.749219 325.872)">各档为该构型交付轮的同板实测，每种弹型各 3600 场零掉帧确认，扫描欠载 0；分桶收益以同一比特流、同轮直通为对照（+16.9%/+12.3%）；预测值不作实测。</text>
+   <text style="font-size: 10px; font-family: 'Microsoft YaHei', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #526174" x="369.749219" y="325.872" transform="rotate(-0 369.749219 325.872)">各档为同板实测，每种弹型各 3600 场零掉帧确认，扫描欠载 0；分桶收益以同一比特流、同一程序的直通档为对照（+16.9%/+12.3%）；预测值不作实测。</text>
   </g>
  </g>
  <defs>

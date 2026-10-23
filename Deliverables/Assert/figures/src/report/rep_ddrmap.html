@@ -1,48 +1,51 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="1040x440">
+<meta name="fig-size" content="1000x540">
 <link rel="stylesheet" href="_rep.css">
 <style>
 .seg { position: absolute; box-sizing: border-box; border: 2px solid #8A6410; background: #F9F2E1;
-       font-size: 17px; text-align: center; padding-top: 7px; line-height: 1.3; overflow: hidden; }
-.seg .a { font-family: "Consolas", monospace; font-size: 14px; color: #5D6976; }
+       font-size: 20px; text-align: center; padding-top: 14px; line-height: 1.4; overflow: hidden; }
+.seg .a { font-family: "Consolas", monospace; font-size: 17px; color: #5D6976; }
+.seg .z { font-size: 18px; font-weight: 700; }
 .seg.fb { background: #F3E3BC; font-weight: 700; }
 .seg.rs { background: #F4F5F7; border-color: #87929E; color: #6B7684; }
 .brace { position: absolute; border-top: 2px solid #4A5568; }
 .brace::before, .brace::after { content: ""; position: absolute; top: -2px; width: 2px; height: 7px; background: #4A5568; }
 .brace::before { left: 0; } .brace::after { right: 0; }
 </style></head>
-<body><div id="fig" style="width:1040px;height:440px">
+<body><div id="fig" style="width:1000px;height:540px">
 
-<div class="lbl b" style="left:40px;top:18px">DDR3 SDRAM 256 MB（AXI 地址 28 位）</div>
-<div class="lbl" style="left:40px;top:44px;color:#6B7684">帧缓冲行跨 4096 字节，不跨 4 KB 边界；分区示意，未按比例</div>
+<div class="lbl b" style="left:40px;top:18px;font-size:22px">DDR3 SDRAM 256 MB（AXI 地址 28 位）</div>
+<div class="lbl" style="left:40px;top:50px;font-size:17px;color:#6B7684">帧缓冲行跨 4096 字节，不跨 4 KB 边界；分区示意，未按比例</div>
 
-<div class="seg rs" style="left:40px;top:78px;width:38px;height:84px">保<br>留</div>
-<div class="seg" style="left:78px;top:78px;width:108px;height:84px">程序<br><span class="a">0x0001000~</span><br>4 MB</div>
-<div class="seg" style="left:186px;top:78px;width:104px;height:84px">命令表 A/B<br><span class="a">0x0400000~</span><br>2×1 MB</div>
-<div class="seg" style="left:290px;top:78px;width:104px;height:84px">共享数据池<br><span class="a">0x0600000~</span><br>10 MB</div>
-<div class="seg" style="left:394px;top:78px;width:110px;height:84px">素材<br><span class="a">0x1000000~</span><br>16 MB</div>
-<div class="seg fb" style="left:504px;top:78px;width:96px;height:84px">帧缓冲 0<br><span class="a">0x2000000~</span><br>4 MB</div>
-<div class="seg fb" style="left:600px;top:78px;width:96px;height:84px">帧缓冲 1<br><span class="a">0x2400000~</span><br>4 MB</div>
-<div class="seg" style="left:696px;top:78px;width:104px;height:84px">离屏层<br><span class="a">0x2800000~</span><br>8 MB</div>
-<div class="seg rs" style="left:800px;top:78px;width:200px;height:84px">预留<br>208 MB</div>
+<div class="brace" style="left:494px;width:204px;top:84px"></div>
+<div class="lbl c" style="left:590px;top:58px;font-size:18px">双缓冲前后台</div>
 
-<div class="brace" style="left:504px;width:192px;top:70px"></div>
-<div class="lbl c" style="left:600px;top:48px">双缓冲前后台</div>
+<div class="seg rs" style="left:40px;top:92px;width:38px;height:118px;font-size:18px">保<br>留</div>
+<div class="seg" style="left:78px;top:92px;width:104px;height:118px">程序<br><span class="a">0x0001000~</span><br><span class="z">4 MB</span></div>
+<div class="seg" style="left:182px;top:92px;width:102px;height:118px">命令表 A/B<br><span class="a">0x0400000~</span><br><span class="z">2×1 MB</span></div>
+<div class="seg" style="left:284px;top:92px;width:108px;height:118px">共享数据池<br><span class="a">0x0600000~</span><br><span class="z">10 MB</span></div>
+<div class="seg" style="left:392px;top:92px;width:102px;height:118px">素材<br><span class="a">0x1000000~</span><br><span class="z">16 MB</span></div>
+<div class="seg fb" style="left:494px;top:92px;width:102px;height:118px">帧缓冲 0<br><span class="a" style="font-weight:400">0x2000000~</span><br><span class="z">4 MB</span></div>
+<div class="seg fb" style="left:596px;top:92px;width:102px;height:118px">帧缓冲 1<br><span class="a" style="font-weight:400">0x2400000~</span><br><span class="z">4 MB</span></div>
+<div class="seg" style="left:698px;top:92px;width:104px;height:118px">离屏层<br><span class="a">0x2800000~</span><br><span class="z">8 MB</span></div>
+<div class="seg rs" style="left:802px;top:92px;width:158px;height:118px">预留<br><span class="z" style="color:#6B7684">208 MB</span></div>
 
-<div class="lbl" style="left:186px;top:172px">CPU 写 · 引擎读（32768 条 × 32 B）</div>
-<div class="lbl" style="left:500px;top:196px">CPU 写一次 · 引擎只读</div>
-<div class="lbl" style="left:560px;top:220px">渲染写后台 · 扫描读前台</div>
+<div class="lbl c" style="left:233px;top:228px;font-size:18px">CPU 写 · 引擎读</div>
+<div class="lbl c" style="left:233px;top:252px;font-size:17px;color:#6B7684">（32768 条 × 32 B）</div>
+<div class="lbl c" style="left:590px;top:228px;font-size:18px">CPU 写一次 · 引擎只读</div>
+<div class="lbl c" style="left:590px;top:252px;font-size:18px;color:#6B7684">渲染写后台 · 扫描读前台</div>
 
-<div class="lbl b" style="left:40px;top:270px">SPI Flash 8 MB（W25Q64）</div>
-<div class="seg" style="left:40px;top:300px;width:220px;height:84px">比特流<br><span class="a">0x000000~</span><br>2 MB</div>
-<div class="seg rs" style="left:260px;top:300px;width:130px;height:84px">预留<br>1.5 MB</div>
-<div class="seg" style="left:390px;top:300px;width:210px;height:84px">应用程序<br><span class="a">0x380000~</span><br>512 KB</div>
-<div class="seg" style="left:600px;top:300px;width:400px;height:84px">素材包 4 MB<br><span class="a">0x400000~</span><br>20 项 · 包 CRC b370ba0a</div>
+<div class="lbl b" style="left:40px;top:296px;font-size:22px">SPI Flash 8 MB（W25Q64）</div>
 
-<div class="lg" style="left:40px;top:404px">
+<div class="seg" style="left:40px;top:332px;width:226px;height:112px">比特流<br><span class="a">0x000000~</span><br><span class="z">2 MB</span></div>
+<div class="seg rs" style="left:266px;top:332px;width:140px;height:112px">预留<br><span class="z" style="color:#6B7684">1.5 MB</span></div>
+<div class="seg" style="left:406px;top:332px;width:216px;height:112px">应用程序<br><span class="a">0x380000~</span><br><span class="z">512 KB</span></div>
+<div class="seg" style="left:622px;top:332px;width:338px;height:112px">素材包 4 MB<br><span class="a">0x400000~</span><br><span class="z">20 项 · 包 CRC b370ba0a</span></div>
+
+<div class="lg" style="left:40px;top:488px;font-size:18px;line-height:1.4">
 <span class="bx" style="border-color:#8A6410;background:#F9F2E1"></span>数据存储与固件
-<span class="bx" style="border-color:#87929E;background:#F4F5F7;margin-left:16px"></span>保留 / 空闲
-<span class="bx" style="border-color:#8A6410;background:#F3E3BC;margin-left:16px"></span>双缓冲帧缓冲对
+<span class="bx" style="border-color:#87929E;background:#F4F5F7;margin-left:20px"></span>保留 / 空闲
+<span class="bx" style="border-color:#8A6410;background:#F3E3BC;margin-left:20px"></span>双缓冲帧缓冲对
 </div>
 </div></body></html>
