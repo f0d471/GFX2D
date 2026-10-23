@@ -154,6 +154,18 @@ for cid, e in list(cells.items()):
         st = re.sub(r'(exit|entry)[XY]=[-0-9.]+;?', '', c.get('style') or '')
         c.set('style', st + ';exitX=0.21;exitY=0;exitDx=0;exitDy=0;')
         print('  SPI0 edge pinned:', cid)
+# APB 0xF810_0000 被 E000 的竖线(x=366,Soc->display)从中截断:标签左移到竖线左侧,
+# 边 46 的左端竖线一并左移到 x=285,横线因此从 331 延长到 285 仍压住标签。
+set_geom(cells['8'], x=274)
+st = re.sub(r'exit[XY]=[-0-9.]+;?', '', cells['46'][1].get('style') or '')
+cells['46'][1].set('style', st.rstrip(';') + ';exitX=%.6f;exitY=0;exitDx=0;exitDy=0;'
+                   % ((285 - 277) / 107.0))
+for arr in cells['46'][2].findall('Array'):
+    if arr.get('as') == 'points':
+        for p in arr.findall('mxPoint'):
+            if p.get('x') == '331':
+                p.set('x', '285')
+print('  APB 0xF810_0000 moved left to x=274, bus left end -> 285')
 save(tree, 'rep_system')
 
 # ---------- rep_swlayers: 右侧注释 + 图例 ----------
