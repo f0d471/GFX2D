@@ -35,6 +35,7 @@
 #define STATS_MODE_DEMO     1u
 #define STATS_MODE_GAME     2u
 #define STATS_MODE_PRESS    3u
+#define STATS_MODE_R4       4u
 
 /* 抽样帧的量 */
 typedef struct {

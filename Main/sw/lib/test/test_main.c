@@ -22,6 +22,7 @@
 #include "test_gfx.h"
 #include "test_nmax.h"
 #include "test_replay.h"
+#include "test_replay_r4.h"
 #include "test_stats.h"
 #include "test_rast.h"
 
@@ -261,6 +262,7 @@ int main(int argc, char **argv)
     g_fail += test_assetpak_run();
     g_fail += test_gfx_run(vecpath, golden, gen);
     g_fail += test_replay_run(replay);
+    g_fail += test_replay_r4_run();
     g_fail += test_fixmath_run();
     g_fail += test_blit_run_run();
     g_fail += test_census_run();

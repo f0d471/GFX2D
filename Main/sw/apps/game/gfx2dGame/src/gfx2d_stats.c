@@ -14,7 +14,7 @@
 #define SW9_PERF 0
 #endif
 
-static const char *const s_mode_name[4] = { "?", "demo", "game", "press" };
+static const char *const s_mode_name[5] = { "?", "demo", "game", "press", "r3d" };
 
 static void put(stats_state *s, const char *line)
 {
@@ -48,7 +48,7 @@ void stats_window(stats_state *s, uint32_t mode, uint32_t exec_hw, uint32_t ovf_
 {
     if (s->mode != mode || s->exec_hw != exec_hw)
         s->have_hw_busy_prev = 0;
-    s->mode        = (mode <= 3u) ? mode : 0u;
+    s->mode        = (mode <= 4u) ? mode : 0u;
     s->exec_hw     = exec_hw;
     s->win_field0  = board_frame_count();
     s->win_swap0   = board_swap_count();

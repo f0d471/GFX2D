@@ -1,5 +1,9 @@
 # check：提交前检查与规格校验
 
+三维演示使用`r4`（三场景、64/32、sanitizer、图集/采集器反例）与Windows的`r4-board`
+（B7三场景CRC、CPU/HW、模式往返、1800帧性能及旧功能恢复）。
+详细范围和字段见[三维演示验证](../../sim/engine/r4/README.md)；quick取样不代替acceptance。
+
 检查范围、档位与状态统一见 [验证流程](../../doc/验证流程.md)。
 `python3 Main/tools/check/validate.py --list` 是唯一可执行清单；表中的“提交前”指受影响项，
 不要求每次运行全部工具。新复跑输出进入忽略的 `Main/sim/build/check-runs/`，历史 logs 不覆盖。

@@ -125,17 +125,38 @@ static int setup_one(const rast_vertex v[3], uint32_t flags, rast_record *r,
     return 1;
 }
 
+/* 扇形拆分与逐三角形 setup；n 已是裁剪后的顶点数。返回记录数，负数为内部错误。 */
+static int emit_fan(const rast_vertex *a, unsigned n, uint32_t flags,
+                    rast_record *records, rast_setup_stats *delta)
+{
+    unsigned produced = 0;
+    for (unsigned i = 1; i + 1 < n; ++i) {
+        rast_vertex tri[3] = {a[0], a[i], a[i + 1]};
+        int result = setup_one(tri, flags, &records[produced], delta);
+        if (result < 0) return -1;
+        produced += (unsigned)result;
+    }
+    return (int)produced;
+}
+
+static int setup_domain_ok(const rast_vertex *v, unsigned count)
+{
+    if (!v || count < 3 || count > 8) return 0;
+    for (unsigned i = 0; i < count; ++i)
+        if (v[i].x < -(1 << 28) || v[i].x > (1 << 28) ||
+            v[i].y < -(1 << 28) || v[i].y > (1 << 28)) return 0;
+    return 1;
+}
+
 int rast_setup_polygon(const rast_vertex *v, unsigned count, uint32_t flags,
                        rast_record *out, unsigned capacity, rast_setup_stats *stats)
 {
     rast_vertex a[16], b[16];
     rast_record records[RAST_MAX_FAN];
     rast_setup_stats delta = {0};
-    unsigned n = count, produced = 0;
-    if (!v || !out || count < 3 || count > 8 || flags & ~7u) return -1;
-    for (unsigned i = 0; i < count; ++i)
-        if (v[i].x < -(1 << 28) || v[i].x > (1 << 28) ||
-            v[i].y < -(1 << 28) || v[i].y > (1 << 28)) return -1;
+    unsigned n = count;
+    int produced;
+    if (!setup_domain_ok(v, count) || !out || flags & ~7u) return -1;
     memcpy(a, v, count * sizeof(*v));
 #ifndef INJECT_RAST_NO_GUARD
     const int32_t plane[4] = {-4096, 14335, -4096, 11775};
@@ -150,20 +171,74 @@ int rast_setup_polygon(const rast_vertex *v, unsigned count, uint32_t flags,
     if (n == count)
         for (unsigned i = 0; i < n; ++i)
             if (a[i].x != v[i].x || a[i].y != v[i].y) delta.clipped = 1;
-    for (unsigned i = 1; i + 1 < n; ++i) {
-        rast_vertex tri[3] = {a[0], a[i], a[i + 1]};
-        int result = setup_one(tri, flags, &records[produced], &delta);
-        if (result < 0) return -1;
-        produced += (unsigned)result;
-    }
-    if (produced > capacity) return -2;
-    memcpy(out, records, produced * sizeof(*out));
-    delta.emitted = produced;
+    produced = emit_fan(a, n, flags, records, &delta);
+    if (produced < 0) return -1;
+    if ((unsigned)produced > capacity) return -2;
+    memcpy(out, records, (unsigned)produced * sizeof(*out));
+    delta.emitted = (unsigned)produced;
     if (stats) {
         stats->backface += delta.backface; stats->sliver += delta.sliver;
         stats->clipped += delta.clipped; stats->emitted += delta.emitted;
     }
-    return (int)produced;
+    return produced;
+}
+
+static int setup_polygon_vp(const rast_vertex *v, unsigned count, const rast_viewport *vp,
+                          uint32_t flags, rast_record *out, unsigned capacity,
+                          rast_setup_stats *stats, unsigned input_limit)
+{
+    rast_vertex a[16], b[16];
+    rast_record records[RAST_MAX_FAN];
+    rast_setup_stats delta = {0};
+    unsigned n = count;
+    int produced;
+    if (!v || count<3u || count>input_limit || !out || !vp || flags & ~7u) return -1;
+    for(unsigned i=0;i<count;++i)
+        if(v[i].x<-(1<<28)||v[i].x>(1<<28)||v[i].y<-(1<<28)||v[i].y>(1<<28))return -1;
+    if (vp->x < 0 || vp->y < 0 || vp->w == 0u || vp->h == 0u ||
+        vp->x + (int32_t)vp->w > RAST_WIDTH || vp->y + (int32_t)vp->h > RAST_HEIGHT)
+        return -1;
+    memcpy(a, v, count * sizeof(*v));
+    {
+        /* 半开区间的最大 Q12.4 格点；平面顺序与 guard band 相同（左、右、下、上）。
+           矩形在帧内，裁完必在 guard band 内侧，后面的 guard 裁剪不会再产生交点。 */
+        const int32_t plane[4] = {(int32_t)vp->x * 16, (int32_t)(vp->x + vp->w) * 16 - 1,
+                                  (int32_t)vp->y * 16, (int32_t)(vp->y + vp->h) * 16 - 1};
+        for (unsigned p = 0; p < 4 && n; ++p) {
+            n = clip_screen(a, n, b, p / 2, plane[p], p & 1);
+            memcpy(a, b, n * sizeof(*a));
+        }
+    }
+#ifndef INJECT_RAST_NO_GUARD
+    {
+        const int32_t plane[4] = {-4096, 14335, -4096, 11775};
+        for (unsigned p = 0; p < 4 && n; ++p) {
+            n = clip_screen(a, n, b, p / 2, plane[p], p & 1);
+            memcpy(a, b, n * sizeof(*a));
+        }
+    }
+#endif
+    delta.clipped = n != count;
+    if (n == count)
+        for (unsigned i = 0; i < n; ++i)
+            if (a[i].x != v[i].x || a[i].y != v[i].y) delta.clipped = 1;
+    produced = emit_fan(a, n, flags, records, &delta);
+    if (produced < 0) return -1;
+    if ((unsigned)produced > capacity) return -2;
+    memcpy(out, records, (unsigned)produced * sizeof(*out));
+    delta.emitted = (unsigned)produced;
+    if (stats) {
+        stats->backface += delta.backface; stats->sliver += delta.sliver;
+        stats->clipped += delta.clipped; stats->emitted += delta.emitted;
+    }
+    return produced;
+}
+
+int rast_setup_polygon_vp(const rast_vertex *v, unsigned count, const rast_viewport *vp,
+                          uint32_t flags, rast_record *out, unsigned capacity,
+                          rast_setup_stats *stats)
+{
+    return setup_polygon_vp(v,count,vp,flags,out,capacity,stats,8u);
 }
 
 static rast_view_vertex view_cross(rast_view_vertex a, rast_view_vertex b, int32_t p)
@@ -176,15 +251,18 @@ static rast_view_vertex view_cross(rast_view_vertex a, rast_view_vertex b, int32
     return r;
 }
 
-int rast_setup_view(const rast_view_vertex v[3], const fx16_mat4 *projection,
-                    fx16_t near_z, fx16_t far_z, uint32_t flags,
-                    rast_record *out, unsigned capacity, rast_setup_stats *stats)
+/* 近/远面裁剪 + 投影映射。vx/vy/vw/vh 是视口（像素）；旧入口传整帧。
+   返回裁剪后的顶点数（<3 表示整棵被裁掉），投影映射越出 [-2^28,2^28] 返回 -1。 */
+static int view_project(const rast_view_vertex *v, unsigned count,
+                        const fx16_mat4 *projection,
+                        fx16_t near_z, fx16_t far_z,
+                        int32_t vx, int32_t vy, int32_t vw, int32_t vh,
+                        rast_vertex screen[16])
 {
-    rast_view_vertex a[8], b[8];
-    rast_vertex screen[8];
-    unsigned n = 3;
-    if (!v || !out || !projection || flags & ~7u || near_z <= 0 || far_z <= near_z) return -1;
-    memcpy(a, v, sizeof(*v) * 3);
+    rast_view_vertex a[16], b[16];
+    unsigned n = count;
+    if (count < 3 || count > 8) return -1;
+    memcpy(a, v, sizeof(*v) * count);
     for (unsigned p = 0; p < 2; ++p) {
         unsigned m = 0;
         int32_t plane = p ? -far_z : -near_z;
@@ -199,19 +277,61 @@ int rast_setup_view(const rast_view_vertex v[3], const fx16_mat4 *projection,
         }
         n = m; memcpy(a, b, n * sizeof(*a));
     }
-    if (n < 3) return 0;
+    if (n < 3) return (int)n;
     for (unsigned i = 0; i < n; ++i) {
         fx16_vec4 in = {{a[i].x, a[i].y, a[i].z, FX16_ONE}}, clip;
+        int64_t x, y;
         fx16_mat_vec(projection, &in, &clip);
         if (clip.v[3] <= 0) return -1;
-        screen[i].x = fx16_viewport(fx16_div(clip.v[0], clip.v[3]), RAST_WIDTH, 0);
-        screen[i].y = fx16_viewport(fx16_div(clip.v[1], clip.v[3]), RAST_HEIGHT, 1);
-        int64_t z = fx16_round_div(((int64_t)fx16_div(clip.v[2], clip.v[3]) + FX16_ONE) * 65535,
-                                  2 * FX16_ONE);
-        screen[i].z = (uint16_t)(z < 0 ? 0 : z > 65535 ? 65535 : z);
+        x = (int64_t)vx * 16 + fx16_viewport(fx16_div(clip.v[0], clip.v[3]), vw, 0);
+        y = (int64_t)vy * 16 + fx16_viewport(fx16_div(clip.v[1], clip.v[3]), vh, 1);
+        if (x < -(1 << 28) || x > (1 << 28) || y < -(1 << 28) || y > (1 << 28)) return -1;
+        screen[i].x = (int32_t)x;
+        screen[i].y = (int32_t)y;
+        {
+            int64_t z = fx16_round_div(((int64_t)fx16_div(clip.v[2], clip.v[3]) + FX16_ONE) * 65535,
+                                       2 * FX16_ONE);
+            screen[i].z = (uint16_t)(z < 0 ? 0 : z > 65535 ? 65535 : z);
+        }
         screen[i].u = a[i].u; screen[i].v = a[i].v; screen[i].color = a[i].color;
     }
-    return rast_setup_polygon(screen, n, flags, out, capacity, stats);
+    return (int)n;
+}
+
+int rast_setup_view(const rast_view_vertex v[3], const fx16_mat4 *projection,
+                    fx16_t near_z, fx16_t far_z, uint32_t flags,
+                    rast_record *out, unsigned capacity, rast_setup_stats *stats)
+{
+    rast_vertex screen[16];
+    if (!v || !out || !projection || flags & ~7u || near_z <= 0 || far_z <= near_z) return -1;
+    {
+        int n = view_project(v, 3u, projection, near_z, far_z,
+                             0, 0, RAST_WIDTH, RAST_HEIGHT, screen);
+        if (n < 0) return -1;
+        if (n < 3) return 0;
+        return rast_setup_polygon(screen, (unsigned)n, flags, out, capacity, stats);
+    }
+}
+
+int rast_setup_view_vp(const rast_view_vertex *v, unsigned count,
+                       const fx16_mat4 *projection,
+                       fx16_t near_z, fx16_t far_z, const rast_viewport *vp,
+                       uint32_t flags, rast_record *out, unsigned capacity,
+                       rast_setup_stats *stats)
+{
+    rast_vertex screen[16];
+    if (!v || !out || !projection || !vp || flags & ~7u ||
+        near_z <= 0 || far_z <= near_z) return -1;
+    if (vp->x < 0 || vp->y < 0 || vp->w == 0u || vp->h == 0u ||
+        vp->x + (int32_t)vp->w > RAST_WIDTH || vp->y + (int32_t)vp->h > RAST_HEIGHT)
+        return -1;
+    {
+        int n = view_project(v, count, projection, near_z, far_z,
+                             vp->x, vp->y, vp->w, vp->h, screen);
+        if (n < 0) return -1;
+        if (n < 3) return 0;
+        return setup_polygon_vp(screen, (unsigned)n, vp, flags, out, capacity, stats,10u);
+    }
 }
 
 int rast_from_s3l(int32_t x, int32_t y, int32_t z, rast_view_vertex *out)

@@ -1,5 +1,8 @@
 # sim：仿真
 
+R4软件场景与真实板测的入口为`validate.py --checks r4`和Windows的`r4-board`，
+范围、功能/性能分离与日志字段见[三维演示验证](engine/r4/README.md)。
+
 用 WSL 里的 iverilog 跑；含 `Axi_Mux` 的套件需要 Efinity 的原语模型。
 旧模块的子目录以 `run.sh` 运行，Python 套件使用表中对应的 `validate.py` 检查名：
 

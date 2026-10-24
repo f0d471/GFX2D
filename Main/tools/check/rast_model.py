@@ -71,12 +71,17 @@ def clip_fraction(poly, axis, plane, upper):
     return answer
 
 
-def setup(vertices, flags, alternate=False):
-    clip = clip_fraction if alternate else clip_integer
-    poly = [expand(v) for v in vertices]
-    for axis, plane, upper in ((0, -4096, False), (0, 14335, True),
-                                (1, -4096, False), (1, 11775, True)):
-        poly = clip(poly, axis, plane, upper)
+GUARD = ((0, -4096, False), (0, 14335, True),
+         (1, -4096, False), (1, 11775, True))
+
+
+def vp_planes(vp):
+    x, y, w, h = vp
+    return ((0, 16 * x, False), (0, 16 * (x + w) - 1, True),
+            (1, 16 * y, False), (1, 16 * (y + h) - 1, True))
+
+
+def setup_poly(poly, flags, alternate=False):
     result = []
     for i in range(1, len(poly) - 1):
         tri = (poly[0], poly[i], poly[i + 1])
@@ -119,7 +124,25 @@ def setup(vertices, flags, alternate=False):
     return result
 
 
-def view_setup(vertices, matrix, near, far, flags, alternate=False):
+def setup(vertices, flags, alternate=False):
+    clip = clip_fraction if alternate else clip_integer
+    poly = [expand(v) for v in vertices]
+    for axis, plane, upper in GUARD:
+        poly = clip(poly, axis, plane, upper)
+    return setup_poly(poly, flags, alternate)
+
+
+def setup_vp(vertices, vp, flags, alternate=False):
+    clip = clip_fraction if alternate else clip_integer
+    poly = [expand(v) for v in vertices]
+    for axis, plane, upper in vp_planes(vp) + GUARD:
+        poly = clip(poly, axis, plane, upper)
+    return setup_poly(poly, flags, alternate)
+
+
+def view_screen(vertices, matrix, near, far, vx, vy, vw, vh, alternate=False):
+    """近/远面裁剪 + 投影映射；与 C 的 view_project 同序同舍入。
+    映射结果越出 raw [-2^28,2^28] 返回 None（C 侧同位置返回 -1）。"""
     clip = clip_fraction if alternate else clip_integer
     poly = [expand(v) for v in vertices]
     poly = clip(poly, 2, -near, True)
@@ -130,11 +153,27 @@ def view_setup(vertices, matrix, near, far, flags, alternate=False):
         c = [sat(sum(sat(rnd(matrix[i * 4 + k] * vec[k])) for k in range(4))) for i in range(4)]
         assert c[3] > 0
         ndc = [div(a, c[3]) for a in c[:3]]
-        x = sat(rnd((ONE + ndc[0]) * 640 * 8))
-        y = sat(rnd((ONE - ndc[1]) * 480 * 8))
+        x = 16 * vx + sat(rnd((ONE + ndc[0]) * vw * 8))
+        y = 16 * vy + sat(rnd((ONE - ndc[1]) * vh * 8))
+        if abs(x) >= 1 << 28 or abs(y) >= 1 << 28:
+            return None
         z = max(0, min(65535, rnd((ndc[2] + ONE) * 65535, 2 * ONE)))
         screen.append((x, y, z, v[3], v[4], contract(v)[5]))
+    return screen
+
+
+def view_setup(vertices, matrix, near, far, flags, alternate=False):
+    screen = view_screen(vertices, matrix, near, far, 0, 0, 640, 480, alternate)
+    if screen is None:
+        return None
     return setup(screen, flags, alternate) if len(screen) >= 3 else []
+
+
+def view_setup_vp(vertices, matrix, near, far, vp, flags, alternate=False):
+    screen = view_screen(vertices, matrix, near, far, vp[0], vp[1], vp[2], vp[3], alternate)
+    if screen is None:
+        return None
+    return setup_vp(screen, vp, flags, alternate) if len(screen) >= 3 else []
 
 
 def unpack(record):

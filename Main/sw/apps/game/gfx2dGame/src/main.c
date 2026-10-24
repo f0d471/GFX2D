@@ -62,11 +62,16 @@
 #endif
 
 #include "gfx2d_stats.h"
+#include "r4.h"
+#include "r4_atlas.h"
 #include "stg_main.h"
 #include "stg_modes.h"
 #include "stg_slots.h"
 #include "renderer.h"
 #include "frontend_game.h"
+#ifdef GFX2D_R4_REPLAY
+#include "r4_replay.h"
+#endif
 #include <string.h>
 
 /* --- 全局状态（都是静态的，不用 malloc）--------------------------------- */
@@ -140,7 +145,7 @@ static void say2(const char *tag, uint32_t a, uint32_t b)
 
 /* --- 初始化 -------------------------------------------------------------- */
 
-/* 按分区表算 gfx_mem 的窗口：素材区起点到 OFF2 末端。
+/* 按分区表算 gfx_mem 的窗口：素材区起点到整个离屏分区末端。
    两个数都由分区表与 FB_BYTES 在运行时算出，代码里不写死；
    同时核对相邻分区的指针差等于分区表的偏移差（assetTest 的 chk M1 那一套）。 */
 static int boot_mem(void)
@@ -149,8 +154,7 @@ static int boot_mem(void)
     const uint32_t  fb0_dev   = g_mem_regions[REGION_FB0].offset;
     const uint32_t  fb1_dev   = g_mem_regions[REGION_FB1].offset;
     const uint32_t  off_dev   = g_mem_regions[REGION_OFFSCREEN].offset;
-    const uint32_t  off_end   = off_dev
-                              + (SW6_SCENES - 1u) * SW6_OFF_SLOT_STEP + FB_BYTES;
+    const uint32_t  off_end   = off_dev + g_mem_regions[REGION_OFFSCREEN].size;
     const board_mem asset = board_region(REGION_ASSET);
     const board_mem off   = board_region(REGION_OFFSCREEN);
     const board_mem fb0   = board_region(REGION_FB0);
@@ -667,8 +671,8 @@ static int run_judge(void)
 #if GFX2D_START_BACKEND < 0 || GFX2D_START_BACKEND > 3
 #error "GFX2D_START_BACKEND 只认 0（软件）、1（硬件/DDR）、2（硬件/TEX）或 3（硬件/STRIP）"
 #endif
-#if GFX2D_START_MODE < 1 || GFX2D_START_MODE > 3
-#error "GFX2D_START_MODE 只认 1、2、3"
+#if GFX2D_START_MODE < 1 || GFX2D_START_MODE > 4
+#error "GFX2D_START_MODE 只认 1、2、3、4"
 #endif
 
 /* 总帧数上限：-DGFX2D_FRAMES=N，不给时沿用 -DSW6_FRAMES（D2b 靠它结束），都不给时不限。
@@ -686,7 +690,7 @@ static int run_judge(void)
 #ifndef GFX2D_SWITCH_JUDGE
 #define GFX2D_SWITCH_JUDGE  0
 #endif
-#define SWJ_SWITCHES        150u    /* 1->2->3->1 来回 50 次 */
+#define SWJ_SWITCHES        150u    /* 数字键直达 1~3 与和弦循环（现含模式 4）混合来回 50 次 */
 
 /* 模式 3 的两遍搜索结束之后就退出（检查脚本用；平时停在结果那一档继续跑） */
 #ifndef GFX2D_PRESS_EXIT
@@ -700,7 +704,7 @@ static int run_judge(void)
                                        停到池里有弹再切走，「切换时漏清池」才看得出来 */
 
 static stg_chord    s_chord;
-static uint32_t     s_mode;             /* 当前模式 1~3 */
+static uint32_t     s_mode;             /* 当前模式 1~4 */
 static uint32_t     s_mode_frames;      /* 进入当前模式以来的帧数 */
 static gfx_rect     s_enter_clip;       /* 进入时复位之后的裁剪框（进入行里打） */
 static sw6_input    s_m1_in;            /* 模式 1：由框架喂的输入 */
@@ -709,6 +713,131 @@ static uint32_t     s_m1_frame;         /* 模式 1：本段的帧号 */
 static uint32_t     s_m1_field0;        /* 模式 1：本段开始时的场号（轮换按场数） */
 static uint32_t     s_mfps_cyc0, s_mfps_swaps0, s_mfps;
 static uint32_t     s_swj_n;            /* 切换判据：已经切了几次 */
+
+/* --- 模式 4「三维演示」----------------------------------------------------- */
+
+/* 模式键组合（R4 定案）：1+2+3 三个键同时按住 = 直接选 4；10 位旧包格式不变。 */
+#define R4_MODE_COMBO       (BOARD_KEY_MODE1 | BOARD_KEY_MODE2 | BOARD_KEY_MODE3)
+static int          s_combo_prev;       /* 组合的按下沿检测 */
+static uint32_t     s_r4_ladder = GFX2D_R4_LADDER;
+static uint32_t     s_r4_hw = GFX2D_R4_HW;
+static uint32_t     s_r4_scene = GFX2D_R4_SCENE;
+static r4_out       s_r4_out;
+static int          s_r4_restart;       /* 模式 4 内 SWAP/SLOW 的帧边界重进请求 */
+static int          s_r4_ready;
+#ifdef GFX2D_R4_SWITCH_JUDGE
+static uint32_t     s_r4_preserved_crc;
+#endif
+
+#ifdef __riscv
+static int boot_tex(void);      /* 定义在下面 v1-TEX 一节；恢复热集的钩子要先声明 */
+#endif
+
+/* R4 的表面槽：帧缓冲 0、1，字库 5/14，大数字 12，离屏背景 15（stg 空着的槽）。 */
+static int boot_surfaces_r4(void)
+{
+    static const struct {
+        uint32_t entry;
+        int      slot;
+    } pick[3] = {
+        { ASSET_FONT8X16_ENTRY,  STG_SLOT_FONT },
+        { ASSET_DIGITS_ENTRY,    STG_SLOT_DIGITS },
+        { ASSET_FONT_CYAN_ENTRY, STG_SLOT_FONT_CYAN },
+    };
+    const uint32_t asset_dev = g_mem_regions[REGION_ASSET].offset;
+    const uint32_t fb_dev[2] = { g_mem_regions[REGION_FB0].offset,
+                                 g_mem_regions[REGION_FB1].offset };
+    gfx_surface    s;
+    uint32_t       i;
+
+    gfx_surface_reset(&s_tab);
+    s_tex_on = 0;               /* 表重建回 DDR 基址，覆盖层随之失效（G1） */
+
+    for (i = 0u; i < 3u; i++) {
+        assetpak_entry e;
+
+        if (assetpak_entry_at(&s_pak, pick[i].entry, &e) != ASSETPAK_OK)
+            return -1;
+        s.base        = asset_dev + e.offset;
+        s.width       = e.width;
+        s.height      = e.height;
+        s.stride_log2 = e.stride_log2;
+        s.space       = GFX_SPACE_DDR;
+        s.format      = e.format;
+        if (gfx_surface_set(&s_tab, pick[i].slot, &s) != 0)
+            return -1;
+    }
+    s.width       = (uint16_t)FB_WIDTH;
+    s.height      = (uint16_t)FB_HEIGHT;
+    s.stride_log2 = (uint8_t)FB_STRIDE_LOG2;
+    s.space       = GFX_SPACE_DDR;
+    s.format      = GFX_FMT_XRGB8888;
+    for (i = 0u; i < 2u; i++) {
+        s.base = fb_dev[i];
+        if (gfx_surface_set(&s_tab, (i == 0u) ? STG_SLOT_FB0 : STG_SLOT_FB1, &s) != 0)
+            return -1;
+    }
+    /* 背景面：LOAD 每帧整屏读它；内容由 r4_mode_enter 预建。 */
+    s.base = g_mem_regions[REGION_OFFSCREEN].offset+R4_BG_OFFSET;
+    if (gfx_surface_set(&s_tab, R4_SLOT_BG, &s) != 0)
+        return -1;
+    return 0;
+}
+
+/* R4 钩子：装载 atlas——两个平台都先把生成词拷进 rast_ref 的影子，
+   板上再写 TEX 窗口并读回 CRC 对账。 */
+static int main_r4_load_atlas(void)
+{
+    memcpy((void *)r4_atlas_shadow(), r4_atlas_words, (uint32_t)sizeof r4_atlas_words);
+#ifdef __riscv
+    {
+        uint32_t got;
+        uint32_t pos;
+        crc32_ctx c;
+
+        board_dcache_invalidate_range(r4_atlas_words, (uint32_t)sizeof r4_atlas_words);
+        if (gfx_engine_caps_read(&got) != GFX_ENG_OK || !(got & GFX_CAPS_TEX_M))
+            return -1;
+        if (gfx_engine_tex_write(r4_atlas_words, 0u, (uint32_t)sizeof r4_atlas_words)
+            != GFX_ENG_OK)
+            return -1;
+        crc32_begin(&c);
+        for (pos = 0u; pos < (uint32_t)sizeof r4_atlas_words; ) {
+            uint32_t chunk[64];
+            uint32_t n = (uint32_t)sizeof r4_atlas_words - pos;
+
+            if (n > sizeof chunk)
+                n = sizeof chunk;
+            if (gfx_engine_tex_read(chunk, pos, n) != GFX_ENG_OK)
+                return -1;
+            crc32_update(&c, chunk, n);
+            pos += n;
+        }
+        got = crc32_end(&c);
+        return (got == R4_ATLAS_CRC) ? 0 : -1;
+    }
+#else
+    return 0;                   /* 宿主没有 TEX 窗口：影子即可（rast_ref 用） */
+#endif
+}
+
+static void main_r4_tex_dirty(void)
+{
+    s_tex_ready = 0;            /* TEX 窗口被 3D atlas 覆盖：热集必须重装（研究 §4.5） */
+}
+
+static int main_r4_tex_restore(void)
+{
+#ifdef __riscv
+    if (boot_tex() != 0)
+        return -1;
+    s_tex_ready = 1;
+#else
+    s_tex_ready = 0;
+#endif
+    return 0;
+}
+
 
 /* --- v1-TEX：热集装载与 HW/TEX 后端 --------------------------------------- */
 
@@ -818,8 +947,8 @@ static int tex_overlay(int on)
 /* 后端切换前的表面表准备；HW/TEX 不可用或覆盖层失败返回 -1（调用方退回 HW/DDR）。 */
 static int backend_apply(uint32_t backend)
 {
-    // 演示模式使用基础 Demo 的另一套槽位，不能覆盖成 STG 的热集槽。
-    const int want = (backend >= 2u && s_mode != 1u);
+    // 演示模式使用基础 Demo 的另一套槽位，不能覆盖成 STG 的热集槽；模式 4 独占 TEX 走 atlas。
+    const int want = (backend >= 2u && s_mode != 1u && s_mode != 4u);
 
 #ifndef __riscv
     if (backend == 3u)
@@ -907,6 +1036,7 @@ static stg_main_ctx mode_ctx(void)
 
 static void mode_enter(uint32_t m)
 {
+    const uint32_t previous_mode=s_mode;
     if(frontend_game_reset()) {
         board_puts("frontend lease busy\r\n");s_fail++;return;
     }
@@ -927,6 +1057,42 @@ static void mode_enter(uint32_t m)
         s_m1_frame  = 0u;
         s_m1_field0 = board_frame_count();
         stage_begin(0u, SW6_SEED_DEMO, SW6_N_START);
+    } else if (m == 4u) {
+        s_r4_ready=0;
+#ifdef GFX2D_R4_SWITCH_JUDGE
+        s_r4_preserved_crc=crc32_ieee(board_region(REGION_OFFSCREEN).ptr,R4_BG_OFFSET);
+#endif
+        r4_scene_select(s_r4_scene);
+        if (boot_surfaces_r4() != 0) {
+            board_puts("surf err 表面登记失败\r\n");
+            s_fail++;
+        }
+        /* 先复位引擎并登记 R4 的表面表（独立背景、字库、两张帧缓冲），
+           再让 r4 写 TEX 窗口（R3 板测的同序：prepare -> tex）。 */
+        if (renderer_prepare(1, &s_tab) != 0) {
+            board_puts("engine prepare err\r\n");
+            s_fail++;return;
+        }
+        /* 模式 4 自管引擎提交（串行 submit->wait->present），不走 renderer。 */
+        if (r4_mode_enter(&s_tab, &s_mem, (int)s_r4_hw, s_r4_ladder) != 0) {
+            board_puts("r4 enter err\r\n");
+            s_fail++;return;
+        }
+        s_r4_ready=1;
+        /* Present a cleared inactive buffer before clearing the old front.
+           Timing starts only after the display warmup and statistics clear. */
+        {
+            const int blank = s_shown == STG_SLOT_FB0 ? STG_SLOT_FB1 : STG_SLOT_FB0;
+            memset(board_fb(blank),0,FB_BYTES);
+            board_present(blank);
+            memset(board_fb(blank^1),0,FB_BYTES);
+            board_wait_frame();
+            (void)board_display_stats_clear();
+            r4_timing_start();
+            s_shown = blank;
+            s_seq = (s_seq & ~1u) | (uint32_t)(blank^1);
+        }
+        return;                 /* 模式 4 不走尾部的 backend_apply/prepare */
     } else {
         if (boot_surfaces_stg() != 0) {
             board_puts("surf err 表面登记失败\r\n");
@@ -945,6 +1111,7 @@ static void mode_enter(uint32_t m)
         board_puts("engine prepare err\r\n");
         s_fail++;
     }
+    if(previous_mode==4u)stats_init(&s_stats,&s_logq,s_mode,s_backend,stg_modes_overflow());
 }
 
 /* 离开旧模式：游戏状态整体重置（池与计数清零）。模式 1 的状态在下次进入时由 stage_begin 复位。 */
@@ -957,7 +1124,14 @@ static void mode_leave(uint32_t m)
     }
     if (presented >= 0)
         s_shown = presented;
-    if (m != 1u)
+    if (m == 4u) {
+        r4_mode_leave();
+#ifdef GFX2D_R4_SWITCH_JUDGE
+        uint32_t got=crc32_ieee(board_region(REGION_OFFSCREEN).ptr,R4_BG_OFFSET);
+        if(got!=s_r4_preserved_crc){s_fail++;board_puts("r4 err legacy offscreen changed\r\n");}
+        else board_puts("R4 LEGACY OFFSCREEN preserved\r\n");
+#endif
+    } else if (m != 1u)
         stg_modes_reset();
 }
 
@@ -998,6 +1172,29 @@ static uint32_t mode_frame(uint32_t keys, int entering)
         sw6_input_feed(&s_m1_in, keys);
         frame_run(s_m1_stage, 1u, s_m1_frame, &s_m1_in);
         s_m1_frame++;
+    } else if (s_mode == 4u) {
+        /* 模式 4：30Hz 逻辑，一帧占两场；present 由 r4 内部按锚定节拍发出。 */
+        const int dst = (s_seq & 1u) ? STG_SLOT_FB1 : STG_SLOT_FB0;
+        int rc;
+        if(!s_r4_ready)return 0u;
+
+        rc = r4_mode_frame(&s_tab, &s_mem, dst, keys, &s_r4_out);
+        if (rc == 0)
+            s_shown = dst;      /* r4 成功路径已确认呈现 */
+        /* 统计埋点的公共字段：t_present 近似取返回时刻；cyc 三段照 r4 的五段归并。 */
+        s_mout.t_present = board_cycles();
+        s_mout.list_idx = 0u;
+        s_mout.used = 0u;
+        s_mout.cyc_logic = s_r4_out.cyc_logic + s_r4_out.cyc_geom;
+        s_mout.cyc_build = s_r4_out.cyc_bin + s_r4_out.cyc_hud;
+        s_mout.cyc_exec = s_r4_out.cyc_submit;
+        s_mout.cyc_auto = 0u;
+        s_mout.st.act.total = s_r4_out.records;
+        s_mout.st.act.ebullet = 0u;
+        s_mout.presented_dst = (rc == 0) ? dst : -1;
+        s_seq++;
+        fps_tick();
+        return s_r4_out.crc;
     } else {
         const stg_main_ctx ctx = mode_ctx();
         const int          dst = (s_seq & 1u) ? STG_SLOT_FB1 : STG_SLOT_FB0;
@@ -1026,6 +1223,8 @@ static uint32_t mode_frame(uint32_t keys, int entering)
     return 0u;
 #else
     (void)entering;
+    if (s_shown < 0)
+        s_shown = 0;        /* 首帧失败还没呈现过任何面：CRC 落在 FB0，不解引用 -1 */
     return stg_modes_frame_crc(board_fb(s_shown));
 #endif
 }
@@ -1069,6 +1268,20 @@ static void say_enter(uint32_t frame, uint32_t crc)
 /* 本帧的按键：实时按键，或切换判据的合成脚本（done 置 1 表示脚本走完）。 */
 static uint32_t frame_keys(int *done)
 {
+#ifdef GFX2D_R4_SWITCH_JUDGE
+    static uint32_t step;
+    const uint32_t at=step++;
+    (void)done;
+    switch(at) {
+    case 5:case 25:case 30:case 50:return R4_MODE_COMBO;
+    case 10:return BOARD_KEY_SLOW;
+    case 15:case 20:return BOARD_KEY_SWAP;
+    case 35:case 55:return BOARD_KEY_MODE2;
+    case 40:return BOARD_KEY_MODE3;
+    case 45:return BOARD_KEY_MODE1;
+    default:return 0;
+    }
+#endif
 #if GFX2D_SWITCH_JUDGE
     const uint32_t target = s_mode % 3u + 1u;
     const uint32_t mkey[4] = { 0u, BOARD_KEY_MODE1, BOARD_KEY_MODE2, BOARD_KEY_MODE3 };
@@ -1104,6 +1317,21 @@ static void sample_frame(void)
         smp.cyc_logic  = s_last_in;
         smp.cyc_build  = s_last_bld;
         smp.cyc_exec   = s_last_exe;
+    } else if (s_mode == 4u) {
+        /* 模式 4 没有可普查的 2D 命令表：方程列记零，五段耗时照实报。 */
+        gfx_census empty;
+
+        memset(&empty, 0, sizeof empty);
+        idx            = 0u;
+        used           = 0u;
+        memset(&smp.xs, 0, sizeof smp.xs);
+        smp.n_active   = s_r4_out.records;
+        smp.n_bullet   = 0u;
+        smp.cyc_logic  = s_mout.cyc_logic;
+        smp.cyc_build  = s_mout.cyc_build;
+        smp.cyc_exec   = s_mout.cyc_exec;
+        stats_sample_counted(&s_stats, &empty, &smp);
+        return;
     } else {
         idx            = s_mout.list_idx;
         used           = s_mout.used;
@@ -1161,6 +1389,11 @@ static int run_modes(void)
 
     logq_init(&s_logq, s_logq_mem, LOGQ_BYTES);
     stg_modes_set_log(&s_logq);
+    r4_set_log(&s_logq);
+    r4_set_hooks(main_r4_load_atlas, main_r4_tex_dirty, main_r4_tex_restore);
+#ifdef GFX2D_R4_REPLAY
+    if(r4_set_replay(r4_replay_data,sizeof r4_replay_data)) {s_fail++;return 1;}
+#endif
     stg_chord_init(&s_chord);
 #ifdef __riscv
     uint32_t tex_caps = 0u;
@@ -1213,6 +1446,7 @@ static int run_modes(void)
             break;
 #endif
         keys = frame_keys(&done);
+        if(s_mode==4u)keys|=r4_pending_keys();
         if (done)
             break;
         if (s_mode == 1u)
@@ -1221,18 +1455,43 @@ static int run_modes(void)
         pressed = keys & ~prev;
         prev    = keys;
 
-        /* 系统键：数字键与 Tab 取按下沿，和弦由 stg_chord 按帧计 */
+        /* 系统键：数字键与 Tab 取按下沿，和弦由 stg_chord 按帧计。
+           模式 4 的组合键先于单键识别：三个模式键全按住 = 选 4；
+           组合按住期间抑制单键模式切换（避免「1+2 按住再按 3」误先进 3）。 */
+        {
+            const int combo_now = (keys & R4_MODE_COMBO) == R4_MODE_COMBO;
+
+            if (combo_now && !s_combo_prev)
+                pressed |= (uint32_t)0x80000000u;   /* 组合按下沿（伪位，不与键位重叠） */
+            s_combo_prev = combo_now;
+        }
         ev   = stg_chord_step(&s_chord, keys, BOARD_KEY_UP, BOARD_KEY_DOWN, BOARD_KEY_LEFT, BOARD_KEY_RIGHT);
         next = s_mode;
-        if (pressed & BOARD_KEY_MODE1)
-            next = 1u;
-        if (pressed & BOARD_KEY_MODE2)
-            next = 2u;
-        if (pressed & BOARD_KEY_MODE3)
-            next = 3u;
+        if ((pressed & 0x80000000u) != 0u) {
+            next = 4u;
+            if(s_mode==4u){s_r4_scene^=1u;s_r4_restart=1;}
+        } else if ((keys & R4_MODE_COMBO) != R4_MODE_COMBO) {
+            if (pressed & BOARD_KEY_MODE1)
+                next = 1u;
+            if (pressed & BOARD_KEY_MODE2)
+                next = 2u;
+            if (pressed & BOARD_KEY_MODE3)
+                next = 3u;
+        }
         if (ev & STG_CHORD_NEXT_MODE)
-            next = s_mode % 3u + 1u;
-        if ((pressed & BOARD_KEY_SWAP) || (ev & STG_CHORD_SWAP)) {
+            next = s_mode % 4u + 1u;
+        if (s_mode == 4u) {
+            /* 模式 4 里 SWAP=硬/软光栅、SLOW=L1/L2 阶梯；next 仍等于 4，
+               用重启标志走帧边界重进（next != s_mode 的开关对同模式不生效）。 */
+            if ((pressed & BOARD_KEY_SWAP) || (ev & STG_CHORD_SWAP)) {
+                s_r4_hw ^= 1u;
+                s_r4_restart = 1;
+            }
+            if (pressed & BOARD_KEY_SLOW) {
+                s_r4_ladder = (s_r4_ladder >= 2u) ? 1u : 2u;
+                s_r4_restart = 1;
+            }
+        } else if ((pressed & BOARD_KEY_SWAP) || (ev & STG_CHORD_SWAP)) {
             int presented;
             uint32_t nb = s_backend + 1u;           /* 软件→DDR→TEX→STRIP→软件 */
 
@@ -1276,9 +1535,9 @@ static int run_modes(void)
             say_enter(total, crc);
             entered = 0;
         }
-        if (stats_want_sample(&s_stats))
+        if (s_mode != 4u && stats_want_sample(&s_stats))
             sample_frame();
-        {
+        if (s_mode != 4u) {
             const uint32_t *hw_rollup = NULL;
             uint32_t cpu_cyc = (s_mode == 1u)
                                  ? s_last_in + s_last_bld
@@ -1321,7 +1580,13 @@ static int run_modes(void)
         }
 
         /* 切换在触发那一帧结束之后生效；统计的这一秒窗口从新模式的第一帧重新计 */
-        if (next != s_mode) {
+        if (s_r4_restart) {
+            s_r4_restart = 0;
+            mode_leave(4u);
+            mode_enter(4u);
+            stats_window(&s_stats, s_mode, s_backend, stg_modes_overflow());
+            entered = 1;
+        } else if (next != s_mode) {
             mode_leave(s_mode);
             mode_enter(next);
             stats_window(&s_stats, s_mode, s_backend, stg_modes_overflow());
@@ -1341,7 +1606,7 @@ static int run_modes(void)
         log_line(buf);
     }
     mode_leave(s_mode);
-    stats_end(&s_stats);
+    if(s_mode!=4u)stats_end(&s_stats);
 #if SW9_PERF
     {
         char buf[180];
@@ -1370,7 +1635,7 @@ static int run_modes(void)
     log_flush();
     /* 最后两行等下一场、额度补满之后再打（PC 上 GFX2D_TX_BUDGET 模拟串口时不超额） */
     board_wait_frame();
-    fail = s_fail + stg_modes_fail() + s_stats.fail;
+    fail = s_fail + stg_modes_fail() + s_stats.fail + r4_fail_count();
     sw6_log_end(fail);
     return (fail == 0u) ? 0 : 1;
 }

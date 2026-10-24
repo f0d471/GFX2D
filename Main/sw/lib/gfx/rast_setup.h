@@ -92,6 +92,11 @@ typedef struct { int32_t x, y; uint16_t z, u, v; uint32_t color; } rast_vertex;
 typedef struct { fx16_t x, y, z; uint16_t u, v; uint32_t color; } rast_view_vertex;
 typedef struct { uint32_t backface, sliver, clipped, emitted; } rast_setup_stats;
 
+/* 子视口（帧内像素矩形）。映射与裁剪顺序见契约 §2.1：投影后先裁到
+   [16*vx, 16*(vx+w)-1] × [16*vy, 16*(vy+h)-1]（半开区间的最大 Q12.4 格点），
+   再进入既有 guard band。矩形必须整体落在帧内。 */
+typedef struct { int16_t x, y; uint16_t w, h; } rast_viewport;
+
 /* 返回记录数，负数为错误：-1 参数，-2 容量。失败不写 out。
    输入多边形须为凸多边形且保持绕序（3..8 点）。条带只裁 bbox，不重算 setup。 */
 int rast_setup_polygon(const rast_vertex *v, unsigned count, uint32_t flags,
@@ -99,6 +104,19 @@ int rast_setup_polygon(const rast_vertex *v, unsigned count, uint32_t flags,
 int rast_setup_view(const rast_view_vertex v[3], const fx16_mat4 *projection,
                     fx16_t near_z, fx16_t far_z, uint32_t flags,
                     rast_record *out, unsigned capacity, rast_setup_stats *stats);
+/* 子视口入口。v 为 count(3..8) 个视空间顶点（四边形传 4）；映射：
+   x_raw = 16*vx + fx16_viewport(ndc_x, w, 0)，y 同理 flip=1；
+   视口矩形四边先裁（左、右、下、上），随后与旧入口同一 guard band 与 setup。
+   视口外不产生记录；其余口径（舍入、破平、bbox、容量）与旧入口一致。
+   投影映射结果超出 raw [-2^28,2^28] 输入域时返回 -1。 */
+int rast_setup_polygon_vp(const rast_vertex *v, unsigned count, const rast_viewport *vp,
+                          uint32_t flags, rast_record *out, unsigned capacity,
+                          rast_setup_stats *stats);
+int rast_setup_view_vp(const rast_view_vertex *v, unsigned count,
+                       const fx16_mat4 *projection,
+                       fx16_t near_z, fx16_t far_z, const rast_viewport *vp,
+                       uint32_t flags, rast_record *out, unsigned capacity,
+                       rast_setup_stats *stats);
 /* S3L 默认 S3L_F=512；+z 朝前 -> 我方 -z 朝前。超出 Q16.16 返回 -1。 */
 int rast_from_s3l(int32_t x, int32_t y, int32_t z, rast_view_vertex *out);
 /* 子表：[u16 count,u16 0,u16 index ...] × 30，无额外对齐。返回字节数。

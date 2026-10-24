@@ -29,6 +29,10 @@ add('lib', ['bash', P+'check_host.sh', 'lib'], '库的正常 64/32 位与 saniti
 add('app', ['bash', P+'check_host.sh', 'app'], '游戏应用的正常 64/32 位与 sanitizer')
 add('rast', [sys.executable, P+'check_rast.py'],
     'R1 定点/128B setup/两参考器/独立有理数模型/10万光栅与1万几何/变异/双目标', ['lib'])
+add('r4',[sys.executable,P+'check_r4.py'],
+    'R4 三场景60帧参考、64/32与sanitizer、录像/图集/采集器反例',['pack'],timeout=3600)
+add('r4-board',[sys.executable,P+'check_r4_board.py'],
+    'R4 B7 三场景CRC、板上SW/HW、注错、模式往返与60秒两场节拍',timeout=3600)
 for name,group,purpose in [('rlst','rlst','R2 取数/FIFO/分片/协议/取消'),
     ('rast-ports','ports','R2 核心 RAW/取消/II=1、TEX L=1/2 与关闭态'),
     ('rast-rtl','rtl','R2 两参考器/真实 AXI 十万条 L1/L2/L2二拍/十三变异')]:
@@ -96,7 +100,8 @@ for name,item in CHECKS.items():
     elif name=='workflow':inputs=['Main/tools/check/**','Main/sw/lib/test/golden.txt']
     elif name=='regs':inputs=[P+'regs_gen.py','Main/rtl/engine/engine_regs_offsets.vh','Main/sw/bsp/include/gfx_regs.h']
     elif name=='semantics':inputs=[P+'check_cmd_semantics.py','Main/doc/赛题二总体设计.md']
-    elif name=='rast':inputs=SOFTWARE + ['Main/doc/三维数值契约.md']
+    elif name in ('rast','r4','r4-board'):inputs=SOFTWARE + ['Main/doc/三维数值契约.md',
+        'Main/sim/engine/r4/**','Main/tools/board/**','Main/rtl/**']
     elif name in ('rlst','rast-ports','rast-rtl'):
         inputs=['Main/rtl/engine/**','Main/rtl/vendor/verilog-axi/**',
                 'Main/sim/engine/rlst/**','Main/sim/engine/rast/**','Main/sim/axi_probe/axi_ram_model.v',
@@ -314,7 +319,7 @@ def main():
             return {'log':log.relative_to(ROOT).as_posix(),
                     'not_applicable':re.findall(r'^NOT_APPLICABLE .*$',output,re.M)}
         current.perform('check:'+name,execute,reusable=name not in
-                        ('board','feature-board','board-game','r3-board','r3-legacy-board'))
+                        ('board','feature-board','board-game','r3-board','r3-legacy-board','r4-board'))
         print('PASS '+name,flush=True)
     current.require(['check:'+name for name in selected])
     write_json(current.path/'result.json',{'status':'PASS','profile':current.profile,'checks':selected,'run_id':current.path.name})

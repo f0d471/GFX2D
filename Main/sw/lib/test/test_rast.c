@@ -140,6 +140,67 @@ int test_rast_run(void)
             converted.x == i * 128 && converted.y == -i * 128 && converted.z == -i * 128);
     }
     expect("S3L out of range", rast_from_s3l(INT32_MAX, 0, 0, &converted) == -1);
+    /* 子视口：域检查（帧内矩形、正宽高）、视口外裁剪、右边最大格点、近远面组合。 */
+    {
+        const rast_viewport bad[5] = {{-1, 0, 4, 4}, {0, -1, 4, 4}, {2, 3, 0, 4},
+                                      {2, 3, 4, 0}, {630, 0, 20, 4}};
+        const rast_viewport vp = {2, 3, 4, 4};
+        rast_vertex inside[3] = {{32, 48, 100, 0, 0, 0xffffffff},
+                                 {160, 48, 100, 0, 0, 0xffffffff},
+                                 {32, 160, 100, 0, 0, 0xffffffff}};
+        for (unsigned i = 0; i < 5u; ++i)
+            expect("viewport domain rejected",
+                   rast_setup_polygon_vp(inside, 3, &bad[i], 2, r, RAST_MAX_FAN, NULL) == -1);
+        expect("viewport null rejected",
+               rast_setup_polygon_vp(inside, 3, NULL, 2, r, RAST_MAX_FAN, NULL) == -1);
+        expect("viewport view null rejected",
+               rast_setup_view_vp(NULL, 3u, &projection, 65536, 9 * 65536, &vp, 2,
+                                  r, RAST_MAX_FAN, NULL) == -1);
+        int n = rast_setup_polygon_vp(inside, 3, &vp, 2, r, RAST_MAX_FAN, NULL);
+        /* 右边在回绕边与出边各产生一个相同交点，重复点扇形面积为 0 被剔除：
+           实际是四边形 v0-(95,105)-(88,111)-(32,111)，两条记录。 */
+        expect("vp outside clipped", n == 2);
+        for (int i = 0; i < n; ++i) {
+            int16_t x0 = (int16_t)rast_get16(r + i, 72), x1 = (int16_t)rast_get16(r + i, 74);
+            int16_t y0 = (int16_t)rast_get16(r + i, 76), y1 = (int16_t)rast_get16(r + i, 78);
+            expect("vp bbox inside rect", x0 >= 2 && x1 <= 5 && y0 >= 3 && y1 <= 6);
+            expect("vp record valid", rast_record_valid(r + i));
+        }
+        /* 右边界：最大格点 16*(x+w)-1 拥有该列；再往外一个格点即被裁掉。 */
+        rast_vertex last[3] = {{80, 48, 100, 0, 0, 0xffffffff},
+                               {95, 48, 100, 0, 0, 0xffffffff},
+                               {80, 63, 100, 0, 0, 0xffffffff}};
+        const rast_viewport tight = {5, 3, 1, 1};
+        expect("vp last grid point owned",
+               rast_setup_polygon_vp(last, 3, &tight, 2, r, RAST_MAX_FAN, NULL) == 1 &&
+               rast_get16(r, 72) == 5 && rast_get16(r, 74) == 5 &&
+               rast_get16(r, 76) == 3 && rast_get16(r, 78) == 3);
+        rast_vertex beyond[3] = {{80, 48, 100, 0, 0, 0xffffffff},
+                                 {96, 48, 100, 0, 0, 0xffffffff},
+                                 {80, 63, 100, 0, 0, 0xffffffff}};
+        n = rast_setup_polygon_vp(beyond, 3, &tight, 2, r, RAST_MAX_FAN, NULL);
+        expect("vp beyond clipped to column", n == 2);
+        for (int i = 0; i < n; ++i)
+            expect("vp clipped column bound", rast_get16(r + i, 72) == 5 &&
+                   rast_get16(r + i, 74) == 5 && rast_record_valid(r + i));
+        /* 视空间：近面保持 z<=-near（端点恰在平面上保留）、远面 z>=-far；子视口内 bbox。 */
+        rast_view_vertex tri[3] = {{-65536, 65536, -65536, 0, 0, 0xffffffff},
+                                   {65536, 65536, -65536, 16, 0, 0xff80ff40},
+                                   {0, -65536, -131072, 0, 16, 0xff4080ff}};
+        const rast_viewport center = {160, 120, 320, 240};
+        n = rast_setup_view_vp(tri, 3u, &projection, 65536, 131072, &center, 3,
+                               r, RAST_MAX_FAN, NULL);
+        expect("view vp near/far endpoints kept", n > 0);
+        for (int i = 0; i < n; ++i) {
+            int16_t x0 = (int16_t)rast_get16(r + i, 72), x1 = (int16_t)rast_get16(r + i, 74);
+            int16_t y0 = (int16_t)rast_get16(r + i, 76), y1 = (int16_t)rast_get16(r + i, 78);
+            expect("view vp bbox inside", x0 >= 160 && x1 < 480 && y0 >= 120 && y1 < 360);
+            expect("view vp record valid", rast_record_valid(r + i));
+        }
+        expect("view vp near clips all",
+               rast_setup_view_vp(tri, 3u, &projection, 131072, 262144, &center, 3,
+                                  r, RAST_MAX_FAN, NULL) == 0);
+    }
     printf("RAST directed/math fail %u\n", failures);
     return (int)failures;
 }

@@ -31,6 +31,11 @@ class Matrix(ct.Structure):
     _fields_ = [('v', ct.c_int32 * 16)]
 
 
+class Viewport(ct.Structure):
+    _fields_ = [('x', ct.c_int16), ('y', ct.c_int16),
+                ('w', ct.c_uint16), ('h', ct.c_uint16)]
+
+
 class Target(ct.Structure):
     _fields_ = [('color', ct.POINTER(ct.c_uint32)), ('depth', ct.POINTER(ct.c_uint16)),
                 ('stride', ct.c_uint), ('strip', ct.c_uint), ('texture', ct.POINTER(ct.c_uint32)),
@@ -50,8 +55,15 @@ def load(path):
                                        ct.POINTER(Record), ct.c_uint, ct.c_void_p]
     lib.rast_setup_view.argtypes = [ct.POINTER(ViewVertex), ct.POINTER(Matrix), ct.c_int32,
                                     ct.c_int32, ct.c_uint, ct.POINTER(Record), ct.c_uint, ct.c_void_p]
+    lib.rast_setup_polygon_vp.argtypes = [ct.POINTER(Vertex), ct.c_uint, ct.POINTER(Viewport),
+                                          ct.c_uint, ct.POINTER(Record), ct.c_uint, ct.c_void_p]
+    lib.rast_setup_view_vp.argtypes = [ct.POINTER(ViewVertex), ct.c_uint, ct.POINTER(Matrix), ct.c_int32,
+                                       ct.c_int32, ct.POINTER(Viewport), ct.c_uint,
+                                       ct.POINTER(Record), ct.c_uint, ct.c_void_p]
     for name in ('rast_ref_run', 'rast_ref2_run'):
         getattr(lib, name).argtypes = [ct.POINTER(Record), ct.c_uint, ct.POINTER(Target)]
+    lib.rast_record_valid.argtypes = [ct.POINTER(Record)]
+    lib.rast_record_valid.restype = ct.c_int
     for name in ('fx16_mul', 'fx16_div'):
         getattr(lib, name).argtypes = [ct.c_int32, ct.c_int32]
     lib.fx16_recip.argtypes = [ct.c_int32]
@@ -71,6 +83,34 @@ def c_setup(lib, vertices, flags, projection=None):
         n = lib.rast_setup_view(array, ct.byref(projection), 65536, 9 * 65536, flags, out, 12, None)
     assert n >= 0, ('C setup error', n, vertices)
     return [bytes(r.bytes) for r in out[:n]]
+
+
+def c_setup_vp(lib, vertices, vp, flags, projection=None):
+    out = (Record * 16)()
+    vpa = Viewport(*vp)
+    if projection is None:
+        array = (Vertex * len(vertices))(*(Vertex(*v) for v in vertices))
+        n = lib.rast_setup_polygon_vp(array, len(vertices), ct.byref(vpa), flags, out, 16, None)
+    else:
+        array = (ViewVertex * len(vertices))(*(ViewVertex(*v) for v in vertices))
+        n = lib.rast_setup_view_vp(array, len(vertices), ct.byref(projection), 65536, 9 * 65536,
+                                   ct.byref(vpa), flags, out, 16, None)
+    assert n >= 0, ('C vp setup error', n, vertices, vp)
+    return [bytes(r.bytes) for r in out[:n]]
+
+
+def pixel_set(records, texture, key):
+    """按记录与逐点模型收集覆盖点（z<65535），与 hand_checks 的用法一致。"""
+    covered = set()
+    for record in records:
+        decoded = model.unpack(record)
+        x0, x1, y0, y1 = decoded[2]
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                _, z = model.pixel(decoded, x, y, 0x12345678, 65535, texture, key)
+                if z != 65535:
+                    covered.add((x, y))
+    return covered
 
 
 def mathematical_checks(lib):
@@ -217,6 +257,110 @@ def geometry_checks(lib, count, logdir):
     return crc
 
 
+def viewport_checks(lib, count, logdir):
+    """子视口入口：定向四边/近远面组合 + 定种子模糊，三方对拍（C、整数模型、Fraction 路径）。"""
+    rng = model.XorShift(0x32760423)
+    projection = Matrix()
+    assert lib.fx16_perspective(ct.byref(projection), 16384, 65536, 65536, 9 * 65536) == 0
+    texture = [0xff000000, 0xff80ff40, 0xff4080ff, 0xffffffff]
+    fixtures = []
+    crc = [0, 0, 0]
+
+    def case(name, vp, vertices, use_view, flags, clause):
+        if use_view:
+            got = c_setup_vp(lib, vertices, vp, flags, projection)
+            expected = model.view_setup_vp(vertices, list(projection.v), 65536, 9 * 65536, vp, flags)
+            third = model.view_setup_vp(vertices, list(projection.v), 65536, 9 * 65536, vp, flags, True)
+        else:
+            got = c_setup_vp(lib, vertices, vp, flags)
+            expected = model.setup_vp(vertices, vp, flags)
+            third = model.setup_vp(vertices, vp, flags, True)
+        assert got == expected == third, (name, [r.hex() for r in got], expected, third)
+        covered = pixel_set(got, texture, texture[0])
+        x, y, w, h = vp
+        assert all(x <= px < x + w and y <= py < y + h for px, py in covered), (name, sorted(covered))
+        for record in got:
+            r = Record.from_buffer_copy(record)
+            assert lib.rast_record_valid(ct.byref(r)) == 1, (name, record.hex())
+            decoded = model.unpack(record)
+            bx0, bx1, by0, by1 = decoded[2]
+            assert x <= bx0 and bx1 < x + w and y <= by0 and by1 < y + h, (name, decoded[2], vp)
+        return got, covered
+
+    vx0, vy0, vw0, vh0 = 2, 3, 4, 4
+    px = lambda x, y, **kw: (x * 16, y * 16, kw.get('z', 100), kw.get('u', 0),
+                             kw.get('v', 0), kw.get('c', 0xff804020))
+    # 四边不动点：完全在视口内的三角形原样通过。
+    case('vp_noop', (vx0, vy0, vw0, vh0),
+         [px(vx0, vy0), px(vx0 + 3, vy0), px(vx0, vy0 + 3)], False, 2, '2.1: inside untouched')
+    # 右边界的最大格点拥有、越界格点被裁。
+    got, covered = case('vp_edge_right', (vx0, vy0, vw0, vh0),
+                        [px(vx0 + vw0 - 2, vy0), px(vx0 + vw0 + 4, vy0), px(vx0 + vw0 - 2, vy0 + 4)],
+                        False, 2, '2.1: half-open right edge')
+    assert (vx0 + vw0 - 1, vy0) in covered and not any(p[0] >= vx0 + vw0 for p in covered)
+    # 整棵在视口外：两个入口都发 0 条。
+    for name, verts in [('vp_outside_left', [px(0, 3), px(1, 3), px(0, 7)]),
+                        ('vp_outside_below', [px(2, 7), px(6, 7), px(2, 11)])]:
+        got, covered = case(name, (vx0, vy0, vw0, vh0), verts, False, 2, '2.1: outside emits none')
+        assert not got and not covered, name
+    # 跨左/上两边的扇形拆分：多记录且 bbox 全在视口内。
+    got, covered = case('vp_straddle', (vx0, vy0, vw0, vh0),
+                        [px(-2, 0), px(vx0 + vw0 + 3, 2), px(0, 8)], False, 2,
+                        '2.1: two-edge fan split')
+    assert len(got) >= 2, 'vp_straddle'
+    # 视空间入口：近面交点与视口左右边同时裁。
+    view_tri = [(-8 * 32768, 32768, -131072, 0, 0, 0xffffffff),
+                (8 * 32768, -32768, -131072, 64, 0, 0xff4080ff),
+                (0, -8 * 32768, -49152, 0, 64, 0xff80ff40)]
+    got, covered = case('vp_near_view', (160, 120, 320, 240), view_tri, True, 3,
+                        '2.1: near plane and viewport together')
+    assert got, 'vp_near_view'
+    # Eight convex view vertices can become ten after both depth planes.
+    # Keep this regression outside the historical random-stream CRC.
+    octagon=[(0,65536),(46340,46340),(65536,0),(46340,-46340),
+             (0,-65536),(-46340,-46340),(-65536,0),(-46340,46340)]
+    verts=[(x,y,-5*65536+5*x,0,0,0xffffffff) for x,y in octagon]
+    projected=model.view_screen(verts,list(projection.v),65536,9*65536,
+                                160,120,320,240)
+    assert len(projected)==10
+    got,_=case('vp_octagon_depth_growth',(160,120,320,240),verts,True,2,
+               '2.1: eight view vertices grow to ten before viewport')
+    assert got
+    fixtures = []
+    for i in range(count):
+        w = 1 + rng.next() % 320
+        h = 1 + rng.next() % 240
+        x = rng.next() % (640 - w + 1)
+        y = rng.next() % (480 - h + 1)
+        vp = (0, 0, 640, 480) if i % 17 == 0 else (x, y, w, h)
+        flags = rng.next() & 7
+        view = i % 2
+        nv = 4 if i % 3 == 0 else 3      # 四边形：R4 走廊的实际输入形态
+        vertices = []
+        for k in range(nv):
+            if view:
+                xyz = ((rng.next() % 32 - 16) * 32768,
+                       (rng.next() % 24 - 12) * 32768,
+                       -(rng.next() % 24) * 32768)
+            else:
+                xyz = (int(rng.next() % 45000) - 15000,
+                       int(rng.next() % 40000) - 12000, rng.next() & 65535)
+            vertices.append((*xyz, rng.next() & 65535, rng.next() & 65535, rng.next()))
+        if i % 19 == 0:
+            vertices[-1] = vertices[-2]
+        got, _ = case(f'fuzz{i}', vp, vertices, view, flags, '2.1 fuzz')
+        crc[0] = zlib.crc32(struct.pack('<HHHH', *vp)
+                            + b''.join(got), crc[0])
+        if i < 20:
+            fixtures.append({'case': i, 'layer': 'view' if view else 'screen', 'vp': list(vp),
+                             'flags': flags, 'vertices': vertices,
+                             'records': [r.hex() for r in got]})
+    write_json(logdir / 'viewport-vectors.json', {'seed': '32760423',
+                                                  'projection': list(projection.v), 'vectors': fixtures})
+    print('VIEWPORT PASS', count, 'CRC', f'{crc[0]:08x}', flush=True)
+    return crc[0]
+
+
 def raster_checks(lib, count, logdir):
     rng = model.XorShift(0x72312026)
     colors = [(ct.c_uint32 * (640 * 16))() for _ in range(2)]
@@ -298,13 +442,22 @@ def main():
     mathematical_checks(lib)
     hand_checks(lib, logs)
     raster_n, geometry_n = (100000, 10000) if current.profile != 'quick' else (1000, 100)
+    viewport_n = 5000 if current.profile != 'quick' else 400
     geometry = geometry_checks(lib, geometry_n, logs)
+    viewport = viewport_checks(lib, viewport_n, logs)
     raster = raster_checks(lib, raster_n, logs)
-    actual = f'geometry 313d2026 {geometry_n} {geometry[0]:08x}\nraster 72312026 {raster_n} {raster[0]:08x}\n'
+    legacy = f'geometry 313d2026 {geometry_n} {geometry[0]:08x}\nraster 72312026 {raster_n} {raster[0]:08x}\n'
+    actual = legacy + f'viewport 32760423 {viewport_n} {viewport:08x}\n'
     (logs / 'golden-observed.txt').write_text(actual, encoding='utf-8')
     golden = ROOT / 'Main/sw/lib/test/rast_golden.txt'
+    golden_vp = ROOT / 'Main/sw/lib/test/rast_golden_vp.txt'
     if current.profile != 'quick':
-        assert golden.read_text(encoding='utf-8') == actual, ('golden differs', actual)
+        assert golden.read_text(encoding='utf-8') == legacy, ('golden differs', legacy)
+        if not golden_vp.exists():
+            raise IncompleteCheck('rast_golden_vp.txt 缺失：先在 acceptance 档核对一次'
+                                  'viewport CRC，再把 observed 值入库')
+        assert golden_vp.read_text(encoding='utf-8') == \
+            f'viewport 32760423 {viewport_n} {viewport:08x}\n', ('viewport golden differs', viewport)
     # 主机正常单元测试由聚合入口 lib 去重执行；这里仅 sanitizer 和本专项独立变异。
     executable = build / 'sanitize'
     command([cc, *flags, '-fsanitize=address,undefined', '-fno-sanitize-recover=all',
@@ -333,6 +486,7 @@ def main():
     assert '__addsf3' not in assembly and '__mulsf3' not in assembly and '__divdf3' not in assembly
     write_json(logs / 'summary.json', {'status': 'PASS', 'profile': current.profile,
                'geometry': {'count': geometry_n, 'seed': '313d2026', 'crc32': [f'{c:08x}' for c in geometry]},
+               'viewport': {'count': viewport_n, 'seed': '32760423', 'crc32': f'{viewport:08x}'},
                'raster': {'count': raster_n, 'seed': '72312026', 'crc32': [f'{c:08x}' for c in raster]},
                'board_run': 'NOT_APPLICABLE: R3', 'abi_bytes': 128})
     print('RAST PASS scope=' + current.profile, flush=True)
