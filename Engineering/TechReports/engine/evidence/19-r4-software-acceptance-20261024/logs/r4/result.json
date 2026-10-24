@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "frames_per_scene": {
+    "l1": 60,
+    "l2": 240,
+    "cup": 60
+  },
+  "scenes": [
+    "l1",
+    "l2",
+    "cup"
+  ],
+  "unit": "R4 OCCLUSION PASS enemy/projectile behind gate posts\nR4 SCENE PASS ticks=2000 peak=31 cup_input=396 crc=7a9fd551",
+  "scope": "host and shared scene semantics; physical board uses r4-board"
+}

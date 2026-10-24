@@ -1,0 +1,39 @@
+make: Entering directory '/mnt/e/Workspace/FPGA/Efinix/Main/sw/apps/test/rastTest'
+CC src/main.c
+CC src/r3_board.c
+CC src/r3_cases.c
+CC lib/core/assetpak.c
+CC lib/core/crc32.c
+CC lib/core/entity.c
+CC lib/core/fixmath.c
+CC lib/core/format.c
+CC lib/core/framehist.c
+CC lib/core/logq.c
+CC lib/core/nmax.c
+CC lib/core/replay.c
+CC lib/core/replay_r4.c
+CC lib/core/sin_tab.c
+CC lib/core/xorshift32.c
+CC lib/gfx/cases.c
+CC lib/gfx/census.c
+CC lib/gfx/check.c
+CC lib/gfx/exec_sw.c
+CC lib/gfx/frame.c
+CC lib/gfx/instances.c
+CC lib/gfx/list.c
+CC lib/gfx/pb.c
+CC lib/gfx/rast_ref.c
+CC lib/gfx/rast_setup.c
+CC lib/gfx/strip.c
+CC lib/gfx/strip_plan.c
+CC bsp/memmap.c
+CC bsp/ti60/board.c
+CC bsp/ti60/board_irq.c
+CC bsp/ti60/gfx_engine.c
+CC bsp/ti60/gfx_raster.c
+CC ../sdk/software/standalone/common/start.S
+CC ../sdk/software/standalone/common/trap.S
+LD /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261024-064646-7ea68e67/build/rast/target/rastTest-O2.elf
+Memory region         Used Size  Region Size  %age Used
+             ram:      243216 B      4092 KB      5.80%
+make: Leaving directory '/mnt/e/Workspace/FPGA/Efinix/Main/sw/apps/test/rastTest'

@@ -1,0 +1,37 @@
+# COM11 @ 115200 8N1, opened 04:24:34
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+R3 raster board v1
+caps 0000d46f
+R3 id 52415301 caps 0000c000
+HEALTH before field 00000227 min 0000015b zero 00000000 under 00000000 resp 00000000
+DRIVER reject ok
+R3 frame 00000000 sw 8233040e hw 8233040e bad 00000000 cycles 0003dc3c code 00000000
+HEALTH mixed field 0000029e min 0000015c zero 00000000 under 00000000 resp 00000000
+R3 frame 00000001 sw 6ec21c37 hw 6ec21c37 bad 00000000 cycles 0003e85e code 00000000
+HEALTH mixed field 0000031a min 0000015c zero 00000000 under 00000000 resp 00000000
+R3 frame 00000002 sw 3cceb994 hw 3cceb994 bad 00000000 cycles 0003ef65 code 00000000
+HEALTH mixed field 00000398 min 0000015c zero 00000000 under 00000000 resp 00000000
+R3 frame 00000003 sw 12f7df81 hw 12f7df81 bad 00000000 cycles 0003e0a6 code 00000000
+HEALTH mixed field 00000410 min 0000015c zero 00000000 under 00000000 resp 00000000
+R3 frame 00000004 sw 5efbe282 hw 5efbe282 bad 00000000 cycles 0003e760 code 00000000
+HEALTH mixed field 0000048b min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000005 sw a816b014 hw a816b014 bad 00000000 cycles 0003e323 code 00000000
+HEALTH mixed field 00000509 min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000006 sw 6d003c2b hw 6d003c2b bad 00000000 cycles 0003c352 code 00000000
+HEALTH mixed field 00000581 min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000007 sw c32e224a hw c32e224a bad 00000000 cycles 0003e712 code 00000000
+HEALTH mixed field 000005fc min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000008 sw eece36a9 hw eece36a9 bad 00000000 cycles 0003ee85 code 00000000
+HEALTH mixed field 0000067a min 0000015c zero 00000000 under 00000000 resp 00000000
+R3 frame 00000009 sw c9009eb2 hw c9009eb2 bad 00000000 cycles 0003dfe4 code 00000000
+HEALTH mixed field 000006f2 min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 0000000a sw e3c99091 hw e3c99091 bad 00000000 cycles 0003e509 code 00000000
+HEALTH mixed field 0000076d min 0000015b zero 00000000 under 00000000 resp 00000000
+ERROR index code 0000000d index 0000ffff tag 00000000 stage 00000007
+RESET recovery code 00000000
+HEALTH after field 00000770 min 0000015b zero 00000000 under 00000000 resp 00000000
+fail 0
+done
+
+# closed 04:25:05, 2234 bytes

@@ -1,0 +1,13 @@
+{
+  "old_bitmaps_roundtrip": 1024,
+  "mode4_combo": 896,
+  "mode4_bytes": [
+    128,
+    95
+  ],
+  "bit10_bytes": [
+    128,
+    0
+  ],
+  "explanation": "mode4 is a reserved existing-bit combination; bit10 is discarded"
+}

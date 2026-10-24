@@ -1,0 +1,38 @@
+{
+  "profile": "acceptance",
+  "results": [
+    {
+      "case": "pixel-injection",
+      "port": "COM11",
+      "status": "EXPECTED_RED",
+      "frames": 1,
+      "cycles": [
+        253501
+      ],
+      "display_samples": 3
+    },
+    {
+      "case": "normal",
+      "port": "COM11",
+      "status": "PASS",
+      "frames": 11,
+      "cycles": [
+        252988,
+        256094,
+        257893,
+        254118,
+        255840,
+        254755,
+        246610,
+        255762,
+        257669,
+        253924,
+        255241
+      ],
+      "display_samples": 13
+    }
+  ],
+  "deployment_tree": "Main/sim/build/check-runs/20261023-204410-96092abd/build/feature-presets/B7",
+  "external_tree": true,
+  "scope": "JTAG named B7 tree and source identities; no Flash or human HDMI observation"
+}

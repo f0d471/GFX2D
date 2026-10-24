@@ -1,0 +1,12 @@
+{
+  "rejected": [
+    "no-boundary",
+    "lost-serial",
+    "missing-frame",
+    "duplicate-frame",
+    "pixel-crc",
+    "underflow",
+    "wrong-result",
+    "no-recovery"
+  ]
+}

@@ -1,0 +1,87 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   193358 bytes written at address 0x00001000
+   downloaded 193358 bytes in 10.174952s (18.558 KiB/s)
+=== 等串口采集结束（上限 180 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\r4-takeover-20261024\board-candidatemath.log）---
+# COM11 @ 115200 8N1, opened 04:52:13
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+r4 enter ladder/hw 2 1
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 4 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4STAT 30 39525 31 2 1 0
+R4STAT 30 38658 31 2 1 0
+R4STAT 30 38656 33 2 1 0
+R4STAT 30 37776 31 2 1 0
+R4STAT 30 38909 29 2 1 0
+R4STAT 30 38392 25 2 1 0
+R4STAT 30 39740 29 2 1 0
+R4STAT 30 39857 31 2 1 0
+R4STAT 30 38307 31 2 1 0
+R4STAT 30 38003 21 2 1 0
+R4STAT 30 38585 31 2 1 0
+R4STAT 30 38529 33 2 1 0
+R4STAT 30 38949 27 2 1 0
+R4STAT 30 40333 19 2 1 0
+R4STAT 30 39847 29 2 1 0
+R4STAT 30 39788 31 2 1 0
+R4STAT 30 37970 29 2 1 0
+R4STAT 30 38870 23 2 1 0
+R4STAT 30 37327 33 2 1 0
+R4STAT 30 38428 31 2 1 0
+R4STAT 30 38585 27 2 1 0
+R4STAT 30 40180 19 2 1 0
+R4STAT 30 39837 29 2 1 0
+R4STAT 30 39779 31 2 1 0
+R4STAT 30 37965 29 2 1 0
+R4STAT 30 39042 21 2 1 0
+R4STAT 30 38550 33 2 1 0
+R4STAT 30 37659 31 2 1 0
+R4STAT 30 38512 27 2 1 0
+R4STAT 30 40191 19 2 1 0
+R4STAT 30 39848 29 2 1 0
+R4STAT 30 39801 31 2 1 0
+R4STAT 30 38007 31 2 1 0
+R4STAT 30 37650 23 2 1 0
+R4STAT 30 38003 31 2 1 0
+R4STAT 30 38503 33 2 1 0
+R4STAT 30 38116 27 2 1 0
+R4STAT 30 40330 19 2 1 0
+R4STAT 30 39845 29 2 1 0
+R4STAT 30 39797 31 2 1 0
+R4STAT 30 37976 29 2 1 0
+R4STAT 30 38863 23 2 1 0
+R4STAT 30 37318 33 2 1 0
+R4STAT 30 38488 31 2 1 0
+R4STAT 30 38588 27 2 1 0
+R4STAT 30 40184 19 2 1 0
+R4STAT 30 39832 29 2 1 0
+R4STAT 30 39786 31 2 1 0
+R4STAT 30 37977 29 2 1 0
+R4STAT 30 39039 21 2 1 0
+R4STAT 30 38542 33 2 1 0
+R4STAT 30 37662 31 2 1 0
+R4STAT 30 38584 27 2 1 0
+R4STAT 30 40185 19 2 1 0
+R4STAT 30 39843 29 2 1 0
+R4STAT 30 39794 31 2 1 0
+R4STAT 30 38015 31 2 1 0
+R4STAT 30 37660 23 2 1 0
+R4STAT 30 37944 31 2 1 0
+R4STAT 30 38501 33 2 1 0
+R4STAT 30 38183 27 2 1 0
+R4PERF 1800 2588217 2793267 2836319 0 1800 0 3600 1800
+r4 leave frames/late 1831 0
+R4HEALTH 38800 347 0 0 0
+diag fifo_min 335 samples 1831 zero 0 under 0 irqA 4109 irqB 1831 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 04:53:32, 2426 bytes

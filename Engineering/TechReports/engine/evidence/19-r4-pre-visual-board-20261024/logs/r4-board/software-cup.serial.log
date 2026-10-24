@@ -1,0 +1,20 @@
+# COM11 @ 115200 8N1, opened 04:18:44
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+r4 enter ladder/hw 1 0
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+R4CAD 0 441199058 1052 1334 2  0 ce3fce2a e9a670fe
+mode 4 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4CAD 1 441549660 1054 1619 3  0 eb1e043c 4effeaab
+r4 leave frames/late 2 2
+R4HEALTH 23904 347 0 0 0
+diag fifo_min 347 samples 2 zero 0 under 0 irqA 1009 irqB 0 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 04:19:12, 879 bytes

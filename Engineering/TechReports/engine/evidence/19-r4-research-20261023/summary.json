@@ -1,0 +1,96 @@
+{
+  "status": "PASS",
+  "scope": "research sampling only; no R4 implementation or acceptance",
+  "sample_medians": [
+    {
+      "dense": false,
+      "count": 1,
+      "cpu_ms": 0.64482,
+      "submit_wait_ms": 2.14903,
+      "combined_ms": 2.79385,
+      "rast_ms": 0.00337
+    },
+    {
+      "dense": false,
+      "count": 16,
+      "cpu_ms": 9.63771,
+      "submit_wait_ms": 2.17598,
+      "combined_ms": 11.81369,
+      "rast_ms": 0.02992
+    },
+    {
+      "dense": false,
+      "count": 32,
+      "cpu_ms": 19.23216,
+      "submit_wait_ms": 2.20127,
+      "combined_ms": 21.43343,
+      "rast_ms": 0.05399
+    },
+    {
+      "dense": false,
+      "count": 64,
+      "cpu_ms": 39.81042,
+      "submit_wait_ms": 2.25036,
+      "combined_ms": 42.06078,
+      "rast_ms": 0.10641
+    },
+    {
+      "dense": false,
+      "count": 396,
+      "cpu_ms": 245.90967,
+      "submit_wait_ms": 2.77177,
+      "combined_ms": 248.68144,
+      "rast_ms": 0.62305
+    },
+    {
+      "dense": true,
+      "count": 1,
+      "cpu_ms": 0.33655,
+      "submit_wait_ms": 5.23549,
+      "combined_ms": 5.57204,
+      "rast_ms": 3.09654
+    },
+    {
+      "dense": true,
+      "count": 16,
+      "cpu_ms": 4.56946,
+      "submit_wait_ms": 51.41159,
+      "combined_ms": 55.98105,
+      "rast_ms": 49.25995
+    },
+    {
+      "dense": true,
+      "count": 32,
+      "cpu_ms": 9.0208,
+      "submit_wait_ms": 100.64662,
+      "combined_ms": 109.66742,
+      "rast_ms": 98.50446
+    }
+  ],
+  "cadence": {
+    "frames": 120,
+    "p50_ms": 21.42058,
+    "p99_ms": 21.44428,
+    "max_ms": 21.45422,
+    "exact_due": 120,
+    "late": 0,
+    "over_33_333ms": 0
+  },
+  "parser_corruptions_rejected": [
+    "boundary",
+    "lost",
+    "missing-frame",
+    "crc",
+    "health"
+  ],
+  "crc_cases": 8,
+  "exclusions": [
+    "actual scene and game logic",
+    "actual cup model",
+    "L2 texture load in this probe",
+    "full HUD and mode switches",
+    "60-second performance acceptance",
+    "Flash",
+    "human HDMI review"
+  ]
+}

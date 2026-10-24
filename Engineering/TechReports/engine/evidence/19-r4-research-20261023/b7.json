@@ -1,0 +1,116 @@
+{
+  "tree": "Main/sim/build/check-runs/20261023-193434-5007f558/build/feature-presets/B7",
+  "timing": {
+    "xlr": 59623,
+    "ram": 187,
+    "dsp": 26,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 0.762
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.399
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.33
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.202
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.331
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 31.793
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 95.226
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 48.71
+      },
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.033
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.027
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.1
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.045
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.071
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.097
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.604
+      }
+    ],
+    "own_width_warnings": 0
+  },
+  "rtl_differences": [
+    "rtl/engine/engine_feature.vh",
+    "rtl/engine/engine_regs_offsets.vh"
+  ],
+  "bitstream": {
+    "path": "Main/sim/build/check-runs/20261023-193434-5007f558/build/feature-presets/B7/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+    "bytes": 2798274,
+    "sha256": "87e5c80a4bb6ec642d6059dee509987f9cf5aa923bc8434caa12fc7edb54f904"
+  }
+}

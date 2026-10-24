@@ -1,0 +1,18 @@
+[
+  {
+    "path": "fixmath.c",
+    "sha256": "a049d899af31f5f8e4804db1b45819a8bce40737bc8f95ee27a3816f00cd528d"
+  },
+  {
+    "path": "fixmath.h",
+    "sha256": "f9052a3e37239ba748f105caff730d493f6d8561203446de67c61e7f1c4b976a"
+  },
+  {
+    "path": "recip_tab.inc",
+    "sha256": "97b14643f578ece46559c237eb79bbbcf8044a656cf0d004f26f7b174e92b3c1"
+  },
+  {
+    "path": "sin_tab.c",
+    "sha256": "9e6c236c5bd0022bb4b845022d024cffd6e8f31babf7cd39e0895aa6633f04ef"
+  }
+]

@@ -1,0 +1,30 @@
+make: Entering directory '/mnt/e/Workspace/FPGA/Efinix/Main/sw'
+CC ../sim/build/r4-research-20261023/probe.c
+CC lib/core/assetpak.c
+CC lib/core/entity.c
+CC lib/core/crc32.c
+CC lib/core/fixmath.c
+CC lib/core/format.c
+CC lib/core/framehist.c
+CC lib/core/logq.c
+CC lib/core/nmax.c
+CC lib/core/replay.c
+CC lib/core/sin_tab.c
+CC lib/core/xorshift32.c
+CC lib/gfx/cases.c
+CC lib/gfx/census.c
+CC lib/gfx/check.c
+CC lib/gfx/exec_sw.c
+CC lib/gfx/frame.c
+CC lib/gfx/instances.c
+CC lib/gfx/list.c
+CC lib/gfx/pb.c
+CC lib/gfx/rast_ref.c
+CC lib/gfx/rast_setup.c
+CC lib/gfx/strip.c
+CC lib/gfx/strip_plan.c
+CC bsp/memmap.c
+CC bsp/host/board.c
+CC bsp/host/display_diag.c
+LD ../sim/build/r4-research-20261023/host/r4Probe
+make: Leaving directory '/mnt/e/Workspace/FPGA/Efinix/Main/sw'

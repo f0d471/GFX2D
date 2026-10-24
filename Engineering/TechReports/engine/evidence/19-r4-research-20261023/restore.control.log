@@ -1,0 +1,13 @@
+=== �ȿ����� COM11���ټ��س���˳���ܷ���
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   143990 bytes written at address 0x00001000
+   downloaded 143990 bytes in 8.079002s (17.405 KiB/s)
+=== �ȴ��ڲɼ����������� 15 �룩
+--- ���������Main/sim/build/r4-research-20261023/restore.serial.log��---
+# COM11 @ 115200 8N1, opened 22:04:54
+gfx2dGame MODES
+# --- �����Ѽ��أ����²���������� ---
+pak 2840320 b370ba0a
+
+# closed 22:05:09, 39 bytes

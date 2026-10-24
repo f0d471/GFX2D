@@ -1,0 +1,15 @@
+# COM11 @ 115200 8N1, opened 04:24:08
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+R3 raster board v1
+caps 0000d46f
+R3 id 52415301 caps 0000c000
+HEALTH before field 00000224 min 0000015b zero 00000000 under 00000000 resp 00000000
+DRIVER reject ok
+R3 frame 00000000 sw 8233040e hw ffae198c bad 00000002 cycles 0003de3d code 00000000
+HEALTH mixed field 00000291 min 0000015a zero 00000000 under 00000000 resp 00000000
+HEALTH after field 00000294 min 0000015b zero 00000000 under 00000000 resp 00000000
+fail 1
+done
+
+# closed 04:24:19, 446 bytes

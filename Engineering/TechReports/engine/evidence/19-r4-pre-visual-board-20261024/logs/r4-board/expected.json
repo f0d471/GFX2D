@@ -1,0 +1,2528 @@
+{
+  "l1": [
+    {
+      "frame": 0,
+      "cycles": 267426,
+      "raster": 0,
+      "crc": "448b823f",
+      "records": "d54042ee"
+    },
+    {
+      "frame": 1,
+      "cycles": 266275,
+      "raster": 0,
+      "crc": "0174f36f",
+      "records": "aaf7edf9"
+    },
+    {
+      "frame": 2,
+      "cycles": 283135,
+      "raster": 0,
+      "crc": "dbf34d38",
+      "records": "fd8bf22e"
+    },
+    {
+      "frame": 3,
+      "cycles": 273981,
+      "raster": 0,
+      "crc": "df30ce2e",
+      "records": "093da9c9"
+    },
+    {
+      "frame": 4,
+      "cycles": 289733,
+      "raster": 0,
+      "crc": "52e0ecc4",
+      "records": "75d6125d"
+    },
+    {
+      "frame": 5,
+      "cycles": 286715,
+      "raster": 0,
+      "crc": "3ec88fbe",
+      "records": "13adb75b"
+    },
+    {
+      "frame": 6,
+      "cycles": 293719,
+      "raster": 0,
+      "crc": "aa7c3a23",
+      "records": "e1530514"
+    },
+    {
+      "frame": 7,
+      "cycles": 224207,
+      "raster": 0,
+      "crc": "224852a2",
+      "records": "5636455c"
+    },
+    {
+      "frame": 8,
+      "cycles": 218269,
+      "raster": 0,
+      "crc": "dc651fcb",
+      "records": "d5fa2c52"
+    },
+    {
+      "frame": 9,
+      "cycles": 215800,
+      "raster": 0,
+      "crc": "691e33e1",
+      "records": "8c1a3b7c"
+    },
+    {
+      "frame": 10,
+      "cycles": 219750,
+      "raster": 0,
+      "crc": "4b74a163",
+      "records": "7b65d8c7"
+    },
+    {
+      "frame": 11,
+      "cycles": 231497,
+      "raster": 0,
+      "crc": "d1e5ec39",
+      "records": "8b3ce397"
+    },
+    {
+      "frame": 12,
+      "cycles": 229203,
+      "raster": 0,
+      "crc": "82607602",
+      "records": "14552fe5"
+    },
+    {
+      "frame": 13,
+      "cycles": 224514,
+      "raster": 0,
+      "crc": "311a8c65",
+      "records": "642fa33c"
+    },
+    {
+      "frame": 14,
+      "cycles": 231167,
+      "raster": 0,
+      "crc": "a6b6815a",
+      "records": "be316a05"
+    },
+    {
+      "frame": 15,
+      "cycles": 230696,
+      "raster": 0,
+      "crc": "9fe58bd1",
+      "records": "d8c84439"
+    },
+    {
+      "frame": 16,
+      "cycles": 225501,
+      "raster": 0,
+      "crc": "5a670749",
+      "records": "ecdf5e45"
+    },
+    {
+      "frame": 17,
+      "cycles": 231990,
+      "raster": 0,
+      "crc": "0f054e49",
+      "records": "76b4d3f8"
+    },
+    {
+      "frame": 18,
+      "cycles": 231676,
+      "raster": 0,
+      "crc": "5c15ea28",
+      "records": "4e5019d5"
+    },
+    {
+      "frame": 19,
+      "cycles": 235744,
+      "raster": 0,
+      "crc": "763a5b79",
+      "records": "969fc905"
+    },
+    {
+      "frame": 20,
+      "cycles": 250889,
+      "raster": 0,
+      "crc": "8dc90b7c",
+      "records": "b3bb84a3"
+    },
+    {
+      "frame": 21,
+      "cycles": 239021,
+      "raster": 0,
+      "crc": "d9381f5f",
+      "records": "ead6a03f"
+    },
+    {
+      "frame": 22,
+      "cycles": 243223,
+      "raster": 0,
+      "crc": "3d44808d",
+      "records": "d73b393b"
+    },
+    {
+      "frame": 23,
+      "cycles": 266080,
+      "raster": 0,
+      "crc": "c7168bf7",
+      "records": "8e2e3635"
+    },
+    {
+      "frame": 24,
+      "cycles": 252108,
+      "raster": 0,
+      "crc": "3363c77c",
+      "records": "f623c504"
+    },
+    {
+      "frame": 25,
+      "cycles": 240962,
+      "raster": 0,
+      "crc": "0e867ae5",
+      "records": "86f1ab32"
+    },
+    {
+      "frame": 26,
+      "cycles": 245917,
+      "raster": 0,
+      "crc": "f218daa6",
+      "records": "4376b69d"
+    },
+    {
+      "frame": 27,
+      "cycles": 243446,
+      "raster": 0,
+      "crc": "4e68a8e8",
+      "records": "edbbc2c8"
+    },
+    {
+      "frame": 28,
+      "cycles": 251870,
+      "raster": 0,
+      "crc": "3d670a38",
+      "records": "0601ebb2"
+    },
+    {
+      "frame": 29,
+      "cycles": 258527,
+      "raster": 0,
+      "crc": "b8f91683",
+      "records": "7bed9c59"
+    },
+    {
+      "frame": 30,
+      "cycles": 265549,
+      "raster": 0,
+      "crc": "d5b898ee",
+      "records": "540aead5"
+    },
+    {
+      "frame": 31,
+      "cycles": 264462,
+      "raster": 0,
+      "crc": "eaa795d8",
+      "records": "da8ab590"
+    },
+    {
+      "frame": 32,
+      "cycles": 280250,
+      "raster": 0,
+      "crc": "1f0c9b95",
+      "records": "747b4dd2"
+    },
+    {
+      "frame": 33,
+      "cycles": 296890,
+      "raster": 0,
+      "crc": "3033e641",
+      "records": "f0b311fd"
+    },
+    {
+      "frame": 34,
+      "cycles": 282565,
+      "raster": 0,
+      "crc": "47f231ac",
+      "records": "7ff7fab9"
+    },
+    {
+      "frame": 35,
+      "cycles": 300984,
+      "raster": 0,
+      "crc": "d054923d",
+      "records": "8fb5dcfc"
+    },
+    {
+      "frame": 36,
+      "cycles": 298995,
+      "raster": 0,
+      "crc": "c5eab22d",
+      "records": "2c2799a8"
+    },
+    {
+      "frame": 37,
+      "cycles": 217494,
+      "raster": 0,
+      "crc": "7c48d516",
+      "records": "62753701"
+    },
+    {
+      "frame": 38,
+      "cycles": 271680,
+      "raster": 0,
+      "crc": "1bbaf737",
+      "records": "996758a4"
+    },
+    {
+      "frame": 39,
+      "cycles": 225495,
+      "raster": 0,
+      "crc": "8fae90ed",
+      "records": "0d41775b"
+    },
+    {
+      "frame": 40,
+      "cycles": 225135,
+      "raster": 0,
+      "crc": "38abee71",
+      "records": "0de58fb8"
+    },
+    {
+      "frame": 41,
+      "cycles": 253049,
+      "raster": 0,
+      "crc": "7584591e",
+      "records": "c4b11cda"
+    },
+    {
+      "frame": 42,
+      "cycles": 217840,
+      "raster": 0,
+      "crc": "70dfab8d",
+      "records": "39d72794"
+    },
+    {
+      "frame": 43,
+      "cycles": 218314,
+      "raster": 0,
+      "crc": "3d729466",
+      "records": "1db7f2ac"
+    },
+    {
+      "frame": 44,
+      "cycles": 223090,
+      "raster": 0,
+      "crc": "63544171",
+      "records": "efbf5e27"
+    },
+    {
+      "frame": 45,
+      "cycles": 232892,
+      "raster": 0,
+      "crc": "ebd3ea80",
+      "records": "b82c3c97"
+    },
+    {
+      "frame": 46,
+      "cycles": 234480,
+      "raster": 0,
+      "crc": "cad91981",
+      "records": "dffd47c6"
+    },
+    {
+      "frame": 47,
+      "cycles": 225282,
+      "raster": 0,
+      "crc": "3f2292d1",
+      "records": "65777bfa"
+    },
+    {
+      "frame": 48,
+      "cycles": 230273,
+      "raster": 0,
+      "crc": "26450ee5",
+      "records": "3987e361"
+    },
+    {
+      "frame": 49,
+      "cycles": 235000,
+      "raster": 0,
+      "crc": "9caa1d26",
+      "records": "9a3c80de"
+    },
+    {
+      "frame": 50,
+      "cycles": 240910,
+      "raster": 0,
+      "crc": "de6c7504",
+      "records": "f8111378"
+    },
+    {
+      "frame": 51,
+      "cycles": 240853,
+      "raster": 0,
+      "crc": "d539de6a",
+      "records": "a137908f"
+    },
+    {
+      "frame": 52,
+      "cycles": 243258,
+      "raster": 0,
+      "crc": "006ae3ee",
+      "records": "06358078"
+    },
+    {
+      "frame": 53,
+      "cycles": 243138,
+      "raster": 0,
+      "crc": "8343894a",
+      "records": "b8efc91c"
+    },
+    {
+      "frame": 54,
+      "cycles": 250004,
+      "raster": 0,
+      "crc": "2158a6eb",
+      "records": "7c33a6e2"
+    },
+    {
+      "frame": 55,
+      "cycles": 254046,
+      "raster": 0,
+      "crc": "117e9910",
+      "records": "b782478d"
+    },
+    {
+      "frame": 56,
+      "cycles": 252554,
+      "raster": 0,
+      "crc": "f33e7aa4",
+      "records": "cc104232"
+    },
+    {
+      "frame": 57,
+      "cycles": 258034,
+      "raster": 0,
+      "crc": "31fa6a8b",
+      "records": "5f12a973"
+    },
+    {
+      "frame": 58,
+      "cycles": 253534,
+      "raster": 0,
+      "crc": "c1df96ea",
+      "records": "3090fe11"
+    },
+    {
+      "frame": 59,
+      "cycles": 257878,
+      "raster": 0,
+      "crc": "e78a5112",
+      "records": "d984131a"
+    }
+  ],
+  "l2": [
+    {
+      "frame": 0,
+      "cycles": 273426,
+      "raster": 0,
+      "crc": "a51d3716",
+      "records": "ca0c6a43"
+    },
+    {
+      "frame": 1,
+      "cycles": 290247,
+      "raster": 0,
+      "crc": "d964d45a",
+      "records": "443c63de"
+    },
+    {
+      "frame": 2,
+      "cycles": 274406,
+      "raster": 0,
+      "crc": "30613656",
+      "records": "21081512"
+    },
+    {
+      "frame": 3,
+      "cycles": 283109,
+      "raster": 0,
+      "crc": "30ecc642",
+      "records": "f1c0fd81"
+    },
+    {
+      "frame": 4,
+      "cycles": 288484,
+      "raster": 0,
+      "crc": "c105ba2e",
+      "records": "7364d7fd"
+    },
+    {
+      "frame": 5,
+      "cycles": 293052,
+      "raster": 0,
+      "crc": "713d0081",
+      "records": "a7c8df96"
+    },
+    {
+      "frame": 6,
+      "cycles": 304899,
+      "raster": 0,
+      "crc": "bbaac915",
+      "records": "d179c7a9"
+    },
+    {
+      "frame": 7,
+      "cycles": 219115,
+      "raster": 0,
+      "crc": "8ca8905c",
+      "records": "c6baa712"
+    },
+    {
+      "frame": 8,
+      "cycles": 218267,
+      "raster": 0,
+      "crc": "49ba3a95",
+      "records": "b666810a"
+    },
+    {
+      "frame": 9,
+      "cycles": 217443,
+      "raster": 0,
+      "crc": "9862285c",
+      "records": "3344275d"
+    },
+    {
+      "frame": 10,
+      "cycles": 228302,
+      "raster": 0,
+      "crc": "ca75cd72",
+      "records": "2f554691"
+    },
+    {
+      "frame": 11,
+      "cycles": 223762,
+      "raster": 0,
+      "crc": "5bb1fff9",
+      "records": "758acc10"
+    },
+    {
+      "frame": 12,
+      "cycles": 231646,
+      "raster": 0,
+      "crc": "324e207a",
+      "records": "b6db1bd5"
+    },
+    {
+      "frame": 13,
+      "cycles": 229606,
+      "raster": 0,
+      "crc": "e1d68ca5",
+      "records": "ba4ba4c6"
+    },
+    {
+      "frame": 14,
+      "cycles": 231437,
+      "raster": 0,
+      "crc": "457828f2",
+      "records": "989aaa67"
+    },
+    {
+      "frame": 15,
+      "cycles": 223778,
+      "raster": 0,
+      "crc": "b76caadb",
+      "records": "22231f3c"
+    },
+    {
+      "frame": 16,
+      "cycles": 252944,
+      "raster": 0,
+      "crc": "a6ebed64",
+      "records": "64d4f539"
+    },
+    {
+      "frame": 17,
+      "cycles": 256127,
+      "raster": 0,
+      "crc": "3251441c",
+      "records": "b8e5191b"
+    },
+    {
+      "frame": 18,
+      "cycles": 233477,
+      "raster": 0,
+      "crc": "b796d650",
+      "records": "e7fc2886"
+    },
+    {
+      "frame": 19,
+      "cycles": 235455,
+      "raster": 0,
+      "crc": "031ab5c2",
+      "records": "913dd6e2"
+    },
+    {
+      "frame": 20,
+      "cycles": 229183,
+      "raster": 0,
+      "crc": "8dda7376",
+      "records": "241ed732"
+    },
+    {
+      "frame": 21,
+      "cycles": 231884,
+      "raster": 0,
+      "crc": "c41ff974",
+      "records": "f43cd0fd"
+    },
+    {
+      "frame": 22,
+      "cycles": 244758,
+      "raster": 0,
+      "crc": "3542b97a",
+      "records": "fb7b47b2"
+    },
+    {
+      "frame": 23,
+      "cycles": 238542,
+      "raster": 0,
+      "crc": "60f59ba1",
+      "records": "93ed7d26"
+    },
+    {
+      "frame": 24,
+      "cycles": 242911,
+      "raster": 0,
+      "crc": "8080d69f",
+      "records": "0380795f"
+    },
+    {
+      "frame": 25,
+      "cycles": 240809,
+      "raster": 0,
+      "crc": "0e710a02",
+      "records": "d8b7992b"
+    },
+    {
+      "frame": 26,
+      "cycles": 252519,
+      "raster": 0,
+      "crc": "f56bd39c",
+      "records": "4a8a87b8"
+    },
+    {
+      "frame": 27,
+      "cycles": 254520,
+      "raster": 0,
+      "crc": "f864cc00",
+      "records": "44f9d06a"
+    },
+    {
+      "frame": 28,
+      "cycles": 254920,
+      "raster": 0,
+      "crc": "620d82ba",
+      "records": "fba4c932"
+    },
+    {
+      "frame": 29,
+      "cycles": 275585,
+      "raster": 0,
+      "crc": "d955a504",
+      "records": "9086b0a4"
+    },
+    {
+      "frame": 30,
+      "cycles": 269430,
+      "raster": 0,
+      "crc": "41f6010f",
+      "records": "60dcd0a2"
+    },
+    {
+      "frame": 31,
+      "cycles": 276492,
+      "raster": 0,
+      "crc": "4dbd2817",
+      "records": "622eb09b"
+    },
+    {
+      "frame": 32,
+      "cycles": 270091,
+      "raster": 0,
+      "crc": "498a8918",
+      "records": "3772b74f"
+    },
+    {
+      "frame": 33,
+      "cycles": 278436,
+      "raster": 0,
+      "crc": "1a32c80e",
+      "records": "7e20526f"
+    },
+    {
+      "frame": 34,
+      "cycles": 285791,
+      "raster": 0,
+      "crc": "1b57b671",
+      "records": "8237f177"
+    },
+    {
+      "frame": 35,
+      "cycles": 297593,
+      "raster": 0,
+      "crc": "691eae2d",
+      "records": "c7600bda"
+    },
+    {
+      "frame": 36,
+      "cycles": 315300,
+      "raster": 0,
+      "crc": "e274b372",
+      "records": "f62343e6"
+    },
+    {
+      "frame": 37,
+      "cycles": 218541,
+      "raster": 0,
+      "crc": "01113b7f",
+      "records": "c3dd6042"
+    },
+    {
+      "frame": 38,
+      "cycles": 218033,
+      "raster": 0,
+      "crc": "66418cca",
+      "records": "c793fe40"
+    },
+    {
+      "frame": 39,
+      "cycles": 220260,
+      "raster": 0,
+      "crc": "240a60a9",
+      "records": "e995dc3a"
+    },
+    {
+      "frame": 40,
+      "cycles": 217410,
+      "raster": 0,
+      "crc": "beed879a",
+      "records": "67acfd02"
+    },
+    {
+      "frame": 41,
+      "cycles": 220255,
+      "raster": 0,
+      "crc": "0b34b3ef",
+      "records": "fa6d625b"
+    },
+    {
+      "frame": 42,
+      "cycles": 216227,
+      "raster": 0,
+      "crc": "c909860c",
+      "records": "6d294264"
+    },
+    {
+      "frame": 43,
+      "cycles": 222126,
+      "raster": 0,
+      "crc": "b7c68fe0",
+      "records": "859b7a78"
+    },
+    {
+      "frame": 44,
+      "cycles": 232112,
+      "raster": 0,
+      "crc": "b12e875d",
+      "records": "d0e9d7ab"
+    },
+    {
+      "frame": 45,
+      "cycles": 239574,
+      "raster": 0,
+      "crc": "66f6b650",
+      "records": "63da1656"
+    },
+    {
+      "frame": 46,
+      "cycles": 233205,
+      "raster": 0,
+      "crc": "ac711117",
+      "records": "c6342099"
+    },
+    {
+      "frame": 47,
+      "cycles": 256726,
+      "raster": 0,
+      "crc": "54000a4c",
+      "records": "46a04c6c"
+    },
+    {
+      "frame": 48,
+      "cycles": 229866,
+      "raster": 0,
+      "crc": "370d776a",
+      "records": "f537afff"
+    },
+    {
+      "frame": 49,
+      "cycles": 229360,
+      "raster": 0,
+      "crc": "988ed98e",
+      "records": "663fad3b"
+    },
+    {
+      "frame": 50,
+      "cycles": 229929,
+      "raster": 0,
+      "crc": "0d60bf4d",
+      "records": "e12fb273"
+    },
+    {
+      "frame": 51,
+      "cycles": 249766,
+      "raster": 0,
+      "crc": "3e4e5467",
+      "records": "c4391e1e"
+    },
+    {
+      "frame": 52,
+      "cycles": 253257,
+      "raster": 0,
+      "crc": "52c22276",
+      "records": "999371cd"
+    },
+    {
+      "frame": 53,
+      "cycles": 246118,
+      "raster": 0,
+      "crc": "c9099161",
+      "records": "afb5dd63"
+    },
+    {
+      "frame": 54,
+      "cycles": 248262,
+      "raster": 0,
+      "crc": "be580d5b",
+      "records": "5beea412"
+    },
+    {
+      "frame": 55,
+      "cycles": 248181,
+      "raster": 0,
+      "crc": "ebe80935",
+      "records": "b565ac0f"
+    },
+    {
+      "frame": 56,
+      "cycles": 254404,
+      "raster": 0,
+      "crc": "7b4e7f20",
+      "records": "2052a9d2"
+    },
+    {
+      "frame": 57,
+      "cycles": 258423,
+      "raster": 0,
+      "crc": "031b0a82",
+      "records": "ad6cf8ea"
+    },
+    {
+      "frame": 58,
+      "cycles": 247011,
+      "raster": 0,
+      "crc": "718c95ff",
+      "records": "4c57ffce"
+    },
+    {
+      "frame": 59,
+      "cycles": 255193,
+      "raster": 0,
+      "crc": "43fe2b98",
+      "records": "c717fbec"
+    },
+    {
+      "frame": 60,
+      "cycles": 273296,
+      "raster": 0,
+      "crc": "58bca54d",
+      "records": "cf304875"
+    },
+    {
+      "frame": 61,
+      "cycles": 268005,
+      "raster": 0,
+      "crc": "366f1e10",
+      "records": "c161c4a2"
+    },
+    {
+      "frame": 62,
+      "cycles": 266086,
+      "raster": 0,
+      "crc": "8e992e99",
+      "records": "c5aacf0b"
+    },
+    {
+      "frame": 63,
+      "cycles": 286321,
+      "raster": 0,
+      "crc": "51c9350f",
+      "records": "8ff794fc"
+    },
+    {
+      "frame": 64,
+      "cycles": 286409,
+      "raster": 0,
+      "crc": "8965f146",
+      "records": "fe6487ff"
+    },
+    {
+      "frame": 65,
+      "cycles": 296054,
+      "raster": 0,
+      "crc": "ad373d8d",
+      "records": "d66e78a0"
+    },
+    {
+      "frame": 66,
+      "cycles": 310591,
+      "raster": 0,
+      "crc": "749a977b",
+      "records": "c9c966b0"
+    },
+    {
+      "frame": 67,
+      "cycles": 222834,
+      "raster": 0,
+      "crc": "c54ad703",
+      "records": "818b4263"
+    },
+    {
+      "frame": 68,
+      "cycles": 220743,
+      "raster": 0,
+      "crc": "e0faab54",
+      "records": "e2cf63f1"
+    },
+    {
+      "frame": 69,
+      "cycles": 235466,
+      "raster": 0,
+      "crc": "dee85bd1",
+      "records": "d7d106c2"
+    },
+    {
+      "frame": 70,
+      "cycles": 237337,
+      "raster": 0,
+      "crc": "c8b882ac",
+      "records": "51f8b868"
+    },
+    {
+      "frame": 71,
+      "cycles": 227973,
+      "raster": 0,
+      "crc": "338bc845",
+      "records": "dc5df369"
+    },
+    {
+      "frame": 72,
+      "cycles": 226613,
+      "raster": 0,
+      "crc": "8321cc16",
+      "records": "ec4bd963"
+    },
+    {
+      "frame": 73,
+      "cycles": 231041,
+      "raster": 0,
+      "crc": "2e4c6c1b",
+      "records": "12808a78"
+    },
+    {
+      "frame": 74,
+      "cycles": 229809,
+      "raster": 0,
+      "crc": "985a1fd9",
+      "records": "2427d9ff"
+    },
+    {
+      "frame": 75,
+      "cycles": 238281,
+      "raster": 0,
+      "crc": "8f117f69",
+      "records": "cf8ee0ab"
+    },
+    {
+      "frame": 76,
+      "cycles": 248494,
+      "raster": 0,
+      "crc": "7de0ed66",
+      "records": "7df756a5"
+    },
+    {
+      "frame": 77,
+      "cycles": 235230,
+      "raster": 0,
+      "crc": "d96d01c9",
+      "records": "ab0f466a"
+    },
+    {
+      "frame": 78,
+      "cycles": 240560,
+      "raster": 0,
+      "crc": "b6cd9434",
+      "records": "0bdc7a70"
+    },
+    {
+      "frame": 79,
+      "cycles": 239127,
+      "raster": 0,
+      "crc": "7114159d",
+      "records": "1fa1cec2"
+    },
+    {
+      "frame": 80,
+      "cycles": 250621,
+      "raster": 0,
+      "crc": "e7b73d9e",
+      "records": "65104221"
+    },
+    {
+      "frame": 81,
+      "cycles": 241600,
+      "raster": 0,
+      "crc": "28ed7b85",
+      "records": "0e4ab7b9"
+    },
+    {
+      "frame": 82,
+      "cycles": 247351,
+      "raster": 0,
+      "crc": "4d728ea3",
+      "records": "b2eda4eb"
+    },
+    {
+      "frame": 83,
+      "cycles": 258583,
+      "raster": 0,
+      "crc": "7af1e8c8",
+      "records": "14f862e3"
+    },
+    {
+      "frame": 84,
+      "cycles": 285788,
+      "raster": 0,
+      "crc": "24c0e68d",
+      "records": "19c1941f"
+    },
+    {
+      "frame": 85,
+      "cycles": 252278,
+      "raster": 0,
+      "crc": "d9e86130",
+      "records": "55de23f0"
+    },
+    {
+      "frame": 86,
+      "cycles": 257151,
+      "raster": 0,
+      "crc": "dbc131c6",
+      "records": "e12feb45"
+    },
+    {
+      "frame": 87,
+      "cycles": 268620,
+      "raster": 0,
+      "crc": "c916fdcc",
+      "records": "559119e7"
+    },
+    {
+      "frame": 88,
+      "cycles": 268167,
+      "raster": 0,
+      "crc": "fd3d8021",
+      "records": "8270e2b3"
+    },
+    {
+      "frame": 89,
+      "cycles": 265655,
+      "raster": 0,
+      "crc": "a93c1265",
+      "records": "79beae7c"
+    },
+    {
+      "frame": 90,
+      "cycles": 270923,
+      "raster": 0,
+      "crc": "ea8b3ef6",
+      "records": "efd364de"
+    },
+    {
+      "frame": 91,
+      "cycles": 278594,
+      "raster": 0,
+      "crc": "e86215a7",
+      "records": "b1c9c5e4"
+    },
+    {
+      "frame": 92,
+      "cycles": 277057,
+      "raster": 0,
+      "crc": "c27540e7",
+      "records": "ab1e0450"
+    },
+    {
+      "frame": 93,
+      "cycles": 286791,
+      "raster": 0,
+      "crc": "63fc4036",
+      "records": "7a4f24ab"
+    },
+    {
+      "frame": 94,
+      "cycles": 297745,
+      "raster": 0,
+      "crc": "2c867a78",
+      "records": "9fc438f5"
+    },
+    {
+      "frame": 95,
+      "cycles": 300793,
+      "raster": 0,
+      "crc": "3696cd91",
+      "records": "72e77fab"
+    },
+    {
+      "frame": 96,
+      "cycles": 302406,
+      "raster": 0,
+      "crc": "3be40983",
+      "records": "d093f33b"
+    },
+    {
+      "frame": 97,
+      "cycles": 220857,
+      "raster": 0,
+      "crc": "8611d10e",
+      "records": "a8c7cb1c"
+    },
+    {
+      "frame": 98,
+      "cycles": 224899,
+      "raster": 0,
+      "crc": "db3bcbc5",
+      "records": "78cf94b7"
+    },
+    {
+      "frame": 99,
+      "cycles": 228580,
+      "raster": 0,
+      "crc": "a4f64d75",
+      "records": "8f1c849b"
+    },
+    {
+      "frame": 100,
+      "cycles": 226032,
+      "raster": 0,
+      "crc": "e61533ea",
+      "records": "3206321c"
+    },
+    {
+      "frame": 101,
+      "cycles": 230749,
+      "raster": 0,
+      "crc": "04f26414",
+      "records": "e1d2c690"
+    },
+    {
+      "frame": 102,
+      "cycles": 245999,
+      "raster": 0,
+      "crc": "bdd5da66",
+      "records": "a26e33e0"
+    },
+    {
+      "frame": 103,
+      "cycles": 234912,
+      "raster": 0,
+      "crc": "e84543d5",
+      "records": "e87032c2"
+    },
+    {
+      "frame": 104,
+      "cycles": 237092,
+      "raster": 0,
+      "crc": "39ecde0e",
+      "records": "9cb6a06f"
+    },
+    {
+      "frame": 105,
+      "cycles": 229644,
+      "raster": 0,
+      "crc": "fd5af8e8",
+      "records": "4b111396"
+    },
+    {
+      "frame": 106,
+      "cycles": 235767,
+      "raster": 0,
+      "crc": "abf1a51e",
+      "records": "82ce5d93"
+    },
+    {
+      "frame": 107,
+      "cycles": 233965,
+      "raster": 0,
+      "crc": "25e18d6f",
+      "records": "9cbc06d8"
+    },
+    {
+      "frame": 108,
+      "cycles": 237634,
+      "raster": 0,
+      "crc": "34f779b3",
+      "records": "1cfdc7d8"
+    },
+    {
+      "frame": 109,
+      "cycles": 237384,
+      "raster": 0,
+      "crc": "a8c673a7",
+      "records": "8ddf5fa2"
+    },
+    {
+      "frame": 110,
+      "cycles": 242971,
+      "raster": 0,
+      "crc": "50329e02",
+      "records": "9ab82664"
+    },
+    {
+      "frame": 111,
+      "cycles": 240000,
+      "raster": 0,
+      "crc": "2277c353",
+      "records": "6ca0ef14"
+    },
+    {
+      "frame": 112,
+      "cycles": 241023,
+      "raster": 0,
+      "crc": "7a2d237b",
+      "records": "bd016e43"
+    },
+    {
+      "frame": 113,
+      "cycles": 239874,
+      "raster": 0,
+      "crc": "31a55f88",
+      "records": "6ea3265a"
+    },
+    {
+      "frame": 114,
+      "cycles": 243818,
+      "raster": 0,
+      "crc": "af38c5aa",
+      "records": "b071ff11"
+    },
+    {
+      "frame": 115,
+      "cycles": 255002,
+      "raster": 0,
+      "crc": "32be6846",
+      "records": "a53641da"
+    },
+    {
+      "frame": 116,
+      "cycles": 255359,
+      "raster": 0,
+      "crc": "1297758b",
+      "records": "a2d156e0"
+    },
+    {
+      "frame": 117,
+      "cycles": 260253,
+      "raster": 0,
+      "crc": "31bb807a",
+      "records": "24f63f50"
+    },
+    {
+      "frame": 118,
+      "cycles": 265038,
+      "raster": 0,
+      "crc": "fcc35ce8",
+      "records": "8a1e4cc6"
+    },
+    {
+      "frame": 119,
+      "cycles": 269417,
+      "raster": 0,
+      "crc": "29b4819f",
+      "records": "8d22d350"
+    },
+    {
+      "frame": 120,
+      "cycles": 273844,
+      "raster": 0,
+      "crc": "6d059996",
+      "records": "7cfff534"
+    },
+    {
+      "frame": 121,
+      "cycles": 286325,
+      "raster": 0,
+      "crc": "376501c9",
+      "records": "25bf3835"
+    },
+    {
+      "frame": 122,
+      "cycles": 287485,
+      "raster": 0,
+      "crc": "ac3a44f8",
+      "records": "c2f55d4f"
+    },
+    {
+      "frame": 123,
+      "cycles": 282958,
+      "raster": 0,
+      "crc": "0b854e0d",
+      "records": "8e4d1a84"
+    },
+    {
+      "frame": 124,
+      "cycles": 302100,
+      "raster": 0,
+      "crc": "4d7f3138",
+      "records": "8fce2fd6"
+    },
+    {
+      "frame": 125,
+      "cycles": 307622,
+      "raster": 0,
+      "crc": "44677d6b",
+      "records": "61c2429b"
+    },
+    {
+      "frame": 126,
+      "cycles": 312872,
+      "raster": 0,
+      "crc": "20d5ad4b",
+      "records": "e3f9ca59"
+    },
+    {
+      "frame": 127,
+      "cycles": 226908,
+      "raster": 0,
+      "crc": "307cc66e",
+      "records": "79958490"
+    },
+    {
+      "frame": 128,
+      "cycles": 228446,
+      "raster": 0,
+      "crc": "4e1ca947",
+      "records": "d198d8a3"
+    },
+    {
+      "frame": 129,
+      "cycles": 227753,
+      "raster": 0,
+      "crc": "f6c77d70",
+      "records": "15de3ed3"
+    },
+    {
+      "frame": 130,
+      "cycles": 231598,
+      "raster": 0,
+      "crc": "df3373dd",
+      "records": "84223f8c"
+    },
+    {
+      "frame": 131,
+      "cycles": 234917,
+      "raster": 0,
+      "crc": "bb330c2a",
+      "records": "516e3f51"
+    },
+    {
+      "frame": 132,
+      "cycles": 251991,
+      "raster": 0,
+      "crc": "44add4d4",
+      "records": "ded3e21f"
+    },
+    {
+      "frame": 133,
+      "cycles": 234855,
+      "raster": 0,
+      "crc": "9ce9c02d",
+      "records": "2456bfa9"
+    },
+    {
+      "frame": 134,
+      "cycles": 237783,
+      "raster": 0,
+      "crc": "0ded424d",
+      "records": "6a240abf"
+    },
+    {
+      "frame": 135,
+      "cycles": 245430,
+      "raster": 0,
+      "crc": "c3459008",
+      "records": "a9ae68f4"
+    },
+    {
+      "frame": 136,
+      "cycles": 253241,
+      "raster": 0,
+      "crc": "03a213a2",
+      "records": "c0557f2d"
+    },
+    {
+      "frame": 137,
+      "cycles": 245368,
+      "raster": 0,
+      "crc": "e1f5c1cc",
+      "records": "d70eb28b"
+    },
+    {
+      "frame": 138,
+      "cycles": 241411,
+      "raster": 0,
+      "crc": "2ee1af83",
+      "records": "497a3436"
+    },
+    {
+      "frame": 139,
+      "cycles": 250682,
+      "raster": 0,
+      "crc": "288bfb51",
+      "records": "3c874517"
+    },
+    {
+      "frame": 140,
+      "cycles": 254208,
+      "raster": 0,
+      "crc": "cbbee6e7",
+      "records": "f4a78461"
+    },
+    {
+      "frame": 141,
+      "cycles": 253472,
+      "raster": 0,
+      "crc": "dc8819df",
+      "records": "d34c33fc"
+    },
+    {
+      "frame": 142,
+      "cycles": 280325,
+      "raster": 0,
+      "crc": "d7cabd51",
+      "records": "37c01fa7"
+    },
+    {
+      "frame": 143,
+      "cycles": 260339,
+      "raster": 0,
+      "crc": "e8931c31",
+      "records": "e5c054e5"
+    },
+    {
+      "frame": 144,
+      "cycles": 259938,
+      "raster": 0,
+      "crc": "2b9ae89b",
+      "records": "5af28120"
+    },
+    {
+      "frame": 145,
+      "cycles": 279873,
+      "raster": 0,
+      "crc": "6969c030",
+      "records": "4109e6d2"
+    },
+    {
+      "frame": 146,
+      "cycles": 276046,
+      "raster": 0,
+      "crc": "2a4ed17d",
+      "records": "e542935e"
+    },
+    {
+      "frame": 147,
+      "cycles": 275446,
+      "raster": 0,
+      "crc": "8fc4532e",
+      "records": "f1937041"
+    },
+    {
+      "frame": 148,
+      "cycles": 283532,
+      "raster": 0,
+      "crc": "6ea4daa0",
+      "records": "4b8096e4"
+    },
+    {
+      "frame": 149,
+      "cycles": 286076,
+      "raster": 0,
+      "crc": "26b81358",
+      "records": "65a06c78"
+    },
+    {
+      "frame": 150,
+      "cycles": 287226,
+      "raster": 0,
+      "crc": "9c1d6d84",
+      "records": "d824cb1b"
+    },
+    {
+      "frame": 151,
+      "cycles": 301854,
+      "raster": 0,
+      "crc": "36ae390e",
+      "records": "08016ad1"
+    },
+    {
+      "frame": 152,
+      "cycles": 306566,
+      "raster": 0,
+      "crc": "84b58c32",
+      "records": "8cf36e14"
+    },
+    {
+      "frame": 153,
+      "cycles": 312329,
+      "raster": 0,
+      "crc": "10658d77",
+      "records": "c43d57be"
+    },
+    {
+      "frame": 154,
+      "cycles": 323827,
+      "raster": 0,
+      "crc": "7318e86f",
+      "records": "ccde0223"
+    },
+    {
+      "frame": 155,
+      "cycles": 328558,
+      "raster": 0,
+      "crc": "c352d54c",
+      "records": "60aaf33d"
+    },
+    {
+      "frame": 156,
+      "cycles": 376108,
+      "raster": 0,
+      "crc": "3d688e10",
+      "records": "0fe564e1"
+    },
+    {
+      "frame": 157,
+      "cycles": 264544,
+      "raster": 0,
+      "crc": "54ca2a4c",
+      "records": "9759f455"
+    },
+    {
+      "frame": 158,
+      "cycles": 268303,
+      "raster": 0,
+      "crc": "691335e0",
+      "records": "c3644937"
+    },
+    {
+      "frame": 159,
+      "cycles": 278273,
+      "raster": 0,
+      "crc": "dd6359a9",
+      "records": "aafe47ff"
+    },
+    {
+      "frame": 160,
+      "cycles": 283952,
+      "raster": 0,
+      "crc": "cab30379",
+      "records": "b733cef1"
+    },
+    {
+      "frame": 161,
+      "cycles": 288811,
+      "raster": 0,
+      "crc": "77828b0a",
+      "records": "eb820d80"
+    },
+    {
+      "frame": 162,
+      "cycles": 298333,
+      "raster": 0,
+      "crc": "bce73ffd",
+      "records": "8148c93a"
+    },
+    {
+      "frame": 163,
+      "cycles": 309296,
+      "raster": 0,
+      "crc": "423b3614",
+      "records": "b9117531"
+    },
+    {
+      "frame": 164,
+      "cycles": 312739,
+      "raster": 0,
+      "crc": "394cdd31",
+      "records": "2b4db61b"
+    },
+    {
+      "frame": 165,
+      "cycles": 301563,
+      "raster": 0,
+      "crc": "401817b5",
+      "records": "e38b6d29"
+    },
+    {
+      "frame": 166,
+      "cycles": 290810,
+      "raster": 0,
+      "crc": "31aeb36c",
+      "records": "9f28883b"
+    },
+    {
+      "frame": 167,
+      "cycles": 272564,
+      "raster": 0,
+      "crc": "de748e5e",
+      "records": "b7621d30"
+    },
+    {
+      "frame": 168,
+      "cycles": 272988,
+      "raster": 0,
+      "crc": "e2053e30",
+      "records": "bc8d8a22"
+    },
+    {
+      "frame": 169,
+      "cycles": 304247,
+      "raster": 0,
+      "crc": "0df4b7a7",
+      "records": "f53587e3"
+    },
+    {
+      "frame": 170,
+      "cycles": 296819,
+      "raster": 0,
+      "crc": "1c64aafb",
+      "records": "a0056a52"
+    },
+    {
+      "frame": 171,
+      "cycles": 303849,
+      "raster": 0,
+      "crc": "d329726e",
+      "records": "c1487e68"
+    },
+    {
+      "frame": 172,
+      "cycles": 304045,
+      "raster": 0,
+      "crc": "216b71e7",
+      "records": "e4edc911"
+    },
+    {
+      "frame": 173,
+      "cycles": 303601,
+      "raster": 0,
+      "crc": "5a55e9f5",
+      "records": "e1f0a22d"
+    },
+    {
+      "frame": 174,
+      "cycles": 288152,
+      "raster": 0,
+      "crc": "99ef95b9",
+      "records": "b312c4b0"
+    },
+    {
+      "frame": 175,
+      "cycles": 263630,
+      "raster": 0,
+      "crc": "93ad827a",
+      "records": "2f1bc570"
+    },
+    {
+      "frame": 176,
+      "cycles": 254175,
+      "raster": 0,
+      "crc": "37e89da9",
+      "records": "b5b2016d"
+    },
+    {
+      "frame": 177,
+      "cycles": 260482,
+      "raster": 0,
+      "crc": "2d131bb2",
+      "records": "80518b26"
+    },
+    {
+      "frame": 178,
+      "cycles": 269405,
+      "raster": 0,
+      "crc": "9e9c8c61",
+      "records": "68a3528b"
+    },
+    {
+      "frame": 179,
+      "cycles": 277147,
+      "raster": 0,
+      "crc": "0cc82710",
+      "records": "da040441"
+    },
+    {
+      "frame": 180,
+      "cycles": 272380,
+      "raster": 0,
+      "crc": "82af89d3",
+      "records": "afd383ee"
+    },
+    {
+      "frame": 181,
+      "cycles": 276756,
+      "raster": 0,
+      "crc": "7387ac00",
+      "records": "120c09e5"
+    },
+    {
+      "frame": 182,
+      "cycles": 274443,
+      "raster": 0,
+      "crc": "304a2200",
+      "records": "71741210"
+    },
+    {
+      "frame": 183,
+      "cycles": 282497,
+      "raster": 0,
+      "crc": "735f2e47",
+      "records": "94b4b37d"
+    },
+    {
+      "frame": 184,
+      "cycles": 286753,
+      "raster": 0,
+      "crc": "7f0a2a56",
+      "records": "47f0c3a0"
+    },
+    {
+      "frame": 185,
+      "cycles": 296366,
+      "raster": 0,
+      "crc": "940b7372",
+      "records": "d44b6e9f"
+    },
+    {
+      "frame": 186,
+      "cycles": 304785,
+      "raster": 0,
+      "crc": "41c3e22e",
+      "records": "a520e5b0"
+    },
+    {
+      "frame": 187,
+      "cycles": 220837,
+      "raster": 0,
+      "crc": "d8b0fb11",
+      "records": "50fc01a1"
+    },
+    {
+      "frame": 188,
+      "cycles": 223539,
+      "raster": 0,
+      "crc": "1258e09b",
+      "records": "89f2005f"
+    },
+    {
+      "frame": 189,
+      "cycles": 222340,
+      "raster": 0,
+      "crc": "0cb37674",
+      "records": "40cc6551"
+    },
+    {
+      "frame": 190,
+      "cycles": 223646,
+      "raster": 0,
+      "crc": "10c58b48",
+      "records": "7b2b45a5"
+    },
+    {
+      "frame": 191,
+      "cycles": 238783,
+      "raster": 0,
+      "crc": "3367ba02",
+      "records": "2805acb1"
+    },
+    {
+      "frame": 192,
+      "cycles": 222413,
+      "raster": 0,
+      "crc": "7b006e57",
+      "records": "7dac0318"
+    },
+    {
+      "frame": 193,
+      "cycles": 224543,
+      "raster": 0,
+      "crc": "9686bd76",
+      "records": "f2cd7fdc"
+    },
+    {
+      "frame": 194,
+      "cycles": 230218,
+      "raster": 0,
+      "crc": "9d854bb8",
+      "records": "f46f1f81"
+    },
+    {
+      "frame": 195,
+      "cycles": 230753,
+      "raster": 0,
+      "crc": "78e5be70",
+      "records": "80817132"
+    },
+    {
+      "frame": 196,
+      "cycles": 231160,
+      "raster": 0,
+      "crc": "5d7ddba7",
+      "records": "7907e3f8"
+    },
+    {
+      "frame": 197,
+      "cycles": 229185,
+      "raster": 0,
+      "crc": "51a95d7c",
+      "records": "441f239f"
+    },
+    {
+      "frame": 198,
+      "cycles": 228874,
+      "raster": 0,
+      "crc": "65ca66b8",
+      "records": "e1a5cd33"
+    },
+    {
+      "frame": 199,
+      "cycles": 229052,
+      "raster": 0,
+      "crc": "abd2a22f",
+      "records": "9cca077a"
+    },
+    {
+      "frame": 200,
+      "cycles": 238776,
+      "raster": 0,
+      "crc": "d19c8485",
+      "records": "f6e77407"
+    },
+    {
+      "frame": 201,
+      "cycles": 237788,
+      "raster": 0,
+      "crc": "034c6b06",
+      "records": "3b9440d7"
+    },
+    {
+      "frame": 202,
+      "cycles": 238294,
+      "raster": 0,
+      "crc": "d9a09e7d",
+      "records": "b8b585c1"
+    },
+    {
+      "frame": 203,
+      "cycles": 239237,
+      "raster": 0,
+      "crc": "7886b095",
+      "records": "41aeafea"
+    },
+    {
+      "frame": 204,
+      "cycles": 244782,
+      "raster": 0,
+      "crc": "ca62fbfa",
+      "records": "9c6b57de"
+    },
+    {
+      "frame": 205,
+      "cycles": 245734,
+      "raster": 0,
+      "crc": "dd7859b6",
+      "records": "8f53efea"
+    },
+    {
+      "frame": 206,
+      "cycles": 246051,
+      "raster": 0,
+      "crc": "d3f80f59",
+      "records": "b7859e0a"
+    },
+    {
+      "frame": 207,
+      "cycles": 251424,
+      "raster": 0,
+      "crc": "c3e9f5fa",
+      "records": "cdea02d1"
+    },
+    {
+      "frame": 208,
+      "cycles": 256014,
+      "raster": 0,
+      "crc": "9df15d11",
+      "records": "4390ca45"
+    },
+    {
+      "frame": 209,
+      "cycles": 257215,
+      "raster": 0,
+      "crc": "40eb4cf8",
+      "records": "8b9f39d0"
+    },
+    {
+      "frame": 210,
+      "cycles": 266097,
+      "raster": 0,
+      "crc": "8600162f",
+      "records": "8ae307b1"
+    },
+    {
+      "frame": 211,
+      "cycles": 271922,
+      "raster": 0,
+      "crc": "8d991ce6",
+      "records": "75d59719"
+    },
+    {
+      "frame": 212,
+      "cycles": 281445,
+      "raster": 0,
+      "crc": "63ad9a34",
+      "records": "89083b7d"
+    },
+    {
+      "frame": 213,
+      "cycles": 290449,
+      "raster": 0,
+      "crc": "a0bb47dc",
+      "records": "a50001d1"
+    },
+    {
+      "frame": 214,
+      "cycles": 292559,
+      "raster": 0,
+      "crc": "3fb042e0",
+      "records": "95ff4462"
+    },
+    {
+      "frame": 215,
+      "cycles": 304271,
+      "raster": 0,
+      "crc": "e29892c3",
+      "records": "82ddce43"
+    },
+    {
+      "frame": 216,
+      "cycles": 311508,
+      "raster": 0,
+      "crc": "d8e66ef3",
+      "records": "df02665f"
+    },
+    {
+      "frame": 217,
+      "cycles": 223634,
+      "raster": 0,
+      "crc": "495c1467",
+      "records": "b09a07e9"
+    },
+    {
+      "frame": 218,
+      "cycles": 227106,
+      "raster": 0,
+      "crc": "58324026",
+      "records": "999cbc65"
+    },
+    {
+      "frame": 219,
+      "cycles": 224317,
+      "raster": 0,
+      "crc": "e83fdd06",
+      "records": "4dda5549"
+    },
+    {
+      "frame": 220,
+      "cycles": 226221,
+      "raster": 0,
+      "crc": "7de9c069",
+      "records": "fd32a398"
+    },
+    {
+      "frame": 221,
+      "cycles": 231311,
+      "raster": 0,
+      "crc": "5c6356b6",
+      "records": "1effdc1d"
+    },
+    {
+      "frame": 222,
+      "cycles": 228903,
+      "raster": 0,
+      "crc": "353357f5",
+      "records": "2c7e46ef"
+    },
+    {
+      "frame": 223,
+      "cycles": 234488,
+      "raster": 0,
+      "crc": "675edcad",
+      "records": "df75f8bd"
+    },
+    {
+      "frame": 224,
+      "cycles": 236701,
+      "raster": 0,
+      "crc": "49d77e11",
+      "records": "256103b9"
+    },
+    {
+      "frame": 225,
+      "cycles": 240552,
+      "raster": 0,
+      "crc": "7b87ea2c",
+      "records": "8af29441"
+    },
+    {
+      "frame": 226,
+      "cycles": 236225,
+      "raster": 0,
+      "crc": "fb603bb3",
+      "records": "1d00bfc7"
+    },
+    {
+      "frame": 227,
+      "cycles": 233888,
+      "raster": 0,
+      "crc": "4ef8922c",
+      "records": "8b648091"
+    },
+    {
+      "frame": 228,
+      "cycles": 235306,
+      "raster": 0,
+      "crc": "4d8d3e2d",
+      "records": "de2fd7f2"
+    },
+    {
+      "frame": 229,
+      "cycles": 239366,
+      "raster": 0,
+      "crc": "7f006e8b",
+      "records": "8d5ce035"
+    },
+    {
+      "frame": 230,
+      "cycles": 240118,
+      "raster": 0,
+      "crc": "4d894927",
+      "records": "002f471a"
+    },
+    {
+      "frame": 231,
+      "cycles": 248626,
+      "raster": 0,
+      "crc": "c8f5015a",
+      "records": "270b564a"
+    },
+    {
+      "frame": 232,
+      "cycles": 245072,
+      "raster": 0,
+      "crc": "fcf046ae",
+      "records": "cd0a4fac"
+    },
+    {
+      "frame": 233,
+      "cycles": 248828,
+      "raster": 0,
+      "crc": "ab90c515",
+      "records": "6cbaea34"
+    },
+    {
+      "frame": 234,
+      "cycles": 251485,
+      "raster": 0,
+      "crc": "b01566c1",
+      "records": "5dd4a47b"
+    },
+    {
+      "frame": 235,
+      "cycles": 254153,
+      "raster": 0,
+      "crc": "2f61b990",
+      "records": "d8fe3516"
+    },
+    {
+      "frame": 236,
+      "cycles": 256594,
+      "raster": 0,
+      "crc": "8271bdb4",
+      "records": "31e79b54"
+    },
+    {
+      "frame": 237,
+      "cycles": 262524,
+      "raster": 0,
+      "crc": "0eabdf1e",
+      "records": "c0114928"
+    },
+    {
+      "frame": 238,
+      "cycles": 263339,
+      "raster": 0,
+      "crc": "684c353f",
+      "records": "046d4319"
+    },
+    {
+      "frame": 239,
+      "cycles": 276540,
+      "raster": 0,
+      "crc": "dfdba233",
+      "records": "9c92cf10"
+    }
+  ],
+  "cup": [
+    {
+      "frame": 0,
+      "cycles": 365412,
+      "raster": 0,
+      "crc": "ce3fce2a",
+      "records": "e9a670fe"
+    },
+    {
+      "frame": 1,
+      "cycles": 388268,
+      "raster": 0,
+      "crc": "eb1e043c",
+      "records": "4effeaab"
+    },
+    {
+      "frame": 2,
+      "cycles": 361197,
+      "raster": 0,
+      "crc": "d55a5ba1",
+      "records": "25e002e2"
+    },
+    {
+      "frame": 3,
+      "cycles": 354820,
+      "raster": 0,
+      "crc": "6b086f5b",
+      "records": "a5e8343a"
+    },
+    {
+      "frame": 4,
+      "cycles": 355299,
+      "raster": 0,
+      "crc": "8814ad9d",
+      "records": "f19a3d2a"
+    },
+    {
+      "frame": 5,
+      "cycles": 360446,
+      "raster": 0,
+      "crc": "9f618e57",
+      "records": "48b28032"
+    },
+    {
+      "frame": 6,
+      "cycles": 357293,
+      "raster": 0,
+      "crc": "a6bf9464",
+      "records": "5deff267"
+    },
+    {
+      "frame": 7,
+      "cycles": 351207,
+      "raster": 0,
+      "crc": "a3d88afc",
+      "records": "5c732c41"
+    },
+    {
+      "frame": 8,
+      "cycles": 356983,
+      "raster": 0,
+      "crc": "691723f7",
+      "records": "c2406274"
+    },
+    {
+      "frame": 9,
+      "cycles": 355830,
+      "raster": 0,
+      "crc": "9314e264",
+      "records": "7c6b13c5"
+    },
+    {
+      "frame": 10,
+      "cycles": 402536,
+      "raster": 0,
+      "crc": "43f66873",
+      "records": "0ffbb8ce"
+    },
+    {
+      "frame": 11,
+      "cycles": 375927,
+      "raster": 0,
+      "crc": "152b494d",
+      "records": "a2ff5a65"
+    },
+    {
+      "frame": 12,
+      "cycles": 364369,
+      "raster": 0,
+      "crc": "a9572993",
+      "records": "1a093bee"
+    },
+    {
+      "frame": 13,
+      "cycles": 352468,
+      "raster": 0,
+      "crc": "c3727936",
+      "records": "17be6fb3"
+    },
+    {
+      "frame": 14,
+      "cycles": 359742,
+      "raster": 0,
+      "crc": "6befd635",
+      "records": "7e70bfb3"
+    },
+    {
+      "frame": 15,
+      "cycles": 359442,
+      "raster": 0,
+      "crc": "d7501845",
+      "records": "a118b310"
+    },
+    {
+      "frame": 16,
+      "cycles": 366094,
+      "raster": 0,
+      "crc": "1b1b8675",
+      "records": "358d4b5e"
+    },
+    {
+      "frame": 17,
+      "cycles": 370349,
+      "raster": 0,
+      "crc": "80e88086",
+      "records": "a3428ebb"
+    },
+    {
+      "frame": 18,
+      "cycles": 356576,
+      "raster": 0,
+      "crc": "15e1ca5c",
+      "records": "f4e078f6"
+    },
+    {
+      "frame": 19,
+      "cycles": 351156,
+      "raster": 0,
+      "crc": "02d094d0",
+      "records": "2478617c"
+    },
+    {
+      "frame": 20,
+      "cycles": 388367,
+      "raster": 0,
+      "crc": "ddeda662",
+      "records": "cc9d71a6"
+    },
+    {
+      "frame": 21,
+      "cycles": 363049,
+      "raster": 0,
+      "crc": "b203bbd5",
+      "records": "b49fe8f9"
+    },
+    {
+      "frame": 22,
+      "cycles": 352245,
+      "raster": 0,
+      "crc": "1d271cc2",
+      "records": "b30e69c9"
+    },
+    {
+      "frame": 23,
+      "cycles": 356109,
+      "raster": 0,
+      "crc": "83e5903a",
+      "records": "450ed34b"
+    },
+    {
+      "frame": 24,
+      "cycles": 359521,
+      "raster": 0,
+      "crc": "0af5dba3",
+      "records": "55e7f136"
+    },
+    {
+      "frame": 25,
+      "cycles": 367126,
+      "raster": 0,
+      "crc": "19a00c99",
+      "records": "ee87f21b"
+    },
+    {
+      "frame": 26,
+      "cycles": 352800,
+      "raster": 0,
+      "crc": "dfda14b7",
+      "records": "2f96cfe2"
+    },
+    {
+      "frame": 27,
+      "cycles": 360711,
+      "raster": 0,
+      "crc": "8986bf51",
+      "records": "0037f6b0"
+    },
+    {
+      "frame": 28,
+      "cycles": 359161,
+      "raster": 0,
+      "crc": "06d599d7",
+      "records": "a11e6ef7"
+    },
+    {
+      "frame": 29,
+      "cycles": 364143,
+      "raster": 0,
+      "crc": "8f23822c",
+      "records": "33878ce4"
+    },
+    {
+      "frame": 30,
+      "cycles": 381040,
+      "raster": 0,
+      "crc": "7723555f",
+      "records": "5af9555e"
+    },
+    {
+      "frame": 31,
+      "cycles": 385488,
+      "raster": 0,
+      "crc": "ab18416d",
+      "records": "79e0e5e9"
+    },
+    {
+      "frame": 32,
+      "cycles": 372344,
+      "raster": 0,
+      "crc": "36d39002",
+      "records": "146568b9"
+    },
+    {
+      "frame": 33,
+      "cycles": 362064,
+      "raster": 0,
+      "crc": "f887b077",
+      "records": "52abbc16"
+    },
+    {
+      "frame": 34,
+      "cycles": 367617,
+      "raster": 0,
+      "crc": "38a0d516",
+      "records": "fb7d8715"
+    },
+    {
+      "frame": 35,
+      "cycles": 361324,
+      "raster": 0,
+      "crc": "fe6bf3b2",
+      "records": "cd01747e"
+    },
+    {
+      "frame": 36,
+      "cycles": 379755,
+      "raster": 0,
+      "crc": "36ad8e37",
+      "records": "81aca7be"
+    },
+    {
+      "frame": 37,
+      "cycles": 352783,
+      "raster": 0,
+      "crc": "d6b1fa87",
+      "records": "374130b4"
+    },
+    {
+      "frame": 38,
+      "cycles": 355365,
+      "raster": 0,
+      "crc": "5450eb38",
+      "records": "113487fd"
+    },
+    {
+      "frame": 39,
+      "cycles": 353074,
+      "raster": 0,
+      "crc": "652165f7",
+      "records": "5e4afe07"
+    },
+    {
+      "frame": 40,
+      "cycles": 383768,
+      "raster": 0,
+      "crc": "72b1c3a1",
+      "records": "f349a475"
+    },
+    {
+      "frame": 41,
+      "cycles": 365136,
+      "raster": 0,
+      "crc": "52b5ec0d",
+      "records": "865d3d54"
+    },
+    {
+      "frame": 42,
+      "cycles": 380203,
+      "raster": 0,
+      "crc": "fa751332",
+      "records": "a61b4cff"
+    },
+    {
+      "frame": 43,
+      "cycles": 357108,
+      "raster": 0,
+      "crc": "7b046e40",
+      "records": "44452d1d"
+    },
+    {
+      "frame": 44,
+      "cycles": 356481,
+      "raster": 0,
+      "crc": "e01988b7",
+      "records": "698504c6"
+    },
+    {
+      "frame": 45,
+      "cycles": 365206,
+      "raster": 0,
+      "crc": "ea9e4498",
+      "records": "922492a7"
+    },
+    {
+      "frame": 46,
+      "cycles": 359926,
+      "raster": 0,
+      "crc": "3d93f36a",
+      "records": "46cfad9e"
+    },
+    {
+      "frame": 47,
+      "cycles": 368338,
+      "raster": 0,
+      "crc": "7a9c2663",
+      "records": "91f12607"
+    },
+    {
+      "frame": 48,
+      "cycles": 500689,
+      "raster": 0,
+      "crc": "adfd048a",
+      "records": "dbc568af"
+    },
+    {
+      "frame": 49,
+      "cycles": 375877,
+      "raster": 0,
+      "crc": "267ff7dc",
+      "records": "0b7211bb"
+    },
+    {
+      "frame": 50,
+      "cycles": 353103,
+      "raster": 0,
+      "crc": "1e8873a9",
+      "records": "5ccc862c"
+    },
+    {
+      "frame": 51,
+      "cycles": 362234,
+      "raster": 0,
+      "crc": "0ce6b32c",
+      "records": "10478366"
+    },
+    {
+      "frame": 52,
+      "cycles": 359453,
+      "raster": 0,
+      "crc": "dd5ff8d3",
+      "records": "bc2aed0e"
+    },
+    {
+      "frame": 53,
+      "cycles": 362574,
+      "raster": 0,
+      "crc": "40cd45f6",
+      "records": "9bea9491"
+    },
+    {
+      "frame": 54,
+      "cycles": 371693,
+      "raster": 0,
+      "crc": "499801ef",
+      "records": "0ee9d285"
+    },
+    {
+      "frame": 55,
+      "cycles": 362238,
+      "raster": 0,
+      "crc": "54256754",
+      "records": "ef24333a"
+    },
+    {
+      "frame": 56,
+      "cycles": 365274,
+      "raster": 0,
+      "crc": "d9b2a3dc",
+      "records": "2694e4e6"
+    },
+    {
+      "frame": 57,
+      "cycles": 355169,
+      "raster": 0,
+      "crc": "20f31cce",
+      "records": "4944dcd3"
+    },
+    {
+      "frame": 58,
+      "cycles": 363736,
+      "raster": 0,
+      "crc": "2e939573",
+      "records": "dae7dc45"
+    },
+    {
+      "frame": 59,
+      "cycles": 352280,
+      "raster": 0,
+      "crc": "a24e371b",
+      "records": "0ef1ccc5"
+    }
+  ]
+}

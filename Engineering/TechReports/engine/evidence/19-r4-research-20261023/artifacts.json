@@ -1,0 +1,17 @@
+[
+  {
+    "path": "Main/sim/build/r4-research-20261023/target/r4Probe-O2.bin",
+    "bytes": 92394,
+    "sha256": "5f2aeaa9fd9fabfedb0ecdb3ac101c2793c45588684360814dde80364b14f164"
+  },
+  {
+    "path": "Main/sim/build/r4-research-20261023/target/r4Probe-O2.elf",
+    "bytes": 610272,
+    "sha256": "d8840a9d66dfcddbd8c94d42d95aa7dd69322616052a388a459c92ec7c4e35e9"
+  },
+  {
+    "path": "Main/sim/build/r4-research-20261023/host/r4Probe",
+    "bytes": 489176,
+    "sha256": "f9f99979a4274a7c57bde97f4964d231e21d7d38d4f69542a2c45a59f1ad4f8e"
+  }
+]
