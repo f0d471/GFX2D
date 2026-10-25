@@ -76,6 +76,31 @@ typedef struct {
 
 extern const stg_card stg_cards[STG_CARD_N];
 
+/* 关卡集：经典与 EX 的全部常量表打包成一份。游戏在标题→开局的过渡帧上按
+   「四个方向键同按」二选一（EX 路线，见 doc/软件升级-玩法与审美.md §4）；
+   经典路线的表指针与旧的全局表逐项相同，判据与录像不受影响。 */
+typedef struct {
+    const stg_event    *events;
+    uint32_t            n_events;
+    const stg_move_tab *moves;
+    uint32_t            n_moves;
+    const stg_em_group *groups;
+    uint32_t            n_groups;
+    const stg_card     *cards;          /* STG_CARD_N 张，结构同经典 */
+} stg_stage_set;
+
+extern const stg_stage_set stg_stage_classic;
+extern const stg_stage_set stg_stage_ex;
+
+/* EX 的分表（E 组判据直接对表断言；游戏只经 stg_stage_ex 间接引用） */
+extern const stg_event    stg_ex_events[];
+extern const uint32_t     stg_ex_n_events;
+extern const stg_move_tab stg_ex_moves[];
+extern const uint32_t     stg_n_ex_moves;
+extern const stg_em_group stg_ex_em_groups[];
+extern const uint32_t     stg_n_ex_em_groups;
+extern const stg_card     stg_ex_cards[STG_CARD_N];
+
 /* Boss（2.5 节）：从 (200, -48) 以 2 像素/帧下移 74 帧到 (200, 100)，之后在
    (200 + 70 sin a, 100 + 12 sin 2a) 附近游动，a 每帧加 91 BAM。判定半径 32 像素。 */
 #define STG_BOSS_X0         (200 * 256)
@@ -98,15 +123,13 @@ extern const stg_card stg_cards[STG_CARD_N];
 #define STG_CARD_BONUS      10000u      /* 乘符卡序号 1~4 */
 #define STG_FINAL_BONUS     50000u
 
-/* 背景 */
+/* 背景（亮暗线的颜色在 stg_draw.h：只有画图用） */
 #define STG_BG_HLINES       15u
 #define STG_BG_VLINES       13u
 #define STG_BG_STARS        60u
 #define STG_BG_SPACING_PX   32
 #define STG_BG_SCROLL       230u        /* Q.8 每帧 */
 #define STG_BG_VX0_PX       8
-#define STG_BG_BRIGHT       0x0013394Eu
-#define STG_BG_DIM          0x00091723u
 
 typedef struct {
     int32_t  x, y;          /* 左上角，Q.8 */

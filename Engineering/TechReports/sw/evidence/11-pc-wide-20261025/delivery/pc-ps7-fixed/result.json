@@ -1,0 +1,39 @@
+{
+  "kept": false,
+  "exe": "<REPO>\\Main\\bit\\board_release_game_wide_20261025\\pc\\gfx2dGame.exe",
+  "exe_sha256": "dca5a799f8ac106209f15972d1b3cea9e0206e580d0afa624d855f40b5d82d19",
+  "pid": 36552,
+  "displays": [
+    {
+      "display": 0,
+      "screenshot": "<REPO>\\Main\\sim\\build\\pc-widescreen-20261025\\live-package-ps7-fixed-20261025-200654\\display-0.png",
+      "size": [
+        2560,
+        1600
+      ],
+      "dpi": 144,
+      "rect": [
+        0,
+        0,
+        2560,
+        1600
+      ]
+    },
+    {
+      "display": 1,
+      "screenshot": "<REPO>\\Main\\sim\\build\\pc-widescreen-20261025\\live-package-ps7-fixed-20261025-200654\\display-1.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "dpi": 96,
+      "rect": [
+        2560,
+        0,
+        4480,
+        1080
+      ]
+    }
+  ],
+  "status": "PASS"
+}

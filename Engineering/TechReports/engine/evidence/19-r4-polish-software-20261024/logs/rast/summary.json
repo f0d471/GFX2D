@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "geometry": {
+    "count": 10000,
+    "seed": "313d2026",
+    "crc32": [
+      "da20ff34",
+      "da20ff34",
+      "da20ff34"
+    ]
+  },
+  "viewport": {
+    "count": 5000,
+    "seed": "32760423",
+    "crc32": "b30aef39"
+  },
+  "raster": {
+    "count": 100000,
+    "seed": "72312026",
+    "crc32": [
+      "3716d055",
+      "3716d055",
+      "3716d055"
+    ]
+  },
+  "board_run": "NOT_APPLICABLE: R3",
+  "abi_bytes": 128
+}

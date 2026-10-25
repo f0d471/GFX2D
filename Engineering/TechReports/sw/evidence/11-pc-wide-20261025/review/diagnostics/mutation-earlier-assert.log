@@ -1,0 +1,3 @@
+WIDE CHECK FAIL hardware rejects wide record line 35
+WIDE RECT PASS 640 clipped coverage/depth/bin/canaries/atomic
+WIDE SCENE PASS 640 square projection/world invariance/cup

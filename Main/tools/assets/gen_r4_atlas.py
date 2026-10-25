@@ -34,46 +34,49 @@ from PIL import Image
 
 W = 64
 TEXELS = W * W
-VERSION = 1
+VERSION = 3
 
 TRANS = (0, 0, 0, 0)
 OPAQUE = 255
 
 
 def px_region0(x, y):
-    """走廊墙：#304a68 底，每 8 px 凹槽加深，四角铆钉亮点。"""
-    base = (0x30, 0x4A, 0x68)
-    lx, ly = x % 8, y % 8
-    r, g, b = base
-    if lx == 0 or ly == 0:
-        r, g, b = 0x24, 0x38, 0x52
-    if lx == 4 and ly == 4:
-        r, g, b = 0x58, 0x74, 0x92
+    """低频金属面板、凹缝、倒角亮边和少量导向灯；不使用大块棋盘格。"""
+    edge=min(x,31-x,y,31-y)
+    if edge==0:return (12,22,33,OPAQUE)
+    if edge==1:return (94,126,148,OPAQUE)
+    if edge==2:return (54,75,96,OPAQUE)
+    lift=(15-abs(x-15))//3
+    r,g,b=62+lift,83+lift,106+lift
+    if y in (15,16):r,g,b=30,46,64
+    if x in (5,26) and 5<=y<=10:r,g,b=112,190,208
+    if 8<=x<=13 and y in (25,26):r,g,b=176,153,81
     return (r, g, b, OPAQUE)
 
 
 def px_region1(x, y):
-    """门框：#c06828 底 + 每 4 px 横纹 + 2 px 亮边框。"""
+    """白色亮边让顶点色指定青绿/品红门框；无半透明混合。"""
     lx = x % 32
     ly = y % 32
-    if lx < 2 or ly < 2 or lx >= 30 or ly >= 30:
-        return (0xE8, 0xA0, 0x50, OPAQUE)
-    if (y % 4) < 2:
-        return (0xC0, 0x68, 0x28, OPAQUE)
-    return (0x8A, 0x4A, 0x18, OPAQUE)
+    edge=min(lx,31-lx,ly,31-ly)
+    if edge==0:return (54,75,88,OPAQUE)
+    if edge<=2:return (215,242,248,OPAQUE)
+    if 13<=lx<=18:return (250,255,255,OPAQUE)
+    if 6<=ly<=9 or 23<=ly<=25:return (110,143,157,OPAQUE)
+    return (156,179,191,OPAQUE)
 
 
 def px_region2(x, y):
     """敌机：圆心 (16,16)，半径 12 机身 #ff7030，座舱 r5 #ffd080，圈外透明。"""
-    dx, dy = x - 16, y - 16
-    d2 = dx * dx + dy * dy
-    if d2 > 12 * 12:
-        return TRANS
-    if dx * dx + (dy + 2) * (dy + 2) <= 5 * 5:
-        return (0xFF, 0xD0, 0x80, OPAQUE)
-    if d2 > 9 * 9 and abs(dy) > 7:
-        return (0xB0, 0x40, 0x10, OPAQUE)       # 机身下缘暗一圈
-    return (0xFF, 0x70, 0x30, OPAQUE)
+    dx,dy=x-16,y-16
+    body=abs(dx)+2*abs(dy)<=14
+    wing=4<=x<=28 and 12<=y<=23 and abs(dy-2)<=5-abs(dx)//4
+    if not (body or wing):return TRANS
+    if dx*dx+(dy+2)*(dy+2)<=16:return (255,234,170,OPAQUE)
+    if abs(dx)<=2 and y>=20:return (255,135,210,OPAQUE)
+    if abs(dx)>=9:return (155,80,86,OPAQUE)
+    if abs(dx)*2+abs(dy)>=12:return (234,167,115,OPAQUE)
+    return (118+max(0,8-dy),62,69,OPAQUE)
 
 
 def px_region3(x, y):
@@ -82,11 +85,11 @@ def px_region3(x, y):
     d2 = dx * dx + dy * dy
     if d2 > 12 * 12:
         return TRANS
-    if d2 <= 5 * 5:
-        return (0xFF, 0xD0, 0xD0, OPAQUE)
-    if d2 <= 10 * 10:
-        return (0xFF, 0x50, 0x50, OPAQUE)
-    return (0xA0, 0x20, 0x20, OPAQUE)
+    if d2 <= 4 * 4:
+        return (0xFF, 0xE0, 0xFA, OPAQUE)
+    if d2<=64:return (255,112,206,OPAQUE)
+    if d2<=100:return (190,51,128,OPAQUE)
+    return (92,31,75,OPAQUE)
 
 
 REGIONS = ((0, 0, px_region0), (32, 0, px_region1),

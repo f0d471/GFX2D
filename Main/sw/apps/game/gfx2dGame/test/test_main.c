@@ -26,6 +26,7 @@
 #include "test_stg_collide.h"
 #include "test_stg_draw.h"
 #include "test_stg_emit.h"
+#include "test_stg_ex.h"
 #include "test_stg_game.h"
 #include "test_stg_pool.h"
 #include "test_stg_press.h"
@@ -66,6 +67,8 @@ int main(int argc, char **argv)
     fail += test_stg_game_run();
     fputs("stgTest stage\n", stdout);
     fail += test_stg_stage_run();
+    fputs("stgTest ex\n", stdout);
+    fail += test_stg_ex_run();
     fputs("stgTest view\n", stdout);
     fail += test_stg_view_run();
     fputs("stgTest chord\n", stdout);

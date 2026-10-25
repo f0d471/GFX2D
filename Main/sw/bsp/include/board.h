@@ -32,6 +32,17 @@ int board_begin_compare(void);
 
 #define BOARD_FB_COUNT      2
 
+/* A presentation surface is separate from the fixed simulated/physical DDR
+   framebuffer. The PC may supply a bounded wider canvas; Ti60 returns its
+   original framebuffer. Buffers remain BSP-owned until the next acquire for
+   the same index, which must follow completion of its previous presentation. */
+typedef struct {
+    uint32_t *pixels;
+    unsigned width, height, stride; /* stride in pixels */
+} board_frame;
+int board_frame_acquire(int index, int adaptive, board_frame *frame);
+int board_present_frame_request(int index, const board_frame *frame, uint32_t *ticket);
+
 typedef struct {
     void    *ptr;       /* 区域起始指针，两个平台都按同一偏移取 */
     uint32_t size;      /* 区域字节数，取自 memmap.h 的分区表 */

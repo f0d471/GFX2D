@@ -5,7 +5,7 @@
 | 文件 | 用途 |
 | --- | --- |
 | `gen_placeholder.py` | 生成占位 PNG（纯色、棋盘、渐变、圆形弹幕、色键图、图集）。图案全部按坐标算出来，没有随机数，同一个 Pillow 版本产出逐字节相同的 PNG |
-| `gen_stg_neon.py` | 生成游戏的霓虹几何素材：三种弹各四色、自机弹、火花、自机与两种敌机的线框、Boss、星点、标题、大号数字、图标、青色字库，共 12 张 PNG。图案按坐标算出，不用随机数与字体文件；`--check` 重新生成并与入库的逐像素比，`--check --inject` 改一个像素必须见红 |
+| `gen_stg_neon.py` | 生成游戏的霓虹几何素材：三种弹各四色、自机弹、火花、自机与两种敌机、Boss、星点、标题（含 EX 提示行）、大号数字、图标、青色字库、背景合图，共 13 张 PNG（含背景合图 bg_layers.png）。图案按坐标算出，不用随机数与字体文件；`--check` 重新生成并与入库的逐像素比，`--check --inject` 改一个像素必须见红 |
 | `gen_font_txt.py` | 把原样入库的上游点阵字体 `Main/assets/font/spleen-8x16.bdf`（Spleen 8x16，BSD-2-Clause）转换成打包工具读的字库文本 `font/ascii8x16.txt`，只取 ASCII 的 95 个字形；`--check` 重新生成并与入库的逐字节比，`--check --inject` 改一个像素必须见红 |
 | `pack_assets.py` | 读 `Main/assets/manifest.txt`，把每一项转成目标字节、打成 `assets.pak`，并生成 `assets.h` |
 

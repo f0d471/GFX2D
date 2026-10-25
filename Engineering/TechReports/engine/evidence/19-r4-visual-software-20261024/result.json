@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "pack",
+    "r4",
+    "lib",
+    "rast",
+    "app",
+    "pc",
+    "demo",
+    "game",
+    "stats",
+    "workflow",
+    "regs"
+  ],
+  "run_id": "20261024-084153-96b62cb8"
+}

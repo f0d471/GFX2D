@@ -116,6 +116,128 @@ const stg_card stg_cards[STG_CARD_N] = {
         AT_BOSS(c4_fan), AT_ABS(c4_rain, 200, 0) } },
 };
 
+/* --- EX 关卡（doc/软件升级-玩法与审美.md §4） ----------------------------------
+   只换常量表，不动执行逻辑：同一套发射原语与机种，波次更密、排布不同。
+   入口是「四个方向键同按」（判据按键脚本与录像搜索器不产生这种输入）。 */
+
+/* EX 的发射记录：密度与速度整体上探，弹型仍取既有的五种。 */
+static const stg_emit_rec ex_dart_fast   = { 2u, STG_DIR_AIM,  10u, 63488u, 1536u, 0u, 34u, 0u, 0u,  768,  0,  0,  0 };
+static const stg_emit_rec ex_dart_ring   = {12u, STG_DIR_ABS,   6u, 2731u,  5461u, 0u, 36u, 0u, 0u,  512,  0,  0,  0 };
+static const stg_emit_rec ex_cross_fan2  = { 7u, STG_DIR_AIM,  11u, 59392u, 2048u, 0u, 24u, 0u, 0u,  640,  0,  0,  0 };
+static const stg_emit_rec ex_cross_ring  = {20u, STG_DIR_ABS,   1u, 0u,     3277u, 0u, 40u, 0u, 0u,  448,  0,  0,  0 };
+
+static const stg_emit_rec *const exgrp_dart_fast[]  = { &ex_dart_fast };
+static const stg_emit_rec *const exgrp_dart_ring[]  = { &ex_dart_ring };
+static const stg_emit_rec *const exgrp_cross_fan2[] = { &ex_cross_fan2 };
+static const stg_emit_rec *const exgrp_cross_ring[] = { &ex_cross_ring };
+
+const stg_em_group stg_ex_em_groups[] = {
+    { exgrp_dart_fast,  1u },     /* 0 */
+    { exgrp_dart_ring,  1u },     /* 1 */
+    { exgrp_cross_fan2, 1u },     /* 2 */
+    { exgrp_cross_ring, 1u },     /* 3 */
+};
+const uint32_t stg_n_ex_em_groups = (uint32_t)(sizeof stg_ex_em_groups / sizeof stg_ex_em_groups[0]);
+
+/* EX 的移动表：经典六条照抄 + 两条高速斜飞。 */
+static const stg_move mv_dash_r[] = { {  768, 256, 1u } };
+static const stg_move mv_dash_l[] = { { -768, 256, 1u } };
+
+static const stg_move ex_mv_turn_r[]  = { { 0, 512, 80u }, {  384, -384, 1u } };
+static const stg_move ex_mv_turn_l[]  = { { 0, 512, 80u }, { -384, -384, 1u } };
+static const stg_move ex_mv_stop[]    = { { 0, 384, 100u }, { 0, -384, 240u }, { 0, -256, 1u } };
+static const stg_move ex_mv_down[]    = { { 0, 640, 1u } };
+static const stg_move ex_mv_diag_r[]  = { {  384, 256, 1u } };
+static const stg_move ex_mv_diag_l[]  = { { -384, 256, 1u } };
+
+const stg_move_tab stg_ex_moves[] = {
+    { ex_mv_turn_r, 2u },       /* 0 下行后折向右下 */
+    { ex_mv_turn_l, 2u },       /* 1 下行后折向左下 */
+    { ex_mv_stop,   3u },       /* 2 下行、停、上行离场 */
+    { ex_mv_down,   1u },       /* 3 直下 */
+    { ex_mv_diag_r, 1u },       /* 4 从左侧斜向右下 */
+    { ex_mv_diag_l, 1u },       /* 5 从右侧斜向左下 */
+    { mv_dash_r,    1u },       /* 6 高速斜向右下 */
+    { mv_dash_l,    1u },       /* 7 高速斜向左下 */
+};
+const uint32_t stg_n_ex_moves = (uint32_t)(sizeof stg_ex_moves / sizeof stg_ex_moves[0]);
+
+const stg_event stg_ex_events[] = {
+    /* 第 1 波：左右同时切入的高速 DART（新移动表 6/7） */
+    SPAWN(  50, DART,  -20,  60, 6, 0, 20), SPAWN(  50, DART,  420,  60, 7, 0, 20),
+    SPAWN(  90, DART,  -20,  60, 6, 0, 20), SPAWN(  90, DART,  420,  60, 7, 0, 20),
+    SPAWN( 130, DART,  -20,  60, 6, 0, 20), SPAWN( 130, DART,  420,  60, 7, 0, 20),
+    /* 第 2 波：三列直下 DART，快狙双发 */
+    SPAWN( 300, DART,   80, -24, 3, 0, 20), SPAWN( 300, DART,  200, -24, 3, 0, 20),
+    SPAWN( 300, DART,  320, -24, 3, 0, 20), SPAWN( 360, DART,   80, -24, 3, 0, 20),
+    SPAWN( 360, DART,  200, -24, 3, 0, 20), SPAWN( 360, DART,  320, -24, 3, 0, 20),
+    /* 第 3 波：中央 CROSS 放 12 向旋转环，两侧 DART 折返策应 */
+    SPAWN( 560, CROSS, 200, -24, 2, 3, 60),
+    SPAWN( 620, DART,  100, -24, 0, 1, 30), SPAWN( 620, DART,  300, -24, 1, 1, 30),
+    /* 第 4 波：CROSS 双停位对狙扇 + 斜飞 DART 穿场 */
+    SPAWN( 880, CROSS, 110, -24, 2, 2, 80), SPAWN( 880, CROSS, 290, -24, 2, 2, 80),
+    SPAWN( 960, DART,  -20, 120, 6, 0, 20), SPAWN(1000, DART,  420, 120, 7, 0, 20),
+    /* 第 5 波：三列直下 + 环十字压场 */
+    SPAWN(1180, DART,   60, -24, 3, 1, 16), SPAWN(1180, DART,  200, -24, 3, 1, 16),
+    SPAWN(1180, DART,  340, -24, 3, 1, 16), SPAWN(1240, CROSS, 200, -24, 2, 3, 60),
+    /* 第 6 波：左右交替折返的连续快波 */
+    SPAWN(1420, DART,  100, -24, 0, 0, 16), SPAWN(1444, DART,  300, -24, 1, 0, 16),
+    SPAWN(1468, DART,  100, -24, 0, 0, 16), SPAWN(1492, DART,  300, -24, 1, 0, 16),
+    SPAWN(1516, DART,  100, -24, 0, 0, 16), SPAWN(1540, DART,  300, -24, 1, 0, 16),
+    SPAWN(1564, DART,  100, -24, 0, 0, 16), SPAWN(1588, DART,  300, -24, 1, 0, 16),
+    /* 第 7 波：收官混编 */
+    SPAWN(1720, CROSS, 140, -24, 2, 3, 60), SPAWN(1720, DART,  260, -24, 3, 1, 20),
+    SPAWN(1780, DART,  260, -24, 3, 1, 20), SPAWN(1840, CROSS, 260, -24, 2, 2, 80),
+    SPAWN(1840, DART,  140, -24, 3, 1, 20), SPAWN(1900, DART,  140, -24, 3, 1, 20),
+    { 2060u, STG_EVT_CLEAR, 0u, 0, 0, 0u, 0u, 0u },
+    { 2120u, STG_EVT_BOSS,  0u, 0, 0, 0u, 0u, 0u },
+};
+const uint32_t stg_ex_n_events = (uint32_t)(sizeof stg_ex_events / sizeof stg_ex_events[0]);
+
+/* EX 的符卡：同构四张，弹幕编排换风格（旋转对称/双侧夹击/混合雨/超载+）。 */
+static const stg_emit_rec x1_lotus   = {10u, STG_DIR_SEQ,   0u, 0u,     6554u, 1092u, 14u, 0u, 0u,  430,  0,  0, 0 };
+static const stg_emit_rec x1_aim     = { 3u, STG_DIR_AIM,  10u, 63488u, 2048u, 0u,    36u, 0u, 0u,  832,  0,  0, 0 };
+static const stg_emit_rec x2_fan_l   = { 7u, STG_DIR_AIM,  11u, 59392u, 1707u, 0u,    26u, 0u, 0u,  704,  0,  0, 0 };
+static const stg_emit_rec x2_fan_r   = { 7u, STG_DIR_AIM,  11u, 6144u,  1707u, 0u,    26u, 0u, 0u,  704,  0,  0, 0 };
+static const stg_emit_rec x2_ring    = {10u, STG_DIR_SEQ,   6u, 8192u,  6554u, 328u,  36u, 0u, 0u,  448,  0,  0, 0 };
+static const stg_emit_rec x3_rain_a  = { 4u, STG_DIR_ABS,   4u, 16384u, 0u,    0u,     4u, 0u, 0u,  448,  0, 32768, 640 };
+static const stg_emit_rec x3_rain_b  = { 3u, STG_DIR_ABS,   8u, 16384u, 0u,    0u,     5u, 0u, 0u,  512,  0, 24576, 512 };
+static const stg_emit_rec x3_spir    = { 4u, STG_DIR_SEQ,   5u, 0u,    14564u, 1092u,  4u, 0u, 0u,  576,  0,  0, 0 };
+static const stg_emit_rec x4_ring    = {26u, STG_DIR_ABS,   0u, 0u,     2521u, 0u,     1u, 0u, 0u,  448,  0,  0, 0 };
+static const stg_emit_rec x4_aim     = { 6u, STG_DIR_AIM,  10u, 60672u, 2048u, 0u,     1u, 0u, 0u,  832,  0,  0, 0 };
+static const stg_emit_rec x4_spir_a  = { 3u, STG_DIR_SEQ,   5u, 0u,    21845u, 1092u,  1u, 0u, 0u,  576,  0,  0, 0 };
+static const stg_emit_rec x4_spir_b  = { 3u, STG_DIR_SEQ,   7u, 0u,    21845u, 64244u, 1u, 0u, 0u,  640,  0,  0, 0 };
+static const stg_emit_rec x4_fan     = { 9u, STG_DIR_ABS,  11u, 12384u, 1000u, 0u,     1u, 0u, 0u,  704, 80,  0, 0 };
+static const stg_emit_rec x4_rain    = { 5u, STG_DIR_ABS,   4u, 16384u, 0u,    0u,     1u, 0u, 0u,  576,  0, 40960, 576 };
+
+const stg_card stg_ex_cards[STG_CARD_N] = {
+    { "EX1 LOTUS RING",   380, 1800u,  0u, 0u, 2u,
+      { AT_BOSS(x1_lotus), AT_BOSS(x1_aim) } },
+    { "EX2 TWIN FAN",     420, 1800u, 90u, 0u, 3u,
+      { AT_ABS(x2_fan_l,  60, 40), AT_ABS(x2_fan_r, 340, 40), AT_BOSS(x2_ring) } },
+    { "EX3 STORM RAIN",   460, 1800u, 90u, 0u, 4u,
+      { AT_ABS(x3_rain_a, 100, 0), AT_ABS(x3_rain_b, 300, 0), AT_BOSS(x3_spir), AT_BOSS(x1_aim) } },
+    { "EX4 OVERLOAD+",    700, 2400u, 90u, 1u, 6u,
+      { AT_BOSS(x4_ring), AT_BOSS(x4_aim), AT_BOSS(x4_spir_a), AT_BOSS(x4_spir_b),
+        AT_BOSS(x4_fan), AT_ABS(x4_rain, 200, 0) } },
+};
+
+/* --- 关卡集 ------------------------------------------------------------------- */
+
+const stg_stage_set stg_stage_classic = {
+    stg_stage_events, (uint32_t)(sizeof stg_stage_events / sizeof stg_stage_events[0]),
+    stg_moves,        stg_n_moves,
+    stg_em_groups,    stg_n_em_groups,
+    stg_cards,
+};
+
+const stg_stage_set stg_stage_ex = {
+    stg_ex_events, stg_ex_n_events,
+    stg_ex_moves,  stg_n_ex_moves,
+    stg_ex_em_groups, stg_n_ex_em_groups,
+    stg_ex_cards,
+};
+
 /* --- 背景 ------------------------------------------------------------------ */
 
 void stg_bg_init(stg_bg *b, xs32 *rng)

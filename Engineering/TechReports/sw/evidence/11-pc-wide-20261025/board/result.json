@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "r4-board"
+  ],
+  "run_id": "20261025-184825-fcfcb370"
+}

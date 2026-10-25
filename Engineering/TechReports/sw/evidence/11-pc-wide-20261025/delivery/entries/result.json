@@ -1,0 +1,19 @@
+{
+  "manifest_sha256": "8a22203dfbf90080d9a36b6881eb9b4b2f8a5db715ef677731b9805c99dc1474",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "ps7-fixed",
+      "status": "PASS",
+      "kept": false,
+      "pid": 36552
+    },
+    {
+      "name": "ps51-auto",
+      "status": "PASS",
+      "kept": true,
+      "pid": 51472
+    }
+  ],
+  "exe_sha256": "dca5a799f8ac106209f15972d1b3cea9e0206e580d0afa624d855f40b5d82d19"
+}

@@ -1,0 +1,18 @@
+WINDOW STEP fullscreen 0
+WINDOW STEP fullscreen 1
+WINDOW STEP fullscreen 2
+WINDOW STEP fullscreen 3
+WINDOW STEP fullscreen 4
+WINDOW STEP fullscreen 5
+WINDOW STEP fullscreen 6
+WINDOW STEP fullscreen 7
+WINDOW STEP fullscreen 8
+WINDOW STEP fullscreen 9
+WINDOW STEP fullscreen 10
+WINDOW STEP fullscreen 11
+WINDOW FULLSCREEN PASS F11/AltEnter/Escape x12 restore
+WINDOW SCALE PASS F1/F2/F3 and 4:3 logical aspect after arbitrary resize
+WINDOW FILTER PASS nearest/linear, renderer reset, framebuffer unchanged
+WINDOW KEY DIAG flags=36 SDL_W=1 native_W=-32767 pressed=1 released=0
+WINDOW FOCUS PASS own-window W press and focus-loss release
+WINDOW EXIT PASS

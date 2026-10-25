@@ -126,12 +126,27 @@ def mathematical_checks(lib):
         d = i + 1
         for n in (3 * d + d // 2, -3 * d - d // 2):
             assert lib.fx16_round_div(n, d) == model.rnd(n, d)
-    for i in range(10000):
+    # The rv32 exact fast paths cover u32 division, power-of-two divisors and
+    # a reduced quotient-bit loop. Include all sign/overflow boundaries.
+    boundary = [0, 1, -1, 32767, -32768, 65535, 65536, -65536,
+                2147483647, -2147483648]
+    denominators = boundary + [2**k for k in range(31)] + [-2**k for k in range(31)]
+    for numerator in (-(1<<63),-(1<<63)+1,(1<<63)-1,(1<<63)-2,
+                      -(1<<32)-1,(1<<32)+1):
+        for denominator in (1,2,3,16,255,65535,2147483647,2147483648,(1<<63)-1):
+            assert lib.fx16_round_div(numerator,denominator)==model.rnd(numerator,denominator)
+    for a in boundary:
+        for b in denominators:
+            assert lib.fx16_div(a,b) == model.div(a,b), (a,b)
+    for i in range(100000):
         a, b = ct.c_int32(rng.next()).value, ct.c_int32(rng.next()).value
         assert lib.fx16_mul(a, b) == model.sat(model.rnd(a * b))
         assert lib.fx16_div(a, b) == model.div(a, b)
         expected_recip = model.div(65536, a) if a else 2147483647
         assert lib.fx16_recip(a) == expected_recip
+        n = (ct.c_int32(rng.next()).value << 32) | rng.next()
+        d = 1 + rng.next()
+        assert lib.fx16_round_div(n,d) == model.rnd(n,d), (n,d)
     sine = (ct.c_int16 * 1280).in_dll(lib, 'fx_sin_tab')
     for i in range(1000):
         fov = 128 + rng.next() % (32768 - 128)
@@ -148,7 +163,7 @@ def mathematical_checks(lib):
         result = Matrix()
         assert lib.fx16_perspective(ct.byref(result), fov, aspect, near, far) == 0
         assert list(result.v) == expected
-    print('ROUND PASS 16-bit domains x5 x2 + depth map + variable denominators; MUL/DIV/RECIP PASS 10000', flush=True)
+    print('ROUND PASS 16-bit domains x5 x2 + depth map + 100000 s64 pairs; MUL/DIV/RECIP PASS 100000 + boundaries', flush=True)
 
 
 def hand_checks(lib, logs):

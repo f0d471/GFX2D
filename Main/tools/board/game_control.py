@@ -15,8 +15,8 @@ import serial
 from input_forward import InputForwarder, packet
 
 
-MODE_NAMES = {"demo": "1 · 图形演示", "game": "2 · 弹幕游戏", "press": "3 · 压力测试"}
-MODE_IDS = {"1": "demo", "2": "game", "3": "press"}
+MODE_NAMES = {"demo": "1 · 图形演示", "game": "2 · 弹幕游戏", "press": "3 · 压力测试", "r3d": "4 · 三维演示"}
+MODE_IDS = {"1": "demo", "2": "game", "3": "press", "4": "r3d"}
 KEY_NAMES = ("上", "下", "左", "右", "炸弹", "慢速", "切后端", "模式1", "模式2", "模式3")
 
 
@@ -28,6 +28,10 @@ class BoardState:
         self.backend = None
         self.fps = None
         self.bullets = None
+        self.triangles = None
+        self.ladder = None
+        self.scene = None
+        self.render_fps = None
         self.last_csv = 0.0
         self.headers = None
 
@@ -55,8 +59,23 @@ class BoardState:
             if backend in ("hw", "hw-tex", "hw-strip", "sw"):
                 self.backend = backend
                 self.fps = None
+        elif line.startswith("r4 enter ladder/hw "):
+            self.mode="r3d"
+            self.backend="hw" if line.split()[-1]=="1" else "sw"
+            self.ladder=int(line.split()[-2])
+            self.fps=None
+        elif line.startswith("R4STAT "):
+            try:
+                fields=[int(x) for x in line.split()[1:]]
+                if len(fields)!=6:return False
+                self.mode="r3d";self.fps=fields[0];self.backend="hw" if fields[4] else "sw"
+                self.triangles=fields[2]
+                self.render_fps=fields[1]/1000
+                self.ladder=fields[3];self.scene=fields[5]
+                self.last_csv=time.monotonic();self.bullets=None
+            except (ValueError,IndexError):return False
         else:
-            match = re.match(r"mode ([123]) enter frame ", line)
+            match = re.match(r"mode ([1234]) enter frame ", line)
             if match:
                 self.mode = MODE_IDS[match[1]]
                 self.fps = None
@@ -120,7 +139,7 @@ class ControlPanel:
         status.pack(fill="x")
         self.mode_label = self._status_box(status, "当前模式", "等待板上反馈", 0)
         self.backend_label = self._status_box(status, "当前绘图后端", "等待板上反馈", 1)
-        self.fps_label = self._status_box(status, "实际帧率 / 敌弹数", "— FPS / — 颗", 2)
+        self.fps_label = self._status_box(status, "实际帧率 / 场景数量", "— FPS / —", 2)
         self.notice = tk.Label(outer, text=self.notice_text, anchor="w", justify="left", wraplength=985,
                                bg="#e0ecff", fg="#164582", padx=12, pady=10,
                                font=("Microsoft YaHei UI", 11, "bold"))
@@ -133,6 +152,12 @@ class ControlPanel:
         ttk.Button(actions, text="SW 软件对比", command=lambda: self.set_backend("sw")).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="重开本局（1 → 2）", command=self.restart_game).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="重新连接", command=self.connect).pack(side="right")
+        three_d=ttk.Frame(outer);three_d.pack(fill="x",pady=(0,8))
+        ttk.Button(three_d,text="3D / 茶杯 [4]",command=lambda:self.send_action(0x380)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="L1 / L2 [Shift]",command=lambda:self.send_action(1<<5)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="炸弹 [Space]",command=lambda:self.send_action(1<<4)).pack(side="left",padx=(0,6))
+        self.scene_label=ttk.Label(three_d,text="三维场景：等待板上反馈")
+        self.scene_label.pack(side="left",padx=12)
         self.connection = ttk.Label(outer, text="串口：等待连接", foreground="#53657e")
         self.connection.pack(anchor="w")
         self.input_label = ttk.Label(outer, text="按键：等待连接", foreground="#53657e")
@@ -148,9 +173,10 @@ class ControlPanel:
         self._rules(left, (
             ("W A S D / 方向键", "移动飞船；斜向可以同时按两方向"),
             ("左 Shift（按住）", "慢速移动，并显示判定点"),
-            ("空格（每次按下）", "使用一颗炸弹，消除敌弹并获得无敌"),
+            ("空格（每次按下）", "使用一颗炸弹；三维也可清弹并获得短暂无敌"),
             ("射击", "自动射击，无需按射击键"),
-            ("1 / 2 / 3", "图形演示 / 弹幕游戏 / 压力测试"),
+            ("1 / 2 / 3 / 4", "演示 / 游戏 / 压力 / 三维；三维内再按4切茶杯"),
+            ("三维 Shift / Tab", "L1、L2阶梯 / 板上CPU、硬件光栅对照"),
             ("Tab", "HW ↔ SW；SW 由板上 CPU 绘图，会很慢"),
             ("重开游戏", "先按 1，待切换后再按 2；或点重开按钮"),
             ("Esc", "启用 / 停止输入转发，板上游戏继续运行"),
@@ -160,7 +186,7 @@ class ControlPanel:
             ("手柄 A / LB / Start", "炸弹 / 慢速 / 切换 HW、SW"),
             ("板上 SW0 / SW1", "左 / 下"),
             ("板上 SW2 / SW3", "上 / 右"),
-            ("上 + 下，保持 8 帧", "切到下一个模式：1 → 2 → 3 → 1"),
+            ("上 + 下，保持 8 帧", "切到下一个模式：1 → 2 → 3 → 4 → 1"),
             ("左 + 右，保持 8 帧", "切换 HW、SW；键盘 A+D 同样会触发"),
             ("组合键再次触发", "这一对键都松开后，才能再次触发"),
             ("模式 1 / 模式 3", "演示或压力测试，不是可操作的游戏"),
@@ -240,6 +266,8 @@ class ControlPanel:
             return False
 
     def set_backend(self, target):
+        if self.state.mode == "r3d" and target.startswith("hw"):
+            target = "hw"
         if self.pending_backend is not None:
             self.notify("正在等待上一次后端切换的板上确认。")
         elif self.state.backend is None:
@@ -318,9 +346,15 @@ class ControlPanel:
         backend = self.state.backend
         self.backend_label.configure(text={"hw": "HW/DDR · FPGA 加速", "hw-tex": "HW/TEX · 片上纹理", "hw-strip": "HW/STRIP · 条带渲染", "sw": "SW · CPU 绘图"}.get(backend, "等待板上反馈"),
                                      fg="#167144" if backend in ("hw", "hw-tex", "hw-strip") else "#b42318" if backend == "sw" else "#17243b")
+        if self.state.mode=="r3d":
+            self.backend_label.configure(text="HW · 三维光栅" if backend=="hw" else "SW · CPU 参考")
         fps = f"{self.state.fps:.1f}" if self.state.fps is not None else "—"
         bullets = str(self.state.bullets) if self.state.bullets is not None else "—"
         self.fps_label.configure(text=f"{fps} FPS / {bullets} 颗")
+        if self.state.mode=="r3d":self.fps_label.configure(text=f"{fps} FPS / {self.state.triangles or '—'} 三角形")
+        if self.state.mode=="r3d":
+            self.scene_label.configure(text=f"{'茶杯 396 面' if self.state.scene else '走廊 · 世界弹幕'} · L{self.state.ladder or '—'}")
+        else:self.scene_label.configure(text="三维场景：按 4 进入")
         self.notice.configure(bg="#ffe4e0" if backend == "sw" or self.port is None else "#e0ecff",
                               fg="#b42318" if backend == "sw" or self.port is None else "#164582")
         focus = self.forwarder.user32.GetForegroundWindow() == self.forwarder.focus
@@ -337,6 +371,8 @@ class ControlPanel:
             path = Path(self.args.status_file)
             path.parent.mkdir(parents=True, exist_ok=True)
             snapshot = dict(mode=self.state.mode, backend=backend, fps=self.state.fps, bullets=self.state.bullets,
+                            triangles=self.state.triangles,ladder=self.state.ladder,scene=self.state.scene,
+                            render_fps=self.state.render_fps,
                             connected=self.port is not None, keyboard_focus=focus, keys=keys,
                             notice=self.notice_text, updated=time.strftime("%Y-%m-%d %H:%M:%S"))
             temporary = path.with_suffix(path.suffix + ".tmp")

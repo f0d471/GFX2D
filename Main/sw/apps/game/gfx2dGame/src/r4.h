@@ -2,9 +2,9 @@
 * @file r4.h: 模式 4「三维演示」的常量与框架接口
 *
 * @brief  轨道射击分级演示；当前接口与操作见 sw/README.md 的 R4 一节。
-*         世界=Q16.16 定点，视空间=世界-相机（相机无旋转，无矩阵乘）；
-*         几何出口走 lib/gfx 的子视口接口（契约 §2.1）：走廊视口左 400x480，
-*         HUD 全部走 2D 条带命令（右 240 像素）。逻辑固定 30Hz tick、显式种子，
+*         世界=Q16.16 定点，相机作周期平移，世界物体共用同一视图；
+*         几何出口走 lib/gfx 的子视口接口（契约 §2.1）：走廊视口左 480x480，
+*         HUD 全部走 2D 条带命令（右 160 像素）。逻辑固定 30Hz tick、显式种子，
 *         不从墙钟取位置；软件慢时同一逻辑帧仍产生同一场景。
 *
 *         阶梯：L1=平涂（TEX_EN=0,VCOLOR_EN=1），L2=TEX 仿射（含色键 billboard）。
@@ -44,7 +44,8 @@
 #define R4_BG_OFFSET        (6u * 1024u * 1024u) /* OFFSCREEN tail; first 3x2MiB belong to 2D */
 
 /* --- 视口（契约 §2.1 子视口） -------------------------------------------- */
-#define R4_VP_CORRIDOR      0, 0, 400, 480      /* 走廊（世界） */
+#define R4_WORLD_WIDTH      480u
+#define R4_VP_CORRIDOR      0, 0, 480, 480      /* square world; compact 160px HUD */
 #define R4_VP_CENTER        160, 120, 320, 240  /* cup3d 对照（D 批） */
 
 /* --- 逻辑时钟与世界尺度 --------------------------------------------------- */
@@ -53,47 +54,48 @@
 #define R4_SEED             0x52344631u     /* 显式种子（xs32） */
 
 #define R4_ONE              65536           /* Q16.16 的 1.0 = 1 米 */
-/* 走廊横截面半宽/半高 2m；墙一次画 8 段长并按段长网格锚定。 */
-#define R4_HALF_W           (2 * R4_ONE)
+/* 走廊半宽 2.4m、半高 1.8m；五个深度区间、八面倒角截面。 */
+#define R4_HALF_W           (12 * R4_ONE / 5)
+#define R4_HALF_H           (9 * R4_ONE / 5)
 #define R4_SEG_LEN          (4 * R4_ONE)
 #define R4_SEG_COUNT        8
-#define R4_NEAR_PAD         (3 * R4_ONE)    /* 墙起点距相机，保证不切近面 */
+#define R4_NEAR_PAD         (R4_ONE / 2)    /* 近墙延伸至视口外，恒在近面之后 */
 
-/* 门框：开口半宽/半高 1m，框厚 0.25m，每 16m 一道。 */
-#define R4_GATE_OPEN        R4_ONE
-#define R4_GATE_THICK       (R4_ONE / 4)
-#define R4_GATE_SPACING     (16u * R4_ONE)
-#define R4_GATE_FIRST       (24u * R4_ONE)
+/* 门框：开口半宽约 1.67m，霓虹框半厚约 0.056m，每 10m 一道。 */
+#define R4_GATE_OPEN        (5 * R4_ONE / 3)
+#define R4_GATE_THICK       (R4_ONE / 18)
+#define R4_GATE_SPACING     (10u * R4_ONE)
+#define R4_GATE_FIRST       (12u * R4_ONE)
 
 /* 自机（视空间固定深度）/ 弹。 */
-#define R4_SHIP_Z           (2 * R4_ONE)
-#define R4_SHIP_HALF        (R4_ONE / 4)
-#define R4_BULLET_HALF      (R4_ONE / 5)
+#define R4_SHIP_Z           (11 * R4_ONE / 6)
+#define R4_SHIP_HALF        (R4_ONE / 6)
+#define R4_BULLET_HALF      (R4_ONE / 10)
 
-/* 投影：fov 90°（16384 BAM）、aspect 1:1、near 0.25m、far 64m。
+/* 投影：fov 70.3125°（12800 BAM）、aspect 1:1、near 0.25m、far 64m。
    几何发射与投影矩阵共用这一组，改一处两边都要改。 */
 #define R4_NEAR_Z           (R4_ONE / 4)
 #define R4_FAR_Z            (64u * R4_ONE)
-#define R4_FOV_BAM          16384u
+#define R4_FOV_BAM          12800u
 #define R4_ASPECT           R4_ONE
 
 /* 命中/擦弹判定（世界横向/纵向距离）。 */
-#define R4_HIT_DIST         ((5 * R4_ONE) / 10)
-#define R4_GRAZE_DIST       R4_ONE
+#define R4_HIT_DIST         (R4_ONE / 5)
+#define R4_GRAZE_DIST       (R4_ONE / 2)
 
-/* 预算：首版 16~32 条动态记录（研究 §4.2/§4.4），超出按固定优先级省装饰。 */
-#define R4_RECORD_BUDGET    32u
+/* 走廊检查上限；完整物体发射，容量不足显式失败，不截断记录。 */
+#define R4_RECORD_BUDGET    256u
 #define R4_RECORD_CAP       512u            /* 含完整396面茶杯与裁剪拆分 */
 
 /* 逻辑上限。 */
-#define R4_EBULLET_MAX      3
-#define R4_PBULLET_MAX      2
+#define R4_EBULLET_MAX      12
+#define R4_PBULLET_MAX      12
 #define R4_SHIELD_INIT      3u
 
 /* 素材版本：atlas 生成脚本（tools/assets/gen_r4_atlas.py）与此同步才合法。 */
-#define R4_ASSET_VERSION    1u
+#define R4_ASSET_VERSION    3u
 /* 场景身份：进录像头，回放判据拒绝身份不符的录像。 */
-#define R4_SCENE_ID         0x52344331u     /* 走廊 v1 */
+#define R4_SCENE_ID         0x52344334u     /* 视觉升级；与 cup 的 +1 身份不冲突 */
 
 /* 颜色（L1 平涂；ARGB，高字节不写）。 */
 #define R4_COLOR_BG         0x00040810u

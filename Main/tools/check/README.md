@@ -1,5 +1,10 @@
 # check：提交前检查与规格校验
 
+PC自适应宽屏使用`validate.py --checks pc-wide --profile acceptance --run`，覆盖显式软件画布、
+解析矩形覆盖/深度、stride哨兵、错误原子性、分桶独立计数/画序、投影比例与世界状态不变，
+并要求固定640宽度变异在新增区域的覆盖判据见红。原生Windows使用`--checks pc-window`，
+在实际用户桌面验证全屏/跨屏、自适应与固定入口、纹理重建、失焦释放和模拟断屏恢复。
+
 三维演示使用`r4`（三场景、64/32、sanitizer、图集/采集器反例）与Windows的`r4-board`
 （B7三场景CRC、CPU/HW、模式往返、1800帧性能及旧功能恢复）。
 详细范围和字段见[三维演示验证](../../sim/engine/r4/README.md)；quick取样不代替acceptance。

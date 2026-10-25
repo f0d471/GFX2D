@@ -1,0 +1,56 @@
+gfx2dGame MODES
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+r4 enter ladder/hw 2 0
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 4 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4STAT 30 60707 155 2 0 0
+R4TIME 70 10270 630 340 1531020 0 1998667 797
+R4STAT 30 63392 159 2 0 0
+R4TIME 630 9820 630 320 1524050 0 2056325 893
+R4STAT 30 59255 146 2 0 0
+R4TIME 90 20790 1050 850 1811210 0 1993099 773
+R4STAT 25 42674 158 2 0 0
+R4TIME 70 10170 630 370 1579860 0 2013715 838
+R4PERF 120 1564200 2179030 24730750 50 70 1 263 120
+r4 leave frames/late 151 64
+r4 enter ladder/hw 1 0
+mode 4 enter frame 151 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4STAT 0 141490 142 1 0 0
+R4TIME 80 9520 550 340 680210 0 891452 595
+R4PERF 15 715670 1461960 1461960 3 12 0 30 15
+r4 leave frames/late 46 4
+r4 enter ladder/hw 1 0
+mode 4 enter frame 197 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4STAT 0 113238 396 1 0 1
+R4TIME 60 20100 1330 430 903650 0 1107941 1831
+R4STAT 0 118951 396 1 0 1
+R4TIME 80 20230 1360 550 887950 0 1127048 1818
+R4STAT 60 108858 401 1 0 1
+R4TIME 80 19460 1320 360 912370 0 1138788 1822
+R4PERF 67 885920 9469180 9469180 0 0 1 74 67
+r4 leave frames/late 98 0
+r4 enter ladder/hw 1 0
+mode 4 enter frame 295 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4STAT 30 137964 142 1 0 0
+R4TIME 80 9450 550 350 704080 0 891452 595
+R4STAT 30 134062 137 1 0 0
+R4TIME 80 9520 520 550 684660 0 784998 583
+R4STAT 30 146909 132 1 0 0
+R4TIME 60 9500 570 330 641540 0 792901 613
+R4STAT 30 144754 148 1 0 0
+R4TIME 60 9750 570 490 685270 0 857808 704
+R4STAT 30 134296 145 1 0 0
+R4TIME 60 9830 620 360 720580 0 939580 671
+R4STAT 30 130219 135 1 0 0
+R4TIME 70 12850 670 630 732640 0 923596 573
+R4STAT 30 136234 129 1 0 0
+R4TIME 90 9780 530 370 721340 0 928532 605
+R4PERF 245 713540 1422910 1824740 2 242 0 489 244
+r4 leave frames/late 276 2
+diag fifo_min 0 samples 0 zero 0 under 0 irqA 0 irqB 0 faults 0 swap_retry 0
+fail 0
+done

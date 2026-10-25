@@ -1,0 +1,22 @@
+{
+  "logs/pc-window/build.log": {
+    "size": 115,
+    "mtime_ns": 1792923245242599900,
+    "sha256": "c9c96e25a7ee55ef1a06bda601d1da5577174bba9db1cb6cdb74a9861d34b8a6"
+  },
+  "logs/pc-window/result.json": {
+    "size": 412,
+    "mtime_ns": 1792923248802254000,
+    "sha256": "51e942b146285d44b143af73da4b2afe1499b3c42dfe508ac6184f81d0c6d240"
+  },
+  "logs/pc-window/window.log": {
+    "size": 1660,
+    "mtime_ns": 1792923248612256200,
+    "sha256": "b0013f28f4e237bfe07ae3774b87d0d365a06abce4ca25d986e91853ea4446b9"
+  },
+  "logs/runner/pc-window.log": {
+    "size": 72,
+    "mtime_ns": 1792923248802254000,
+    "sha256": "3c8c8901d1b48a27f44afa5d2e3a5d5363c3851f1bac9c695cc9fb86299dc93b"
+  }
+}

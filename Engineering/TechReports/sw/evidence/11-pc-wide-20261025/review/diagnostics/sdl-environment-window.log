@@ -1,0 +1,22 @@
+WINDOW STEP fullscreen 0
+WINDOW STEP fullscreen 1
+WINDOW STEP fullscreen 2
+WINDOW STEP fullscreen 3
+WINDOW STEP fullscreen 4
+WINDOW STEP fullscreen 5
+WINDOW STEP fullscreen 6
+WINDOW STEP fullscreen 7
+WINDOW STEP fullscreen 8
+WINDOW STEP fullscreen 9
+WINDOW STEP fullscreen 10
+WINDOW STEP fullscreen 11
+WINDOW FULLSCREEN PASS F11/AltEnter/Escape x12 restore
+WINDOW SCALE PASS F1/F2/F3 and 4:3 logical aspect after arbitrary resize
+WINDOW FILTER PASS nearest/linear, renderer reset, framebuffer unchanged
+WINDOW ADAPTIVE POLICY PASS 4:3/16:10/16:9/ultrawide/4K/portrait/limit
+WINDOW ADAPTIVE SIZE output=640x480 canvas=640x480 scale=1/1
+WINDOW ADAPTIVE SIZE output=768x480 canvas=768x480 scale=1/1
+WINDOW ADAPTIVE SIZE output=1280x720 canvas=853x480 scale=1.5/1.5
+WINDOW ADAPTIVE SIZE output=1680x720 canvas=1120x480 scale=1.5/1.5
+WINDOW ADAPTIVE SIZE output=1920x540 canvas=1707x480 scale=1.12478/1.12478
+WINDOW CHECK FAIL line 70: fixed.width==640

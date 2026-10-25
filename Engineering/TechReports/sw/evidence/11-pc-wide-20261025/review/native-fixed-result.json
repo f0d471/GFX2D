@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "scenes": {
+    "l1": {
+      "status": "PASS",
+      "frames": 60,
+      "flags": "-DGFX2D_START_MODE=4 -DGFX2D_FRAMES=60 -DGFX2D_R4_LADDER=1 -DGFX2D_R4_SCENE=0 -DGFX2D_R4_HW=0 -DGFX2D_R4_JUDGE=1",
+      "bytes": 1317236,
+      "sha256": "d061628992da722667ad6e2afc0fa0647d95c5feadcc108935bdac1c67ce7452"
+    },
+    "l2": {
+      "status": "PASS",
+      "frames": 60,
+      "flags": "-DGFX2D_START_MODE=4 -DGFX2D_FRAMES=60 -DGFX2D_R4_LADDER=2 -DGFX2D_R4_SCENE=0 -DGFX2D_R4_HW=0 -DGFX2D_R4_JUDGE=1",
+      "bytes": 1317236,
+      "sha256": "33dc314c5cfa95ac0d73eea44b37f16baf79881fb167149af18956088331e61c"
+    },
+    "cup": {
+      "status": "PASS",
+      "frames": 60,
+      "flags": "-DGFX2D_START_MODE=4 -DGFX2D_FRAMES=60 -DGFX2D_R4_LADDER=1 -DGFX2D_R4_SCENE=1 -DGFX2D_R4_HW=0 -DGFX2D_R4_JUDGE=1",
+      "bytes": 1317236,
+      "sha256": "1a7bb6ad6087531fd474896fd04c13c2814e14ae34986a5004d17044d95a5658"
+    }
+  },
+  "scope": "native Windows fixed-canvas pixels/records vs pre-change WSL baseline; 180 frames"
+}

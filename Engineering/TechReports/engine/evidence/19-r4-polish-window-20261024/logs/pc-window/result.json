@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "cases": [
+    "WINDOW FULLSCREEN PASS",
+    "WINDOW SCALE PASS",
+    "WINDOW FILTER PASS",
+    "WINDOW FOCUS PASS",
+    "WINDOW EXIT PASS"
+  ],
+  "scope": "native Windows SDL2; real desktop fullscreen and resize; no board-display claim"
+}

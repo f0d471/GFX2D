@@ -1,11 +1,17 @@
 # board：上板
 
+原生PC模式4默认按窗口/当前显示器比例渲染宽屏。打包器保留`Run-PC.ps1 -FixedAspect`
+供640×480对照；`-Fullscreen`为桌面全屏。旧冻结包不因工具更新而原地改写。
+
 | 文件 | 用途 |
 | --- | --- |
 | `board_run.py` | 烧比特流、先开串口、复位并加载程序、回收串口输出，一条命令走完；也做调试通路检查、寄存器读写与「从 Flash 启动」的采集 |
 | `input_forward.py` | 板上游戏的两字节按键协议、Windows 键盘与 XInput 手柄采样；由 `board_run.py --forward-input` 调用 |
 | `game_control.py` | 正在运行的游戏的电脑控制面板；固定操作说明、实时模式/后端/FPS、切换提示、硬件后端恢复和重开按钮 |
 | `play.ps1` | 游戏控制面板的 PowerShell 启动入口；定位 Efinity Python，日志与状态写入项目内的构建目录 |
+| `build_pc.py` | WSL MinGW+固定SDL2版本构建原生Windows游戏或窗口集成检查；构建依赖缓存于忽略目录 |
+| `package_game.py` | 冻结PC EXE/DLL、素材、板端bit/BIN、独立部署工具及源码快照到`bit/board_release_*/` |
+| `release_launch.py` | 冻结包校验、自动定位当前UART、JTAG重载和连接包内面板；不写Flash |
 | `gfx2d_debug.cfg` | 本板用的 OpenOCD 配置，修掉官方 cfg 在本板上的两处对不上，`board_run.py` 用它 |
 | `bin2hex.py` | 把程序 bin 转成 Efinity Programmer 写 Flash 用的 hex 文本 |
 | `make_flash_image.py` | 比特流 + 程序 + 素材包合成一个 Flash 镜像，并做回环校验（不烧录） |
@@ -38,7 +44,7 @@ set PYTHONHOME=<EFINITY>\python311
 它不用 OpenOCD：配置完 FPGA 的那一刻 SoC 就复位并开始打印，所以串口必须先开。
 
 转发位图与 `bsp/include/board.h` 一致：方向键或 WASD 为方向，空格为炸弹，
-左 Shift 为慢速，Tab 为软硬件切换，数字键 1～3 为三种模式；手柄方向键/左摇杆、A、左肩键、Start
+左 Shift 为慢速，Tab 为软硬件切换，数字键 1～4 为四种模式；手柄方向键/左摇杆、A、左肩键、Start
 对应方向、炸弹、慢速、切换。实体 KEY0～KEY3（板上丝印的拨码开关）依次为左、下、上、右。
 每个串口包是两个字节：首字节 `0x80 | k[6:0]`；次字节高位为 0，`[6:3]` 为
 `(k ^ (k >> 4) ^ (k >> 8)) & 0xf`，`[2:0]` 为 `k[9:7]`。板上每帧读空接收 FIFO，
@@ -125,7 +131,7 @@ $env:PYTHONHOME = '<EFINITY>\python311'
 | WASD / 方向键 | 移动；可斜向移动 |
 | 左 Shift | 按住慢速移动、显示判定点 |
 | 空格 | 每次按下使用一颗炸弹；射击自动进行 |
-| 1 / 2 / 3 | 图形演示 / 弹幕游戏 / 压力测试 |
+| 1 / 2 / 3 / 4 | 图形演示 / 弹幕游戏 / 压力测试 / 三维走廊；三维内再按4切茶杯 |
 | Tab / 手柄 Start | 切换 HW、SW；SW 使用板上 CPU 绘图，帧率较低 |
 | 上+下保持 8 帧 | 下一个模式；W+S 同样触发 |
 | 左+右保持 8 帧 | 切换后端；A+D 同样触发，在 60 FPS 下约 0.13 秒就会触发 |
@@ -141,6 +147,13 @@ $env:PYTHONHOME = '<EFINITY>\python311'
 补回 3 炸弹；残机用完回标题，通关后自动进入新一局。
 
 ## gfx2d_debug.cfg
+
+三维模式使用数字4（现有10位包的三个模式位组合），不扩展串口包。模式4内再按4切换
+走廊/茶杯，Tab切SW/HW、Shift切L1/L2；控制面板有对应按钮。软件路径较慢，条带间继续接收
+系统键，操作在安全帧边界生效。`R4STAT`反馈实际呈现FPS、渲染FPS、记录数和阶梯/后端/场景。
+JTAG部署与Flash固化仍是两个操作，检阅程序不自动改写Flash。
+三维走廊无输入时自动驾驶，方向键接管；自动射击，Space 使用炸弹清弹。
+面板显示实际场景、L1/L2、三角形数与呈现帧率，反馈来自板上统计。
 
 `sdk/` 下的官方 `debug.cfg`、`debug_ti.cfg` 是 IP 生成物，在本板上有两处对不上，本文件修掉它们而不动官方文件：
 

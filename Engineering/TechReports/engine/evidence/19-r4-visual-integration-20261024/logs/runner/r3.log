@@ -1,0 +1,16 @@
+RUN Main/sim/build/check-runs/20261024-083747-c287bd16
+R3 VECTORS PASS two C executors frames=1
+RESULT: PASS R3 frames=1 checks=25 cycles=1839280
+R3 VECTORS PASS two C executors frames=1
+RESULT: PASS R3 frames=1 checks=25 cycles=1839280
+R3 VECTORS PASS two C executors frames=1
+RESULT: PASS R3 frames=1 checks=25 cycles=1852638
+R3 VECTORS PASS two C executors frames=1
+RESULT: PASS R3 frames=1 checks=25 cycles=1852638
+R3 MUTATION DETECTED mutation-owner  /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/r3/tb_r3.v:67: RASTER OWNER
+R3 MUTATION DETECTED mutation-shadow  /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/r3/tb_r3.v:143: terminal status got=00000028 code=0
+R3 MUTATION DETECTED mutation-stage  /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/r3/tb_r3.v:144: error stage 0 != 7
+R3 MUTATION DETECTED mutation-early-done  /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/r3/tb_r3.v:71: DONE before raster tail check
+R3 VECTORS PASS two C executors frames=1
+RESULT: PASS R3 frames=1 checks=25 cycles=1852638
+R3 PASS variants=9

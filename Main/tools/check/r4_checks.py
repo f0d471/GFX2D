@@ -4,18 +4,26 @@ from pathlib import Path
 from check_run import ROOT,command
 
 APP=ROOT/'Main/sw/apps/game/gfx2dGame'
-def build(current,name,flags,target=False,perf=True):
+_contract=(APP/'src/r4.h').read_text(encoding='utf-8')
+def contract(name):
+    return int(re.search(r'^#define\s+'+name+r'\s+(0x[0-9a-fA-F]+|[0-9]+)u?\b',
+                         _contract,re.M)[1],0)
+SEED,SCENE_ID,ASSET_VERSION=(contract(k) for k in ('R4_SEED','R4_SCENE_ID','R4_ASSET_VERSION'))
+def build(current,name,flags,target=False,perf=True,replay_keys=None):
     if os.name=='nt':target=True
     dest=current.build('r4')/name
-    if '-DGFX2D_R4_JUDGE=1' in flags:
+    if '-DGFX2D_R4_JUDGE=1' in flags or replay_keys is not None:
         def value(key,default):
             found=re.search(r'-D'+key+r'=(\d+)',flags)
             return int(found[1]) if found else default
         count=value('GFX2D_FRAMES',60)
-        keys=[(4 if i%120<15 else 8 if i%120<30 else 0)|
+        keys=list(replay_keys) if replay_keys is not None else [
+              (4 if i%120<15 else 8 if i%120<30 else 0)|
               (1 if i%60<8 else 2 if i%60<16 else 0) for i in range(count)]
-        tape=struct.pack('<4sHH6I',b'R4RP',1,0,30,0x52344631,
-            0x52344331+value('GFX2D_R4_SCENE',0),value('GFX2D_R4_LADDER',2),1,count)
+        if len(keys)!=count or any(k<0 or k>1023 for k in keys):
+            raise ValueError('R4 replay key count/range')
+        tape=struct.pack('<4sHH6I',b'R4RP',1,0,30,SEED,
+            SCENE_ID+value('GFX2D_R4_SCENE',0),value('GFX2D_R4_LADDER',2),ASSET_VERSION,count)
         tape+=b''.join(struct.pack('<I',k) for k in keys)
         header=dest/'replay/r4_replay.h';header.parent.mkdir(parents=True,exist_ok=True)
         header.write_text('static const unsigned char r4_replay_data[]={'+','.join(map(str,tape))+'};\n')
@@ -67,7 +75,7 @@ def health(body):
 def recording(body,count):
     complete(body)
     headers=re.findall(r'^r4rp (.+)\s*$',body,re.M)
-    if len(headers)!=1 or list(map(int,headers[0].split()))!=[1,0x52344631,0x52344331,2,1,count]:
+    if len(headers)!=1 or list(map(int,headers[0].split()))!=[1,SEED,SCENE_ID,2,ASSET_VERSION,count]:
         raise RuntimeError('R4 recording identity/length')
     keys=re.findall(r'^r4key (\d+) ([0-9a-f]{8})\s*$',body,re.M)
     if keys!=[(str(i),'00000000') for i in range(count)]:raise RuntimeError('R4 recording keys')

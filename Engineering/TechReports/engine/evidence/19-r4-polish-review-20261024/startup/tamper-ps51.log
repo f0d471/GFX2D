@@ -1,0 +1,7 @@
+Release file changed: pc/gfx2dGame.exe
+At E:\Workspace\FPGA\Efinix\Main\sim\build\r4-visual-upgrade-20261024\tamper-test\Run-PC.ps1:13 char:13
++             throw ('Release file changed: ' + $entry.path)
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Release file changed: pc/gfx2dGame.exe:String) [], RuntimeException
+    + FullyQualifiedErrorId : Release file changed: pc/gfx2dGame.exe
+ 

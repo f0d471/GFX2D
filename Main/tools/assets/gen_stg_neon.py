@@ -21,6 +21,7 @@
     digits.png     256x32  16x32 大号数字 0~9 与 '-'，由字库放大一倍    XRGB，色键 0
     icons.png      64x16   16x16：自机图标、炸弹菱形、判定点            XRGB，色键 0
     font_cyan.png  128x96  青色 8x16 字库                              XRGB，色键 0
+    bg_layers.png  512x608 背景合图：天空 400x480 + 远景带 512x56 + 城市带 512x72   XRGB，色键 0
 
 预乘的图写直通 RGBA（打包工具按 manifest 的 premult 做预乘）；带色键的 XRGB 图写 RGBA，
 alpha 只有 0 与 255，alpha 为 0 的像素打包时换成色键 0x00000000。
@@ -57,6 +58,16 @@ PLAYER = (0xA8, 0xFB, 0xFF)
 SPARK = (0xFF, 0xC4, 0x5A)
 LABEL = (0x4F, 0xD8, 0xF2)
 WHITE = (0xFF, 0xFF, 0xFF)
+# 填充底色与背景过渡带（升级调色板）：填充不为纯黑（纯黑是色键）
+NAVY = (0x08, 0x14, 0x30)
+NAVY_M = (0x2A, 0x0A, 0x24)         # DART 的暗品红填充
+NAVY_A = (0x2E, 0x1E, 0x08)         # CROSS 的暗琥珀填充
+SKY_TOP = (0x02, 0x04, 0x0A)
+SKY_MID = (0x05, 0x0F, 0x22)
+SKY_BOT = (0x0B, 0x22, 0x3E)
+FAR_FILL = (0x0A, 0x1C, 0x33)
+FAR_EDGE = (0x16, 0x44, 0x66)
+CITY_FILL = (0x06, 0x10, 0x24)
 
 
 def clamp8(v):
@@ -68,21 +79,29 @@ def mix(a, b, t):
     return tuple(clamp8(math.floor(a[i] + (b[i] - a[i]) * t + 0.5)) for i in range(3))
 
 
-def glow_pixel(e, color, core, ring, glow, glow_alpha):
-    """径向剖面：e 是到中心的（归一化）距离。白心 -> 色环（不透明） -> 光晕（alpha 按平方衰减） -> 透明。"""
+def glow_pixel(e, color, core, ring, glow, glow_alpha, glow2=0.0, alpha2=0):
+    """径向剖面：e 是到中心的（归一化）距离。
+    白心 -> 色环（不透明） -> 内光晕（亮，平方衰减） -> 外光晕（淡，平方衰减） -> 透明。
+    glow2 为 0 时只有一层光晕（与旧口径一致）。"""
     if e <= core:
         return WHITE + (255,)
     if e <= ring:
         return mix(WHITE, color, (e - core) / (ring - core)) + (255,)
-    if e < glow:
-        t = (glow - e) / (glow - ring)
-        return color + (clamp8(math.floor(glow_alpha * t * t + 0.5)),)
+    if glow2 > 0.0 and e >= glow2:
+        return (0, 0, 0, 0)
+    if e < glow or (glow2 > 0.0 and e < glow2):
+        outer = glow2 if glow2 > 0.0 else glow
+        t = (outer - e) / (outer - ring)
+        if e < glow:
+            t = (glow - e) / (glow - ring)
+            return color + (clamp8(math.floor(glow_alpha * t * t + 0.5)),)
+        return color + (clamp8(math.floor(alpha2 * t * t + 0.5)),)
     return (0, 0, 0, 0)
 
 
 # --- 弹 -----------------------------------------------------------------------
 
-def round_atlas(cell, core, ring, glow, glow_alpha):
+def round_atlas(cell, core, ring, glow, glow_alpha, glow2=0.0, alpha2=0):
     """圆弹图集：4 色各一格。像素中心 (x + 0.5, y + 0.5) 到格子中心的距离。"""
     im = Image.new("RGBA", (cell * 4, cell))
     px = im.load()
@@ -91,13 +110,14 @@ def round_atlas(cell, core, ring, glow, glow_alpha):
         for y in range(cell):
             for x in range(cell):
                 d = math.sqrt((x + 0.5 - c) ** 2 + (y + 0.5 - c) ** 2)
-                px[k * cell + x, y] = glow_pixel(d, color, core, ring, glow, glow_alpha)
+                px[k * cell + x, y] = glow_pixel(d, color, core, ring, glow, glow_alpha, glow2, alpha2)
     return im
 
 
 def rice_atlas(cell=20, dirs=16):
     """米弹：4 色为行、16 个方向为列。第 k 列朝向 k x 22.5 度（从 +x 转向 +y，与 BAM 同向）。
-    椭圆：沿朝向半轴 7.5 像素、横向 3.2 像素，按归一化距离取径向剖面。"""
+    椭圆：沿朝向半轴 7.0 像素、横向 3.0 像素；尾部（u < 0）拉伸到 10.5 像素形成彗尾，
+    按归一化距离取径向剖面。"""
     im = Image.new("RGBA", (cell * dirs, cell * 4))
     px = im.load()
     c = cell / 2.0
@@ -110,19 +130,23 @@ def rice_atlas(cell=20, dirs=16):
                     dx, dy = x + 0.5 - c, y + 0.5 - c
                     u = dx * cs + dy * sn
                     v = -dx * sn + dy * cs
-                    e = math.sqrt((u / 7.5) ** 2 + (v / 3.2) ** 2)
-                    px[k * cell + x, row * cell + y] = glow_pixel(e, color, 0.35, 0.8, 1.25, 150)
+                    uu = u / 10.5 if u < 0 else u / 7.0
+                    e = math.sqrt((uu) ** 2 + (v / 3.0) ** 2)
+                    px[k * cell + x, row * cell + y] = glow_pixel(e, color, 0.32, 0.75, 1.05, 170, 1.35, 80)
     return im
 
 
 def pshot():
-    """自机弹：6x24 竖光束。中间两列白青、两侧青、最外两列淡；上端（弹头）最亮，往下渐暗到四分之一。"""
+    """自机弹：6x24 竖光束。中间两列白青、两侧青、最外两列淡；上端（弹头）最亮，
+    往下渐暗到三成；弹头两行整列提亮做冲击帽。"""
     w, h = 6, 24
     im = Image.new("RGBA", (w, h))
     px = im.load()
-    cols = ((CYAN, 90), (CYAN, 220), ((0xD8, 0xFF, 0xFF), 255), ((0xD8, 0xFF, 0xFF), 255), (CYAN, 220), (CYAN, 90))
+    cols = ((CYAN, 90), (CYAN, 230), ((0xE4, 0xFF, 0xFF), 255), ((0xE4, 0xFF, 0xFF), 255), (CYAN, 230), (CYAN, 90))
     for y in range(h):
-        m = 1.0 if y < 6 else 1.0 - 0.75 * (y - 6) / (h - 1 - 6)
+        m = 1.0 if y < 5 else 1.0 - 0.70 * (y - 5) / (h - 1 - 5)
+        if y < 2:
+            m = 1.0
         for x in range(w):
             color, a = cols[x]
             px[x, y] = color + (clamp8(math.floor(a * m + 0.5)),)
@@ -130,25 +154,30 @@ def pshot():
 
 
 def spark():
-    """火花：8x8 一格，4 列是闪烁的 4 帧（十字、斜十字、点、短十字），5 行是亮度 1/5~5/5。
-    画图时帧号取粒子的剩余寿命：列 = 寿命 & 3，行 = 寿命 >> 2，所以寿命递减时闪烁并变暗。"""
+    """火花：8x8 一格，4 列是 4 帧（爆：大十字加斜、散：外圈点、淡：近点、灭：中心残点），
+    5 行是亮度 1/5~5/5。画图时帧号取粒子的剩余寿命：列 = 寿命 & 3，行 = 寿命 >> 2，
+    所以寿命递减时走「爆-散-淡-灭」并变暗。"""
     cell = 8
     im = Image.new("RGBA", (cell * 4, cell * 5))
     px = im.load()
-    shapes = []
-    plus = [(0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0), (0, 2), (0, -2), (3, 0), (-3, 0), (0, 3), (0, -3)]
-    cross = [(0, 0), (1, 1), (-1, -1), (1, -1), (-1, 1), (2, 2), (-2, -2), (2, -2), (-2, 2)]
-    dot = [(0, 0), (-1, 0), (0, -1), (-1, -1), (1, 0), (0, 1)]
-    short = [(0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0), (0, 2), (0, -2)]
-    shapes = (plus, cross, dot, short)
+
+    def put(f, ox, oy, r, level):
+        a = level * (255 if r == 0 else 210 if r == 1 else 140 if r == 2 else 80)
+        color = WHITE if r == 0 else SPARK
+        px[f * cell + 4 + ox, row * cell + 4 + oy] = color + (clamp8(math.floor(a + 0.5)),)
+
+    burst = [(0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0), (0, 2), (0, -2),
+             (3, 0), (-3, 0), (0, 3), (0, -3), (1, 1), (-1, -1), (1, -1), (-1, 1)]
+    scatter = [(3, 0), (-3, 0), (0, 3), (0, -3), (2, 2), (-2, -2), (2, -2), (-2, 2), (1, 0), (-1, 0), (0, 1), (0, -1)]
+    fading = [(2, 0), (-2, 0), (0, 2), (0, -2), (1, 1), (-1, -1), (1, -1), (-1, 1)]
+    dying = [(0, 0)]
+    shapes = (burst, scatter, fading, dying)
     for row in range(5):
         level = (row + 1) / 5.0
         for f, shape in enumerate(shapes):
             for (ox, oy) in shape:
                 r = max(abs(ox), abs(oy))
-                a = level * (255 if r == 0 else 200 if r == 1 else 130 if r == 2 else 70)
-                color = WHITE if r == 0 else SPARK
-                px[f * cell + 4 + ox, row * cell + 4 + oy] = color + (clamp8(math.floor(a + 0.5)),)
+                put(f, ox, oy, r, level)
     return im
 
 
@@ -160,28 +189,41 @@ def poly(draw, pts, color, width=1, alpha=255, close=False):
 
 
 def ships():
-    """32x32 线框，4 列 x 3 行：第 0 格自机；第 4~7 格 DART 4 帧；第 8~11 格 CROSS 4 帧；其余空。
-    alpha 只有 0 与 255（色键图）。"""
+    """32x32，4 列 x 3 行：第 0 格自机；第 4~7 格 DART 4 帧；第 8~11 格 CROSS 4 帧；其余空。
+    升级：暗色填充 + 亮色描边（剪影可读），alpha 只有 0 与 255（色键图，填充不得为纯黑）。"""
     cell = 32
     im = Image.new("RGBA", (cell * 4, cell * 3), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    # 自机：箭头形，鼻尖朝上
-    poly(d, [(16, 2), (4, 28), (16, 21), (28, 28)], PLAYER, close=True)
+    # 自机：箭头形，鼻尖朝上；暗填充、亮描边、白心座舱与引擎光点
+    body = [(16, 2), (4, 28), (16, 21), (28, 28)]
+    d.polygon(body, fill=NAVY + (255,))
+    poly(d, body, PLAYER, close=True)
     poly(d, [(16, 8), (16, 18)], (0xE8, 0xFF, 0xFF))
+    poly(d, [(13, 13), (19, 13)], (0xE8, 0xFF, 0xFF))
+    poly(d, [(14, 24), (18, 24)], CYAN)
     poly(d, [(10, 24), (7, 29)], PLAYER)
     poly(d, [(22, 24), (25, 29)], PLAYER)
-    # DART：朝下的三角，里面一道折线逐帧下移
+    # DART：朝下的三角，暗品红填充 + 亮缘，里面一道折线逐帧下移，尾部引擎点
     for k in range(4):
         ox, oy = k * cell, cell
-        poly(d, [(ox + 3, oy + 4), (ox + 28, oy + 4), (ox + 16, oy + 29)], MAGENTA, close=True)
+        tri = [(ox + 3, oy + 4), (ox + 28, oy + 4), (ox + 16, oy + 29)]
+        d.polygon(tri, fill=NAVY_M + (255,))
+        poly(d, tri, MAGENTA, close=True)
+        poly(d, [(ox + 3, oy + 4), (ox + 28, oy + 4)], (0xFF, 0x9F, 0xE8))
         poly(d, [(ox + 9, oy + 8 + 2 * k), (ox + 16, oy + 15 + 2 * k), (ox + 23, oy + 8 + 2 * k)],
              (0xFF, 0x9F, 0xE8))
-    # CROSS：十字外框，里面一个方块逐帧转 22.5 度
+        px2 = im.load()
+        px2[ox + 15, oy + 27] = AMBER + (255,)
+        px2[ox + 16, oy + 27] = AMBER + (255,)
+    # CROSS：十字外框，暗琥珀填充，里面一个方块逐帧转 22.5 度、中心白点
     for k in range(4):
         ox, oy = k * cell, 2 * cell
         outline = [(11, 2), (21, 2), (21, 11), (30, 11), (30, 21), (21, 21), (21, 30), (11, 30),
                    (11, 21), (2, 21), (2, 11), (11, 11)]
-        poly(d, [(ox + x, oy + y) for (x, y) in outline], AMBER, close=True)
+        pts = [(ox + x, oy + y) for (x, y) in outline]
+        d.polygon(pts, fill=NAVY_A + (255,))
+        poly(d, pts, AMBER, close=True)
+        poly(d, [(ox + 13, oy + 6), (ox + 19, oy + 6)], (0xFF, 0xD8, 0x8A))
         th = math.pi / 8.0 * k
         sq = []
         for j in range(4):
@@ -189,24 +231,27 @@ def ships():
             sq.append((ox + int(math.floor(16 + 6 * math.cos(a) + 0.5)),
                        oy + int(math.floor(16 + 6 * math.sin(a) + 0.5))))
         poly(d, sq, CYAN, close=True)
+        px2 = im.load()
+        px2[ox + 16, oy + 16] = WHITE + (255,)
     return im
 
 
 def boss():
     """96x96 一格，2 列 x 3 行共 6 帧：品红六边形（半径 44）顺转、青色六芒星（半径 30）逆转，每帧 10 度；
-    六重对称，6 帧转过 60 度首尾相接。先画宽的淡线当光晕，再画细的亮线；中心一个白心品红光点。
+    六重对称，6 帧转过 60 度首尾相接。升级：六边形内暗品红渐变填充、六根辐条、
+    宽淡光晕 + 细亮线的双层边缘；中心白心品红光点更大。
     帧数是按素材包的总长定的（sw 第 06 章 4.7 节）：12 帧时包总长超过 SW5 坏包判据 S5f 的构造所能覆盖的上限。"""
     cell = 96
     im = Image.new("RGBA", (cell * 2, cell * 3), (0, 0, 0, 0))
     px = im.load()
     for i in range(6):
         ox, oy = (i % 2) * cell, (i // 2) * cell
-        # 中心光点
+        # 中心光点（比旧版大一档）
         for y in range(cell):
             for x in range(cell):
                 dd = math.sqrt((x + 0.5 - 48) ** 2 + (y + 0.5 - 48) ** 2)
-                if dd < 11:
-                    px[ox + x, oy + y] = glow_pixel(dd, MAGENTA, 3.0, 6.0, 11.0, 120)
+                if dd < 15:
+                    px[ox + x, oy + y] = glow_pixel(dd, MAGENTA, 3.5, 7.0, 15.0, 130)
         d = ImageDraw.Draw(im)
         phi = math.radians(10.0 * i)
 
@@ -216,10 +261,17 @@ def boss():
         hexa = [vert(44, phi + math.pi / 3.0 * k) for k in range(6)]
         tri1 = [vert(30, -phi + math.pi / 6.0 + 2.0 * math.pi / 3.0 * k) for k in range(3)]
         tri2 = [vert(30, -phi + math.pi / 2.0 + 2.0 * math.pi / 3.0 * k) for k in range(3)]
+        d.polygon(hexa, fill=(0x2E, 0x0A, 0x28, 110))
+        d.polygon(tri1 + [tri1[0]], fill=(0x0A, 0x22, 0x30, 90))
+        d.polygon(tri2 + [tri2[0]], fill=(0x0A, 0x22, 0x30, 90))
+        for k in range(6):
+            poly(d, [vert(14, phi + math.pi / 3.0 * k), vert(44, phi + math.pi / 3.0 * k)],
+                 (0x7A, 0x2A, 0x68), width=1, alpha=130)
         poly(d, hexa, MAGENTA, width=5, alpha=70, close=True)
         poly(d, tri1, CYAN, width=4, alpha=60, close=True)
         poly(d, tri2, CYAN, width=4, alpha=60, close=True)
         poly(d, hexa, MAGENTA, width=2, alpha=255, close=True)
+        poly(d, hexa, (0xFF, 0xB8, 0xEC), width=1, close=True)
         poly(d, tri1, CYAN, width=1, alpha=255, close=True)
         poly(d, tri2, CYAN, width=1, alpha=255, close=True)
     return im
@@ -229,7 +281,7 @@ def stars():
     """2x2 星点 4 种：2x2 亮、2x2 暗、1x1 亮、1x1 暗（1x1 的只点左上角，其余是色键）。"""
     im = Image.new("RGBA", (8, 2), (0, 0, 0, 0))
     px = im.load()
-    bright, dim = (0xB8, 0xF4, 0xFF), (0x3C, 0x70, 0x86)
+    bright, dim = (0xD8, 0xF8, 0xFF), (0x50, 0x88, 0x9E)
     for (x, y) in ((0, 0), (1, 0), (0, 1), (1, 1)):
         px[x, y] = bright + (255,)
         px[2 + x, y] = dim + (255,)
@@ -260,19 +312,45 @@ def neon_strokes(d, strokes, color, core):
         d.line(s, fill=core + (255,), width=1)
 
 
-def title():
-    """240x90：MYRIAD 六个字母（每个 28x36，间距 8），水平、垂直都居中。
+def title(rows):
+    """240x90：MYRIAD 六个字母（每个 28x36，间距 8），水平居中、垂直偏上；
+    升级：四角括号装饰、上饰线、字母的暗色投影，底部一行 8x16 点阵提示
+    「ALL ARROWS = EX STAGE」（提示随标题图一次性 BLIT——域内逐字文本量一大就会
+    把 HW 条带流水线拖过 vsync，见 doc/软件升级-玩法与审美.md §3）。
 
-    画布保持 240x90（游戏区中央与 HUD 顶部的位置都按这个尺寸排），只画 MYRIAD（2026-09-27 定案：去掉中文副标题）。"""
+    画布保持 240x90（游戏区中央与 HUD 顶部的位置都按这个尺寸排）。"""
     im = Image.new("RGBA", (240, 90), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    x0, y0 = 16, (90 - 36) // 2
+    for (cx, cy, sx, sy) in ((2, 2, 1, 1), (237, 2, -1, 1), (2, 87, 1, -1), (237, 87, -1, -1)):
+        d.line([(cx, cy), (cx + 10 * sx, cy)], fill=(0x2A, 0x6A, 0x8C, 220), width=2)
+        d.line([(cx, cy), (cx, cy + 8 * sy)], fill=(0x2A, 0x6A, 0x8C, 220), width=2)
+    yy, col = 6, (0x2A, 0x5A, 0x74)
+    d.line([(36, yy), (204, yy)], fill=col + (150,), width=1)
+    d.line([(24, yy), (36, yy)], fill=col + (80,), width=1)
+    d.line([(204, yy), (216, yy)], fill=col + (80,), width=1)
+    d.line([(118, yy), (122, yy)], fill=CYAN + (255,), width=1)
+    x0, y0 = 16, 20
     strokes = []
     for n, ch in enumerate("MYRIAD"):
         lx = x0 + n * 36
         for s in LETTERS[ch]:
             strokes.append([(lx + 7 * gx, y0 + 6 * gy) for (gx, gy) in s])
+    shifted = [[(x + 2, y + 2) for (x, y) in s] for s in strokes]
+    for s in shifted:
+        d.line(s, fill=(0x08, 0x18, 0x3A, 200), width=3, joint="curve")
     neon_strokes(d, strokes, CYAN, (0xE0, 0xFF, 0xFF))
+    hint = "ALL ARROWS = EX STAGE"
+    px = im.load()
+    hx = (240 - len(hint) * 8) // 2
+    for i, ch in enumerate(hint):
+        g = ord(ch) - 0x20
+        if not (0 <= g < 95):
+            continue
+        for r in range(16):
+            line = rows[g * 16 + r]
+            for c in range(8):
+                if line[c] == "#":
+                    px[hx + i * 8 + c, 72 + r] = LABEL + (235,)
     return im
 
 
@@ -327,11 +405,15 @@ def digits(rows):
 
 
 def icons():
-    """16x16 图标 4 格：自机图标、炸弹菱形（琥珀）、判定点（白心半径 2.6、品红环 3.6~5.0）、空。"""
+    """16x16 图标 4 格：自机图标（暗填充+亮描边）、炸弹菱形（暗琥珀填充+双层）、判定点（白心半径 2.6、品红环 3.6~5.0）、空。"""
     im = Image.new("RGBA", (64, 16), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    poly(d, [(8, 1), (2, 14), (8, 10), (14, 14)], PLAYER, close=True)
-    poly(d, [(24, 1), (31, 8), (24, 15), (17, 8)], AMBER, close=True)
+    body = [(8, 1), (2, 14), (8, 10), (14, 14)]
+    d.polygon(body, fill=NAVY + (255,))
+    poly(d, body, PLAYER, close=True)
+    dia = [(24, 1), (31, 8), (24, 15), (17, 8)]
+    d.polygon(dia, fill=NAVY_A + (255,))
+    poly(d, dia, AMBER, close=True)
     poly(d, [(24, 5), (27, 8), (24, 11), (21, 8)], AMBER, close=True)
     px = im.load()
     for y in range(16):
@@ -344,22 +426,119 @@ def icons():
     return im
 
 
+# --- 背景合图 -------------------------------------------------------------------
+
+BG_SKY_W, BG_SKY_H = 400, 480
+BG_FAR_W, BG_FAR_H = 512, 56
+BG_CITY_W, BG_CITY_H = 512, 72
+BG_FAR_Y = BG_SKY_H                                   # 远景带在图里的 y
+BG_CITY_Y = BG_SKY_H + BG_FAR_H                       # 城市带在图里的 y
+BG_LAYERS_W = 512
+BG_LAYERS_H = BG_SKY_H + BG_FAR_H + BG_CITY_H         # 624
+
+
+def bg_sky_rows():
+    """天空 400x480：三段垂直渐变（顶 #02040A -> 中 #050F22 -> 底 #0B223E），
+    两团星云径向辉光（青在左上、品红在右下），三条高斯亮带当极光。
+    每个像素都不为纯黑（纯黑是色键）。返回逐行函数，主循环逐像素填。"""
+    nebulas = ((90, 130, 170.0, CYAN, 44), (320, 300, 210.0, MAGENTA, 34))
+    bands = (96.0, 168.0, 250.0)
+
+    def px_color(x, y):
+        t = y / (BG_SKY_H - 1.0)
+        if t < 0.55:
+            base = mix(SKY_TOP, SKY_MID, t / 0.55)
+        else:
+            base = mix(SKY_MID, SKY_BOT, (t - 0.55) / 0.45)
+        r, g, b = base
+        for (nx, ny, nr, nc, na) in nebulas:
+            dd = math.sqrt((x - nx) ** 2 + (y - ny) ** 2) / nr
+            if dd < 1.0:
+                a = na * (1.0 - dd) ** 2 / 255.0
+                r += (nc[0] - r) * a
+                g += (nc[1] - g) * a
+                b += (nc[2] - b) * a
+        for by in bands:
+            dt = (y - by) / 7.0
+            if -2.6 < dt < 2.6:
+                add = 9.0 * math.exp(-dt * dt)
+                r = min(255.0, r + add * 0.45)
+                g = min(255.0, g + add * 0.9)
+                b = min(255.0, b + add * 1.4)
+        return (clamp8(int(r + 0.5)), clamp8(int(g + 0.5)), clamp8(int(b + 0.5)), 255)
+
+    return px_color
+
+
+def bg_layers():
+    """背景合图 512x608（槽 15，一张表面装齐三块，xrgb 色键 0）：
+      y 0..479    天空 400x480（不透明渐变+星云+极光带）
+      y 480..535  远景剪影带 512x56（低楼、无窗、烘焙小星）
+      y 536..607  城市剪影带 512x72（高楼、霓虹顶缘、点阵窗）
+    带子部分的天区是透明（色键），画的时候叠在天空上做横向循环视差。"""
+    im = Image.new("RGBA", (BG_LAYERS_W, BG_LAYERS_H), (0, 0, 0, 0))
+    px = im.load()
+    sky = bg_sky_rows()
+    for y in range(BG_SKY_H):
+        for x in range(BG_SKY_W):
+            px[x, y] = sky(x, y)
+
+    # 远景带：8 像素一栋，高度 12..36，顶缘亮线，天空里撒烘焙小星
+    for bx in range(0, BG_FAR_W, 8):
+        i = bx // 8
+        h = 12 + ((i * 37 + 11) % 7) * 4
+        for y in range(BG_FAR_H - h, BG_FAR_H):
+            for x in range(bx, bx + 8):
+                px[x, BG_FAR_Y + y] = FAR_FILL + (255,)
+        for x in range(bx, bx + 8):
+            px[x, BG_FAR_Y + BG_FAR_H - h] = FAR_EDGE + (255,)
+    for i in range(140):
+        sx = (i * 53 + 17) % BG_FAR_W
+        sy = (i * 29 + 5) % (BG_FAR_H - 40)
+        if px[sx, BG_FAR_Y + sy][3] == 0:
+            px[sx, BG_FAR_Y + sy] = (0x8C, 0xC8, 0xE0, 255)
+    # 城市带：16 像素一栋，高度 20..65；霓虹顶缘（青/品红交替）、点阵窗（琥珀/青）
+    for bx in range(0, BG_CITY_W, 16):
+        i = bx // 16
+        h = 20 + ((i * 53 + 7) % 6) * 9
+        top = BG_CITY_Y + BG_CITY_H - h
+        for y in range(BG_CITY_H - h, BG_CITY_H):
+            for x in range(bx, bx + 16):
+                px[x, BG_CITY_Y + y] = CITY_FILL + (255,)
+        edge = CYAN if (i & 1) == 0 else MAGENTA
+        for x in range(bx, bx + 16):
+            px[x, top] = edge + (255,)
+        px[bx, top] = edge + (255,)
+        px[min(bx + 15, BG_LAYERS_W - 1), top] = edge + (255,)
+        if (i % 5) == 2 and h >= 47:                      # 部分楼顶竖天线
+            for y in range(top - 8, top):
+                px[bx + 8, y] = edge + (255,)
+            px[bx + 8, top - 8] = (0xFF, 0x6A, 0x8A, 255)
+        for wy in range(top + 4, BG_CITY_Y + BG_CITY_H - 4, 5):
+            for wx in range(bx + 3, bx + 14, 4):
+                if ((i * 13 + (wx - bx) * 7 + (wy - top) * 5) % 9) < 3:
+                    wc = AMBER if ((wx + wy) & 1) == 0 else (0x9A, 0xE8, 0xF2)
+                    px[wx, wy] = wc + (255,)
+    return im
+
+
 def build():
     """按文件名给出全部图（有序）。"""
     rows = font_rows()
     return [
-        ("bul16.png", round_atlas(16, 2.5, 4.5, 7.5, 150)),
-        ("bul8.png", round_atlas(8, 1.0, 2.2, 3.9, 140)),
+        ("bul16.png", round_atlas(16, 2.2, 4.0, 5.6, 210, 7.8, 90)),
+        ("bul8.png", round_atlas(8, 1.0, 2.0, 2.8, 175, 3.9, 80)),
         ("rice20.png", rice_atlas()),
         ("pshot.png", pshot()),
         ("spark.png", spark()),
         ("ships.png", ships()),
         ("boss.png", boss()),
         ("stars.png", stars()),
-        ("title.png", title()),
+        ("title.png", title(rows)),
         ("digits.png", digits(rows)),
         ("icons.png", icons()),
         ("font_cyan.png", font_cyan(rows)),
+        ("bg_layers.png", bg_layers()),
     ]
 
 

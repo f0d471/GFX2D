@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "formal_checks": 15,
+  "document_links": 16,
+  "package_files": 25,
+  "pre_existing_changes_preserved": [
+    "Main/rtl/engine/engine_pix.v",
+    "Main/sw/apps/game/gfx2dGame/src/main.c",
+    "Main/assets/r4/atlas.png",
+    "Engineering/TechReports/README.md"
+  ]
+}

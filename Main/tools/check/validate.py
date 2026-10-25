@@ -33,6 +33,10 @@ add('r4',[sys.executable,P+'check_r4.py'],
     'R4 三场景60帧参考、64/32与sanitizer、录像/图集/采集器反例',['pack'],timeout=3600)
 add('r4-board',[sys.executable,P+'check_r4_board.py'],
     'R4 B7 三场景CRC、板上SW/HW、注错、模式往返与60秒两场节拍',timeout=3600)
+add('pc-window',[sys.executable,P+'check_pc_window.py'],
+    '原生Windows全屏/比例/缩放/纹理恢复/帧缓冲不变',timeout=900)
+add('pc-wide',[sys.executable,P+'check_pc_wide.py'],
+    '软件宽屏解析覆盖/边界/投影比例/世界状态不变/64与32位/变异',timeout=900)
 for name,group,purpose in [('rlst','rlst','R2 取数/FIFO/分片/协议/取消'),
     ('rast-ports','ports','R2 核心 RAW/取消/II=1、TEX L=1/2 与关闭态'),
     ('rast-rtl','rtl','R2 两参考器/真实 AXI 十万条 L1/L2/L2二拍/十三变异')]:
@@ -102,6 +106,9 @@ for name,item in CHECKS.items():
     elif name=='semantics':inputs=[P+'check_cmd_semantics.py','Main/doc/赛题二总体设计.md']
     elif name in ('rast','r4','r4-board'):inputs=SOFTWARE + ['Main/doc/三维数值契约.md',
         'Main/sim/engine/r4/**','Main/tools/board/**','Main/rtl/**']
+    elif name=='pc-window':inputs=['Main/sw/bsp/**','Main/sim/host/**','Main/tools/board/build_pc.py',P+'check_pc_window.py']
+    elif name=='pc-wide':inputs=['Main/sw/lib/**','Main/sw/apps/game/gfx2dGame/src/**',
+        'Main/sim/host/**',P+'check_pc_wide.py']
     elif name in ('rlst','rast-ports','rast-rtl'):
         inputs=['Main/rtl/engine/**','Main/rtl/vendor/verilog-axi/**',
                 'Main/sim/engine/rlst/**','Main/sim/engine/rast/**','Main/sim/axi_probe/axi_ram_model.v',

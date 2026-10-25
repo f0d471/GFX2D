@@ -1,0 +1,87 @@
+board: GFX2D_UNPACED=1，呈现不等场
+gfx2dGame MODES
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+board: snapshot 0 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00000.ppm
+board: snapshot 1 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00001.ppm
+r4 enter ladder/hw 1 0
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cuboard: snapshot 2 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00002.ppm
+m,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+R4CAD 0 343344 10 15 2  0 f6a8ff55 e9a670fe
+mode 4 enter frame 0 crc sboard: snapshot 3 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00003.ppm
+kip pool 0 0 0 0 clip 0 0 639 479
+R4CAD 1 355543 12 24 3  0 d3893543 4effeaab
+R4CAD 2 339777 14 36 4  0 c0a1dbb6 25e002e2
+board: snapshot 4 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00004.ppm
+R4CAD 3 348024 16 43 5  0 9a49d087 a5e8343a
+R4CAD 4 343888 18 44 6  0 9def2d8a f19a3d2a
+R4CAD 5 343974 20 44 7  0 6e20318b 48b28032
+R4CAD 6 347775 22 44 8  0 b3441473 5deff267
+R4CAD 7 346938 24 45 9  0 b6230aeb 5c732c41
+R4CAD 8 363550 26 45 10  0 7ceca3e0 c2406274
+R4CAD 9 350011 28 46 11  0 86ef6273 7c6b13c5
+R4CAD 10 342982 30 46 12  0 b2b7d7af 0ffbb8ce
+R4CAD 11 339635 32 46 13  0 00d0c95a a2ff5a65
+R4CAD 12 342343 34 47 14  0 bcaca984 1a093bee
+R4CAD 13 355958 36 47 15  0 d689f921 17be6fb3
+R4CAD 14 342075 38 47 16  0 7e145622 7e70bfb3
+R4CAD 15 364663 40 48 17  0 efc7293a a118b310
+R4CAD 16 345489 42 48 18  0 ea5a39a9 358d4b5e
+R4CAD 17 334184 44 49 19  0 71a93f5a a3428ebb
+R4CAD 18 346367 46 49 20  0 e4a07580 f4e078f6
+R4CAD 19 342750 48 49 21  0 f3912b0c 2478617c
+R4CAD 20 349934 50 50 22  0 2cac19be cc9d71a6
+R4CAD 21 337124 52 50 23  0 a7f83bc2 b49fe8f9
+R4CAD 22 340604 54 50 24  0 08dc9cd5 b30e69c9
+R4CAD 23 342407 56 51 25  0 72a42fe6 450ed34b
+R4CAD 24 341148 58 51 26  0 fbb4647f 55e7f136
+R4CAD 25 332655 60 52 27  0 0c5b8c8e ee87f21b
+R4CAD 26 337998 62 52 28  0 ca2194a0 2f96cfe2
+R4CAD 27 337967 64 52 29  0 9c7d3f46 0037f6b0
+R4CAD 28 373021 66 53 30  0 f794260b a11e6ef7
+board: snapshot 30 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00030.ppm
+R4CAD 29 341348 68 59 31  0 9ad8023b 33878ce4
+board: snapshot 31 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00031.ppm
+R4CAD 30 350541 70 66 32  0 62d8d548 5af9555e
+board: snapshot 32 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00032.ppm
+R4CAD 31 355180 72 74 33  0 bee3c17a 79e0e5e9
+board: snapshot 33 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00033.ppm
+R4CAD 32 349136 74 84 34  0 c7922fde 146568b9
+board: snapshot 34 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00034.ppm
+R4CAD 33 357067 76 91 35  0 78ed1eba 52abbc16
+R4CAD 34 359921 78 92 36  0 b8ca7bdb fb7d8715
+R4CAD 35 356151 80 92 37  0 7e015d7f cd01747e
+R4CAD 36 345188 82 93 38  0 b6c720fa 81aca7be
+R4CAD 37 353787 84 93 39  0 56db544a 374130b4
+R4CAD 38 350733 86 94 40  0 d43a45f5 113487fd
+R4CAD 39 351450 88 94 41  0 01f1f4f1 5e4afe07
+R4CAD 40 348567 90 94 42  0 dfb7dc04 f349a475
+R4CAD 41 340488 92 95 43  0 36657d0b 865d3d54
+R4CAD 42 346221 94 95 44  0 5ce8845b a61b4cff
+R4CAD 43 352486 96 96 45  0 84098f83 44452d1d
+R4CAD 44 344124 98 96 46  0 84c919b1 698504c6
+R4CAD 45 334386 100 96 47  0 4c03d3f1 922492a7
+R4CAD 46 345955 102 97 48  0 bdf95da7 46cfad9e
+R4CAD 47 361982 104 97 49  0 dc01b10a 91f12607
+R4CAD 48 348298 106 97 50  0 2d97aa47 dbc568af
+R4CAD 49 344317 108 98 51  0 a6155911 0b7211bb
+R4CAD 50 351787 110 98 52  0 9ee2dd64 5ccc862c
+R4CAD 51 349171 112 99 53  0 6836222a 10478366
+R4CAD 52 346438 114 99 54  0 c8a478c4 bc2aed0e
+R4CAD 53 344894 116 99 55  0 5536c5e1 9bea9491
+R4CAD 54 346469 118 100 56  0 5c6381f8 0ee9d285
+R4CAD 55 356973 120 100 57  0 41dee743 ef24333a
+R4CAD 56 350722 122 101 58  0 cc4923cb 2694e4e6
+R4CAD 57 353324 124 101 59  0 35089cd9 4944dcd3
+board: snapshot 59 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00059.ppm
+R4CAD 58 348305 126 109 60  0 dfd22aaf dae7dc45
+board: snapshot 60 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r4-visual-upgrade-20261024/review-20261024-171113/current/cup/snap_00060.ppm
+R4CAD 59 362501 128 117 61  0 b7b5b70c 0ef1ccc5
+R4PERF 29 349171 362501 362501 12 1 0 51 29
+r4 leave frames/late 60 32
+diag fifo_min 0 samples 0 zero 0 under 0 irqA 0 irqB 0 faults 0 swap_retry 0
+fail 0
+done

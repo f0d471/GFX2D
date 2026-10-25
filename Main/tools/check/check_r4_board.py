@@ -85,6 +85,13 @@ def main():
     perf=build(current,'performance',flags(frames=sample_count+31,judge=False))
     text=capture(perf,'performance',seconds=240)
     results.append(dict(case='performance',**performance(text,sample_count)))
+    stress_keys=[(4 if i%120<30 else 8 if i%120<60 else 0)|
+        (1 if i%160<40 else 2 if i%160<80 else 0)|(16 if i in (120,240) else 0)
+        for i in range(sample_count+31)]
+    stress=build(current,'performance-input',flags(frames=sample_count+31,judge=False),
+        replay_keys=stress_keys)
+    text=capture(stress,'performance-input',seconds=240)
+    results.append(dict(case='performance-input',**performance(text,sample_count)))
     switches=build(current,'switches','-DGFX2D_FRAMES=60 -DGFX2D_START_BACKEND=2 '
         '-DGFX2D_PRESS_KNOB=64 -DGFX2D_R4_SWITCH_JUDGE=1')
     text=capture(switches,'switches',seconds=240);complete(text)

@@ -1,0 +1,25 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "layers"
+  ],
+  "changed": null,
+  "commands": {
+    "layers": [
+      "bash",
+      "Main/tools/check/check_sw_layers.sh"
+    ]
+  },
+  "timeouts": {
+    "layers": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**"
+  ]
+}

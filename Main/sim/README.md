@@ -14,6 +14,7 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 
 | 目录 | 被测模块 | 用例 |
 | --- | --- | --- |
+| `host/` | PC画布与SDL窗口 | `pc-wide`：解析覆盖/深度、哨兵/原子拒绝、投影比例、世界状态、64/32与变异；Windows `pc-window`：实际窗口/双屏全屏、过滤/纹理恢复、失焦、模拟断屏恢复 |
 | `engine/rlst/`、`engine/rast/` | 三维取数、光栅、BAND/TEX 新口 | `validate.py --checks rlst rast-ports rast-rtl`；真实 mover/AXI、L1/L2/L2二拍、两份 C 参考器、协议/取消/十三类注错；acceptance 使用十万条记录 |
 | `engine/r3/` | B7真实顶层与单一帧控制 | `--checks r3`：五构型整帧、影子参数、完成屏障、错误/取消/重启和四变异；Windows的`r3-synthesis/r3-board/r3-legacy-board`分别验证综合与板级边界 |
 | `hdmi/` | `rtl/hdmi/hdmi_tx.v` 整条通路 | 正常 + 2 个注错 |

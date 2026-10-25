@@ -1,0 +1,76 @@
+{
+  "scope": "host frames, CRC bound to current formal references; not HDMI photography",
+  "run": "Main/sim/build/check-runs/20261024-084153-96b62cb8",
+  "images": [
+    {
+      "scene": "l1",
+      "frame": 0,
+      "crc": "f0bacaa3",
+      "path": "qa/l1-000.png",
+      "sha256": "8c293d4e3bf22fef0b82ac3af38605f322fcf646c857c43ec6a1a932adaf876d"
+    },
+    {
+      "scene": "l1",
+      "frame": 30,
+      "crc": "7cf62535",
+      "path": "qa/l1-030.png",
+      "sha256": "2b64d312162b2f3b1891a3b4d4d86226089aa238255205e619e98221c807ca72"
+    },
+    {
+      "scene": "l2",
+      "frame": 0,
+      "crc": "da7edb91",
+      "path": "qa/l2-000.png",
+      "sha256": "4eceff7e5c4968bb567956273eb1c7c1273b23a60634f57dc55b95a7abffad4b"
+    },
+    {
+      "scene": "l2",
+      "frame": 30,
+      "crc": "5f6cf147",
+      "path": "qa/l2-030.png",
+      "sha256": "ac89d5586b299b58e48ee2cc9555e536e07cde2e82cb5b7a1804b6c10c5c3800"
+    },
+    {
+      "scene": "l2",
+      "frame": 90,
+      "crc": "ee53a754",
+      "path": "qa/l2-090.png",
+      "sha256": "016c0e0c2cb2acae3ff55bc8a274779ad0bbd4fe7af70409a4fb52a7e4012cbd"
+    },
+    {
+      "scene": "l2",
+      "frame": 150,
+      "crc": "f34fd2dc",
+      "path": "qa/l2-150.png",
+      "sha256": "fb7e0c0e1785b752a62c441f79237ebde304022d1ff66a33eae9c1a0b2f2dba0"
+    },
+    {
+      "scene": "l2",
+      "frame": 210,
+      "crc": "bfe4a69a",
+      "path": "qa/l2-210.png",
+      "sha256": "0d0762efeafc5c719e51782be9641f598e21fb8e5974fa853606364b2a32c0f1"
+    },
+    {
+      "scene": "l2",
+      "frame": 239,
+      "crc": "c16f947d",
+      "path": "qa/l2-239.png",
+      "sha256": "9250141436e3c715d56d301b9970a3caaa80bd7731c7afccb296ce2e1363c488"
+    },
+    {
+      "scene": "cup",
+      "frame": 0,
+      "crc": "f6a8ff55",
+      "path": "qa/cup-000.png",
+      "sha256": "fcc9957c41c1643a34325d88b65f405f7f4f2f2224d1f01ae82b2d12d8950e43"
+    },
+    {
+      "scene": "cup",
+      "frame": 30,
+      "crc": "62d8d548",
+      "path": "qa/cup-030.png",
+      "sha256": "d152fd58fd566a9b8f0db1b54ad22ed8ad521ea8bacbc7521b13281876500621"
+    }
+  ]
+}

@@ -6,6 +6,14 @@
 #include <limits.h>
 #include <string.h>
 
+static const rast_frame default_frame = {RAST_WIDTH, RAST_HEIGHT};
+
+int rast_frame_valid(const rast_frame *frame)
+{
+    return frame && frame->width && frame->width <= RAST_FRAME_MAX_WIDTH &&
+           frame->height && frame->height <= RAST_HEIGHT;
+}
+
 static int32_t mix(int32_t a, int32_t b, int32_t ca, int32_t cb, int32_t plane)
 {
     int64_t den = (int64_t)cb - ca;
@@ -55,6 +63,10 @@ static unsigned clip_screen(const rast_vertex *in, unsigned n, rast_vertex *out,
 static int gradient(rast_record *r, unsigned off, const rast_vertex *v,
                      int64_t a0, int64_t a1, int64_t a2, int64_t area)
 {
+    if (a0 == a1 && a0 == a2) {
+        rast_put32(r, off, 0); rast_put32(r, off + 4, 0);
+        return 1;
+    }
     int64_t dx = fx16_round_div(((a1 - a0) * (v[2].y - v[0].y) -
                                  (a2 - a0) * (v[1].y - v[0].y)) * 16, area);
     int64_t dy = fx16_round_div(((v[1].x - v[0].x) * (a2 - a0) -
@@ -66,7 +78,7 @@ static int gradient(rast_record *r, unsigned off, const rast_vertex *v,
 }
 
 static int setup_one(const rast_vertex v[3], uint32_t flags, rast_record *r,
-                      rast_setup_stats *stats)
+                      rast_setup_stats *stats, const rast_frame *frame)
 {
     int64_t area = ((int64_t)v[1].x - v[0].x) * ((int64_t)v[2].y - v[0].y) -
                    ((int64_t)v[2].x - v[0].x) * ((int64_t)v[1].y - v[0].y);
@@ -91,7 +103,7 @@ static int setup_one(const rast_vertex v[3], uint32_t flags, rast_record *r,
         if (a->y > hi[1]) hi[1] = a->y;
     }
     for (unsigned k = 0; k < 2; ++k) {
-        int32_t max = k ? RAST_HEIGHT - 1 : RAST_WIDTH - 1;
+        int32_t max = (int32_t)(k ? frame->height : frame->width) - 1;
         lo[k] = (int32_t)-fx16_floor_div(-(int64_t)lo[k], 16);
         hi[k] = (int32_t)fx16_floor_div(hi[k], 16);
         if (lo[k] < 0) lo[k] = 0;
@@ -127,12 +139,12 @@ static int setup_one(const rast_vertex v[3], uint32_t flags, rast_record *r,
 
 /* 扇形拆分与逐三角形 setup；n 已是裁剪后的顶点数。返回记录数，负数为内部错误。 */
 static int emit_fan(const rast_vertex *a, unsigned n, uint32_t flags,
-                    rast_record *records, rast_setup_stats *delta)
+                    rast_record *records, rast_setup_stats *delta, const rast_frame *frame)
 {
     unsigned produced = 0;
     for (unsigned i = 1; i + 1 < n; ++i) {
         rast_vertex tri[3] = {a[0], a[i], a[i + 1]};
-        int result = setup_one(tri, flags, &records[produced], delta);
+        int result = setup_one(tri, flags, &records[produced], delta, frame);
         if (result < 0) return -1;
         produced += (unsigned)result;
     }
@@ -171,7 +183,7 @@ int rast_setup_polygon(const rast_vertex *v, unsigned count, uint32_t flags,
     if (n == count)
         for (unsigned i = 0; i < n; ++i)
             if (a[i].x != v[i].x || a[i].y != v[i].y) delta.clipped = 1;
-    produced = emit_fan(a, n, flags, records, &delta);
+    produced = emit_fan(a, n, flags, records, &delta, &default_frame);
     if (produced < 0) return -1;
     if ((unsigned)produced > capacity) return -2;
     memcpy(out, records, (unsigned)produced * sizeof(*out));
@@ -185,19 +197,40 @@ int rast_setup_polygon(const rast_vertex *v, unsigned count, uint32_t flags,
 
 static int setup_polygon_vp(const rast_vertex *v, unsigned count, const rast_viewport *vp,
                           uint32_t flags, rast_record *out, unsigned capacity,
-                          rast_setup_stats *stats, unsigned input_limit)
+                          rast_setup_stats *stats, unsigned input_limit, const rast_frame *frame)
 {
     rast_vertex a[16], b[16];
     rast_record records[RAST_MAX_FAN];
     rast_setup_stats delta = {0};
     unsigned n = count;
     int produced;
-    if (!v || count<3u || count>input_limit || !out || !vp || flags & ~7u) return -1;
+    if (!v || count<3u || count>input_limit || !out || !vp || flags & ~7u ||
+        !rast_frame_valid(frame)) return -1;
     for(unsigned i=0;i<count;++i)
         if(v[i].x<-(1<<28)||v[i].x>(1<<28)||v[i].y<-(1<<28)||v[i].y>(1<<28))return -1;
     if (vp->x < 0 || vp->y < 0 || vp->w == 0u || vp->h == 0u ||
-        vp->x + (int32_t)vp->w > RAST_WIDTH || vp->y + (int32_t)vp->h > RAST_HEIGHT)
+        vp->x + (int32_t)vp->w > (int32_t)frame->width ||
+        vp->y + (int32_t)vp->h > (int32_t)frame->height)
         return -1;
+#ifndef RAST_DISABLE_INSIDE_FAST
+    if(count==3u) {
+        int inside=1;
+        for(unsigned i=0;i<3;++i)
+            if(v[i].x<(int32_t)vp->x*16 || v[i].x>=(int32_t)(vp->x+vp->w)*16 ||
+               v[i].y<(int32_t)vp->y*16 || v[i].y>=(int32_t)(vp->y+vp->h)*16)inside=0;
+        if(inside) {
+            /* Clipping against both rectangles is an identity for this case.
+               Keep setup's local record and commit/capacity ordering intact. */
+            produced=setup_one(v,flags,records,&delta,frame);
+            if(produced<0)return -1;
+            if((unsigned)produced>capacity)return -2;
+            if(produced)memcpy(out,records,sizeof(*out));
+            if(stats){stats->backface+=delta.backface;stats->sliver+=delta.sliver;
+                stats->emitted+=(unsigned)produced;}
+            return produced;
+        }
+    }
+#endif
     memcpy(a, v, count * sizeof(*v));
     {
         /* 半开区间的最大 Q12.4 格点；平面顺序与 guard band 相同（左、右、下、上）。
@@ -211,7 +244,8 @@ static int setup_polygon_vp(const rast_vertex *v, unsigned count, const rast_vie
     }
 #ifndef INJECT_RAST_NO_GUARD
     {
-        const int32_t plane[4] = {-4096, 14335, -4096, 11775};
+        const int32_t plane[4] = {-4096, (int32_t)(frame->width + 256u)*16 - 1,
+                                 -4096, (int32_t)(frame->height + 256u)*16 - 1};
         for (unsigned p = 0; p < 4 && n; ++p) {
             n = clip_screen(a, n, b, p / 2, plane[p], p & 1);
             memcpy(a, b, n * sizeof(*a));
@@ -222,7 +256,7 @@ static int setup_polygon_vp(const rast_vertex *v, unsigned count, const rast_vie
     if (n == count)
         for (unsigned i = 0; i < n; ++i)
             if (a[i].x != v[i].x || a[i].y != v[i].y) delta.clipped = 1;
-    produced = emit_fan(a, n, flags, records, &delta);
+    produced = emit_fan(a, n, flags, records, &delta, frame);
     if (produced < 0) return -1;
     if ((unsigned)produced > capacity) return -2;
     memcpy(out, records, (unsigned)produced * sizeof(*out));
@@ -238,7 +272,14 @@ int rast_setup_polygon_vp(const rast_vertex *v, unsigned count, const rast_viewp
                           uint32_t flags, rast_record *out, unsigned capacity,
                           rast_setup_stats *stats)
 {
-    return setup_polygon_vp(v,count,vp,flags,out,capacity,stats,8u);
+    return setup_polygon_vp(v,count,vp,flags,out,capacity,stats,8u,&default_frame);
+}
+
+int rast_setup_polygon_frame(const rast_vertex *v, unsigned count, const rast_viewport *vp,
+                             const rast_frame *frame, uint32_t flags,
+                             rast_record *out, unsigned capacity, rast_setup_stats *stats)
+{
+    return setup_polygon_vp(v,count,vp,flags,out,capacity,stats,8u,frame);
 }
 
 static rast_view_vertex view_cross(rast_view_vertex a, rast_view_vertex b, int32_t p)
@@ -319,18 +360,28 @@ int rast_setup_view_vp(const rast_view_vertex *v, unsigned count,
                        uint32_t flags, rast_record *out, unsigned capacity,
                        rast_setup_stats *stats)
 {
+    return rast_setup_view_frame(v,count,projection,near_z,far_z,vp,&default_frame,
+                                 flags,out,capacity,stats);
+}
+
+int rast_setup_view_frame(const rast_view_vertex *v, unsigned count,
+                          const fx16_mat4 *projection, fx16_t near_z, fx16_t far_z,
+                          const rast_viewport *vp, const rast_frame *frame, uint32_t flags,
+                          rast_record *out, unsigned capacity, rast_setup_stats *stats)
+{
     rast_vertex screen[16];
-    if (!v || !out || !projection || !vp || flags & ~7u ||
+    if (!v || !out || !projection || !vp || flags & ~7u || !rast_frame_valid(frame) ||
         near_z <= 0 || far_z <= near_z) return -1;
     if (vp->x < 0 || vp->y < 0 || vp->w == 0u || vp->h == 0u ||
-        vp->x + (int32_t)vp->w > RAST_WIDTH || vp->y + (int32_t)vp->h > RAST_HEIGHT)
+        vp->x + (int32_t)vp->w > (int32_t)frame->width ||
+        vp->y + (int32_t)vp->h > (int32_t)frame->height)
         return -1;
     {
         int n = view_project(v, count, projection, near_z, far_z,
                              vp->x, vp->y, vp->w, vp->h, screen);
         if (n < 0) return -1;
         if (n < 3) return 0;
-        return setup_polygon_vp(screen, (unsigned)n, vp, flags, out, capacity, stats,10u);
+        return setup_polygon_vp(screen, (unsigned)n, vp, flags, out, capacity, stats,10u,frame);
     }
 }
 
@@ -345,15 +396,21 @@ int rast_from_s3l(int32_t x, int32_t y, int32_t z, rast_view_vertex *out)
 
 int rast_record_valid(const rast_record *r)
 {
-    if (!r || rast_get32(r, 0) & ~7u || rast_get16(r, 42) || rast_get32(r, 92) ||
+    return rast_record_valid_frame(r,&default_frame);
+}
+
+int rast_record_valid_frame(const rast_record *r, const rast_frame *frame)
+{
+    if (!rast_frame_valid(frame) || !r || rast_get32(r, 0) & ~7u || rast_get16(r, 42) || rast_get32(r, 92) ||
         rast_get32(r, 124)) return 0;
     for (unsigned k = 0; k < 2; ++k) {
         int32_t lo = (int16_t)rast_get16(r, 72 + k * 4);
         int32_t hi = (int16_t)rast_get16(r, 74 + k * 4);
-        if (lo < 0 || lo > hi || hi >= (k ? RAST_HEIGHT : RAST_WIDTH)) return 0;
+        if (lo < 0 || lo > hi || hi >= (int32_t)(k ? frame->height : frame->width)) return 0;
     }
     int32_t ox = (int16_t)rast_get16(r, 120), oy = (int16_t)rast_get16(r, 122);
-    if (ox < -4096 || ox > 14335 || oy < -4096 || oy > 11775) return 0;
+    if (ox < -4096 || ox > (int32_t)(frame->width+256u)*16-1 ||
+        oy < -4096 || oy > (int32_t)(frame->height+256u)*16-1) return 0;
     const unsigned offsets[6] = {44, 56, 64, 96, 104, 112};
     for (unsigned k = 0; k < 6; ++k)
         for (unsigned j = 0; j < 2; ++j) {
@@ -372,11 +429,18 @@ int rast_record_valid(const rast_record *r)
 
 int rast_bin(const rast_record *records, unsigned count, uint8_t *out, size_t capacity)
 {
+    return rast_bin_frame(records,count,out,capacity,&default_frame);
+}
+
+int rast_bin_frame(const rast_record *records, unsigned count, uint8_t *out,
+                    size_t capacity, const rast_frame *frame)
+{
     uint16_t counts[RAST_STRIPS] = {0};
+    size_t next[RAST_STRIPS];
     size_t need = RAST_STRIPS * 4, cursor = 0;
-    if (!out || count > 65535 || (count && !records)) return -1;
+    if (!rast_frame_valid(frame) || !out || count > 65535 || (count && !records)) return -1;
     for (unsigned i = 0; i < count; ++i) {
-        if (!rast_record_valid(&records[i])) return -1;
+        if (!rast_record_valid_frame(&records[i],frame)) return -1;
         unsigned first = rast_get16(&records[i], 76) / RAST_STRIP_H;
         unsigned last = rast_get16(&records[i], 78) / RAST_STRIP_H;
         for (unsigned s = first; s <= last; ++s) { ++counts[s]; need += 2; }
@@ -385,11 +449,17 @@ int rast_bin(const rast_record *records, unsigned count, uint8_t *out, size_t ca
     for (unsigned s = 0; s < RAST_STRIPS; ++s) {
         out[cursor++] = (uint8_t)counts[s]; out[cursor++] = (uint8_t)(counts[s] >> 8);
         out[cursor++] = 0; out[cursor++] = 0;
-        for (unsigned i = 0; i < count; ++i)
-            if (rast_get16(&records[i], 76) / RAST_STRIP_H <= s &&
-                rast_get16(&records[i], 78) / RAST_STRIP_H >= s) {
-                out[cursor++] = (uint8_t)i; out[cursor++] = (uint8_t)(i >> 8);
-            }
+        next[s] = cursor; cursor += (size_t)counts[s] * 2;
+    }
+    /* Prefix each bucket once, then append in input order. The byte stream is
+       identical to the old strip-major scan, without reading every record 30x. */
+    for (unsigned i = 0; i < count; ++i) {
+        unsigned first = rast_get16(&records[i], 76) / RAST_STRIP_H;
+        unsigned last = rast_get16(&records[i], 78) / RAST_STRIP_H;
+        for (unsigned s = first; s <= last; ++s) {
+            size_t at = next[s]; next[s] += 2;
+            out[at] = (uint8_t)i; out[at + 1] = (uint8_t)(i >> 8);
+        }
     }
     return (int)need;
 }

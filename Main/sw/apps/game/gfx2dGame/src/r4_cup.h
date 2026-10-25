@@ -4,4 +4,6 @@
 #define R4_CUP_INPUT_TRIANGLES 396u
 /* Shared geometry for both executors. Uses all 207 indexed vertices/396 faces. */
 int r4_cup_emit(uint32_t tick, rast_record *out, unsigned capacity);
+int r4_cup_emit_view(uint32_t tick, const rast_viewport *viewport,
+                     rast_record *out, unsigned capacity);
 #endif

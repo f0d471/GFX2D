@@ -1,0 +1,88 @@
+{
+  "status": "PASS",
+  "qa_images": 18,
+  "final_images_bound_to_host_and_board": [
+    {
+      "scene": "l2",
+      "frame": 0,
+      "crc": "4e1085e2",
+      "status": "PASS"
+    },
+    {
+      "scene": "l2",
+      "frame": 30,
+      "crc": "e7eec875",
+      "status": "PASS"
+    },
+    {
+      "scene": "l2",
+      "frame": 90,
+      "crc": "24dcffc8",
+      "status": "PASS"
+    },
+    {
+      "scene": "l2",
+      "frame": 150,
+      "crc": "5d52a50a",
+      "status": "PASS"
+    },
+    {
+      "scene": "l2",
+      "frame": 210,
+      "crc": "0410a05d",
+      "status": "PASS"
+    },
+    {
+      "scene": "l2",
+      "frame": 239,
+      "crc": "cdbc303a",
+      "status": "PASS"
+    },
+    {
+      "scene": "cup",
+      "frame": 0,
+      "crc": "1b28c42f",
+      "status": "PASS"
+    },
+    {
+      "scene": "cup",
+      "frame": 30,
+      "crc": "052c0b52",
+      "status": "PASS"
+    },
+    {
+      "scene": "cup",
+      "frame": 59,
+      "crc": "198df235",
+      "status": "PASS"
+    }
+  ],
+  "native": {
+    "status": "PASS",
+    "results": [
+      {
+        "scene": "l1",
+        "status": "PASS",
+        "frames": 60,
+        "mismatched": []
+      },
+      {
+        "scene": "l2",
+        "status": "PASS",
+        "frames": 240,
+        "mismatched": []
+      },
+      {
+        "scene": "cup",
+        "status": "PASS",
+        "frames": 60,
+        "mismatched": []
+      }
+    ],
+    "reference_run": "20261024-173917-188abb7f",
+    "scope": "native Windows and accepted WSL exact frame/record CRC; 3 scenes"
+  },
+  "software_run": "20261024-173917-188abb7f",
+  "board_run": "20261024-192236-f8d2026c",
+  "scope": "actual raster PNGs; final selected frames match host and hardware; not HDMI photographs"
+}

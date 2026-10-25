@@ -1,0 +1,13 @@
+WIDE RECT PASS 640 clipped coverage/depth/bin/canaries/atomic
+WIDE SCENE PASS 640 square projection/world invariance/cup
+WIDE RECT PASS 768 clipped coverage/depth/bin/canaries/atomic
+WIDE SCENE PASS 768 square projection/world invariance/cup
+WIDE RECT PASS 854 clipped coverage/depth/bin/canaries/atomic
+WIDE SCENE PASS 854 square projection/world invariance/cup
+WIDE RECT PASS 1120 clipped coverage/depth/bin/canaries/atomic
+WIDE SCENE PASS 1120 square projection/world invariance/cup
+WIDE RECT PASS 1707 clipped coverage/depth/bin/canaries/atomic
+WIDE SCENE PASS 1707 square projection/world invariance/cup
+WIDE RECT PASS 1792 clipped coverage/depth/bin/canaries/atomic
+WIDE SCENE PASS 1792 square projection/world invariance/cup
+PC WIDE PASS

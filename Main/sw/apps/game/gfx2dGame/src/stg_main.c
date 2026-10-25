@@ -407,7 +407,7 @@ static void game_frame(const stg_main_ctx *ctx, uint32_t frame, uint32_t keys, g
     for (e = 0u; e <= GFX_EQ_MAX; e++)
         if (l.strip_table == NULL && cc.cmd_by_eq[e] != go->st.by_eq[e])
             say_err("census eq", frame, e);
-    if (go->st.by_eq[GFX_EQ_ADD] != a->pbullet + a->particle)
+    if (go->st.by_eq[GFX_EQ_ADD] != a->pbullet + a->particle + go->st.fx_graze)
         say_err("class add", frame, go->st.by_eq[GFX_EQ_ADD]);
     if (go->st.by_eq[GFX_EQ_ALPHA] != a->ebullet + go->st.boss + go->st.title)
         say_err("class alpha", frame, go->st.by_eq[GFX_EQ_ALPHA]);

@@ -46,6 +46,8 @@ class InputForwarder:
             for vk, index in self._keys:
                 if self.user32.GetAsyncKeyState(vk) & 0x8000:
                     bits |= 1 << index
+            if self.user32.GetAsyncKeyState(ord("4")) & 0x8000:
+                bits |= 0x380
         if self.xinput is not None:
             state = _State()
             if self.xinput.XInputGetState(0, ctypes.byref(state)) == 0:

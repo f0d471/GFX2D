@@ -28,4 +28,11 @@ panel.process_line('backend hw frame 22')
 assert panel.pending_backend is None and sent==[64,64]
 state.consume('csv,1,game,hw-strip,60,0,101,91,0,60000')
 assert state.backend=='hw-strip' and state.bullets==91
+state.consume('R4STAT 30 35234 96 2 1 0')
+assert state.mode=='r3d' and state.backend=='hw' and state.fps==30
+assert state.triangles==96 and state.ladder==2 and state.scene==0 and state.render_fps==35.234
+state.consume('R4STAT 1 813 202 1 0 1')
+assert state.backend=='sw' and state.scene==1 and state.ladder==1
+panel.pending_backend=None;panel.state.mode='r3d';panel.state.backend='sw'
+panel.set_backend('hw-tex');assert panel.pending_backend=='hw'
 print('Control panel: TEX CSV, bullet count, confirmed transitions and unsupported target OK')

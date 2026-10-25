@@ -1,0 +1,38 @@
+{
+  "exe": "<REPO>\\Main\\sim\\build\\pc-widescreen-20261025\\windows-release\\gfx2dGame.exe",
+  "displays": [
+    {
+      "size": [
+        2560,
+        1600
+      ],
+      "rect": [
+        0,
+        0,
+        2560,
+        1600
+      ],
+      "screenshot": "<REPO>\\Main\\sim\\build\\pc-widescreen-20261025\\live-release-verified-20261025-190558\\display-0.png",
+      "display": 0,
+      "dpi": 144
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "rect": [
+        2560,
+        0,
+        4480,
+        1080
+      ],
+      "screenshot": "<REPO>\\Main\\sim\\build\\pc-widescreen-20261025\\live-release-verified-20261025-190558\\display-1.png",
+      "display": 1,
+      "dpi": 96
+    }
+  ],
+  "status": "PASS",
+  "kept": false,
+  "pid": 41756
+}

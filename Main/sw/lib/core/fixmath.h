@@ -103,7 +103,8 @@ typedef struct { fx16_t v[4]; } fx16_vec4;
 typedef struct { fx16_t v[16]; } fx16_mat4; /* 行主序，列向量 */
 
 /* 饱和到 s32；最近舍入，半值向 +∞。除零按分子符号饱和，0/0=0。
-   recip 是 1024 项种子 + 一次 Newton + 余数校正；div 是精确长除。 */
+   recip 是 1024 项种子 + 一次 Newton + 余数校正；div 按精确商/余数舍入，
+   采用二次幂、u32 硬件除法或有效商位长除，三路数值语义相同。 */
 int64_t fx16_floor_div(int64_t n, int64_t d); /* d > 0 */
 int64_t fx16_round_div(int64_t n, int64_t d); /* d > 0 */
 fx16_t fx16_sat(int64_t x);

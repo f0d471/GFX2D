@@ -69,31 +69,77 @@ static void text(dctx *d, const stg_font *f, int x, int y, const char *s)
     d->st->by_eq[GFX_EQ_COPY] += drawn;
 }
 
+static void value(dctx *d, int x, int y, uint32_t v, int valid, uint32_t width);
+
 /* --- 游戏区 ----------------------------------------------------------------- */
 
-static void draw_background(dctx *d, const stg_bg *bg)
+/* 震屏偏移：幅度随剩余帧数衰减，方向由帧号的低两位做确定性抖动（不消耗随机数）。
+   只作用于背景装饰（剪影带/网格/星点）；天空底图不动，保证整帧覆盖。 */
+static void bg_shake(const stg_game *g, int32_t *ox, int32_t *oy)
 {
-    uint32_t k;
+    static const int8_t pat[4][2] = { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
+    int32_t amp = 0;
 
-    if(!d->static_base)
-        fill(d, 0, 0, STG_FIELD_W - 1, STG_FIELD_H - 1, STG_BG_ARGB, GFX_EQ_COPY, 0u);
+    if (g->shake == 0u) {
+        *ox = 0;
+        *oy = 0;
+        return;
+    }
+    amp = (g->shake > 8u) ? 3 : (g->shake > 4u) ? 2 : 1;
+    *ox = (int32_t)pat[g->frame & 3u][0] * amp;
+    *oy = (int32_t)pat[(g->frame >> 1) & 3u][1] * amp;
+}
+
+/* 剪影带的一次循环取位：相位 = frame * speed (Q.8)，模带宽后取负偏移，两笔覆盖整行。
+   宽源按 STG_BG_SLICE_W 列切片：HW/TEX 后端的条带流水线把每条带的源矩形切片
+   暂存进 16KiB 片上 TEX 窗口，w x 16 x 4 不得超过 16384，即单笔源宽 <= 256。 */
+static void draw_band(dctx *d, int src_y, int32_t dst_y, int32_t band_h, uint32_t speed,
+                      const stg_game *g, int32_t shx, int32_t shy)
+{
+    const int32_t off = -(int32_t)(((g->frame * speed) >> 8) % STG_BG_BAND_W);
+    uint32_t c, s;
+
+    for (c = 0u; c < 2u; c++) {
+        const int32_t dx = off + shx + (int32_t)(c * STG_BG_BAND_W);
+
+        for (s = 0u; s < STG_BG_BAND_W / STG_BG_SLICE_W; s++)
+            (void)sprite(d, d->cfg->bglayers_slot, (int)(s * STG_BG_SLICE_W), src_y,
+                         dx + (int32_t)(s * STG_BG_SLICE_W), dst_y + shy,
+                         STG_BG_SLICE_W, band_h, GFX_EQ_COPY, 1);
+    }
+}
+
+static void draw_background(dctx *d, const stg_game *g)
+{
+    const stg_bg *bg = &g->bg;
+    uint32_t      k;
+    int32_t       shx, shy;
+
+    bg_shake(g, &shx, &shy);
+
+    /* 天空底图：两笔 200 宽列切片铺满游戏区（不震动，保证整帧覆盖）；接网格线与两条剪影带。 */
+    sprite(d, d->cfg->bglayers_slot, 0, 0, 0, 0, STG_BG_SKY_SLICE_W, STG_FIELD_H, GFX_EQ_COPY, 0);
+    sprite(d, d->cfg->bglayers_slot, STG_BG_SKY_SLICE_W, 0, STG_BG_SKY_SLICE_W, 0,
+           STG_FIELD_W - STG_BG_SKY_SLICE_W, STG_FIELD_H, GFX_EQ_COPY, 0);
     for (k = 0u; k < STG_BG_HLINES; k++) {
-        const int32_t y = stg_bg_hline_y(bg, k);
+        const int32_t y = stg_bg_hline_y(bg, k) + shy;
 
         fill(d, 0, y, STG_FIELD_W - 1, y, stg_bg_hline_bright(bg, k) ? STG_BG_BRIGHT : STG_BG_DIM,
              GFX_EQ_COPY, 0u);
     }
     for (k = 0u; k < STG_BG_VLINES; k++) {
-        const int32_t x = stg_bg_vline_x(k);
+        const int32_t x = stg_bg_vline_x(k) + shx;
 
         fill(d, x, 0, x, STG_FIELD_H - 1, stg_bg_vline_bright(k) ? STG_BG_BRIGHT : STG_BG_DIM,
              GFX_EQ_COPY, 0u);
     }
+    draw_band(d, STG_FIELD_H, STG_BG_FAR_Y, STG_BG_FAR_H, STG_BG_FAR_SPEED, g, shx, shy);
+    draw_band(d, STG_FIELD_H + STG_BG_FAR_H, STG_BG_CITY_Y, STG_BG_CITY_H, STG_BG_CITY_SPEED, g, shx, shy);
     for (k = 0u; k < STG_BG_STARS; k++) {
         const stg_star *s = &bg->star[k];
 
         (void)sprite(d, d->cfg->stars_slot, (int)(s->kind * (uint32_t)STG_STAR_PX), 0,
-                     fx_px(s->x), fx_px(s->y), STG_STAR_PX, STG_STAR_PX, GFX_EQ_COPY, 1);
+                     fx_px(s->x) + shx, fx_px(s->y) + shy, STG_STAR_PX, STG_STAR_PX, GFX_EQ_COPY, 1);
     }
 }
 
@@ -146,16 +192,18 @@ static void draw_player(dctx *d, const stg_game *g)
 
 static void draw_banner(dctx *d, const stg_game *g)
 {
+    /* 标题与 CLEAR 都只发图与单词级文字：域内逐字文本量一大就会把 HW 条带
+       流水线的每帧时间拖过 vsync（2026-10-25 板上实测，38 字提示行 60fps->2fps），
+       提示语改为烘在 title.png 里。 */
     if (g->phase == STG_PH_TITLE) {
         if (sprite(d, d->cfg->title_slot, 0, 0, (STG_FIELD_W - STG_TITLE_W) / 2, (STG_FIELD_H - STG_TITLE_H) / 2,
                    STG_TITLE_W, STG_TITLE_H, GFX_EQ_ALPHA, 0))
             d->st->title++;
     } else if (g->phase == STG_PH_CLEAR) {
-        const char    *s = "CLEAR";
-        const uint32_t w = stg_text_width(&d->cfg->font, s);
+        const uint32_t w1 = stg_text_width(&d->cfg->font, "CLEAR");
 
-        text(d, &d->cfg->font, (int)(((uint32_t)STG_FIELD_W - w) / 2u),
-             (int)(((uint32_t)STG_FIELD_H - d->cfg->font.cell_h) / 2u), s);
+        text(d, &d->cfg->font, (int)(((uint32_t)STG_FIELD_W - w1) / 2u),
+             (int)(((uint32_t)STG_FIELD_H - d->cfg->font.cell_h) / 2u), "CLEAR");
     }
 }
 
@@ -238,7 +286,18 @@ static void draw_hud(dctx *d, const stg_game *g, const stg_hud_live *live)
     text(d, lab, HUD_TX, 240, "GRAZE");
     value(d, HUD_VX, 240, g->graze, 1, 0u);
     fill(d, HUD_TX, 266, 613, 266, STG_HUD_RULE, GFX_EQ_COPY, 0u);
-    text(d, &d->cfg->font, HUD_TX, 280, (live->seg_text != 0) ? live->seg_text : stg_game_seg_name(g->seg));
+    text(d, &d->cfg->font, HUD_TX, 280, (live->seg_text != 0) ? live->seg_text : stg_game_seg_name_g(g, g->seg));
+    if (g->boss.on == STG_BOSS_CARD) {
+        /* Boss 血条：外框 + 内芯，颜色按剩余比例从绿到琥珀到品红（只读仿真状态）。 */
+        const int32_t full = g->ss->cards[g->boss.card].hp;
+        const int32_t hp   = (g->boss.hp < 0) ? 0 : g->boss.hp;
+        const int32_t w    = (int32_t)(((int64_t)hp * 186) / (full > 0 ? full : 1));
+        const uint32_t col = (hp * 4 > full * 2) ? STG_HP_HI : (hp * 4 > full) ? STG_HP_MID : STG_HP_LOW;
+
+        fill(d, HUD_TX, 298, 613, 307, STG_HP_FRAME, GFX_EQ_COPY, 0u);
+        if (w > 0)
+            fill(d, HUD_TX + 1, 300, HUD_TX + 1 + w - 1, 305, col, GFX_EQ_COPY, 0u);
+    }
     text(d, lab, HUD_TX, 312, "N (ACTIVE SPRITES)");
     big_number(d, HUD_TX, 332, d->st->act.total);
     text(d, lab, HUD_TX, 378, "BULLET");
@@ -255,7 +314,7 @@ int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
                             int bg_dst,int static_base,const stg_draw_cfg *cfg,
                             const stg_hud_live *live,stg_frame_stats *st)
 {
-    stg_frame_stats zero = { { 0u, 0u, 0u, 0u, 0u, 0u }, 0u, 0u, 0u, { 0u }, 0u };
+    stg_frame_stats zero = { { 0u, 0u, 0u, 0u, 0u, 0u }, 0u, 0u, 0u, 0u, { 0u }, 0u };
     stg_active     *a = &st->act;
     dctx            d;
     gfx_rect        screen;
@@ -279,7 +338,7 @@ int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
         d.l=background;d.dst=bg_dst;
         if(gfx_set_clip(background,d.clip))st->rejected++;
     }
-    draw_background(&d, &g->bg);
+    draw_background(&d, g);
     if(static_base)st->by_eq[GFX_EQ_COPY]++;
     d.l=l;d.dst=cfg->pool.dst;
     FRONTEND_STAGE(1,l);
@@ -293,9 +352,29 @@ int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
     a->particle = stg_draw_pool(&g->f.pools.particle, l, &cfg->pool, &d.clip, st->by_eq);
     FRONTEND_STAGE(5,l);
     a->total    = a->ebullet + a->pbullet + a->enemy + a->particle + a->player;
+    /* 擦弹特效：本帧擦到弹就在自机四角放四粒 ADD 火花（fx_graze 计入 ADD 恒等式）。 */
+    if (g->phase == STG_PH_PLAY && g->f.frame_hit.grazes != 0u && stg_game_player_visible(g)) {
+        static const int8_t gx[4] = { -20, 20, 0, 0 };
+        static const int8_t gy[4] = { 0, 0, -20, 20 };
+        const int src_x = (int)(((g->frame >> 1) & 3u) * 8u);
+        uint32_t k;
+
+        for (k = 0u; k < 4u; k++) {
+            const int rc = gfx_blit(l, cfg->pool.src_slot[STG_SRC_SPARK], src_x, 16,
+                                    d.dst, stg_draw_origin(g->f.px, 8) + gx[k],
+                                    stg_draw_origin(g->f.py, 8) + gy[k], 8, 8,
+                                    GFX_EQ_ADD, 0u, 0u, 0u);
+            count(&d, rc, GFX_EQ_ADD);
+            if (rc == 0)
+                st->fx_graze++;
+        }
+    }
     draw_banner(&d, g);
     if (g->flash) {
-        fill(&d, 0, 0, STG_FIELD_W - 1, STG_FIELD_H - 1, STG_FLASH_ARGB, GFX_EQ_CONST, (uint8_t)STG_FLASH_C);
+        /* 扣残机那一帧闪红，其余（自动炸弹的受击）闪白；CONST 恒等式不变。 */
+        const uint32_t argb = ((g->ev & STG_EV_LOST) != 0u) ? STG_FLASH_RED : STG_FLASH_ARGB;
+
+        fill(&d, 0, 0, STG_FIELD_W - 1, STG_FIELD_H - 1, argb, GFX_EQ_CONST, (uint8_t)STG_FLASH_C);
         st->flash = (st->by_eq[GFX_EQ_CONST] != 0u) ? 1u : 0u;
     }
 

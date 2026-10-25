@@ -72,6 +72,7 @@ void stg_modes_draw_cfg(stg_draw_cfg *c, int dst)
     c->title_slot                   = STG_SLOT_TITLE;
     c->digits_slot                  = STG_SLOT_DIGITS;
     c->icons_slot                   = STG_SLOT_ICONS;
+    c->bglayers_slot                = STG_SLOT_BGLAYERS;
     c->font.slot                    = STG_SLOT_FONT;
     c->font.cell_w                  = ASSET_FONT8X16_CELL_W;
     c->font.cell_h                  = ASSET_FONT8X16_CELL_H;

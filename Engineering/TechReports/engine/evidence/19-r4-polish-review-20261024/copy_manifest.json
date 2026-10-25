@@ -1,0 +1,232 @@
+[
+  {
+    "path": "qa\\manifest.json",
+    "bytes": 3859,
+    "sha256": "3c33ad7d0abb6264087965248d333013e2e723b703e9a90b916f4b15fb8801b3",
+    "metadata_transform": "checkout path prefixes canonicalized; raw logs unchanged"
+  },
+  {
+    "path": "qa\\cup-compare-000.png",
+    "bytes": 42906,
+    "sha256": "a8e80da88a4f639e6ddc53e53aae8690ad3efe99187a0d4dcd1c46a758c14d2a"
+  },
+  {
+    "path": "qa\\cup-compare-030.png",
+    "bytes": 40540,
+    "sha256": "ee5f50ed0c745fff50280644d654f90ff829c19460ed8e821638963d318aecff"
+  },
+  {
+    "path": "qa\\cup-compare-059.png",
+    "bytes": 38448,
+    "sha256": "4afb5c632f6ee5a4170f27dd1433dd6f053d77bef5b5c2d430e1b1fa7355d96e"
+  },
+  {
+    "path": "qa\\l2-compare-000.png",
+    "bytes": 80623,
+    "sha256": "9cfedf62b43ad9abe781fb7f6dde2d7cd1bc593f8eed74b290afbdd332b29e26"
+  },
+  {
+    "path": "qa\\l2-compare-030.png",
+    "bytes": 82434,
+    "sha256": "4bf347f4c1d1b03fd357fa470eb375423661213e4c66f99ef7245a6977089457"
+  },
+  {
+    "path": "qa\\l2-compare-090.png",
+    "bytes": 81722,
+    "sha256": "bc56c395cb260d4a7876c913e05762f7a6965b82c0df88a77cab7334fb28e1d5"
+  },
+  {
+    "path": "qa\\l2-compare-150.png",
+    "bytes": 81873,
+    "sha256": "4ecfa73787152a2856dcca660363f3696e18c2e73b96f1bef9539bc7449c5386"
+  },
+  {
+    "path": "qa\\l2-compare-210.png",
+    "bytes": 78381,
+    "sha256": "eae628cf20baa43acb048b9bcd16364b1cd3ed8ce19f16296e4d2bd4185baaba"
+  },
+  {
+    "path": "qa\\l2-compare-239.png",
+    "bytes": 80912,
+    "sha256": "b8ce74a348fe09c997331f62061504716477fc643a42a73811062adbbcc4d96f"
+  },
+  {
+    "path": "qa\\current\\l2\\frame-000.png",
+    "bytes": 15169,
+    "sha256": "4eceff7e5c4968bb567956273eb1c7c1273b23a60634f57dc55b95a7abffad4b"
+  },
+  {
+    "path": "qa\\current\\l2\\frame-030.png",
+    "bytes": 16148,
+    "sha256": "ac89d5586b299b58e48ee2cc9555e536e07cde2e82cb5b7a1804b6c10c5c3800"
+  },
+  {
+    "path": "qa\\current\\l2\\frame-090.png",
+    "bytes": 15775,
+    "sha256": "016c0e0c2cb2acae3ff55bc8a274779ad0bbd4fe7af70409a4fb52a7e4012cbd"
+  },
+  {
+    "path": "qa\\current\\l2\\frame-150.png",
+    "bytes": 15673,
+    "sha256": "fb7e0c0e1785b752a62c441f79237ebde304022d1ff66a33eae9c1a0b2f2dba0"
+  },
+  {
+    "path": "qa\\current\\l2\\frame-210.png",
+    "bytes": 14014,
+    "sha256": "0d0762efeafc5c719e51782be9641f598e21fb8e5974fa853606364b2a32c0f1"
+  },
+  {
+    "path": "qa\\current\\l2\\frame-239.png",
+    "bytes": 15928,
+    "sha256": "9250141436e3c715d56d301b9970a3caaa80bd7731c7afccb296ce2e1363c488"
+  },
+  {
+    "path": "qa\\current\\l2\\frames.log",
+    "bytes": 16623,
+    "sha256": "c5e245423d6a120f88a8fa9593e28e126a6aba4d25eac3de882c7c7307727ffc"
+  },
+  {
+    "path": "qa\\current\\cup\\frame-000.png",
+    "bytes": 9295,
+    "sha256": "fcc9957c41c1643a34325d88b65f405f7f4f2f2224d1f01ae82b2d12d8950e43"
+  },
+  {
+    "path": "qa\\current\\cup\\frame-030.png",
+    "bytes": 8329,
+    "sha256": "d152fd58fd566a9b8f0db1b54ad22ed8ad521ea8bacbc7521b13281876500621"
+  },
+  {
+    "path": "qa\\current\\cup\\frame-059.png",
+    "bytes": 7520,
+    "sha256": "2512777dc0ff7dc39c8fa29533dc9d81d87f67c78eb59c78eb2308cda313e4ab"
+  },
+  {
+    "path": "qa\\current\\cup\\frames.log",
+    "bytes": 5366,
+    "sha256": "f80e3929cd0a9a156a0e061fda30758ab0e8ea69458f28721e67c0460127872b"
+  },
+  {
+    "path": "qa\\next\\l2\\frame-000.png",
+    "bytes": 60516,
+    "sha256": "21e7166cc24f6b5e33dfc2c5141dce4d8cdb1dbe624430c9fad4fc4f8d31bfc0"
+  },
+  {
+    "path": "qa\\next\\l2\\frame-030.png",
+    "bytes": 61329,
+    "sha256": "aa01396d8f5ce32ba0be9746d8ee9e31cc9ed5c2186ad07cdd9cdb2afcaa1109"
+  },
+  {
+    "path": "qa\\next\\l2\\frame-090.png",
+    "bytes": 60935,
+    "sha256": "a963628d146230f3dc285912de92ee496e85f874e3ccd4eeea9835b20bf7756b"
+  },
+  {
+    "path": "qa\\next\\l2\\frame-150.png",
+    "bytes": 61268,
+    "sha256": "81c6e857fc868a6c08e65bc74ecb790eff2382c850467596f9dbb5041e89d7ee"
+  },
+  {
+    "path": "qa\\next\\l2\\frame-210.png",
+    "bytes": 59977,
+    "sha256": "d4a2d7f747fc44fb25b4a508accac46fcd1e6097792db250bc32ed771354f04e"
+  },
+  {
+    "path": "qa\\next\\l2\\frame-239.png",
+    "bytes": 60079,
+    "sha256": "81fdd78c55e42b39c59224f3288029b6ccb4becbc6cf4fb6e56217eb13381034"
+  },
+  {
+    "path": "qa\\next\\l2\\frames.log",
+    "bytes": 16540,
+    "sha256": "e9a12dd7410db812342f25923405f9d95d211ea1817b60c1a831a274c6624d7a"
+  },
+  {
+    "path": "qa\\next\\cup\\frame-000.png",
+    "bytes": 30185,
+    "sha256": "7f2e04ac43fc2416dae3f577c3a6a39c8006d7ed2e9de832521c1ad00b4fb3ce"
+  },
+  {
+    "path": "qa\\next\\cup\\frame-030.png",
+    "bytes": 28833,
+    "sha256": "fa1a38bf45e7a34806c994f33c4bc96269837f44d7036cd7208c1e15227f1b7a"
+  },
+  {
+    "path": "qa\\next\\cup\\frame-059.png",
+    "bytes": 27519,
+    "sha256": "bc2ac71027f7f709de31343e5614123ee19a42c1580134c9c04fedd7011038a9"
+  },
+  {
+    "path": "qa\\next\\cup\\frames.log",
+    "bytes": 5351,
+    "sha256": "b19ddda6101600e7681a489ee5a76b83b1884b74e25a6a201fa7a55e63a5e3d3"
+  },
+  {
+    "path": "native-pixels\\result.json",
+    "bytes": 498,
+    "sha256": "5c1c24962283137195d9a1e7fe42c55575a7eb2e484367744a1208634d819c5a",
+    "metadata_transform": "checkout path prefixes canonicalized; raw logs unchanged"
+  },
+  {
+    "path": "native-pixels\\cup\\build.json",
+    "bytes": 934,
+    "sha256": "dcd74c9fe2a0ecb299db93331e4cc8c584876495fdb57961543f3abb70027305",
+    "metadata_transform": "checkout path prefixes canonicalized; raw logs unchanged"
+  },
+  {
+    "path": "native-pixels\\cup\\build.log",
+    "bytes": 2079,
+    "sha256": "e53ed676179e8034df16d7695946bdf4f96d8dbd1b0c06d573d60c3fb225e0d9"
+  },
+  {
+    "path": "native-pixels\\cup\\frames.log",
+    "bytes": 3694,
+    "sha256": "0d687fae2906b28ff0dccd9da85e12610040b150b73c24683a7f46b65efffdf9"
+  },
+  {
+    "path": "native-pixels\\l1\\build.json",
+    "bytes": 933,
+    "sha256": "f13679c65e287a3152df7b0f5571237f7b4b1ba02baca6a02d940d5f034c0f6f",
+    "metadata_transform": "checkout path prefixes canonicalized; raw logs unchanged"
+  },
+  {
+    "path": "native-pixels\\l1\\build.log",
+    "bytes": 2074,
+    "sha256": "a8252007cfbdf6e23481218f052b243a69415ce56f60db42d0f3275cd724feee"
+  },
+  {
+    "path": "native-pixels\\l1\\frames.log",
+    "bytes": 3701,
+    "sha256": "e231bafee76728a57c6d5142a5f2cba729d5c28a945c74e25c8a86c9c73da91a"
+  },
+  {
+    "path": "native-pixels\\l2\\build.json",
+    "bytes": 935,
+    "sha256": "a986be5c293e170af4fce86016493874d79777f360b26949cf3e2f0c6a43d1b1",
+    "metadata_transform": "checkout path prefixes canonicalized; raw logs unchanged"
+  },
+  {
+    "path": "native-pixels\\l2\\build.log",
+    "bytes": 2074,
+    "sha256": "24c7330698fc71bc9181e66735f4a9e687d83d90cc1c661ea1863f5c31fa15d7"
+  },
+  {
+    "path": "native-pixels\\l2\\frames.log",
+    "bytes": 12879,
+    "sha256": "9d5725971104203d75f70037956e95dc569a18532b581cd1505cf11e7b8f6b75"
+  },
+  {
+    "path": "scripts\\capture_review.py",
+    "bytes": 5824,
+    "sha256": "946ab1b5f184fd2bb5855c41b624975a2cebd4d6b267a2e99b8a35c379ed6797"
+  },
+  {
+    "path": "scripts\\native_pixels.py",
+    "bytes": 1839,
+    "sha256": "258f9e75dd0e4048897d222a812ece4d74c6b8d6a9264aa92709b8f303276e8a"
+  },
+  {
+    "path": "scripts\\archive_review.py",
+    "bytes": 3374,
+    "sha256": "9ef74104af448117d1c8e58e823fdeb61bee70657fb1f02bce1b5cdf75982f6a"
+  }
+]

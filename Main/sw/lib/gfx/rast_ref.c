@@ -17,11 +17,19 @@ static int quantize(int64_t value, int limit)
 
 int rast_ref_run(const rast_record *records, unsigned count, const rast_target *t)
 {
+    const rast_frame frame = {RAST_WIDTH,RAST_HEIGHT};
+    return rast_ref_run_frame(records,count,t,&frame);
+}
+
+int rast_ref_run_frame(const rast_record *records, unsigned count, const rast_target *t,
+                       const rast_frame *frame)
+{
     const unsigned grad[6] = {44, 56, 64, 96, 104, 112};
-    if (!t || !t->color || !t->depth || t->stride < RAST_WIDTH || t->strip >= RAST_STRIPS ||
+    if (!rast_frame_valid(frame) || !t || !t->color || !t->depth ||
+        t->stride < frame->width || t->strip >= (frame->height+RAST_STRIP_H-1u)/RAST_STRIP_H ||
         (count && !records)) return -1;
     for (unsigned i = 0; i < count; ++i) {
-        if (!rast_record_valid(&records[i])) return -1;
+        if (!rast_record_valid_frame(&records[i],frame)) return -1;
         if ((rast_get32(&records[i], 0) & RAST_TEX_EN) &&
             (!t->texture || !t->tex_width || !t->tex_height ||
              t->tex_width > 4096 || t->tex_height > 4096 || t->tex_stride < t->tex_width)) return -1;

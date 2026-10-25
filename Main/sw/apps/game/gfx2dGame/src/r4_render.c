@@ -15,6 +15,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "board.h"
@@ -65,7 +66,11 @@
 static logq        *s_log;
 static r4_world     s_world;
 static fx16_mat4    s_proj;
-static const rast_viewport s_vp = { R4_VP_CORRIDOR };
+static rast_viewport s_vp = { R4_VP_CORRIDOR };
+static rast_frame s_raster_frame = {RAST_WIDTH,RAST_HEIGHT};
+static board_frame s_frame;
+static uint16_t *s_canvas_depth;
+static unsigned s_canvas_depth_stride;
 static rast_record *s_rec;
 static uint8_t     *s_sub;
 static uint16_t    *s_depth;
@@ -92,6 +97,10 @@ static exec_sw_state s_es;
 static replay_r4_view s_replay;
 static int s_replay_on;
 static uint32_t s_pending_keys;
+static uint32_t *s_hud_list;
+static uint32_t s_hud_device;
+static uint8_t s_hud_valid[2][30];
+static uint32_t s_hud_count[2][30];
 uint32_t r4_pending_keys(void) {uint32_t k=s_pending_keys;s_pending_keys=0;return k;}
 
 int r4_set_replay(const uint8_t *data,uint32_t bytes)
@@ -160,143 +169,108 @@ static uint32_t cycles_to_ms16(uint32_t cycles)
 }
 #endif  /* !R4_HUD_NONE */
 
-/* --- HUD：右栏 240 像素，每逻辑行恰占一个 16 像素条带 ----------------------- */
+/* --- HUD：右栏 160 像素，每逻辑行恰占一个 16 像素条带 ----------------------- */
 
 #define R4_HUD_ROWS 30
 
 #if !R4_HUD_NONE
-static uint32_t hud_build_strips(gfx_surface_table *tab, int dst, uint32_t *list)
+static void hud_number(char *text,uint32_t value,unsigned width)
 {
-#if R4_HUD_TEXT
-    const stg_font white = { STG_SLOT_FONT, ASSET_FONT8X16_CELL_W, ASSET_FONT8X16_CELL_H,
-                             ASSET_FONT8X16_COLS, 0x20u, ASSET_FONT8X16_CELLS,
-                             0x00000000u };
-    const stg_font cyan = { STG_SLOT_FONT_CYAN, ASSET_FONT8X16_CELL_W,
-                            ASSET_FONT8X16_CELL_H, ASSET_FONT_CYAN_COLS, 0x20u,
-                            ASSET_FONT_CYAN_CELLS, ASSET_FONT_CYAN_KEY };
-#endif
-    static char rows[R4_HUD_ROWS][32];
-    char     v[24];
-    uint32_t bad = 0u;
-    uint32_t s;
+    char temp[12];unsigned n=0;
+    do {temp[n++]=(char)('0'+value%10u);value/=10u;}while(value);
+    while(n<width)temp[n++]='0';
+    for(unsigned i=0;i<n;++i)text[i]=temp[n-1-i];
+    text[n]=0;
+}
 
-    memset(rows, 0, sizeof rows);
-    memcpy(rows[0], "MYRIAD R4 3D", 13u);
-    memcpy(rows[2], "FPS ", 5u);
-    memcpy(rows[3], "TRIS ", 6u);
-    memcpy(rows[4], "RAST ", 6u);
-    memcpy(rows[5], "CPU  ", 6u);
-    memcpy(rows[6], "PATH ", 6u);
-    memcpy(rows[8], "SCORE ", 7u);
-    memcpy(rows[9], "SHIELD ", 8u);
-    memcpy(rows[11], "1 2 3 4=3D", 11u);
-    strcpy(rows[12], "4:CORRIDOR/CUP");
-    strcpy(rows[13], "TAB:SW/HW");
-    strcpy(rows[14], "SHIFT:L1/L2");
-
-    {
-        core_out o;
-
-        core_out_init(&o, v, (uint32_t)sizeof v);
-        core_out_u32(&o, s_fps_valid ? s_fps : 0u);
-        memcpy(rows[2] + 4u, s_fps_valid ? v : "--", s_fps_valid ? (size_t)o.n + 1u : 3u);
-
-        core_out_init(&o, v, (uint32_t)sizeof v);
-        core_out_u32(&o, s_records);
-        memcpy(rows[3] + 5u, v, (size_t)o.n + 1u);
-
-        core_out_init(&o, v, (uint32_t)sizeof v);
-        if (s_hw != 0u && s_rast_cyc != 0u) {
-            core_out_u32(&o, cycles_to_ms16(s_rast_cyc) >> 16);
-            core_out_ch(&o, '.');
-            core_out_u32(&o, ((cycles_to_ms16(s_rast_cyc) & 0xFFFFu) * 10u) / 65536u);
-        } else {
-            core_out_str(&o, "--");
-        }
-        memcpy(rows[4] + 5u, v, (size_t)o.n + 1u);
-
-        core_out_init(&o, v, (uint32_t)sizeof v);
-        {
-            uint32_t ms16 = cycles_to_ms16(s_out.cyc_logic + s_out.cyc_geom +
-                                           s_out.cyc_bin + s_out.cyc_hud);
-
-            core_out_u32(&o, ms16 >> 16);
-            core_out_ch(&o, '.');
-            core_out_u32(&o, ((ms16 & 0xFFFFu) * 10u) / 65536u);
-        }
-        memcpy(rows[5] + 5u, v, (size_t)o.n + 1u);
-
-        v[0] = s_hw ? 'H' : 'S';
-        v[1] = 'W';
-        v[2] = ' ';
-        v[3] = 'L';
-        v[4] = (s_ladder >= 2u) ? '2' : '1';
-        v[5] = 0;
-        memcpy(rows[6] + 5u, v, 6u);
-
-        core_out_init(&o, v, (uint32_t)sizeof v);
-        core_out_u32(&o, s_out.score);
-        memcpy(rows[8] + 6u, v, (size_t)o.n + 1u);
-
-        core_out_init(&o, v, (uint32_t)sizeof v);
-        core_out_u32(&o, s_out.shield);
-        memcpy(rows[9] + 7u, v, (size_t)o.n + 1u);
-    }
-#if GFX2D_R4_JUDGE
-    /* A frame comparison cannot contain platform clocks or backend labels. */
-    strcpy(rows[2], "FPS TEST");
-    strcpy(rows[4], "RAST TEST");
-    strcpy(rows[5], "CPU TEST");
-    strcpy(rows[6], s_ladder == 2u ? "PATH REF L2" : "PATH REF L1");
-#endif
-    for (unsigned k=0;k<2;++k) {
-        core_out o;
-        core_out_init(&o,rows[24+k],sizeof rows[24+k]);
-        core_out_str(&o,k?"HW FPS ":"SW FPS ");
-        if(s_render_valid[k] && !GFX2D_R4_JUDGE) {
-            core_out_u32(&o,s_render_fps[k]/1000u);core_out_ch(&o,'.');
-            core_out_u32(&o,(s_render_fps[k]/100u)%10u);
+static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
+{
+    const stg_font white={STG_SLOT_FONT,ASSET_FONT8X16_CELL_W,ASSET_FONT8X16_CELL_H,
+        ASSET_FONT8X16_COLS,0x20u,ASSET_FONT8X16_CELLS,0};
+    const stg_font cyan={STG_SLOT_FONT_CYAN,ASSET_FONT8X16_CELL_W,ASSET_FONT8X16_CELL_H,
+        ASSET_FONT_CYAN_COLS,0x20u,ASSET_FONT_CYAN_CELLS,ASSET_FONT_CYAN_KEY};
+    static char rows[R4_HUD_ROWS][32],values[R4_HUD_ROWS][24];
+    static char previous_rows[2][R4_HUD_ROWS][32],previous_values[2][R4_HUD_ROWS][24];
+    static char previous_active[2][12];
+    static uint32_t previous_icons[2][2];
+    unsigned fb=(unsigned)(dst-STG_SLOT_FB0);
+    char active[12];uint32_t bullets=0,objects=1,bad=0;
+    memset(rows,0,sizeof rows);memset(values,0,sizeof values);
+    for(unsigned i=0;i<R4_EBULLET_MAX;++i)bullets+=s_world.ebul[i].alive!=0;
+    objects+=bullets+(s_ladder>=2 && s_world.enemy.alive);
+    for(unsigned i=0;i<R4_PBULLET_MAX;++i)objects+=s_world.pbul[i].alive!=0;
+    strcpy(rows[5],s_scene?"CUP / 396 FACES":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
+    strcpy(rows[6],"SCORE");hud_number(rows[7],s_world.score,9);
+    strcpy(rows[9],"HI-SCORE");hud_number(rows[10],s_world.hiscore,9);
+    strcpy(rows[12],"PLAYER");strcpy(rows[14],"BOMB");
+    strcpy(rows[15],"GRAZE");hud_number(values[15],s_world.graze,0);
+    strcpy(rows[18],s_scene?(s_frame.width==FB_WIDTH?"SAME 320x240":"ADAPTIVE VIEW"):
+        GFX2D_R4_JUDGE?"FIXED INPUT":s_hw?"FPGA RASTER":"CPU RASTER");
+    strcpy(rows[19],s_ladder>=2?"L2 MATERIALS":"L1 SOLID");
+    strcpy(rows[20],s_scene?"FACES":"CONTACTS");hud_number(active,s_scene?396u:objects,2);
+    strcpy(rows[24],"SHOTS");hud_number(values[24],bullets,0);
+    strcpy(rows[25],"TRIS");hud_number(values[25],s_records,0);
+    strcpy(rows[27],"SW FPS");strcpy(rows[28],"HW FPS");
+    for(unsigned i=0;i<2;++i) {
+        core_out o;core_out_init(&o,values[27+i],sizeof values[0]);
+        if(s_render_valid[i] && !GFX2D_R4_JUDGE) {
+            core_out_u32(&o,s_render_fps[i]/1000);core_out_ch(&o,'.');
+            core_out_u32(&o,(s_render_fps[i]/100)%10);
         } else core_out_str(&o,"--");
     }
-    if(s_scene)strcpy(rows[0],"CUP 396 TRIANGLES");
-
-    for (s = 0u; s < 30u; s++) {
-        gfx_list l;
-        gfx_rect bar, line;
-
-        if (s_scene && s>=7u && s<=22u) {list[s]=0u;continue;}
-
-        /* 引擎 BAND 相位的 HUD 命令一律用条带局部 y（0..15，y+h<=16，
-           dst 必须等于帧 dst，见 engine_cmd.v 的 local_bad 检查）；
-           软件路径由 render_sw 按条带平移目的表面基址落地。 */
-        gfx_list_begin(&l, (gfx_cmd *)(void *)((uint8_t *)list + (s + 1u) * 32768u),
-                       1024u - 8u, tab);
-        bar.x0 = 400;
-        bar.y0 = 0;
-        bar.x1 = 639;
-        bar.y1 = 15;
-        if (gfx_fill(&l, dst, bar, R4_HUD_BG, GFX_EQ_COPY, 0u) != 0)
-            bad++;
-        if (s == 0u) {
-            line.x0 = 400;
-            line.y0 = 0;
-            line.x1 = 401;
-            line.y1 = 1;
-            if (gfx_fill(&l, dst, line, R4_HUD_LINE, GFX_EQ_COPY, 0u) != 0)
-                bad++;
+    {
+        core_out o;core_out_init(&o,rows[29],sizeof rows[0]);
+        if(GFX2D_R4_JUDGE)core_out_str(&o,"PRESENT/RAST TEST");
+        else {
+            core_out_str(&o,"FPS ");
+            if(s_fps_valid)core_out_u32(&o,s_fps);else core_out_str(&o,"--");
+            core_out_str(&o,"  RAST ");
+            if(s_hw) {
+                uint32_t ms=cycles_to_ms16(s_rast_cyc);
+                core_out_u32(&o,ms>>16);core_out_ch(&o,'.');
+                core_out_u32(&o,((ms&65535u)*10u)>>16);
+            } else core_out_str(&o,"--");
+        }
+    }
+    for(unsigned s=0;s<30;++s) {
+        gfx_list l;gfx_rect bar={(int)R4_WORLD_WIDTH,0,639,15};
+        if(s<4){list[s]=0;continue;} /* static precomposed compact title in BG */
+        /* Each destination owns one persistent arena. A row is reused only
+           when all its visible inputs match, after the previous frame drained. */
+        int same=s_hud_valid[fb][s] && !strcmp(rows[s],previous_rows[fb][s]) &&
+            !strcmp(values[s],previous_values[fb][s]);
+        if(s==12)same&=previous_icons[fb][0]==s_world.shield;
+        if(s==14)same&=previous_icons[fb][1]==s_world.bombs;
+        if(s==21 || s==22)same&=!strcmp(active,previous_active[fb]);
+        if(same){list[s]=s_hud_count[fb][s];continue;}
+        gfx_list_begin(&l,(gfx_cmd *)(void *)((uint8_t *)list+(s+1)*32768u),1016,tab);
+        bad+=gfx_fill(&l,dst,bar,R4_HUD_BG,GFX_EQ_COPY,0)!=0;
+        bar.x1=(int)R4_WORLD_WIDTH+1;bad+=gfx_fill(&l,dst,bar,R4_HUD_LINE,GFX_EQ_COPY,0)!=0;
+        if(s==17) {
+            gfx_rect line={492,0,627,1};
+            bad+=gfx_fill(&l,dst,line,0x00224a5cu,GFX_EQ_COPY,0)!=0;
+        }
+        if(s==12 || s==14)for(unsigned i=0;i<3;++i) {
+            uint32_t count=s==12?s_world.shield:s_world.bombs;
+            gfx_rect icon={564+(int)i*22,3,577+(int)i*22,14};
+            bad+=gfx_fill(&l,dst,icon,i<count?(s==12?0x0041ffb0:0x00c9a6ff):0x0012314a,
+                GFX_EQ_COPY,0)!=0;
         }
 #if R4_HUD_TEXT
-        if (rows[s][0] != 0) {
-            const stg_font *f = (s == 0u || s == 6u) ? &cyan : &white;
-            uint32_t        drawn = 0u;
-
-            bad += stg_text_draw(&l, f, dst, 408, 0, rows[s], &drawn);
-        }
-#endif  /* R4_HUD_TEXT */
-        if (gfx_list_end(&l) != 0)
-            bad++;
-        list[s] = l.used - 1u;                  /* 计数不含 END（引擎按计数读） */
+        uint32_t drawn=0;
+        if(rows[s][0])bad+=stg_text_draw(&l,(s==7 || s==10 || s==18 || s==19)?&white:&cyan,
+            dst,492,0,rows[s],&drawn);
+        if(values[s][0])bad+=stg_text_draw(&l,&white,dst,584,0,values[s],&drawn);
+#endif
+        if(s==21 || s==22)for(unsigned i=0;active[i];++i)
+            bad+=gfx_blit(&l,STG_SLOT_DIGITS,(active[i]-'0')*16,(s-21)*16,dst,
+                492+(int)i*16,0,16,16,GFX_EQ_COPY,0,1,0)!=0;
+        bad+=gfx_list_end(&l)!=0;list[s]=l.used-1;
+        strcpy(previous_rows[fb][s],rows[s]);strcpy(previous_values[fb][s],values[s]);
+        s_hud_count[fb][s]=list[s];s_hud_valid[fb][s]=1;
     }
+    previous_icons[fb][0]=s_world.shield;previous_icons[fb][1]=s_world.bombs;
+    strcpy(previous_active[fb],active);
     return bad;
 }
 #endif  /* !R4_HUD_NONE */
@@ -304,7 +278,7 @@ static uint32_t hud_build_strips(gfx_surface_table *tab, int dst, uint32_t *list
 /* --- 背景与帧 CRC ----------------------------------------------------------- */
 
 /* 离屏底色：深蓝纵向渐变（LOAD 每帧整屏读它）。 */
-static void build_background(void)
+static int build_background(const gfx_surface_table *tab,const gfx_mem *mem)
 {
     uint32_t *bg = (uint32_t *)((uint8_t *)board_region(REGION_OFFSCREEN).ptr+R4_BG_OFFSET);
     uint32_t  x, y;
@@ -314,8 +288,30 @@ static void build_background(void)
         const uint32_t c = R4_COLOR_BG + ((y * 24u) / FB_HEIGHT) * 0x00010102u;
 
         for (x = 0u; x < FB_WIDTH; x++)
-            row[x] = c;
+            row[x] = x<R4_WORLD_WIDTH?c:R4_HUD_BG;
+        row[R4_WORLD_WIDTH]=R4_HUD_LINE;
     }
+    /* Area-filter the existing premultiplied 240x80 title to 144x48 once at
+       entry. It remains in DDR BG; no new Flash assets or per-frame rescale. */
+    const gfx_surf_raw *title=&tab->s[STG_SLOT_TITLE];
+    if(!gfx_surf_valid(title) || gfx_surf_width(title)<240 || gfx_surf_height(title)<80)return -1;
+    for(y=0;y<48;++y)for(x=0;x<144;++x) {
+        unsigned sx=x*5u/3u,sy=y*5u/3u,channels[4]={0};
+        for(unsigned dy=0;dy<2;++dy)for(unsigned dx=0;dx<2;++dx) {
+            uint32_t address=gfx_addr_of(title,(int32_t)(sx+dx),(int32_t)(sy+dy));
+            if(address<mem->dev_base || address-mem->dev_base>mem->bytes-4u)return -1;
+            uint32_t pixel=*(const uint32_t *)(const void *)(mem->host+address-mem->dev_base);
+            for(unsigned k=0;k<4;++k)channels[k]+=(pixel>>(k*8u))&255u;
+        }
+        uint32_t result=0,alpha=(channels[3]+2u)/4u;
+        uint32_t previous=bg[(y+8u)*FB_ROW_PIXELS+R4_WORLD_WIDTH+8u+x];
+        for(unsigned k=0;k<3;++k) {
+            unsigned value=(channels[k]+2u)/4u+(((previous>>(k*8u))&255u)*(255u-alpha)+127u)/255u;
+            result|=(value>255u?255u:value)<<(k*8u);
+        }
+        bg[(y+8u)*FB_ROW_PIXELS+R4_WORLD_WIDTH+8u+x]=result;
+    }
+    return 0;
 }
 
 uint32_t r4_frame_crc(const uint32_t *fb)
@@ -334,15 +330,21 @@ uint32_t r4_frame_crc(const uint32_t *fb)
 
 int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t ladder)
 {
-    (void)tab;
-    (void)mem;
     uint32_t fail_before=s_fail;
     s_ladder = (ladder >= 2u) ? 2u : 1u;
+#ifdef __riscv
     s_hw = hw ? 1u : 0u;
+#else
+    (void)hw;
+    s_hw = 0u; /* PC uses rast_ref; never label that path as FPGA rendering. */
+#endif
     memset(&s_out, 0, sizeof s_out);
+    memset(s_hud_valid,0,sizeof s_hud_valid);
     s_out.ladder = s_ladder;
     s_out.hw = s_hw;
     s_out.scene = s_scene;
+    s_vp=(rast_viewport){R4_VP_CORRIDOR};
+    s_raster_frame=(rast_frame){RAST_WIDTH,RAST_HEIGHT};
     {
         static uint32_t last_scene=UINT32_MAX,last_ladder=UINT32_MAX;
         if(last_scene!=s_scene || last_ladder!=s_ladder)memset(s_render_valid,0,sizeof s_render_valid);
@@ -354,6 +356,7 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
         s_fail++;
         return -1;
     }
+    s_proj.v[6] = -R4_ONE/8; /* 480x480 world: vanishing point (240,210). */
     if(s_replay_on && (s_replay.scene_id!=R4_SCENE_ID+s_scene ||
         s_replay.ladder!=s_ladder || s_replay.asset_version!=R4_ASSET_VERSION)) {
         ++s_fail;return -1;
@@ -361,11 +364,15 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     if(board_region(REGION_SHARED).size<R4_DEPTH_OFF+32768u) {++s_fail;return -1;}
     if(board_region(REGION_OFFSCREEN).size<R4_BG_OFFSET+FB_BYTES) {++s_fail;return -1;}
     r4_world_init(&s_world, s_replay_on?s_replay.seed:R4_SEED);
+    s_world.ladder=s_ladder;
     s_rec = (rast_record *)(void *)((uint8_t *)board_region(REGION_SHARED).ptr + R4_REC_OFF);
     s_sub = (uint8_t *)board_region(REGION_SHARED).ptr + R4_SUB_OFF;
     s_depth = (uint16_t *)(void *)((uint8_t *)board_region(REGION_SHARED).ptr + R4_DEPTH_OFF);
+    if(!s_scene && r4_world_prewarm(&s_proj,&s_vp,s_ladder,s_rec,R4_REC_MAX)) {
+        ++s_fail;return -1;
+    }
 
-    build_background();
+    if(build_background(tab,mem)){++s_fail;return -1;}
     memset(s_atlas, 0, sizeof s_atlas);
     if (s_ladder >= 2u && s_hooks.tex_load_atlas != NULL &&
         s_hooks.tex_load_atlas() != 0) {
@@ -402,6 +409,10 @@ void r4_timing_start(void)
 
 void r4_mode_leave(void)
 {
+#ifndef __riscv
+    free(s_canvas_depth);
+#endif
+    s_canvas_depth=NULL;s_canvas_depth_stride=0;
     if(s_time_count) {
         static uint32_t sorted[2048];
         for(unsigned i=0;i<s_time_count;++i)sorted[i]=s_times[i];
@@ -491,7 +502,7 @@ static int submit_hw(gfx_surface_table *tab, int dst_slot, int fb_index,
     p.ras_key = 0x00000000u;                    /* atlas 透明色 = 全 0 */
     p.texcfg = 0u;
     {
-        const int sr = gfx_engine_submit_raster(g_mem_regions[REGION_CMDLIST_A].offset,
+        const int sr = gfx_engine_submit_raster(s_hud_device,
                                                 R4_SLOT_BG, (uint32_t)dst_slot, &p);
 
         if (sr != GFX_ENG_OK) {
@@ -520,6 +531,7 @@ static int submit_hw(gfx_surface_table *tab, int dst_slot, int fb_index,
         refs != (bytes - 120u) / 2u)
         return -1;
     s_rast_cyc = cycles;
+    s_out.rast_cycles = cycles;
     *crc_out = 0u;
     (void)fb_index;
     return 0;
@@ -527,6 +539,32 @@ static int submit_hw(gfx_surface_table *tab, int dst_slot, int fb_index,
 #endif
 
 /* 软件路径：bg 整屏 BLIT -> rast_ref 逐带直写帧缓冲 -> HUD 逐带 exec。 */
+static int frame_layout(int index)
+{
+    if(board_frame_acquire(index,!GFX2D_R4_JUDGE && !R4_BOARD_CRC && !s_replay_on,&s_frame))return -1;
+    if(s_frame.width<FB_WIDTH || s_frame.width>RAST_FRAME_MAX_WIDTH ||
+        s_frame.height!=FB_HEIGHT || s_frame.stride<s_frame.width)return -1;
+    if(s_frame.width!=FB_WIDTH && s_canvas_depth_stride!=s_frame.stride) {
+#ifdef __riscv
+        return -1; /* The fixed hardware path never owns a PC heap canvas. */
+#else
+        uint16_t *depth=(uint16_t *)realloc(s_canvas_depth,
+                                          (size_t)s_frame.stride*RAST_STRIP_H*sizeof(uint16_t));
+        if(!depth)return -1;
+        s_canvas_depth=depth;s_canvas_depth_stride=s_frame.stride;
+#endif
+    }
+    if(s_raster_frame.width!=s_frame.width) {
+        s_raster_frame.width=s_frame.width;
+        s_vp.w=(uint16_t)(s_frame.width-160u);
+        fx16_t aspect=fx16_div((fx16_t)s_vp.w*FX16_ONE,(fx16_t)s_vp.h*FX16_ONE);
+        if(fx16_perspective(&s_proj,R4_FOV_BAM,aspect,R4_NEAR_Z,R4_FAR_Z))return -1;
+        s_proj.v[6]=-R4_ONE/8;
+        memset(s_render_valid,0,sizeof s_render_valid);s_render_sum=0;s_render_n=0;
+    }
+    return 0;
+}
+
 static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
                      int fb_index, uint32_t count, uint32_t *crc_out)
 {
@@ -534,6 +572,7 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     exec_sw_stats st;
     uint32_t *fb = board_fb(fb_index);
     uint32_t  s;
+    const int wide=s_frame.width!=FB_WIDTH;
 
     {
         gfx_list l;
@@ -548,6 +587,10 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         if (exec_sw_run(&s_es, tab, mem, cmds, l.used, l.used, &st, &err) != GFX_OK)
             return -1;
     }
+    if(wide)for(unsigned y=0;y<s_frame.height;++y) {
+        uint32_t c=R4_COLOR_BG+((y*24u)/FB_HEIGHT)*0x00010102u;
+        for(unsigned x=0;x<s_frame.width;++x)s_frame.pixels[(size_t)y*s_frame.stride+x]=c;
+    }
     for (s = 0u; s < 30u; s++) {
         rast_target t;
         uint32_t row, x;
@@ -556,26 +599,27 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
                 BOARD_KEY_MODE1|BOARD_KEY_MODE2|BOARD_KEY_MODE3);
 
         /* depth 与 color 同 stride（契约 §4）：按 1024 的实际行距清 z。 */
+        uint16_t *depth=wide?s_canvas_depth:s_depth;
         for (row = 0u; row < 16u; row++)
-            for (x = 0u; x < FB_ROW_PIXELS; x++)
-                s_depth[row * FB_ROW_PIXELS + x] = 65535u;
-        t.color = fb + (size_t)s * 16u * FB_ROW_PIXELS;
-        t.depth = s_depth;
-        t.stride = FB_ROW_PIXELS;
+            for (x = 0u; x < s_frame.stride; x++)
+                depth[row * s_frame.stride + x] = 65535u;
+        t.color = s_frame.pixels + (size_t)s * 16u * s_frame.stride;
+        t.depth = depth;
+        t.stride = s_frame.stride;
         t.strip = s;
         t.texture = s_atlas;
         t.tex_width = 64u;
         t.tex_height = 64u;
         t.tex_stride = 64u;
         t.key = 0x00000000u;
-        if (rast_ref_run(s_rec, count, &t) != 0)
+        if (rast_ref_run_frame(s_rec, count, &t,&s_raster_frame) != 0)
             return -1;
     }
     for (s = 0u; s < 30u; s++) {
         /* HUD 命令是条带局部 y：软件路径把目的表面基址平移到本条带首行，
            引擎的 BAND 相位则由硬件把局部 y 落进对应条带——两路同语义。 */
         gfx_surface_table t2 = *tab;
-        uint32_t *hdr = (uint32_t *)board_region(REGION_CMDLIST_A).ptr;
+        uint32_t *hdr = s_hud_list;
         gfx_cmd  *cmds = (gfx_cmd *)(void *)((uint8_t *)hdr + (s + 1u) * 32768u);
 
         t2.s[dst_slot].base += s * 16u * FB_STRIDE_BYTES;
@@ -583,6 +627,9 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         if (exec_sw_run(&s_es, &t2, mem, cmds, hdr[s], hdr[s], &st, &err) != GFX_OK)
             return -1;
     }
+    if(wide)for(unsigned y=0;y<FB_HEIGHT;++y)
+        memcpy(s_frame.pixels+(size_t)y*s_frame.stride+s_frame.width-160u,
+               fb+(size_t)y*FB_ROW_PIXELS+R4_WORLD_WIDTH,160u*sizeof(uint32_t));
     *crc_out = 0u;
     return 0;
 }
@@ -595,13 +642,17 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     const int       fb_index = dst_slot - STG_SLOT_FB0;
     const uint32_t  t0 = board_cycles();
     uint32_t        t_seg, produced, bytes, crc = 0u, due, hud_bad;
-    uint32_t       *list = (uint32_t *)board_region(REGION_CMDLIST_A).ptr;
+    uint32_t       *list;
     int             rc;
 
     if (fb_index < 0 || fb_index > 1) {
         s_fail++;
         return -1;
     }
+    if(frame_layout(fb_index)) {++s_fail;return -1;}
+    unsigned cmd_region=fb_index?REGION_CMDLIST_B:REGION_CMDLIST_A;
+    list=(uint32_t *)board_region(cmd_region).ptr;
+    s_hud_list=list;s_hud_device=g_mem_regions[cmd_region].offset;
     /* 1) 逻辑 tick（30Hz，确定性）。 */
     t_seg = board_cycles();
     if(s_replay_on && replay_r4_key_at(&s_replay,s_out.frames,&keys)) {++s_fail;return -1;}
@@ -616,7 +667,8 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     /* 2) 几何（发射 + setup）与分桶。 */
     t_seg = board_cycles();
     if(s_scene) {
-        int n=r4_cup_emit(s_world.ticks,s_rec,R4_REC_MAX);
+        int n=s_frame.width==FB_WIDTH?r4_cup_emit(s_world.ticks,s_rec,R4_REC_MAX):
+            r4_cup_emit_view(s_world.ticks,&s_vp,s_rec,R4_REC_MAX);
         produced=n<0?UINT32_MAX:(uint32_t)n;
     } else produced = r4_world_emit(&s_world, &s_proj, &s_vp, s_ladder, s_rec, R4_REC_MAX, NULL);
     s_out.cyc_geom = board_cycles() - t_seg;
@@ -626,7 +678,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         return -1;
     }
     t_seg = board_cycles();
-    bytes = (uint32_t)rast_bin(s_rec, produced, s_sub, R4_SUB_CAP);
+    bytes = (uint32_t)rast_bin_frame(s_rec, produced, s_sub, R4_SUB_CAP,&s_raster_frame);
     s_out.cyc_bin = board_cycles() - t_seg;
     if (bytes < 120u) {
         s_fail++;
@@ -702,7 +754,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     {
         uint32_t ticket = 0u;
 
-        if (board_present_request(fb_index, &ticket) != 0 ||
+        if (board_present_frame_request(fb_index,&s_frame, &ticket) != 0 ||
             board_present_wait(ticket) != 0) {
             s_fail++;
             say_u32("r4 err present frame ", s_out.frames, 0u);
@@ -763,6 +815,11 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
             core_out_str(&o,"R4STAT");
             uint32_t values[]={s_fps,s_render_fps[s_hw],produced,s_ladder,s_hw,s_scene};
             for(unsigned i=0;i<6;++i){core_out_ch(&o,' ');core_out_u32(&o,values[i]);}
+            core_out_str(&o,"\r\n");say(line);
+            core_out_init(&o,line,sizeof line);core_out_str(&o,"R4TIME");
+            uint32_t times[]={s_out.cyc_logic,s_out.cyc_geom,s_out.cyc_bin,
+                s_out.cyc_hud,s_out.cyc_submit,s_out.rast_cycles,s_out.bbox_points,s_out.refs};
+            for(unsigned i=0;i<8;++i){core_out_ch(&o,' ');core_out_u32(&o,times[i]);}
             core_out_str(&o,"\r\n");say(line);
         }
     }

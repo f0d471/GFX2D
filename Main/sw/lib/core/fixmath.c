@@ -87,12 +87,50 @@ uint16_t fx_atan2(int32_t y, int32_t x)
    矩阵逐项舍入再饱和相加，避免四个极值乘积相加越出 int64。 */
 int64_t fx16_floor_div(int64_t n, int64_t d)
 {
+    if (d == 16) return n >> 4;
+    if (d == 65536) return n >> 16;
     int64_t q = n / d;
     return q - (n % d < 0);
 }
 
 int64_t fx16_round_div(int64_t n, int64_t d)
 {
+    /* Quotient plus a nonnegative remainder avoids n+d/2 overflow at s64 edges.
+       GCC's arithmetic right shift is the same floor operation used above. */
+    if (d == 16) return (n >> 4) + (((uint64_t)n & 15u) >= 8u);
+    if (d == 65536) return (n >> 16) + (((uint64_t)n & 65535u) >= 32768u);
+    if (d == 131072) return (n >> 17) + (((uint64_t)n & 131071u) >= 65536u);
+    if (d == 1) return n;
+    if (!n) return 0;
+    if (n >= INT32_MIN && n <= INT32_MAX && d <= INT32_MAX) {
+        int32_t q32 = (int32_t)n / (int32_t)d;
+        int32_t r32 = (int32_t)n % (int32_t)d;
+        if (r32 < 0) { --q32; r32 += (int32_t)d; }
+        return (int64_t)q32 + (r32 >= d - d / 2);
+    }
+    if (d > 0 && d <= INT32_MAX) {
+        /* Exact u64/u31 divmod. First divide the high limb with hardware u32
+           DIV/REM, then generate only the significant low quotient bits.
+           Combining quotient/remainder avoids two full software s64 divides. */
+        uint64_t magnitude=n<0?(uint64_t)(-(n+1))+1u:(uint64_t)n;
+        uint32_t den=(uint32_t)d,hi=(uint32_t)(magnitude>>32),lo=(uint32_t)magnitude;
+        uint32_t qhi=hi/den,remainder=hi%den,qlo=0;
+        if (!remainder) {
+            qlo=lo/den;remainder=lo%den;
+        } else {
+            uint64_t tail=((uint64_t)remainder<<32)|lo;
+            int top=32+(int)__builtin_clz(den)-(int)__builtin_clz(remainder);
+            if(top>31)top=31;
+            remainder=(uint32_t)(tail>>(top+1));
+            for(int i=top;i>=0;--i) {
+                remainder=remainder*2u+((lo>>(unsigned)i)&1u);
+                if(remainder>=den){remainder-=den;qlo|=1u<<(unsigned)i;}
+            }
+        }
+        uint64_t quotient=((uint64_t)qhi<<32)|qlo;
+        quotient+=n<0?remainder>den/2u:remainder>=den-den/2u;
+        return n<0?-(int64_t)quotient:(int64_t)quotient;
+    }
     int64_t q = n / d, rem = n % d;
     if (rem < 0) { --q; rem += d; }
     return q + (rem >= d - d / 2);
@@ -116,9 +154,29 @@ fx16_t fx16_div(fx16_t a, fx16_t b)
     if (!b) return a > 0 ? INT32_MAX : a < 0 ? INT32_MIN : 0;
     n = (uint64_t)(a < 0 ? -(int64_t)a : a) * FX16_ONE;
     den = (uint32_t)(b < 0 ? -(int64_t)b : b);
-    for (int i = 47; i >= 0; --i) {
-        rem = rem * 2 + ((n >> i) & 1u);
-        if (rem >= den) { rem -= den; q |= UINT64_C(1) << i; }
+    if (!(den & (den - 1u))) {
+        q = n >> (unsigned)__builtin_ctz(den);
+        rem = n & (den - 1u);
+    } else if (n <= UINT32_MAX) {
+        q = (uint32_t)n / den;
+        rem = (uint32_t)n % den;
+    } else {
+        uint32_t hi = (uint32_t)(n >> 32), lo = (uint32_t)n, quotient = 0;
+        uint32_t remainder;
+        int top;
+        /* A quotient >=2^32 saturates for either sign before rounding.
+           Otherwise only quotient bits are divided, with a u32 remainder:
+           den<=2^31, so remainder*2+bit never overflows u32. */
+        if (hi >= den) return neg ? INT32_MIN : INT32_MAX;
+        top = 32 + __builtin_clz(den) - __builtin_clz(hi);
+        if (top > 31) top = 31;
+        remainder = (uint32_t)(n >> (top + 1));
+        for (int i = top; i >= 0; --i) {
+            remainder = remainder * 2u + ((lo >> i) & 1u);
+            if (remainder >= den) { remainder -= den; quotient |= 1u << i; }
+        }
+        q = quotient;
+        rem = remainder;
     }
     q += neg ? rem * 2 > den : rem * 2 >= den;
     return fx16_sat(neg ? -(int64_t)q : (int64_t)q);
@@ -161,7 +219,11 @@ void fx16_mat_vec(const fx16_mat4 *m, const fx16_vec4 *v, fx16_vec4 *out)
     fx16_vec4 t;
     for (int i = 0; i < 4; ++i) {
         int64_t sum = 0;
-        for (int j = 0; j < 4; ++j) sum += fx16_mul(m->v[i * 4 + j], v->v[j]);
+        for (int j = 0; j < 4; ++j) {
+            fx16_t a = m->v[i * 4 + j], b = v->v[j];
+            sum += !a || !b ? 0 : a == FX16_ONE ? b :
+                   b == FX16_ONE ? a : fx16_mul(a, b);
+        }
         t.v[i] = fx16_sat(sum);
     }
     *out = t;

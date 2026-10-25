@@ -15,6 +15,12 @@
 #define RAST_STRIPS 30
 #define RAST_RECORD_BYTES 128
 #define RAST_MAX_FAN 12
+/* Software canvases retain the 128B record and 30 fixed-height strips.
+   Width is bounded so Q12.4 origins and signed edge stepping stay representable.
+   The legacy entry points always retain their 640x480 hardware contract. */
+#define RAST_FRAME_MAX_WIDTH 1792u
+typedef struct { unsigned width, height; } rast_frame;
+int rast_frame_valid(const rast_frame *frame);
 #define RAST_TEX_EN 1u
 #define RAST_VCOLOR_EN 2u
 #define RAST_KEY_EN 4u
@@ -117,11 +123,21 @@ int rast_setup_view_vp(const rast_view_vertex *v, unsigned count,
                        fx16_t near_z, fx16_t far_z, const rast_viewport *vp,
                        uint32_t flags, rast_record *out, unsigned capacity,
                        rast_setup_stats *stats);
+int rast_setup_polygon_frame(const rast_vertex *v, unsigned count, const rast_viewport *vp,
+                             const rast_frame *frame, uint32_t flags,
+                             rast_record *out, unsigned capacity, rast_setup_stats *stats);
+int rast_setup_view_frame(const rast_view_vertex *v, unsigned count,
+                          const fx16_mat4 *projection, fx16_t near_z, fx16_t far_z,
+                          const rast_viewport *vp, const rast_frame *frame, uint32_t flags,
+                          rast_record *out, unsigned capacity, rast_setup_stats *stats);
 /* S3L 默认 S3L_F=512；+z 朝前 -> 我方 -z 朝前。超出 Q16.16 返回 -1。 */
 int rast_from_s3l(int32_t x, int32_t y, int32_t z, rast_view_vertex *out);
 /* 子表：[u16 count,u16 0,u16 index ...] × 30，无额外对齐。返回字节数。
    先完整计容，再写出；主表保持提交顺序，空帧输出 30 个空头。 */
 int rast_bin(const rast_record *records, unsigned count, uint8_t *out, size_t capacity);
 int rast_record_valid(const rast_record *r);
+int rast_record_valid_frame(const rast_record *r, const rast_frame *frame);
+int rast_bin_frame(const rast_record *records, unsigned count, uint8_t *out,
+                    size_t capacity, const rast_frame *frame);
 
 #endif

@@ -1,0 +1,68 @@
+# COM11 @ 115200 8N1, opened 19:00:20
+# --- 程序已加载，以下才是它的输出 ---
+gfx2dGame MODES
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+r4 enter ladder/hw 2 1
+mode 4 enter frame 6 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 40977 335 0 0 0
+r4 enter ladder/hw 1 1
+mode 4 enter frame 11 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 41371 337 0 0 0
+r4 enter ladder/hw 1 0
+R4STAT 0 403 118 1 0 0
+R4TIME 4778 933641 134224 420554 246477723 0 612451 481
+mode 4 enter frame 16 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4STAT 0 403 117 1 0 0
+R4TIME 3813 927466 132963 422022 246360555 0 611533 482
+R4STAT 0 404 116 1 0 0
+R4TIME 3773 918367 131206 128734 246037916 0 609850 480
+R4STAT 0 404 119 1 0 0
+R4TIME 4018 964157 134726 94047 246220276 0 609730 488
+R4STAT 0 404 119 1 0 0
+R4TIME 3668 962457 135284 95277 246103166 0 608791 488
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 5
+R4HEALTH 42349 347 0 0 0
+r4 enter ladder/hw 1 1
+mode 4 enter frame 21 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 42592 338 0 0 0
+r4 enter ladder/hw 1 1
+mode 4 enter frame 26 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 5
+R4HEALTH 42780 336 0 0 0
+r4 enter ladder/hw 1 1
+mode 4 enter frame 31 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 43023 336 0 0 0
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 36 crc skip pool 0 0 0 0 clip 0 0 639 479
+press fixed knob 64 kind 16x16
+mode 3 enter frame 41 crc skip pool 0 0 0 0 clip 0 0 639 479
+mode 1 enter frame 46 crc skip pool 0 0 0 0 clip 0 0 639 479
+r4 enter ladder/hw 1 1
+mode 4 enter frame 51 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 43283 336 0 0 0
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 56 crc skip pool 0 0 0 0 clip 0 0 639 479
+csvsum,4,4,0,445769,445769,0,0
+diag fifo_min 335 samples 60 zero 0 under 0 irqA 3144 irqB 55 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 19:01:24, 3432 bytes

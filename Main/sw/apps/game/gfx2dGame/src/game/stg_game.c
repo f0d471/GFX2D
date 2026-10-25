@@ -33,6 +33,9 @@ static void round_reset(stg_game *g)
     stg_field_init(&g->f, g->seed);
     stg_enemies_init(&g->en);
     stg_bg_init(&g->bg, &g->f.rng);
+    g->ss         = &stg_stage_classic;
+    g->ex         = 0u;
+    g->shake      = 0u;
     g->boss.on    = STG_BOSS_OFF;
     g->boss.t     = 0u;
     g->boss.n_em  = 0u;
@@ -94,6 +97,22 @@ const char *stg_game_seg_name(uint32_t seg)
     if (seg == STG_GSEG_CLEAR)
         return "CLEAR";
     return "?";
+}
+
+/* HUD 用的段名：EX 路线显示 EX 前缀与 EX 的符卡名；经典路线与上面的判据口径逐字相同。 */
+const char *stg_game_seg_name_g(const stg_game *g, uint32_t seg)
+{
+    if (g->ex == 0u)
+        return stg_game_seg_name(seg);
+    if (seg == STG_GSEG_STAGE)
+        return "EX STAGE";
+    if (seg == STG_GSEG_BOSS)
+        return "EX BOSS";
+    if (seg >= STG_GSEG_SPELL1 && seg < STG_GSEG_SPELL1 + STG_CARD_N)
+        return stg_stage_ex.cards[seg - STG_GSEG_SPELL1].name;
+    if (seg == STG_GSEG_CLEAR)
+        return "EX CLEAR";
+    return stg_game_seg_name(seg);
 }
 
 /* 一个轴：负向键与正向键只按一个时取它的方向，都按或都不按为 0。 */
@@ -181,7 +200,7 @@ static void card_em_pos(const stg_boss *b, const stg_card_em *ce, stg_emitter *e
 static void card_begin(stg_game *g)
 {
     stg_boss       *b = &g->boss;
-    const stg_card *c = &stg_cards[b->card];
+    const stg_card *c = &g->ss->cards[b->card];
     uint32_t        j;
 
     b->on   = STG_BOSS_CARD;
@@ -240,13 +259,13 @@ static void boss_timing(stg_game *g)
         if (b->t >= STG_BOSS_ENTER_FRAMES)
             card_begin(g);
     } else if (b->on == STG_BOSS_GAP) {
-        if (b->t >= stg_cards[b->card].gap)
+        if (b->t >= g->ss->cards[b->card].gap)
             card_begin(g);
     } else if (b->on == STG_BOSS_CARD) {
 #ifdef INJECT_CARD_TIMEOUT_GT
-        if (!g->press && b->t > stg_cards[b->card].timeout)     /* 注错：超时晚一帧 */
+        if (!g->press && b->t > g->ss->cards[b->card].timeout)  /* 注错：超时晚一帧 */
 #else
-        if (!g->press && b->t >= stg_cards[b->card].timeout)
+        if (!g->press && b->t >= g->ss->cards[b->card].timeout)
 #endif
             card_end(g, 0);
     }
@@ -296,7 +315,7 @@ static void boss_step(stg_game *g, const stg_emit_ctx *ctx)
     if (b->on == STG_BOSS_OFF)
         return;
     if (b->on == STG_BOSS_CARD) {
-        const stg_card *c = &stg_cards[b->card];
+        const stg_card *c = &g->ss->cards[b->card];
 
         for (j = 0u; j < b->n_em; j++)
             card_em_pos(b, &c->em[j], &b->em[j]);
@@ -321,14 +340,14 @@ static void boss_step(stg_game *g, const stg_emit_ctx *ctx)
 /* 第 4 步前半：取出本帧到期的事件（帧号不大于开局以来的帧数）按表的顺序执行。 */
 static void stage_events(stg_game *g)
 {
-    while (g->ev_i < stg_stage_n_events && stg_stage_events[g->ev_i].t <= g->phase_t) {
-        const stg_event *e = &stg_stage_events[g->ev_i];
+    while (g->ev_i < g->ss->n_events && g->ss->events[g->ev_i].t <= g->phase_t) {
+        const stg_event *e = &g->ss->events[g->ev_i];
 
         g->ev_i++;
         if (e->type == STG_EVT_SPAWN) {
-            if (e->move < stg_n_moves && e->group < stg_n_em_groups) {
-                const stg_move_tab *mv = &stg_moves[e->move];
-                const stg_em_group *gr = &stg_em_groups[e->group];
+            if (e->move < g->ss->n_moves && e->group < g->ss->n_groups) {
+                const stg_move_tab *mv = &g->ss->moves[e->move];
+                const stg_em_group *gr = &g->ss->groups[e->group];
 
                 (void)stg_enemy_spawn(&g->en, e->etype, (int32_t)e->x * FX_ONE, (int32_t)e->y * FX_ONE,
                                       mv->steps, mv->n, gr->recs, gr->n, e->delay);
@@ -410,6 +429,18 @@ void stg_game_step(stg_game *g, uint32_t keys)
     g->cancelled = 0u;
     g->keys_prev = keys;
     if (g->phase == STG_PH_TITLE && g->phase_t >= STG_TITLE_FRAMES) {
+        /* EX 路线的入口：过渡帧上四个方向键同按。判据按键脚本与通关录像搜索器
+           永远不产生这种输入（四向同按 = 原地不动），经典路线不受影响。
+           GFX2D_START_EX 是演示/截帧钩子：编译期直接走 EX，不需要按键。 */
+#ifdef GFX2D_START_EX
+        if (1) {
+#else
+        if ((keys & (STG_KEY_UP | STG_KEY_DOWN | STG_KEY_LEFT | STG_KEY_RIGHT)) ==
+            (STG_KEY_UP | STG_KEY_DOWN | STG_KEY_LEFT | STG_KEY_RIGHT)) {
+#endif
+            g->ss = &stg_stage_ex;
+            g->ex = 1u;
+        }
         g->phase   = STG_PH_PLAY;
         g->phase_t = 0u;
         g->ev     |= STG_EV_START;
@@ -481,6 +512,15 @@ void stg_game_step(stg_game *g, uint32_t keys)
         bomb(g);
     g->bomb_req = 0u;
 
+    /* 背景震动的幅度：受击/炸弹/破符给拍，逐帧衰减。只由 ev 位派生、不消耗随机数，
+       不影响任何结算；绘制层读 shake 与 frame 算偏移（画法在 stg_draw.c）。 */
+    if ((g->ev & STG_EV_LOST) != 0u)
+        g->shake = 12u;
+    else if ((g->ev & (STG_EV_HIT | STG_EV_BOMB | STG_EV_CARD_KILL)) != 0u)
+        g->shake = (g->shake < 8u) ? 8u : g->shake;
+    else if (g->shake != 0u)
+        g->shake--;
+
     /* HI-SCORE 在局的结束之前取 max：结束那一帧的得分也算 */
     if (g->score > g->hiscore)
         g->hiscore = g->score;
@@ -506,7 +546,7 @@ void stg_game_press_begin(stg_game *g, uint32_t kind)
     g->hits_on    = 0u;
     g->phase      = STG_PH_PLAY;
     g->phase_t    = 0u;
-    g->ev_i       = stg_stage_n_events;
+    g->ev_i       = g->ss->n_events;
     b->card = STG_CARD_N - 1u;
     b->x    = STG_BOSS_X0;
     b->y    = STG_BOSS_HOME_Y;

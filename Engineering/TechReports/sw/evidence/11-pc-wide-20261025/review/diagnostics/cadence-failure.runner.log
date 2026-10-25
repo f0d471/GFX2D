@@ -1,0 +1,14 @@
+RUN Main/sim/build/check-runs/20261025-182151-d96c91a6
+R4 BOARD PASS l1
+R4 BOARD PASS l2
+R4 BOARD PASS cup
+Traceback (most recent call last):
+  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_r4_board.py", line 126, in <module>
+    try:main()
+        ^^^^^^
+  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_r4_board.py", line 94, in main
+    results.append(dict(case='performance-input',**performance(text,sample_count)))
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Workspace\FPGA\Efinix\Main\tools\check\r4_checks.py", line 92, in performance
+    raise RuntimeError('R4 cadence/budget failed: '+str(v))
+RuntimeError: R4 cadence/budget failed: [1800, 2797360, 3221484, 3323981, 1085, 715, 0, 3601, 1800]

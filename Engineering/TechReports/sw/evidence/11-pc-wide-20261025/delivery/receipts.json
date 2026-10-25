@@ -1,0 +1,174 @@
+{
+  "status": "PASS",
+  "files": [
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/entries-20261025-200653/ps51-auto.log",
+      "file": "entries/ps51-auto.log",
+      "policy": "byte-identical",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archived_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/entries-20261025-200653/ps51-auto.stderr.log",
+      "file": "entries/ps51-auto.stderr.log",
+      "policy": "byte-identical",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archived_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/entries-20261025-200653/ps7-fixed.log",
+      "file": "entries/ps7-fixed.log",
+      "policy": "byte-identical",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archived_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/entries-20261025-200653/ps7-fixed.stderr.log",
+      "file": "entries/ps7-fixed.stderr.log",
+      "policy": "byte-identical",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archived_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/entries-20261025-200653/result.json",
+      "file": "entries/result.json",
+      "policy": "metadata repository paths normalized",
+      "source_sha256": "9dd01385e4325c75acd104ec6da990ac1e52fb284971fe536acaf8856e9b8d45",
+      "archived_sha256": "9dd01385e4325c75acd104ec6da990ac1e52fb284971fe536acaf8856e9b8d45"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/live-package-ps7-fixed-20261025-200654/display-0.png",
+      "file": "pc-ps7-fixed/display-0.png",
+      "policy": "byte-identical",
+      "source_sha256": "98c5a475d84e50e543c68453201d05dbb767d186274761688093b3c21c0a80cd",
+      "archived_sha256": "98c5a475d84e50e543c68453201d05dbb767d186274761688093b3c21c0a80cd"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/live-package-ps7-fixed-20261025-200654/display-1.png",
+      "file": "pc-ps7-fixed/display-1.png",
+      "policy": "byte-identical",
+      "source_sha256": "650ccccaeeaa87e15ad66d92c3b5601e264e3fe132030019cf8a06fe9f9329db",
+      "archived_sha256": "650ccccaeeaa87e15ad66d92c3b5601e264e3fe132030019cf8a06fe9f9329db"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/live-package-ps7-fixed-20261025-200654/result.json",
+      "file": "pc-ps7-fixed/result.json",
+      "policy": "metadata repository paths normalized",
+      "source_sha256": "4f2b4b0dd111b5e00ed0a97598880ea15904a5ce17f1b45e72c010602a3b2de2",
+      "archived_sha256": "2f56dba0da75d99d240bd6f54ce7eb0e5544d9e8bd51b2c1ad326f850b339d36"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/live-package-ps51-auto-20261025-200703/display-0.png",
+      "file": "pc-ps51-auto/display-0.png",
+      "policy": "byte-identical",
+      "source_sha256": "75812418c855efbd0f1423d45b5448415232e70fee41ed5678d60154079d9a13",
+      "archived_sha256": "75812418c855efbd0f1423d45b5448415232e70fee41ed5678d60154079d9a13"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/live-package-ps51-auto-20261025-200703/display-1.png",
+      "file": "pc-ps51-auto/display-1.png",
+      "policy": "byte-identical",
+      "source_sha256": "95a0f9f8e4854d105bd37096435b12e52b1858ed7066504fdafe7c306b1ec029",
+      "archived_sha256": "95a0f9f8e4854d105bd37096435b12e52b1858ed7066504fdafe7c306b1ec029"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/live-package-ps51-auto-20261025-200703/result.json",
+      "file": "pc-ps51-auto/result.json",
+      "policy": "metadata repository paths normalized",
+      "source_sha256": "9145d4aab1246b98cc87bd58eb6e7a50b8d3b528db0a57372dcb9d42cf0f4666",
+      "archived_sha256": "0ab7648dea92b2bfa228b9509b28161e540fe9ba9edbc2b5bb2dcac048c72f8e"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/entry-tamper-final/ps51.log",
+      "file": "tamper/ps51.log",
+      "policy": "byte-identical",
+      "source_sha256": "4469a3fcadc018a6cb8242d31c6d3bcea0284c1f73f79bf0cc28a3d7d6a5f45d",
+      "archived_sha256": "4469a3fcadc018a6cb8242d31c6d3bcea0284c1f73f79bf0cc28a3d7d6a5f45d"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/entry-tamper-final/ps7.log",
+      "file": "tamper/ps7.log",
+      "policy": "byte-identical",
+      "source_sha256": "c74b4bf014b37aad79181661c6b43c5589036a2ae6b59b724e7f0f79cdaca967",
+      "archived_sha256": "c74b4bf014b37aad79181661c6b43c5589036a2ae6b59b724e7f0f79cdaca967"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/entry-tamper-final/result.json",
+      "file": "tamper/result.json",
+      "policy": "metadata repository paths normalized",
+      "source_sha256": "1a36185d7c29a740d4f71aecacd3788cb7daa15d26fc9a922640a39cc009907a",
+      "archived_sha256": "1a36185d7c29a740d4f71aecacd3788cb7daa15d26fc9a922640a39cc009907a"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/board-release-20261025-191620/deploy.log",
+      "file": "board-startup/deploy.log",
+      "policy": "byte-identical",
+      "source_sha256": "4e20efcb2df9c3ca6fb75d0b03583c007265184c244df6a0a015bae3ee0a2d59",
+      "archived_sha256": "4e20efcb2df9c3ca6fb75d0b03583c007265184c244df6a0a015bae3ee0a2d59"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/board-release-20261025-191620/result.json",
+      "file": "board-startup/result.json",
+      "policy": "metadata repository paths normalized",
+      "source_sha256": "901e1059271bd041f751fa24f7fe5b808bc46451335d16f5648229cec6b3609f",
+      "archived_sha256": "901e1059271bd041f751fa24f7fe5b808bc46451335d16f5648229cec6b3609f"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/board-release-20261025-191620/serial.log",
+      "file": "board-startup/serial.log",
+      "policy": "byte-identical",
+      "source_sha256": "8acc7920c3cd33be77b371f29f28a56c7f394c321c5aacf48802ece55d9d8a4a",
+      "archived_sha256": "8acc7920c3cd33be77b371f29f28a56c7f394c321c5aacf48802ece55d9d8a4a"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/verify_package_entries.ps1",
+      "file": "sampling-scripts/verify_package_entries.ps1",
+      "policy": "byte-identical",
+      "source_sha256": "fcbe2e8ba64ea8fb1bc9ce7a70d1f6821ee6787dec13135a1254d4e7259af37e",
+      "archived_sha256": "fcbe2e8ba64ea8fb1bc9ce7a70d1f6821ee6787dec13135a1254d4e7259af37e"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/verify_live.ps1",
+      "file": "sampling-scripts/verify_live.ps1",
+      "policy": "byte-identical",
+      "source_sha256": "2428d491b1d88027d4847ae7ca262ef2694fc56f3a33f6d5c04716737b85a0f5",
+      "archived_sha256": "2428d491b1d88027d4847ae7ca262ef2694fc56f3a33f6d5c04716737b85a0f5"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/check_entry_tamper.py",
+      "file": "sampling-scripts/check_entry_tamper.py",
+      "policy": "byte-identical",
+      "source_sha256": "75443dd3638cd6cc46569471dff0dd89c9bd9d8d6beca0627092f808bb9da966",
+      "archived_sha256": "75443dd3638cd6cc46569471dff0dd89c9bd9d8d6beca0627092f808bb9da966"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/package_release.py",
+      "file": "sampling-scripts/package_release.py",
+      "policy": "byte-identical",
+      "source_sha256": "15ff067936935748207215f59323efe415c99b94c05ee5940d5ead782735e22e",
+      "archived_sha256": "15ff067936935748207215f59323efe415c99b94c05ee5940d5ead782735e22e"
+    },
+    {
+      "source": "Main/sim/build/pc-widescreen-20261025/restore_release.py",
+      "file": "sampling-scripts/restore_release.py",
+      "policy": "byte-identical",
+      "source_sha256": "4c3cc1e8a1e36b2acea77c284b58e409c143d5525934251c5b7667a070e1416a",
+      "archived_sha256": "4c3cc1e8a1e36b2acea77c284b58e409c143d5525934251c5b7667a070e1416a"
+    },
+    {
+      "source": "Main/bit/board_release_game_wide_20261025/verification.json",
+      "file": "verification.json",
+      "policy": "metadata repository paths normalized",
+      "source_sha256": "f7f926c87d0fcedb6a4fde38dc91fb8077ea7d844c09a898e27d2f2b6049b5e5",
+      "archived_sha256": "f7f926c87d0fcedb6a4fde38dc91fb8077ea7d844c09a898e27d2f2b6049b5e5"
+    },
+    {
+      "source": "Main/bit/board_release_game_wide_20261025/manifest.json",
+      "file": "package-manifest.json",
+      "policy": "metadata repository paths normalized",
+      "source_sha256": "8a22203dfbf90080d9a36b6881eb9b4b2f8a5db715ef677731b9805c99dc1474",
+      "archived_sha256": "8a22203dfbf90080d9a36b6881eb9b4b2f8a5db715ef677731b9805c99dc1474"
+    }
+  ],
+  "scope": "frozen package identity, positive/negative entries, current Windows review and separate unlimited JTAG startup"
+}

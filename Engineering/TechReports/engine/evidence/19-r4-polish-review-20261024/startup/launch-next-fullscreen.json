@@ -1,0 +1,20 @@
+{
+  "rect": [
+    0,
+    0,
+    2560,
+    1600
+  ],
+  "status": "PASS",
+  "screenshot": "<REPO>\\Main\\sim\\build\\r4-visual-upgrade-20261024\\launch-next-fullscreen.png",
+  "fullscreen": true,
+  "screen": [
+    2560,
+    1600
+  ],
+  "kept": false,
+  "package": "board_release_game_next_20261024",
+  "window": "MYRIAD | F11 fullscreen | F4 smooth/pixel",
+  "pid": 7560,
+  "exe": "<REPO>\\Main\\bit\\board_release_game_next_20261024\\pc\\gfx2dGame.exe"
+}

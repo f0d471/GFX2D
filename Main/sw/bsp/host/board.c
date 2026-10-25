@@ -24,6 +24,9 @@
 *         **截帧**（只在 PC 上有）：没有显示器时用它看画面。
 *           GFX2D_SNAPSHOT=<k,k,...>  呈现序号（第几次成功的 board_present()，从 0 起），最多 64 个
 *           GFX2D_SNAPSHOT_DIR=<目录>  写到哪里，缺省当前目录
+*           GFX2D_SNAPSHOT_EVERY=<n>  连续倾倒：呈现序号能被 n 整除就写一帧，n=1 即每帧都写。
+*                                     做视频素材用（ffmpeg -framerate 60 -i snap_%05d.ppm），
+*                                     与 GFX2D_SNAPSHOT 的指定序号表互相独立，可以同时开。
 *         到了就把要呈现的那一面的 640x480 写成 PPM（文件名 snap_<k>.ppm，k 补到 5 位），
 *         在 stderr 打一行 `board: snapshot k -> 路径`。不设时什么也不做，不改 board.h，也不改应用的输出。
 *
@@ -36,6 +39,9 @@
 #define SDL_MAIN_HANDLED        1
 
 #include <SDL.h>
+#ifdef _WIN32
+#include <SDL_syswm.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,6 +72,12 @@ static uint64_t      s_step;        /* 一场等于多少个计数器单位 */
 static uint32_t      s_swaps;       /* 成功 present 过的次数 */
 static int           s_scale;
 static int           s_quit;
+static int           s_fullscreen, s_smooth;
+static int           s_window_x, s_window_y, s_window_w, s_window_h;
+static unsigned      s_texture_w = FB_WIDTH, s_texture_h = FB_HEIGHT;
+static uint32_t     *s_canvas[BOARD_FB_COUNT];
+static unsigned      s_canvas_w[BOARD_FB_COUNT];
+#define HOST_CANVAS_MAX_WIDTH 1792u
 
 /* 串口发送额度的模拟（board.h 的 board_tx_room）。s_tx_budget 为 0 表示不限。 */
 static uint32_t      s_tx_budget;   /* GFX2D_TX_BUDGET：每场补满到多少字节 */
@@ -74,10 +86,11 @@ static uint32_t      s_tx_field;    /* 上一次补额度时的场号 */
 static uint32_t      s_tx_over_n;   /* board_puts 超出额度的次数 */
 static uint32_t      s_tx_over_bytes;
 
-/* 截帧（见文件头）。s_snap_n 为 0 表示不截。 */
+/* 截帧（见文件头）。s_snap_n 为 0 表示不截。s_snap_every 非 0 表示连续倾倒。 */
 #define SNAP_MAX            64u
 static uint32_t      s_snap[SNAP_MAX];
 static uint32_t      s_snap_n;
+static uint32_t      s_snap_every;
 
 /* GFX2D_UNPACED=1：呈现不等场（见文件头）。 */
 static int           s_unpaced;
@@ -95,15 +108,86 @@ static void die(const char *what)
    - SDL_QUIT 置 s_quit，应用经 board_should_quit 拿到；
    - 功能键切窗口大小（1x/2x/3x）。**缩放是宿主的事，不进 board_keys 的位图**：
      进了位图就会被录进录像、改变回放的按键序列，破坏确定性。 */
+static void recreate_texture(void)
+{
+    if (s_tex != NULL) SDL_DestroyTexture(s_tex);
+    s_tex = SDL_CreateTexture(s_ren, SDL_PIXELFORMAT_XRGB8888,
+                              SDL_TEXTUREACCESS_STREAMING, (int)s_texture_w, (int)s_texture_h);
+    if (s_tex == NULL) die("SDL_CreateTexture");
+    (void)SDL_SetTextureScaleMode(s_tex, s_smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+}
+
+/* Restore saved positions only when enough of the window is still on a live
+   monitor. This also handles unplugging the display that held the window. */
+static void fit_window_to_display(int *x, int *y, int *w, int *h)
+{
+    SDL_Rect bounds;
+    for (int i=0;i<SDL_GetNumVideoDisplays();++i) {
+        if(SDL_GetDisplayUsableBounds(i,&bounds))continue;
+        int left=*x>bounds.x?*x:bounds.x,top=*y>bounds.y?*y:bounds.y;
+        int right=*x+*w<bounds.x+bounds.w?*x+*w:bounds.x+bounds.w;
+        int bottom=*y+*h<bounds.y+bounds.h?*y+*h:bounds.y+bounds.h;
+        if(right-left>=64 && bottom-top>=32 && *y>=bounds.y && *y+32<=bounds.y+bounds.h)return;
+    }
+    int display=SDL_GetWindowDisplayIndex(s_win);
+    if(display<0)display=0;
+    if(SDL_GetDisplayUsableBounds(display,&bounds))return;
+    if(*w>bounds.w)*w=bounds.w;
+    if(*h>bounds.h)*h=bounds.h;
+    *x=bounds.x+(bounds.w-*w)/2;*y=bounds.y+(bounds.h-*h)/2;
+}
+
+static void fullscreen(int enabled)
+{
+    if (enabled == s_fullscreen) return;
+    if (enabled) {
+        SDL_GetWindowPosition(s_win, &s_window_x, &s_window_y);
+        SDL_GetWindowSize(s_win, &s_window_w, &s_window_h);
+    }
+    if (SDL_SetWindowFullscreen(s_win, enabled ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) != 0) {
+        fprintf(stderr, "board: fullscreen: %s\n", SDL_GetError());
+        return;
+    }
+    s_fullscreen = enabled;
+    if (!enabled) {
+        fit_window_to_display(&s_window_x,&s_window_y,&s_window_w,&s_window_h);
+        SDL_SetWindowSize(s_win, s_window_w, s_window_h);
+        SDL_SetWindowPosition(s_win, s_window_x, s_window_y);
+    }
+}
+
 static void pump_events(void)
 {
     SDL_Event e;
 
     while (SDL_PollEvent(&e)) {
+        if(e.type==SDL_DISPLAYEVENT && e.display.event==SDL_DISPLAYEVENT_DISCONNECTED) {
+            if(s_fullscreen)fullscreen(0);
+            int x,y,w,h;SDL_GetWindowPosition(s_win,&x,&y);SDL_GetWindowSize(s_win,&w,&h);
+            fit_window_to_display(&x,&y,&w,&h);
+            SDL_SetWindowSize(s_win,w,h);SDL_SetWindowPosition(s_win,x,y);
+        }
         if (e.type == SDL_QUIT) {
             s_quit = 1;
-        } else if (e.type == SDL_KEYDOWN && s_win != NULL) {
+        } else if ((e.type == SDL_RENDER_DEVICE_RESET || e.type == SDL_RENDER_TARGETS_RESET) && s_ren != NULL) {
+            recreate_texture();
+        } else if (e.type == SDL_KEYDOWN && s_win != NULL && !e.key.repeat) {
             int want = 0;
+
+            if (e.key.keysym.scancode == SDL_SCANCODE_F11 ||
+                (e.key.keysym.scancode == SDL_SCANCODE_RETURN && (e.key.keysym.mod & KMOD_ALT))) {
+                fullscreen(!s_fullscreen);
+                continue;
+            }
+            if (e.key.keysym.scancode == SDL_SCANCODE_ESCAPE && s_fullscreen) {
+                fullscreen(0);
+                continue;
+            }
+            if (e.key.keysym.scancode == SDL_SCANCODE_F4) {
+                s_smooth = !s_smooth;
+                (void)SDL_SetTextureScaleMode(s_tex, s_smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+                continue;
+            }
 
             switch (e.key.keysym.scancode) {
             case SDL_SCANCODE_F1: want = 1; break;
@@ -111,7 +195,8 @@ static void pump_events(void)
             case SDL_SCANCODE_F3: want = 3; break;
             default: break;
             }
-            if (want != 0 && want != s_scale) {
+            if (want != 0) {
+                fullscreen(0);
                 s_scale = want;
                 SDL_SetWindowSize(s_win, (int)FB_WIDTH * want, (int)FB_HEIGHT * want);
             }
@@ -176,12 +261,18 @@ uint32_t board_tx_room(void)
 static void snap_init(void)
 {
     const char *env = getenv("GFX2D_SNAPSHOT");
+    const char *every = getenv("GFX2D_SNAPSHOT_EVERY");
     const char *p   = env;
 
     s_snap_n   = 0u;
     s_snap_dir = getenv("GFX2D_SNAPSHOT_DIR");
     if (s_snap_dir == NULL || s_snap_dir[0] == '\0')
         s_snap_dir = ".";
+    if (every != NULL && every[0] != '\0') {
+        unsigned long v = strtoul(every, NULL, 10);
+
+        s_snap_every = (uint32_t)v;
+    }
     if (env == NULL)
         return;
 
@@ -200,12 +291,48 @@ static void snap_init(void)
     }
 }
 
-/* 呈现序号 idx 在表里就把 fb 写成 PPM。帧缓冲是 XRGB8888（0x00RRGGBB，小端存放）。 */
-static void snap_maybe(const uint32_t *fb, uint32_t idx)
+/* 把要呈现的那一面的 640x480 写成 PPM。帧缓冲是 XRGB8888（0x00RRGGBB，小端存放）。
+   每行先折进一个行缓冲再一次 fwrite：连续倾倒时逐像素 fputc 的开销足以把呈现拖离 60 Hz。 */
+static void snap_write(const uint32_t *fb, uint32_t idx)
 {
     char     path[512];
     FILE    *fp;
-    uint32_t i, x, y;
+    uint32_t x, y;
+    uint8_t  row[FB_WIDTH * 3u];
+
+    snprintf(path, sizeof path, "%s/snap_%05u.ppm", s_snap_dir, (unsigned)idx);
+    fp = fopen(path, "wb");
+    if (fp == NULL) {
+        fprintf(stderr, "board: snapshot %u 写不了 %s\n", idx, path);
+        return;
+    }
+    fprintf(fp, "P6\n%u %u\n255\n", (unsigned)FB_WIDTH, (unsigned)FB_HEIGHT);
+    for (y = 0u; y < FB_HEIGHT; y++) {
+        const uint32_t *line = &fb[y * FB_ROW_PIXELS];
+
+        for (x = 0u; x < FB_WIDTH; x++) {
+            const uint32_t v = line[x];
+
+            row[x * 3u]       = (uint8_t)((v >> 16) & 0xFFu);
+            row[x * 3u + 1u]  = (uint8_t)((v >> 8) & 0xFFu);
+            row[x * 3u + 2u]  = (uint8_t)(v & 0xFFu);
+        }
+        fwrite(row, 1u, sizeof row, fp);
+    }
+    fclose(fp);
+    fprintf(stderr, "board: snapshot %u -> %s\n", idx, path);
+}
+
+/* 连续倾倒：呈现序号能被 s_snap_every 整除就写一帧。 */
+static void snap_every_maybe(const uint32_t *fb, uint32_t idx)
+{
+    if (s_snap_every != 0u && idx % s_snap_every == 0u)
+        snap_write(fb, idx);
+}
+
+static void snap_maybe(const uint32_t *fb, uint32_t idx)
+{
+    uint32_t i;
 
     for (i = 0u; i < s_snap_n; i++) {
         if (s_snap[i] == idx)
@@ -214,24 +341,7 @@ static void snap_maybe(const uint32_t *fb, uint32_t idx)
     if (i == s_snap_n)
         return;
 
-    snprintf(path, sizeof path, "%s/snap_%05u.ppm", s_snap_dir, (unsigned)idx);
-    fp = fopen(path, "wb");
-    if (fp == NULL) {
-        fprintf(stderr, "board: snapshot %u 写不了 %s\n", (unsigned)idx, path);
-        return;
-    }
-    fprintf(fp, "P6\n%u %u\n255\n", (unsigned)FB_WIDTH, (unsigned)FB_HEIGHT);
-    for (y = 0u; y < FB_HEIGHT; y++) {
-        for (x = 0u; x < FB_WIDTH; x++) {
-            const uint32_t v = fb[y * FB_ROW_PIXELS + x];
-
-            fputc((int)((v >> 16) & 0xFFu), fp);
-            fputc((int)((v >> 8) & 0xFFu), fp);
-            fputc((int)(v & 0xFFu), fp);
-        }
-    }
-    fclose(fp);
-    fprintf(stderr, "board: snapshot %u -> %s\n", (unsigned)idx, path);
+    snap_write(fb, idx);
 }
 
 void board_init(void)
@@ -243,12 +353,15 @@ void board_init(void)
     }
 
     SDL_SetMainReady();
+#ifdef _WIN32
+    SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
+#endif
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
         die("SDL_Init");
 
-    s_win = SDL_CreateWindow("gfx2d PC (SW4)",
+    s_win = SDL_CreateWindow("MYRIAD | F11 fullscreen | F4 smooth/pixel",
                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                             (int)FB_WIDTH, (int)FB_HEIGHT, 0);
+                             (int)FB_WIDTH, (int)FB_HEIGHT, SDL_WINDOW_RESIZABLE);
     if (s_win == NULL)
         die("SDL_CreateWindow");
 
@@ -259,16 +372,20 @@ void board_init(void)
         s_ren = SDL_CreateRenderer(s_win, -1, SDL_RENDERER_SOFTWARE);   /* 无 3D 驱动 / dummy 驱动 */
     if (s_ren == NULL)
         die("SDL_CreateRenderer");
+    if (SDL_RenderSetLogicalSize(s_ren, (int)FB_WIDTH, (int)FB_HEIGHT) != 0)
+        die("SDL_RenderSetLogicalSize");
+    SDL_SetWindowMinimumSize(s_win, 320, 240);
 
     /* 缩放用最近邻。SDL 对这个 hint 的默认值是**未设**，
        所以必须显式写 "0"；它在建纹理时被读走，之后改没有用。 */
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
-    s_tex = SDL_CreateTexture(s_ren, SDL_PIXELFORMAT_XRGB8888,
-                              SDL_TEXTUREACCESS_STREAMING,
-                              (int)FB_WIDTH, (int)FB_HEIGHT);
-    if (s_tex == NULL)
-        die("SDL_CreateTexture");
+    {
+        const char *filter=getenv("GFX2D_SCALE_FILTER");
+        s_smooth=filter && strcmp(filter,"linear")==0;
+    }
+    recreate_texture();
+    s_fullscreen = 0;
 
     s_perf_freq = (uint64_t)SDL_GetPerformanceFrequency();
     s_perf_ms   = s_perf_freq / 1000u;
@@ -292,6 +409,10 @@ void board_init(void)
         s_unpaced = (env != NULL && strcmp(env, "1") == 0);
         if (s_unpaced)
             fprintf(stderr, "board: GFX2D_UNPACED=1，呈现不等场\n");
+    }
+    {
+        const char *start_fullscreen=getenv("GFX2D_FULLSCREEN");
+        if(start_fullscreen && strcmp(start_fullscreen,"1")==0)fullscreen(1);
     }
 }
 
@@ -405,6 +526,15 @@ uint32_t board_keys(void)
     pump_events();
 
     SDL_PumpEvents();
+#ifdef _WIN32
+    /* SDL's focus event may lag a native activation. The native foreground
+       owner is authoritative and also prevents keys from another app leaking. */
+    SDL_SysWMinfo window_info;SDL_VERSION(&window_info.version);
+    if (!SDL_GetWindowWMInfo(s_win,&window_info) ||
+        GetForegroundWindow()!=window_info.info.win.window) return 0u;
+#else
+    if (!(SDL_GetWindowFlags(s_win) & SDL_WINDOW_INPUT_FOCUS)) return 0u;
+#endif
     k = SDL_GetKeyboardState(NULL);
     if (k == NULL)
         return 0u;
@@ -419,6 +549,8 @@ uint32_t board_keys(void)
     if (k[SDL_SCANCODE_1])                              bits |= BOARD_KEY_MODE1;
     if (k[SDL_SCANCODE_2])                              bits |= BOARD_KEY_MODE2;
     if (k[SDL_SCANCODE_3])                              bits |= BOARD_KEY_MODE3;
+    if (k[SDL_SCANCODE_4])                              bits |= BOARD_KEY_MODE1 | BOARD_KEY_MODE2 |
+                                                            BOARD_KEY_MODE3;   /* 组合=模式4 */
     return bits;
 }
 
@@ -467,19 +599,85 @@ static uint32_t s_present_ticket, s_present_field;
 
 int board_present_request(int index, uint32_t *ticket)
 {
+    board_frame frame = {board_fb(index),FB_WIDTH,FB_HEIGHT,FB_ROW_PIXELS};
+    return board_present_frame_request(index,&frame,ticket);
+}
+
+static unsigned canvas_width_for_output(int width,int height)
+{
+    if(width<=0 || height<=0)return FB_WIDTH;
+    uint64_t desired=((uint64_t)(unsigned)width*FB_HEIGHT+(unsigned)height/2u)/(unsigned)height;
+    if(desired<=FB_WIDTH)return FB_WIDTH;
+    return desired>HOST_CANVAS_MAX_WIDTH?HOST_CANVAS_MAX_WIDTH:(unsigned)desired;
+}
+
+int board_frame_acquire(int index, int adaptive, board_frame *frame)
+{
+    int width=0,height=0;
+    if(!frame || index<0 || index>=BOARD_FB_COUNT)return -1;
+    pump_events();
+    *frame=(board_frame){board_fb(index),FB_WIDTH,FB_HEIGHT,FB_ROW_PIXELS};
+    const char *aspect=SDL_getenv("GFX2D_ASPECT");
+    if(!adaptive || (aspect && strcmp(aspect,"fixed")==0))return 0;
+    if(SDL_GetRendererOutputSize(s_ren,&width,&height) || width<=0 || height<=0)return 0;
+    unsigned canvas_w=canvas_width_for_output(width,height);
+    if(canvas_w==FB_WIDTH)return 0;
+    if(s_canvas_w[index]!=canvas_w) {
+        uint32_t *pixels=(uint32_t *)calloc((size_t)canvas_w*FB_HEIGHT,sizeof(uint32_t));
+        if(!pixels)return -1;
+        free(s_canvas[index]);s_canvas[index]=pixels;s_canvas_w[index]=canvas_w;
+    }
+    *frame=(board_frame){s_canvas[index],canvas_w,FB_HEIGHT,canvas_w};
+    return 0;
+}
+
+int board_present_frame_request(int index, const board_frame *frame, uint32_t *ticket)
+{
     uint32_t *fb;
 
-    if (ticket == NULL || index < 0 || index >= BOARD_FB_COUNT || s_present_pending)
+    if (ticket == NULL || index < 0 || index >= BOARD_FB_COUNT || s_present_pending ||
+        !frame || !frame->pixels || frame->height!=FB_HEIGHT || frame->width<FB_WIDTH ||
+        frame->width>HOST_CANVAS_MAX_WIDTH || frame->stride<frame->width)
         return -1;
+    int fixed=frame->pixels==board_fb(index) && frame->width==FB_WIDTH && frame->stride==FB_ROW_PIXELS;
+    int canvas=frame->width>FB_WIDTH && frame->pixels==s_canvas[index] &&
+               frame->width==s_canvas_w[index] && frame->stride==frame->width;
+    if(!fixed && !canvas)return -1;
     *ticket = s_swaps;
     if (s_quit)
         return 0;
 
-    fb = board_fb(index);
-    if (fb != NULL && s_snap_n != 0u)
+    fb = frame->pixels;
+    if(s_texture_w!=frame->width || s_texture_h!=frame->height) {
+        s_texture_w=frame->width;s_texture_h=frame->height;
+        recreate_texture();
+        if(SDL_RenderSetLogicalSize(s_ren,(int)s_texture_w,(int)s_texture_h))return -1;
+    }
+    /* Fixed captures keep their original 640x480 identity. Adaptive captures
+       use the actual canvas, including the right-anchored HUD. */
+    if(frame->width!=FB_WIDTH) {
+        int capture=s_snap_every && s_swaps%s_snap_every==0;
+        for(unsigned i=0;i<s_snap_n;++i)capture|=s_snap[i]==s_swaps;
+        if(capture) {
+            char path[512];snprintf(path,sizeof path,"%s/snap_%05u.ppm",s_snap_dir,(unsigned)s_swaps);
+            FILE *file=fopen(path,"wb");
+            if(file) {
+                fprintf(file,"P6\n%u %u\n255\n",frame->width,frame->height);
+                for(unsigned y=0;y<frame->height;++y)for(unsigned x=0;x<frame->width;++x) {
+                    uint32_t pixel=fb[(size_t)y*frame->stride+x];
+                    unsigned char rgb[3]={(unsigned char)(pixel>>16),(unsigned char)(pixel>>8),(unsigned char)pixel};
+                    (void)fwrite(rgb,1,3,file);
+                }
+                fclose(file);
+            }
+        }
+    }
+    if (frame->width==FB_WIDTH && s_snap_every != 0u)
+        snap_every_maybe(fb, s_swaps);
+    if (frame->width==FB_WIDTH && s_snap_n != 0u)
         snap_maybe(fb, s_swaps);
     if (fb != NULL) {
-        SDL_UpdateTexture(s_tex, NULL, fb, (int)FB_STRIDE_BYTES);
+        SDL_UpdateTexture(s_tex, NULL, fb, (int)(frame->stride*sizeof(uint32_t)));
         SDL_RenderClear(s_ren);
         SDL_RenderCopy(s_ren, s_tex, NULL, NULL);
         SDL_RenderPresent(s_ren);

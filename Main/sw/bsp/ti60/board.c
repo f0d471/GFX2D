@@ -57,6 +57,21 @@ void board_init(void)
     bsp_init();         /* UART 115200 8N1 */
 }
 
+int board_frame_acquire(int index, int adaptive, board_frame *frame)
+{
+    (void)adaptive;
+    if(!frame || index<0 || index>=BOARD_FB_COUNT)return -1;
+    *frame=(board_frame){board_fb(index),FB_WIDTH,FB_HEIGHT,FB_ROW_PIXELS};
+    return 0;
+}
+
+int board_present_frame_request(int index, const board_frame *frame, uint32_t *ticket)
+{
+    if(!frame || frame->pixels!=board_fb(index) || frame->width!=FB_WIDTH ||
+        frame->height!=FB_HEIGHT || frame->stride!=FB_ROW_PIXELS)return -1;
+    return board_present_request(index,ticket);
+}
+
 board_mem board_region(board_region_id id)
 {
     board_mem m;

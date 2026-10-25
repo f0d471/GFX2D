@@ -41,7 +41,8 @@
 #                       整局各段开始帧对关卡表常量另算、射击时走到 CLEAR 与得分另算、Boss 路径与间隙不受伤、
 #                       压力形态、旋钮加倍、改档之后到达稳态不超过 SETTLE_MIN、游戏里的门控、背景）
 #   13i 关卡的注错     CARD_TIMEOUT_GT 让 S5 的各段开始帧见红，GATE_NO_ACC 让 S11 见红
-#   14 素材可重生成    gen_stg_neon.py 连跑两次，12 张 PNG 逐字节相同；--check 重新生成与入库的逐像素相同；
+#   13x EX 关卡        app 测试的 L 组 12 行全 ok（EX 触发/表切换/确定性/表契约，doc/软件升级-玩法与审美.md §4）
+#   14 素材可重生成    gen_stg_neon.py 连跑两次，13 张 PNG 逐字节相同；--check 重新生成与入库的逐像素相同；
 #                       注错 --check --inject 改一个像素，比对必须见红
 #   14f 字库可重生成   gen_font_txt.py --check：由入库的 spleen-8x16.bdf 重新生成的字库文本与入库的
 #                       Main/assets/font/ascii8x16.txt 逐字节相同；注错 --check --inject 改一个像素必须见红
@@ -496,13 +497,23 @@ expect_stage_red() {   # $1 = INJECT，$2 = 必须 FAIL 的行。-m32 构建（�
 expect_stage_red CARD_TIMEOUT_GT '^S5 no shots, hits off: segment starts'
 expect_stage_red GATE_NO_ACC     '^S11 in-game gate'
 
+echo "== G13x EX 关卡（app 测试的 E 组） =="
+ne_ok=$(grep -cE '^L[0-9] .* ok$' "$TMP/stg64.txt" 2>/dev/null)
+ne_bad=$(grep -cE '^L[0-9] .* FAIL$' "$TMP/stg64.txt" 2>/dev/null)
+if [ "$ne_ok" -eq 12 ] && [ "$ne_bad" -eq 0 ]; then
+    ok "G13x EX 关卡 12 行全 ok（64/32 同 G4）"
+    grep -E '^L(1 classic|2 all|4 EX event)' "$TMP/stg64.txt" | while read -r l; do note "$l"; done
+else
+    bad "G13x EX 关卡应有 12 行 ok，实际 ok $ne_ok 行、FAIL $ne_bad 行"
+fi
+
 # ---------------------------------------------------------------- 素材
 echo "== G14 霓虹素材可重生成（gen_stg_neon.py） =="
 NEON="$MAIN/tools/assets/gen_stg_neon.py"
 if python3 "$NEON" --out "$TMP/neon1" >"$TMP/neon1.log" 2>&1 &&
    python3 "$NEON" --out "$TMP/neon2" >"$TMP/neon2.log" 2>&1; then
     nn=$(ls "$TMP/neon1" | wc -l)
-    if [ "$nn" -eq 12 ] && diff -r "$TMP/neon1" "$TMP/neon2" >/dev/null 2>&1; then
+    if [ "$nn" -eq 13 ] && diff -r "$TMP/neon1" "$TMP/neon2" >/dev/null 2>&1; then
         ok "G14 连跑两次，$nn 张 PNG 逐字节相同"
     else
         bad "G14 连跑两次的产物不同，或张数 $nn 不是 12"

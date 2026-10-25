@@ -18,4 +18,6 @@ typedef struct {
 /* 先检查整批参数与记录，错误返回 -1 且不写目标。返回 0 表示执行完成。
    clear 属于调用者：depth=65535；颜色由条带背景决定。 */
 int rast_ref_run(const rast_record *records, unsigned count, const rast_target *target);
+int rast_ref_run_frame(const rast_record *records, unsigned count, const rast_target *target,
+                       const rast_frame *frame);
 #endif

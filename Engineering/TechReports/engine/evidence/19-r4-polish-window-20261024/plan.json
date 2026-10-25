@@ -1,0 +1,24 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "pc-window"
+  ],
+  "changed": null,
+  "commands": {
+    "pc-window": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_pc_window.py"
+    ]
+  },
+  "timeouts": {
+    "pc-window": 900
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/bsp/**",
+    "Main/sim/host/**",
+    "Main/tools/board/build_pc.py",
+    "Main/tools/check/check_pc_window.py"
+  ]
+}

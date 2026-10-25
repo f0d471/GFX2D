@@ -9,6 +9,7 @@ def main():
     if os.name=='nt':raise RuntimeError('r4 host check uses WSL')
     sources=['Main/sim/engine/r4/test_scene.c',
         'Main/sw/apps/game/gfx2dGame/src/r4_scene.c','Main/sw/apps/game/gfx2dGame/src/r4_cup.c',
+        'Main/sw/apps/game/gfx2dGame/src/r4_geometry.c',
         'Main/sw/lib/gfx/rast_setup.c','Main/sw/lib/gfx/rast_ref.c','Main/sw/lib/core/fixmath.c',
         'Main/sw/lib/core/sin_tab.c','Main/sw/lib/core/crc32.c','Main/sw/lib/core/xorshift32.c']
     bodies=[]
@@ -19,6 +20,23 @@ def main():
             '-I','Main/sw/apps/game/gfx2dGame/src',*sources,'-o',exe],logs/('unit'+name+'.build.log'))
         bodies.append(command([exe],logs/('unit'+name+'.log')))
     if bodies[0]!=bodies[1] or 'R4 SCENE PASS' not in bodies[0]:raise RuntimeError('R4 64/32 differ')
+    exe=out/'scene-uncached'
+    command(['gcc','-std=gnu11','-O2','-Wall','-Wextra','-Werror','-DR4_DISABLE_WALL_CACHE=1',
+        '-I','Main/sw/lib','-I','Main/sw/bsp/include','-I','Main/sw/apps/game/gfx2dGame/src',
+        *sources,'-o',exe],logs/'unit-uncached.build.log')
+    if command([exe],logs/'unit-uncached.log')!=bodies[0]:raise RuntimeError('wall cache changed setup records')
+    exe=out/'scene-generic-projection'
+    command(['gcc','-std=gnu11','-O2','-Wall','-Wextra','-Werror','-DR4_DISABLE_VERTEX_CACHE=1',
+        '-I','Main/sw/lib','-I','Main/sw/bsp/include','-I','Main/sw/apps/game/gfx2dGame/src',
+        *sources,'-o',exe],logs/'unit-generic-projection.build.log')
+    if command([exe],logs/'unit-generic-projection.log')!=bodies[0]:
+        raise RuntimeError('shared vertex projection changed setup records')
+    exe=out/'scene-generic-clipping'
+    command(['gcc','-std=gnu11','-O2','-Wall','-Wextra','-Werror','-DRAST_DISABLE_INSIDE_FAST=1',
+        '-I','Main/sw/lib','-I','Main/sw/bsp/include','-I','Main/sw/apps/game/gfx2dGame/src',
+        *sources,'-o',exe],logs/'unit-generic-clipping.build.log')
+    if command([exe],logs/'unit-generic-clipping.log')!=bodies[0]:
+        raise RuntimeError('inside-triangle fast path changed setup records')
     sys.path.insert(0,str(ROOT/'Main/tools/board'))
     from input_forward import packet,InputForwarder
     for k in range(1024):
@@ -50,6 +68,7 @@ def main():
     for name,rows in results.items():
         if len({r['records'] for r in rows})<len(rows)//2:raise RuntimeError('frozen geometry '+name)
     command([sys.executable,'Main/tools/assets/gen_r4_atlas.py','--check'],logs/'atlas.log')
+    command([sys.executable,'Main/tools/assets/gen_r4_models.py','--check'],logs/'models.log')
     import subprocess
     p=subprocess.run([sys.executable,'Main/tools/assets/gen_r4_atlas.py','--check','--inject'],
                      capture_output=True,text=True,cwd=ROOT)

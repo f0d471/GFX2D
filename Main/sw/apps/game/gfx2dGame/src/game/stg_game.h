@@ -151,6 +151,8 @@ typedef struct {
     stg_enemies en;             /* 敌机槽位表 */
     stg_boss    boss;
     stg_bg      bg;
+    const stg_stage_set *ss;    /* 本局用的关卡集（经典或 EX），标题→开局的过渡帧上定 */
+    uint32_t    ex;             /* 1 = EX 路线（四方向同按进入；只换表，规则不变） */
     uint32_t    seed;           /* 每局开头用它重新播种 */
     uint32_t    frame;          /* 进入游戏模式以来走过的帧数 */
     uint32_t    phase;          /* STG_PH_* */
@@ -169,6 +171,7 @@ typedef struct {
     uint32_t    press;          /* 终符的压力形态（SW8 模式 3） */
     uint32_t    press_kind;     /* 压力形态下终符敌弹换成的弹种 */
     uint32_t    knob;           /* 压力形态下门控的旋钮 K */
+    uint32_t    shake;          /* 背景震动剩余帧数（第 7 步由 ev 派生，绘制层读） */
     uint32_t    score, hiscore;
     uint32_t    graze;          /* 本局累计擦弹 */
     uint32_t    kills[STG_ETYPE_N];     /* 本局按机种累计的击毁数 */
@@ -195,8 +198,10 @@ void stg_game_press_begin(stg_game *g, uint32_t kind);
 /* 门控的旋钮 K（每 125 帧允许发出的弹数），只在压力形态下起作用。 */
 void stg_game_set_knob(stg_game *g, uint32_t knob);
 
-/* 段名：READY、STAGE、BOSS、四张符卡名、CLEAR；越界返回 "?"。 */
+/* 段名：READY、STAGE、BOSS、四张符卡名、CLEAR；越界返回 "?"。
+   判据日志与旧调用用这一个（经典口径）；HUD 用下面带状态的（EX 路线显示 EX 名）。 */
 const char *stg_game_seg_name(uint32_t seg);
+const char *stg_game_seg_name_g(const stg_game *g, uint32_t seg);
 
 /* 自机这一帧画不画：开局之后，无敌期间每 4 帧隐去 4 帧（inv 的第 2 位为 1 时隐去）。 */
 static inline int stg_game_player_visible(const stg_game *g)

@@ -1,0 +1,96 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "pack",
+    "r4",
+    "lib",
+    "rast",
+    "app",
+    "pc",
+    "demo",
+    "game",
+    "stats",
+    "workflow",
+    "regs"
+  ],
+  "changed": null,
+  "commands": {
+    "pack": [
+      "/usr/bin/python3",
+      "Main/tools/assets/pack_assets.py"
+    ],
+    "r4": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_r4.py"
+    ],
+    "lib": [
+      "bash",
+      "Main/tools/check/check_host.sh",
+      "lib"
+    ],
+    "rast": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_rast.py"
+    ],
+    "app": [
+      "bash",
+      "Main/tools/check/check_host.sh",
+      "app"
+    ],
+    "pc": [
+      "bash",
+      "Main/tools/check/check_sw4_pc.sh"
+    ],
+    "demo": [
+      "bash",
+      "Main/tools/check/check_sw6_demo.sh"
+    ],
+    "game": [
+      "bash",
+      "Main/tools/check/check_sw7_game.sh"
+    ],
+    "stats": [
+      "bash",
+      "Main/tools/check/check_sw8_stats.sh"
+    ],
+    "workflow": [
+      "/usr/bin/python3",
+      "Main/tools/check/test_validation.py"
+    ],
+    "regs": [
+      "/usr/bin/python3",
+      "Main/tools/check/regs_gen.py",
+      "--check"
+    ]
+  },
+  "timeouts": {
+    "pack": 1800,
+    "r4": 3600,
+    "lib": 1800,
+    "rast": 1800,
+    "app": 1800,
+    "pc": 1800,
+    "demo": 1800,
+    "game": 1800,
+    "stats": 1800,
+    "workflow": 1800,
+    "regs": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**",
+    "Main/doc/三维数值契约.md",
+    "Main/sim/engine/r4/**",
+    "Main/tools/board/**",
+    "Main/rtl/**",
+    "Main/sw/lib/test/golden.txt",
+    "Main/tools/check/regs_gen.py",
+    "Main/rtl/engine/engine_regs_offsets.vh",
+    "Main/sw/bsp/include/gfx_regs.h"
+  ]
+}

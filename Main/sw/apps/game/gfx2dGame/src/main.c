@@ -354,6 +354,7 @@ static int boot_surfaces_stg(void)
         { ASSET_DIGITS_ENTRY,    STG_SLOT_DIGITS },
         { ASSET_ICONS_ENTRY,     STG_SLOT_ICONS },
         { ASSET_FONT_CYAN_ENTRY, STG_SLOT_FONT_CYAN },
+        { ASSET_BG_LAYERS_ENTRY, STG_SLOT_BGLAYERS },
     };
     const uint32_t asset_dev = g_mem_regions[REGION_ASSET].offset;
     const uint32_t fb_dev[2] = { g_mem_regions[REGION_FB0].offset,
@@ -739,10 +740,11 @@ static int boot_surfaces_r4(void)
     static const struct {
         uint32_t entry;
         int      slot;
-    } pick[3] = {
+    } pick[4] = {
         { ASSET_FONT8X16_ENTRY,  STG_SLOT_FONT },
         { ASSET_DIGITS_ENTRY,    STG_SLOT_DIGITS },
         { ASSET_FONT_CYAN_ENTRY, STG_SLOT_FONT_CYAN },
+        { ASSET_TITLE_ENTRY, STG_SLOT_TITLE },
     };
     const uint32_t asset_dev = g_mem_regions[REGION_ASSET].offset;
     const uint32_t fb_dev[2] = { g_mem_regions[REGION_FB0].offset,
@@ -753,7 +755,7 @@ static int boot_surfaces_r4(void)
     gfx_surface_reset(&s_tab);
     s_tex_on = 0;               /* 表重建回 DDR 基址，覆盖层随之失效（G1） */
 
-    for (i = 0u; i < 3u; i++) {
+    for (i = 0u; i < 4u; i++) {
         assetpak_entry e;
 
         if (assetpak_entry_at(&s_pak, pick[i].entry, &e) != ASSETPAK_OK)

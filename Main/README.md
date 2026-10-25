@@ -7,13 +7,24 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 
 ## 现在的状态
 
+PC 模式4支持自适应宽屏：世界按窗口比例增加横向视野，HUD靠右；内部高480、宽640～1792。
+固定录像/CRC与板端继续使用640×480。新的独立运行包在
+`bit/board_release_game_wide_20261025/`，`Run-PC-Fullscreen.cmd`直接全屏，
+`Run-PC.ps1 -FixedAspect`保留固定比例对照；显示能力与边界见`sw/README.md`。
+
 当前开发默认构型是B0。可选B7已接入固定功能三维条带光栅：CPU setup、
 第1页影子参数、单一门铃/帧控制、片上颜色/z、纹理与HUD分相执行。
-B7本轮构建59623 XLR/187 RAM/26 DSP，core setup/hold +0.762/+0.026ns；
+B7冻结构建为59623 XLR/187 RAM/26 DSP，core setup/hold +0.762/+0.026ns；
 11帧三方CRC、显示健康及错误/复位恢复已上板验证。HW/TEX记录性N_max为1870/1969，
 各3600场确认，不作为门槛。JTAG位流与程序保存在本地忽略目录
-`bit/board_release_r3_20261023/`，使用方法见目录README；Flash未改，完整3D演示另行开发。
+`bit/board_release_r3_20261023/`，使用方法见目录README；Flash未改。
 接口与复现入口见`rtl/engine/engine-manual.md`第8节和`sim/engine/r3/README.md`。
+
+模式4已接入480x480三维世界/160px HUD、倒角走廊、顶点光照、近景实体、世界弹幕和周期相机视差，
+L1/L2与完整396面平滑茶杯支持同源SW/HW对照。软件升级复用上述B7；实板自动/脚本各1800帧，
+均3600场/1800交换、迟到0，max分别30.95632/32.34376ms。本批RTL未变且未重新综合。操作与验证见
+[软件登记](sw/README.md#r4-模式4与同构茶杯)和[三维演示验证](sim/engine/r4/README.md)。
+旧/新完整包见[bit目录](bit/README.md)，分别提供PC窗口/全屏和板端JTAG启动入口；Flash未写。
 
 以下早期整机资源/性能数字保留其历史构型与验收边界。
 

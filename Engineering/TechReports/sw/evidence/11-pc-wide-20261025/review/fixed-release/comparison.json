@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "frames_per_scene": 60,
+  "scenes": [
+    "l1",
+    "l2",
+    "cup"
+  ],
+  "compared": [
+    "frame number",
+    "full-frame pixel CRC",
+    "128B record CRC"
+  ],
+  "parameters": "PERF=1 START_MODE=4 R4_HW=0 R4_JUDGE=1 FRAMES=60; no replay override",
+  "binaries": {
+    "baseline": {
+      "l1": {
+        "bytes": 977176,
+        "sha256": "52af59907a75e4bea64014cc6bd4b50c5f764a6a710aad5212f6311091203761"
+      },
+      "l2": {
+        "bytes": 977176,
+        "sha256": "31d10ad17311269e54484f2217a85df2d53b58f9f25f02e1590029caf9de0da3"
+      },
+      "cup": {
+        "bytes": 977184,
+        "sha256": "161e37bffa2c335d53cb551ac3de3d3a60ca9ab142dab7f124c258d510f91001"
+      }
+    },
+    "fixed-release": {
+      "l1": {
+        "bytes": 1003392,
+        "sha256": "758802a0ebeac408fef9ab769c21fa5fce7014b6f13ce0f1edf9fe00cf8ea68a"
+      },
+      "l2": {
+        "bytes": 1003392,
+        "sha256": "356c7d57a8bfd66971bbb8599bb33d203c54fc166742bf0c1f6ff4165079048a"
+      },
+      "cup": {
+        "bytes": 1003400,
+        "sha256": "1838b89b2efb454ca39a3bc186e30ff4b0bfbc759378516f510f9000872cc88d"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261025-175313-e5145bec/build/pc-wide/rast_setup_fixed_width.c: In function ‘setup_one’:
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261025-175313-e5145bec/build/pc-wide/rast_setup_fixed_width.c:81:66: error: unused parameter ‘frame’ [-Werror=unused-parameter]
+   81 |                       rast_setup_stats *stats, const rast_frame *frame)
+      |                                                ~~~~~~~~~~~~~~~~~~^~~~~
+cc1: all warnings being treated as errors

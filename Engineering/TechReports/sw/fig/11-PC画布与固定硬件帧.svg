@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="650" viewBox="0 0 1180 650">
+<rect width="1180" height="650" fill="white"/>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="black"/></marker></defs>
+<g font-family="Microsoft YaHei,Noto Sans CJK SC,sans-serif" font-size="17" fill="black">
+<text x="35" y="35" font-size="23">PC自适应画布与固定硬件帧</text>
+<g fill="white" stroke-width="1.5"><rect x="35" y="75" width="300" height="90" stroke="#1769aa"/><rect x="405" y="75" width="335" height="90" stroke="black"/><rect x="810" y="75" width="330" height="90" stroke="black"/>
+<rect x="35" y="260" width="300" height="100" stroke="#1769aa"/><rect x="405" y="260" width="335" height="100" stroke="black"/><rect x="810" y="260" width="330" height="100" stroke="black"/>
+<rect x="35" y="455" width="300" height="100" stroke="#1769aa"/><rect x="405" y="455" width="335" height="100" stroke="black"/><rect x="810" y="455" width="330" height="100" stroke="#666"/></g>
+<text x="52" y="108">bsp/host/board.c</text><text x="52" y="137">SDL_GetRendererOutputSize</text>
+<text x="424" y="108">board_frame_acquire</text><text x="424" y="137">pixels / width / height / stride</text>
+<text x="828" y="108">r4_render.c</text><text x="828" y="137">视口 / 投影 / 右侧160px HUD</text>
+<text x="52" y="295">bsp/host/board.c</text><text x="52" y="326">双画布：W×480，640≤W≤1792</text>
+<text x="424" y="295">rast_ref_run_frame</text><text x="424" y="326">颜色 / 深度 / stride</text>
+<text x="828" y="288">r4_scene.c / r4_cup.c</text><text x="828" y="315">rast_setup_*_frame</text><text x="828" y="342">128B记录 / rast_bin_frame</text>
+<text x="52" y="491">SDL texture / renderer</text><text x="52" y="524">board_present_frame_request</text>
+<text x="424" y="489">固定640×480入口</text><text x="424" y="518">JUDGE / CRC / R4RP回放</text><text x="424" y="543">旧rast_*边界校验</text>
+<text x="828" y="490">bsp/ti60/board.c</text><text x="828" y="519">原DDR帧 / B7 / 扫描输出</text><text x="828" y="544">640×480，原ticket呈现</text>
+<g fill="none" stroke="black" marker-end="url(#a)"><path d="M335 120H405" stroke-width="1.5"/><path d="M740 120H810" stroke-width="1.5"/>
+<path d="M975 165V260" stroke-width="1.5"/><path d="M810 310H740" stroke-width="2.5"/><path d="M405 310H335" stroke-width="2.5"/>
+<path d="M185 360V455" stroke-width="2.5"/><path d="M1120 165H1160V420H575V455" stroke-width="1.5"/><path d="M740 510H810" stroke-width="2.5"/></g>
+<text x="993" y="216">几何 / setup</text><text x="43" y="408">像素 / 行跨度</text><text x="786" y="409">固定配置</text>
+<text x="35" y="603" font-size="15">图例：蓝框=PC；黑框=共享接口/应用；灰框=Ti60。细线=参数/记录；粗线=像素缓冲与呈现。</text>
+<text x="35" y="630" font-size="15">所有连线均已接入；硬件寄存器、DDR布局与128B记录格式保持原接口。</text>
+</g></svg>

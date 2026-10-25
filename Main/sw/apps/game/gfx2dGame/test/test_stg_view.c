@@ -6,8 +6,9 @@
 *           V1  stg_text_draw 与逐字调 gfx_blit（抽出之前 sw6_hud.c 的写法）生成的命令表逐字节相同，
 *               含格数之外的字符（跳过、x 照样前进）
 *           V2  按判据入口的按键脚本跑 3000 帧（受击关掉），每帧组帧：拒绝与表满为 0、以 END 结束；
-*               第一条是游戏区 SET_CLIP，接着 29 条背景 FILL；普查从命令表另数的各方程条数等于组帧记下的，
-*               ADD = 自机弹 + 粒子、ALPHA = 敌弹 + Boss + 标题图、CONST = 闪白；活动元素 = 五类之和
+*               第一条是游戏区 SET_CLIP，前 2 条是天空列切片 BLIT，接着 STG_BG_FILLS 条背景 FILL；
+*               普查从命令表另数的各方程条数等于组帧记下的，
+*               ADD = 自机弹 + 粒子 + 擦弹特效、ALPHA = 敌弹 + Boss + 标题图、CONST = 闪白；活动元素 = 五类之和
 *           V3  标题帧：两张标题图（游戏区与 HUD），活动元素为 0；闪白帧：CONST 恰好一条
 ******************************************************************************/
 
@@ -39,6 +40,7 @@
 #define SLOT_DIGITS     12
 #define SLOT_ICONS      13
 #define SLOT_FONT_CYAN  14
+#define SLOT_BGLAYERS   15
 
 #define LIST_CAP        16384u
 
@@ -111,6 +113,7 @@ static int setup(stg_draw_cfg *c)
     rc |= surf(SLOT_DIGITS,    0x01230000u, 256u,  32u, 10u, GFX_FMT_XRGB8888);
     rc |= surf(SLOT_ICONS,     0x01240000u,  64u,  16u,  8u, GFX_FMT_XRGB8888);
     rc |= surf(SLOT_FONT_CYAN, 0x01250000u, 128u,  96u,  9u, GFX_FMT_XRGB8888);
+    rc |= surf(SLOT_BGLAYERS,  0x01260000u, 512u, 608u, 11u, GFX_FMT_XRGB8888);
 
     c->pool.dst                     = SLOT_FB0;
     c->pool.src_slot[STG_SRC_BUL16] = SLOT_BUL16;
@@ -128,6 +131,7 @@ static int setup(stg_draw_cfg *c)
     c->title_slot                   = SLOT_TITLE;
     c->digits_slot                  = SLOT_DIGITS;
     c->icons_slot                   = SLOT_ICONS;
+    c->bglayers_slot                = SLOT_BGLAYERS;
     c->font.slot                    = SLOT_FONT;
     c->font.cell_w                  = 8u;
     c->font.cell_h                  = 16u;
@@ -190,14 +194,16 @@ static int compose_check(const stg_draw_cfg *c, stg_frame_stats *st, uint32_t *u
     ok = (stg_game_compose(&s_g, &l, c, &live, st) == 0);
     ok &= (l.rejected == 0u && l.overflow == 0u && st->rejected == 0u && l.ended);
     ok &= ((s_cmds[0].w[0] & 0xFFu) == GFX_OP_SET_CLIP);
-    for (k = 1u; k <= 29u; k++)
+    for (k = 1u; k <= STG_BG_SKY_BLITS; k++)
+        ok &= ((s_cmds[k].w[0] & 0xFFu) == GFX_OP_BLIT && (s_cmds[k].w[0] >> 8 & 0xFu) == GFX_EQ_COPY);
+    for (k = STG_BG_SKY_BLITS + 1u; k <= STG_BG_SKY_BLITS + STG_BG_FILLS; k++)
         ok &= ((s_cmds[k].w[0] & 0xFFu) == GFX_OP_FILL);
     gfx_census_reset(&cs);
     gfx_census_clear(&cc);
     ok &= (gfx_census_run(&cs, &s_tab, s_cmds, l.used, &cc) == 0);
     for (e = 0u; e <= GFX_EQ_MAX; e++)
         ok &= (cc.cmd_by_eq[e] == st->by_eq[e]);
-    ok &= (st->by_eq[GFX_EQ_ADD] == a->pbullet + a->particle);
+    ok &= (st->by_eq[GFX_EQ_ADD] == a->pbullet + a->particle + st->fx_graze);
     ok &= (st->by_eq[GFX_EQ_ALPHA] == a->ebullet + st->boss + st->title);
     ok &= (st->by_eq[GFX_EQ_CONST] == st->flash);
     ok &= (a->total == a->ebullet + a->pbullet + a->enemy + a->particle + a->player);
@@ -225,7 +231,7 @@ static void v2_frames(const stg_draw_cfg *c)
         if (st.act.total > max_act)
             max_act = st.act.total;
     }
-    ck("V2 3000 frames: no rejects, SET_CLIP + 29 FILL first, census by eq == compose, class identities", bad == 0u);
+    ck("V2 3000 frames: no rejects, SET_CLIP + sky blits + bg fills first, census by eq == compose, class identities", bad == 0u);
     ck("V3 title frames: 2 title images (field + HUD), 0 active sprites", title_ok != 0u);
     v[0] = f;
     v[1] = max_used;

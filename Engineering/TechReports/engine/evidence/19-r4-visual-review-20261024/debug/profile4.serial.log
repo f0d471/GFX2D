@@ -1,0 +1,42 @@
+# COM11 @ 115200 8N1, opened 08:33:27
+gfx2dGame MODES
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 2840320 b370ba0a
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+r4 enter ladder/hw 2 1
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 4 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4STAT 30 43471 98 2 1 0
+R4TIME 4104 1393896 112427 108216 882099 0 509716 415
+R4STAT 30 38234 106 2 1 0
+R4TIME 4162 1592814 121146 108770 952047 0 574448 484
+R4STAT 30 39535 92 2 1 0
+R4TIME 3919 1359732 106067 92668 873804 0 501330 394
+R4STAT 30 41379 104 2 1 0
+R4TIME 4573 1544146 118658 140700 881276 0 504443 434
+R4STAT 30 35750 100 2 1 0
+R4TIME 4289 1481870 114101 109182 873288 0 499031 400
+R4STAT 30 39616 88 2 1 0
+R4TIME 4112 1268598 102412 109893 878586 0 506318 395
+R4STAT 30 45280 86 2 1 0
+R4TIME 3949 1072646 101954 108974 941226 0 567186 439
+R4STAT 30 49436 78 2 1 0
+R4TIME 4528 925441 90935 110260 864489 0 492314 365
+R4STAT 30 44786 98 2 1 0
+R4TIME 4102 1448959 112525 108380 881175 0 506275 425
+R4STAT 30 36153 100 2 1 0
+R4TIME 4161 1490984 114011 90965 877553 0 502740 399
+R4STAT 30 39619 82 2 1 0
+R4TIME 4106 1247714 96302 109569 885326 0 513672 390
+R4PERF 300 2465993 2889555 2930694 0 300 0 600 300
+r4 leave frames/late 331 0
+R4HEALTH 1828 335 0 0 0
+diag fifo_min 331 samples 331 zero 0 under 0 irqA 1130 irqB 331 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 08:33:58, 1739 bytes
