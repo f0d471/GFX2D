@@ -123,6 +123,9 @@ uint32_t   board_present_retries(void);
 int        board_irq_init(void);
 int        board_irq_enabled(void);
 void       board_engine_irq_enable(void);
+/* PLIC claim 循环本体：trap() 的机器外部中断分支（SW10 起 FreeRTOS 的
+   external_interrupt_handler 也走它，派发纪律只维护一份）。 */
+void       board_irq_dispatch_external(void);
 uint32_t   board_irq_frame_events(void);
 uint32_t   board_irq_engine_events(void);
 uint32_t   board_irq_faults(void);

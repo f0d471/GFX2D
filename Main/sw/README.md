@@ -21,10 +21,18 @@ sw/
     gfx/           命令表构造层、软件执行器、整帧用例与普查；rast_setup/rast_ref 为三维 setup 与参考光栅
     test/          主机侧单元测试（另含 CRC32 与软件执行器的独立参考实现、两组一致性向量）
     s3l/           第三方：small3dlib（CC0，header-only 的整数 3D 光栅器），见下
+  rtos/            FreeRTOS 集成层（SW10）：外部中断桥与帧信号量。USE_RTOS=1
+                   时经 mk/target.mk 进构建，内核源在 `sdk/software/freeRTOS/kernel/`；
+                   本层可见 sdk 系统头与内核头（与 bsp 同级信任），应用只见内核 API
   apps/            应用，只写应用，按用途分三类（见下）
+    common/        跨应用共享的启动运行时（stg_runtime：素材包对账、stg/r4 表面槽、
+                   TEX 热集装载、后端覆盖层；从 gfx2dGame/main.c 的启动序列抽出）
     game/          游戏与演示
     test/          回归判据
     probe/         探针与 benchmark
+    console/       FreeRTOS 游戏机前端（SW10，板上专用）：菜单 shell + 应用框架
+                   （注册表/生命周期/HOME 和弦）+ 内置应用（弹幕/三维/系统信息），
+                   板上判据 `Main/tools/check/check_console_board.py`
 ```
 
 依赖方向只有一个：应用 → `lib/` 与 `bsp/include/board.h`，`board.h` 由 `bsp/ti60` 或 `bsp/host` 实现。
@@ -92,6 +100,7 @@ PC支持F11/Alt+Enter切全屏、Esc退回窗口、F1/F2/F3切窗口大小、F4�
 | `apps/game/` | 游戏与演示 | 给人看的，赛题要演示的那一类 |
 | `apps/test/` | 回归判据 | 只给通过或失败（末尾 `fail 0`），平台或构建一改就要重跑 |
 | `apps/probe/` | 探针与 benchmark | 给出数字或现象，服务于某个实验的结论；`execSwTest`、`entityBench` 已在这里 |
+| `apps/console/` | 游戏机前端（SW10） | FreeRTOS 上的产品形态：开机进菜单、选内容、HOME（三模式键同按 8 帧）退回；复用 gfx2dGame 的游戏内容源文件与同一份素材包，target-only |
 
 | 程序 | 说明 |
 | --- | --- |
@@ -585,12 +594,14 @@ DDR/TEX 同轮为 1183.625/657.375 周期每颗；上表两个 BIN 身份属于�
 **TEX 版已验收的产物身份**在 `sim/engine/tex/logs/g1_artifacts.json`，那里记的路径是
 `build_g1/engineTest-O2.bin`，49002 字节、SHA256 `9e6555528875ca9f...`。
 
-**跑回归之前先核对 `build/engineTest-O2.bin` 的身份**：它必须与 `build_g1/` 那份逐字节相同。
+**跑回归之前先核对 `build/engineTest-O2.bin` 的身份**：它的 SHA256 必须与
+`sim/engine/tex/logs/g1_artifacts.json` 登记的一致。
 2026-10-08 踩过一次：`build/` 里留的是 TEX 版之前的旧版本（48346 字节、`4c8bf102...`），
 而回归表指向的正是 `build/`，于是在正确的比特流上跑出 `fail 17`（十一行 TEX 金标准与
 六个 TEXERR 全红、引擎面 CRC 却与归档一致），排查了半天才发现是产物陈旧而不是 RTL 缺陷。
 重编一次即 `fail 0`。这类「源码与产物脱钩」不能靠人记得，判据要自己比对身份：
-`sha256sum build/engineTest-O2.bin build_g1/engineTest-O2.bin` 两行相同才算可以开跑。
+算出 `build/engineTest-O2.bin` 的 SHA256，与 `g1_artifacts.json` 登记值一致才算可以开跑
+（`build_g1/` 磁盘副本已随 2026-10-28 的构建产物清理删除，需要副本对照时重编一份再比）。
 当前 TEX 版的完整身份集中在 `sim/engine/tex/logs/g1_artifacts.json`。
 外部判据运行 `tools/check/check_g1_logs.py --board-only`。
 

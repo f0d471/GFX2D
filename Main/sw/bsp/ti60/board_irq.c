@@ -34,12 +34,22 @@ void trap_entry(void);
 void trap(void)
 {
     const uint32_t cause = (uint32_t)csr_read(mcause);
-    uint32_t claim;
 
     if (cause != (0x80000000u | CAUSE_MACHINE_EXTERNAL)) {
         s_faults++;
         for (;;) { }
     }
+    board_irq_dispatch_external();
+}
+
+/* PLIC claim 循环本体。SW10 起有两个调用方：trap()（裸机，mtvec 直指）与
+   sw/rtos 的 FreeRTOS 外部中断桥（portasmHANDLE_INTERRUPT -> 这里）。
+   单独成函数不是为了复用方便，是为了 FreeRTOS 路径与裸机路径走同一段派发，
+   A=场起始/B=引擎完成的清源与应答纪律只维护一份。 */
+void board_irq_dispatch_external(void)
+{
+    uint32_t claim;
+
     while ((claim = plic_claim(BSP_PLIC, BSP_PLIC_CPU_0)) != 0u) {
         if (claim == SYSTEM_PLIC_USER_INTERRUPT_A_INTERRUPT) {
             const uint32_t stat = mmio_read(DISP_IRQ_STAT) & 1u;

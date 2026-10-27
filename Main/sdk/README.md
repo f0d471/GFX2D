@@ -22,7 +22,7 @@
 | `software/standalone/` | 官方示例：uart、gpio、spi、i2c、timer、fpu、smp、coremark、dhrystone、memTest 等 | memTest 用到，其余作参考 |
 | `software/standalone/bootloader/` | bootloader 源码，上电后从 Flash 拷程序到 DDR 再跳转 | 用到，已修改 |
 | `software/standalone/common/` | `start.S`、三个 makefile 片段（`bsp.mk`、`riscv64-unknown-elf.mk`、`standalone.mk`） | 用到，`sw/` 下的程序也引用它们 |
-| `software/freeRTOS/` | FreeRTOS 示例 | 没用到 |
+| `software/freeRTOS/` | FreeRTOS 示例与移植胶水；`kernel/` 子目录是本项目补入的内核源（Efinity RISC-V IDE 2026.1 的 FreeRTOSv202212.01，见其 README 与 MANIFEST） | `kernel/` 用到（SW10 console），其余作参考 |
 | `tool/` | `binGen.py`（生成片上 RAM 初始文件）、编译好的 bootloader bin/hex | 用到 |
 
 ## 已登记的修改
@@ -35,6 +35,7 @@
 | 编译好的 bootloader | 无 | `tool/bootloader/bootloader_512K.bin` 与 `.hex` | 新增 |
 | gpioDemo 的 BSP 路径 | 生成时那台机器的绝对路径 | 占位符，由 `tools/check/localize_paths.py` 展开 | `software/standalone/gpio/gpioDemo/.cproject`、三个 `.launch` |
 | 下载器描述字符串 | `ftdi device_desc "Titanium Ti60F225 Development Kit"` 生效 | 注释掉，只按 VID/PID 找下载器 | `bsp/efinix/EfxSapphireSoc/openocd/ftdi_ti.cfg` |
+| FreeRTOS 内核源 | 无 | `software/freeRTOS/kernel/`（IDE 安装的同版本拷贝 + MANIFEST，2026-10-26 补入，非 IP 生成物、重新生成不涉及） | 新增 |
 
 `gpioDemo` 的 `.cproject` 里还留着生成它的那台机器上 RISC-V IDE 2025.2 的工具链路径，
 本项目不用 IDE 编译，所以没有动它。要在 IDE 里导入这个官方示例时，

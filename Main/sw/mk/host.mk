@@ -110,7 +110,10 @@ BASE += $(EXTRA_CFLAGS)
 # 换了素材包路径而标记不变的话，board.o 会留着上次那个路径。
 FLAGS_STAMP := $(OBJDIR)/.cflags
 STAMP_VALUE := $(BASE) $(ASSETS_PAK)
-$(shell mkdir -p $(OBJDIR); if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(STAMP_VALUE)" ]; then rm -rf $(OBJDIR)/app $(OBJDIR)/lib $(OBJDIR)/bsp; printf '%s' "$(STAMP_VALUE)" > $(FLAGS_STAMP); fi)
+# 整删 OBJDIR（不能按子目录枚举：APP_SRCS 带 ../ 上跳路径时对象会落在
+# build/game、build/common 等 app/ 之外，枚举删不干净，旧档会混进新档——
+# 2026-10-28 在 console 上踩实，见 target.mk 同处注释）。
+$(shell if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(STAMP_VALUE)" ]; then rm -rf $(OBJDIR); mkdir -p $(OBJDIR); printf '%s' "$(STAMP_VALUE)" > $(FLAGS_STAMP); fi)
 
 APP_OBJS := $(addprefix $(OBJDIR)/app/,$(APP_SRCS:.c=.o))
 LIB_SRCS := $(foreach l,$(LIBS),$(wildcard $(SW)lib/$(l)/*.c))

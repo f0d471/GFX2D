@@ -84,6 +84,47 @@ CFLAGS += -O$(OPT) -g3 -std=gnu11 -Wall -Wextra -Werror
 CFLAGS   := $(filter-out -I$(BSP_PATH)/include -I$(BSP_PATH)/app,$(CFLAGS))
 SDK_INC  := $(addprefix -isystem ,$(BSP_PATH)/include $(BSP_PATH)/app $(STANDALONE)/include $(STANDALONE)/driver)
 
+# --- SW10：FreeRTOS 集成（应用 makefile 里 `USE_RTOS := 1` 时启用）-----------
+# 不设置 USE_RTOS 时本块四个变量都是空，下面的规则与链接零变化，既有应用不受影响。
+#
+# 分层：sw/rtos/ 是叠在 bsp 之上的 FreeRTOS 集成层（中断桥），与 bsp 同一级信任，
+# 可见 sdk 系统头；内核头也按系统头引入（上游代码，豁免 -Werror 零告警纪律，同 sdk）。
+# 应用经 RTOS_APP_INC 只拿到内核 API 头，拿不到 sdk —— 越界仍编不过。
+FREERTOS_OBJS   :=
+RTOS_GLUE_OBJS  :=
+RTOS_APP_INC    :=
+ifeq ($(USE_RTOS),1)
+FREERTOS_KERNEL ?= $(SW)../sdk/software/freeRTOS/kernel
+RTOS_CHIP  := $(FREERTOS_KERNEL)/portable/GCC/RISC-V/chip_specific_extensions/RISCV_MTIME_CLINT_no_extensions
+RTOS_INC   := $(addprefix -isystem ,$(FREERTOS_KERNEL)/include $(FREERTOS_KERNEL)/portable/GCC/RISC-V)
+# 本端口版本（V202212.01 GCC/RISC-V）不引用 portasmHANDLE_INTERRUPT（旧版残留）；
+# 非 timer 中断经 portASM 的 .weak freertos_risc_v_application_interrupt_handler
+# 派发，sw/rtos/rtos_irq.c 以强符号覆盖它（机器外部中断 -> PLIC 派发 + 帧信号量）。
+RTOS_DEFS  :=
+FREERTOS_SRCS := $(wildcard $(FREERTOS_KERNEL)/*.c) \
+                 $(FREERTOS_KERNEL)/portable/MemMang/heap_4.c \
+                 $(FREERTOS_KERNEL)/portable/GCC/RISC-V/port.c \
+                 $(FREERTOS_KERNEL)/portable/GCC/RISC-V/portASM.S
+FREERTOS_OBJS := $(patsubst $(FREERTOS_KERNEL)/%,$(OBJDIR)/freertos/%,$(FREERTOS_SRCS:.c=.o))
+FREERTOS_OBJS := $(FREERTOS_OBJS:.S=.o)
+RTOS_GLUE_OBJS := $(patsubst $(SW)rtos/%.c,$(OBJDIR)/rtosglue/%.o,$(wildcard $(SW)rtos/*.c))
+# FreeRTOSConfig.h 由应用侧提供（console 在 src/ 下，经其 makefile 的
+# EXTRA_CFLAGS -Isrc 暴露给内核头；内核与 rtosglue 的规则同吃 CFLAGS）。
+RTOS_APP_INC := $(RTOS_INC) -isystem $(RTOS_CHIP) $(RTOS_DEFS)
+$(OBJDIR)/freertos/%.o: $(FREERTOS_KERNEL)/%.c
+	@mkdir -p $(dir $@)
+	@echo "CC(freertos) $(notdir $<)"
+	@$(RISCV_CC) -c $(filter-out -Wall -Wextra -Werror,$(CFLAGS)) -I$(APP_SRCDIR) $(RTOS_INC) -isystem $(RTOS_CHIP) $(RTOS_DEFS) -o $@ $<
+$(OBJDIR)/freertos/%.o: $(FREERTOS_KERNEL)/%.S
+	@mkdir -p $(dir $@)
+	@echo "AS(freertos) $(notdir $<)"
+	@$(RISCV_CC) -c $(filter-out -Wall -Wextra -Werror,$(CFLAGS)) -I$(APP_SRCDIR) $(RTOS_INC) -isystem $(RTOS_CHIP) $(RTOS_DEFS) -o $@ $<
+$(OBJDIR)/rtosglue/%.o: $(SW)rtos/%.c
+	@mkdir -p $(dir $@)
+	@echo "CC rtos/$(notdir $<)"
+	@$(RISCV_CC) -c $(CFLAGS) $(SDK_INC) -I$(SW)bsp/include $(RTOS_INC) -isystem $(RTOS_CHIP) $(RTOS_DEFS) -o $@ $<
+endif
+
 ifneq ($(INJECT),)
 CFLAGS += -DINJECT_$(INJECT)
 endif
@@ -102,7 +143,14 @@ CFLAGS += $(EXTRA_CFLAGS)
 # 没有这一步时 `make INJECT=XS32_SHIFT` 会静默复用上一次的对象，
 # 注错版与正常版逐位一样（第一次跑判据时踩到，见开发日志）。
 FLAGS_STAMP := $(OBJDIR)/.cflags
-$(shell mkdir -p $(OBJDIR); if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(CFLAGS) $(SDK_INC) $(LDSCRIPT)" ]; then rm -rf $(OBJDIR)/app $(OBJDIR)/lib $(OBJDIR)/bsp $(OBJDIR)/sdk; printf '%s' "$(CFLAGS) $(SDK_INC) $(LDSCRIPT)" > $(FLAGS_STAMP); fi)
+# 换过编译选项（打开 INJECT、换 OPT、改链接脚本……）之后必须重编，不能只重链。
+# 用标记文件记住上一轮的选项，不一致就整目录清掉。
+# 注意必须删整个 OBJDIR：APP_SRCS 带 ../ 上跳路径的应用（console 复用游戏源码、
+# 共享运行时）会把对象写到 build/game、build/common，按子目录枚举删不干净——
+# 2026-10-28 实际踩过：console 打开 PERF 后 stg_modes.o 仍是旧档（无 SW9_PERF），
+# 每帧多做 1.2MB 整帧 CRC，游戏 4fps、HOME 和弦永远凑不满 8 帧。
+# 整删的代价只是 build/replay 的派生头重新生成一次，没有损失。
+$(shell if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(CFLAGS) $(SDK_INC) $(LDSCRIPT) rtos=$(USE_RTOS)" ]; then rm -rf $(OBJDIR); mkdir -p $(OBJDIR); printf '%s' "$(CFLAGS) $(SDK_INC) $(LDSCRIPT) rtos=$(USE_RTOS)" > $(FLAGS_STAMP); fi)
 
 # 产物名带上优化级别与注错标记：build/gfx2dGame-O2.bin、gfx2dGame-Os.bin、
 # gfx2dGame-O2-inject.bin。哪份是什么，从文件名就能看出来。
@@ -139,7 +187,7 @@ BIN := $(OBJDIR)/$(NAME).bin
 
 all: $(ELF) $(OBJDIR)/$(NAME).hex $(OBJDIR)/$(NAME).asm $(BIN)
 
-$(ELF): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(START_OBJ) $(TRAP_OBJ)
+$(ELF): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(START_OBJ) $(TRAP_OBJ) $(FREERTOS_OBJS) $(RTOS_GLUE_OBJS)
 	@echo "LD $@"
 	@$(RISCV_CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
@@ -147,7 +195,7 @@ $(ELF): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(START_OBJ) $(TRAP_OBJ)
 $(OBJDIR)/app/%.o: $(APP_SRCDIR)/%.c
 	@mkdir -p $(dir $@)
 	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(RISCV_CC) -c $(CFLAGS) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -I$(OBJDIR)/replay -o $@ $<
+	@$(RISCV_CC) -c $(CFLAGS) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -I$(OBJDIR)/replay $(RTOS_APP_INC) -o $@ $<
 
 # 录像 -> C 数组（SW6），与 mk/host.mk 里的同一条。应用目标文件粗粒度地依赖全部
 # 生成的录像头；REPLAYS 为空时是空操作。
