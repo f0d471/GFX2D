@@ -34,6 +34,8 @@
 
 #include "rtos_irq.h"
 
+#include "chord.h"
+
 #include "appfw.h"
 
 /* --- 输入（inputd 独占 board_keys，runner/appfw_input_take 消费） --------- */
@@ -116,29 +118,12 @@ static void log_pump(void)
     board_puts(s_log_out);
 }
 
-/* --- HOME 和弦：三模式键同按 8 帧 ---------------------------------------- */
+/* --- HOME 和弦：三模式键同按 8 帧（逻辑在 chord.[ch]，host 单测直接编它） - */
 
 #define HOME_COMBO (BOARD_KEY_MODE1 | BOARD_KEY_MODE2 | BOARD_KEY_MODE3)
 #define HOME_HOLD  8u
 
-static uint32_t home_chord_step(uint32_t keys)
-{
-    static uint32_t n;
-    static int      armed = 1;
-
-    if ((keys & HOME_COMBO) != HOME_COMBO) {
-        n     = 0u;
-        armed = 1;
-        return 0u;
-    }
-    if (!armed)
-        return 0u;
-    if (++n < HOME_HOLD)
-        return 0u;
-    armed = 0u;
-    n     = 0u;
-    return APPFW_EV_HOME;
-}
+static chord s_home;
 
 /* --- 注册表（shell.c 定义数组；这里只取） --------------------------------- */
 
@@ -271,14 +256,15 @@ static void runner_task(void *arg)
     }
 
     shell = appfw_find("menu");
+    chord_init(&s_home, HOME_COMBO, HOME_HOLD);
     switch_to(shell);
 
     for (;;) {
         const uint32_t t0   = board_cycles();
         const uint32_t keys = appfw_input_take();
-        const uint32_t ev   = home_chord_step(keys);
+        const uint32_t ev   = chord_step(&s_home, keys);
 
-        if ((ev & APPFW_EV_HOME) != 0u && s_active != shell) {
+        if ((ev & CHORD_EV_FIRE) != 0u && s_active != shell) {
             switch_to(shell);
         } else if (s_request != NULL && s_request != s_active) {
             switch_to(s_request);

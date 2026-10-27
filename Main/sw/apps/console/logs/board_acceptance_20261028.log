@@ -1,0 +1,55 @@
+# COM11 @ 115200 8N1, opened 02:36:59
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+pak len 4085504 crc 87500897
+console enter menu
+menu crc badb9e1a sel 0
+menu fps 46 irqA 459 tick 459 bld 230929 exe 214513 prs 1219210
+console leave menu
+console enter stg
+stg fps 61 field 61 swap 61 backend 1 per 1612128 busy 1828358 cyc 548832 n 62
+stg fps 61 field 61 swap 61 backend 1 per 1666667 busy 1666392 cyc 559835 n 61
+console leave stg
+console enter menu
+menu crc badb9e1a sel 0
+menu fps 47 irqA 677 tick 677 bld 231178 exe 214639 prs 1218737
+menu fps 61 irqA 738 tick 738 bld 232803 exe 215480 prs 1216352
+console leave menu
+console enter r4
+r4 enter ladder/hw 2 1
+console leave r4
+r4 leave frames/late 0 0
+R4HEALTH 1758 347 0 0 0
+console enter menu
+menu crc badb9e1a sel 0
+menu fps 47 irqA 1023 tick 1023 bld 231416 exe 214881 prs 1218486
+menu fps 61 irqA 1084 tick 1084 bld 232902 exe 215430 prs 1216433
+menu fps 61 irqA 1145 tick 1145 bld 232879 exe 215422 prs 1216366
+rtos tick 1200 heap 57920 tasks 4 irqA 1200
+menu fps 61 irqA 1206 tick 1206 bld 232895 exe 215467 prs 1216468
+menu fps 61 irqA 1267 tick 1267 bld 233141 exe 215480 prs 1216083
+menu fps 61 irqA 1328 tick 1328 bld 232932 exe 215552 prs 1216223
+menu fps 61 irqA 1389 tick 1389 bld 233066 exe 215139 prs 1216415
+menu fps 61 irqA 1450 tick 1450 bld 232756 exe 215333 prs 1216511
+menu fps 61 irqA 1511 tick 1511 bld 232900 exe 215439 prs 1216421
+menu fps 61 irqA 1572 tick 1572 bld 233026 exe 215532 prs 1216220
+menu fps 61 irqA 1633 tick 1633 bld 232911 exe 215639 prs 1216215
+menu fps 61 irqA 1694 tick 1694 bld 232834 exe 215571 prs 1216280
+menu fps 61 irqA 1755 tick 1755 bld 233007 exe 215380 prs 1216347
+rtos tick 1800 heap 57920 tasks 4 irqA 1800
+menu fps 61 irqA 1816 tick 1816 bld 232168 exe 215539 prs 1217030
+menu fps 61 irqA 1877 tick 1877 bld 232959 exe 215630 prs 1216081
+menu fps 61 irqA 1938 tick 1938 bld 232951 exe 215486 prs 1216333
+menu fps 61 irqA 1999 tick 1999 bld 233124 exe 215516 prs 1216013
+menu fps 61 irqA 2060 tick 2060 bld 232907 exe 215387 prs 1216494
+menu fps 61 irqA 2121 tick 2121 bld 232939 exe 215539 prs 1216559
+menu fps 61 irqA 2182 tick 2182 bld 232830 exe 215551 prs 1216223
+menu fps 61 irqA 2243 tick 2243 bld 233079 exe 215102 prs 1216452
+menu fps 61 irqA 2304 tick 2304 bld 232758 exe 215554 prs 1216279
+menu fps 61 irqA 2365 tick 2365 bld 232900 exe 215294 prs 1216583
+rtos tick 2400 heap 57920 tasks 4 irqA 2400
+menu fps 61 irqA 2426 tick 2426 bld 233026 exe 215467 prs 1216283
+menu fps 61 irqA 2487 tick 2487 bld 232908 exe 215639 prs 1216215
+
+# closed 02:37:54, 2550 bytes

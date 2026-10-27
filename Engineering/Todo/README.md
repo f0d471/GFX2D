@@ -180,6 +180,11 @@ R4当前完整场景实测与初版研究取样分开登记。生产默认构型
 仓库治理新增[TechReports证据收编](hw/TechReports证据收编.md)：三系列 evidence/ 目录
 （约40MB/2980文件，正文引用68处）的决定性行收进对应章正文后撤销目录；2026-10-28 立项，未开工。
 
+软件侧新增[启动序列去重](sw/启动序列去重.md)：gfx2dGame → stg_runtime 的去重经盘点
+升级为能力整合（INJECT_TEX_CRC/G1G4 对拍影子/mode 感知 backend_apply 先并入共享层），
+前置 sw6 期望日志按 21 项包再生；2026-10-28 立项，未开工。SW10 已于同日判据全链 PASS
+（TechReport sw13），HOME 和弦 OSAL 化与 host 单测完成（sw14）。
+
 ## 搭车规则
 
 引擎 P3 的批次、决策与接口增量见 [engine 第 00 章](../TechReports/engine/00-P1路线与层间契约.md)

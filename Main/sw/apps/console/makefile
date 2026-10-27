@@ -31,6 +31,8 @@ APP_SRCS := $(wildcard src/*.c) \
                          $(GAME_SRC)/game/sw6_scene_b.c \
                          $(GAME_SRC)/game/sw6_input.c, \
                          $(wildcard $(GAME_SRC)/game/*.c))
+# chord_test.c 是宿主单测（test/makefile 专用），本体不编。
+APP_SRCS := $(filter-out src/chord_test.c,$(APP_SRCS))
 
 # stg_slots.h / stg_main.h 等 gfx2dGame 的头从这边引用；-Isrc 让内核头找到
 # src/FreeRTOSConfig.h（EXTRA_CFLAGS 同时作用于应用与内核的编译规则）

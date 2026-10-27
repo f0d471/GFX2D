@@ -35,10 +35,15 @@ build-*/
 # ---- 板上串口日志 ----
 # 证据日志只留「与当前产物对应」的那几份，放各程序的 logs/ 下（那个目录入库）；
 # 散落在程序目录与构建目录里的一次性采集全部忽略。
+# logs/ 有两层形态：apps/<类>/<程序>/logs（gfx2dGame 等）与 apps/<程序>/logs
+# （console 直接挂在 apps 下），两条否定都要有（2026-10-28：console 的四份
+# 判据日志曾被忽略规则吞掉，a18d498 提交时静默少入库）。
 Main/sw/apps/*/*/*.log
 Main/sw/apps/*/*/*/*.log
 !Main/sw/apps/*/*/logs/
 !Main/sw/apps/*/*/logs/*.log
+!Main/sw/apps/*/logs/
+!Main/sw/apps/*/logs/*.log
 
 # ---- IDE 与编辑器缓存 ----
 .metadata/

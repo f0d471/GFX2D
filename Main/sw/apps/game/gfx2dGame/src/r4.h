@@ -136,6 +136,10 @@ void     r4_timing_start(void);
 void     r4_scene_select(uint32_t scene);
 int      r4_set_replay(const uint8_t *data, uint32_t bytes);
 uint32_t r4_pending_keys(void);
+/* 键源注入：条带循环里的按键采样默认直读 board_keys()（裸机 sole reader）。
+   宿主框架（console 的 inputd 任务独占 board_keys）必须注入自己的按住位图
+   读取函数，否则两处读取会互相抢走 UART 解析器的字节。 */
+void     r4_set_key_source(uint32_t (*fn)(void));
 void     r4_mode_leave(void);
 int      r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
                        uint32_t keys, r4_out *out);

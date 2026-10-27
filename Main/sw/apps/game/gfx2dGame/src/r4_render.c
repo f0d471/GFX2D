@@ -97,11 +97,16 @@ static exec_sw_state s_es;
 static replay_r4_view s_replay;
 static int s_replay_on;
 static uint32_t s_pending_keys;
+static uint32_t (*s_key_source)(void);   /* 键源注入：宿主框架（console）的
+    inputd 是 board_keys 的唯一合法调用方，r4 每个条带的直读会抢走 UART
+    解析器的字节（2026-10-28 板上实测：HOME 和弦在 r4 里永远拼不齐）。
+    缺省 NULL = 直读 board_keys，裸机行为不变。 */
 static uint32_t *s_hud_list;
 static uint32_t s_hud_device;
 static uint8_t s_hud_valid[2][30];
 static uint32_t s_hud_count[2][30];
 uint32_t r4_pending_keys(void) {uint32_t k=s_pending_keys;s_pending_keys=0;return k;}
+void r4_set_key_source(uint32_t (*fn)(void)) {s_key_source=fn;}
 
 int r4_set_replay(const uint8_t *data,uint32_t bytes)
 {
@@ -595,7 +600,8 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         rast_target t;
         uint32_t row, x;
         if(!GFX2D_R4_JUDGE)
-            s_pending_keys |= board_keys() & (BOARD_KEY_SWAP|BOARD_KEY_SLOW|
+            s_pending_keys |= (s_key_source ? s_key_source() : board_keys())
+                & (BOARD_KEY_SWAP|BOARD_KEY_SLOW|
                 BOARD_KEY_MODE1|BOARD_KEY_MODE2|BOARD_KEY_MODE3);
 
         /* depth 与 color 同 stride（契约 §4）：按 1024 的实际行距清 z。 */
