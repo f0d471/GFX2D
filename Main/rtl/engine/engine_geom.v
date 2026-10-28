@@ -101,6 +101,8 @@ module engine_geom #(
     localparam [7:0] OP_BLIT = 8'd2;
     localparam [3:0] EQ_COPY = 4'd0;
     localparam [3:0] EQ_ALPHA = 4'd1;
+    // 条带高的 18 位形态：integer 参数会把表达式撑到 32 位，触发截断告警
+    localparam signed [17:0] BAND_H18 = STRIP_H;
 
     localparam [2:0] S_IDLE = 3'd0, S_ROW = 3'd1, S_ADV = 3'd2, S_DONE = 3'd3,
                      S_GATE = 3'd4;
@@ -155,8 +157,8 @@ module engine_geom #(
         if ((p_w == 18'd0) || (p_h == 18'd0)) begin
             i_empty = 1'b1;
         end else begin
-            dx1 = p_dx + $signed({1'b0, p_w}) - 18'sd1;
-            dy1 = p_dy + $signed({1'b0, p_h}) - 18'sd1;
+            dx1 = p_dx + $signed(p_w) - 18'sd1;
+            dy1 = p_dy + $signed(p_h) - 18'sd1;
 
             t_x0 = (p_dx > 18'sd0) ? p_dx : 18'sd0;
             t_y0 = (p_dy > 18'sd0) ? p_dy : 18'sd0;
@@ -173,12 +175,12 @@ module engine_geom #(
 `else
             if(band_enable) begin
                 if($signed({2'b00,band_y0})>t_y0) t_y0=$signed({2'b00,band_y0});
-                if($signed({2'b00,band_y0})+STRIP_H-1<t_y1)
-                    t_y1=$signed({2'b00,band_y0})+STRIP_H-1;
+                if($signed({2'b00,band_y0})+BAND_H18-18'sd1<t_y1)
+                    t_y1=$signed({2'b00,band_y0})+BAND_H18-18'sd1;
             end
 `endif
-            if ($signed({1'b0, p_dsw}) - 18'sd1 < t_x1) t_x1 = $signed({1'b0, p_dsw}) - 18'sd1;
-            if ($signed({1'b0, p_dsh}) - 18'sd1 < t_y1) t_y1 = $signed({1'b0, p_dsh}) - 18'sd1;
+            if ($signed(p_dsw) - 18'sd1 < t_x1) t_x1 = $signed(p_dsw) - 18'sd1;
+            if ($signed(p_dsh) - 18'sd1 < t_y1) t_y1 = $signed(p_dsh) - 18'sd1;
 
             // 第五项：源表面
 `ifdef INJ_SKIP_SURF
@@ -187,8 +189,8 @@ module engine_geom #(
             if (op == OP_BLIT) begin
                 if (p_dx - p_sx > t_x0) t_x0 = p_dx - p_sx;
                 if (p_dy - p_sy > t_y0) t_y0 = p_dy - p_sy;
-                s_hi_x = p_dx - p_sx + $signed({1'b0, p_ssw}) - 18'sd1;
-                s_hi_y = p_dy - p_sy + $signed({1'b0, p_ssh}) - 18'sd1;
+                s_hi_x = p_dx - p_sx + $signed(p_ssw) - 18'sd1;
+                s_hi_y = p_dy - p_sy + $signed(p_ssh) - 18'sd1;
                 if (s_hi_x < t_x1) t_x1 = s_hi_x;
                 if (s_hi_y < t_y1) t_y1 = s_hi_y;
             end
