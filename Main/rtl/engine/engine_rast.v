@@ -343,13 +343,9 @@ module engine_rast #(
             assign dsp_p[gd] = dsp_a[gd] * dsp_b[gd];
         end
     endgenerate
-    // 发射乘积目的地：边 6（EN/ED×3）+ 属性 24（高/低×x/y×6）
-    reg signed [25:0] ep_en [0:2];
-    reg signed [25:0] ep_ed [0:2];
-    reg signed [29:0] pxh [0:5];       // X 方向高位部分积 g[30:16]*dx
-    reg signed [30:0] pxl [0:5];       // X 方向低位部分积 g[15:0]*dx
-    reg signed [29:0] pyh [0:5];       // Y 方向高位部分积
-    reg signed [30:0] pyl [0:5];       // Y 方向低位部分积
+    // 发射乘积目的地：边 3（ES×3）+ 属性 12（A1/A2×6）——捕获拍直接写归并结果，
+    // 不再经 pxh/pxl/pyh/pyl/ep 中转（RA2，-888 FF；归并加法挂在 DSP 组合输出后，
+    // 时序以综合实测为准）
     reg signed [47:0] c_a1 [0:5];
     reg signed [47:0] c_a2 [0:5];
     reg signed [26:0] c_es [0:2];
@@ -478,9 +474,12 @@ module engine_rast #(
                     {mul_pix, mul_z, mul_rgb} <= head[87:34];
                     mul_wr <= head[1]; mul_tex <= head[0];
 `ifdef GFX_HAS_RAST_TEX
-                    mul_r <= head[57:50] * head[25:18];
-                    mul_g <= head[49:42] * head[17:10];
-                    mul_b <= head[41:34] * head[9:2];
+                    // 18 位有符号宽操作数把三个 8×8 调制乘法推进 DSP（L1 形态下
+                    // 工具会把窄乘法留在 LUT）；乘积低 16 位与操作数扩展方式无关
+                    //（模 2^16），零扩展即正数，逐位恒等。
+                    mul_r <= $signed({10'd0, head[57:50]}) * $signed({10'd0, head[25:18]});
+                    mul_g <= $signed({10'd0, head[49:42]}) * $signed({10'd0, head[17:10]});
+                    mul_b <= $signed({10'd0, head[41:34]}) * $signed({10'd0, head[9:2]});
 `endif
                 end
             end
@@ -670,41 +669,41 @@ module engine_rast #(
                             end
                         endcase
                     end
-                    // 捕获（发射次拍落位）
+                    // 捕获（发射次拍落位）：直接写归并结果。部分积切片是无符号
+                    // 选取，$signed 恢复算术移位与带符号加法，逐值与两级版一致。
                     case (init_cnt)
-                        4'd1: begin ep_en[0] <= dsp_p[0][25:0]; ep_ed[0] <= dsp_p[1][25:0];
-                                    ep_en[1] <= dsp_p[2][25:0]; ep_ed[1] <= dsp_p[3][25:0]; end
-                        4'd2: begin ep_en[2] <= dsp_p[0][25:0]; ep_ed[2] <= dsp_p[1][25:0];
-                                    pxh[0] <= dsp_p[2][29:0]; pxl[0] <= dsp_p[3][30:0]; end
-                        4'd3: begin pyh[0] <= dsp_p[0][29:0]; pyl[0] <= dsp_p[1][30:0];
-                                    pxh[1] <= dsp_p[2][29:0]; pxl[1] <= dsp_p[3][30:0]; end
-                        4'd4: begin pyh[1] <= dsp_p[0][29:0]; pyl[1] <= dsp_p[1][30:0];
-                                    pxh[2] <= dsp_p[2][29:0]; pxl[2] <= dsp_p[3][30:0]; end
-                        4'd5: begin pyh[2] <= dsp_p[0][29:0]; pyl[2] <= dsp_p[1][30:0];
-                                    pxh[3] <= dsp_p[2][29:0]; pxl[3] <= dsp_p[3][30:0]; end
-                        4'd6: begin pyh[3] <= dsp_p[0][29:0]; pyl[3] <= dsp_p[1][30:0];
-                                    pxh[4] <= dsp_p[2][29:0]; pxl[4] <= dsp_p[3][30:0]; end
-                        4'd7: begin pyh[4] <= dsp_p[0][29:0]; pyl[4] <= dsp_p[1][30:0];
-                                    pxh[5] <= dsp_p[2][29:0]; pxl[5] <= dsp_p[3][30:0]; end
-                        4'd8: begin pyh[5] <= dsp_p[0][29:0]; pyl[5] <= dsp_p[1][30:0]; end
-                        4'd9: begin
-                            c_es[0] <= ep_en[0] + ep_ed[0];
-                            c_es[1] <= ep_en[1] + ep_ed[1];
-                            c_es[2] <= ep_en[2] + ep_ed[2];
-                            c_a1[0] <= (pxh[0] <<< 16) + pxl[0];
-                            c_a1[1] <= (pxh[1] <<< 16) + pxl[1];
-                            c_a1[2] <= (pxh[2] <<< 16) + pxl[2];
-                            c_a1[3] <= (pxh[3] <<< 16) + pxl[3];
-                            c_a1[4] <= (pxh[4] <<< 16) + pxl[4];
-                            c_a1[5] <= (pxh[5] <<< 16) + pxl[5];
-                            c_a2[0] <= (pyh[0] <<< 16) + pyl[0];
-                            c_a2[1] <= (pyh[1] <<< 16) + pyl[1];
-                            c_a2[2] <= (pyh[2] <<< 16) + pyl[2];
-                            c_a2[3] <= (pyh[3] <<< 16) + pyl[3];
-                            c_a2[4] <= (pyh[4] <<< 16) + pyl[4];
-                            c_a2[5] <= (pyh[5] <<< 16) + pyl[5];
+                        4'd1: begin
+                            c_es[0] <= $signed(dsp_p[0][25:0]) + $signed(dsp_p[1][25:0]);
+                            c_es[1] <= $signed(dsp_p[2][25:0]) + $signed(dsp_p[3][25:0]);
                         end
-                        4'd10: begin
+                        4'd2: begin
+                            c_es[2] <= $signed(dsp_p[0][25:0]) + $signed(dsp_p[1][25:0]);
+                            c_a1[0] <= ($signed(dsp_p[2][29:0]) <<< 16) + $signed(dsp_p[3][30:0]);
+                        end
+                        4'd3: begin
+                            c_a2[0] <= ($signed(dsp_p[0][29:0]) <<< 16) + $signed(dsp_p[1][30:0]);
+                            c_a1[1] <= ($signed(dsp_p[2][29:0]) <<< 16) + $signed(dsp_p[3][30:0]);
+                        end
+                        4'd4: begin
+                            c_a2[1] <= ($signed(dsp_p[0][29:0]) <<< 16) + $signed(dsp_p[1][30:0]);
+                            c_a1[2] <= ($signed(dsp_p[2][29:0]) <<< 16) + $signed(dsp_p[3][30:0]);
+                        end
+                        4'd5: begin
+                            c_a2[2] <= ($signed(dsp_p[0][29:0]) <<< 16) + $signed(dsp_p[1][30:0]);
+                            c_a1[3] <= ($signed(dsp_p[2][29:0]) <<< 16) + $signed(dsp_p[3][30:0]);
+                        end
+                        4'd6: begin
+                            c_a2[3] <= ($signed(dsp_p[0][29:0]) <<< 16) + $signed(dsp_p[1][30:0]);
+                            c_a1[4] <= ($signed(dsp_p[2][29:0]) <<< 16) + $signed(dsp_p[3][30:0]);
+                        end
+                        4'd7: begin
+                            c_a2[4] <= ($signed(dsp_p[0][29:0]) <<< 16) + $signed(dsp_p[1][30:0]);
+                            c_a1[5] <= ($signed(dsp_p[2][29:0]) <<< 16) + $signed(dsp_p[3][30:0]);
+                        end
+                        4'd8: begin
+                            c_a2[5] <= ($signed(dsp_p[0][29:0]) <<< 16) + $signed(dsp_p[1][30:0]);
+                        end
+                        4'd9: begin
                             c_sum[0] <= c_a1[0] + c_a2[0] + 48'sd8;
                             c_sum[1] <= c_a1[1] + c_a2[1] + 48'sd8;
                             c_sum[2] <= c_a1[2] + c_a2[2] + 48'sd8;
@@ -719,7 +718,7 @@ module engine_rast #(
                             c_er[1] <= w_c1 + (c_es[1] <<< 4);
                             c_er[2] <= w_c2 + (c_es[2] <<< 4);
                         end
-                        4'd11: begin
+                        4'd10: begin
                             acc0 <= $signed({16'd0, w_z0, 16'd0}) + (c_sum[0] >>> 4);
                             ar0 <= $signed({16'd0, w_z0, 16'd0}) + (c_sum[0] >>> 4);
                             acc1 <= $signed({20'd0, w_u0, 12'd0}) + (c_sum[1] >>> 4);
@@ -743,7 +742,7 @@ module engine_rast #(
                         end
                         default: ;
                     endcase
-                    if (init_cnt < 4'd11) init_cnt <= init_cnt + 4'd1;
+                    if (init_cnt < 4'd10) init_cnt <= init_cnt + 4'd1;
                 end
 
                 M_SCAN: begin
