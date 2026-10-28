@@ -375,6 +375,10 @@ module engine_rast #(
     reg [23:0] mul_rgb;
 `ifdef GFX_HAS_RAST_TEX
     reg [15:0] mul_r, mul_g, mul_b;
+    // 18×18 有符号乘推进 DSP；乘积显式取低 16 位（模 2^16 与 8×8 原式逐位恒等）
+    wire signed [35:0] mul_rp = $signed({10'd0, head[57:50]}) * $signed({10'd0, head[25:18]});
+    wire signed [35:0] mul_gp = $signed({10'd0, head[49:42]}) * $signed({10'd0, head[17:10]});
+    wire signed [35:0] mul_bp = $signed({10'd0, head[41:34]}) * $signed({10'd0, head[9:2]});
 `endif
     reg out_v, out_wr;
     reg [13:0] out_pix;
@@ -477,9 +481,9 @@ module engine_rast #(
                     // 18 位有符号宽操作数把三个 8×8 调制乘法推进 DSP（L1 形态下
                     // 工具会把窄乘法留在 LUT）；乘积低 16 位与操作数扩展方式无关
                     //（模 2^16），零扩展即正数，逐位恒等。
-                    mul_r <= $signed({10'd0, head[57:50]}) * $signed({10'd0, head[25:18]});
-                    mul_g <= $signed({10'd0, head[49:42]}) * $signed({10'd0, head[17:10]});
-                    mul_b <= $signed({10'd0, head[41:34]}) * $signed({10'd0, head[9:2]});
+                    mul_r <= mul_rp[15:0];
+                    mul_g <= mul_gp[15:0];
+                    mul_b <= mul_bp[15:0];
 `endif
                 end
             end
