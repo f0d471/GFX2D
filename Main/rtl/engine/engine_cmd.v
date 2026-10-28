@@ -487,6 +487,31 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
     wire [37:0] k_a0 = {6'd0, base_r} + {1'b0, k, 5'd0};
     wire        k_ok = (k_a0 <= 38'h00_FFFF_FFE0);
 
+    // 预取下一批（S_FETCH 与 S_SWITCH 的 N_OK 分支共用；x = 批首索引，
+    // nh = 预取半区；两处状态互斥，不同拍调用）
+    task prefetch_next;
+        input [31:0] x;
+        input        nh;
+        begin
+            n_bi   <= x;
+            n_bn   <= calc_n(base_r, x, count_r);
+            n_half <= nh;
+            nst    <= N_INFL;
+            if (calc_n(base_r, x, count_r) != 5'd0) begin
+                rq_addr  <= base_r + (x << 5);
+                rq_n     <= calc_n(base_r, x, count_r);
+                rq_half  <= nh;
+                rq_off   <= 5'd0;
+                rq_ctx   <= x[3:0];
+                rq_pf    <= 1'b1;
+                pf_armed <= 1'b1;   // FE 可能还在 F_PULSE，等空闲再发
+            end else begin
+                rq_pf <= 1'b0;
+                nst   <= N_OK;      // 下一批不可取：执行到那再报 FETCH
+            end
+        end
+    endtask
+
     // 读状态按搬运层给的显式来源位分发：带取数来源的归取数引擎，
     // 其余（DDR 像素读与 TEX 本地读）归活动命令的像素通路。
 
@@ -838,22 +863,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     end else begin
                         // 触发下一批预取（rq_* 此时可改：FE 已空闲）
                         if ({1'b0, bi} + {1'b0, bn} < {1'b0, count_r}) begin
-                            n_bi   <= bi + bn;
-                            n_bn   <= calc_n(base_r, bi + bn, count_r);
-                            n_half <= ~half;
-                            nst    <= N_INFL;
-                            if (calc_n(base_r, bi + bn, count_r) != 5'd0) begin
-                                rq_addr <= base_r + ((bi + bn) << 5);
-                                rq_n    <= calc_n(base_r, bi + bn, count_r);
-                                rq_half <= ~half;
-                                rq_off  <= 5'd0;
-                                rq_ctx  <= bi[3:0] + bn[3:0];   // (bi+bn) mod 16
-                                rq_pf   <= 1'b1;
-                                pf_armed <= 1'b1;   // FE 可能还在 F_PULSE，等空闲再发
-                            end else begin
-                                rq_pf <= 1'b0;
-                                nst   <= N_OK;      // 下一批不可取：执行到那再报 FETCH
-                            end
+                            prefetch_next(bi + bn, ~half);
                         end else begin
                             nst <= N_IDLE;
                         end
@@ -1109,22 +1119,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                         k    <= n_bi;
                         // 再预取下一批
                         if ({1'b0, n_bi} + {1'b0, n_bn} < {1'b0, count_r}) begin
-                            n_bi <= n_bi + n_bn;
-                            n_bn <= calc_n(base_r, n_bi + n_bn, count_r);
-                            n_half <= ~n_half;
-                            nst <= N_INFL;
-                            if (calc_n(base_r, n_bi + n_bn, count_r) != 5'd0) begin
-                                rq_addr <= base_r + ((n_bi + n_bn) << 5);
-                                rq_n    <= calc_n(base_r, n_bi + n_bn, count_r);
-                                rq_half <= ~n_half;
-                                rq_off  <= 5'd0;
-                                rq_ctx  <= n_bi[3:0] + n_bn[3:0];   // (n_bi+n_bn) mod 16
-                                rq_pf   <= 1'b1;
-                                pf_armed <= 1'b1;
-                            end else begin
-                                rq_pf <= 1'b0;
-                                nst   <= N_OK;
-                            end
+                            prefetch_next(n_bi + n_bn, ~n_half);
                         end else begin
                             nst <= N_IDLE;
                         end
