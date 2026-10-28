@@ -20,6 +20,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / 'Main' / 'tools' / 'check'))
+import feature_config as fc  # noqa: E402
 
 
 def git(*args):
@@ -67,7 +69,7 @@ def main():
     for key in ('config', 'caps', 'synthesis_mode'):
         if key not in config:
             raise RuntimeError('config.json 缺 ' + key)
-    if config['config'] != args.preset:
+    if fc.normalize(config['config']) != fc.normalize(args.preset):
         raise RuntimeError('构型不符: ' + config['config'] + ' vs ' + args.preset)
 
     resources = read_place(outflow / 'gfx2d_ti60.place.rpt')

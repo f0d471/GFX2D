@@ -1,0 +1,18 @@
+{
+  "config": "B0",
+  "caps": "0x0000040F",
+  "synthesis_mode": "speed",
+  "source_commit": "56c6ae0262e7ebd46a1117957f7c33d2d2d3582d",
+  "source_dirty": false,
+  "validated_by": [
+    "check-runs/ppa-after5"
+  ],
+  "xlr": 35925,
+  "ram": 105,
+  "dsp": 16,
+  "setup_core_clk_ns": 1.047,
+  "hold_core_clk_ns": 0.027,
+  "bit_sha256": "86138e9b1b5d82ecfb1f86ad555b31ef5e172aee27eaf56f3229d4a4ea337330",
+  "bit_bytes": 2380467,
+  "date": "2026-10-29T05:34:01+08:00"
+}

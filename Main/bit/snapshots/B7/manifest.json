@@ -1,0 +1,19 @@
+{
+  "config": "B7",
+  "caps": "0x0000D46F",
+  "synthesis_mode": "speed2",
+  "source_commit": "56c6ae0262e7ebd46a1117957f7c33d2d2d3582d",
+  "source_dirty": false,
+  "validated_by": [
+    "check-runs/ppa-after4"
+  ],
+  "xlr": 59551,
+  "ram": 187,
+  "dsp": 26,
+  "setup_core_clk_ns": 0.706,
+  "hold_core_clk_ns": 0.027,
+  "bit_sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9",
+  "bit_bytes": 2765409,
+  "date": "2026-10-29T05:34:04+08:00",
+  "note": "RA1/RA2 后首个B7;板测r4-board三场景CRC PASS(run ppa-board)"
+}
