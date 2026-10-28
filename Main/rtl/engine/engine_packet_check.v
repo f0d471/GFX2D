@@ -37,11 +37,15 @@ module engine_packet_check (
     wire       blit    = op == 2 || op == 5;
     wire       inst    = op == 5;
 
-    // 标量字段谓词与表面结构谓词，与命令层同源
+    // 标量字段谓词与命令层同源；表面结构谓词在此恒真——src_*/dst_* 是帧常数：
+    // engine_pb 在 CFG_BG/CFG_DST 已用同一谓词、同一组信号检查过（不过则整帧
+    // ERROR_DRAIN，到不了包级），bin 的端口由 pb 直通锁存后帧内不变，因此
+    // error=4 分支不可达。绕过 pb 直接例化本模块做单测时，非法表面需自带
+    // 帧级前置检查，不能期望这里报 BAD_SURFACE。
     wire fields_bad, src_ok, dst_ok;
     ec_fields u_f(.cmd(packet), .bad(fields_bad));
-    ec_struct_ok u_s(.s0(src_base), .s1(src_dim), .s2(src_ctrl), .ok(src_ok));
-    ec_struct_ok u_d(.s0(dst_base), .s1(dst_dim), .s2(dst_ctrl), .ok(dst_ok));
+    assign src_ok = 1'b1;
+    assign dst_ok = 1'b1;
 
     // 实例数组的字节长度与 16 B 对齐的末端
     wire [15:0] step   = packet[175:160];

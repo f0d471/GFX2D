@@ -20,6 +20,10 @@ module engine_pb_dma (
     input  wire [31:0]  address,
     input  wire [6:0]   bytes,
     input  wire [511:0] write_data,
+    // 非构建期（pb 自有 ERROR 头）的窄拍通路：构建器 payload 常驻本口，
+    // pb 侧数据走 128 位单拍，避免上游摆 512 位二选一
+    input  wire         pb_sel,
+    input  wire [127:0] pb_wr_beat,
     output wire         ready,
     output reg          done,
     output reg          error,
@@ -71,7 +75,7 @@ module engine_pb_dma (
     assign pw_addr       = addr;
     assign pw_bytes      = {5'd0, size};
     assign pw_valid      = state == WQ;
-    assign pw_data       = write_data[index*128 +: 128];
+    assign pw_data       = pb_sel ? pb_wr_beat : write_data[index*128 +: 128];
     assign pw_data_valid = state == WRITE;
 
     always @(posedge clk) begin

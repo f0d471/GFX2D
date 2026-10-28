@@ -136,8 +136,14 @@ module engine_pb #(parameter integer STRIP_H = 16) (
     reg        request, write;
     reg [31:0] address;
     reg [6:0]  bytes;
+    reg [1:0]  err_beat;        // ERROR 头 4 拍选字：ERROR_WRITE 清零，写握手推进
     wire [511:0] write_data = {128'd0, {28'd0, error_stage}, error_instance, error_index, {28'd0, error_code},
         ref_offset, 32'd512, total_refs, packets, {26'd0, strips_r}, 32'd3, 32'd1, 32'h31425046};
+
+    // 头的第 4 字恒 0，直接给常量；前三字从拼装结果按拍取
+    wire [127:0] pb_wr_beat = (err_beat == 2'd0) ? write_data[127:0] :
+                              (err_beat == 2'd1) ? write_data[255:128] :
+                              (err_beat == 2'd2) ? write_data[383:256] : 128'd0;
 
     wire        io_ready, io_done, io_error;
     wire [127:0] read_beat;
@@ -166,20 +172,28 @@ module engine_pb #(parameter integer STRIP_H = 16) (
     wire [3:0]   packet_error;
     reg [3:0]    packet_error_q;
 
-    // 背景与目的表面的末字节（表面高 640×4 B 后再余 2560）
-    wire [32:0] cfg_dst_end = {1'b0, dst_base} + (({17'd0, dst_dim[31:16]} - 33'd1) << dst_ctrl[4:0]) + 33'd2560;
-    wire [32:0] cfg_bg_end  = {1'b0, src_base} + (({17'd0, src_dim[31:16]} - 33'd1) << src_ctrl[4:0]) + 33'd2560;
+    // 背景与目的表面的末字节（表面高 640×4 B 后再余 2560）。
+    // 两态严格分时（CFG_BG 只消费背景、CFG_DST 只消费目的），共用一组选择。
+    wire cfg_bg = state == CFG_BG;
+    wire [32:0] cfg_end = {1'b0, cfg_bg ? src_base : dst_base} +
+        (({17'd0, cfg_bg ? src_dim[31:16] : dst_dim[31:16]} - 33'd1) <<
+         (cfg_bg ? src_ctrl[4:0] : dst_ctrl[4:0])) + 33'd2560;
+    wire [32:0] cfg_dst_end = cfg_end;      // 只在 CFG_DST 消费
+    wire [32:0] cfg_bg_end  = cfg_end;      // 只在 CFG_BG 消费
     reg [32:0] bg_end, target_end;
     wire [37:0] input_end = {6'd0, list_r} + {1'd0, count_r, 5'd0};
     wire [32:0] pb_end = {1'b0, pb_r} + {1'b0, bytes_r};
     wire [32:0] required = 33'd512 + (({1'b0, draw_r} + 33'd1) & ~33'd1) * 33'd64 + ({1'b0, refs_r} << 3) + ({27'd0, strips_r} << 4);
 
-    wire bg_ok, dst_ok;
-    ec_struct_ok u_surface(.s0(src_base), .s1(src_dim), .s2(src_ctrl), .ok(bg_ok));
-    ec_struct_ok u_target(.s0(dst_base), .s1(dst_dim), .s2(dst_ctrl), .ok(dst_ok));
+    // 结构谓词单实例两态分时（与 cfg_end 同一组选择）；非配置态的结果不被消费
+    wire surface_ok;
+    ec_struct_ok u_surface(.s0(cfg_bg ? src_base : dst_base), .s1(cfg_bg ? src_dim : dst_dim),
+        .s2(cfg_bg ? src_ctrl : dst_ctrl), .ok(surface_ok));
+    wire bg_ok  = surface_ok;               // 只在 CFG_BG 消费
+    wire dst_ok = surface_ok;               // 只在 CFG_DST 消费
 
     function overlap;
-        input [47:0] a, ae, b, be;
+        input [32:0] a, ae, b, be;
         begin overlap = a < be && b < ae; end
     endfunction
 
@@ -236,7 +250,9 @@ module engine_pb #(parameter integer STRIP_H = 16) (
         .write(bin_busy ? bin_write : write),
         .address(bin_busy ? bin_address : address),
         .bytes(bin_busy ? bin_bytes : bytes),
-        .write_data(bin_busy ? bin_write_data : write_data),
+        .write_data(bin_write_data),
+        .pb_sel(!bin_busy),
+        .pb_wr_beat(pb_wr_beat),
         .ready(io_ready), .done(io_done), .error(io_error),
         .read_beat(read_beat), .read_index(read_index), .read_valid(read_valid),
         .fd_addr(dma_addr), .fd_bytes(dma_bytes), .fd_valid(dma_valid), .fd_ready(fd_ready && !inst_valid),
@@ -305,9 +321,12 @@ module engine_pb #(parameter integer STRIP_H = 16) (
             request <= 0;
             bin_go <= 0;
 
+            // ERROR 头的拍选字：发请求当拍清零，与桥的首拍呈现对齐
+            if (state == ERROR_WRITE) err_beat <= 2'd0;
+            else if (state == ERROR_WAIT && pw_data_valid && pw_data_ready) err_beat <= err_beat + 2'd1;
+
             // 读拍回流：引用、坐标、metadata 按返回上下文落位
-            if (read_valid && !bin_busy && state == WAIT) begin
-                if (ret == GOT_REF) ref_cache <= read_beat;
+            if (read_valid && !bin_busy && state == WAIT) begin                if (ret == GOT_REF) ref_cache <= read_beat;
                 if (ret == GOT_COORD || ret == GOT_UV) coord_cache <= read_beat;
                 if (ret == GOT_UV) uv <= read_beat[31:0];
                 if (ret == GOT_META) begin
@@ -380,7 +399,7 @@ module engine_pb #(parameter integer STRIP_H = 16) (
                 end
                 CFG_DST: if (!dst_ok || dst_base[3:0] != 0 || dst_dim[15:0] != 640 || dst_ctrl[15:8] != 0 ||
                     dst_dim[31:16] != frame_height || {16'd0, frame_height} != strips_r * STRIP_H || frame_height > 480 ||
-                    (overlap({16'd0, bg_base}, bg_end, {16'd0, dst_base}, cfg_dst_end) &&
+                    (overlap({1'b0, bg_base}, bg_end, {1'b0, dst_base}, cfg_dst_end) &&
                     (bg_base != dst_base || bg_slog2 != dst_ctrl[4:0])))
                     fault(4, 1);
                 else begin
@@ -393,10 +412,12 @@ module engine_pb #(parameter integer STRIP_H = 16) (
                 // 工作区预检：容量、越界与四组区间互斥，通过后放行构建
                 VALIDATE: if (pb_r[6:0] != 0 || draw_r == 0 || draw_r > 32768 || refs_r > 131072 || count_r > draw_r ||
                     required > {1'b0, bytes_r} || pb_end > 33'h100000000 || input_end > 38'h100000000 ||
-                    (count_r != 0 && overlap({16'd0, pb_r}, {15'd0, pb_end}, {16'd0, list_r}, {10'd0, input_end})) ||
-                    overlap({16'd0, pb_r}, {15'd0, pb_end}, {16'd0, bg_base}, bg_end) ||
-                    overlap({16'd0, pb_r}, {15'd0, pb_end}, {16'd0, target_base}, target_end) ||
-                    (count_r != 0 && overlap({16'd0, list_r}, {10'd0, input_end}, {16'd0, target_base}, target_end)))
+                    // input_end 是 38 位，但 >2^32 已被上一行的独立判据 fault，
+                    // 谓词判决只在其 ≤2^32 时才有话语权，截到 33 位不改变结论。
+                    (count_r != 0 && overlap({1'b0, pb_r}, pb_end, {1'b0, list_r}, input_end[32:0])) ||
+                    overlap({1'b0, pb_r}, pb_end, {1'b0, bg_base}, bg_end) ||
+                    overlap({1'b0, pb_r}, pb_end, {1'b0, target_base}, target_end) ||
+                    (count_r != 0 && overlap({1'b0, list_r}, input_end[32:0], {1'b0, target_base}, target_end)))
                     fault(2, 3);
                 else if (count_r != 0 && list_r[4:0] != 0) fault(9, 1);
                 else begin
