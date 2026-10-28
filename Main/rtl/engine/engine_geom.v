@@ -6,7 +6,8 @@
 //   拆成读源/读目的/写目的描述符与每行边带。只碰坐标与地址，不碰像素。
 //
 // NOTE:
-//   1. 中间量一律 32 位有符号，空宽高先判；零面积命令回一拍 cmd_done
+//   1. 求交中间量 18 位有符号（最坏值域 131069 < 2^17+4，17 位不够）；空宽高先判；
+//      零面积命令回一拍 cmd_done；地址通路保持 32 位并在锁存处显式扩展
 //   2. 每行发边带前等 row_free 对应半区空着，含每条命令的第 0 行
 //   3. wr_last_row 只打在最后一行的最后一段，跨 4KB 拆段时首段不打
 //   4. 发出顺序 = 边带 → 读源 → 读目的 → 写目的，测试台按同序期望（geom_model.py）
@@ -125,55 +126,59 @@ module engine_geom #(
     reg        r_dst_band;
     reg [3:0]  r_cidx;
 
-    // 五者求交：纯组合，start 那一拍算一次，与全部命令字段一起锁存，命令期间不再看输入
-    wire signed [31:0] p_dx = dst_x;
-    wire signed [31:0] p_dy = dst_y;
-    wire signed [31:0] p_sx = src_x;
-    wire signed [31:0] p_sy = src_y;
-    wire        [31:0] p_w  = w;
-    wire        [31:0] p_h  = h;
-    wire        [31:0] p_ssw = src_w;
-    wire        [31:0] p_ssh = src_h;
-    wire        [31:0] p_dsw = dst_w;
-    wire        [31:0] p_dsh = dst_h;
+    // 五者求交：纯组合，start 那一拍算一次，与全部命令字段一起锁存，命令期间不再看输入。
+    // 中间量 18 位有符号：最坏值域 s_hi_x = 32767−(−32768) + 65535−1 = 131069 < 2^17
+    //（17 位不够），空判定与各钳制在 18 位内逐值等价；地址通路（dst_cur/src_cur）
+    // 保持 32 位，锁存处显式符号扩展。
+    wire signed [17:0] p_dx = $signed({{2{dst_x[15]}}, dst_x});
+    wire signed [17:0] p_dy = $signed({{2{dst_y[15]}}, dst_y});
+    wire signed [17:0] p_sx = $signed({{2{src_x[15]}}, src_x});
+    wire signed [17:0] p_sy = $signed({{2{src_y[15]}}, src_y});
+    wire        [17:0] p_w  = {2'b00, w};
+    wire        [17:0] p_h  = {2'b00, h};
+    wire        [17:0] p_ssw = {2'b00, src_w};
+    wire        [17:0] p_ssh = {2'b00, src_h};
+    wire        [17:0] p_dsw = {2'b00, dst_w};
+    wire        [17:0] p_dsh = {2'b00, dst_h};
 
-    reg signed [31:0] t_x0, t_y0, t_x1, t_y1;
-    reg signed [31:0] dx1, dy1;
-    reg signed [31:0] s_hi_x, s_hi_y;
+    reg signed [17:0] t_x0, t_y0, t_x1, t_y1;
+    reg signed [17:0] dx1, dy1;
+    reg signed [17:0] s_hi_x, s_hi_y;
     reg               i_empty;
 
     always @* begin
         // 先给全部中间量与输出默认值，少给一条路径就会推断出锁存器
-        dx1 = 32'sd0; dy1 = 32'sd0;
-        t_x0 = 32'sd0; t_y0 = 32'sd0; t_x1 = -32'sd1; t_y1 = -32'sd1;
-        s_hi_x = 32'sd0; s_hi_y = 32'sd0;
+        dx1 = 18'sd0; dy1 = 18'sd0;
+        t_x0 = 18'sd0; t_y0 = 18'sd0; t_x1 = -18'sd1; t_y1 = -18'sd1;
+        s_hi_x = 18'sd0; s_hi_y = 18'sd0;
         i_empty = 1'b1;
-        if ((p_w == 32'd0) || (p_h == 32'd0)) begin
+        if ((p_w == 18'd0) || (p_h == 18'd0)) begin
             i_empty = 1'b1;
         end else begin
-            dx1 = p_dx + $signed(p_w) - 32'sd1;
-            dy1 = p_dy + $signed(p_h) - 32'sd1;
+            dx1 = p_dx + $signed({1'b0, p_w}) - 18'sd1;
+            dy1 = p_dy + $signed({1'b0, p_h}) - 18'sd1;
 
-            t_x0 = (p_dx > 32'sd0) ? p_dx : 32'sd0;
-            t_y0 = (p_dy > 32'sd0) ? p_dy : 32'sd0;
-            if (clip_x0 > t_x0) t_x0 = clip_x0;
-            if (clip_y0 > t_y0) t_y0 = clip_y0;
+            t_x0 = (p_dx > 18'sd0) ? p_dx : 18'sd0;
+            t_y0 = (p_dy > 18'sd0) ? p_dy : 18'sd0;
+            // 拼接结果无符号，必须 $signed 恢复有符号比较（clip 可为负）
+            if ($signed({{2{clip_x0[15]}}, clip_x0}) > t_x0) t_x0 = {{2{clip_x0[15]}}, clip_x0};
+            if ($signed({{2{clip_y0[15]}}, clip_y0}) > t_y0) t_y0 = {{2{clip_y0[15]}}, clip_y0};
 
-            t_x1 = (dx1 < 32'sd639) ? dx1 : 32'sd639;
-            t_y1 = (dy1 < 32'sd479) ? dy1 : 32'sd479;
-            if (clip_x1 < t_x1) t_x1 = clip_x1;
-            if (clip_y1 < t_y1) t_y1 = clip_y1;
+            t_x1 = (dx1 < 18'sd639) ? dx1 : 18'sd639;
+            t_y1 = (dy1 < 18'sd479) ? dy1 : 18'sd479;
+            if ($signed({{2{clip_x1[15]}}, clip_x1}) < t_x1) t_x1 = {{2{clip_x1[15]}}, clip_x1};
+            if ($signed({{2{clip_y1[15]}}, clip_y1}) < t_y1) t_y1 = {{2{clip_y1[15]}}, clip_y1};
 `ifdef INJ_BAND_CLIP
             // 注错：漏掉当前条带求交。
 `else
             if(band_enable) begin
-                if($signed({16'd0,band_y0})>t_y0) t_y0=$signed({16'd0,band_y0});
-                if($signed({16'd0,band_y0})+STRIP_H-1<t_y1)
-                    t_y1=$signed({16'd0,band_y0})+STRIP_H-1;
+                if($signed({2'b00,band_y0})>t_y0) t_y0=$signed({2'b00,band_y0});
+                if($signed({2'b00,band_y0})+STRIP_H-1<t_y1)
+                    t_y1=$signed({2'b00,band_y0})+STRIP_H-1;
             end
 `endif
-            if ($signed(p_dsw) - 32'sd1 < t_x1) t_x1 = $signed(p_dsw) - 32'sd1;
-            if ($signed(p_dsh) - 32'sd1 < t_y1) t_y1 = $signed(p_dsh) - 32'sd1;
+            if ($signed({1'b0, p_dsw}) - 18'sd1 < t_x1) t_x1 = $signed({1'b0, p_dsw}) - 18'sd1;
+            if ($signed({1'b0, p_dsh}) - 18'sd1 < t_y1) t_y1 = $signed({1'b0, p_dsh}) - 18'sd1;
 
             // 第五项：源表面
 `ifdef INJ_SKIP_SURF
@@ -182,8 +187,8 @@ module engine_geom #(
             if (op == OP_BLIT) begin
                 if (p_dx - p_sx > t_x0) t_x0 = p_dx - p_sx;
                 if (p_dy - p_sy > t_y0) t_y0 = p_dy - p_sy;
-                s_hi_x = p_dx - p_sx + $signed(p_ssw) - 32'sd1;
-                s_hi_y = p_dy - p_sy + $signed(p_ssh) - 32'sd1;
+                s_hi_x = p_dx - p_sx + $signed({1'b0, p_ssw}) - 18'sd1;
+                s_hi_y = p_dy - p_sy + $signed({1'b0, p_ssh}) - 18'sd1;
                 if (s_hi_x < t_x1) t_x1 = s_hi_x;
                 if (s_hi_y < t_y1) t_y1 = s_hi_y;
             end
@@ -195,7 +200,11 @@ module engine_geom #(
     end
 
     // 源的行首 x 偏移：sx0 = src_x + (x0 - dst_x)
-    wire signed [31:0] sx_off = p_sx + (t_x0 - p_dx);
+    wire signed [17:0] sx_off = p_sx + (t_x0 - p_dx);
+    // 地址通路保持 32 位（stride 移位可达 2^31 量级），符号扩展在此显式发生
+    wire signed [31:0] sx_off32 = {{14{sx_off[17]}}, sx_off};
+    wire signed [31:0] src_row_y = {{14{p_sy[17]}}, p_sy} +
+        ({{14{t_y0[17]}}, t_y0} - {{14{p_dy[17]}}, p_dy});
 
     // 读写避让判定；声明放在用它的段计算之前（先用后声明可移植性没有保证）。
     wire d7_read_dst;
@@ -400,11 +409,11 @@ module engine_geom #(
                         py        <= t_y0[15:0];
                         dst_stride <= 32'd1 << dst_slog2;
                         src_stride <= 32'd1 << src_slog2;
-                        dst_cur   <= dst_base + (t_y0[31:0] << dst_slog2) +
-                                     (t_x0[31:0] << 2);
+                        dst_cur   <= dst_base + ({14'd0, t_y0} << dst_slog2) +
+                                     ({14'd0, t_x0} << 2);
                         src_cur   <= src_base +
-                                     ((p_sy + (t_y0 - p_dy)) << src_slog2) +
-                                     (sx_off[31:0] << 2);
+                                     (src_row_y << src_slog2) +
+                                     (sx_off32 << 2);
                         row_i     <= 16'd0;
                         seg_i     <= 3'd0;
                         // 第 0 行也要等它那一半空着：上一条命令的最后几行可能还占着
