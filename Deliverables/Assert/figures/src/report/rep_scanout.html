@@ -1,66 +1,65 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="1040x430">
+<meta name="fig-size" content="900x450">
 <link rel="stylesheet" href="_rep.css">
 <style>
 .st { position: absolute; box-sizing: border-box; border: 2px solid; border-radius: 4px;
-      padding: 6px; display: flex; flex-direction: column; align-items: center;
+      padding: 4px; display: flex; flex-direction: column; align-items: center;
       justify-content: center; text-align: center; }
-.st .t { font-size: 19px; font-weight: 700; line-height: 1.25; }
-.st .s { font-size: 17px; color: #4A5568; line-height: 1.4; margin-top: 2px; }
-.bar { position: absolute; height: 46px; box-sizing: border-box; border: 2px solid;
-       display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; }
+.st .t { font-size: 20px; font-weight: 700; line-height: 1.2; }
+.st .s { font-size: 17px; color: #4A5568; line-height: 1.3; margin-top: 2px; }
+.bar { position: absolute; height: 48px; box-sizing: border-box; border: 2px solid;
+       display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; }
 .hatch { background: repeating-linear-gradient(45deg,#F1F3F6,#F1F3F6 7px,#E4E8EE 7px,#E4E8EE 14px); }
 </style></head>
-<body><div id="fig" style="width:1040px;height:430px">
+<body><div id="fig" style="width:900px;height:450px">
 
-<div class="st mem" style="left:24px;top:34px;width:140px;height:74px">
-  <div class="t">前台帧缓冲</div>
+<div class="st mem" style="left:10px;top:30px;width:126px;height:80px">
+  <div class="t">帧缓冲</div>
   <div class="s">DDR3</div>
 </div>
-<div class="st dat" style="left:188px;top:34px;width:150px;height:74px">
-  <div class="t">取数模块</div>
-  <div class="s">一行读 160 拍</div>
+<div class="st dat" style="left:152px;top:30px;width:126px;height:80px">
+  <div class="t">取数</div>
+  <div class="s">一行 160 拍</div>
 </div>
-<div class="st mem" style="left:362px;top:34px;width:150px;height:74px">
+<div class="st mem" style="left:294px;top:30px;width:150px;height:80px">
   <div class="t">异步 FIFO</div>
-  <div class="s">128 位 × 512 深<br>约 3.2 行</div>
+  <div class="s">512 拍深</div>
 </div>
-<div class="st dat" style="left:536px;top:34px;width:150px;height:74px">
-  <div class="t">输出模块</div>
-  <div class="s">每拍拆 4 像素</div>
+<div class="st dat" style="left:460px;top:30px;width:126px;height:80px">
+  <div class="t">输出</div>
+  <div class="s">拆 4 像素</div>
 </div>
-<div class="st dat" style="left:710px;top:34px;width:140px;height:74px">
-  <div class="t">编码模块</div>
-  <div class="s">转为 HDMI 码流</div>
+<div class="st dat" style="left:602px;top:30px;width:126px;height:80px">
+  <div class="t">编码</div>
+  <div class="s">转 HDMI</div>
 </div>
-<div class="st ext" style="left:874px;top:34px;width:142px;height:74px">
-  <div class="t">HDMI 显示器</div>
+<div class="st ext" style="left:744px;top:30px;width:146px;height:80px">
+  <div class="t">显示器</div>
   <div class="s">640×480@60</div>
 </div>
 
-<div class="lbl" style="left:24px;top:122px;font-size:17px">◀ 100 MHz 总线域</div>
-<div class="lbl" style="left:770px;top:122px;font-size:17px">25.2 MHz 像素域 ▶</div>
+<div class="lbl" style="left:10px;top:120px;font-size:17px">◀ 100 MHz 总线域</div>
+<div class="lbl" style="left:640px;top:120px;font-size:17px">25.2 MHz 像素域 ▶</div>
 
-<svg class="links" viewBox="0 0 1040 430">
+<svg class="links" viewBox="0 0 900 450">
   <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M1,1 L10,5 L1,9" stroke="#4A5568" stroke-width="2"/></marker></defs>
-  <line x1="164" y1="71" x2="184" y2="71" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="338" y1="71" x2="358" y2="71" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="512" y1="71" x2="532" y2="71" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="686" y1="71" x2="706" y2="71" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="850" y1="71" x2="870" y2="71" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="136" y1="70" x2="148" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="278" y1="70" x2="290" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="444" y1="70" x2="456" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="586" y1="70" x2="598" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="728" y1="70" x2="740" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
 </svg>
 
-<div class="lbl b" style="left:24px;top:168px">一行的时间预算（25.4 µs）</div>
+<div class="lbl b" style="left:10px;top:160px">一行的时间预算（25.4 µs）</div>
 
-<div class="lbl b" style="left:24px;top:214px">总线侧</div>
-<div class="bar dat" style="left:110px;top:202px;width:62px">1.6 µs</div>
-<div class="bar hatch" style="left:172px;top:202px;width:844px">空闲</div>
+<div class="lbl b" style="left:10px;top:206px">总线侧</div>
+<div class="bar dat" style="left:96px;top:194px;width:66px">1.6 µs</div>
+<div class="bar hatch" style="left:162px;top:194px;width:728px">空闲</div>
 
-<div class="lbl b" style="left:24px;top:280px">像素侧</div>
-<div class="bar cmp" style="left:110px;top:268px;width:906px">640 像素连续输出，与总线突发无关</div>
+<div class="lbl b" style="left:10px;top:274px">像素侧</div>
+<div class="bar cmp" style="left:96px;top:262px;width:794px">640 像素连续输出，与总线突发无关</div>
 
-<div class="lbl" style="left:110px;top:332px;font-size:17px;line-height:1.7">一行 640 像素 = 160 拍 @100 MHz ≈ 1.6 µs，占一行时间的 <b>6.3%</b>；<br>其余时间总线空闲，异步 FIFO 吸收访问抖动，扫描不被存储器延迟打断。<br>一场 480 行 ≈ 12.2 ms，加消隐后 16.7 ms，对应 60 Hz。</div>
+<div class="lbl" style="left:96px;top:330px;width:794px;font-size:17px;line-height:1.7">一行 640 像素 = 160 拍 @100 MHz ≈ 1.6 µs，占一行时间的 <b>6.3%</b>；其余时间总线空闲。<br>异步 FIFO 吸收访问抖动，扫描不被存储器延迟打断；一场 480 行约 12.2 ms，加消隐 16.7 ms。</div>
 
 </div></body></html>
-
