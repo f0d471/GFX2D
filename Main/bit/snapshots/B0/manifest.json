@@ -14,5 +14,9 @@
   "hold_core_clk_ns": 0.027,
   "bit_sha256": "86138e9b1b5d82ecfb1f86ad555b31ef5e172aee27eaf56f3229d4a4ea337330",
   "bit_bytes": 2380467,
-  "date": "2026-10-29T05:34:01+08:00"
+  "date": "2026-10-29T05:34:01+08:00",
+  "bin": "console-O2-perf.bin",
+  "bin_sha256": "b0ed13c4f1cb64ba7caa954694204c33109f55e6ef3655f2b0632cbbf0ad8bcd",
+  "bin_bytes": 236982,
+  "bin_verified_by": "check-runs/snap-b0: menu/demo/press/about/stg(SW后端降级)全部出帧 errors 0;r4 无完成帧=B0 无 RAST,构型定义内"
 }

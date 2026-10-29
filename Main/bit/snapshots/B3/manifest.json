@@ -14,5 +14,9 @@
   "hold_core_clk_ns": 0.026,
   "bit_sha256": "f88b5430455c84c99e9d69602f1376d78e96173836d99d2fa7ae184b426f385f",
   "bit_bytes": 2522958,
-  "date": "2026-10-29T05:34:02+08:00"
+  "date": "2026-10-29T05:34:02+08:00",
+  "bin": "console-O2-perf.bin",
+  "bin_sha256": "b0ed13c4f1cb64ba7caa954694204c33109f55e6ef3655f2b0632cbbf0ad8bcd",
+  "bin_bytes": 236982,
+  "bin_verified_by": "check-runs/snap-b3: 菜单/demo/about 等应用 60fps errors 0;r4 三维无完成帧=B3 无 RAST 硬件,构型定义内"
 }

@@ -15,6 +15,22 @@
 B1/B2/B4/B6 是消融测量档，按需构建不留快照；快照集与 `check_feature_synthesis.py`
 的代表档矩阵共用构型定义（单一真源 `tools/check/feature_config.py`）。
 
+## 默认 BIN 与各档预期现象
+
+每档随附 **同一个** `console-O2-perf.bin`（当前源码构建的游戏机前端，CAPS 自适应：
+运行期读 CAPS 决定走哪条后端、显示哪些入口）。程序可由 manifest 的 source_commit
+确定性重建，BIN 入档是为了「烧写即用」的自足性；`bin_sha256` 登记。
+
+| 档 | 上板实测现象（2026-10-29，console-board） |
+| --- | --- |
+| B0 | 五应用全跑：菜单/about/press/demo 60fps，**stg 弹幕 2D 走直通硬件后端 60fps**；r4 三维无完成帧（无 RAST，定义内） |
+| B3 | 菜单/demo/press/about/stg（条带后端）60fps 全跑；r4 三维缺席（无 RAST） |
+| B5 | 菜单/demo/press/about/stg（PB 后端）60fps 全跑；r4 三维缺席（无 RAST） |
+| B7 | 五应用全跑含 r4 三维；另经 r4-board 三场景 CRC/SW-HW 等价/注错/节拍 PASS |
+
+菜单 CRC 随档位不同（B7 `24eeb9cf`、B3 `0ae7ecb9`/`cd59c789`）= 菜单按 CAPS 自适应
+显示入口的正确表现。各档验证 run 见各 manifest 的 `bin_verified_by`。
+
 ## 替换门槛
 
 快照跟随源码批次更新（如 PPA 优化批），任一档的编译输入变化后：
