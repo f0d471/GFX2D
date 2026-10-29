@@ -126,11 +126,14 @@ def shade(cell, hexcolor):
     tcPr.append(el)
 
 
-def add_table(doc, rows, widths_cm):
+def add_table(doc, rows, widths_cm, spread=None):
+    """spread=(行距倍数, 单元格上下余量pt)：把表在纵向撑开，用于独占整页。"""
     tb = doc.add_table(rows=len(rows), cols=len(rows[0]))
     tb.style = "Table Grid"
     tb.alignment = WD_TABLE_ALIGNMENT.CENTER
     tb.autofit = False
+    for j, width in enumerate(widths_cm):
+        tb.columns[j].width = Cm(width)
     for row in tb.rows:
         trPr = row._tr.get_or_add_trPr()
         trPr.append(trPr.makeelement(qn("w:cantSplit"), {}))
@@ -140,9 +143,15 @@ def add_table(doc, rows, widths_cm):
         for j, text in enumerate(row):
             cell = tb.cell(i, j)
             cell.width = Cm(widths_cm[j])
+            cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
             cell.text = ""
             p = cell.paragraphs[0]
             p.paragraph_format.line_spacing = 1.15
+            if spread is not None and i > 0:
+                ls, pad = spread
+                p.paragraph_format.line_spacing = ls
+                p.paragraph_format.space_before = Pt(pad)
+                p.paragraph_format.space_after = Pt(pad)
             add_runs(p, text, 10.5, bold=(i == 0))
             if i == 0:
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -203,6 +212,12 @@ def add_placeholder(doc, title, note):
 
 def build():
     doc = Document()
+    for name in ("Normal", "Heading 1", "Heading 2", "Heading 3"):
+        style = doc.styles[name]
+        style.font.name = "Times New Roman"
+        style.font.color.rgb = RGBColor(0, 0, 0)
+        style._element.get_or_add_rPr().get_or_add_rFonts().set(qn("w:eastAsia"), "宋体" if name == "Normal" else "黑体")
+        style.paragraph_format.widow_control = True
     sec = doc.sections[0]
     sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
     sec.top_margin = sec.bottom_margin = Cm(2.54)
@@ -226,6 +241,7 @@ def build():
     fig_no = 0
     tab_no = 0
     li_no = 0
+    spread_next = None
     lines = []
     for f in sorted(PARTS.glob("*.md")):
         lines.extend(f.read_text(encoding="utf-8").splitlines())
@@ -270,22 +286,34 @@ def build():
             p = para(doc, line[2:], size=16, bold=True, hei=True,
                      align=WD_ALIGN_PARAGRAPH.CENTER, indent=False,
                      before=6, after=12)
+            p.style = doc.styles["Heading 1"]
             p.paragraph_format.page_break_before = True
         elif line.startswith("### "):
             p = para(doc, line[4:], size=12, bold=True, hei=True, indent=False,
                      before=8, after=4, keep_with_next=True)
+            p.style = doc.styles["Heading 3"]
             if pending_pb:
                 p.paragraph_format.page_break_before = True
                 pending_pb = False
         elif line.startswith("## "):
             p = para(doc, line[3:], size=14, bold=True, hei=True, indent=False,
                      before=10, after=5, keep_with_next=True)
+            p.style = doc.styles["Heading 2"]
             if pending_pb:
                 p.paragraph_format.page_break_before = True
                 pending_pb = False
         elif line.startswith("TC|"):
             tab_no += 1
-            p = para(doc, f"表{tab_no}　{line[3:]}", size=10.5, hei=True, bold=True,
+            title = line[3:]
+            # TC|标题|FILL|行距|余量pt —— 让这张表纵向撑满一页
+            seg_tc = title.split("|")
+            spread_next = None
+            if len(seg_tc) >= 2 and seg_tc[1].strip().upper() == "FILL":
+                ls = float(seg_tc[2]) if len(seg_tc) > 2 and seg_tc[2] else 1.45
+                pad = float(seg_tc[3]) if len(seg_tc) > 3 and seg_tc[3] else 2.5
+                spread_next = (ls, pad)
+                title = seg_tc[0]
+            p = para(doc, f"表{tab_no}　{title}", size=10.5, hei=True, bold=True,
                      align=WD_ALIGN_PARAGRAPH.CENTER, indent=False, before=8, after=4,
                      keep_with_next=True)
             if pending_pb:
@@ -309,14 +337,16 @@ def build():
                     rows.append(cells)
                 i += 1
             ncols = len(rows[0])
-            if ncols == 4 and rows[0][0] == "资源":
-                widths = [4.6, 3.5, 3.4, 2.9]
+            if ncols == 3 and rows[0][0] == "资源":
+                widths = [4.8, 4.8, 4.8]
             elif ncols == 3 and rows[0][0] == "类别":
                 widths = [2.0, 5.3, 7.1]
             else:
                 widths = [14.4 / ncols] * ncols
-            add_table(doc, rows, widths)
-            para(doc, "", size=6, indent=False, after=2)
+            add_table(doc, rows, widths, spread=spread_next)
+            spread_next = None
+            spacer = para(doc, "", size=6, indent=False, after=2)
+            spacer.paragraph_format.line_spacing = Pt(4)
         elif line.startswith("- "):
             li_no += 1
             p = para(doc, f"（{li_no}）{line[2:]}", size=12, indent=False, spacing=1.4)
@@ -325,7 +355,11 @@ def build():
             for r in p.runs:
                 set_font(r, 12)
         else:
-            para(doc, line, size=12)
+            p = para(doc, line, size=12)
+            # 紧跟表题的正文与表题同页，避免表题与表格被拆到下一页
+            nxt = next((l.strip() for l in lines[i:] if l.strip()), "")
+            if nxt.startswith("TC|"):
+                p.paragraph_format.keep_with_next = True
 
     doc.save(OUT)
     print(f"saved {OUT}  figures={fig_no} tables={tab_no}")

@@ -13,5 +13,8 @@
 | `tpu_v3.jpg` | Google Cloud TPU v3 板卡照片 | Zinskauf | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Tensor_Processing_Unit_3.0.jpg | 未使用 |
 | `ti60f225_board_photo.jpg` | Ti60F225 DEMO 板连屏幕与摄像头的实拍 | 易灵思 / 钛金 Ti60F225 DEMO 板 V4 软硬件设计说明，第 2 页 | 厂商资料，随板提供 | 资料包 `Efinix/02_.../TI60F225I3-V4 DEMO板软硬件设计说明-260813-1.pdf` | `figures/platform.png`；报告 3.1 节（图10）|
 | `ti60f225_board_annotated.jpg` | 同一板卡带器件标注的正面图 | 同上，第 6 页 | 同上 | 同上 | 未使用 |
+| `app_ui_medical.jpg` | 医疗监护仪界面实拍 | Petty Officer 1st Class James Stenberg（美国海军） | 公有领域 | https://commons.wikimedia.org/wiki/File:Vital_signs_monitor_display.jpg | `app_ui_samples.jpg` 左半；报告 1.2 节（图 2）|
+| `app_ui_cluster.jpg` | 丰田 Yaris 数字仪表实拍 | Acgskup | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Digital_instrument_cluster_of_a_Toyota_Yaris_Hybrid_GR_Sport.jpg | `app_ui_samples.jpg` 右半；报告 1.2 节（图 2）|
+| `app_ui_samples.jpg` | 上两张按等高并排的合成图（本仓库合成，仅裁剪与缩放） | 同上两行 | 同上 | — | 报告 1.2 节（图 2）|
 
 厂商资料里的图只在本项目的参赛材料里使用；资料包本身不入库（见仓库根 `README.md`）。
