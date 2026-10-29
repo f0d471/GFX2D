@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="fig-size" content="900x286">
+<link rel="stylesheet" href="_rep.css">
+<style>
+.bar { position: absolute; height: 34px; box-sizing: border-box; border: 2px solid; }
+.bl { position: absolute; font-size: 17px; font-weight: 700; }
+.bv { position: absolute; font-size: 17px; font-weight: 700; color: #1D2733; }
+.note { position: absolute; font-size: 15.5px; color: #4A5568; }
+.ax { position: absolute; height: 2px; background: #87929E; }
+.tk { position: absolute; width: 2px; height: 8px; background: #87929E; }
+.tl { position: absolute; font-size: 15px; color: #4A5568; transform: translateX(-50%); }
+</style></head>
+<body><div id="fig" style="width:900px;height:286px">
+
+<div class="bl" style="left:26px;top:56px">逐颗读取</div>
+<div class="bar" style="left:150px;top:52px;width:589px;height:34px;border-color:#87929E;background:repeating-linear-gradient(90deg,#F1F3F6,#F1F3F6 5px,#DFE4EA 5px,#DFE4EA 7px)"></div>
+<div class="bv" style="left:748px;top:60px">28.5</div>
+<div class="note" style="left:150px;top:92px">160 笔 1 拍事务，每笔都要付一次固定开销</div>
+
+<div class="bl" style="left:26px;top:150px">整行突发</div>
+<div class="bar" style="left:150px;top:146px;width:26px;height:34px;border-color:#4A7FD0;background:#EDF3FB"></div>
+<div class="bv" style="left:186px;top:154px">1.26</div>
+<div class="note" style="left:150px;top:186px">1 笔 160 拍突发，固定开销只付一次</div>
+
+<div class="ax" style="left:150px;top:222px;width:622px"></div>
+<div class="tk" style="left:150px;top:222px"></div>
+<div class="tk" style="left:305px;top:222px"></div>
+<div class="tk" style="left:460px;top:222px"></div>
+<div class="tk" style="left:615px;top:222px"></div>
+<div class="tk" style="left:770px;top:222px"></div>
+<div class="tl" style="left:150px;top:234px">0</div>
+<div class="tl" style="left:305px;top:234px">7.5</div>
+<div class="tl" style="left:460px;top:234px">15</div>
+<div class="tl" style="left:615px;top:234px">22.5</div>
+<div class="tl" style="left:770px;top:234px">30</div>
+<div class="lbl" style="left:150px;top:258px;font-size:15.5px">每次读事务摊到每拍的周期数</div>
+
+</div></body></html>
