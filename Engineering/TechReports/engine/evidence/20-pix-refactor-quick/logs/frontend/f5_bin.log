@@ -1,0 +1,2 @@
+RESULT: PASS F5 BIN scenes=         64 errors=          0
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_bin.v:134: $finish called at 768400000 (1ps)

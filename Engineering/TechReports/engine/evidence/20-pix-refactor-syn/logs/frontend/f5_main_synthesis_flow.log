@@ -1,0 +1,8 @@
+Running: efx_run_map.py gfx2d_ti60 --family Titanium --device Ti60F225 --project_xml E:\Workspace\FPGA\Efinix\Main\fpga\gfx2d_ti60\gfx2d_ti60.xml --dir E:\Workspace\FPGA\Efinix\Main\fpga\gfx2d_ti60\ip\soc --output_dir outflow --work_dir work_syn --opt root=gfx2d_top --opt veri_options=verilog_mode=verilog_2k,vhdl_mode=vhdl_2008 work-dir=work_syn write_efx_verilog=on I=ip/soc
+   map :	PASS 
+Running: efx_run_pt_unified.py gfx2d_ti60 Titanium Ti60F225 --output_dir outflow --timing_model I3 --project_xml gfx2d_ti60.xml
+   interface :	PASS 
+Running: efx_run_pnr.py gfx2d_ti60 --prj E:\Workspace\FPGA\Efinix\Main\fpga\gfx2d_ti60\gfx2d_ti60.xml --family Titanium --device Ti60F225 --timing_model I3 --dir E:\Workspace\FPGA\Efinix\Main\fpga\gfx2d_ti60\ip\soc --output_dir outflow --work_dir work_pnr --opt sdc_file=sdc/gfx2d_ti60.sdc
+   pnr :	PASS 
+Running: efx_run_pgm.py gfx2d_ti60 --family Titanium --device Ti60F225 --output_dir outflow --work_dir work_pnr --opt mode=active width=1 enable_roms=smart spi_low_power_mode=on io_weak_pullup=on oscillator_clock_divider=DIV8 bitstream_compression=on enable_external_master_clock=off active_capture_clk_edge=negedge jtag_usercode=0xFFFFFFFF release_tri_then_reset=on four_byte_addressing=off
+   pgm :	PASS 
