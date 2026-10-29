@@ -53,7 +53,7 @@ acceptance整轮双PASS，板上菜单60fps零错误。全文见
 硬件侧计算阵列可读性重构于 **2026-10-29 用户验收并删除条目**：`engine_pix.v` 行资源收拢、
 调度器前移、S1~S7 事务阶段命名、四槽旋转改 128 位固定切片；统一验证 quick 档五变异见红、
 整机综合 RAM/DSP/hold 逐位一致（XLR 35948，波动带内）。全文见
-[engine 第 20 章](../TechReports/engine/20-计算阵列可读性重构.md)。
+[engine 第 04 章 3.14 节](../TechReports/engine/04-计算阵列与片上缓存.md)。
 
 SW10[RTOS移植与游戏机前端]与 SW14/SW15[启动序列去重、软件架构与应用机制收敛]于
 **2026-10-29 用户上板试玩验收并删除条目**：FreeRTOS 内核入库（Efinity IDE 同源 V202212.01）、
