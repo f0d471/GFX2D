@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="fig-size" content="900x340">
+<link rel="stylesheet" href="_rep.css">
+<style>
+.panel { position: absolute; width: 380px; height: 250px; box-sizing: border-box;
+         border: 2px solid #87929E; }
+.cap { position: absolute; width: 380px; text-align: center; font-size: 17px; color: #1D2733; line-height: 1.4; }
+.checker { background-image:
+   linear-gradient(45deg,#E8ECF1 25%,transparent 25%), linear-gradient(-45deg,#E8ECF1 25%,transparent 25%),
+   linear-gradient(45deg,transparent 75%,#E8ECF1 75%), linear-gradient(-45deg,transparent 75%,#E8ECF1 75%);
+   background-size: 26px 26px; background-position: 0 0, 0 13px, 13px -13px, -13px 0; background-color: #FFFFFF; }
+</style></head>
+<body><div id="fig" style="width:900px;height:340px">
+
+<div class="panel" style="left:40px;top:16px;background:#CC00CC">
+  <svg width="376" height="246" viewBox="0 0 376 246">
+    <polygon points="188,34 268,128 206,128 232,190 144,190 170,128 108,128"
+             fill="#F2F4F7" stroke="#2E3A48" stroke-width="2.5"/>
+  </svg>
+</div>
+<div class="cap" style="left:40px;top:282px">关闭色键：矩形边框一并写入</div>
+
+<div class="panel checker" style="left:480px;top:16px">
+  <svg width="376" height="246" viewBox="0 0 376 246">
+    <polygon points="188,34 268,128 206,128 232,190 144,190 170,128 108,128"
+             fill="#F2F4F7" stroke="#2E3A48" stroke-width="2.5"/>
+  </svg>
+</div>
+<div class="cap" style="left:480px;top:282px">开启色键：透明色跳过，只留轮廓</div>
+
+<div class="lbl" style="left:386px;top:130px;font-size:26px">→</div>
+
+</div></body></html>
