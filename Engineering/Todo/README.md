@@ -191,8 +191,11 @@ frame/ctrl 整帧、主工程 B0 综合与 featureTest/游戏板测。
 软件数值与 setup 以 Main/doc/三维数值契约.md 为当前规格；B7综合与板测已由R3验收，
 R4当前完整场景实测与初版研究取样分开登记。生产默认构型仍为B0，R4审阅版显式部署B7，已验收（2026-10-29）。
 
-仓库治理新增[TechReports证据收编](hw/TechReports证据收编.md)：三系列 evidence/ 目录
-（约40MB/2980文件，正文引用68处）的决定性行收进对应章正文后撤销目录；2026-10-28 立项，未开工。
+仓库治理[TechReports证据收编]于 **2026-10-30 完成并删除条目**：裁决范围（engine R1~R4 十轮、
+sw 11/12、platform 12，合计 68 处正文引用）的决定性数字与关键日志行已收进 engine 16~19、
+sw 11/12、platform 12 章正文，五张关键对照图收编入 fig/，platform/evidence 整目录撤销；
+engine/sw 的 evidence 目录仅保留裁决后新立的 20 章与 15/16 章归档（各章正文有明确保留承诺，
+含 SW16 备份 ZIP），不在本条范围。
 
 SW14 启动序列去重：gfx2dGame → stg_runtime 的去重经盘点升级为能力整合
 （INJECT_TEX_CRC/G1G4 对拍影子/mode 感知 backend_apply 先并入共享层），sw6 期望日志按
