@@ -1,9 +1,0 @@
-MAIN LOADED 25600 bytes
-SUBW0=00b80050000c000a0006000500000006 SUBW1=00a5008200500037000c000600000007 sublen=618
-DIAG_EARLY_STRIP_DONE strip=0 free=00 in_flight=4
-DIAG_EARLY_STRIP_DONE strip=1 free=00 in_flight=3
-DIAG_EARLY_STRIP_DONE strip=2 free=00 in_flight=4
-DIAG_STOP retire=152 strip=19 state=2 env=633 left=121 chunk=121 beats=7 recv=8 stat=1 bv=0 fifo=61 pending=0 reserve=0
-DIAG_LATCHED captured=8 live=7 received=8 completion_if_captured=1
-DIAG_SCAN illegal_fires=0 terminal_counter_cycles=760 early_strip_done=19 rast_state=0 active=0 flight=0
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r2-review-20261022-223936/tb_full_confirm.v:582: $finish called at 1500185000 (1ps)

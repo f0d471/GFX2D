@@ -1,9 +1,0 @@
-Creating E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\20261023-000014-3a1844ba\build\r2-synthesis\L2\outflow
-Running: efx_run_map.py r2_core --family Titanium --device Ti60F225 --project_xml E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\20261023-000014-3a1844ba\build\r2-synthesis\L2\r2_core.xml --output_dir outflow --work_dir work_syn_engine_bin --opt root=syn_r2 --opt veri_options=verilog_mode=verilog_2k,vhdl_mode=vhdl_2008 work-dir=work_syn_engine_bin write_efx_verilog=on
-   map :	PASS 
-Running: efx_run_pt_unified.py r2_core Titanium Ti60F225 --output_dir outflow --timing_model I3 --project_xml r2_core.xml
-   interface :	PASS 
-Running: efx_run_pnr.py r2_core --prj E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\20261023-000014-3a1844ba\build\r2-synthesis\L2\r2_core.xml --family Titanium --device Ti60F225 --timing_model I3 --output_dir outflow --work_dir work_pnr_engine_top --opt sdc_file=r2.sdc
-   pnr :	PASS 
-Running: efx_run_pgm.py r2_core --family Titanium --device Ti60F225 --output_dir outflow --work_dir work_pnr_engine_top --opt mode=active width=1 enable_roms=smart spi_low_power_mode=on io_weak_pullup=on oscillator_clock_divider=DIV8 bitstream_compression=on enable_external_master_clock=off active_capture_clk_edge=negedge jtag_usercode=0xFFFFFFFF release_tri_then_reset=on four_byte_addressing=off
-   pgm :	PASS 

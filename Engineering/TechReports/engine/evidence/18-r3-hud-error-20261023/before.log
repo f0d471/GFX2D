@@ -1,2 +1,0 @@
-FATAL: /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r3-dev/legacy-abort-proof/tb.v:204: EARLY LEGACY ABORT steals pending command prefetch
-       Time: 230810000  Scope: tb_r3

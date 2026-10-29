@@ -1,8 +1,0 @@
-Get-FileHash : 无法将“Get-FileHash”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括路径
-，请确保路径正确，然后再试一次。
-所在位置 E:\Workspace\FPGA\Efinix\Main\bit\board_release_game_current_20261024\Run-PC.ps1:6 字符: 14
-+         if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash. ...
-+              ~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (Get-FileHash:String) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : CommandNotFoundException
- 

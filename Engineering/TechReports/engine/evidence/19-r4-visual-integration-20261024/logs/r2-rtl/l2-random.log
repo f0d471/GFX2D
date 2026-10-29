@@ -1,7 +1,0 @@
-OWNER PASS kind=0 beats=8 last-held=32
-OWNER PASS kind=2 beats=8 last-held=32
-OWNER PASS kind=1 beats=8 last-held=32
-OWNER PASS kind=0 beats=8 last-held=32
-FRAME PASS frame=0 records=200 refs=249 commits=1256
-RESULT: PASS records=200 refs=249 retired=249 commits=1256 AXI_R=738 AXI_W=480 cycles=270031
-Main/sim/engine/rast/tb_engine_rast.v:548: $finish called at 2700310000 (1ps)

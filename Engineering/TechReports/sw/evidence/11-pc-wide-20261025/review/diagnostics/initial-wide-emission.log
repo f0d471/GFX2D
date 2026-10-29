@@ -1,6 +1,0 @@
-WIDE CHECK FAIL wide world emission line 110
-WIDE RECT PASS 640 clipped coverage/depth/bin/canaries/atomic
-WIDE SCENE PASS 640 square projection/world invariance/cup
-WIDE RECT PASS 768 clipped coverage/depth/bin/canaries/atomic
-WIDE SCENE PASS 768 square projection/world invariance/cup
-WIDE RECT PASS 854 clipped coverage/depth/bin/canaries/atomic

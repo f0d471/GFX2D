@@ -1,8 +1,0 @@
-{
-  "status": "PASS",
-  "unchanged_preexisting_patches": {
-    "Main/rtl/engine/engine_pix.v": true,
-    "Main/sw/bsp/host/board.c": true,
-    "Main/tools/board/input_forward.py": true
-  }
-}

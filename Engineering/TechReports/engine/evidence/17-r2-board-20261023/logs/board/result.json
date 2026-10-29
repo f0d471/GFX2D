@@ -1,8 +1,0 @@
-{
-  "status": "PASS",
-  "cases": 12,
-  "caps": "0x0000040F",
-  "port": "COM11",
-  "bitstream": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
-  "binary": "Main/sw/apps/test/featureTest/build_check_smoke/featureTest-O2.bin"
-}

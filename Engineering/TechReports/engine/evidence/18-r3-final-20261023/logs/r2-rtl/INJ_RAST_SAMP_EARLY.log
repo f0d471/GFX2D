@@ -1,2 +1,0 @@
-FATAL: Main/sim/engine/rast/tb_rast_tex_port.v:34: sample alignment L=1 word=x got=xxxxxxxx
-       Time: 55000  Scope: tb_rast_tex_port

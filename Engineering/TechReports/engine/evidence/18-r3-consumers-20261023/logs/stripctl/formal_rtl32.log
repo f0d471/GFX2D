@@ -1,4 +1,0 @@
-G3 FRAME SH=         32 diff=          0 cmd_reads=         35 pixel_reads=       1600 writes=        480 DDR_beats=     86110
-G3 checks=      36293 errors=          0
-RESULT: PASS
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/stripctl/tb_stripctl.v:288: $finish called at 8161605000 (1ps)

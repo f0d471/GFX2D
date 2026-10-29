@@ -1,6 +1,0 @@
-make: Entering directory '/mnt/e/Workspace/FPGA/Efinix/Main/sw/apps/game/gfx2dGame'
-CC ../sim/build/r4-takeover-20261024/candidate-app/src/fx_wrap.c
-LD ../../../../sim/build/r4-takeover-20261024/target-candidatemath/gfx2dGame-O2-perf.elf
-Memory region         Used Size  Region Size  %age Used
-             ram:     1032896 B      4092 KB     24.65%
-make: Leaving directory '/mnt/e/Workspace/FPGA/Efinix/Main/sw/apps/game/gfx2dGame'

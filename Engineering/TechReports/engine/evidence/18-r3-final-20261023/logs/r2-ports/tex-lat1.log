@@ -1,2 +1,0 @@
-RESULT: PASS TEX latency=1 II=1 samples=4096 legacy=1
-Main/sim/engine/rast/tb_rast_tex_port.v:62: $finish called at 41090000 (1ps)

@@ -1,6 +1,0 @@
-WARNING: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:229: $readmemh(/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261023-010904-daec70eb/build/f4/fixtures/case112.cmd.hex): Not enough words in the file for the requested range [0:4095].
-WARNING: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:234: $readmemh(/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261023-010904-daec70eb/build/f4/fixtures/case112.init.hex): Not enough words in the file for the requested range [0:8191].
-PROFILE fetch_cycles=75 decode_cycles=128 geometry_cycles=514 pixel_output_beats=67
-FRAME cycles=1011 rd_burst=33 rd_beat=85 wr_burst=29 wr_beat=67 pixel=183 key=0 cmd=4 mem_bad=0
-RESULT: PASS (frame, software executor golden)
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_instances.v:401: $finish called at 19715000 (1ps)

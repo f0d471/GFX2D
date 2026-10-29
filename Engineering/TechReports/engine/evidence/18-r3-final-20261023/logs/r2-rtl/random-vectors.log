@@ -1,7 +1,0 @@
-SELF-CHECK R1-FIXTURE-MATCH
-RECORD-DIGEST crc32=5c8e992b count=100000
-CROSS-C PASS records=50000 L1=0 refs=2 strips=30
-CROSS-C PASS records=50000 L1=1 refs=2 strips=30
-CROSS-C PASS records=50000 L1=0 refs=2 strips=30
-CROSS-C PASS records=50000 L1=1 refs=2 strips=30
-EXPORT PASS records=100000 frames=2 commits=502557

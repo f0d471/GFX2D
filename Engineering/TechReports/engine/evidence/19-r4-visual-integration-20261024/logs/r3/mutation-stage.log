@@ -1,4 +1,0 @@
-FRAME PASS 0 loads=30 clear=30 fd=50
-LOAD FIRST BARRIER PASS
-FATAL: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/r3/tb_r3.v:144: error stage 0 != 7
-       Time: 6058410000  Scope: tb_r3.finish

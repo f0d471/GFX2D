@@ -1,3 +1,0 @@
-WITNESS lost FS: mover complete but actual rlst busy=1
-RESULT: PASS cancellation contract witness and recovery
-/mnt/e/Workspace/FPGA/Efinix/Engineering/TechReports/engine/evidence/18-r3-review-20261023/tb_cancel_contract.v:55: $finish called at 3600000 (1ps)

@@ -1,6 +1,0 @@
-warning: unable to access 'C:\Users\14297/.config/git/ignore': Permission denied
-RUN Main/sim/build/check-runs/20261023-191841-995c8477
-FEATURE SYNTHESIS PASS B0 xlr=36577
-FEATURE SYNTHESIS PASS B7 xlr=59623
-warning: unable to access 'C:\Users\14297/.config/git/ignore': Permission denied
-FEATURE SYNTHESIS PASS presets=2; netlist and all clock relationships

@@ -5,80 +5,79 @@
 <style>
 .op { position: absolute; box-sizing: border-box; border: 2px solid; border-radius: 4px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; font-size: 18px; font-weight: 700; line-height: 1.2; }
-.op .s { font-size: 17px; font-weight: 400; color: #4A5568; margin-top: 2px; }
+      text-align: center; }
+.op .t { font-size: 19px; font-weight: 700; line-height: 1.15; }
+.op .s { font-size: 16px; color: #4A5568; margin-top: 3px; line-height: 1.2; }
 </style></head>
 <body><div id="fig" style="width:1040px;height:470px">
 
-<div class="n dat" style="left:40px;top:120px;width:180px;height:120px">
+<div class="n dat" style="left:20px;top:130px;width:180px;height:120px">
   <div class="t">128 位拍</div>
   <div class="s">源：预乘 ARGB8888<br>目的：XRGB8888<br>各含 4 个像素</div>
 </div>
 
-<div class="lbl b" style="left:300px;top:44px">像素 0</div>
-<div class="lbl b" style="left:300px;top:126px">像素 1</div>
-<div class="lbl b" style="left:300px;top:208px">像素 2</div>
-<div class="lbl b" style="left:300px;top:290px">像素 3</div>
+<div class="lbl b" style="left:224px;top:44px">像素 0</div>
+<div class="lbl b" style="left:224px;top:130px">像素 1</div>
+<div class="lbl b" style="left:224px;top:216px">像素 2</div>
+<div class="lbl b" style="left:224px;top:302px">像素 3</div>
 
-<div class="op ctl" style="left:372px;top:56px;width:100px;height:54px">色键<span class="s">命中即弃</span></div>
-<div class="op cmp" style="left:496px;top:56px;width:110px;height:54px">× Fd<span class="s">R·G·B 各一</span></div>
-<div class="op cmp" style="left:630px;top:56px;width:110px;height:54px">+ src<span class="s">R·G·B 各一</span></div>
-<div class="op cmp" style="left:764px;top:56px;width:118px;height:54px">舍入<span class="s">÷255 · 饱和</span></div>
+<div class="op ctl" style="left:310px;top:50px;width:110px;height:56px"><div class="t">色键</div><div class="s">命中即弃</div></div>
+<div class="op cmp" style="left:460px;top:50px;width:140px;height:56px"><div class="t">× 目的系数</div><div class="s">各通道一次</div></div>
+<div class="op cmp" style="left:640px;top:50px;width:120px;height:56px"><div class="t">+ 源色</div><div class="s">各通道一次</div></div>
+<div class="op cmp" style="left:800px;top:50px;width:120px;height:56px"><div class="t">舍入</div><div class="s">÷255 · 饱和</div></div>
 
-<div class="op ctl" style="left:372px;top:138px;width:100px;height:54px">色键<span class="s">命中即弃</span></div>
-<div class="op cmp" style="left:496px;top:138px;width:110px;height:54px">× Fd<span class="s">R·G·B 各一</span></div>
-<div class="op cmp" style="left:630px;top:138px;width:110px;height:54px">+ src<span class="s">R·G·B 各一</span></div>
-<div class="op cmp" style="left:764px;top:138px;width:118px;height:54px">舍入<span class="s">÷255 · 饱和</span></div>
+<div class="op ctl" style="left:310px;top:136px;width:110px;height:56px"><div class="t">色键</div><div class="s">命中即弃</div></div>
+<div class="op cmp" style="left:460px;top:136px;width:140px;height:56px"><div class="t">× 目的系数</div><div class="s">各通道一次</div></div>
+<div class="op cmp" style="left:640px;top:136px;width:120px;height:56px"><div class="t">+ 源色</div><div class="s">各通道一次</div></div>
+<div class="op cmp" style="left:800px;top:136px;width:120px;height:56px"><div class="t">舍入</div><div class="s">÷255 · 饱和</div></div>
 
-<div class="op ctl" style="left:372px;top:220px;width:100px;height:54px">色键<span class="s">命中即弃</span></div>
-<div class="op cmp" style="left:496px;top:220px;width:110px;height:54px">× Fd<span class="s">R·G·B 各一</span></div>
-<div class="op cmp" style="left:630px;top:220px;width:110px;height:54px">+ src<span class="s">R·G·B 各一</span></div>
-<div class="op cmp" style="left:764px;top:220px;width:118px;height:54px">舍入<span class="s">÷255 · 饱和</span></div>
+<div class="op ctl" style="left:310px;top:222px;width:110px;height:56px"><div class="t">色键</div><div class="s">命中即弃</div></div>
+<div class="op cmp" style="left:460px;top:222px;width:140px;height:56px"><div class="t">× 目的系数</div><div class="s">各通道一次</div></div>
+<div class="op cmp" style="left:640px;top:222px;width:120px;height:56px"><div class="t">+ 源色</div><div class="s">各通道一次</div></div>
+<div class="op cmp" style="left:800px;top:222px;width:120px;height:56px"><div class="t">舍入</div><div class="s">÷255 · 饱和</div></div>
 
-<div class="op ctl" style="left:372px;top:302px;width:100px;height:54px">色键<span class="s">命中即弃</span></div>
-<div class="op cmp" style="left:496px;top:302px;width:110px;height:54px">× Fd<span class="s">R·G·B 各一</span></div>
-<div class="op cmp" style="left:630px;top:302px;width:110px;height:54px">+ src<span class="s">R·G·B 各一</span></div>
-<div class="op cmp" style="left:764px;top:302px;width:118px;height:54px">舍入<span class="s">÷255 · 饱和</span></div>
+<div class="op ctl" style="left:310px;top:308px;width:110px;height:56px"><div class="t">色键</div><div class="s">命中即弃</div></div>
+<div class="op cmp" style="left:460px;top:308px;width:140px;height:56px"><div class="t">× 目的系数</div><div class="s">各通道一次</div></div>
+<div class="op cmp" style="left:640px;top:308px;width:120px;height:56px"><div class="t">+ 源色</div><div class="s">各通道一次</div></div>
+<div class="op cmp" style="left:800px;top:308px;width:120px;height:56px"><div class="t">舍入</div><div class="s">÷255 · 饱和</div></div>
 
-<div class="n dat" style="left:914px;top:120px;width:96px;height:120px">
+<div class="n dat" style="left:950px;top:130px;width:76px;height:120px">
   <div class="t">写回</div>
-  <div class="s">128 位拍<br>4 像素<br>4 位掩码</div>
+  <div class="s">128 位<br>4 像素</div>
 </div>
 
 <svg class="links" viewBox="0 0 1040 470">
   <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M1,1 L10,5 L1,9" stroke="#4A5568" stroke-width="2"/></marker></defs>
-  <line x1="220" y1="180" x2="252" y2="180" stroke="#4A5568" stroke-width="2"/>
-  <line x1="252" y1="83" x2="252" y2="329" stroke="#4A5568" stroke-width="2"/>
-  <line x1="252" y1="83" x2="368" y2="83" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="252" y1="165" x2="368" y2="165" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="252" y1="247" x2="368" y2="247" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="252" y1="329" x2="368" y2="329" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="200" y1="186" x2="212" y2="186" stroke="#4A5568" stroke-width="2"/>
+  <line x1="212" y1="78" x2="212" y2="336" stroke="#4A5568" stroke-width="2"/>
+  <line x1="212" y1="78" x2="306" y2="78" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="212" y1="164" x2="306" y2="164" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="212" y1="250" x2="306" y2="250" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="212" y1="336" x2="306" y2="336" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
 
-  <line x1="472" y1="83" x2="492" y2="83" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="606" y1="83" x2="626" y2="83" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="740" y1="83" x2="760" y2="83" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="472" y1="165" x2="492" y2="165" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="606" y1="165" x2="626" y2="165" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="740" y1="165" x2="760" y2="165" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="472" y1="247" x2="492" y2="247" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="606" y1="247" x2="626" y2="247" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="740" y1="247" x2="760" y2="247" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="472" y1="329" x2="492" y2="329" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="606" y1="329" x2="626" y2="329" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="740" y1="329" x2="760" y2="329" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="420" y1="78" x2="456" y2="78" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="600" y1="78" x2="636" y2="78" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="760" y1="78" x2="796" y2="78" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="420" y1="164" x2="456" y2="164" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="600" y1="164" x2="636" y2="164" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="760" y1="164" x2="796" y2="164" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="420" y1="250" x2="456" y2="250" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="600" y1="250" x2="636" y2="250" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="760" y1="250" x2="796" y2="250" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="420" y1="336" x2="456" y2="336" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="600" y1="336" x2="636" y2="336" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="760" y1="336" x2="796" y2="336" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
 
-  <line x1="882" y1="83" x2="900" y2="83" stroke="#4A5568" stroke-width="2"/>
-  <line x1="882" y1="165" x2="900" y2="165" stroke="#4A5568" stroke-width="2"/>
-  <line x1="882" y1="247" x2="900" y2="247" stroke="#4A5568" stroke-width="2"/>
-  <line x1="882" y1="329" x2="900" y2="329" stroke="#4A5568" stroke-width="2"/>
-  <line x1="900" y1="83" x2="900" y2="329" stroke="#4A5568" stroke-width="2"/>
-  <line x1="900" y1="180" x2="910" y2="180" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="920" y1="78" x2="946" y2="78" stroke="#4A5568" stroke-width="2"/>
+  <line x1="920" y1="164" x2="946" y2="164" stroke="#4A5568" stroke-width="2"/>
+  <line x1="920" y1="250" x2="946" y2="250" stroke="#4A5568" stroke-width="2"/>
+  <line x1="920" y1="336" x2="946" y2="336" stroke="#4A5568" stroke-width="2"/>
+  <line x1="946" y1="78" x2="946" y2="336" stroke="#4A5568" stroke-width="2"/>
+  <line x1="946" y1="186" x2="946" y2="186" stroke="#4A5568" stroke-width="2"/>
 </svg>
 
-<div class="lbl" style="left:40px;top:262px;width:180px;line-height:1.6">预乘素材：源项已含 α，<br>每通道只算 1 次乘法</div>
-<div class="lbl" style="left:372px;top:396px;width:600px;line-height:1.7">4 像素 × 3 通道 = <b>12 个 DSP</b>，同一拍全部并行；连续供数且无反压时每周期进出各一拍。<br>色键命中即关闭该像素的写使能，原有目的像素保持不变。</div>
+<div class="lbl" style="left:20px;top:262px;width:180px;line-height:1.6">预乘素材：源项已含 α，<br>每通道只算 1 次乘法</div>
+<div class="lbl" style="left:310px;top:392px;width:720px;line-height:1.9">4 像素 × 3 通道 = <b>12 个 DSP</b>，同一拍全部并行；无反压时每周期进出各一拍。<br>写回 128 位拍与 4 位有效掩码；色键命中即关闭该像素的写使能，原目的像素不变。</div>
 
 </div></body></html>
-
-
 

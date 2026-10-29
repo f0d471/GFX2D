@@ -1,5 +1,0 @@
-localize_paths.py --check --tracked: PASS, no machine-specific paths
-git -c core.whitespace=cr-at-eol diff --check: PASS
-new TechReport/Todo links: verified
-frozen package files: 25 verified
-pre-existing engine_pix.v/main.c/atlas.png/TechReports README changes: unchanged

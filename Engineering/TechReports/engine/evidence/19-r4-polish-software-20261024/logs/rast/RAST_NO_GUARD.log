@@ -1,3 +1,0 @@
-RAST FAIL guard prevents s32 overflow
-RAST FAIL full Q16 viewport reaches guard clip
-RAST directed/math fail 2

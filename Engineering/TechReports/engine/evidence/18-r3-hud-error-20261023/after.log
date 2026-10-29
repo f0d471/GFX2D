@@ -1,2 +1,0 @@
-RESULT: PASS legacy prefetch preserved before raster abort
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r3-dev/legacy-abort-fixed/tb.v:208: $finish called at 233490000 (1ps)

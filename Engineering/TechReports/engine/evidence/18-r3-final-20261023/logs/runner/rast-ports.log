@@ -1,8 +1,0 @@
-RUN Main/sim/build/check-runs/20261023-191846-7ec71037
-core RESULT: PASS core LAT=1 II=1 burst=64 RAW=2slots cancel=commit errors=7
-tex-lat1 RESULT: PASS TEX latency=1 II=1 samples=4096 legacy=1
-core-tex-lat1 RESULT: PASS core LAT=1 II=1 burst=64 RAW=2slots cancel=commit errors=6
-tex-lat2 RESULT: PASS TEX latency=2 II=1 samples=4096 legacy=1
-core-tex-lat2 RESULT: PASS core LAT=2 II=1 burst=64 RAW=2slots cancel=commit errors=6
-CLOSED PASS raster sources follow RAST; legacy TEX retained by L1
-R2 ports PASS cases=5

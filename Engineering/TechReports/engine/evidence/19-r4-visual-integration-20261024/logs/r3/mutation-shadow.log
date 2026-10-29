@@ -1,2 +1,0 @@
-FATAL: /mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/r3/tb_r3.v:143: terminal status got=00000028 code=0
-       Time: 125080000  Scope: tb_r3.finish

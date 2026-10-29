@@ -1,2 +1,0 @@
-RESULT: PASS core LAT=1 II=1 burst=64 RAW=2slots cancel=commit errors=6
-Main/sim/engine/rast/tb_rast_core.v:140: $finish called at 84680000 (1ps)

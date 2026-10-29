@@ -1,3 +1,0 @@
-R4 GAMEPLAY PASS ship-plane hit/gate, enemy hit, bomb edge
-R4 OCCLUSION PASS enemy/projectile behind gate posts
-R4 SCENE PASS ticks=2000 peak=115 cup_input=396 crc=62083d34

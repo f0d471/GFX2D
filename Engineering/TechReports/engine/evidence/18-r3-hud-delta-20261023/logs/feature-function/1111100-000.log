@@ -1,2 +1,0 @@
-FEATURE-FUNCTION-PASS checks=39510
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/features/tb_feature_function.v:276: $finish called at 200820000 (1ps)

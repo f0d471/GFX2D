@@ -1,3 +1,0 @@
-RUN Main/sim/build/check-runs/20261023-193434-5007f558
-R3 BOARD EXPECTED_RED pixel-injection
-R3 BOARD PASS normal

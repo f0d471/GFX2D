@@ -1,3 +1,0 @@
-STAT rd_viol=0 wr_viol=0 rd_out=0 wr_out=0 ar=1 aw=0 multi=0 unal=0 x4k=0 rrb=0 tmo=1
-RESULT: PASS
-tb_engine_mover.v:892: $finish called at 920000 (1ps)

@@ -1,5 +1,0 @@
-CONTROL normal AR=32 AW=32 local=1
-CONTROL cancel raw-prefix=10 WL=0
-RESULT: PASS
-CONTROL errors=0 timeouts=2 read-status=0 write-status=1
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/band/tb_engine_band_mover.v:196: $finish called at 226200000 (1ps)

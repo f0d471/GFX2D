@@ -1,4 +1,0 @@
-UNIT APB done (errors=0)
-STR-WATCHDOG beats=1 last=1 stat=0
-TEX INJECT 4 STATUS_MISSING
-tb_engine_tex.v:238: $finish called at 445930000 (1ps)

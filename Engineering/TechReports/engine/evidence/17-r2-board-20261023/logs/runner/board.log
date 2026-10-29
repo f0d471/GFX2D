@@ -1,2 +1,0 @@
-RUN Main/sim/build/check-runs/20261023-054918-b3812882
-BOARD PASS port=COM11 run=Main/sim/build/check-runs/20261023-054918-b3812882

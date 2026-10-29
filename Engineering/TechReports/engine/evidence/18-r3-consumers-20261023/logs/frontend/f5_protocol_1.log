@@ -1,2 +1,0 @@
-RESULT: PASS protocol=          1 errors=          0
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_pb.v:231: $finish called at 3035000 (1ps)

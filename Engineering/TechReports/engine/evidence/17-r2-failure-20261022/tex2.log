@@ -1,5 +1,0 @@
-PROBE_TEX LAT=2 word=1 actual=xxxxxxxx expected=22000002 match=0
-PROBE_TEX LAT=2 word=0 actual=11000001 expected=11000001 match=1
-PROBE_TEX LAT=2 word=2 actual=11000001 expected=33000003 match=0
-PROBE_TEX LAT=2 word=3 actual=11000001 expected=44000004 match=0
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/r2-review-20261022-223936/tb_tex_probe.v:29: $finish called at 190000 (1ps)

@@ -6,66 +6,65 @@
 .st { position: absolute; box-sizing: border-box; border: 2px solid; border-radius: 4px;
       padding: 6px 8px; display: flex; flex-direction: column; align-items: center;
       justify-content: center; text-align: center; }
-.st .t { font-size: 19px; font-weight: 700; line-height: 1.25; }
-.st .s { font-size: 17px; color: #4A5568; line-height: 1.4; margin-top: 3px; }
+.st .t { font-size: 20px; font-weight: 700; line-height: 1.25; }
+.st .s { font-size: 17px; color: #4A5568; line-height: 1.45; margin-top: 3px; }
 </style></head>
-<body><div id="fig" style="width:1040px;height:440px"">
+<body><div id="fig" style="width:1040px;height:440px">
 
-<div class="st ctl" style="left:30px;top:20px;width:160px;height:74px">
+<div class="st ctl" style="left:30px;top:20px;width:170px;height:74px">
   <div class="t">CPU 提交</div>
-  <div class="s">32 B 记录</div>
+  <div class="s">每条命令 32 字节</div>
 </div>
-<div class="st mem" style="left:210px;top:20px;width:160px;height:74px">
+<div class="st mem" style="left:220px;top:20px;width:170px;height:74px">
   <div class="t">命令表 A / B</div>
   <div class="s">各 1 MB</div>
 </div>
-<div class="st mem" style="left:400px;top:20px;width:200px;height:74px">
-  <div class="t">表面表 SURF</div>
+<div class="st mem" style="left:430px;top:20px;width:200px;height:74px">
+  <div class="t">表面表</div>
   <div class="s">基址 · 宽高<br>行跨 · 格式</div>
 </div>
 
-<div class="st ctl" style="left:30px;top:122px;width:160px;height:124px">
+<div class="st ctl" style="left:30px;top:126px;width:170px;height:124px">
   <div class="t">寄存器</div>
-  <div class="s">LIST_BASE<br>LIST_COUNT<br>DOORBELL 启动</div>
+  <div class="s">起始地址<br>命令条数<br>启动位</div>
 </div>
-<div class="st ctl" style="left:210px;top:122px;width:160px;height:124px">
+<div class="st ctl" style="left:230px;top:126px;width:150px;height:124px">
   <div class="t">命令取数</div>
   <div class="s">按 8 字<br>取一条</div>
 </div>
-<div class="st ctl" style="left:390px;top:122px;width:190px;height:124px">
+<div class="st ctl" style="left:410px;top:126px;width:200px;height:124px">
   <div class="t">检查与解码</div>
   <div class="s">十项依次判定<br>失败即停</div>
 </div>
-<div class="st cmp" style="left:600px;top:122px;width:160px;height:124px">
+<div class="st cmp" style="left:640px;top:126px;width:170px;height:124px">
   <div class="t">几何处理</div>
   <div class="s">四边裁剪<br>行段 ≤192 拍</div>
 </div>
-<div class="st cmp" style="left:780px;top:122px;width:230px;height:124px">
+<div class="st cmp" style="left:840px;top:126px;width:170px;height:124px">
   <div class="t">像素处理</div>
-  <div class="s">每拍 4 像素<br>12 个 DSP · 舍入饱和</div>
+  <div class="s">每拍 4 像素<br>12 个 DSP</div>
 </div>
 
-<div class="st dat" style="left:30px;top:276px;width:980px;height:62px">
+<div class="st dat" style="left:30px;top:280px;width:980px;height:62px">
   <div class="t">AXI4 事务层　读：命令表 · 源 · 目的　写：目的</div>
   <div class="s">128 位 @ 100 MHz · 单次突发 ≤192 拍（一行 160 拍）</div>
 </div>
 
 <svg class="links" viewBox="0 0 1040 440">
   <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M1,1 L10,5 L1,9" stroke="#4A5568" stroke-width="2"/></marker></defs>
-  <line x1="110" y1="94" x2="110" y2="118" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="290" y1="94" x2="290" y2="118" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="500" y1="94" x2="500" y2="118" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="190" y1="184" x2="206" y2="184" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="370" y1="184" x2="386" y2="184" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="580" y1="184" x2="596" y2="184" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="760" y1="184" x2="776" y2="184" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="290" y1="246" x2="290" y2="272" stroke="#4A5568" stroke-width="1.6" stroke-dasharray="5 4"/>
-  <line x1="680" y1="246" x2="680" y2="272" stroke="#4A5568" stroke-width="1.6" stroke-dasharray="5 4"/>
-  <line x1="895" y1="246" x2="895" y2="272" stroke="#4A5568" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line x1="115" y1="94" x2="115" y2="122" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="305" y1="94" x2="305" y2="122" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="510" y1="94" x2="510" y2="122" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="200" y1="188" x2="226" y2="188" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="380" y1="188" x2="406" y2="188" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="610" y1="188" x2="636" y2="188" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="810" y1="188" x2="836" y2="188" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="305" y1="252" x2="305" y2="278" stroke="#4A5568" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line x1="725" y1="252" x2="725" y2="278" stroke="#4A5568" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line x1="925" y1="252" x2="925" y2="278" stroke="#4A5568" stroke-width="1.6" stroke-dasharray="5 4"/>
 </svg>
 
-<div class="lbl" style="left:30px;top:352px;width:980px;line-height:1.8">结束：END 与 LIST_COUNT 先到者为准。十项中任一项失败即停止本条，错误码与命令索引上报驱动。</div>
+<div class="lbl" style="left:30px;top:368px;width:980px;line-height:1.8">结束：结束命令与命令条数先到者为准。十项中任一项失败即停止本条，错误码与命令索引上报驱动。</div>
 
 </div></body></html>
-
 

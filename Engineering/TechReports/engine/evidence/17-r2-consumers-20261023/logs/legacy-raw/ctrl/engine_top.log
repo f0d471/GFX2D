@@ -1,3 +1,0 @@
-checks=6678 errors=0 vectors=159 vec_fail=0
-RESULT: PASS
-tb_engine_top.v:831: $finish called at 251455000 (1ps)

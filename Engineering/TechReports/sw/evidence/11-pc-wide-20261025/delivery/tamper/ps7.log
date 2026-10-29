@@ -1,5 +1,0 @@
-Exception: E:\Workspace\FPGA\Efinix\Main\sim\build\pc-widescreen-20261025\entry-tamper-final\Run-PC.ps1:14
-Line |
-  14 |              throw ('Release file changed: ' + $entry.path)
-     |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     | Release file changed: pc/gfx2dGame.exe

@@ -1,4 +1,0 @@
-BAND_ERROR code=2
-RESULT: FAIL
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/band/tb_engine_band_path.v:234: $finish called at 166505000 (1ps)
-READ_ERROR

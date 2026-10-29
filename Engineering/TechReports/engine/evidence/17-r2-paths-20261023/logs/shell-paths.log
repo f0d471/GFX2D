@@ -1,2 +1,0 @@
-BASH SYNTAX PASS render_all.sh vsdx_export.sh
-PATH ROUNDTRIP PASS; draw.io found; no rendering executed

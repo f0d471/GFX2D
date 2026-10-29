@@ -1,2 +1,0 @@
-RUN Main/sim/build/check-runs/20261023-055753-b55e00a3
-BOARD GAME PASS frames=240 backend=HW/DDR port=COM11

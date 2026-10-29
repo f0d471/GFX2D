@@ -1,3 +1,0 @@
-EARLY_FLUSH_ACCEPTED
-RESULT: FAIL
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/band/tb_engine_band_path.v:256: $finish called at 165540000 (1ps)
