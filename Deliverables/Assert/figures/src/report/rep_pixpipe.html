@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="900x470">
+<meta name="fig-size" content="900x386">
 <link rel="stylesheet" href="_rep.css">
 <style>
 .op { position: absolute; box-sizing: border-box; border: 2px solid; border-radius: 4px;
@@ -9,7 +9,7 @@
 .op .t { font-size: 21px; font-weight: 700; line-height: 1.15; }
 .op .s { font-size: 15.5px; color: #4A5568; margin-top: 3px; line-height: 1.2; }
 </style></head>
-<body><div id="fig" style="width:900px;height:470px">
+<body><div id="fig" style="width:900px;height:386px">
 
 <div class="n dat" style="left:10px;top:150px;width:140px;height:104px">
   <div class="t">128 位拍</div>
@@ -46,7 +46,7 @@
   <div class="s">128 位<br>4 像素</div>
 </div>
 
-<svg class="links" viewBox="0 0 900 470">
+<svg class="links" viewBox="0 0 900 386">
   <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M1,1 L10,5 L1,9" stroke="#4A5568" stroke-width="2"/></marker></defs>
   <line x1="150" y1="202" x2="190" y2="202" stroke="#4A5568" stroke-width="2"/>
   <line x1="190" y1="70" x2="190" y2="334" stroke="#4A5568" stroke-width="2"/>
@@ -75,9 +75,6 @@
   <line x1="786" y1="70" x2="786" y2="334" stroke="#4A5568" stroke-width="2"/>
   <line x1="786" y1="202" x2="790" y2="202" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
 </svg>
-
-<div class="lbl" style="left:10px;top:270px;width:150px;font-size:15.5px;line-height:1.5">预乘素材：<br>源项已含 α</div>
-<div class="lbl" style="left:240px;top:392px;width:650px;font-size:15.5px;line-height:1.7">4 像素 × 3 通道 = <b>12 个 DSP</b>，同一拍全部并行；无反压时每周期进出各一拍。<br>写回 128 位拍与 4 位掩码；色键命中即关闭该像素写使能。</div>
 
 </div></body></html>
 

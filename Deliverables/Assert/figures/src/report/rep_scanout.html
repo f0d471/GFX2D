@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="900x450">
+<meta name="fig-size" content="900x336">
 <link rel="stylesheet" href="_rep.css">
 <style>
 .st { position: absolute; box-sizing: border-box; border: 2px solid; border-radius: 4px;
@@ -12,7 +12,7 @@
        display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; }
 .hatch { background: repeating-linear-gradient(45deg,#F1F3F6,#F1F3F6 7px,#E4E8EE 7px,#E4E8EE 14px); }
 </style></head>
-<body><div id="fig" style="width:900px;height:450px">
+<body><div id="fig" style="width:900px;height:336px">
 
 <div class="st mem" style="left:10px;top:30px;width:126px;height:80px">
   <div class="t">帧缓冲</div>
@@ -42,7 +42,7 @@
 <div class="lbl" style="left:10px;top:120px;font-size:15.5px">◀ 100 MHz 总线域</div>
 <div class="lbl" style="left:640px;top:120px;font-size:15.5px">25.2 MHz 像素域 ▶</div>
 
-<svg class="links" viewBox="0 0 900 450">
+<svg class="links" viewBox="0 0 900 336">
   <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M1,1 L10,5 L1,9" stroke="#4A5568" stroke-width="2"/></marker></defs>
   <line x1="136" y1="70" x2="148" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
   <line x1="278" y1="70" x2="290" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
@@ -59,7 +59,5 @@
 
 <div class="lbl b" style="left:10px;top:274px">像素侧</div>
 <div class="bar cmp" style="left:96px;top:262px;width:794px">640 像素连续输出，与总线突发无关</div>
-
-<div class="lbl" style="left:96px;top:330px;width:794px;font-size:15.5px;line-height:1.7">一行 640 像素 = 160 拍 @100 MHz ≈ 1.6 µs，占一行时间的 <b>6.3%</b>；其余时间总线空闲。<br>异步 FIFO 吸收访问抖动，扫描不被存储器延迟打断；一场 480 行约 12.2 ms，加消隐 16.7 ms。</div>
 
 </div></body></html>
