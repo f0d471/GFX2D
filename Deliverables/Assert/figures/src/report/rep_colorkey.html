@@ -4,13 +4,7 @@
 <link rel="stylesheet" href="_rep.css">
 <style>
 .cell { position: absolute; width: 360px; height: 284px; box-sizing: border-box; border: 1px solid #B9C0C8; overflow: hidden; }
-.spr { position: absolute; left: 40px; top: 2px; width: 280px; height: 280px;
-       background-image: url(../../../third-party/starry_night_520.jpg);
-       background-size: cover;
-       -webkit-mask-image: url(../../../third-party/silhouette_an124.svg);
-       -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;
-       mask-image: url(../../../third-party/silhouette_an124.svg);
-       mask-size: contain; mask-repeat: no-repeat; mask-position: center; }
+.cell img { position: absolute; left: 55px; top: 6px; width: 250px; height: 266px; object-fit: contain; }
 .cap { position: absolute; text-align: center; font-size: 16px; color: #1D2733; }
 .checker { background-image:
    linear-gradient(45deg,#E8ECF1 25%,transparent 25%), linear-gradient(-45deg,#E8ECF1 25%,transparent 25%),
@@ -20,12 +14,12 @@
 <body><div id="fig" style="width:900px;height:360px">
 
 <div class="cell" style="left:40px;top:16px;background:#CC00CC">
-  <div class="spr"></div>
+  <img src="../../../third-party/aircraft_sprite.png">
 </div>
 <div class="cap" style="left:20px;top:312px;width:400px">关闭色键：矩形底色一并写入</div>
 
 <div class="cell checker" style="left:500px;top:16px">
-  <div class="spr"></div>
+  <img src="../../../third-party/aircraft_sprite.png">
 </div>
 <div class="cap" style="left:480px;top:312px;width:400px">开启色键：只留任意轮廓</div>
 
