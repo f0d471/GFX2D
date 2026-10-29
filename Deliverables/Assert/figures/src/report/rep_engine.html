@@ -1,44 +1,71 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="1040x714">
-<link rel="stylesheet" href="_rep.css"></head>
-<body><div id="fig" style="width:1040px;height:714px">
+<meta name="fig-size" content="1040x440">
+<link rel="stylesheet" href="_rep.css">
+<style>
+.st { position: absolute; box-sizing: border-box; border: 2px solid; border-radius: 4px;
+      padding: 6px 8px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center; }
+.st .t { font-size: 19px; font-weight: 700; line-height: 1.25; }
+.st .s { font-size: 17px; color: #4A5568; line-height: 1.4; margin-top: 3px; }
+</style></head>
+<body><div id="fig" style="width:1040px;height:440px"">
 
-<div class="n ctl" style="left:40px;top:20px;width:470px;height:88px"><div class="t">APB 从机与寄存器组</div>
-<div class="s">CTRL · STATUS · LIST_* · SURF[16] · PERF_*</div></div>
-<div class="n mem" style="left:530px;top:20px;width:470px;height:88px"><div class="t">表面表 SURF[0..15]</div>
-<div class="s">基址 · 宽高 · 行跨 · 格式 · valid</div></div>
+<div class="st ctl" style="left:30px;top:20px;width:160px;height:74px">
+  <div class="t">CPU 提交</div>
+  <div class="s">32 B 记录</div>
+</div>
+<div class="st mem" style="left:210px;top:20px;width:160px;height:74px">
+  <div class="t">命令表 A / B</div>
+  <div class="s">各 1 MB</div>
+</div>
+<div class="st mem" style="left:400px;top:20px;width:200px;height:74px">
+  <div class="t">表面表 SURF</div>
+  <div class="s">基址 · 宽高<br>行跨 · 格式</div>
+</div>
 
-<div class="n ctl" style="left:40px;top:148px;width:470px;height:88px"><div class="t">命令取数</div>
-<div class="s">DOORBELL → 批量读入命令缓冲</div></div>
-<div class="n ctl" style="left:530px;top:148px;width:470px;height:88px"><div class="t">错误与超时</div>
-<div class="s">首错停止 · 超时排空 · 中断</div></div>
+<div class="st ctl" style="left:30px;top:122px;width:160px;height:124px">
+  <div class="t">寄存器</div>
+  <div class="s">LIST_BASE<br>LIST_COUNT<br>DOORBELL 启动</div>
+</div>
+<div class="st ctl" style="left:210px;top:122px;width:160px;height:124px">
+  <div class="t">命令取数</div>
+  <div class="s">按 8 字<br>取一条</div>
+</div>
+<div class="st ctl" style="left:390px;top:122px;width:190px;height:124px">
+  <div class="t">检查与解码</div>
+  <div class="s">十项依次判定<br>失败即停</div>
+</div>
+<div class="st cmp" style="left:600px;top:122px;width:160px;height:124px">
+  <div class="t">几何处理</div>
+  <div class="s">四边裁剪<br>行段 ≤192 拍</div>
+</div>
+<div class="st cmp" style="left:780px;top:122px;width:230px;height:124px">
+  <div class="t">像素处理</div>
+  <div class="s">每拍 4 像素<br>12 个 DSP · 舍入饱和</div>
+</div>
 
-<div class="n ctl" style="left:40px;top:276px;width:470px;height:88px"><div class="t">检查与解码（十步）</div>
-<div class="s">字段 · 方程 · 表面 · 重叠</div></div>
-<div class="n cmp" style="left:530px;top:276px;width:470px;height:88px"><div class="t">几何层</div>
-<div class="s">四区裁剪 · 行迭代 · 读改写</div></div>
+<div class="st dat" style="left:30px;top:276px;width:980px;height:62px">
+  <div class="t">AXI4 事务层　读：命令表 · 源 · 目的　写：目的</div>
+  <div class="s">128 位 @ 100 MHz · 单次突发 ≤192 拍（一行 160 拍）</div>
+</div>
 
-<div class="n cmp" style="left:40px;top:404px;width:960px;height:96px"><div class="t">像素流水线（每周期 4 像素）</div>
-<div class="s">取数 → 色键判定 → DSP ×12 → ÷255 舍入饱和 → 写回</div></div>
-
-<div class="n dat" style="left:40px;top:540px;width:960px;height:80px"><div class="t">AXI4 事务层（128 位 @ 100 MHz）</div>
-<div class="s">读 / 写多级 FIFO · 突发 ≤ 192 拍 · 各一笔在途</div></div>
-
-<svg class="links" viewBox="0 0 1040 714">
-  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="13" refX="13" refY="5.5" orient="auto"><path d="M1,1 L13,5.5 L1,10" stroke="#4A5568" stroke-width="2"/></marker></defs>
-  <line x1="270" y1="108" x2="270" y2="148" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="270" y1="236" x2="270" y2="276" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="765" y1="364" x2="765" y2="404" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="270" y1="500" x2="270" y2="540" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="510" y1="320" x2="529" y2="320" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <polyline points="1000,64 1022,64 1022,320 1000,320" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="300" y1="620" x2="300" y2="654" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
-  <line x1="760" y1="654" x2="760" y2="620" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
+<svg class="links" viewBox="0 0 1040 440">
+  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M1,1 L10,5 L1,9" stroke="#4A5568" stroke-width="2"/></marker></defs>
+  <line x1="110" y1="94" x2="110" y2="118" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="290" y1="94" x2="290" y2="118" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="500" y1="94" x2="500" y2="118" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="190" y1="184" x2="206" y2="184" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="370" y1="184" x2="386" y2="184" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="580" y1="184" x2="596" y2="184" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="760" y1="184" x2="776" y2="184" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="290" y1="246" x2="290" y2="272" stroke="#4A5568" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line x1="680" y1="246" x2="680" y2="272" stroke="#4A5568" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line x1="895" y1="246" x2="895" y2="272" stroke="#4A5568" stroke-width="1.6" stroke-dasharray="5 4"/>
 </svg>
 
-<div class="lbl" style="left:316px;top:630px">AXI 读：命令表 / 源 / 目的</div>
-<div class="lbl" style="left:776px;top:630px">AXI 写：目的</div>
+<div class="lbl" style="left:30px;top:352px;width:980px;line-height:1.8">结束：END 与 LIST_COUNT 先到者为准。十项中任一项失败即停止本条，错误码与命令索引上报驱动。</div>
 
-<div class="lg" style="left:40px;top:682px;font-size:16.5px"><span class="bx" style="border-color:#E8546B;background:#FBEEF0"></span>控制与寄存器　<span class="bx" style="border-color:#A37A1C;background:#F9F2E1"></span>存储　<span class="bx" style="border-color:#67BA4A;background:#EEF7E9"></span>计算　<span class="bx" style="border-color:#4A7FD0;background:#EDF3FB"></span>数据通路（AXI）</div>
 </div></body></html>
+
+

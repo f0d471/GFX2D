@@ -1,29 +1,73 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="1080x240">
-<link rel="stylesheet" href="_rep.css"></head>
-<body><div id="fig" style="width:1080px;height:240px">
+<meta name="fig-size" content="1040x430">
+<link rel="stylesheet" href="_rep.css">
+<style>
+.st { position: absolute; box-sizing: border-box; border: 2px solid; border-radius: 4px;
+      padding: 6px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center; }
+.st .t { font-size: 19px; font-weight: 700; line-height: 1.25; }
+.st .s { font-size: 17px; color: #4A5568; line-height: 1.4; margin-top: 2px; }
+.bar { position: absolute; height: 46px; box-sizing: border-box; border: 2px solid;
+       display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; }
+.hatch { background: repeating-linear-gradient(45deg,#F1F3F6,#F1F3F6 7px,#E4E8EE 7px,#E4E8EE 14px); }
+</style></head>
+<body><div id="fig" style="width:1040px;height:430px">
 
-<div class="n mem" style="left:40px;top:40px;width:172px;height:110px"><div class="t" style="font-size:21px">前台帧缓冲</div>
-<div class="s">DDR3 · XRGB8888</div></div>
-<div class="n dat" style="left:244px;top:40px;width:172px;height:110px"><div class="t" style="font-size:21px">display_fetch</div>
-<div class="s">逐行读取 · S0 只读</div></div>
-<div class="n mem" style="left:448px;top:40px;width:172px;height:110px"><div class="t" style="font-size:21px">display_fifo</div>
-<div class="s">512 拍 · 跨时钟域</div></div>
-<div class="n dat" style="left:652px;top:40px;width:172px;height:110px"><div class="t" style="font-size:21px">display_out</div>
-<div class="s">128 位拍拆 4 像素</div></div>
-<div class="n dat" style="left:856px;top:40px;width:190px;height:110px"><div class="t" style="font-size:21px">hdmi_tx</div>
-<div class="s">640×480 @ 60 Hz</div></div>
+<div class="st mem" style="left:24px;top:34px;width:140px;height:72px">
+  <div class="t">前台帧缓冲</div>
+  <div class="s">DDR3</div>
+</div>
+<div class="st dat" style="left:188px;top:34px;width:150px;height:72px">
+  <div class="t">display_fetch</div>
+  <div class="s">按行发出突发</div>
+</div>
+<div class="st mem" style="left:356px;top:34px;width:152px;height:72px">
+  <div class="t">异步 FIFO</div>
+  <div class="s">128 位 × 512 深<br>≈ 3.2 行</div>
+</div>
+<div class="st dat" style="left:526px;top:34px;width:150px;height:72px">
+  <div class="t">display_out</div>
+  <div class="s">每拍拆 4 像素</div>
+</div>
+<div class="st dat" style="left:700px;top:34px;width:140px;height:72px">
+  <div class="t">hdmi_tx</div>
+  <div class="s">TMDS 编码</div>
+</div>
+<div class="st ext" style="left:864px;top:34px;width:152px;height:72px">
+  <div class="t">HDMI 显示器</div>
+  <div class="s">640×480@60</div>
+</div>
 
-<svg class="links" viewBox="0 0 1080 240">
-  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="14" refX="13" refY="6" orient="auto"><path d="M1,1 L13,6 L1,11" stroke="#3F668B" stroke-width="2.4"/></marker></defs>
-  <line x1="212" y1="95" x2="238" y2="95" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
-  <line x1="416" y1="95" x2="442" y2="95" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
-  <line x1="620" y1="95" x2="646" y2="95" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
-  <line x1="824" y1="95" x2="850" y2="95" stroke="#3F668B" stroke-width="2.4" marker-end="url(#ar)"/>
+<div class="lbl" style="left:24px;top:120px;font-size:15px">◀ 100 MHz 总线域</div>
+<div class="lbl" style="left:760px;top:118px;font-size:15px">25.2 MHz 像素域 ▶</div>
+
+<svg class="links" viewBox="0 0 1040 430">
+  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M1,1 L10,5 L1,9" stroke="#4A5568" stroke-width="2"/></marker></defs>
+  <line x1="164" y1="70" x2="184" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="338" y1="70" x2="358" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="502" y1="70" x2="522" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="676" y1="70" x2="696" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="840" y1="70" x2="860" y2="70" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
 </svg>
 
-<div class="lbl" style="left:40px;top:186px;color:#6B7684">场消隐期锁存新帧基址完成双缓冲切换（见双缓冲时序图）；上电默认输出八色彩条。</div>
+<div class="lbl b" style="left:24px;top:166px">一行的时间预算（25.4 µs）</div>
 
-<div class="lg" style="left:790px;top:8px;font-size:16px"><span class="bx" style="border-color:#A37A1C;background:#F9F2E1"></span>存储与缓冲　<span class="bx" style="border-color:#4A7FD0;background:#EDF3FB;margin-left:10px"></span>逻辑</div>
+<div class="lbl b" style="left:24px;top:212px">总线侧</div>
+<div class="bar dat" style="left:110px;top:200px;width:62px">1.6 µs</div>
+<div class="bar hatch" style="left:172px;top:200px;width:844px">空闲</div>
+
+<div class="lbl b" style="left:24px;top:278px">像素侧</div>
+<div class="bar cmp" style="left:110px;top:266px;width:906px">640 像素连续输出，与总线突发无关</div>
+
+<div class="lbl" style="left:110px;top:330px;font-size:15px;line-height:1.7">一行 640 像素 = 160 拍 @100 MHz ≈ 1.6 µs，占一行时间的 <b>6.3%</b>；<br>其余时间总线空闲，异步 FIFO 吸收访问抖动，扫描不被存储器延迟打断。<br>一场 480 行 ≈ 12.2 ms，加消隐后 16.7 ms，对应 60 Hz。</div>
+
 </div></body></html>
+
+
+
+
+
+
+
+
