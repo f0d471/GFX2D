@@ -1,50 +1,62 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="900x404">
+<meta name="fig-size" content="900x400">
 <link rel="stylesheet" href="_rep.css">
 <style>
-.frm { position: absolute; width: 320px; height: 240px; box-sizing: border-box; border: 2px solid #87929E; background: #F7F8FA; }
-.ddr { position: absolute; width: 320px; height: 56px; box-sizing: border-box; border: 2px solid #A37A1C; background: #F9F2E1; }
-.cap { position: absolute; width: 320px; text-align: center; font-size: 17px; color: #1D2733; line-height: 1.4; }
+.frm { position: absolute; width: 300px; height: 212px; box-sizing: border-box; border: 2px solid #87929E; background: #FBFCFD; }
+.ddr { position: absolute; width: 300px; height: 56px; box-sizing: border-box; border: 2px solid #A37A1C; background: #F9F2E1; }
 .sp { position: absolute; background: #EDF3FB; border: 1.5px solid #4A7FD0; }
-.band { position: absolute; background: rgba(103,186,74,0.16); border-top: 1.5px solid #67BA4A; border-bottom: 1.5px solid #67BA4A; }
+.band { position: absolute; background: rgba(103,186,74,0.18); border-top: 1.5px solid #67BA4A; border-bottom: 1.5px solid #67BA4A; }
+.blk { position: absolute; background: #EFD9A8; border: 1.5px solid #A37A1C; }
+.cnt { position: absolute; width: 300px; text-align: center; font-size: 18px; font-weight: 700; color: #1D2733; }
+.cap { position: absolute; width: 300px; text-align: center; font-size: 16px; color: #4A5568; }
 </style></head>
-<body><div id="fig" style="width:900px;height:404px">
+<body><div id="fig" style="width:900px;height:400px">
 
-<div class="frm" style="left:30px;top:20px">
-  <div class="sp" style="left:36px;top:30px;width:44px;height:44px"></div>
-  <div class="sp" style="left:116px;top:66px;width:44px;height:44px"></div>
-  <div class="sp" style="left:190px;top:34px;width:44px;height:44px"></div>
-  <div class="sp" style="left:74px;top:122px;width:44px;height:44px"></div>
-  <div class="sp" style="left:208px;top:132px;width:44px;height:44px"></div>
+<div class="frm" style="left:30px;top:16px">
+  <div class="sp" style="left:40px;top:42px;width:42px;height:42px"></div>
+  <div class="sp" style="left:118px;top:78px;width:42px;height:42px"></div>
+  <div class="sp" style="left:192px;top:46px;width:42px;height:42px"></div>
+  <div class="sp" style="left:76px;top:132px;width:42px;height:42px"></div>
+  <div class="sp" style="left:250px;top:142px;width:42px;height:42px"></div>
 </div>
-<div class="ddr" style="left:30px;top:280px"></div>
-<div class="lbl" style="left:30px;top:292px;width:320px;text-align:center;font-size:16px;color:#8A6410">帧缓冲</div>
-<div class="cap" style="left:30px;top:352px">直通：逐个 Sprite 写回</div>
+<div class="ddr" style="left:30px;top:262px">
+  <div class="blk" style="left:36px;top:12px;width:26px;height:28px"></div>
+  <div class="blk" style="left:92px;top:12px;width:22px;height:28px"></div>
+  <div class="blk" style="left:144px;top:12px;width:30px;height:28px"></div>
+  <div class="blk" style="left:206px;top:12px;width:20px;height:28px"></div>
+  <div class="blk" style="left:246px;top:12px;width:24px;height:28px"></div>
+</div>
+<div class="cnt" style="left:30px;top:326px">5 次零散写回</div>
+<div class="cap" style="left:30px;top:358px">直通：逐个 Sprite 写回</div>
 
-<svg class="links" viewBox="0 0 900 404" style="position:absolute;left:0;top:0">
+<svg class="links" viewBox="0 0 900 400" style="position:absolute;left:0;top:0">
   <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0.5,0.5 L8,4 L0.5,7.5" stroke="#4A5568" stroke-width="1.6" fill="none"/></marker></defs>
-  <line x1="88" y1="74" x2="150" y2="274" stroke="#4A5568" stroke-width="1.6" marker-end="url(#ar)"/>
-  <line x1="168" y1="110" x2="185" y2="274" stroke="#4A5568" stroke-width="1.6" marker-end="url(#ar)"/>
-  <line x1="242" y1="78" x2="220" y2="274" stroke="#4A5568" stroke-width="1.6" marker-end="url(#ar)"/>
-  <line x1="126" y1="166" x2="165" y2="274" stroke="#4A5568" stroke-width="1.6" marker-end="url(#ar)"/>
-  <line x1="260" y1="176" x2="240" y2="274" stroke="#4A5568" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="93" y1="102" x2="93" y2="256" stroke="#4A5568" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="171" y1="138" x2="171" y2="256" stroke="#4A5568" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="245" y1="106" x2="245" y2="256" stroke="#4A5568" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="129" y1="192" x2="129" y2="256" stroke="#4A5568" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="303" y1="202" x2="303" y2="256" stroke="#4A5568" stroke-width="1.5" marker-end="url(#ar)"/>
 </svg>
 
-<div class="frm" style="left:550px;top:20px">
-  <div class="band" style="left:0;top:74px;width:316px;height:52px"></div>
-  <div class="sp" style="left:40px;top:82px;width:36px;height:36px"></div>
-  <div class="sp" style="left:120px;top:82px;width:36px;height:36px"></div>
-  <div class="sp" style="left:196px;top:82px;width:36px;height:36px"></div>
-  <div class="sp" style="left:80px;top:152px;width:36px;height:36px"></div>
-  <div class="sp" style="left:210px;top:160px;width:36px;height:36px"></div>
+<div class="frm" style="left:570px;top:16px">
+  <div class="band" style="left:0;top:44px;width:296px;height:58px"></div>
+  <div class="sp" style="left:36px;top:54px;width:38px;height:38px"></div>
+  <div class="sp" style="left:112px;top:54px;width:38px;height:38px"></div>
+  <div class="sp" style="left:188px;top:54px;width:38px;height:38px"></div>
+  <div class="sp" style="left:76px;top:132px;width:38px;height:38px"></div>
+  <div class="sp" style="left:206px;top:142px;width:38px;height:38px"></div>
 </div>
-<div class="ddr" style="left:550px;top:280px"></div>
-<div class="lbl" style="left:550px;top:292px;width:320px;text-align:center;font-size:16px;color:#8A6410">帧缓冲</div>
-<div class="cap" style="left:550px;top:352px">条带：整条合成后写回</div>
+<div class="ddr" style="left:570px;top:262px">
+  <div class="blk" style="left:12px;top:12px;width:274px;height:28px"></div>
+</div>
+<div class="cnt" style="left:570px;top:326px">1 次整条写回</div>
+<div class="cap" style="left:570px;top:358px">条带：同区合成后整条写回</div>
 
-<svg class="links" viewBox="0 0 900 404" style="position:absolute;left:0;top:0">
-  <line x1="710" y1="100" x2="710" y2="274" stroke="#67BA4A" stroke-width="7" marker-end="url(#ar)"/>
+<svg class="links" viewBox="0 0 900 400" style="position:absolute;left:0;top:0">
+  <line x1="735" y1="104" x2="735" y2="256" stroke="#67BA4A" stroke-width="7" marker-end="url(#ar)"/>
 </svg>
+
+<div class="lbl" style="left:432px;top:150px;font-size:26px">→</div>
 
 </div></body></html>
