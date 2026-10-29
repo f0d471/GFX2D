@@ -32,7 +32,7 @@ typedef struct {
     uint32_t                 cap;
 } sw6_b_ctx;
 
-typedef struct {
+typedef struct sw6_scene_b {
     uint32_t s;                 /* 本帧搬哪一张 */
     uint32_t shown;             /* 当前这张已显示帧数 */
     uint32_t k;

@@ -161,7 +161,7 @@ SDL_CF="$(sdl2-config --cflags | sed 's/-I/-isystem /g')"
 build_tx() {   # $1 = 产物名，$2 = 追加的 -D（可空）
     # shellcheck disable=SC2086
     "$HOST_CC" $FLAGS $2 -I"$SW/bsp/include" $SDL_CF -DGFX2D_ASSETS_PAK_DEFAULT='""' \
-        -o "$TMP/$1" "$TX_C" "$SW/bsp/host/board.c" "$SW/bsp/memmap.c" $(sdl2-config --libs) \
+        -o "$TMP/$1" "$TX_C" "$SW/bsp/host/board.c" "$SW/bsp/memmap.c" "$SW/services/input/board_input.c" $(sdl2-config --libs) \
         >"$TMP/$1.build.log" 2>&1
 }
 if build_tx tx "" && build_tx tx_inj "-DINJECT_HOST_TX_NO_REFILL"; then

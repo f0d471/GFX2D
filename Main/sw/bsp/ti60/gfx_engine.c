@@ -31,12 +31,22 @@
 
 static uint32_t eng_rd(uint32_t offset)
 {
+#ifdef GFX_ENGINE_TEST_BACKEND
+    extern uint32_t gfx_engine_test_read(uint32_t);
+    return gfx_engine_test_read(offset);
+#else
     return *(volatile uint32_t *)(uintptr_t)(ENG_BASE + offset);
+#endif
 }
 
 static void eng_wr(uint32_t offset, uint32_t value)
 {
+#ifdef GFX_ENGINE_TEST_BACKEND
+    extern void gfx_engine_test_write(uint32_t,uint32_t);
+    gfx_engine_test_write(offset,value);
+#else
     *(volatile uint32_t *)(uintptr_t)(ENG_BASE + offset) = value;
+#endif
     /* 写被拒收（PSLVERR）时硬件没有独立的错误线，拒收场景由调用顺序保证：
        submit 先查 STATUS 的忙/排空位（DOORBELL 的拒收条件），其余寄存器不受限。 */
 }
@@ -59,7 +69,7 @@ int gfx_engine_caps_read(uint32_t *caps)
 int gfx_engine_soft_reset(void)
 {
     uint32_t st;
-    uint32_t waited;
+    uint32_t started;
 
     if (!gfx_engine_present())
         return GFX_ENG_E_ABSENT;
@@ -68,13 +78,13 @@ int gfx_engine_soft_reset(void)
        SOFT_RST 写 1 自清，复位请求在内部排空完成后才撤。 */
     eng_wr(GFX_CTRL, GFX_CTRL_EN | GFX_CTRL_SOFT_RST);
 
-    waited = 0u;
+    started = board_cycles();
     do {
         st = eng_rd(GFX_STATUS);
         if ((st & (GFX_STATUS_BUSY | GFX_STATUS_DRAINING)) == 0u)
             return GFX_ENG_OK;
-        waited++;
-    } while (waited < ENG_POLL_LIMIT);
+        board_wait_engine();
+    } while ((uint32_t)(board_cycles()-started) < ENG_POLL_LIMIT);
 
     return GFX_ENG_E_TIMEOUT;
 }
@@ -247,14 +257,14 @@ int gfx_engine_error_stage_read(uint32_t *stage)
 int gfx_engine_wait(uint32_t *err_code, uint32_t *err_index, uint32_t *err_tag)
 {
     uint32_t st;
-    uint32_t waited;
+    uint32_t started;
 
     if (!gfx_engine_present())
         return GFX_ENG_E_ABSENT;
 
     /* DONE/ERR 只在引擎静止（在途命令收尾、预取收完）之后置位，
        所以「DONE 或 ERR 且不忙」就代表可以读计数器与错误定位。 */
-    waited = 0u;
+    started = board_cycles();
     do {
         st = eng_rd(GFX_STATUS);
         if ((st & (GFX_STATUS_DONE | GFX_STATUS_ERR)) != 0u
@@ -267,8 +277,8 @@ int gfx_engine_wait(uint32_t *err_code, uint32_t *err_index, uint32_t *err_tag)
                 *err_tag = eng_rd(GFX_ERROR_TAG);
             return GFX_ENG_OK;
         }
-        waited++;
-    } while (waited < ENG_POLL_LIMIT);
+        board_wait_engine();
+    } while ((uint32_t)(board_cycles()-started) < ENG_POLL_LIMIT);
 
     return GFX_ENG_E_TIMEOUT;
 }

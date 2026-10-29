@@ -138,15 +138,17 @@ rm -f "$INJ_SOC"
 # 4  正常构建里没有软浮点符号；放了 float 必须被扫出来
 # ---------------------------------------------------------------------------
 SOFTFLOAT_RE='__(add|sub|mul|div|neg|eq|ne|lt|le|gt|ge)(sf|df)3|__(extendsfdf2|truncdfsf2|fixsfsi|fixdfsi|fixunssfsi|fixunsdfsi|floatsisf|floatsidf|floatunsisf|floatunsidf)'
+object_symbols() {
+    find "$1/app" "$1/lib" "$1/bsp" -type f -name '*.o' -print0 |
+        xargs -0 "${RISCV_BIN}nm" 2>/dev/null
+}
 
 OBJ_NORM="$TMP/obj_norm"
 if build_board "$OBJ_NORM"; then
-    if "${RISCV_BIN}nm" "$OBJ_NORM"/app/*/*.o "$OBJ_NORM"/lib/*/*.o "$OBJ_NORM"/bsp/*.o \
-            2>/dev/null | grep -Eq "$SOFTFLOAT_RE"; then
+    if object_symbols "$OBJ_NORM" | grep -Eq "$SOFTFLOAT_RE"; then
         bad "4 正常构建里没有软浮点符号"
         note "扫到的："
-        "${RISCV_BIN}nm" "$OBJ_NORM"/app/*/*.o "$OBJ_NORM"/lib/*/*.o "$OBJ_NORM"/bsp/*.o \
-            2>/dev/null | grep -E "$SOFTFLOAT_RE" | sed 's/^/    /' | head -5
+        object_symbols "$OBJ_NORM" | grep -E "$SOFTFLOAT_RE" | sed 's/^/    /' | head -5
     else
         ok "4 正常构建里没有软浮点符号"
     fi
@@ -291,6 +293,12 @@ if git -C "$REPO" diff --quiet HEAD -- Main/sdk ':(exclude)Main/sdk/README.md'; 
 else
     bad "5 sdk/ 无改动（README 除外）"
     git -C "$REPO" diff --stat HEAD -- Main/sdk ':(exclude)Main/sdk/README.md' | sed 's/^/    /' | head -5
+fi
+
+if python3 "$MAIN/tools/check/check_object_isolation.py"; then
+    ok "8 父路径源码对象不越界，host/target A/B/A 参数互不污染"
+else
+    bad "8 父路径源码对象隔离"
 fi
 
 echo "fail $FAIL"

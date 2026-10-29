@@ -13,27 +13,30 @@ def main():
         'Main/sw/lib/gfx/rast_setup.c','Main/sw/lib/gfx/rast_ref.c','Main/sw/lib/core/fixmath.c',
         'Main/sw/lib/core/sin_tab.c','Main/sw/lib/core/crc32.c','Main/sw/lib/core/xorshift32.c']
     bodies=[]
-    for name,extra in [('64',['-fsanitize=address,undefined','-fno-sanitize-recover=all']),('32',['-m32'])]:
+    for name,extra in [('64',['-fsanitize=address,undefined','-fno-sanitize-recover=all']),('32',['-m32']),
+                       ('64-o3',['-O3','-fsanitize=address,undefined','-fno-sanitize-recover=all']),
+                       ('32-o3',['-O3','-m32'])]:
         exe=out/('scene'+name)
         command(['gcc','-std=gnu11','-O2','-Wall','-Wextra','-Werror',*extra,
-            '-I','Main/sw/lib','-I','Main/sw/bsp/include',
-            '-I','Main/sw/apps/game/gfx2dGame/src',*sources,'-o',exe],logs/('unit'+name+'.build.log'))
+            '-I','Main/sw/lib','-I','Main/sw/api','-I','Main/sw/services/gfx','-I','Main/sw/ports/myriad','-I','Main/sw/bsp/include',
+            '-I','Main/sw/apps/game/gfx2dGame/src','-I','Main/sw/services/gfx','-I','Main/sw/ports/myriad',*sources,'-o',exe],logs/('unit'+name+'.build.log'))
         bodies.append(command([exe],logs/('unit'+name+'.log')))
-    if bodies[0]!=bodies[1] or 'R4 SCENE PASS' not in bodies[0]:raise RuntimeError('R4 64/32 differ')
+    if any(body!=bodies[0] for body in bodies) or 'R4 SCENE PASS' not in bodies[0]:
+        raise RuntimeError('R4 64/32/O2/O3 differ')
     exe=out/'scene-uncached'
     command(['gcc','-std=gnu11','-O2','-Wall','-Wextra','-Werror','-DR4_DISABLE_WALL_CACHE=1',
-        '-I','Main/sw/lib','-I','Main/sw/bsp/include','-I','Main/sw/apps/game/gfx2dGame/src',
+        '-I','Main/sw/lib','-I','Main/sw/api','-I','Main/sw/services/gfx','-I','Main/sw/ports/myriad','-I','Main/sw/bsp/include','-I','Main/sw/apps/game/gfx2dGame/src','-I','Main/sw/services/gfx','-I','Main/sw/ports/myriad',
         *sources,'-o',exe],logs/'unit-uncached.build.log')
     if command([exe],logs/'unit-uncached.log')!=bodies[0]:raise RuntimeError('wall cache changed setup records')
     exe=out/'scene-generic-projection'
     command(['gcc','-std=gnu11','-O2','-Wall','-Wextra','-Werror','-DR4_DISABLE_VERTEX_CACHE=1',
-        '-I','Main/sw/lib','-I','Main/sw/bsp/include','-I','Main/sw/apps/game/gfx2dGame/src',
+        '-I','Main/sw/lib','-I','Main/sw/api','-I','Main/sw/services/gfx','-I','Main/sw/ports/myriad','-I','Main/sw/bsp/include','-I','Main/sw/apps/game/gfx2dGame/src','-I','Main/sw/services/gfx','-I','Main/sw/ports/myriad',
         *sources,'-o',exe],logs/'unit-generic-projection.build.log')
     if command([exe],logs/'unit-generic-projection.log')!=bodies[0]:
         raise RuntimeError('shared vertex projection changed setup records')
     exe=out/'scene-generic-clipping'
     command(['gcc','-std=gnu11','-O2','-Wall','-Wextra','-Werror','-DRAST_DISABLE_INSIDE_FAST=1',
-        '-I','Main/sw/lib','-I','Main/sw/bsp/include','-I','Main/sw/apps/game/gfx2dGame/src',
+        '-I','Main/sw/lib','-I','Main/sw/api','-I','Main/sw/services/gfx','-I','Main/sw/ports/myriad','-I','Main/sw/bsp/include','-I','Main/sw/apps/game/gfx2dGame/src','-I','Main/sw/services/gfx','-I','Main/sw/ports/myriad',
         *sources,'-o',exe],logs/'unit-generic-clipping.build.log')
     if command([exe],logs/'unit-generic-clipping.log')!=bodies[0]:
         raise RuntimeError('inside-triangle fast path changed setup records')

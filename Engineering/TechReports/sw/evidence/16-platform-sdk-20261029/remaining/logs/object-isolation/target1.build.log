@@ -1,0 +1,17 @@
+make: Entering directory '/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sim/build/check-runs/20261029-053822-759174b5/build/object-isolation/tree/apps/game'
+CC src/main.c
+CC bsp/key_packet.c
+CC bsp/memmap.c
+CC bsp/board_wait.c
+CC bsp/ti60/board.c
+CC ../../shared/shared.c
+CC bsp/ti60/board_irq.c
+CC bsp/ti60/gfx_engine.c
+CC bsp/ti60/gfx_raster.c
+CC ../sdk/software/standalone/common/start.S
+CC(service) services/input/board_input.c
+CC ../sdk/software/standalone/common/trap.S
+LD /mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sim/build/check-runs/20261029-053822-759174b5/build/object-isolation/tree/target-b/objectFixture-O2.elf
+Memory region         Used Size  Region Size  %age Used
+             ram:       76160 B      4092 KB      1.82%
+make: Leaving directory '/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sim/build/check-runs/20261029-053822-759174b5/build/object-isolation/tree/apps/game'

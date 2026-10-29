@@ -1,0 +1,3 @@
+Control panel: TEX CSV, bullet count, confirmed transitions and unsupported target OK
+Control panel protocol2: menu/game/about/error and stale-backend reset OK
+Control panel: cross-app pending commands cancelled; displayed keys preserve raw telemetry

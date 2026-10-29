@@ -8,7 +8,7 @@
 
 #include <stddef.h>
 
-#include "board.h"
+#include "sw6_cfg.h"
 
 #include "sw6_scene_b.h"
 #include "sw6_report.h"
@@ -19,12 +19,12 @@
 #define SW6_COMP_MAX 64u
 
 /* 离屏图 i 的主机指针（板级层给的分区指针 + 槽步长）。 */
-static const uint32_t *off_host(uint32_t i)
+static const uint32_t *off_host(const sw6_b_ctx *ctx,uint32_t i)
 {
-    board_mem m = board_region(REGION_OFFSCREEN);
-
-    return (const uint32_t *)(const void *)((const uint8_t *)m.ptr
-                                            + (size_t)i * SW6_OFF_SLOT_STEP);
+    const gfx_surf_raw *surface=&ctx->tab->s[SW6_SLOT_OFF(i)];
+    uint64_t base=surface->base,end=base+(uint64_t)SW6_OFF_SLOT_STEP;
+    if(base<ctx->mem->dev_base || end>(uint64_t)ctx->mem->dev_base+ctx->mem->bytes)return NULL;
+    return (const uint32_t *)(const void *)(ctx->mem->host+(uint32_t)(base-ctx->mem->dev_base));
 }
 
 /* 追加一条并记账：eq_idx 是 SW6_DRAW_* 那一套的方程下标（copy/alpha/add/straight），
@@ -48,7 +48,7 @@ static void comp_off0(gfx_list *l, int dst, sw6_build_stat *fs)
     uint32_t i;
 
     note(fs, gfx_blit(l, SW6_SLOT_BG_GRAD, 0, 0, dst, 0, 0,
-                         (int)FB_WIDTH, (int)FB_HEIGHT, GFX_EQ_COPY, 0u, 0, 0u), 0u);
+                         (int)SW6_CANVAS_WIDTH, (int)SW6_CANVAS_HEIGHT, GFX_EQ_COPY, 0u, 0, 0u), 0u);
 
     for (i = 0u; i < 4u; i++) {
         const uint32_t cell = 9u + i * 5u;
@@ -104,7 +104,7 @@ static void comp_off2(gfx_list *l, int dst, sw6_build_stat *fs)
 
         r.x0 = 0;
         r.y0 = (int32_t)(i * 16u);
-        r.x1 = (int32_t)FB_WIDTH - 1;
+        r.x1 = (int32_t)SW6_CANVAS_WIDTH - 1;
         r.y1 = (int32_t)(i * 16u + 15u);
         note(fs, gfx_fill(l, dst, r, band_color(i), GFX_EQ_COPY, 0u), 0u);
     }
@@ -156,8 +156,8 @@ int sw6_b_precompose(sw6_scene_b *b, const sw6_b_ctx *ctx,
 
         all.x0 = 0;
         all.y0 = 0;
-        all.x1 = (int32_t)FB_WIDTH - 1;
-        all.y1 = (int32_t)FB_HEIGHT - 1;
+        all.x1 = (int32_t)SW6_CANVAS_WIDTH - 1;
+        all.y1 = (int32_t)SW6_CANVAS_HEIGHT - 1;
 
         gfx_list_begin(&l, ctx->cmds, ctx->cap, ctx->tab);
         note(&fs, gfx_set_clip(&l, all), SW6_EQ_NONE);
@@ -182,7 +182,9 @@ int sw6_b_precompose(sw6_scene_b *b, const sw6_b_ctx *ctx,
         if (rc != GFX_OK)
             return rc;
 
-        b->ref[i] = sw6_crc_scene(off_host(i));
+        const uint32_t *pixels=off_host(ctx,i);
+        if(!pixels)return GFX_BUILD_BAD_ARG;
+        b->ref[i] = sw6_crc_scene(pixels);
     }
 
     if (eq_out != NULL) {

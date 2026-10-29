@@ -1,0 +1,27 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "frontend"
+  ],
+  "changed": null,
+  "commands": {
+    "frontend": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_frontend.py",
+      "--models",
+      "--pipeline"
+    ]
+  },
+  "timeouts": {
+    "frontend": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/rtl/**",
+    "Main/sim/**",
+    "Main/sw/**",
+    "Main/assets/**",
+    "Main/tools/check/**"
+  ]
+}

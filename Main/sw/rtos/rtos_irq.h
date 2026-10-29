@@ -30,5 +30,7 @@ void rtos_trap_install(void);
 /* 睡到下一个场起始事件；ms 毫秒内没等到返回 -1（50ms=三场余量，
    与 bsp 里轮询等待的上界同一口径）。 */
 int  rtos_wait_frame(uint32_t ms);
+/* Engine-complete/error event, independent of display cadence. */
+int  rtos_wait_engine(uint32_t ms);
 
 #endif /* RTOS_IRQ_H */

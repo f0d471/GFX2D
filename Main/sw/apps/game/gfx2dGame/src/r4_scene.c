@@ -6,8 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include "board.h"
 #include "r4.h"
+#include "input.h"
 #include "r4_scene.h"
 #include "r4_geometry.h"
 #include "r4_models.h"
@@ -65,11 +65,11 @@ static void hurt(r4_world *w)
 
 void r4_world_tick(r4_world *w,uint32_t keys,uint32_t *fail)
 {
-    int32_t dir=((keys&BOARD_KEY_RIGHT)!=0)-((keys&BOARD_KEY_LEFT)!=0);
-    int32_t vertical=((keys&BOARD_KEY_UP)!=0)-((keys&BOARD_KEY_DOWN)!=0);
+    int32_t dir=((keys&PLATFORM_KEY_RIGHT)!=0)-((keys&PLATFORM_KEY_LEFT)!=0);
+    int32_t vertical=((keys&PLATFORM_KEY_UP)!=0)-((keys&PLATFORM_KEY_DOWN)!=0);
     (void)fail;
     ++w->ticks;
-    if(keys&(BOARD_KEY_UP|BOARD_KEY_DOWN|BOARD_KEY_LEFT|BOARD_KEY_RIGHT))w->manual=1;
+    if(keys&(PLATFORM_KEY_UP|PLATFORM_KEY_DOWN|PLATFORM_KEY_LEFT|PLATFORM_KEY_RIGHT))w->manual=1;
     if(!w->manual) {
         int32_t x=fx_sin((uint16_t)(w->ticks*180u))*2;
         dir=x>w->cam_x?1:x<w->cam_x?-1:0;
@@ -94,7 +94,7 @@ void r4_world_tick(r4_world *w,uint32_t keys,uint32_t *fail)
         w->shield=R4_SHIELD_INIT;w->invulnerable=60;
         w->score=w->score>500?w->score-500:0;
     }
-    if((keys&BOARD_KEY_BOMB) && !(w->last_keys&BOARD_KEY_BOMB) && w->bombs) {
+    if((keys&PLATFORM_KEY_ACTION) && !(w->last_keys&PLATFORM_KEY_ACTION) && w->bombs) {
         --w->bombs;w->invulnerable=60;
         for(unsigned i=0;i<R4_EBULLET_MAX;++i)w->ebul[i].alive=0;
         w->blast=(r4_bullet){w->cam_x,w->ship_y,-(int32_t)w->d-4*R4_ONE,1};
@@ -200,8 +200,8 @@ static uint32_t polygon(const rast_view_vertex *v,unsigned n,const rast_viewport
     int r;
     if(!R4_DISABLE_VERTEX_CACHE && n<=8 &&
        !r4_project_inside(v,n,p,R4_NEAR_Z,R4_FAR_Z,vp,screen))
-        r=r4_setup_polygon(screen,n,vp,&frame,flags,out,cap,st);
-    else r=r4_setup_view(v,n,p,R4_NEAR_Z,R4_FAR_Z,vp,&frame,flags,out,cap,st);
+        r=gfx_setup_polygon(screen,n,vp,&frame,flags,out,cap,st);
+    else r=gfx_setup_view(v,n,p,R4_NEAR_Z,R4_FAR_Z,vp,&frame,flags,out,cap,st);
     if(r<0)emit_failed=1;
     return r>0?(uint32_t)r:0;
 }
@@ -357,8 +357,8 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
             for(unsigned j=0;j<8;++j) {
                 rast_view_vertex tri[3];rast_vertex projected[3];
                 for(unsigned k=0;k<3;++k){tri[k]=v[faces[j][k]];if(cached)projected[k]=screen[faces[j][k]];}
-                int emitted=cached?r4_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st):
-                    r4_setup_view(tri,3,projection,R4_NEAR_Z,R4_FAR_Z,vp,&frame,flat,out+n,cap-n,&st);
+                int emitted=cached?gfx_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st):
+                    gfx_setup_view(tri,3,projection,R4_NEAR_Z,R4_FAR_Z,vp,&frame,flat,out+n,cap-n,&st);
                 if(emitted<0)emit_failed=1;else n+=(uint32_t)emitted;
             }
             rast_view_vertex eye[3];
@@ -396,13 +396,13 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
                 if(w->invulnerable && (w->ticks&4u))tri[j].color=0xffe0f8ff;
                 if(cached){projected[j]=screen[index];projected[j].color=tri[j].color;}
             }
-            int emitted=cached?r4_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st):
-                r4_setup_view(tri,3,projection,R4_NEAR_Z,R4_FAR_Z,vp,&frame,flat,out+n,cap-n,&st);
+            int emitted=cached?gfx_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st):
+                gfx_setup_view(tri,3,projection,R4_NEAR_Z,R4_FAR_Z,vp,&frame,flat,out+n,cap-n,&st);
             if(emitted<0)emit_failed=1;else n+=(uint32_t)emitted;
             if(emitted==0 && r4_ship_material[i]==1) {
                 if(cached) {
                     rast_vertex tmp=projected[1];projected[1]=projected[2];projected[2]=tmp;
-                    emitted=r4_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st);
+                    emitted=gfx_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st);
                     if(emitted<0)emit_failed=1;else n+=(uint32_t)emitted;
                 } else {
                     rast_view_vertex tmp=tri[1];tri[1]=tri[2];tri[2]=tmp;

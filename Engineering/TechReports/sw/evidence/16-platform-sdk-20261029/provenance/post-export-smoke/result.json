@@ -1,0 +1,51 @@
+{
+  "status": "PASS",
+  "scope": "original workspace host build and 80-step four-app flow",
+  "binary_sha256": "1b453f2aa418e521be4b1aa2e404eaec922171974c464a387fe7712d1e98e97e",
+  "completions": [
+    {
+      "app": "menu",
+      "id": "0",
+      "frames": "5",
+      "presents": "5",
+      "errors": "0"
+    },
+    {
+      "app": "demo",
+      "id": "1",
+      "frames": "14",
+      "presents": "14",
+      "errors": "0"
+    },
+    {
+      "app": "stg",
+      "id": "2",
+      "frames": "14",
+      "presents": "14",
+      "errors": "0"
+    },
+    {
+      "app": "press",
+      "id": "3",
+      "frames": "14",
+      "presents": "14",
+      "errors": "0"
+    },
+    {
+      "app": "r4",
+      "id": "4",
+      "frames": "19",
+      "presents": "19",
+      "errors": "0"
+    },
+    {
+      "app": "menu",
+      "id": "0",
+      "frames": "9",
+      "presents": "9",
+      "errors": "0"
+    }
+  ],
+  "board": false,
+  "rtl": false
+}

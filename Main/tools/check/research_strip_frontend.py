@@ -98,7 +98,7 @@ def game_counts():
     includes = [LIB, MAIN/"sw/bsp/include", GAME, GAME/"game", MAIN/"assets/build"]
     exe = BUILD / "probe_frontend"
     run(["gcc", *flags, *["-I" + str(p) for p in includes], SIM/"probe_frontend.c", observed,
-         GAME/"stg_modes.c", *sorted((GAME/"game").glob("stg_*.c")),
+         MAIN/"sw/ports/myriad/stg_modes.c", *sorted((GAME/"game").glob("stg_*.c")),
          *sorted((LIB/"gfx").glob("*.c")), *sorted((LIB/"core").glob("*.c")), "-o", exe])
     output = run([exe, MAIN/"assets/build/assets.pak"])
     (BUILD/"samples.csv").write_text(output, encoding="utf-8")

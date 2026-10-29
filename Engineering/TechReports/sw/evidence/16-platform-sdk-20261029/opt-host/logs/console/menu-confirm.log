@@ -1,0 +1,22 @@
+board: GFX2D_UNPACED=1，呈现不等场
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+console enter menu
+menu crc 24eeb9cf sel 0
+console complete app menu id 0 frames 4 presents 4 errors 0
+console leave menu
+console enter demo
+console complete app demo id 1 frames 13 presents 13 errors 0
+console leave demo
+console enter menu
+menu crc 24eeb9cf sel 0
+console complete app menu id 0 frames 11 presents 11 errors 0
+console leave menu
+console enter about
+console complete app about id 5 frames 13 presents 13 errors 0
+console leave about
+console enter menu
+menu crc e35092ff sel 4
+console complete app menu id 0 frames 14 presents 14 errors 0
+console leave menu

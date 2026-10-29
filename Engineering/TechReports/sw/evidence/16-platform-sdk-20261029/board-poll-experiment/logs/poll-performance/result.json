@@ -1,0 +1,14 @@
+{
+  "status": "FAIL",
+  "error": "R4 cadence/budget failed: [1800, 2823741, 3281441, 3344179, 1087, 713, 1, 3604, 1800]",
+  "bit": {
+    "size": 2765409,
+    "mtime_ns": 1793223244050324300,
+    "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+  },
+  "binary": {
+    "size": 207906,
+    "mtime_ns": 1793275511095684400,
+    "sha256": "da2917ca7be63215b0c12cc5404832704a454de8dbe1ec44ef29c605d5b8b4ac"
+  }
+}

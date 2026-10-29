@@ -28,8 +28,10 @@ ifeq ($(APP),)
   APP        := gfx2dGame
   APP_SRCDIR := $(SW)apps/game/gfx2dGame
   LIBS       := core gfx
+  GRAPHICS_RUNTIME := 1
   REPLAYS    := sw6_a sw6_b stg_clear
-  APP_SRCS   := $(patsubst $(APP_SRCDIR)/%,%,$(wildcard $(APP_SRCDIR)/src/*.c $(APP_SRCDIR)/src/game/*.c))
+  APP_SRCS   := $(patsubst $(APP_SRCDIR)/%,%,$(wildcard $(APP_SRCDIR)/src/*.c $(APP_SRCDIR)/src/game/*.c)) ../../../ports/myriad/stg_runtime.c ../../../ports/myriad/r4_runtime.c ../../../ports/myriad/stg_main.c ../../../ports/myriad/stg_modes.c ../../../ports/myriad/gfx2d_stats.c ../../../ports/myriad/frontend_game.c ../../../ports/myriad/sw6_input.c ../../../ports/myriad/sw6_report.c ../../../firmware/legacy/main.c
+  override APP_CPPFLAGS += -I$(APP_SRCDIR)/src -I$(SW)ports/myriad
 endif
 
 APP_SRCDIR ?= .
@@ -108,18 +110,40 @@ BASE += $(EXTRA_CFLAGS)
 # 注错版与正常版逐位一样（第一次跑判据时踩到，见开发日志）。
 # 标记里还要带上 ASSETS_PAK：它被 -D 编进 bsp/host/board.c，
 # 换了素材包路径而标记不变的话，board.o 会留着上次那个路径。
+
+# Public SDK examples get the same restricted include scope in a real build.
+ifeq ($(PUBLIC_APP),1)
+APP_SCOPE_INCLUDES = -I$(SW)api
+else
+APP_SCOPE_INCLUDES = -I$(SW)api -I$(SW)runtime/include -I$(SW)system/include -I$(SW)services/gfx -I$(SW)ports/myriad -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -I$(OBJDIR)/replay
+endif
+
 FLAGS_STAMP := $(OBJDIR)/.cflags
-STAMP_VALUE := $(BASE) $(ASSETS_PAK)
+STAMP_VALUE := $(BASE) $(ASSETS_PAK) $(APP_CPPFLAGS) $(APP_SCOPE_INCLUDES) services=$(GRAPHICS_RUNTIME):$(APP_RUNTIME):$(PLATFORM_SDK) app_o3=$(APP_O3_SRCS) lib_o3=$(LIB_O3_SRCS)
 # 整删 OBJDIR（不能按子目录枚举：APP_SRCS 带 ../ 上跳路径时对象会落在
 # build/game、build/common 等 app/ 之外，枚举删不干净，旧档会混进新档——
 # 2026-10-28 在 console 上踩实，见 target.mk 同处注释）。
 $(shell if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(STAMP_VALUE)" ]; then rm -rf $(OBJDIR); mkdir -p $(OBJDIR); printf '%s' "$(STAMP_VALUE)" > $(FLAGS_STAMP); fi)
 
-APP_OBJS := $(addprefix $(OBJDIR)/app/,$(APP_SRCS:.c=.o))
+gfx_app_object = $(OBJDIR)/app/$(subst ../,__up__/,$(1:.c=.o))
+APP_OBJS := $(foreach source,$(APP_SRCS),$(call gfx_app_object,$(source)))
 LIB_SRCS := $(foreach l,$(LIBS),$(wildcard $(SW)lib/$(l)/*.c))
 LIB_OBJS := $(patsubst $(SW)lib/%.c,$(OBJDIR)/lib/%.o,$(LIB_SRCS))
 BSP_SRCS := $(wildcard $(SW)bsp/*.c) $(wildcard $(SW)bsp/host/*.c)
 BSP_OBJS := $(patsubst $(SW)bsp/%.c,$(OBJDIR)/bsp/%.o,$(BSP_SRCS))
+
+
+SERVICE_SRCS := $(wildcard $(SW)services/input/*.c)
+ifeq ($(GRAPHICS_RUNTIME),1)
+SERVICE_SRCS += $(wildcard $(SW)services/gfx/*.c)
+endif
+ifeq ($(APP_RUNTIME),1)
+SERVICE_SRCS += $(SW)runtime/appfw.c
+endif
+ifeq ($(PLATFORM_SDK),1)
+SERVICE_SRCS += $(SW)services/platform/platform.c $(SW)services/platform/store_host.c
+endif
+SERVICE_OBJS := $(patsubst $(SW)%.c,$(OBJDIR)/services/%.o,$(SERVICE_SRCS))
 
 TARGET    := $(OBJDIR)/$(NAME)
 
@@ -145,7 +169,7 @@ TEST_INJECT := $(if $(INJECT),-DINJECT_$(INJECT),)
 
 all: $(TARGET)
 
-$(TARGET): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS)
+$(TARGET): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(SERVICE_OBJS)
 	@echo "LD $(TARGET)"
 	@$(HOST_CC) $(BASE) -o $@ $^ $(SDL_LIBS)
 
@@ -158,15 +182,18 @@ $(OBJDIR)/replay/%.h: $(APP_SRCDIR)/$(REPLAY_DIR)/%.g2dr
 
 $(APP_OBJS): $(REPLAY_HDRS)
 
-$(OBJDIR)/app/%.o: $(APP_SRCDIR)/%.c
-	@mkdir -p $(dir $@)
-	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(HOST_CC) $(BASE) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -I$(OBJDIR)/replay -c $< -o $@
+define GFX_APP_SOURCE_RULE
+$(call gfx_app_object,$(1)): $(APP_SRCDIR)/$(1)
+	@mkdir -p $$(dir $$@)
+	@echo "CC $(1)"
+	@$(HOST_CC) $(BASE) $(if $(filter $(1),$(APP_O3_SRCS)),-O3) $(APP_CPPFLAGS) $(APP_SCOPE_INCLUDES) -c $$< -o $$@
+endef
+$(foreach source,$(APP_SRCS),$(eval $(call GFX_APP_SOURCE_RULE,$(source))))
 
 $(OBJDIR)/lib/%.o: $(SW)lib/%.c
 	@mkdir -p $(dir $@)
 	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(HOST_CC) $(BASE) -I$(SW)lib -c $< -o $@
+	@$(HOST_CC) $(BASE) $(if $(filter $*.c,$(LIB_O3_SRCS)),-O3) -I$(SW)lib -c $< -o $@
 
 $(OBJDIR)/bsp/%.o: $(SW)bsp/%.c
 	@mkdir -p $(dir $@)
@@ -223,5 +250,10 @@ clean:
 
 # gcc 写出来的头文件依赖读到最后：-MMD 让每个目标文件带一份同名 .d，
 # 读进来之后改头文件就会重编。放在文件末尾是为了不动默认目标（见上面 .DEFAULT_GOAL）。
-DEPS := $(APP_OBJS:.o=.d) $(LIB_OBJS:.o=.d) $(BSP_OBJS:.o=.d)
+DEPS := $(SERVICE_OBJS:.o=.d)  $(APP_OBJS:.o=.d) $(LIB_OBJS:.o=.d) $(BSP_OBJS:.o=.d)
 -include $(DEPS)
+
+$(OBJDIR)/services/%.o: $(SW)%.c
+	@mkdir -p $(dir $@)
+	@echo "CC(service) $(patsubst $(SW)%,%,$<)"
+	@$(HOST_CC) $(BASE) -I$(SW)api -I$(SW)lib -I$(SW)bsp/include -I$(SW)services/gfx -I$(SW)runtime/include -I$(SW)system/include -c $< -o $@

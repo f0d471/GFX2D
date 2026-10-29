@@ -43,7 +43,7 @@ void trap(void)
 }
 
 /* PLIC claim 循环本体。SW10 起有两个调用方：trap()（裸机，mtvec 直指）与
-   sw/rtos 的 FreeRTOS 外部中断桥（portasmHANDLE_INTERRUPT -> 这里）。
+   sw/rtos 的 FreeRTOS 外部中断桥（application interrupt handler -> 这里）。
    单独成函数不是为了复用方便，是为了 FreeRTOS 路径与裸机路径走同一段派发，
    A=场起始/B=引擎完成的清源与应答纪律只维护一份。 */
 void board_irq_dispatch_external(void)

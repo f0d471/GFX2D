@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "samples": 1800,
+  "p50": 2694331,
+  "p99": 3092117,
+  "maximum": 3202627,
+  "late": 0,
+  "fields": 3600,
+  "swaps": 1800,
+  "bit": {
+    "size": 2765409,
+    "mtime_ns": 1793223244050324300,
+    "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+  },
+  "binary": {
+    "size": 229530,
+    "mtime_ns": 1793278507316095500,
+    "sha256": "e38d17db9eacc2f27f501f41216c3a6a2929d0e97d1ebac220c28e3f6ed58bad"
+  },
+  "extra_o3_source": "ports/myriad/r4_runtime.c"
+}

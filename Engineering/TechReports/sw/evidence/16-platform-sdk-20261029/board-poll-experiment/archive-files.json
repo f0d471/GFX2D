@@ -1,0 +1,37 @@
+{
+  "logs/poll-performance/result.json": {
+    "size": 449,
+    "mtime_ns": 1793275607580464700,
+    "sha256": "63ad7f75241a8775f2aeac4b50bc935489868c30c5e15e198532291eabefba44"
+  },
+  "logs/r4-build/poll-performance.log": {
+    "size": 2815,
+    "mtime_ns": 1793275513397830200,
+    "sha256": "c0698ac9e2b20755308c74ce355475d9527afea2f29101028418bc356916674f"
+  },
+  "logs/sw16-board/normal-menu.deploy.log": {
+    "size": 10218,
+    "mtime_ns": 1793275672163643800,
+    "sha256": "a4220c344db52c0e6c6033087341c9c83411ce3b4492551a42eb2ad304120e97"
+  },
+  "logs/sw16-board/normal-menu.serial.log": {
+    "size": 8996,
+    "mtime_ns": 1793275672032363800,
+    "sha256": "d7c3d10fbda64bca8893277de005c2decc015740e4504b6855d68ea66cf0849c"
+  },
+  "logs/sw16-board/normal.build.log": {
+    "size": 3029,
+    "mtime_ns": 1793275466332071200,
+    "sha256": "d0f96eb555a6eb03cd4fefd010004922e1218c280ea4ac5b615331cdffe5d455"
+  },
+  "logs/sw16-board/poll-performance.deploy.log": {
+    "size": 7489,
+    "mtime_ns": 1793275607474367100,
+    "sha256": "81cf84dee6ee263a428f58de4abeac70038383c56bc398b5bdad030bf0a0c1a5"
+  },
+  "logs/sw16-board/poll-performance.serial.log": {
+    "size": 6261,
+    "mtime_ns": 1793275607343464700,
+    "sha256": "2d3e02ad988c2e5c98c6069cbe7c9c16d9a3389acfacf6c9ce99c6ead456196d"
+  }
+}

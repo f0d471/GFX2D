@@ -1,0 +1,16 @@
+board: GFX2D_UNPACED=1，呈现不等场
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+r4 enter ladder/hw 2 0
+console scene 0 ladder 2
+console enter r4
+r4 leave frames/late 5 0
+r4 enter ladder/hw 2 0
+console scene 1 ladder 2
+R4STAT 0 284655 396 2 0 1
+R4TIME 24 21520 1176 310 328533 0 277117 1097
+R4PERF 2 352241 352918 352918 0 0 0 1 2
+r4 leave frames/late 33 0
+console complete app r4 id 4 frames 38 presents 39 errors 0
+console leave r4

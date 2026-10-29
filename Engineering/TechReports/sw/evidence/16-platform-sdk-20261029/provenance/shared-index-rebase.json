@@ -1,0 +1,7 @@
+{
+  "path": "Engineering/Todo/README.md",
+  "starting_sha256": "8aa69673775e068a407f16df9fcad7c164d881e434ce1b25df19b5960cc522eb",
+  "latest_original_sha256": "f4baed59e24307c907aa2ea4bdf9cef9deb6046d2e03dddaaf910202b1a6c826",
+  "merged_sha256": "193c5b13e83ca3d112a53e057446a0fb41eacf6a443c771ff8c9c528039f5e3e",
+  "method": "insert only SW16 software paragraph into latest shared index; all existing hardware text retained"
+}

@@ -1,0 +1,6 @@
+{
+  "action": "RUNNING to INCOMPLETE",
+  "check": "check:demo",
+  "reason": "explicit owner interruption; process terminated in this task",
+  "pass_statuses_unchanged": true
+}

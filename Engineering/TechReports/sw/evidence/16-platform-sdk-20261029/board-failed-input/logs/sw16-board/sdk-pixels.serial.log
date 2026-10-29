@@ -1,0 +1,7 @@
+# COM11 @ 115200 8N1, opened 20:16:41
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+SDK pixels frames 16 presents 16 PASS
+SDKCHECK pixels crc0 59b676a1 crc1 8590b256 swaps 16 PASS
+
+# closed 20:16:47, 114 bytes

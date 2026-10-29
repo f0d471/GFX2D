@@ -1,0 +1,16 @@
+[
+  {
+    "log": "03-r4-menu-confirm",
+    "expected_final_app": "menu",
+    "actual_panel_mode": "r3d",
+    "actual_panel_fps": 30,
+    "actual_panel_backend": "hw"
+  },
+  {
+    "log": "05-backend-roundtrip",
+    "expected_final_app": "menu",
+    "actual_panel_mode": "r3d",
+    "actual_panel_fps": null,
+    "actual_panel_backend": "hw"
+  }
+]

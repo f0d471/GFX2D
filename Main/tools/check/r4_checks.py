@@ -9,9 +9,13 @@ def contract(name):
     return int(re.search(r'^#define\s+'+name+r'\s+(0x[0-9a-fA-F]+|[0-9]+)u?\b',
                          _contract,re.M)[1],0)
 SEED,SCENE_ID,ASSET_VERSION=(contract(k) for k in ('R4_SEED','R4_SCENE_ID','R4_ASSET_VERSION'))
+def replay_header(current,name):
+    return current.build('r4-inputs')/name/'r4_replay.h'
+
 def build(current,name,flags,target=False,perf=True,replay_keys=None):
     if os.name=='nt':target=True
     dest=current.build('r4')/name
+    replay_include=None
     if '-DGFX2D_R4_JUDGE=1' in flags or replay_keys is not None:
         def value(key,default):
             found=re.search(r'-D'+key+r'=(\d+)',flags)
@@ -25,18 +29,24 @@ def build(current,name,flags,target=False,perf=True,replay_keys=None):
         tape=struct.pack('<4sHH6I',b'R4RP',1,0,30,SEED,
             SCENE_ID+value('GFX2D_R4_SCENE',0),value('GFX2D_R4_LADDER',2),ASSET_VERSION,count)
         tape+=b''.join(struct.pack('<I',k) for k in keys)
-        header=dest/'replay/r4_replay.h';header.parent.mkdir(parents=True,exist_ok=True)
+        # Immutable test input is outside OBJDIR: a compile-option change may
+        # legitimately remove every object and derived replay under OBJDIR.
+        header=replay_header(current,name);header.parent.mkdir(parents=True,exist_ok=True)
         header.write_text('static const unsigned char r4_replay_data[]={'+','.join(map(str,tape))+'};\n')
+        replay_include='-I'+os.path.relpath(header.parent,APP).replace('\\','/')
+        current.artifact(header)
         flags+=' -DGFX2D_R4_REPLAY=1'
     rel=os.path.relpath(dest,APP).replace('\\','/')
-    args=['make','-C',APP,'-j8','PLATFORM='+('target' if target else 'host'),
+    args=['make','-C',APP,'-j2','PLATFORM='+('target' if target else 'host'),
           'OBJDIR='+rel,'PERF='+('1' if perf else '0'),'EXTRA_CFLAGS='+flags]
+    if replay_include:args.append('APP_CPPFLAGS='+replay_include)
     log=current.logs('r4-build')/(name+'.log')
     if os.name=='nt':
         script=('r4cc="$(find "$HOME/opt" -path "*/bin/riscv-none-elf-gcc" -print -quit)"; '
                 'test -n "$r4cc" || exit 3; ')
         script+='make -C Main/sw/apps/game/gfx2dGame -j8 PLATFORM=target OBJDIR='+shlex.quote(rel)
         script+=' PERF='+('1' if perf else '0')+' EXTRA_CFLAGS='+shlex.quote(flags)+' RISCV_BIN="${r4cc%gcc}"'
+        if replay_include:script+=' APP_CPPFLAGS='+shlex.quote(replay_include)
         body=command(['wsl.exe','-e','bash','-c',script],log)
     else:body=command(args,log)
     if re.search(r'\bwarning:|\berror:',body):raise RuntimeError('R4 build warnings: '+name)

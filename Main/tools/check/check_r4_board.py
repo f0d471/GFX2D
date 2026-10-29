@@ -1,34 +1,54 @@
 #!/usr/bin/env python3
 """R4 physical B7: 3 scene CRCs, CPU/HW equivalence, mutation, switches and 60-second cadence."""
-import argparse,json,os,shlex,sys
+import argparse,hashlib,json,os,shlex,sys
 from pathlib import Path
 from check_run import ROOT,session,command,write_json,IncompleteCheck
 from check_board_smoke import uart_port
 from feature_synthesis import collect
-from r4_checks import build,flags,frames,compare,complete,health,performance,recording
+from r4_checks import build,flags,frames,compare,complete,health,performance,recording,replay_header
 
-def b7_tree(explicit):
+def frozen_bit_identity(release):
+    release=Path(release).resolve()
+    manifest=release/'manifest.json'
+    data=json.loads(manifest.read_text(encoding='utf-8'))
+    records=[x for x in data['files'] if x['path'] in ('board/B7.bit','B7.bit')]
+    if len(records)!=1:raise RuntimeError('frozen release must identify exactly one B7 bitstream')
+    bit=release/records[0]['path']
+    actual=hashlib.sha256(bit.read_bytes()).hexdigest()
+    if actual!=records[0]['sha256']:raise RuntimeError('frozen B7 bitstream identity mismatch')
+    return actual,manifest
+
+def b7_tree(explicit,frozen_release=None):
+    expected=frozen_bit_identity(frozen_release)[0] if frozen_release else None
     candidates=[Path(explicit)] if explicit else sorted(
         (ROOT/'Main/sim/build/check-runs').glob('*/build/feature-presets/B7'),reverse=True)
     for tree in candidates:
         if not (tree/'fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit').exists():continue
+        if expected:
+            bit=tree/'fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit'
+            if hashlib.sha256(bit.read_bytes()).hexdigest()!=expected:continue
         differences=[]
         for p in (tree/'rtl').rglob('*'):
             if p.suffix not in ('.v','.vh'):continue
             source=ROOT/'Main/rtl'/p.relative_to(tree/'rtl')
             if p.name in ('engine_feature.vh','engine_regs_offsets.vh'):continue
             if not source.is_file() or source.read_bytes()!=p.read_bytes():differences.append(str(p))
-        if not differences:
+        if not differences or expected:
             timing=collect(tree)
             config=json.loads((tree/'config.json').read_text())
             if int(str(config['caps']),0)!=0xd46f:continue
             return tree,timing
-    raise IncompleteCheck('no built B7 matching current RTL; run r3-synthesis')
+    raise IncompleteCheck('no built B7 matching selected frozen identity' if expected else
+                          'no built B7 matching current RTL; run r3-synthesis')
 
 def main():
-    current=session();p=argparse.ArgumentParser();p.add_argument('--tree');a=p.parse_args()
+    current=session();p=argparse.ArgumentParser();p.add_argument('--tree')
+    p.add_argument('--frozen-release',type=Path,
+        help='explicit software-only acceptance against an identity-verified frozen B7; does not accept current RTL')
+    a=p.parse_args()
     if os.name!='nt':raise IncompleteCheck('r4-board uses Windows Efinity Python')
-    logs=current.logs('r4-board');tree,timing=b7_tree(a.tree)
+    logs=current.logs('r4-board');tree,timing=b7_tree(a.tree,a.frozen_release)
+    if a.frozen_release:current.artifact(frozen_bit_identity(a.frozen_release)[1])
     bit=tree/'fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit';current.artifact(bit)
     port=uart_port();count=12 if current.profile=='quick' else 60
     env=dict(os.environ)
@@ -48,12 +68,11 @@ def main():
         rel=os.path.relpath(host_dir,ROOT/'Main/sw/apps/game/gfx2dGame').replace('\\','/')
         # build() creates the exact R4RP fixture; compile it on host with the same flags.
         binary=build(current,'target-'+name,flags(ladder,scene,frames=scene_count))
-        tape_dir=current.build('r4')/('target-'+name)/'replay'
-        host_dir.joinpath('replay').mkdir(parents=True,exist_ok=True)
-        import shutil
-        shutil.copyfile(tape_dir/'r4_replay.h',host_dir/'replay/r4_replay.h')
+        tape_dir=replay_header(current,'target-'+name).parent
+        tape_relative=os.path.relpath(tape_dir,ROOT/'Main/sw/apps/game/gfx2dGame').replace('\\','/')
         script='make -C Main/sw/apps/game/gfx2dGame -j8 PLATFORM=host PERF=1 OBJDIR='+shlex.quote(rel)
         script+=' EXTRA_CFLAGS='+shlex.quote(flags(ladder,scene,frames=scene_count)+' -DGFX2D_R4_REPLAY=1')
+        script+=' APP_CPPFLAGS='+shlex.quote('-I'+tape_relative)
         command(['wsl.exe','-e','bash','-c',script],logs/(name+'.host-build.log'))
         exe=host_dir/'gfx2dGame-perf';current.artifact(exe)
         wsl_exe='/mnt/'+exe.drive[0].lower()+exe.as_posix()[2:]
@@ -113,14 +132,20 @@ def main():
     command([sys.executable,ROOT/'Main/tools/check/check_sw9_perf.py',logs/'legacy-game.serial.log',
         '--fields-min','240','--warmup-rows','1','--steady-drops-max','0'],logs/'legacy-game.validation.log')
     results.append(dict(case='legacy-game',status='PASS',frames=240,backend='hw-tex'))
-    command([sys.executable,ROOT/'Main/tools/check/check_r3_board.py','--tree',tree],
-            logs/'r3-error-recovery.log',timeout=720)
-    results.append(dict(case='r3-physical-fault-recovery',status='PASS'))
+    if not a.frozen_release:
+        command([sys.executable,ROOT/'Main/tools/check/check_r3_board.py','--tree',tree],
+                logs/'r3-error-recovery.log',timeout=720)
+        results.append(dict(case='r3-physical-fault-recovery',status='PASS'))
+    else:
+        results.append(dict(case='current-RTL-r3-acceptance',status='NOT_APPLICABLE',
+            reason='software-only work point uses unchanged, manifest-bound B7; current RTL is not rebuilt'))
     current.verify()
     write_json(logs/'expected.json',expected)
     write_json(logs/'result.json',dict(status='PASS',profile=current.profile,port=port,
         b7_tree=tree.relative_to(ROOT).as_posix(),timing=timing,results=results,
-        scope='current B7 JTAG, current BINs; no Flash or human HDMI observation'))
+        frozen_release=str(a.frozen_release) if a.frozen_release else None,
+        scope=('frozen B7 / current software' if a.frozen_release else 'current B7 / current software')+
+              '; no Flash or human HDMI observation'))
 
 if __name__=='__main__':
     try:main()

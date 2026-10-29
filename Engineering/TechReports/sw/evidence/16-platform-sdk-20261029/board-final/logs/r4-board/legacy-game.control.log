@@ -1,0 +1,26 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   222234 bytes written at address 0x00001000
+   downloaded 222234 bytes in 12.045646s (18.017 KiB/s)
+=== 等串口采集结束（上限 180 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\sw16-board-20261029-final2\logs\r4-board\legacy-game.serial.log）---
+# COM11 @ 115200 8N1, opened 21:27:08
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 4085504 87500897
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+csv,0,game,hw-tex,60,0,0,0,0,201,429182,0,542845,11898,405836,0,263,197,2,0,0,0,0,2,385982,43200,0,0,0,0,12050,25755048,2084236,220498,620865,5191250,6754557,8161735,26797991,pipeline,warming,533914,0,60,60000
+csv,1,game,hw-tex,60,0,0,0,0,201,429178,0,569220,18059,509013,586193,352,197,2,0,0,0,0,2,385978,43200,0,0,0,0,24102,51505894,4138401,440961,1241708,10381885,13508563,16336530,53609452,pipeline,cpu,538233,446857,60,60000
+csv,2,game,hw-tex,60,0,3,0,0,203,408892,0,594519,46628,497587,605093,334,198,1,2,0,0,0,2,387004,21600,288,0,0,0,36992,76157512,6257643,690224,1879285,15021916,19996689,24339429,80480163,pipeline,cpu,575881,447845,60,60000
+csvsum,240,240,0,604753,604753,3,0
+diag fifo_min 337 samples 240 zero 0 under 0 irqA 799 irqB 240 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 21:27:35, 1393 bytes

@@ -1,0 +1,6 @@
+CC ../../../../sim/build/check-runs/20261029-031110-e416c678/build/platform-sdk/forbidden.c
+../../../../sim/build/check-runs/20261029-031110-e416c678/build/platform-sdk/forbidden.c:1:10: fatal error: renderer.h: No such file or directory
+    1 | #include "renderer.h"
+      |          ^~~~~~~~~~~~
+compilation terminated.
+make: *** [../../../mk/host.mk:193: /mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sim/build/check-runs/20261029-031110-e416c678/build/platform-sdk/deny-renderer.h/app/__up__/__up__/__up__/__up__/sim/build/check-runs/20261029-031110-e416c678/build/platform-sdk/forbidden.o] Error 1

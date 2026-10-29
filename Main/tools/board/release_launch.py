@@ -53,21 +53,24 @@ def main():
     output = root / 'runtime' / time.strftime('%Y%m%d_%H%M%S')
     output.mkdir(parents=True, exist_ok=False)
     serial = output / 'serial.log'
+    frontend=manifest.get('frontend','legacy')
+    marker='console status ' if frontend=='console' else 'R4STAT '
     command = [sys.executable, str(root / 'tools/board/board_run.py'), '--bit',
         str(root / 'board/B7.bit'), '--bin', str(root / 'board/gfx2dGame.bin'),
         '--workspace', str(root / 'sdk'), '--port', port, '--seconds', '120',
-        '--stop-on', 'R4STAT ', '--log', str(serial)]
-    print('Loading B7 and game over JTAG on '+port+'; waiting for live R4 feedback...',flush=True)
+        '--stop-on', marker, '--log', str(serial)]
+    if frontend=='console':command.append('--precise-boundary')
+    print('Loading B7 and '+frontend+' over JTAG on '+port+'; waiting for live feedback...',flush=True)
     with (output / 'deploy.log').open('w', encoding='utf-8') as log:
         process = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
     body = serial.read_text(encoding='utf-8-sig') if serial.exists() else ''
     deploy = (output / 'deploy.log').read_text(encoding='utf-8')
     boundary = '# --- 程序已加载，以下才是它的输出 ---'
-    if process.returncode or boundary not in body or 'R4STAT ' not in body.split(boundary, 1)[1]:
+    if process.returncode or boundary not in body or marker not in body.split(boundary, 1)[1]:
         raise RuntimeError('Game startup incomplete; inspect ' + str(output))
     if str((root / 'board/gfx2dGame.bin').stat().st_size) + ' bytes written at address' not in deploy:
         raise RuntimeError('Missing program byte-count identity')
-    if '# serial lost' in body or re.search(r'^fail [1-9]', body, re.M):
+    if '# serial lost' in body or re.search(r'^fail [1-9]|^console (?:error|fatal)\b', body, re.M):
         raise RuntimeError('Board reported a failure')
     print('GAME RUNNING ' + port + '; ' + str(output))
     if not args.no_panel:

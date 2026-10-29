@@ -1,0 +1,55 @@
+{
+  "scope": "Windows filesystem persistence and interrupted write",
+  "cases": [
+    {
+      "value": "first",
+      "operation": "write",
+      "fault_after": "",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "value": "first",
+      "operation": "read",
+      "fault_after": "",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "value": "second",
+      "operation": "write",
+      "fault_after": "12",
+      "actual": 1,
+      "expected": 1
+    },
+    {
+      "value": "first",
+      "operation": "read",
+      "fault_after": "",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "value": "second",
+      "operation": "write",
+      "fault_after": "",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "value": "second",
+      "operation": "read",
+      "fault_after": "",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "value": "x",
+      "operation": "invalid",
+      "fault_after": "",
+      "actual": 0,
+      "expected": 0
+    }
+  ],
+  "status": "PASS"
+}

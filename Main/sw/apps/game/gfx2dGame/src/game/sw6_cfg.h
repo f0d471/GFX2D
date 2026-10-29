@@ -12,6 +12,8 @@
 #define SW6_CFG_H
 
 #include <stdint.h>
+#define SW6_CANVAS_WIDTH 640u
+#define SW6_CANVAS_HEIGHT 480u
 
 /* --- 场景 A：方块随机移动 ------------------------------------------------- */
 #define SW6_POOL_MAX     5000u      /* 池容量，方块数上限 */

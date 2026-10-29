@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "demo",
+    "pc",
+    "game",
+    "stats",
+    "layers",
+    "workflow",
+    "regs",
+    "paths"
+  ],
+  "run_id": "20261029-053822-759174b5"
+}

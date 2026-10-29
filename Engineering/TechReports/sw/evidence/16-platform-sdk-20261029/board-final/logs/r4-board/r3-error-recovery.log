@@ -1,0 +1,3 @@
+RUN Main/sim/build/check-runs/sw16-board-20261029-final2
+R3 BOARD EXPECTED_RED pixel-injection
+R3 BOARD PASS normal

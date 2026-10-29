@@ -115,7 +115,7 @@ def game():
     run('game_dump_compile',['gcc','-O2','-std=c11','-Wall','-Wextra','-Werror',
         '-ffunction-sections','-fdata-sections','-Wl,--gc-sections',
         *['-I'+str(p) for p in [lib,MAIN/'sw/bsp/include',source,MAIN/'assets/build']],
-        MAIN/'tools/check/f5_game_dump.c',source/'stg_modes.c',
+        MAIN/'tools/check/f5_game_dump.c',MAIN/'sw/ports/myriad/stg_modes.c',
         *sorted((source/'game').glob('stg_*.c')),*sorted((lib/'gfx').glob('*.c')),
         *sorted((lib/'core').glob('*.c')),'-o',BUILD/'game_dump'])
     for height in [16,32]:
@@ -151,11 +151,11 @@ def lease():
     game=MAIN/'sw/apps/game/gfx2dGame/src'
     flags=['gcc','-std=c11','-O1','-Wall','-Wextra','-Werror','-ffunction-sections',
            '-fdata-sections','-Wl,--gc-sections','-DGFX_FRONTEND_BIN=1',
-           '-I'+str(MAIN/'sw/lib'),'-I'+str(MAIN/'sw/bsp/include'),'-I'+str(game)]
-    run('lease_compile',flags+[SIM/'test_pb_lease.c',game/'renderer.c',MAIN/'sw/bsp/memmap.c',
+           '-I'+str(MAIN/'sw/lib'),'-I'+str(MAIN/'sw/bsp/include'),'-I'+str(MAIN/'sw/ports/myriad'),'-I'+str(game),'-I'+str(MAIN/'sw/services/gfx')]
+    run('lease_compile',flags+[SIM/'test_pb_lease.c',MAIN/'sw/services/gfx/renderer.c',MAIN/'sw/bsp/memmap.c',
         *sorted((MAIN/'sw/lib/gfx').glob('*.c')),*GFX_CORE,'-o',BUILD/'lease'])
     print(run('lease',[BUILD/'lease']).strip(),flush=True)
-    run('fallback_compile',flags+['-D__riscv',SIM/'test_pb_fallback.c',game/'renderer.c',MAIN/'sw/bsp/memmap.c',
+    run('fallback_compile',flags+['-D__riscv',SIM/'test_pb_fallback.c',MAIN/'sw/services/gfx/renderer.c',MAIN/'sw/bsp/memmap.c',
         *sorted((MAIN/'sw/lib/gfx').glob('*.c')),*GFX_CORE,'-o',BUILD/'fallback'])
     print(run('fallback',[BUILD/'fallback']).strip(),flush=True)
 

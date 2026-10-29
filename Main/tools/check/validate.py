@@ -33,10 +33,21 @@ add('r4',[sys.executable,P+'check_r4.py'],
     'R4 三场景60帧参考、64/32与sanitizer、录像/图集/采集器反例',['pack'],timeout=3600)
 add('r4-board',[sys.executable,P+'check_r4_board.py'],
     'R4 B7 三场景CRC、板上SW/HW、注错、模式往返与60秒两场节拍',timeout=3600)
+add('r4-frozen-board',[sys.executable,P+'check_r4_board.py','--frozen-release',
+    'Main/bit/board_release_game_current_20261024'],
+    '冻结B7上的当前软件CRC/注错/模式往返/节拍；不验收当前RTL',timeout=3600)
 add('pc-window',[sys.executable,P+'check_pc_window.py'],
     '原生Windows全屏/比例/缩放/纹理恢复/帧缓冲不变',timeout=900)
 add('pc-wide',[sys.executable,P+'check_pc_wide.py'],
     '软件宽屏解析覆盖/边界/投影比例/世界状态不变/64与32位/变异',timeout=900)
+add('console',[sys.executable,P+'check_console.py'],
+    '共享前端/生命周期故障/输入协议/实际PC菜单与四应用',['pack'],timeout=1800)
+add('platform-sdk',[sys.executable,P+'check_platform_sdk.py'],
+    'PC公开SDK/双消费者/缓冲所有权/真实驱动与调度端口替身/持久化与故障',timeout=1800)
+add('console-board',[sys.executable,P+'check_console_board.py'],
+    '统一菜单/五应用出帧/切换/独立1kHz时钟/后台进展（Windows）',timeout=1800)
+add('sw16-board',[sys.executable,P+'check_sw16_board.py'],
+    'B7软件板验收：引擎、SDK像素回读、RTOS五应用/故障和R4；JTAG不写Flash',timeout=7200)
 for name,group,purpose in [('rlst','rlst','R2 取数/FIFO/分片/协议/取消'),
     ('rast-ports','ports','R2 核心 RAW/取消/II=1、TEX L=1/2 与关闭态'),
     ('rast-rtl','rtl','R2 两参考器/真实 AXI 十万条 L1/L2/L2二拍/十三变异')]:
@@ -96,15 +107,17 @@ add('board-game',[sys.executable,P+'check_board_game.py'],'当前位流的生产
 
 # 输入模式是保守依赖范围；按工作点复核，可在此收窄或补齐消费者。
 COMMON=['Main/tools/check/check_run.py','Main/tools/check/validate.py']
-SOFTWARE=['Main/sw/**','Main/sdk/**','Main/assets/**','Main/tools/assets/**','Main/tools/check/**']
+SOFTWARE=['Main/sw/**','Main/sdk/**','Main/assets/**','Main/tools/assets/**','Main/tools/check/**','Main/tools/board/**',
+          'Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log',
+          'Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log']
 RTL_INPUTS=['Main/rtl/**','Main/sim/**','Main/sw/**','Main/assets/**','Main/tools/check/**']
 HARDWARE=['Main/rtl/**','Main/fpga/**','Main/sdk/**','Main/sw/**','Main/tools/board/**','Main/tools/check/**']
 for name,item in CHECKS.items():
     if name=='paths':inputs=['@tracked-text']
-    elif name=='workflow':inputs=['Main/tools/check/**','Main/sw/lib/test/golden.txt']
+    elif name=='workflow':inputs=['Main/tools/check/**','Main/tools/board/**','Main/sw/lib/test/golden.txt']
     elif name=='regs':inputs=[P+'regs_gen.py','Main/rtl/engine/engine_regs_offsets.vh','Main/sw/bsp/include/gfx_regs.h']
     elif name=='semantics':inputs=[P+'check_cmd_semantics.py','Main/doc/赛题二总体设计.md']
-    elif name in ('rast','r4','r4-board'):inputs=SOFTWARE + ['Main/doc/三维数值契约.md',
+    elif name in ('rast','r4','r4-board','r4-frozen-board','console','console-board','platform-sdk','sw16-board'):inputs=SOFTWARE + ['Main/doc/三维数值契约.md',
         'Main/sim/engine/r4/**','Main/tools/board/**','Main/rtl/**']
     elif name=='pc-window':inputs=['Main/sw/bsp/**','Main/sim/host/**','Main/tools/board/build_pc.py',P+'check_pc_window.py']
     elif name=='pc-wide':inputs=['Main/sw/lib/**','Main/sw/apps/game/gfx2dGame/src/**',
@@ -189,6 +202,9 @@ def suggest(changed):
             if any(x in name for x in ('renderer','modes','stats','press','auto','chord','main.c')):
                 selected.append('stats')
             if 'renderer' in name:selected += ['frontend','instances','bin']
+        if name.startswith(('Main/sw/apps/console/','Main/sw/ports/myriad/','Main/sw/rtos/')):
+            recognized=True
+            selected += ['console','layers','game','stats']
         if name.startswith(('Main/sw/bsp/','Main/sw/mk/')):
             recognized=True
             selected += ['layers','pc','demo','game','stats']
@@ -326,7 +342,7 @@ def main():
             return {'log':log.relative_to(ROOT).as_posix(),
                     'not_applicable':re.findall(r'^NOT_APPLICABLE .*$',output,re.M)}
         current.perform('check:'+name,execute,reusable=name not in
-                        ('board','feature-board','board-game','r3-board','r3-legacy-board','r4-board'))
+                        ('board','feature-board','board-game','r3-board','r3-legacy-board','r4-board','r4-frozen-board','console-board','sw16-board'))
         print('PASS '+name,flush=True)
     current.require(['check:'+name for name in selected])
     write_json(current.path/'result.json',{'status':'PASS','profile':current.profile,'checks':selected,'run_id':current.path.name})

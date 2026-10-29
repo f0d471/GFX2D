@@ -1,0 +1,29 @@
+=== 烧写比特流 E:\Workspace\FPGA\Efinix\Main\bit\snapshots\B7\gfx2d_ti60.bit
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   46834 bytes written at address 0x00001000
+   downloaded 46834 bytes in 2.607811s (17.538 KiB/s)
+Open On-Chip Debugger 0.11.0+dev-04060-g967f8f6f0-dirty (2026-03-24-19:56)
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+E:/Workspace/FPGA/Efinix/Main/sdk
+Info : auto-selecting first available session transport "jtag". To override use 'transport select <transport>'.
+Info : set servers polling period to 50ms
+Info : clock speed 800 kHz
+Info : JTAG tap: fpga_spinal.bridge tap/device found: 0x10660a79 (mfg: 0x53c (Efinix Inc), part: 0x0660, ver: 0x1)
+[fpga_spinal.cpu0] Target successfully examined.
+Info : starting gdb server for fpga_spinal.cpu0 on 3333
+Info : Listening on port 3333 for gdb connections
+shutdown command invoked
+
+=== 等串口采集结束（上限 55 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\sw16-board-20261029-final2\logs\sw16-board\sdk-bounce.serial.log）---
+# COM11 @ 115200 8N1, opened 21:05:25
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+SDK bounce frames 24 presents 24 PASS
+SDKCHECK bounce crc0 1bc5cd76 crc1 6a04e790 swaps 24 PASS
+
+# closed 21:05:31, 114 bytes

@@ -1,0 +1,20 @@
+/* Portable action bits. Pin assignment and transport are private to the port. */
+#ifndef PLATFORM_INPUT_H
+#define PLATFORM_INPUT_H
+#include <stdint.h>
+#define PLATFORM_KEY_UP       (1u<<0)
+#define PLATFORM_KEY_DOWN     (1u<<1)
+#define PLATFORM_KEY_LEFT     (1u<<2)
+#define PLATFORM_KEY_RIGHT    (1u<<3)
+#define PLATFORM_KEY_ACTION   (1u<<4)
+#define PLATFORM_KEY_SLOW     (1u<<5)
+#define PLATFORM_KEY_BACKEND  (1u<<6)
+#define PLATFORM_KEY_MODE1    (1u<<7)
+#define PLATFORM_KEY_MODE2    (1u<<8)
+#define PLATFORM_KEY_MODE3    (1u<<9)
+#define PLATFORM_KEY_CONFIRM  (1u<<10)
+#define PLATFORM_KEY_BACK     (1u<<11)
+#define PLATFORM_KEY_SCENE    (1u<<12)
+#define PLATFORM_KEY_LAUNCH_MASK (PLATFORM_KEY_MODE1|PLATFORM_KEY_MODE2|PLATFORM_KEY_MODE3)
+typedef struct { uint32_t held,pressed,released; } platform_input;
+#endif

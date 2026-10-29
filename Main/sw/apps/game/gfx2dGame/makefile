@@ -11,8 +11,12 @@
 # 也可以从 sw/ 目录直接编：make -f mk/host.mk、make -f mk/target.mk，规则一样。
 
 APP      = gfx2dGame
-APP_SRCS = $(wildcard src/*.c src/game/*.c)
+APP_SRCS = $(wildcard src/*.c src/game/*.c) ../../../ports/myriad/stg_runtime.c ../../../ports/myriad/r4_runtime.c ../../../ports/myriad/stg_main.c ../../../ports/myriad/stg_modes.c ../../../ports/myriad/gfx2d_stats.c ../../../ports/myriad/frontend_game.c ../../../ports/myriad/sw6_input.c ../../../ports/myriad/sw6_report.c ../../../firmware/legacy/main.c
+override APP_CPPFLAGS += -Isrc -I../../../ports/myriad
 LIBS     = core gfx
+GRAPHICS_RUNTIME := 1
+APP_O3_SRCS := src/r4_scene.c src/r4_geometry.c ../../../ports/myriad/r4_runtime.c
+LIB_O3_SRCS := core/fixmath.c gfx/rast_setup.c
 
 # 录像（源数据入库在 replay/）：SW6 的两段确定性录像（见 src/game/sw6_*），
 # SW7 的通关录像 stg_clear（Main/tools/check/gen_stg_clear.c 搜出来的，-DSTG_JUDGE_REPLAY=1 用）。

@@ -1,0 +1,22 @@
+# COM11 @ 115200 8N1, opened 21:09:31
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 2387 presents 2387 errors 0 scene 0 ladder 0 dropped 0 tick_ms 171020 irqA 10262 heap 57824 faults 0 tasks 4 idle 242291406 monitor 154 health 0 stack_free 59892
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+console enter menu
+menu crc 24eeb9cf sel 0
+console status v 2 app menu id 0 backend hw fps_milli 45862 frames 46 presents 46 errors 0 scene 0 ladder 0 dropped 0 tick_ms 7726 irqA 464 heap 57824 faults 0 tasks 4 idle 1341848 monitor 0 health 0 stack_free 64948
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 106 presents 106 errors 0 scene 0 ladder 0 dropped 0 tick_ms 8726 irqA 524 heap 57824 faults 0 tasks 4 idle 3070191 monitor 1 health 0 stack_free 64724
+console complete app menu id 0 frames 123 presents 123 errors 0
+console leave menu
+console enter stg
+console detail injected frame code 1
+console error frame total 1
+console enter menu
+menu crc 24eeb9cf sel 0
+console status v 2 app menu id 0 backend hw fps_milli 46488 frames 47 presents 47 errors 1 scene 0 ladder 0 dropped 0 tick_ms 10193 irqA 612 heap 57824 faults 0 tasks 4 idle 5173121 monitor 3 health 0 stack_free 62456
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 107 presents 107 errors 1 scene 0 ladder 0 dropped 0 tick_ms 11193 irqA 672 heap 57824 faults 0 tasks 4 idle 6901380 monitor 4 health 0 stack_free 62456
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 167 presents 167 errors 1 scene 0 ladder 0 dropped 0 tick_ms 12193 irqA 732 heap 57824 faults 0 tasks 4 idle 8628898 monitor 5 health 0 stack_free 62456
+
+# closed 21:09:59, 1659 bytes

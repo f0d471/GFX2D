@@ -37,7 +37,16 @@ board_mem board_region(board_region_id id){return (board_mem){(void *)(uintptr_t
 uint32_t *board_fb(int i){return (uint32_t *)(uintptr_t)g_mem_regions[REGION_FB0+i].offset;}
 int board_present_request(int i,uint32_t *ticket){need(!busy,"present before DONE");next_front=i;*ticket=swaps;return 0;}
 int board_present_wait(uint32_t ticket){need(ticket==swaps,"wrong present ticket");ticks+=1666667u;front=next_front;swaps++;return 0;}
-int gfx_engine_caps_read(uint32_t *caps){*caps=GFX_CAPS_VALUE;return 0;}
+int gfx_engine_caps_read(uint32_t *caps)
+{
+    *caps=GFX_CAPS_VALUE;
+#ifdef F4_LEASE_RESET_TEST
+    /* This variant models an INST-capable device even when the project's
+       production feature header is B0. Do not depend on that global preset. */
+    *caps|=GFX_CAPS_INST_M;
+#endif
+    return 0;
+}
 int gfx_engine_soft_reset(void){need(!busy,"reset while active");if(reset_error)return GFX_ENG_E_TIMEOUT;gfx_surface_reset(&device);memset(perf,0,sizeof perf);return 0;}
 int gfx_engine_surf_set_space(int id,uint32_t base,uint32_t w,uint32_t h,uint32_t stride,uint32_t space,uint32_t format)
 {gfx_surface s={base,(uint16_t)w,(uint16_t)h,(uint8_t)stride,(uint8_t)space,(uint8_t)format};if(busy)return GFX_ENG_E_REJECT;return gfx_surface_set(&device,id,&s);}
@@ -45,6 +54,8 @@ int gfx_engine_submit(uint32_t base,uint32_t n)
 {need(!busy,"overlapping submit");captured=device;commands=(const gfx_cmd *)(uintptr_t)base;count=n;is_strips=0;busy=1;wait_ticks=2;return 0;}
 int gfx_engine_submit_strips(uint32_t base,uint32_t strips,uint32_t log2,uint32_t bg,uint32_t dst)
 {need(!busy,"overlapping BAND");captured=device;table=(const void *)(uintptr_t)base;config=(gfx_strip_config){strips,log2,bg,dst};is_strips=1;busy=1;wait_ticks=3;return 0;}
+int gfx_engine_submit_pb(uint32_t base,uint32_t n,const gfx_engine_pb *pb)
+{(void)base;(void)n;(void)pb;need(0,"unexpected PB submission in non-PB pipeline fixture");return GFX_ENG_E_ARG;}
 int gfx_engine_wait(uint32_t *code,uint32_t *index,uint32_t *tag)
 {need(!busy,"wait consumed unfinished device");*code=ecode;*index=eindex;*tag=etag;return 0;}
 int gfx_engine_perf_read(uint32_t *v,uint32_t n){memcpy(v,perf,n*4u);return 0;}
@@ -128,3 +139,7 @@ int main(void)
     puts("PASS: 64 async frames plus cached pass, two owned BG/CMD sets, generation/ticket wrap, whole PERF, no scan overwrite, error no present");
     munmap(mapped,DDR_SIM_BYTES);return 0;
 }
+
+void board_wait_yield(void) {}
+
+void board_wait_engine(void) {}

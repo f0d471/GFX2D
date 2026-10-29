@@ -19,7 +19,7 @@ def main():
         'Main/sw/lib/core/fixmath.c', 'Main/sw/lib/core/sin_tab.c',
         'Main/sw/lib/core/xorshift32.c', 'Main/sw/lib/core/crc32.c']
     base = ['gcc', '-std=gnu11', '-O2', '-Wall', '-Wextra', '-Werror',
-        '-I', 'Main/sw/lib', '-I', 'Main/sw/bsp/include',
+        '-I', 'Main/sw/lib', '-I', 'Main/sw/api', '-I', 'Main/sw/services/gfx', '-I', 'Main/sw/ports/myriad', '-I', 'Main/sw/bsp/include',
         '-I', 'Main/sw/apps/game/gfx2dGame/src']
     bodies = []
     for name, flags in [('64', ['-fsanitize=address,undefined', '-fno-sanitize-recover=all']),

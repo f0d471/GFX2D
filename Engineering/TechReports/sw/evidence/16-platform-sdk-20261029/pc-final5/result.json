@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "lib",
+    "pack",
+    "r4",
+    "console",
+    "game",
+    "stats"
+  ],
+  "run_id": "sw16-final5-pc-20261029"
+}

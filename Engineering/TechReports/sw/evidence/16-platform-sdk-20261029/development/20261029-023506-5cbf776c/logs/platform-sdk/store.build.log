@@ -1,0 +1,12 @@
+/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/services/test/test_store.c: In function ‘main’:
+/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/services/test/test_store.c:15:12: error: ‘data’ may be used uninitialized [-Werror=maybe-uninitialized]
+   15 |     return platform_store_write("../escape",data,1)==PLATFORM_INVALID?0:1;
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/services/test/test_store.c:4:
+/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/api/platform.h:33:5: note: by argument 2 of type ‘const void *’ to ‘platform_store_write’ declared here
+   33 | int platform_store_write(const char *name,const void *data,uint32_t bytes);
+      |     ^~~~~~~~~~~~~~~~~~~~
+/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/services/test/test_store.c:7:10: note: ‘data’ declared here
+    7 |     char data[64];uint32_t n=0;
+      |          ^~~~
+cc1: all warnings being treated as errors

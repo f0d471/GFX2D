@@ -1,0 +1,21 @@
+{
+  "bit": "Main\\bit\\snapshots\\B7\\gfx2d_ti60.bit",
+  "bin": "Main\\sim\\build\\check-runs\\sw16-board-20261029-final2\\build\\console-board\\app\\console-O2-perf.bin",
+  "identities": {
+    "bit": {
+      "size": 2765409,
+      "mtime_ns": 1793223244050324300,
+      "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+    },
+    "bin": {
+      "size": 251294,
+      "mtime_ns": 1793279179696245500,
+      "sha256": "3e056c180748a6d445f9150550d4095fff539d9ae0efaaef194733e663bfad1c"
+    }
+  },
+  "serial_sha256": "310dda09abef844754dd181525cf80a4999e9ddf65af78ddf387cf232234862f",
+  "port": "COM11",
+  "deployment": "JTAG volatile",
+  "flash_written": false,
+  "precise_boundary": true
+}

@@ -7,18 +7,14 @@
 *         那一套（stg_runtime_surfaces_stg 一次登记全）。
 *
 *         键位（只在菜单内）：上下移动光标、BOMB 启动选中项、
-*         MODE1/2/3 直达第 1~3 项（按下沿触发）。
-*         绘制走 SW 执行器：菜单不依赖引擎状态，引擎留给应用用。
+*         数字 1/2/3/4 由框架按稳定 ID 处理；菜单仅枚举可启动内容。
+*         绘制与错误处理在两端共用；运行平台决定 CPU 或引擎执行。
 *         第一帧打一行 `menu crc <hex> sel <n>`：板上判据的渲染锚点。
 ******************************************************************************/
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "FreeRTOS.h"
-#include "task.h"
-
-#include "board.h"
 
 #include "core/crc32.h"
 #include "core/format.h"
@@ -29,12 +25,9 @@
 #include "stg_slots.h"
 #include "game/stg_text.h"
 
-#include "renderer.h"
-#include "stg_modes.h"
+#include "app_port.h"
 
-#include "rtos_irq.h"
-
-#include "appfw.h"
+#include "console_views.h"
 #include "shell.h"
 
 /* 与游戏一致的字体几何（sw6_hud 的那套；青字库同规格） */
@@ -48,8 +41,8 @@ static const stg_font s_font_cyan = {
 };
 
 #define MENU_BG      0xFF100E1Au      /* ARGB：近黑深蓝 */
-#define MENU_Y0      216
-#define MENU_STEP   36
+#define MENU_Y0      204
+#define MENU_STEP   32
 #define CURSOR_X    196
 #define NAME_X      244
 #define DESC_X      420
@@ -57,37 +50,28 @@ static const stg_font s_font_cyan = {
 
 static uint32_t s_sel;             /* 光标条目 */
 static uint32_t s_prev_keys;
-static uint32_t s_fps_t0, s_fps_s0, s_fps;
-static uint32_t s_cyc_build, s_cyc_exec, s_cyc_present;   /* 最近一帧的三段 */
 static int      s_first_logged;
 static int      s_hw;              /* 1=引擎渲染，0=SW 兜底（引擎不在的老位流） */
 
 static int shell_enter(appfw_ctx *c)
 {
-    if (stg_runtime_surfaces_stg(c->rt) != 0)
-        return -1;
-    /* 整屏菜单交引擎渲染（CPU 的 SW 光栅在 100MHz 上只有 ~3fps）；
-       引擎不在时退 SW，菜单仍可用只是慢 */
-    s_hw = (renderer_prepare(1, &c->rt->tab) == 0) ? 1 : 0;
-    s_sel          = 0u;
+    s_hw=app_port_hardware();
+    if(console_view_prepare(c,CONSOLE_VIEW_STG,s_hw)!=0)return -1;
     s_prev_keys    = 0u;
-    s_fps_t0       = board_cycles();
-    s_fps_s0       = board_swap_count();
-    s_fps          = 0u;
     s_first_logged = 0;
     return 0;
 }
 
-static void shell_leave(appfw_ctx *c)
+static int shell_leave(appfw_ctx *c)
 {
     (void)c;    /* renderer_run 同步等表执行完才返回，没有在途的引擎表 */
+    return 0;
 }
 
-static void shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
+static int shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
 {
     const uint32_t pressed = keys & ~s_prev_keys;
-    const uint32_t li      = c->seq & 1u;
-    const int      dst     = li ? STG_SLOT_FB1 : STG_SLOT_FB0;
+    int dst;
     uint32_t       count, i;
     gfx_list       l;
     gfx_rect       all;
@@ -97,41 +81,36 @@ static void shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
 
     /* --- 输入 --- */
     (void)appfw_apps(&count);
-    if (pressed & BOARD_KEY_UP)
+    if(!count)return -1;
+    if(s_sel>=count)s_sel=0;
+    if (pressed & PLATFORM_KEY_UP)
         s_sel = (s_sel == 0u) ? count - 1u : s_sel - 1u;
-    if (pressed & BOARD_KEY_DOWN)
+    if (pressed & PLATFORM_KEY_DOWN)
         s_sel = (s_sel + 1u) % count;
-    if (pressed & BOARD_KEY_BOMB)
+    if (pressed & (PLATFORM_KEY_ACTION|PLATFORM_KEY_CONFIRM))
         appfw_request(appfw_app_at(s_sel));
-    if (pressed & BOARD_KEY_MODE1)
-        appfw_request(appfw_app_at(0));
-    else if (pressed & BOARD_KEY_MODE2 && count > 1u)
-        appfw_request(appfw_app_at(1));
-    else if (pressed & BOARD_KEY_MODE3 && count > 2u)
-        appfw_request(appfw_app_at(2));
 
     /* --- 组帧 --- */
     {
-    const uint32_t t0 = board_cycles();
     all.x0 = 0;
     all.y0 = 0;
-    all.x1 = (int32_t)FB_WIDTH - 1;
-    all.y1 = (int32_t)FB_HEIGHT - 1;
+    all.x1 = (int32_t)CONSOLE_WIDTH - 1;
+    all.y1 = (int32_t)CONSOLE_HEIGHT - 1;
 
-    gfx_list_begin(&l, c->rt->cmds[li], c->rt->cap[li], &c->rt->tab);
+    if(console_view_begin(c,&l,&dst)!=0)return -1;
     bad += (uint32_t)(gfx_set_clip(&l, all) != 0);
     bad += (uint32_t)(gfx_fill(&l, dst, all, MENU_BG, GFX_EQ_COPY, 0u) != 0);
 
     /* 标题：premult ALPHA，画法同游戏标题 */
     bad += (uint32_t)(gfx_blit(&l, STG_SLOT_TITLE, 0, 0, dst,
-                               ((int)FB_WIDTH - (int)ASSET_TITLE_W) / 2, 44,
-                               (int)ASSET_TITLE_W, (int)ASSET_TITLE_H,
+                               ((int)CONSOLE_WIDTH - (int)ASSET_TITLE_W) / 2, 44,
+                               (int)ASSET_TITLE_W, (int)ASSET_TITLE_H-16,
                                GFX_EQ_ALPHA, 0u, 0, 0u) != 0);
 
     /* 列表：光标小飞船（ships 第 0 格，黑键透明）+ 名称 + 说明 */
     {
         const appfw_app *const *apps = appfw_apps(&count);
-        char sel_line[24];
+        char sel_line[48];
         core_out o;
 
         for (i = 0u; i < count; i++) {
@@ -145,98 +124,49 @@ static void shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
                                            (int)ASSET_SHIPS_CELL_W, (int)ASSET_SHIPS_CELL_H,
                                            GFX_EQ_COPY, 0u, 1, ASSET_SHIPS_KEY) != 0);
             }
-            bad += stg_text_draw(&l, f, dst, NAME_X, y, apps[i]->name, NULL);
-            bad += stg_text_draw(&l, &s_font, dst, DESC_X, y, apps[i]->desc, NULL);
+            core_out_init(&o,sel_line,sizeof sel_line);
+            if(apps[i]->id<=APPFW_R4)core_out_u32(&o,apps[i]->id);
+            else core_out_ch(&o,' ');
+            core_out_ch(&o,' ');core_out_str(&o,apps[i]->desc);
+            bad += stg_text_draw(&l,f,dst,NAME_X,y,sel_line,NULL);
+            if(!appfw_available(apps[i]))
+                bad += stg_text_draw(&l,&s_font,dst,NAME_X,y+16,"UNAVAILABLE",NULL);
         }
 
         /* 选中条目号（判据锚点：菜单行） */
         core_out_init(&o, sel_line, (uint32_t)sizeof sel_line);
-        core_out_str(&o, "SEL ");
-        core_out_u32(&o, s_sel);
-        bad += stg_text_draw(&l, &s_font, dst, NAME_X, MENU_Y0 + (int)(count * MENU_STEP),
-                             sel_line, NULL);
+        core_out_str(&o, "SELECT APPLICATION");
+        bad += stg_text_draw(&l,&s_font,dst,NAME_X,176,sel_line,NULL);
     }
 
     /* 页脚、版本与 fps */
     bad += stg_text_draw(&l, &s_font, dst, 76, FOOT_Y,
-                         "UP/DOWN SELECT  BOMB START  1-3 DIRECT  1+2+3 HOLD=HOME", NULL);
-    bad += stg_text_draw(&l, &s_font, dst, 508, 8, "CONSOLE SW10", NULL);
+                         "1-4 APP  ENTER/SPACE OK  ESC BACK  C SCENE", NULL);
+    bad += stg_text_draw(&l,&s_font,dst,76,456,"BOARD: LEFT+RIGHT OK  UP+DOWN BACK",NULL);
+    bad += stg_text_draw(&l, &s_font, dst, 508, 8, "CONSOLE V2", NULL);
     {
         char     line[16];
         core_out o;
 
         core_out_init(&o, line, (uint32_t)sizeof line);
-        core_out_u32(&o, s_fps);
+        core_out_u32(&o, c->fps_milli/1000u);
         bad += stg_text_draw(&l, &s_font, dst, 604, FOOT_Y, line, NULL);
     }
 
     bad += (uint32_t)(gfx_list_end(&l) != 0);
-    s_cyc_build = board_cycles() - t0;
     }
 
-    /* --- 执行（引擎优先）与呈现 --- */
-    {
-        exec_sw_stats st;
-        uint32_t      cyc;
-        uint32_t      ticket;
-        const uint32_t t1 = board_cycles();
+    if(bad)return appfw_error("menu build",-1);
+    if(console_view_submit(c,&l,dst,s_hw)!=0)return -1;
 
-        if (renderer_run(s_hw, &c->rt->tab, &c->rt->mem, &c->rt->es, &c->rt->err,
-                         &l, &st, &cyc) != GFX_OK)
-            bad++;
-        s_cyc_exec = board_cycles() - t1;
-        {
-            const uint32_t t2 = board_cycles();
-            if (s_hw != 0)
-                board_dcache_invalidate_all();      /* 引擎写回的帧，CPU 读 CRC 前失效 */
-            if (board_present_request(dst, &ticket) != 0) {
-                bad++;
-            } else {
-                /* 睡到场起始（帧信号量），把 CPU 让给 monitor/idle；
-                   醒来确认交换，未完成再走上界的轮询兜底 */
-                rtos_wait_frame(50);
-                if (!board_present_finished(ticket))
-                    bad += (uint32_t)(board_present_wait(ticket) != 0);
-            }
-            c->shown = dst;
-            s_cyc_present = board_cycles() - t2;
-        }
-    }
-    c->seq++;
-
-    if (board_cycles() - s_fps_t0 >= (uint32_t)BOARD_HZ) {
-        char     buf[96];
-        core_out o;
-
-        s_fps    = board_swap_count() - s_fps_s0;
-        s_fps_s0 = board_swap_count();
-        s_fps_t0 = board_cycles();
-        core_out_init(&o, buf, (uint32_t)sizeof buf);
-        core_out_str(&o, "menu fps ");
-        core_out_u32(&o, s_fps);
-        core_out_str(&o, " irqA ");
-        core_out_u32(&o, board_irq_frame_events());
-        core_out_str(&o, " tick ");
-        core_out_u32(&o, (uint32_t)xTaskGetTickCount());
-        core_out_str(&o, " bld ");
-        core_out_u32(&o, s_cyc_build);
-        core_out_str(&o, " exe ");
-        core_out_u32(&o, s_cyc_exec);
-        core_out_str(&o, " prs ");
-        core_out_u32(&o, s_cyc_present);
-        core_out_str(&o, "\r\n");
-        appfw_log(buf);
-    }
-
-    if (!s_first_logged && c->shown >= 0) {
+    if (!s_first_logged) {
         char     buf[96];
         core_out o;
 
         s_first_logged = 1;
-        board_dcache_invalidate_all();
         core_out_init(&o, buf, (uint32_t)sizeof buf);
         core_out_str(&o, "menu crc ");
-        core_out_hex32(&o, stg_modes_frame_crc(board_fb(c->shown)));
+        core_out_hex32(&o, console_view_crc(c));
         core_out_str(&o, " sel ");
         core_out_u32(&o, s_sel);
         core_out_str(&o, "\r\n");
@@ -244,11 +174,11 @@ static void shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
     }
 
     (void)frame;
-    (void)bad;
+    return APPFW_FRAME_OK;
 }
 
 const appfw_app g_app_menu = {
-    "menu", "console menu",
+    APPFW_MENU,"menu", "SELECT APPLICATION",
     shell_enter,
     shell_leave,
     shell_frame,

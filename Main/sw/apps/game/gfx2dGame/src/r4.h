@@ -152,6 +152,9 @@ void     r4_set_log(logq *q);
 
 /* 自查失败与节拍计数（框架的 say_enter/统计用）。 */
 uint32_t r4_fail_count(void);
+int r4_backend_hardware(void);
+uint32_t r4_current_scene(void);
+uint32_t r4_current_ladder(void);
 uint32_t r4_exact_count(void);
 uint32_t r4_late_count(void);
 

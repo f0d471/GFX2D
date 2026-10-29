@@ -1,0 +1,6 @@
+{
+  "kind": "historical_run_snapshot",
+  "current_inputs_revalidated": false,
+  "local_paths": "placeholders in metadata; raw logs byte-identical",
+  "source_run": "Main/sim/build/check-runs/20261029-200252-31d27e63"
+}

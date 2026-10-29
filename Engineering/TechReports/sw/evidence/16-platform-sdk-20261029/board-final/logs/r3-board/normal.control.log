@@ -1,0 +1,45 @@
+=== 烧写比特流 E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\ppa-after4\build\feature-presets\B7\fpga\gfx2d_ti60\outflow\gfx2d_ti60.bit
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   103506 bytes written at address 0x00001000
+   downloaded 103506 bytes in 5.855881s (17.261 KiB/s)
+=== 等串口采集结束（上限 240 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\sw16-board-20261029-final2\logs\r3-board\normal.serial.log）---
+# COM11 @ 115200 8N1, opened 21:28:39
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+R3 raster board v1
+caps 0000d46f
+R3 id 52415301 caps 0000c000
+HEALTH before field 0000025f min 0000015b zero 00000000 under 00000000 resp 00000000
+DRIVER reject ok
+R3 frame 00000000 sw 8233040e hw 8233040e bad 00000000 cycles 0003dcae code 00000000
+HEALTH mixed field 0000029a min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000001 sw 6ec21c37 hw 6ec21c37 bad 00000000 cycles 0003e767 code 00000000
+HEALTH mixed field 000002d7 min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000002 sw 3cceb994 hw 3cceb994 bad 00000000 cycles 0003ef9e code 00000000
+HEALTH mixed field 00000314 min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000003 sw 12f7df81 hw 12f7df81 bad 00000000 cycles 0003e0bb code 00000000
+HEALTH mixed field 00000350 min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000004 sw 5efbe282 hw 5efbe282 bad 00000000 cycles 0003e2ba code 00000000
+HEALTH mixed field 0000038c min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000005 sw a816b014 hw a816b014 bad 00000000 cycles 0003f150 code 00000000
+HEALTH mixed field 000003c9 min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000006 sw 6d003c2b hw 6d003c2b bad 00000000 cycles 0003e03f code 00000000
+HEALTH mixed field 00000405 min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000007 sw c32e224a hw c32e224a bad 00000000 cycles 0003e787 code 00000000
+HEALTH mixed field 00000442 min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 00000008 sw eece36a9 hw eece36a9 bad 00000000 cycles 0003df8a code 00000000
+HEALTH mixed field 0000047f min 0000015a zero 00000000 under 00000000 resp 00000000
+R3 frame 00000009 sw c9009eb2 hw c9009eb2 bad 00000000 cycles 0003e0ae code 00000000
+HEALTH mixed field 000004bb min 0000015b zero 00000000 under 00000000 resp 00000000
+R3 frame 0000000a sw e3c99091 hw e3c99091 bad 00000000 cycles 0003d0ab code 00000000
+HEALTH mixed field 000004f8 min 0000015b zero 00000000 under 00000000 resp 00000000
+ERROR index code 0000000d index 0000ffff tag 00000000 stage 00000007
+RESET recovery code 00000000
+HEALTH after field 000004fa min 0000015b zero 00000000 under 00000000 resp 00000000
+fail 0
+done
+
+# closed 21:29:00, 2234 bytes

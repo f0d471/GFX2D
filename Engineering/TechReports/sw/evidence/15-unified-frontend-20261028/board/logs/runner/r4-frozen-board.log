@@ -1,0 +1,4 @@
+RUN Main/sim/build/check-runs/20261028-190528-software-convergence/acceptance-board-02
+R4 BOARD PASS l1
+R4 BOARD PASS l2
+R4 BOARD PASS cup

@@ -1,0 +1,38 @@
+{
+  "profile": "acceptance",
+  "results": [
+    {
+      "case": "pixel-injection",
+      "port": "COM11",
+      "status": "EXPECTED_RED",
+      "frames": 1,
+      "cycles": [
+        253547
+      ],
+      "display_samples": 3
+    },
+    {
+      "case": "normal",
+      "port": "COM11",
+      "status": "PASS",
+      "frames": 11,
+      "cycles": [
+        253102,
+        255847,
+        257950,
+        254139,
+        254650,
+        258384,
+        254015,
+        255879,
+        253834,
+        254126,
+        250027
+      ],
+      "display_samples": 13
+    }
+  ],
+  "deployment_tree": "Main/sim/build/check-runs/ppa-after4/build/feature-presets/B7",
+  "external_tree": true,
+  "scope": "JTAG named B7 tree and source identities; no Flash or human HDMI observation"
+}

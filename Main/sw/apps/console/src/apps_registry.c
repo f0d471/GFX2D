@@ -6,15 +6,18 @@
 ******************************************************************************/
 
 #include "appfw.h"
+#include "console_ids.h"
 
-extern const appfw_app g_app_menu;
+extern const appfw_app g_app_demo;
 extern const appfw_app g_app_stg;
+extern const appfw_app g_app_press;
 extern const appfw_app g_app_r4;
 extern const appfw_app g_app_about;
 
 const appfw_app *const g_appfw_registry[] = {
-    &g_app_menu,
+    &g_app_demo,
     &g_app_stg,
+    &g_app_press,
     &g_app_r4,
     &g_app_about,
 };

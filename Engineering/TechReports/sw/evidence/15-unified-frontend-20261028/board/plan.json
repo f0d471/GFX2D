@@ -1,0 +1,39 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "console-board",
+    "r4-frozen-board"
+  ],
+  "changed": null,
+  "commands": {
+    "console-board": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_console_board.py"
+    ],
+    "r4-frozen-board": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_r4_board.py",
+      "--frozen-release",
+      "Main/bit/board_release_game_current_20261024"
+    ]
+  },
+  "timeouts": {
+    "console-board": 1800,
+    "r4-frozen-board": 3600
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log",
+    "Main/doc/三维数值契约.md",
+    "Main/sim/engine/r4/**",
+    "Main/rtl/**"
+  ]
+}

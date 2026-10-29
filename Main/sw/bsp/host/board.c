@@ -73,6 +73,7 @@ static uint32_t      s_swaps;       /* 成功 present 过的次数 */
 static int           s_scale;
 static int           s_quit;
 static int           s_fullscreen, s_smooth;
+static int           s_escape_exits_fullscreen=1;
 static int           s_window_x, s_window_y, s_window_w, s_window_h;
 static unsigned      s_texture_w = FB_WIDTH, s_texture_h = FB_HEIGHT;
 static uint32_t     *s_canvas[BOARD_FB_COUNT];
@@ -179,7 +180,7 @@ static void pump_events(void)
                 fullscreen(!s_fullscreen);
                 continue;
             }
-            if (e.key.keysym.scancode == SDL_SCANCODE_ESCAPE && s_fullscreen) {
+            if (e.key.keysym.scancode == SDL_SCANCODE_ESCAPE && s_fullscreen && s_escape_exits_fullscreen) {
                 fullscreen(0);
                 continue;
             }
@@ -470,6 +471,12 @@ int board_asset_read(uint32_t offset, void *dst, uint32_t bytes)
     return BOARD_ASSET_OK;
 }
 
+uint64_t board_time_ms(void)
+{
+    uint64_t d=SDL_GetPerformanceCounter()-s_perf_base;
+    return (d/s_perf_freq)*1000u+(d%s_perf_freq)*1000u/s_perf_freq;
+}
+void board_cpu_write_complete(void) { }
 uint32_t board_cycles(void)
 {
     uint64_t dt = (uint64_t)SDL_GetPerformanceCounter() - s_perf_base;
@@ -516,8 +523,11 @@ void board_puts(const char *s)
 
 /* **缩放键不在这里**：窗口大小是宿主的事，缩放键在 pump_events 里被吃掉。
    加进来就会进录像、改变回放的按键序列。 */
-uint32_t board_keys(void)
+void board_input_window_policy(int enabled) { s_escape_exits_fullscreen=enabled!=0; }
+
+uint32_t board_input_raw(uint32_t *physical)
 {
+    if(physical)*physical=0;
     const Uint8 *k;
     uint32_t     bits = 0u;
 
@@ -546,6 +556,10 @@ uint32_t board_keys(void)
     if (k[SDL_SCANCODE_SPACE])                          bits |= BOARD_KEY_BOMB;
     if (k[SDL_SCANCODE_LSHIFT])                         bits |= BOARD_KEY_SLOW;
     if (k[SDL_SCANCODE_TAB])                            bits |= BOARD_KEY_SWAP;
+    if ((k[SDL_SCANCODE_RETURN] || k[SDL_SCANCODE_KP_ENTER]) && !(SDL_GetModState()&KMOD_ALT))
+        bits |= BOARD_KEY_CONFIRM;
+    if (k[SDL_SCANCODE_ESCAPE] || k[SDL_SCANCODE_BACKSPACE]) bits |= BOARD_KEY_BACK;
+    if (k[SDL_SCANCODE_C])                              bits |= BOARD_KEY_SCENE;
     if (k[SDL_SCANCODE_1])                              bits |= BOARD_KEY_MODE1;
     if (k[SDL_SCANCODE_2])                              bits |= BOARD_KEY_MODE2;
     if (k[SDL_SCANCODE_3])                              bits |= BOARD_KEY_MODE3;

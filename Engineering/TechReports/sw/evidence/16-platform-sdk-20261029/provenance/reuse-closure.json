@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "source_run": "20261029-031110-e416c678",
+  "scope": [
+    "pack",
+    "console",
+    "lib",
+    "app",
+    "frontend",
+    "pc-wide",
+    "r4"
+  ],
+  "changed_inputs": [
+    "Main/sw/ports/ti60/app_port.c",
+    "Main/sw/services/platform/platform.c",
+    "Main/sw/services/test/test_platform.c",
+    "Main/sw/services/test/test_scheduler_port.c",
+    "Main/tools/check/check_platform_sdk.py"
+  ],
+  "actual_host_dependency_files": 146,
+  "reason": "only independent SDK implementation/test and target-only health port changed",
+  "not_reused": [
+    "platform-sdk",
+    "demo"
+  ],
+  "target_runtime": "NOT_RUN"
+}

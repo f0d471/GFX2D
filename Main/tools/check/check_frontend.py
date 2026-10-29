@@ -66,10 +66,10 @@ def legacy():
 
 def pipeline_model():
     game=MAIN/'sw/apps/game/gfx2dGame/src'
-    sources=[SIM/'test_pipeline.c',game/'renderer.c',MAIN/'sw/bsp/memmap.c',
+    sources=[SIM/'test_pipeline.c',MAIN/'sw/services/gfx/renderer.c',MAIN/'sw/bsp/memmap.c',
              *[LIB/'gfx'/x for x in ('list.c','strip.c','strip_plan.c','frame.c','check.c','exec_sw.c','census.c','instances.c','pb.c')],LIB/'core/format.c']
     flags=['-m32','-O1','-g','-std=c11','-Wall','-Wextra','-Werror','-D__riscv','-DSW9_PERF=1','-DGFX_FRONTEND_BACKGROUND=2',
-           '-ffunction-sections','-fdata-sections','-Wl,--gc-sections','-I'+str(LIB),'-I'+str(MAIN/'sw/bsp/include'),'-I'+str(game)]
+           '-ffunction-sections','-fdata-sections','-Wl,--gc-sections','-I'+str(LIB),'-I'+str(MAIN/'sw/bsp/include'),'-I'+str(MAIN/'sw/ports/myriad'),'-I'+str(game),'-I'+str(MAIN/'sw/services/gfx')]
     for name,defines,red in [('pipeline_model',[],False),('pipeline_early_release',['-DINJECT_PIPELINE_EARLY_RELEASE'],True),('pipeline_instance_reset',['-DGFX_FRONTEND_INST=1','-DF4_LEASE_RESET_TEST'],False)]:
         exe=BUILD/name
         run(name+'_compile',['gcc',*flags,*defines,*sources,'-o',exe])
@@ -81,7 +81,7 @@ def replay(names):
     for name in names:
         flags='-DSTG_FIELD=4 -DSTG_JUDGE_REPLAY=1 -DGFX2D_HEADLESS=1 '+VARIANTS[name]
         obj='build_frontend_'+name
-        run('host_'+name+'_compile',['make','-j8','PLATFORM=host','OBJDIR='+obj,'EXTRA_CFLAGS='+flags],APP)
+        run('host_'+name+'_compile',['make','-j2','PLATFORM=host','OBJDIR='+obj,'EXTRA_CFLAGS='+flags],APP)
         data=run('host_'+name,[APP/obj/'gfx2dGame'],APP,env)
         lines=[x for x in data.splitlines() if x.startswith('g ')]
         if len(lines)!=9208 or 'fail 0' not in data or '\nerr ' in data:raise RuntimeError(name+': incomplete/failed replay')

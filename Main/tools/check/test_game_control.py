@@ -36,3 +36,45 @@ assert state.backend=='sw' and state.scene==1 and state.ladder==1
 panel.pending_backend=None;panel.state.mode='r3d';panel.state.backend='sw'
 panel.set_backend('hw-tex');assert panel.pending_backend=='hw'
 print('Control panel: TEX CSV, bullet count, confirmed transitions and unsupported target OK')
+state=BoardState()
+state.consume('R4STAT 30 35234 96 2 1 0')
+state.consume('console protocol 2 tick_hz 1000')
+state.consume('console enter menu')
+assert state.mode=='menu' and state.backend is None and state.fps is None
+state.consume('console status v 2 app menu id 0 backend hw fps_milli 59980 frames 60 presents 60 errors 0 scene 0 ladder 0')
+assert state.protocol==2 and state.app_id==0 and state.mode=='menu' and state.fps==59.98
+state.consume('console enter stg')
+assert state.mode=='game' and state.backend is None
+state.consume('console status v 2 app stg id 2 backend hw-tex fps_milli 60000 frames 120 presents 119 errors 0 scene 0 ladder 0')
+assert state.app_id==2 and state.backend=='hw-tex' and state.fps==60
+state.consume('console enter about')
+assert state.mode=='about' and state.fps is None and state.triangles is None
+state.consume('console error enter total 1')
+assert state.mode=='fault' and state.backend is None
+print('Control panel protocol2: menu/game/about/error and stale-backend reset OK')
+panel=ControlPanel.__new__(ControlPanel)
+panel.state=BoardState();panel.state.protocol=2;panel.state.mode='game';panel.state.backend='hw'
+panel.pending_backend='hw-tex';panel.pending_steps=1
+panel.restart_pending=False;panel.ensure_hw=False
+sent=[];panel.send_action=lambda keys: sent.append(keys) or True;panel.notify=lambda message:None
+panel.process_line('console enter r4')
+assert panel.pending_backend is None and sent==[]
+panel.restart_pending=True
+panel.process_line('console enter menu')
+assert panel.restart_pending is False and sent==[256]
+from types import SimpleNamespace
+from unittest.mock import Mock
+import tempfile,json
+with tempfile.TemporaryDirectory() as directory:
+    view=ControlPanel.__new__(ControlPanel)
+    for name in ('mode_label','backend_label','fps_label','scene_label','notice','input_label','connection','root'):
+        setattr(view,name,Mock())
+    view.state=BoardState();view.state.mode='r3d';view.state.backend='hw';view.state.fps=30
+    view.forwarder=SimpleNamespace(user32=SimpleNamespace(GetForegroundWindow=lambda:1),focus=1,last=0x380)
+    view.enabled=SimpleNamespace(get=lambda:True);view.port=None
+    view.notice_text='';view.last_status_write=0
+    view.args=SimpleNamespace(status_file=str(Path(directory)/'status.json'),port='COM11')
+    view.refresh()
+    assert json.loads(Path(view.args.status_file).read_text(encoding='utf-8'))['keys']==0x380
+    assert '三维 [4]' in view.input_label.configure.call_args.kwargs['text']
+print('Control panel: cross-app pending commands cancelled; displayed keys preserve raw telemetry')

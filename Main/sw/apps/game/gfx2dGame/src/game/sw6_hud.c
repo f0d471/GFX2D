@@ -8,7 +8,7 @@
 
 #include <stddef.h>
 
-#include "board.h"
+#include "sw6_cfg.h"
 
 #include "core/format.h"
 

@@ -3,9 +3,45 @@
 与 `sdk/` 的分工：`sdk/` 是 IP 生成的 BSP 和官方示例，重新生成 SoC IP 时会被覆盖，**只读**；本目录放本项目编写的程序，不会被生成器碰到。
 项目要往 sdk 加的东西一律放在 `bsp/` 这一层，由它转出去，不改 sdk 本身。
 
+
+## 平台开发入口（SW16）
+
+维护底层从[公开API](api/README.md)和[平台接口契约](../doc/平台软件接口.md)开始。
+新应用的真实编译只暴露api；两个独立消费者为`apps/examples/pixels`和`bounce`。
+公共生命周期在`runtime/`，通用执行与所有权在`services/`，固件组合在`firmware/`，
+平台/现有内容适配在`ports/`。游戏规则、场景、模型和UI排版仍在apps；它们不包含
+板级头、寄存器和引擎提交。旧低层诊断消费者有明确的可信接口，不作为新SDK模板。
+
+`ports/myriad`保留现有内容的资源描述和执行适配；通用renderer位于`services/gfx`，
+不依赖游戏头。公开帧接口通过代次和所有权约束map/unmap/present/wait；显示、引擎
+分别通知等待者。目标存储尚无获准分区时返回NOT_SUPPORTED，不改已有Flash启动布局。
+`platform-sdk`验证PC机制，`sw16-board`使用既有B7快照验证实际SDK像素、RTOS应用和R4。
+真实IRQ运行与时钟进展不等于测得最坏中断时延；Flash启动、watchdog和实体外设另行验收。
+
+当前产品入口是 `apps/console`，PC 与 Ti60 默认进入同一菜单。1/2/3/4 全局选择
+基础 2D 演示、弹幕、压力测试、三维；Enter/Space 确认，Esc 返回，C 切场景。
+两端共享应用管理器与内容，只有宿主循环/FreeRTOS 调度适配不同。旧 `gfx2dGame`
+保留为开发/判据入口。完整机制、协议、错误恢复与构建策略见
+[应用与输入契约](../doc/应用与输入契约.md)。
+本地冻结检阅包为 `../bit/board_release_console_20261028/`，提供PC和板端启动入口，
+实际检查范围记录在包内verification.json；用户观感检阅与Flash固化分开。
+
+```sh
+cd Main/sw/apps/console
+make PLATFORM=host
+./build_host/console-perf
+make                         # Ti60: build/console-O2-perf.bin
+```
+
+console与gfx2dGame在各自makefile声明`APP_O3_SRCS`/`LIB_O3_SRCS`：三份R4场景/执行源码与
+fixmath、rast_setup采用O3，其余保留基础优化级别。host/target规则只实现逐源策略，不认识
+游戏名称；列表进入`.cflags`指纹。产物名O2表示基础级别，完整策略以指纹和应用makefile为准。
+需要统一基础级别调试时显式传入`APP_O3_SRCS= LIB_O3_SRCS=`。没有使用fast-math。
+
 ## 分层
 
-`sdk/` 只读，项目自己的一侧分三层，**分层由编译结构保证**（各层的头文件路径），不靠约定：
+`sdk/`只读。项目在纯库/BSP基础上增加公开API、服务、运行时、平台/内容适配与固件入口；
+不同角色的编译可见范围由真实规则约束，新应用使用PUBLIC_APP，旧判据保留可信底层接口：
 
 ```
 sw/
@@ -24,25 +60,31 @@ sw/
   rtos/            FreeRTOS 集成层（SW10）：外部中断桥与帧信号量。USE_RTOS=1
                    时经 mk/target.mk 进构建，内核源在 `sdk/software/freeRTOS/kernel/`；
                    本层可见 sdk 系统头与内核头（与 bsp 同级信任），应用只见内核 API
-  apps/            应用，只写应用，按用途分三类（见下）
-    common/        跨应用共享的启动运行时（stg_runtime：素材包对账、stg/r4 表面槽、
-                   TEX 热集装载、后端覆盖层；从 gfx2dGame/main.c 的启动序列抽出）
+  api/             新应用公开接口与独立SDK说明
+  services/        通用绘制执行、资源窗口、帧所有权与输入策略
+  runtime/         注入配置的通用应用生命周期
+  ports/           host/ti60系统适配、myriad既有内容适配
+  firmware/        console调度/配置与旧判据组合入口
+  apps/            内容、测试、诊断与独立SDK消费者
     game/          游戏与演示
     test/          回归判据
     probe/         探针与 benchmark
-    console/       FreeRTOS 游戏机前端（SW10，板上专用）：菜单 shell + 应用框架
-                   （注册表/生命周期/HOME 和弦）+ 内置应用（弹幕/三维/系统信息），
-                   板上判据 `Main/tools/check/check_console_board.py`
+    console/       双端产品前端：共享菜单/稳定应用ID/生命周期与错误恢复，
+                   内容为2D演示/弹幕/压力/三维/系统信息；firmware/console/main_rtos.c为RTOS组合入口，
+                   firmware/console/main_host.c为宿主组合入口。检查入口console / console-board
 ```
 
-依赖方向只有一个：应用 → `lib/` 与 `bsp/include/board.h`，`board.h` 由 `bsp/ti60` 或 `bsp/host` 实现。
-编 `lib/` 时只有 `-Isw/lib`，看不到 `board.h`；编应用时看不到 sdk——
-应用里写 `#include <soc.h>` 会直接编不过。PC 在这套结构里就是「另一块板子」，
-应用代码里不出现平台判断。判据 `Main/tools/check/check_sw_layers.sh` 会逐条验证这些。
+公开应用只见`api/`，纯库只见`lib/`；服务连接纯库与BSP，固件/平台适配连接OS与设备。
+现有Myriad内容通过自己的可信端口连接图形运行时，通用管理器不认识游戏或R4。
+`PUBLIC_APP=1`的实际构建不能包含board/soc/renderer等私有头；旧的低层诊断、probe及
+cup3d历史独立演示不作为新SDK模板。接口与编译判据由platform-sdk和layers分别覆盖。
 
-## 应用的三类
+## 应用与开发入口
 
 ### R4 模式4与同构茶杯
+
+本节的数字4切场景与编译参数描述旧`gfx2dGame`开发/判据入口；产品端按开头的
+统一契约使用C切场景、Esc返回，数字4始终启动三维。数值、视口和资源机制共用。
 
 PC交互模式4默认自适应：BSP按实际绘制像素宽高比提供高480、宽640～1792的画布，
 右侧160像素HUD整体靠右，世界占剩余宽度，保持垂直FOV并重算投影aspect。
@@ -70,7 +112,7 @@ HUD的SW/HW FPS是当前场景/阶梯最近一次有效渲染测量，未测显�
 自机独立横纵移动；未操作时自动驾驶，方向键接管。空格使用炸弹清弹并短暂无敌，
 命中与撞框在自机所在世界深度判定，护盾耗尽后延时重生；L1 不生成隐藏敌机的弹。
 
-应用文件`r4_scene/r4_cup/r4_render`负责世界、茶杯、共享池与驱动适配。子视口在`lib/gfx`，
+应用文件`r4_scene/r4_cup`负责世界与茶杯；`ports/myriad/r4_runtime.c`负责执行适配，共享资源由图形服务管理。子视口在`lib/gfx`，
 R4RP在`lib/core/replay_r4`，格式为32B头加每tick一个小端u32；新魔数、30Hz、seed、scene、阶梯
 与素材身份均显式校验。录制构建设`GFX2D_R4_RECORD=1`；回放构建设`GFX2D_R4_REPLAY=1`并在
 OBJDIR/replay提供`r4_replay.h`中的`r4_replay_data`字节数组，检查器给出完整生成/构建例子。
@@ -100,7 +142,7 @@ PC支持F11/Alt+Enter切全屏、Esc退回窗口、F1/F2/F3切窗口大小、F4�
 | `apps/game/` | 游戏与演示 | 给人看的，赛题要演示的那一类 |
 | `apps/test/` | 回归判据 | 只给通过或失败（末尾 `fail 0`），平台或构建一改就要重跑 |
 | `apps/probe/` | 探针与 benchmark | 给出数字或现象，服务于某个实验的结论；`execSwTest`、`entityBench` 已在这里 |
-| `apps/console/` | 游戏机前端（SW10） | FreeRTOS 上的产品形态：开机进菜单、选内容、HOME（三模式键同按 8 帧）退回；复用 gfx2dGame 的游戏内容源文件与同一份素材包，target-only |
+| `apps/console/` | 双端产品前端 | PC/FreeRTOS 同一菜单与内容；全局固定1/2/3/4，明确确认/返回动作；复用共享运行时与游戏内容 |
 
 | 程序 | 说明 |
 | --- | --- |
@@ -139,7 +181,7 @@ PC支持F11/Alt+Enter切全屏、Esc退回窗口、F1/F2/F3切窗口大小、F4�
 
 绘制前端的软件候选位于 `lib/gfx/frame.h/.c` 与 `strip_plan.c`：前者定义
 最多三个 pass 的资源租约、依赖和完成边界；后者提供 planned/ref/seal 与
-几何模板。游戏适配在 `src/frontend_game.c`，选项默认关闭。
+几何模板。游戏适配在 `ports/myriad/frontend_game.c`，选项默认关闭。
 STRIP 构建可独立设置 `GFX_FRONTEND_PLAN`、`GFX_FRONTEND_TEMPLATE`，以及
 `GFX_FRONTEND_BACKGROUND=1|2`（底色缓存/动态预合成）。候选保持 v1/v2
 字节接口；工作区与背景 A/B 各自独占，切模式/后端前收尾。

@@ -1,6 +1,9 @@
 # 13. RTOS 移植与游戏机前端（SW10）
 
 状态：**板上判据全链 PASS（2026-10-28），待人工检阅**。
+订正（2026-10-28 SW15）：这里的PASS仅代表早期四项判据；后续审查发现可放过三维零帧。
+CLINT不支持定时中断的归因已被正确地址下的100/1000Hz实测推翻，旧寻址代码已修复。
+当前产品机制与正式验证以[第15章](15-统一应用框架与软件可靠性收敛.md)为准；旧原始日志保留历史边界。
 条目：[`../../Todo/sw/RTOS移植与游戏机前端.md`](../../Todo/sw/RTOS移植与游戏机前端.md)。
 
 ## 1. 选型与依据
@@ -44,13 +47,11 @@ EX 四向入口冲突。日志纪律同裸机：全部行进 logq，每帧按 bo
    非 timer 异步中断一律进 `.weak freertos_risc_v_application_interrupt_handler`
    （缺省死循环）。集成层以强符号覆盖它派发 PLIC——第一版按 demo 的 -D 写法
    板上静默挂死，OpenOCD 读 PC 停在该死循环定位。
-2. **CLINT 定时器通路异常**：mtime 正常（board_cycles 的基准），mtimecmp
-   「写生效、读恒 0」，且硬件 timer 中断实际 rate 与配置的 60Hz 不符
-   （实测 ~1250/s，机制未明）。对策：覆盖 `vPortSetupTimerInterrupt`
-   （port.c 的 weak）把 cmp 写到极远未来让硬件 timer 分支休眠，tick 的唯一
-   来源改为场起始中断 A（每场 xTaskIncrementTick，模拟端口 tick 路径，
-   调用约定与 portASM 的 timer 分支一致）。`configTICK_RATE_HZ=60`，
-   vTaskDelay 的粒度是一场 16.7ms；产品要毫秒级 tick 须修 SoC IP 重综合。
+2. **早期 CLINT 归因已订正（2026-10-28 SW15）**：当时见到 cmp 读回0、
+   频率异常，曾覆盖初始化并临时以60Hz场中断推进tick。后续发现覆盖函数读错
+   mtime地址；独立诊断在正确地址下得到100Hz/1kHz正常中断，读回仍为0。
+   因而“毫秒tick必须改SoC”的结论不成立。当前删除该覆盖，使用标准独立1kHz
+   端口；证据和新验收见第15章，原临时方案与日志只作历史记录。
 3. **内核 API 的启动窗口**：main 装 trap 到 `vTaskStartScheduler` 之间若来
    中断，在调度器未起来时调内核 API（give/tick）会污染任务链表（现象：
    后续 sem 唤醒时好时坏、delay 永不醒）。桥里以 `xTaskGetSchedulerState()`

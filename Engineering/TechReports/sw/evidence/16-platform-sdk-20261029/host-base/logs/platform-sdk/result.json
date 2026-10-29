@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "scope": "PC SDK and fault contracts",
+  "widths": [
+    64,
+    32
+  ],
+  "sanitizers": [
+    "ASan",
+    "UBSan"
+  ],
+  "independent_consumers": 2,
+  "interrupted_writes": 30,
+  "board_access": false,
+  "target_runtime": "NOT_RUN",
+  "rtl": "NOT_RUN",
+  "flash_boot": "NOT_RUN"
+}

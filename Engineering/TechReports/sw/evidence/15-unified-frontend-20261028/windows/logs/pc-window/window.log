@@ -1,0 +1,33 @@
+WINDOW STEP fullscreen 0
+WINDOW STEP fullscreen 1
+WINDOW STEP fullscreen 2
+WINDOW STEP fullscreen 3
+WINDOW STEP fullscreen 4
+WINDOW STEP fullscreen 5
+WINDOW STEP fullscreen 6
+WINDOW STEP fullscreen 7
+WINDOW STEP fullscreen 8
+WINDOW STEP fullscreen 9
+WINDOW STEP fullscreen 10
+WINDOW STEP fullscreen 11
+WINDOW FULLSCREEN PASS F11/AltEnter/Escape x12 restore
+WINDOW SCALE PASS F1/F2/F3 and 4:3 logical aspect after arbitrary resize
+WINDOW FILTER PASS nearest/linear, renderer reset, framebuffer unchanged
+WINDOW ADAPTIVE POLICY PASS 4:3/16:10/16:9/ultrawide/4K/portrait/limit
+WINDOW ADAPTIVE SIZE output=640x480 canvas=640x480 scale=1/1
+WINDOW ADAPTIVE SIZE output=768x480 canvas=768x480 scale=1/1
+WINDOW ADAPTIVE SIZE output=1280x720 canvas=853x480 scale=1.5/1.5
+WINDOW ADAPTIVE SIZE output=1680x720 canvas=1120x480 scale=1.5/1.5
+WINDOW ADAPTIVE SIZE output=1920x540 canvas=1707x480 scale=1.12478/1.12478
+WINDOW ADAPTIVE RESIZE PASS fixed override and bounded buffers
+WINDOW ADAPTIVE SIZE output=960x600 canvas=768x480 scale=1.25/1.25
+WINDOW ADAPTIVE SIZE output=2560x1600 canvas=768x480 scale=3.33333/3.33333
+WINDOW DISPLAY PASS 0 bounds=0,0,2560,1600
+WINDOW ADAPTIVE SIZE output=960x600 canvas=768x480 scale=1.25/1.25
+WINDOW ADAPTIVE SIZE output=1920x1080 canvas=853x480 scale=2.25/2.25
+WINDOW DISPLAY PASS 1 bounds=2560,0,1920,1080
+WINDOW ADAPTIVE SIZE output=960x600 canvas=768x480 scale=1.25/1.25
+WINDOW DISPLAY RECOVERY PASS synthetic disconnect and absent-position recovery
+WINDOW KEY DIAG flags=36 SDL_W=1 native_W=-32767 pressed=1 released=0
+WINDOW FOCUS PASS own-window W press and focus-loss release
+WINDOW EXIT PASS

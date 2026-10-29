@@ -7,6 +7,13 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 
 ## 现在的状态
 
+产品 PC 与 Ti60 使用同一应用菜单与应用管理器：基础2D演示、弹幕、压力测试、三维、
+系统信息均可进入；全局1/2/3/4与确认/返回语义一致。板端使用独立CLINT 1kHz FreeRTOS
+tick，PC使用宿主事件循环。当前软件与输入契约见[应用与输入契约](doc/应用与输入契约.md)，
+构建与检查见[软件登记](sw/README.md)。旧 `gfx2dGame` 与下面的历史运行包保留开发/证据边界。
+统一菜单的本地运行包在 `bit/board_release_console_20261028/`，PC与板端入口一致；
+包内manifest和verification记录软件验收范围，板端仅JTAG重载，不改Flash。
+
 PC 模式4支持自适应宽屏：世界按窗口比例增加横向视野，HUD靠右；内部高480、宽640～1792。
 固定录像/CRC与板端继续使用640×480。新的独立运行包在
 `bit/board_release_game_wide_20261025/`，`Run-PC-Fullscreen.cmd`直接全屏，
@@ -162,8 +169,9 @@ wsl -e bash -c 'bash sim/hdmi/run.sh && bash sim/apb_probe/run.sh && EFINITY_HOM
 编译软件（两套目标，见 `sw/README.md`）：
 
 ```
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make RISCV_BIN=<RISCV_BIN>'                  # 板上，产物 build/gfx2dGame-O2.bin
-wsl -e bash -c 'cd sw && make -f mk/host.mk && ./build_host/gfx2dGame'          # PC，SDL2 窗口
+wsl -e bash -c 'cd sw/apps/console && make RISCV_BIN=<RISCV_BIN>'              # 板端产品，默认菜单
+wsl -e bash -c 'cd sw/apps/console && make PLATFORM=host && ./build_host/console-perf' # PC产品，同一菜单
+wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host'               # 旧开发/判据入口
 wsl -e bash -c 'cd sw && make -f mk/host.mk test'                              # 主机侧单元测试，64 位与 -m32 比对
 wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash tools/check/check_sw_layers.sh'            # 分层判据，含三处注错
 ```

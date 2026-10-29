@@ -1,0 +1,12 @@
+{
+  "observed": true,
+  "parser": "actual BoardState",
+  "port": "COM11",
+  "protocol": 2,
+  "mode": "menu",
+  "backend": "hw",
+  "fps": 60.0,
+  "errors": 0,
+  "capture_closed": true,
+  "observation_time": "2026-10-28 23:50:07"
+}

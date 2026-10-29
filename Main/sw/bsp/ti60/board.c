@@ -16,6 +16,8 @@
 #include <stdint.h>
 
 #include "board.h"
+#include "board_clock.h"
+#include "key_packet.h"
 #include "dcache_line.h"
 
 #include "bsp.h"            /* sdk：uart_write、clint_getTimeLow、BSP_* 基址 */
@@ -34,6 +36,9 @@
 #include "spiFlash.h"       /* sdk：spiFlash_init/wake/exit4ByteAddr/f2m */
 #include "gpio.h"
 #include "display_regs.h"
+
+_Static_assert(BOARD_CLINT_BASE == SYSTEM_CLINT_CTRL, "CLINT base differs from generated SoC");
+_Static_assert(BOARD_CLOCK_HZ == BOARD_HZ, "timer clock differs from BSP");
 
 /* 素材分区用的 SPI 口与片选。取值与 bootloader 一致（bootloaderConfig.h），
    但在这里自己定义，不包含 bootloader 的配置头——那是它自己的东西。 */
@@ -89,6 +94,14 @@ board_mem board_region(board_region_id id)
     return m;
 }
 
+uint64_t board_time_ms(void)
+{
+    volatile uint32_t *t=(volatile uint32_t *)(uintptr_t)BOARD_MTIME_ADDRESS;
+    uint32_t hi,lo,again;
+    do { hi=t[1];lo=t[0];again=t[1]; } while(hi!=again);
+    return (((uint64_t)hi<<32)|lo)/(BOARD_HZ/1000u);
+}
+void board_cpu_write_complete(void) { __asm__ volatile("fence rw,rw" ::: "memory"); }
 uint32_t board_cycles(void)
 {
     return (uint32_t)clint_getTimeLow(BSP_CLINT);   /* 1 tick = 10ns */
@@ -165,32 +178,23 @@ uint32_t board_tx_room(void)
 #endif
 }
 
-uint32_t board_keys(void)
+void board_input_window_policy(int enabled) { (void)enabled; }
+
+uint32_t board_input_raw(uint32_t *physical_out)
 {
     static uint32_t remote_held, last_valid;
-    static uint8_t  header;
-    static int      have_header, have_valid;
+    static key_packet_decoder decoder;
+    static int      have_valid;
     const uint32_t now = board_cycles();
     const uint32_t gpio = (~gpio_getInput(SYSTEM_GPIO_1_IO_CTRL)) & 0xFu;
     uint32_t physical = 0u, rising = 0u;
 
     /* 只在确认非空后调用 sdk 的阻塞 uart_read；一帧内读空 FIFO。
        两包之间即使先按下再松开，rising 仍把按下沿交给这一帧。 */
-    while (uart_readOccupancy(BSP_UART_TERMINAL) != 0u) {
+    for (unsigned budget=0;budget<64u && uart_readOccupancy(BSP_UART_TERMINAL)!=0u;budget++) {
         const uint8_t b = (uint8_t)uart_read(BSP_UART_TERMINAL);
-        uint32_t key, check;
-
-        if ((b & 0x80u) != 0u) {
-            header = b;
-            have_header = 1;
-            continue;
-        }
-        if (!have_header)
-            continue;
-        have_header = 0;
-        key = ((uint32_t)(header & 0x7Fu)) | (((uint32_t)b & 7u) << 7);
-        check = (key ^ (key >> 4) ^ (key >> 8)) & 0xFu;
-        if (((uint32_t)b >> 3) != check)
+        uint32_t key;
+        if (!key_packet_feed(&decoder, b, &key))
             continue;
         rising |= key & ~remote_held;
         remote_held = key;
@@ -205,7 +209,8 @@ uint32_t board_keys(void)
     if ((gpio & 2u) != 0u) physical |= BOARD_KEY_DOWN;
     if ((gpio & 4u) != 0u) physical |= BOARD_KEY_UP;
     if ((gpio & 8u) != 0u) physical |= BOARD_KEY_RIGHT;
-    return physical | remote_held | rising;
+    if(physical_out)*physical_out=physical;
+    return remote_held|rising;
 }
 
 uint32_t *board_fb(int index)
@@ -332,6 +337,7 @@ int board_present_wait(uint32_t ticket)
             s_present_pending = 0;   /* 留着它，之后每次请求都会被拒收 */
             return -1;
         }
+        board_wait_yield();
     }
     return 0;
 }
@@ -366,12 +372,14 @@ void board_wait_frame(void)
         while (board_irq_frame_events() == ev || disp_rd(DISP_FRAME_COUNT) == f0) {
             if ((uint32_t)(board_cycles() - t0) > DISP_POLL_LIMIT)
                 return;
+            board_wait_yield();
         }
         return;
     }
     while (disp_rd(DISP_FRAME_COUNT) == f0) {
         if ((board_cycles() - t0) > DISP_POLL_LIMIT)
             return;
+        board_wait_yield();
     }
 }
 

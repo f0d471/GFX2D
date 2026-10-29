@@ -73,8 +73,8 @@ int r4_cup_emit_view(uint32_t tick, const rast_viewport *viewport,
             rast_vertex tri[3];
             for(unsigned k=0;k<3;++k)tri[k]=screen[cupTriangles[i*3+k]];
             if(facing<0){rast_vertex tmp=tri[1];tri[1]=tri[2];tri[2]=tmp;}
-            n=r4_setup_polygon(tri,3,&vp,&frame,RAST_VCOLOR_EN,out+produced,capacity-produced,0);
-        } else n=r4_setup_view(v,3,&projection,65536,20*65536,&vp,&frame,
+            n=gfx_setup_polygon(tri,3,&vp,&frame,RAST_VCOLOR_EN,out+produced,capacity-produced,0);
+        } else n=gfx_setup_view(v,3,&projection,65536,20*65536,&vp,&frame,
                                   RAST_VCOLOR_EN,out+produced,capacity-produced,0);
         if(n<0)return n;
         produced+=(unsigned)n;

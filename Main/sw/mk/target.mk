@@ -31,8 +31,10 @@ ifeq ($(APP),)
   APP        := gfx2dGame
   APP_SRCDIR := $(SW)apps/game/gfx2dGame
   LIBS       := core gfx
+  GRAPHICS_RUNTIME := 1
   REPLAYS    := sw6_a sw6_b stg_clear
-  APP_SRCS   := $(patsubst $(APP_SRCDIR)/%,%,$(wildcard $(APP_SRCDIR)/src/*.c $(APP_SRCDIR)/src/game/*.c))
+  APP_SRCS   := $(patsubst $(APP_SRCDIR)/%,%,$(wildcard $(APP_SRCDIR)/src/*.c $(APP_SRCDIR)/src/game/*.c)) ../../../ports/myriad/stg_runtime.c ../../../ports/myriad/r4_runtime.c ../../../ports/myriad/stg_main.c ../../../ports/myriad/stg_modes.c ../../../ports/myriad/gfx2d_stats.c ../../../ports/myriad/frontend_game.c ../../../ports/myriad/sw6_input.c ../../../ports/myriad/sw6_report.c ../../../firmware/legacy/main.c
+  override APP_CPPFLAGS += -I$(APP_SRCDIR)/src -I$(SW)ports/myriad
 endif
 
 APP_SRCDIR ?= .
@@ -94,9 +96,10 @@ FREERTOS_OBJS   :=
 RTOS_GLUE_OBJS  :=
 RTOS_APP_INC    :=
 ifeq ($(USE_RTOS),1)
+RTOS_CONFIG_DIR ?= $(APP_SRCDIR)/src
 FREERTOS_KERNEL ?= $(SW)../sdk/software/freeRTOS/kernel
 RTOS_CHIP  := $(FREERTOS_KERNEL)/portable/GCC/RISC-V/chip_specific_extensions/RISCV_MTIME_CLINT_no_extensions
-RTOS_INC   := $(addprefix -isystem ,$(FREERTOS_KERNEL)/include $(FREERTOS_KERNEL)/portable/GCC/RISC-V)
+RTOS_INC   := $(addprefix -isystem ,$(FREERTOS_KERNEL)/include $(FREERTOS_KERNEL)/portable/GCC/RISC-V) -I$(SW)bsp/include -I$(RTOS_CONFIG_DIR)
 # 本端口版本（V202212.01 GCC/RISC-V）不引用 portasmHANDLE_INTERRUPT（旧版残留）；
 # 非 timer 中断经 portASM 的 .weak freertos_risc_v_application_interrupt_handler
 # 派发，sw/rtos/rtos_irq.c 以强符号覆盖它（机器外部中断 -> PLIC 派发 + 帧信号量）。
@@ -142,6 +145,14 @@ CFLAGS += $(EXTRA_CFLAGS)
 # 用标记文件记住上一轮的选项，不一致就把这一轮的目标文件清掉。
 # 没有这一步时 `make INJECT=XS32_SHIFT` 会静默复用上一次的对象，
 # 注错版与正常版逐位一样（第一次跑判据时踩到，见开发日志）。
+
+# Public SDK examples get the same restricted include scope in a real build.
+ifeq ($(PUBLIC_APP),1)
+APP_SCOPE_INCLUDES = -I$(SW)api
+else
+APP_SCOPE_INCLUDES = -I$(SW)api -I$(SW)runtime/include -I$(SW)system/include -I$(SW)services/gfx -I$(SW)ports/myriad -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -I$(OBJDIR)/replay
+endif
+
 FLAGS_STAMP := $(OBJDIR)/.cflags
 # 换过编译选项（打开 INJECT、换 OPT、改链接脚本……）之后必须重编，不能只重链。
 # 用标记文件记住上一轮的选项，不一致就整目录清掉。
@@ -150,9 +161,10 @@ FLAGS_STAMP := $(OBJDIR)/.cflags
 # 2026-10-28 实际踩过：console 打开 PERF 后 stg_modes.o 仍是旧档（无 SW9_PERF），
 # 每帧多做 1.2MB 整帧 CRC，游戏 4fps、HOME 和弦永远凑不满 8 帧。
 # 整删的代价只是 build/replay 的派生头重新生成一次，没有损失。
-$(shell if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(CFLAGS) $(SDK_INC) $(LDSCRIPT) rtos=$(USE_RTOS)" ]; then rm -rf $(OBJDIR); mkdir -p $(OBJDIR); printf '%s' "$(CFLAGS) $(SDK_INC) $(LDSCRIPT) rtos=$(USE_RTOS)" > $(FLAGS_STAMP); fi)
+$(shell if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(CFLAGS) $(SDK_INC) $(LDSCRIPT) rtos=$(USE_RTOS) $(APP_CPPFLAGS) $(RTOS_INC) $(RTOS_CHIP) $(APP_SCOPE_INCLUDES) services=$(GRAPHICS_RUNTIME):$(APP_RUNTIME):$(PLATFORM_SDK) app_o3=$(APP_O3_SRCS) lib_o3=$(LIB_O3_SRCS)" ]; then rm -rf $(OBJDIR); mkdir -p $(OBJDIR); printf '%s' "$(CFLAGS) $(SDK_INC) $(LDSCRIPT) rtos=$(USE_RTOS) $(APP_CPPFLAGS) $(RTOS_INC) $(RTOS_CHIP) $(APP_SCOPE_INCLUDES) services=$(GRAPHICS_RUNTIME):$(APP_RUNTIME):$(PLATFORM_SDK) app_o3=$(APP_O3_SRCS) lib_o3=$(LIB_O3_SRCS)" > $(FLAGS_STAMP); fi)
 
-# 产物名带上优化级别与注错标记：build/gfx2dGame-O2.bin、gfx2dGame-Os.bin、
+# 产物名带上基础优化级别与注错标记；逐源O3策略另登记在.cflags构建指纹。
+# 例如build/gfx2dGame-O2.bin、gfx2dGame-Os.bin、
 # gfx2dGame-O2-inject.bin。哪份是什么，从文件名就能看出来。
 NAME := $(APP)-O$(OPT)
 ifneq ($(INJECT),)
@@ -167,11 +179,25 @@ LDFLAGS += -L$(STANDALONE)/common
 LDFLAGS += -specs=nosys.specs -lgcc -nostartfiles -ffreestanding -lc -lm
 LDFLAGS += -Wl,-Bstatic,-T,$(LDSCRIPT),-Map,$(OBJDIR)/$(NAME).map,--print-memory-usage,--no-warn-rwx-segment
 
-APP_OBJS  := $(addprefix $(OBJDIR)/app/,$(APP_SRCS:.c=.o))
+gfx_app_object = $(OBJDIR)/app/$(subst ../,__up__/,$(1:.c=.o))
+APP_OBJS  := $(foreach source,$(APP_SRCS),$(call gfx_app_object,$(source)))
 LIB_SRCS  := $(foreach l,$(LIBS),$(wildcard $(SW)lib/$(l)/*.c))
 LIB_OBJS  := $(patsubst $(SW)lib/%.c,$(OBJDIR)/lib/%.o,$(LIB_SRCS))
 BSP_SRCS  := $(wildcard $(SW)bsp/*.c) $(wildcard $(SW)bsp/ti60/*.c)
 BSP_OBJS  := $(patsubst $(SW)bsp/%.c,$(OBJDIR)/bsp/%.o,$(BSP_SRCS))
+
+SERVICE_SRCS := $(wildcard $(SW)services/input/*.c)
+ifeq ($(GRAPHICS_RUNTIME),1)
+SERVICE_SRCS += $(wildcard $(SW)services/gfx/*.c)
+endif
+ifeq ($(APP_RUNTIME),1)
+SERVICE_SRCS += $(SW)runtime/appfw.c
+endif
+ifeq ($(PLATFORM_SDK),1)
+SERVICE_SRCS += $(SW)services/platform/platform.c $(SW)services/platform/store_target.c
+endif
+SERVICE_OBJS := $(patsubst $(SW)%.c,$(OBJDIR)/services/%.o,$(SERVICE_SRCS))
+
 START_OBJ := $(OBJDIR)/sdk/start.o
 TRAP_OBJ  := $(OBJDIR)/sdk/trap.o
 
@@ -187,15 +213,18 @@ BIN := $(OBJDIR)/$(NAME).bin
 
 all: $(ELF) $(OBJDIR)/$(NAME).hex $(OBJDIR)/$(NAME).asm $(BIN)
 
-$(ELF): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(START_OBJ) $(TRAP_OBJ) $(FREERTOS_OBJS) $(RTOS_GLUE_OBJS)
+$(ELF): $(APP_OBJS) $(LIB_OBJS) $(BSP_OBJS) $(SERVICE_OBJS) $(START_OBJ) $(TRAP_OBJ) $(FREERTOS_OBJS) $(RTOS_GLUE_OBJS)
 	@echo "LD $@"
 	@$(RISCV_CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # 目标文件保留源文件的相对路径：两个目录下的同名 x.c 是两份不同的 .o。
-$(OBJDIR)/app/%.o: $(APP_SRCDIR)/%.c
-	@mkdir -p $(dir $@)
-	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(RISCV_CC) -c $(CFLAGS) -I$(SW)lib -I$(SW)bsp/include -I$(ASSETS_BUILD) -I$(OBJDIR)/replay $(RTOS_APP_INC) -o $@ $<
+define GFX_APP_SOURCE_RULE
+$(call gfx_app_object,$(1)): $(APP_SRCDIR)/$(1)
+	@mkdir -p $$(dir $$@)
+	@echo "CC $(1)"
+	@$(RISCV_CC) -c $(CFLAGS) $(if $(filter $(1),$(APP_O3_SRCS)),-O3) $(APP_CPPFLAGS) $(APP_SCOPE_INCLUDES) $(RTOS_APP_INC) -o $$@ $$<
+endef
+$(foreach source,$(APP_SRCS),$(eval $(call GFX_APP_SOURCE_RULE,$(source))))
 
 # 录像 -> C 数组（SW6），与 mk/host.mk 里的同一条。应用目标文件粗粒度地依赖全部
 # 生成的录像头；REPLAYS 为空时是空操作。
@@ -209,7 +238,7 @@ $(APP_OBJS): $(REPLAY_HDRS)
 $(OBJDIR)/lib/%.o: $(SW)lib/%.c
 	@mkdir -p $(dir $@)
 	@echo "CC $(patsubst $(SW)%,%,$<)"
-	@$(RISCV_CC) -c $(CFLAGS) -I$(SW)lib -o $@ $<
+	@$(RISCV_CC) -c $(CFLAGS) $(if $(filter $*.c,$(LIB_O3_SRCS)),-O3) -I$(SW)lib -o $@ $<
 
 $(OBJDIR)/bsp/%.o: $(SW)bsp/%.c
 	@mkdir -p $(dir $@)
@@ -245,5 +274,10 @@ clean:
 
 # gcc 写出来的头文件依赖读到最后：-MMD 让每个目标文件带一份同名 .d，
 # 读进来之后改头文件就会重编。放在文件末尾是为了不动默认目标（见上面 .DEFAULT_GOAL）。
-DEPS := $(APP_OBJS:.o=.d) $(LIB_OBJS:.o=.d) $(BSP_OBJS:.o=.d) $(START_OBJ:.o=.d) $(TRAP_OBJ:.o=.d)
+DEPS := $(SERVICE_OBJS:.o=.d)  $(APP_OBJS:.o=.d) $(LIB_OBJS:.o=.d) $(BSP_OBJS:.o=.d) $(START_OBJ:.o=.d) $(TRAP_OBJ:.o=.d)
 -include $(DEPS)
+
+$(OBJDIR)/services/%.o: $(SW)%.c
+	@mkdir -p $(dir $@)
+	@echo "CC(service) $(patsubst $(SW)%,%,$<)"
+	@$(RISCV_CC) -c $(CFLAGS) -I$(SW)api -I$(SW)lib -I$(SW)bsp/include -I$(SW)services/gfx -I$(SW)runtime/include -I$(SW)system/include -o $@ $<

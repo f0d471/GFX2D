@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "scope": "SW16 PC acceptance only",
+  "profile": "acceptance",
+  "unique_checks": 16,
+  "runs": [
+    {
+      "run": "20261029-031110-e416c678",
+      "checks": [
+        "pack",
+        "console",
+        "lib",
+        "app",
+        "frontend",
+        "pc-wide",
+        "r4"
+      ]
+    },
+    {
+      "run": "20261029-053351-7edc48c2",
+      "checks": [
+        "platform-sdk"
+      ]
+    },
+    {
+      "run": "20261029-053822-759174b5",
+      "checks": [
+        "demo",
+        "pc",
+        "game",
+        "stats",
+        "layers",
+        "workflow",
+        "regs",
+        "paths"
+      ]
+    }
+  ],
+  "host_reuse": {
+    "status": "PASS",
+    "source_run": "20261029-031110-e416c678",
+    "scope": [
+      "pack",
+      "console",
+      "lib",
+      "app",
+      "frontend",
+      "pc-wide",
+      "r4"
+    ],
+    "changed_inputs": [
+      "Main/sw/ports/ti60/app_port.c",
+      "Main/sw/services/platform/platform.c",
+      "Main/sw/services/test/test_platform.c",
+      "Main/sw/services/test/test_scheduler_port.c",
+      "Main/tools/check/check_platform_sdk.py"
+    ],
+    "actual_host_dependency_files": 146,
+    "reason": "only independent SDK implementation/test and target-only health port changed",
+    "not_reused": [
+      "platform-sdk",
+      "demo"
+    ],
+    "target_runtime": "NOT_RUN"
+  },
+  "search_seconds": 325,
+  "replay_frames": 9208,
+  "additional": [
+    "F4 lease",
+    "F5 lease and replay",
+    "G4 host",
+    "native Windows frontend",
+    "native Windows persistence",
+    "target cross compile only"
+  ],
+  "rtl": "NOT_RUN",
+  "board": "NOT_RUN",
+  "flash": "NOT_MODIFIED",
+  "manual_acceptance": "PENDING"
+}

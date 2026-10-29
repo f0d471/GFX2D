@@ -1,0 +1,42 @@
+{
+  "logs/hot5-probe/hot5.build.log": {
+    "size": 2791,
+    "mtime_ns": 1793278508297403300,
+    "sha256": "466a5e88260e6700c4889bce8eeae511dc46e5bdbae9346a5698405e836937f9"
+  },
+  "logs/hot5-probe/result.json": {
+    "size": 531,
+    "mtime_ns": 1793278601166622800,
+    "sha256": "9b2fe516db9cf205753070b00531dd48fab9d858948fecb2a776725cff82c628"
+  },
+  "logs/r4-build/hot5-input.log": {
+    "size": 2791,
+    "mtime_ns": 1793278482828285500,
+    "sha256": "786645ad4d9e76306a8b1b641bdb0318726386f5b7b60143542839d133574d87"
+  },
+  "logs/sw16-board/hot5-input.deploy.log": {
+    "size": 7445,
+    "mtime_ns": 1793278601077354000,
+    "sha256": "a3f8980a7d3bf0b4ec4cbe600e6f275823998617b4feebe20a456bf0788a011a"
+  },
+  "logs/sw16-board/hot5-input.serial.log": {
+    "size": 6223,
+    "mtime_ns": 1793278600945895800,
+    "sha256": "c8488802aecfe25fe6dc61c793206edecc89171bff18350f42151477d59b9c8a"
+  },
+  "logs/sw16-board/normal-menu.deploy.log": {
+    "size": 10001,
+    "mtime_ns": 1793278665643774100,
+    "sha256": "86ad1b7cd04189f2dc4532345bf76c1b5c362136feea0f6d5119d19c51b56a87"
+  },
+  "logs/sw16-board/normal-menu.serial.log": {
+    "size": 8779,
+    "mtime_ns": 1793278665499653600,
+    "sha256": "06428b5bab4d713771738f92c613cd2dfddb2c116e8b912670996d725b438105"
+  },
+  "logs/sw16-board/normal.build.log": {
+    "size": 3029,
+    "mtime_ns": 1793278464231578300,
+    "sha256": "377cd08df6a63e8d11d5c209875c4b97df2ea9e799235b4066b73e17e2de45e9"
+  }
+}

@@ -1,0 +1,24 @@
+# COM11 @ 115200 8N1, opened 17:22:57
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+pak len 4085504 crc 87500897
+console enter menu
+menu crc badb9e1a sel 0
+menu fps 47 irqA 460 tick 460 bld 216516 exe 214667 prs 1233183
+menu fps 61 irqA 521 tick 521 bld 217053 exe 215045 prs 1232271
+console leave menu
+console enter stg
+stg fps 61 field 61 swap 61 backend 1 per 1612128 busy 1765688 cyc 537827 n 62
+stg fps 61 field 61 swap 61 backend 1 per 1666672 busy 1666382 cyc 548693 n 61
+stg fps 61 field 61 swap 61 backend 1 per 1666671 busy 1666391 cyc 587631 n 61
+stg fps 61 field 61 swap 61 backend 1 per 1666669 busy 1666388 cyc 602888 n 61
+console leave stg
+console enter menu
+menu crc badb9e1a sel 0
+menu fps 47 irqA 906 tick 906 bld 215695 exe 214457 prs 1234185
+menu fps 61 irqA 967 tick 967 bld 217071 exe 215117 prs 1232241
+menu fps 61 irqA 1028 tick 1028 bld 216920 exe 215135 prs 1232407
+menu fps 61 irqA 1089 tick 1089 bld 217713 exe 215148 prs 1231723
+
+# closed 17:23:28, 923 bytes

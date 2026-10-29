@@ -1,0 +1,101 @@
+{
+  "command": [
+    "<EFINITY>\\python311\\bin\\python.exe",
+    "<ROOT>\\Main\\tools\\board\\board_run.py",
+    "--bin",
+    "<ROOT>\\Main\\sim\\build\\check-runs\\20261028-171853-software-architecture-audit\\build_console\\console-O2-perf.bin",
+    "--bit",
+    "<ROOT>\\Main\\bit\\board_release_game_current_20261024\\board\\B7.bit",
+    "--port",
+    "COM11",
+    "--seconds",
+    "31",
+    "--input-script",
+    "700:1,850:0,1300:16,1450:0,5000:16,5150:0,7000:128,7150:0,9500:896,9600:896,9700:896,9800:896,9900:896,10000:896,10100:896,10200:896,10300:896,10400:0",
+    "--input-script-after",
+    "menu crc",
+    "--log",
+    "<ROOT>\\Main\\sim\\build\\check-runs\\20261028-171853-software-architecture-audit\\04-about-exit.serial.log",
+    "--no-program"
+  ],
+  "bit": "Main\\bit\\board_release_game_current_20261024\\board\\B7.bit",
+  "bin": "Main\\sim\\build\\check-runs\\20261028-171853-software-architecture-audit\\build_console\\console-O2-perf.bin",
+  "events_ms_keys": [
+    [
+      700,
+      1
+    ],
+    [
+      850,
+      0
+    ],
+    [
+      1300,
+      16
+    ],
+    [
+      1450,
+      0
+    ],
+    [
+      5000,
+      16
+    ],
+    [
+      5150,
+      0
+    ],
+    [
+      7000,
+      128
+    ],
+    [
+      7150,
+      0
+    ],
+    [
+      9500,
+      896
+    ],
+    [
+      9600,
+      896
+    ],
+    [
+      9700,
+      896
+    ],
+    [
+      9800,
+      896
+    ],
+    [
+      9900,
+      896
+    ],
+    [
+      10000,
+      896
+    ],
+    [
+      10100,
+      896
+    ],
+    [
+      10200,
+      896
+    ],
+    [
+      10300,
+      896
+    ],
+    [
+      10400,
+      0
+    ]
+  ],
+  "bit_sha256": "2bd49db6e4f1a6e35e23be5a13d4877526fecf18ee75b75ca088b222ae7bf16f",
+  "bin_sha256": "49cc968dfcb61a95fdac5ac7edb8d9f636dfce32cfd65bd3fd16c15c14e66cd4",
+  "scope": "architecture probe; not full acceptance",
+  "flash_write": false
+}

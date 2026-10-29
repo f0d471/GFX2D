@@ -1,0 +1,297 @@
+{
+  "status": "PASS",
+  "software_checks": [
+    "pack",
+    "layers",
+    "workflow",
+    "regs",
+    "lib",
+    "app",
+    "pc",
+    "demo",
+    "game",
+    "stats",
+    "r4",
+    "console",
+    "frontend"
+  ],
+  "evidence_kind": "scoped reuse of unchanged producers; not one combined software run",
+  "reused_checks": [
+    "pack",
+    "layers",
+    "workflow",
+    "regs",
+    "lib",
+    "app",
+    "pc",
+    "demo",
+    "game"
+  ],
+  "current_checks": [
+    "workflow",
+    "stats",
+    "pack",
+    "r4",
+    "console",
+    "frontend"
+  ],
+  "test_dependency_only_changes": [
+    "Main/sim/engine/frontend/test_pipeline.c",
+    "Main/tools/check/check_sw8_stats.sh"
+  ],
+  "board_checks": [
+    "console-board",
+    "r4-frozen-board"
+  ],
+  "common_source_files": 921,
+  "runtime_source_identity_equal": true,
+  "source_identity_equal": false,
+  "source_differences": [
+    "Main/tools/check/check_sw8_stats.sh"
+  ],
+  "console": {
+    "status": "PASS",
+    "profile": "acceptance",
+    "applications": [
+      "demo",
+      "stg",
+      "press",
+      "r4",
+      "about"
+    ],
+    "status_samples": 120,
+    "injected_recovery": [
+      {
+        "stage": "frame",
+        "status": "PASS",
+        "menu_samples": 4,
+        "expected_errors": 1,
+        "bin": {
+          "size": 232574,
+          "mtime_ns": 1793201315806423600,
+          "sha256": "d63d7c5efd70a93e923a9cb9de3fc72c591b80682dc8304e432223c0250c87ea"
+        }
+      },
+      {
+        "stage": "enter",
+        "status": "PASS",
+        "menu_samples": 4,
+        "expected_errors": 1,
+        "bin": {
+          "size": 232046,
+          "mtime_ns": 1793201369590289300,
+          "sha256": "65d22e46d14b7e941af555106c25d65419961e631c9b8aa888f82ce075fe1fe9"
+        }
+      }
+    ],
+    "scope": "application navigation/rendering/error-free state/independent clock/background progress",
+    "excluded": [
+      "Flash boot",
+      "manual HDMI/physical controller observation",
+      "full N_max measurement"
+    ]
+  },
+  "r4": {
+    "status": "PASS",
+    "profile": "acceptance",
+    "port": "COM11",
+    "b7_tree": "Main/sim/build/check-runs/20261023-204410-96092abd/build/feature-presets/B7",
+    "timing": {
+      "xlr": 59623,
+      "ram": 187,
+      "dsp": 26,
+      "slacks": [
+        {
+          "clock": "core_clk",
+          "to_clock": "core_clk",
+          "kind": "setup",
+          "slack_ns": 0.762
+        },
+        {
+          "clock": "sdram_clk",
+          "to_clock": "sdram_clk",
+          "kind": "setup",
+          "slack_ns": 0.399
+        },
+        {
+          "clock": "rx_cal_clk",
+          "to_clock": "rx_cal_clk",
+          "kind": "setup",
+          "slack_ns": 0.33
+        },
+        {
+          "clock": "tx_cal_clk",
+          "to_clock": "tx_cal_clk",
+          "kind": "setup",
+          "slack_ns": 0.202
+        },
+        {
+          "clock": "tx_cal_clk_90edge",
+          "to_clock": "tx_cal_clk_90edge",
+          "kind": "setup",
+          "slack_ns": 0.331
+        },
+        {
+          "clock": "hdmi_tx_slow_clk",
+          "to_clock": "hdmi_tx_slow_clk",
+          "kind": "setup",
+          "slack_ns": 31.793
+        },
+        {
+          "clock": "jtag_inst1_TCK",
+          "to_clock": "jtag_inst1_TCK",
+          "kind": "setup",
+          "slack_ns": 95.226
+        },
+        {
+          "clock": "jtag_inst1_TCK",
+          "to_clock": "jtag_inst1_TCK",
+          "kind": "setup",
+          "slack_ns": 48.71
+        },
+        {
+          "clock": "core_clk",
+          "to_clock": "core_clk",
+          "kind": "hold",
+          "slack_ns": 0.026
+        },
+        {
+          "clock": "sdram_clk",
+          "to_clock": "sdram_clk",
+          "kind": "hold",
+          "slack_ns": 0.033
+        },
+        {
+          "clock": "rx_cal_clk",
+          "to_clock": "rx_cal_clk",
+          "kind": "hold",
+          "slack_ns": 0.027
+        },
+        {
+          "clock": "tx_cal_clk",
+          "to_clock": "tx_cal_clk",
+          "kind": "hold",
+          "slack_ns": 0.1
+        },
+        {
+          "clock": "tx_cal_clk_90edge",
+          "to_clock": "tx_cal_clk_90edge",
+          "kind": "hold",
+          "slack_ns": 0.045
+        },
+        {
+          "clock": "hdmi_tx_slow_clk",
+          "to_clock": "hdmi_tx_slow_clk",
+          "kind": "hold",
+          "slack_ns": 0.071
+        },
+        {
+          "clock": "jtag_inst1_TCK",
+          "to_clock": "jtag_inst1_TCK",
+          "kind": "hold",
+          "slack_ns": 0.097
+        },
+        {
+          "clock": "jtag_inst1_TCK",
+          "to_clock": "jtag_inst1_TCK",
+          "kind": "hold",
+          "slack_ns": 48.604
+        }
+      ],
+      "own_width_warnings": 0
+    },
+    "results": [
+      {
+        "case": "l1",
+        "status": "PASS",
+        "frames": 60,
+        "mismatched": []
+      },
+      {
+        "case": "software-l1",
+        "status": "PASS",
+        "frames": 2,
+        "mismatched": []
+      },
+      {
+        "case": "l2",
+        "status": "PASS",
+        "frames": 240,
+        "mismatched": []
+      },
+      {
+        "case": "software-l2",
+        "status": "PASS",
+        "frames": 2,
+        "mismatched": []
+      },
+      {
+        "case": "cup",
+        "status": "PASS",
+        "frames": 60,
+        "mismatched": []
+      },
+      {
+        "case": "software-cup",
+        "status": "PASS",
+        "frames": 2,
+        "mismatched": []
+      },
+      {
+        "case": "pixel-injection",
+        "status": "EXPECTED_RED",
+        "frames": 1,
+        "mismatched": [
+          0
+        ]
+      },
+      {
+        "case": "performance",
+        "status": "PASS",
+        "samples": 1800,
+        "p50": 2500578,
+        "p99": 2891703,
+        "maximum": 2979682,
+        "late": 0,
+        "fields": 3600,
+        "swaps": 1800
+      },
+      {
+        "case": "performance-input",
+        "status": "PASS",
+        "samples": 1800,
+        "p50": 2540399,
+        "p99": 2905779,
+        "maximum": 3016164,
+        "late": 0,
+        "fields": 3600,
+        "swaps": 1800
+      },
+      {
+        "case": "switches",
+        "status": "PASS"
+      },
+      {
+        "case": "recording",
+        "status": "PASS",
+        "ticks": 8
+      },
+      {
+        "case": "legacy-game",
+        "status": "PASS",
+        "frames": 240,
+        "backend": "hw-tex"
+      },
+      {
+        "case": "current-RTL-r3-acceptance",
+        "status": "NOT_APPLICABLE",
+        "reason": "software-only work point uses unchanged, manifest-bound B7; current RTL is not rebuilt"
+      }
+    ],
+    "frozen_release": "Main\\bit\\board_release_game_current_20261024",
+    "scope": "frozen B7 / current software; no Flash or human HDMI observation"
+  },
+  "flash_written": false,
+  "rtl_rebuilt": false,
+  "native_exe_sha256": "3a110c21ed6bc59ec366adc15ed534d38a906531c058ff949431dbba7cda2cda"
+}

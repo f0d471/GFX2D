@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "samples": 1800,
+  "p50": 2716372,
+  "p99": 3159802,
+  "maximum": 3222751,
+  "late": 0,
+  "fields": 3600,
+  "swaps": 1800,
+  "bit": {
+    "size": 2765409,
+    "mtime_ns": 1793223244050324300,
+    "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+  },
+  "binary": {
+    "size": 207962,
+    "mtime_ns": 1793275913474866000,
+    "sha256": "b3ca1bd9eb559044c2c6eb32410324bb1178f665cd2a5ba4d34498b6d556970c"
+  }
+}

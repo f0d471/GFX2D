@@ -65,6 +65,13 @@ board_mem  board_region(board_region_id id);
    所以一次区间必须在 42.9 秒以内；要统计更长的总时长，
    逐段累加区间（例如每帧累加），不要拿两个相距很远的读数相减。 */
 uint32_t   board_cycles(void);
+uint64_t   board_time_ms(void);
+void       board_cpu_write_complete(void);
+/* Optional blocking/yield hook installed by the product scheduler. */
+void       board_set_wait_hook(void (*hook)(void));
+void       board_wait_yield(void);
+void       board_set_engine_wait_hook(void (*hook)(void));
+void       board_wait_engine(void);
 
 /* --- 日志 --------------------------------------------------------------- */
 /* 走 UART（板上）或 stdout（PC），两边逐字节相同。应用里不出现 printf。 */
@@ -86,18 +93,16 @@ uint32_t   board_tx_room(void);
 /* --- 输入 --------------------------------------------------------------- */
 /* 返回本帧的按键位图。板上 KEY0~3 与 UART 快照合并；PC 上用 SDL 键盘。
    UART 接收端保留一帧内短按的按下沿，300 ms 无有效包就松开转发键。 */
-#define BOARD_KEY_UP        (1u << 0)
-#define BOARD_KEY_DOWN      (1u << 1)
-#define BOARD_KEY_LEFT      (1u << 2)
-#define BOARD_KEY_RIGHT     (1u << 3)
-#define BOARD_KEY_BOMB      (1u << 4)   /* PC: 空格 */
-#define BOARD_KEY_SLOW      (1u << 5)   /* PC: 左 Shift */
-#define BOARD_KEY_SWAP      (1u << 6)   /* 软硬件渲染对照，PC: Tab */
-#define BOARD_KEY_MODE1     (1u << 7)
-#define BOARD_KEY_MODE2     (1u << 8)
-#define BOARD_KEY_MODE3     (1u << 9)
+#include "board_input_compat.h"
+void       board_product_keys(int enabled);
+int        board_product_mode(void);
+uint32_t   board_map_physical_keys(uint32_t keys);
 
 uint32_t   board_keys(void);
+/* Raw backend sample: physical directions are separate from remote/host keys.
+ * The input service owns action/chord policy; BSP never calls that service. */
+uint32_t   board_input_raw(uint32_t *physical);
+void       board_input_window_policy(int escape_exits_fullscreen);
 
 /* --- 显示 --------------------------------------------------------------- */
 /* 返回帧缓冲 index（0/1）的像素指针；行跨固定 4096 字节，用 FB_ROW_PIXELS

@@ -7,7 +7,7 @@
 $ErrorActionPreference = 'Stop'
 $taskMain = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $taskControl = Join-Path $PSScriptRoot 'game_control.py'
-$taskOutput = Join-Path $taskMain 'sw/apps/game/gfx2dGame/build_control'
+$taskOutput = Join-Path $taskMain 'sw/apps/console/build_control'
 $taskCandidates = [Collections.Generic.List[string]]::new()
 
 if ($EfinityHome) {

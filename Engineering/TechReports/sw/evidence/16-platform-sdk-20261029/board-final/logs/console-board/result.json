@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "applications": [
+    "demo",
+    "stg",
+    "press",
+    "r4",
+    "about"
+  ],
+  "status_samples": 116,
+  "injected_recovery": [
+    {
+      "stage": "frame",
+      "status": "PASS",
+      "menu_samples": 3,
+      "expected_errors": 1,
+      "bin": {
+        "size": 251310,
+        "mtime_ns": 1793279369474801900,
+        "sha256": "a902d967cf6ecea87b7d81964959bf1d780f3d177076d9584c77bf2b6cdab99a"
+      }
+    },
+    {
+      "stage": "enter",
+      "status": "PASS",
+      "menu_samples": 3,
+      "expected_errors": 1,
+      "bin": {
+        "size": 251038,
+        "mtime_ns": 1793279430570704100,
+        "sha256": "fec5a09d44b01c536d3ae037926e412bd9fc8848ff27f9fc9ff8fd9661ff82d2"
+      }
+    }
+  ],
+  "scope": "application navigation/rendering/error-free state/independent clock/background progress",
+  "excluded": [
+    "Flash boot",
+    "manual HDMI/physical controller observation",
+    "full N_max measurement"
+  ]
+}

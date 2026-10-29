@@ -1,0 +1,219 @@
+# COM11 @ 115200 8N1, opened 21:06:25
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+console enter menu
+menu crc 24eeb9cf sel 0
+console status v 2 app menu id 0 backend hw fps_milli 45544 frames 46 presents 46 errors 0 scene 0 ladder 0 dropped 0 tick_ms 7719 irqA 464 heap 57824 faults 0 tasks 4 idle 1365851 monitor 0 health 0 stack_free 64948
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 106 presents 106 errors 0 scene 0 ladder 0 dropped 0 tick_ms 8719 irqA 524 heap 57824 faults 0 tasks 4 idle 3098023 monitor 1 health 0 stack_free 64708
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 166 presents 166 errors 0 scene 0 ladder 0 dropped 0 tick_ms 9719 irqA 584 heap 57824 faults 0 tasks 4 idle 4829410 monitor 2 health 0 stack_free 64708
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 226 presents 226 errors 0 scene 0 ladder 0 dropped 0 tick_ms 10719 irqA 644 heap 57824 faults 0 tasks 4 idle 6561817 monitor 3 health 0 stack_free 64708
+console complete app menu id 0 frames 244 presents 244 errors 0
+console leave menu
+console enter demo
+console status v 2 app demo id 1 backend hw fps_milli 60098 frames 61 presents 61 errors 0 scene 0 ladder 0 dropped 0 tick_ms 15586 irqA 936 heap 57824 faults 0 tasks 4 idle 8933897 monitor 6 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 121 presents 121 errors 0 scene 0 ladder 0 dropped 0 tick_ms 16586 irqA 996 heap 57824 faults 0 tasks 4 idle 10773162 monitor 7 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 181 presents 181 errors 0 scene 0 ladder 0 dropped 0 tick_ms 17586 irqA 1056 heap 57824 faults 0 tasks 4 idle 12612953 monitor 8 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 241 presents 241 errors 0 scene 0 ladder 0 dropped 0 tick_ms 18586 irqA 1116 heap 57824 faults 0 tasks 4 idle 14453346 monitor 9 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 301 presents 301 errors 0 scene 0 ladder 0 dropped 0 tick_ms 19586 irqA 1176 heap 57824 faults 0 tasks 4 idle 16294071 monitor 10 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 361 presents 361 errors 0 scene 0 ladder 0 dropped 0 tick_ms 20586 irqA 1236 heap 57824 faults 0 tasks 4 idle 18135108 monitor 11 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 421 presents 421 errors 0 scene 0 ladder 0 dropped 0 tick_ms 21586 irqA 1296 heap 57824 faults 0 tasks 4 idle 19975585 monitor 12 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 481 presents 481 errors 0 scene 0 ladder 0 dropped 0 tick_ms 22586 irqA 1356 heap 57824 faults 0 tasks 4 idle 21814217 monitor 13 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 541 presents 541 errors 0 scene 0 ladder 0 dropped 0 tick_ms 23586 irqA 1416 heap 57824 faults 0 tasks 4 idle 23653989 monitor 14 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 601 presents 601 errors 0 scene 0 ladder 0 dropped 0 tick_ms 24586 irqA 1476 heap 57824 faults 0 tasks 4 idle 25494138 monitor 15 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 661 presents 661 errors 0 scene 0 ladder 0 dropped 0 tick_ms 25586 irqA 1536 heap 57824 faults 0 tasks 4 idle 27565802 monitor 16 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 721 presents 721 errors 0 scene 0 ladder 0 dropped 0 tick_ms 26586 irqA 1596 heap 57824 faults 0 tasks 4 idle 29637524 monitor 17 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 781 presents 781 errors 0 scene 0 ladder 0 dropped 0 tick_ms 27586 irqA 1656 heap 57824 faults 0 tasks 4 idle 31709256 monitor 18 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 841 presents 841 errors 0 scene 0 ladder 0 dropped 0 tick_ms 28586 irqA 1716 heap 57824 faults 0 tasks 4 idle 33779906 monitor 19 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 901 presents 901 errors 0 scene 0 ladder 0 dropped 0 tick_ms 29586 irqA 1776 heap 57824 faults 0 tasks 4 idle 35851053 monitor 20 health 0 stack_free 64660
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 961 presents 961 errors 0 scene 0 ladder 0 dropped 0 tick_ms 30586 irqA 1836 heap 57824 faults 0 tasks 4 idle 37922695 monitor 21 health 0 stack_free 64660
+console complete app demo id 1 frames 986 presents 986 errors 0
+console leave demo
+console enter stg
+console status v 2 app stg id 2 backend hw fps_milli 60098 frames 62 presents 61 errors 0 scene 0 ladder 0 dropped 0 tick_ms 32019 irqA 1922 heap 57824 faults 0 tasks 4 idle 40470535 monitor 22 health 0 stack_free 62456
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 122 presents 121 errors 0 scene 0 ladder 0 dropped 0 tick_ms 33019 irqA 1982 heap 57824 faults 0 tasks 4 idle 42150455 monitor 23 health 0 stack_free 62456
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 182 presents 181 errors 0 scene 0 ladder 0 dropped 0 tick_ms 34019 irqA 2042 heap 57824 faults 0 tasks 4 idle 43778374 monitor 24 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 242 presents 241 errors 0 scene 0 ladder 0 dropped 0 tick_ms 35019 irqA 2102 heap 57824 faults 0 tasks 4 idle 45384038 monitor 25 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 302 presents 301 errors 0 scene 0 ladder 0 dropped 0 tick_ms 36019 irqA 2162 heap 57824 faults 0 tasks 4 idle 46972831 monitor 26 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 362 presents 361 errors 0 scene 0 ladder 0 dropped 0 tick_ms 37019 irqA 2222 heap 57824 faults 0 tasks 4 idle 48552660 monitor 27 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 422 presents 421 errors 0 scene 0 ladder 0 dropped 0 tick_ms 38019 irqA 2282 heap 57824 faults 0 tasks 4 idle 50145606 monitor 28 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 482 presents 481 errors 0 scene 0 ladder 0 dropped 0 tick_ms 39019 irqA 2342 heap 57824 faults 0 tasks 4 idle 51733632 monitor 29 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 542 presents 541 errors 0 scene 0 ladder 0 dropped 0 tick_ms 40019 irqA 2402 heap 57824 faults 0 tasks 4 idle 53314470 monitor 30 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 602 presents 601 errors 0 scene 0 ladder 0 dropped 0 tick_ms 41019 irqA 2462 heap 57824 faults 0 tasks 4 idle 54917064 monitor 31 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 662 presents 661 errors 0 scene 0 ladder 0 dropped 0 tick_ms 42019 irqA 2522 heap 57824 faults 0 tasks 4 idle 56539156 monitor 32 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 722 presents 721 errors 0 scene 0 ladder 0 dropped 0 tick_ms 43019 irqA 2582 heap 57824 faults 0 tasks 4 idle 58144403 monitor 33 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 782 presents 781 errors 0 scene 0 ladder 0 dropped 0 tick_ms 44019 irqA 2642 heap 57824 faults 0 tasks 4 idle 59757370 monitor 34 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 842 presents 841 errors 0 scene 0 ladder 0 dropped 0 tick_ms 45019 irqA 2702 heap 57824 faults 0 tasks 4 idle 61370537 monitor 35 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 902 presents 901 errors 0 scene 0 ladder 0 dropped 0 tick_ms 46019 irqA 2762 heap 57824 faults 0 tasks 4 idle 62985785 monitor 36 health 0 stack_free 62180
+console status v 2 app stg id 2 backend hw fps_milli 60000 frames 962 presents 961 errors 0 scene 0 ladder 0 dropped 0 tick_ms 47019 irqA 2822 heap 57824 faults 0 tasks 4 idle 64585311 monitor 37 health 0 stack_free 62180
+console complete app stg id 2 frames 962 presents 962 errors 0
+console leave stg
+nmax load 16x16
+nmax cfg N0=64 STEP_MIN=16 T_PROBE=120 T_CONFIRM=3600 SETTLE_MIN=300 SETTLE_FRAMES=30 SETTLE_ABS=2 SETTLE_MAX=600 CONFIRM_RETRY=3 KNOB_MAX=16000 F=1666667
+console enter press
+console status v 2 app press id 3 backend hw fps_milli 60039 frames 62 presents 61 errors 0 scene 0 ladder 0 dropped 0 tick_ms 48053 irqA 2884 heap 57824 faults 0 tasks 4 idle 66217932 monitor 38 health 0 stack_free 62088
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 122 presents 121 errors 0 scene 0 ladder 0 dropped 0 tick_ms 49053 irqA 2944 heap 57824 faults 0 tasks 4 idle 67767262 monitor 39 health 0 stack_free 61948
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 182 presents 181 errors 0 scene 0 ladder 0 dropped 0 tick_ms 50053 irqA 3004 heap 57824 faults 0 tasks 4 idle 69306878 monitor 40 health 0 stack_free 61860
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 242 presents 241 errors 0 scene 0 ladder 0 dropped 0 tick_ms 51053 irqA 3064 heap 57824 faults 0 tasks 4 idle 70843427 monitor 41 health 0 stack_free 61860
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 302 presents 301 errors 0 scene 0 ladder 0 dropped 0 tick_ms 52053 irqA 3124 heap 57824 faults 0 tasks 4 idle 72377820 monitor 42 health 0 stack_free 61860
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 362 presents 361 errors 0 scene 0 ladder 0 dropped 0 tick_ms 53053 irqA 3184 heap 57824 faults 0 tasks 4 idle 73907159 monitor 43 health 0 stack_free 61860
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 422 presents 421 errors 0 scene 0 ladder 0 dropped 0 tick_ms 54053 irqA 3244 heap 57824 faults 0 tasks 4 idle 75432822 monitor 44 health 0 stack_free 61812
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 482 presents 481 errors 0 scene 0 ladder 0 dropped 0 tick_ms 55053 irqA 3304 heap 57824 faults 0 tasks 4 idle 76957184 monitor 45 health 0 stack_free 61812
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 542 presents 541 errors 0 scene 0 ladder 0 dropped 0 tick_ms 56053 irqA 3364 heap 57824 faults 0 tasks 4 idle 78479841 monitor 46 health 0 stack_free 61812
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 602 presents 601 errors 0 scene 0 ladder 0 dropped 0 tick_ms 57053 irqA 3424 heap 57824 faults 0 tasks 4 idle 80004601 monitor 47 health 0 stack_free 61812
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 662 presents 661 errors 0 scene 0 ladder 0 dropped 0 tick_ms 58053 irqA 3484 heap 57824 faults 0 tasks 4 idle 81529563 monitor 48 health 0 stack_free 61812
+nmax probe 0 double knob 64 settle 600 timeout fields 120 frames 120 drops 0 act_min 59 ft_max 623231 ft_p99 623231 pass
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 722 presents 721 errors 0 scene 0 ladder 0 dropped 0 tick_ms 59053 irqA 3544 heap 57824 faults 0 tasks 4 idle 83052888 monitor 49 health 0 stack_free 61812
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 782 presents 781 errors 0 scene 0 ladder 0 dropped 0 tick_ms 60053 irqA 3604 heap 57824 faults 0 tasks 4 idle 84566602 monitor 50 health 0 stack_free 61812
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 842 presents 841 errors 0 scene 0 ladder 0 dropped 0 tick_ms 61053 irqA 3664 heap 57824 faults 0 tasks 4 idle 86055234 monitor 51 health 0 stack_free 61812
+console status v 2 app press id 3 backend hw fps_milli 60000 frames 902 presents 901 errors 0 scene 0 ladder 0 dropped 0 tick_ms 62053 irqA 3724 heap 57824 faults 0 tasks 4 idle 87528308 monitor 52 health 0 stack_free 61812
+console complete app press id 3 frames 960 presents 960 errors 0
+console leave press
+r4 enter ladder/hw 2 1
+console scene 0 ladder 2
+console enter r4
+R4STAT 30 39918 149 2 1 0
+R4TIME 3937 1542839 156757 20185 978766 641706 628280 570
+console status v 2 app r4 id 4 backend hw fps_milli 29498 frames 30 presents 30 errors 0 scene 0 ladder 2 dropped 0 tick_ms 68003 irqA 4081 heap 57824 faults 0 tasks 4 idle 90446158 monitor 55 health 0 stack_free 59892
+R4STAT 30 35543 155 2 1 0
+R4TIME 4020 1627179 161266 61880 1023029 683240 666796 659
+console status v 2 app r4 id 4 backend hw fps_milli 29527 frames 60 presents 60 errors 0 scene 0 ladder 2 dropped 0 tick_ms 69019 irqA 4142 heap 57824 faults 0 tasks 4 idle 91539749 monitor 56 health 0 stack_free 59892
+R4STAT 30 37384 139 2 1 0
+R4TIME 3843 1442204 145867 64209 969205 630270 616232 542
+console status v 2 app r4 id 4 backend hw fps_milli 29498 frames 90 presents 90 errors 0 scene 0 ladder 2 dropped 0 tick_ms 70036 irqA 4203 heap 57824 faults 0 tasks 4 idle 92739164 monitor 57 health 0 stack_free 59892
+R4STAT 30 39453 148 2 1 0
+R4TIME 4554 1534583 156242 111731 982566 643065 628773 589
+console status v 2 app r4 id 4 backend hw fps_milli 29498 frames 120 presents 120 errors 0 scene 0 ladder 2 dropped 0 tick_ms 71053 irqA 4264 heap 57824 faults 0 tasks 4 idle 94021431 monitor 58 health 0 stack_free 59892
+R4STAT 30 34678 138 2 1 0
+R4TIME 4006 1394204 144098 82601 973506 632871 620163 510
+console status v 2 app r4 id 4 backend hw fps_milli 29527 frames 150 presents 150 errors 0 scene 0 ladder 2 dropped 0 tick_ms 72069 irqA 4325 heap 57824 faults 0 tasks 4 idle 95072335 monitor 59 health 0 stack_free 59892
+R4STAT 30 37062 136 2 1 0
+R4TIME 4011 1420646 140884 53690 973824 635531 622024 549
+console status v 2 app r4 id 4 backend hw fps_milli 29498 frames 180 presents 180 errors 0 scene 0 ladder 2 dropped 0 tick_ms 73086 irqA 4386 heap 57824 faults 0 tasks 4 idle 96239621 monitor 60 health 0 stack_free 59892
+R4STAT 30 42149 127 2 1 0
+R4TIME 3895 1115342 136102 61813 1009521 671290 657414 611
+console status v 2 app r4 id 4 backend hw fps_milli 29498 frames 210 presents 210 errors 0 scene 0 ladder 2 dropped 0 tick_ms 74103 irqA 4447 heap 57824 faults 0 tasks 4 idle 97648197 monitor 61 health 0 stack_free 59892
+R4STAT 30 47988 116 2 1 0
+R4TIME 4328 925673 130278 78579 963580 625909 613906 502
+console status v 2 app r4 id 4 backend hw fps_milli 30000 frames 240 presents 240 errors 0 scene 0 ladder 2 dropped 0 tick_ms 75103 irqA 4507 heap 57824 faults 0 tasks 4 idle 99226260 monitor 62 health 0 stack_free 59892
+R4STAT 30 41846 147 2 1 0
+R4TIME 3973 1430581 153679 47935 987199 647082 633168 591
+console status v 2 app r4 id 4 backend hw fps_milli 30000 frames 270 presents 270 errors 0 scene 0 ladder 2 dropped 0 tick_ms 76103 irqA 4567 heap 57824 faults 0 tasks 4 idle 100578467 monitor 63 health 0 stack_free 59892
+R4STAT 30 34974 141 2 1 0
+R4TIME 4075 1402462 146293 82080 970099 631526 618224 516
+console status v 2 app r4 id 4 backend hw fps_milli 29527 frames 300 presents 300 errors 0 scene 0 ladder 2 dropped 0 tick_ms 77119 irqA 4628 heap 57824 faults 0 tasks 4 idle 101657493 monitor 64 health 0 stack_free 59892
+R4STAT 30 37357 134 2 1 0
+R4TIME 3882 1409360 139343 53833 973279 632801 619341 537
+console status v 2 app r4 id 4 backend hw fps_milli 29498 frames 330 presents 330 errors 0 scene 0 ladder 2 dropped 0 tick_ms 78136 irqA 4689 heap 57824 faults 0 tasks 4 idle 102834955 monitor 65 health 0 stack_free 59892
+R4STAT 30 37628 152 2 1 0
+R4TIME 3840 1591171 164998 97055 1007906 667573 652358 651
+console status v 2 app r4 id 4 backend hw fps_milli 30000 frames 360 presents 360 errors 0 scene 0 ladder 2 dropped 0 tick_ms 79136 irqA 4749 heap 57824 faults 0 tasks 4 idle 103997535 monitor 66 health 0 stack_free 59892
+R4STAT 30 36478 148 2 1 0
+R4TIME 4126 1531187 154302 23220 977352 636803 622591 553
+console status v 2 app r4 id 4 backend hw fps_milli 29498 frames 390 presents 390 errors 0 scene 0 ladder 2 dropped 0 tick_ms 80153 irqA 4810 heap 57824 faults 0 tasks 4 idle 105141268 monitor 67 health 0 stack_free 59892
+R4STAT 30 37875 143 2 1 0
+R4TIME 3945 1548373 151388 78798 984223 643607 629840 576
+console status v 2 app r4 id 4 backend hw fps_milli 29527 frames 420 presents 420 errors 0 scene 0 ladder 2 dropped 0 tick_ms 81170 irqA 4871 heap 57824 faults 0 tasks 4 idle 106354111 monitor 68 health 0 stack_free 59892
+R4STAT 30 34897 142 2 1 0
+R4TIME 3980 1444463 154624 76693 968166 627186 614447 525
+console status v 2 app r4 id 4 backend hw fps_milli 29498 frames 450 presents 450 errors 0 scene 0 ladder 2 dropped 0 tick_ms 82186 irqA 4932 heap 57824 faults 0 tasks 4 idle 107412215 monitor 69 health 0 stack_free 59892
+R4PERF 444 2662222 3019082 3097290 444 0 0 899 444
+r4 leave frames/late 475 475
+R4HEALTH 5914 338 0 0 0
+r4 enter ladder/hw 2 1
+console scene 1 ladder 2
+console status v 2 app r4 id 4 backend hw fps_milli 25565 frames 475 presents 476 errors 0 scene 1 ladder 2 dropped 0 tick_ms 83203 irqA 4993 heap 57824 faults 0 tasks 4 idle 108521346 monitor 70 health 0 stack_free 59892
+console status v 2 app r4 id 4 backend hw fps_milli 12000 frames 487 presents 488 errors 0 scene 1 ladder 2 dropped 0 tick_ms 84203 irqA 5053 heap 57824 faults 0 tasks 4 idle 108922928 monitor 71 health 0 stack_free 59892
+R4STAT 12 13378 396 2 1 1
+R4TIME 3816 6339240 389834 59265 635807 297032 273526 1081
+console status v 2 app r4 id 4 backend hw fps_milli 12000 frames 499 presents 500 errors 0 scene 1 ladder 2 dropped 0 tick_ms 85203 irqA 5113 heap 57824 faults 0 tasks 4 idle 109324594 monitor 72 health 0 stack_free 59892
+R4STAT 12 13392 396 2 1 1
+R4TIME 4534 6335915 397360 21257 643109 300214 276360 1095
+console status v 2 app r4 id 4 backend hw fps_milli 11811 frames 511 presents 512 errors 0 scene 1 ladder 2 dropped 0 tick_ms 86219 irqA 5174 heap 57824 faults 0 tasks 4 idle 109771135 monitor 73 health 0 stack_free 59892
+R4STAT 12 13421 395 2 1 1
+R4TIME 3766 6285602 395911 64770 643002 301749 278681 1094
+console status v 2 app r4 id 4 backend hw fps_milli 12000 frames 523 presents 524 errors 0 scene 1 ladder 2 dropped 0 tick_ms 87219 irqA 5234 heap 57824 faults 0 tasks 4 idle 110191737 monitor 74 health 0 stack_free 59892
+R4STAT 12 13526 396 2 1 1
+R4TIME 4074 6230452 396570 20477 646000 305405 281961 1093
+console status v 2 app r4 id 4 backend hw fps_milli 12000 frames 535 presents 536 errors 0 scene 1 ladder 2 dropped 0 tick_ms 88219 irqA 5294 heap 57824 faults 0 tasks 4 idle 110626456 monitor 75 health 0 stack_free 59892
+R4STAT 12 13632 394 2 1 1
+R4TIME 4031 6178951 389597 44143 644620 307560 283684 1099
+console status v 2 app r4 id 4 backend hw fps_milli 12000 frames 547 presents 548 errors 0 scene 1 ladder 2 dropped 0 tick_ms 89219 irqA 5354 heap 57824 faults 0 tasks 4 idle 111075499 monitor 76 health 0 stack_free 59892
+R4STAT 12 13588 400 2 1 1
+R4TIME 3766 6286002 401484 79765 648442 308366 283923 1110
+console status v 2 app r4 id 4 backend hw fps_milli 11988 frames 559 presents 560 errors 0 scene 1 ladder 2 dropped 0 tick_ms 90220 irqA 5414 heap 57824 faults 0 tasks 4 idle 111513162 monitor 77 health 0 stack_free 59892
+console status v 2 app r4 id 4 backend hw fps_milli 12003 frames 572 presents 573 errors 0 scene 1 ladder 2 dropped 0 tick_ms 91303 irqA 5479 heap 57824 faults 0 tasks 4 idle 111989749 monitor 78 health 0 stack_free 59892
+R4STAT 12 13582 394 2 1 1
+R4TIME 4090 6122883 390196 155756 649604 308729 284079 1098
+console status v 2 app r4 id 4 backend hw fps_milli 12000 frames 584 presents 585 errors 0 scene 1 ladder 2 dropped 0 tick_ms 92303 irqA 5539 heap 57824 faults 0 tasks 4 idle 112451108 monitor 79 health 0 stack_free 59892
+R4STAT 12 13742 396 2 1 1
+R4TIME 4496 6181622 391378 23286 640470 305650 281742 1092
+console status v 2 app r4 id 4 backend hw fps_milli 12000 frames 596 presents 597 errors 0 scene 1 ladder 2 dropped 0 tick_ms 93303 irqA 5599 heap 57824 faults 0 tasks 4 idle 112900604 monitor 80 health 0 stack_free 59892
+R4STAT 12 13633 392 2 1 1
+R4TIME 4024 6201292 392954 44919 637202 300482 277609 1086
+console status v 2 app r4 id 4 backend hw fps_milli 12000 frames 608 presents 609 errors 0 scene 1 ladder 2 dropped 0 tick_ms 94303 irqA 5659 heap 57824 faults 0 tasks 4 idle 113342728 monitor 81 health 0 stack_free 59892
+R4STAT 12 13638 396 2 1 1
+R4TIME 4144 6210419 396309 20489 639051 300441 277045 1093
+R4PERF 111 7340859 7513304 7534925 111 0 111 555 111
+r4 leave frames/late 142 142
+R4HEALTH 6635 334 0 0 0
+console complete app r4 id 4 frames 617 presents 618 errors 0
+console leave r4
+console enter menu
+menu crc 24eeb9cf sel 0
+console status v 2 app menu id 0 backend hw fps_milli 46580 frames 47 presents 47 errors 0 scene 0 ladder 0 dropped 0 tick_ms 96069 irqA 5765 heap 57824 faults 0 tasks 4 idle 115046391 monitor 83 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 107 presents 107 errors 0 scene 0 ladder 0 dropped 0 tick_ms 97069 irqA 5825 heap 57824 faults 0 tasks 4 idle 116782687 monitor 84 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 167 presents 167 errors 0 scene 0 ladder 0 dropped 0 tick_ms 98069 irqA 5885 heap 57824 faults 0 tasks 4 idle 118519097 monitor 85 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 227 presents 227 errors 0 scene 0 ladder 0 dropped 0 tick_ms 99069 irqA 5945 heap 57824 faults 0 tasks 4 idle 120254885 monitor 86 health 0 stack_free 59892
+console complete app menu id 0 frames 284 presents 284 errors 0
+console leave menu
+console enter about
+console status v 2 app about id 5 backend hw fps_milli 60039 frames 61 presents 61 errors 0 scene 0 ladder 0 dropped 0 tick_ms 101036 irqA 6063 heap 57824 faults 0 tasks 4 idle 123809036 monitor 87 health 0 stack_free 59892
+console status v 2 app about id 5 backend hw fps_milli 60000 frames 121 presents 121 errors 0 scene 0 ladder 0 dropped 0 tick_ms 102036 irqA 6123 heap 57824 faults 0 tasks 4 idle 125685114 monitor 88 health 0 stack_free 59892
+console status v 2 app about id 5 backend hw fps_milli 60000 frames 181 presents 181 errors 0 scene 0 ladder 0 dropped 0 tick_ms 103036 irqA 6183 heap 57824 faults 0 tasks 4 idle 127561242 monitor 89 health 0 stack_free 59892
+console status v 2 app about id 5 backend hw fps_milli 60000 frames 241 presents 241 errors 0 scene 0 ladder 0 dropped 0 tick_ms 104036 irqA 6243 heap 57824 faults 0 tasks 4 idle 129437630 monitor 90 health 0 stack_free 59892
+console status v 2 app about id 5 backend hw fps_milli 60000 frames 301 presents 301 errors 0 scene 0 ladder 0 dropped 0 tick_ms 105036 irqA 6303 heap 57824 faults 0 tasks 4 idle 131314178 monitor 91 health 0 stack_free 59892
+console complete app about id 5 frames 359 presents 359 errors 0
+console leave about
+console enter menu
+menu crc e35092ff sel 4
+console status v 2 app menu id 0 backend hw fps_milli 46351 frames 47 presents 47 errors 0 scene 0 ladder 0 dropped 0 tick_ms 107019 irqA 6422 heap 57824 faults 0 tasks 4 idle 134495850 monitor 93 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 107 presents 107 errors 0 scene 0 ladder 0 dropped 0 tick_ms 108019 irqA 6482 heap 57824 faults 0 tasks 4 idle 136231548 monitor 94 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 167 presents 167 errors 0 scene 0 ladder 0 dropped 0 tick_ms 109019 irqA 6542 heap 57824 faults 0 tasks 4 idle 137967341 monitor 95 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 227 presents 227 errors 0 scene 0 ladder 0 dropped 0 tick_ms 110019 irqA 6602 heap 57824 faults 0 tasks 4 idle 139703203 monitor 96 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 287 presents 287 errors 0 scene 0 ladder 0 dropped 0 tick_ms 111019 irqA 6662 heap 57824 faults 0 tasks 4 idle 141439822 monitor 97 health 0 stack_free 59892
+console complete app menu id 0 frames 287 presents 287 errors 0
+console leave menu
+console enter demo
+console status v 2 app demo id 1 backend hw fps_milli 59171 frames 60 presents 60 errors 0 scene 0 ladder 0 dropped 0 tick_ms 115586 irqA 6936 heap 57824 faults 0 tasks 4 idle 143317461 monitor 99 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 120 presents 120 errors 0 scene 0 ladder 0 dropped 0 tick_ms 116586 irqA 6996 heap 57824 faults 0 tasks 4 idle 145158326 monitor 100 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 180 presents 180 errors 0 scene 0 ladder 0 dropped 0 tick_ms 117586 irqA 7056 heap 57824 faults 0 tasks 4 idle 146999158 monitor 101 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 240 presents 240 errors 0 scene 0 ladder 0 dropped 0 tick_ms 118586 irqA 7116 heap 57824 faults 0 tasks 4 idle 148839722 monitor 102 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 300 presents 300 errors 0 scene 0 ladder 0 dropped 0 tick_ms 119586 irqA 7176 heap 57824 faults 0 tasks 4 idle 150679582 monitor 103 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 360 presents 360 errors 0 scene 0 ladder 0 dropped 0 tick_ms 120586 irqA 7236 heap 57824 faults 0 tasks 4 idle 152519722 monitor 104 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 420 presents 420 errors 0 scene 0 ladder 0 dropped 0 tick_ms 121586 irqA 7296 heap 57824 faults 0 tasks 4 idle 154360626 monitor 105 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 480 presents 480 errors 0 scene 0 ladder 0 dropped 0 tick_ms 122586 irqA 7356 heap 57824 faults 0 tasks 4 idle 156201802 monitor 106 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 540 presents 540 errors 0 scene 0 ladder 0 dropped 0 tick_ms 123586 irqA 7416 heap 57824 faults 0 tasks 4 idle 158042954 monitor 107 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 600 presents 600 errors 0 scene 0 ladder 0 dropped 0 tick_ms 124586 irqA 7476 heap 57824 faults 0 tasks 4 idle 159883750 monitor 108 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 660 presents 660 errors 0 scene 0 ladder 0 dropped 0 tick_ms 125586 irqA 7536 heap 57824 faults 0 tasks 4 idle 161953964 monitor 109 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 720 presents 720 errors 0 scene 0 ladder 0 dropped 0 tick_ms 126586 irqA 7596 heap 57824 faults 0 tasks 4 idle 164024702 monitor 110 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 780 presents 780 errors 0 scene 0 ladder 0 dropped 0 tick_ms 127586 irqA 7656 heap 57824 faults 0 tasks 4 idle 166095703 monitor 111 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 840 presents 840 errors 0 scene 0 ladder 0 dropped 0 tick_ms 128586 irqA 7716 heap 57824 faults 0 tasks 4 idle 168167456 monitor 112 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 900 presents 900 errors 0 scene 0 ladder 0 dropped 0 tick_ms 129586 irqA 7776 heap 57824 faults 0 tasks 4 idle 170239595 monitor 113 health 0 stack_free 59892
+console status v 2 app demo id 1 backend hw fps_milli 60000 frames 960 presents 960 errors 0 scene 0 ladder 0 dropped 0 tick_ms 130586 irqA 7836 heap 57824 faults 0 tasks 4 idle 172311722 monitor 114 health 0 stack_free 59892
+console complete app demo id 1 frames 985 presents 985 errors 0
+console leave demo
+console enter menu
+menu crc 24eeb9cf sel 0
+console status v 2 app menu id 0 backend hw fps_milli 46305 frames 47 presents 47 errors 0 scene 0 ladder 0 dropped 0 tick_ms 132019 irqA 7922 heap 57824 faults 0 tasks 4 idle 174532351 monitor 115 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 107 presents 107 errors 0 scene 0 ladder 0 dropped 0 tick_ms 133019 irqA 7982 heap 57824 faults 0 tasks 4 idle 176268302 monitor 116 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 167 presents 167 errors 0 scene 0 ladder 0 dropped 0 tick_ms 134019 irqA 8042 heap 57824 faults 0 tasks 4 idle 178004909 monitor 117 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 227 presents 227 errors 0 scene 0 ladder 0 dropped 0 tick_ms 135019 irqA 8102 heap 57824 faults 0 tasks 4 idle 179741605 monitor 118 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 287 presents 287 errors 0 scene 0 ladder 0 dropped 0 tick_ms 136019 irqA 8162 heap 57824 faults 0 tasks 4 idle 181478449 monitor 119 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 347 presents 347 errors 0 scene 0 ladder 0 dropped 0 tick_ms 137019 irqA 8222 heap 57824 faults 0 tasks 4 idle 183215292 monitor 120 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 407 presents 407 errors 0 scene 0 ladder 0 dropped 0 tick_ms 138019 irqA 8282 heap 57824 faults 0 tasks 4 idle 184951280 monitor 121 health 0 stack_free 59892
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 467 presents 467 errors 0 scene 0 ladder 0 dropped 0 tick_ms 139019 irqA 8342 heap 57824 faults 0 tasks 4 idle 186687341 monitor 122 health 0 stack_free 59892
+
+# closed 21:09:00, 29925 bytes

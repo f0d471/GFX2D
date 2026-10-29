@@ -1,0 +1,15 @@
+RUN Main/sim/build/check-runs/20261029-023506-5cbf776c
+Traceback (most recent call last):
+  File "/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/tools/check/check_platform_sdk.py", line 109, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/tools/check/check_platform_sdk.py", line 60, in main
+    command(['gcc','-std=gnu11','-O1','-g','-Wall','-Wextra','-Werror',
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             '-fsanitize=address,undefined',*include,TEST/'test_store.c',SW/'services/platform/store_host.c',
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             SW/'lib/core/record.c',SW/'lib/core/crc32.c','-o',store],logs/'store.build.log')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/tools/check/check_run.py", line 259, in command
+    raise subprocess.CalledProcessError(p.returncode, args)
+subprocess.CalledProcessError: Command '['gcc', '-std=gnu11', '-O1', '-g', '-Wall', '-Wextra', '-Werror', '-fsanitize=address,undefined', '-I/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/api', '-I/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/lib', '-I/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/bsp/include', '-I/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/system/include', '-I/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/services/test/fakes', PosixPath('/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/services/test/test_store.c'), PosixPath('/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/services/platform/store_host.c'), PosixPath('/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/lib/core/record.c'), PosixPath('/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/lib/core/crc32.c'), '-o', PosixPath('/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sim/build/check-runs/20261029-023506-5cbf776c/build/platform-sdk/store')]' returned non-zero exit status 1.

@@ -1,0 +1,2 @@
+RUN Main/sim/build/check-runs/20261028-190528-software-convergence/acceptance-software-delta-01
+R4 HOST PASS scenes=3 frames=60

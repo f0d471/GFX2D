@@ -1,0 +1,42 @@
+{
+  "Main/bit/board_release_game_current_20261024/board/B7.bit": {
+    "bytes": 2798274,
+    "sha256": "2bd49db6e4f1a6e35e23be5a13d4877526fecf18ee75b75ca088b222ae7bf16f"
+  },
+  "Main/sim/build/check-runs/20261028-171853-software-architecture-audit/build_console/console-O2-perf.bin": {
+    "bytes": 222014,
+    "sha256": "49cc968dfcb61a95fdac5ac7edb8d9f636dfce32cfd65bd3fd16c15c14e66cd4"
+  },
+  "Main/sim/build/check-runs/20261028-171853-software-architecture-audit/build_console/console-O2-perf.elf": {
+    "bytes": 1369312,
+    "sha256": "30d7ff61f384b91c7ab9a615c4d7470fecc8ee988fec5f2caa3d8254c339849a"
+  },
+  "Main/sim/build/check-runs/20261028-171853-software-architecture-audit/build_timer/timerAudit-O2.bin": {
+    "bytes": 40994,
+    "sha256": "f1bb007ff199b4cea94374f48161e73f4199fa079ce3e4075de635a4b88a0a5c"
+  },
+  "Main/sim/build/check-runs/20261028-171853-software-architecture-audit/build_timer_1k/timerAudit-O2.bin": {
+    "bytes": 41026,
+    "sha256": "468a2d3dc47e9e19489d0a9e3b01fab1b6e55940c7e613e7f77b324b7d3193f1"
+  },
+  "Main/sim/build/check-runs/20261028-171853-software-architecture-audit/build_pc_probe/gfx2dGame-perf": {
+    "bytes": 1019224,
+    "sha256": "8c9651e8a46f1b3f9e480a75bfed63ba7b0869004edfb4674b6335c817284298"
+  },
+  "Main/assets/build/assets.pak": {
+    "bytes": 4085504,
+    "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+  },
+  "Main/assets/build/assets.h": {
+    "bytes": 9870,
+    "sha256": "8996430b1e6e780fdb3cb985adfe0d9b54aa75ac8dab13c871f6b995b37803a5"
+  },
+  "Main/sdk/bsp/efinix/EfxSapphireSoc/include/soc.h": {
+    "bytes": 3418,
+    "sha256": "857a0b6b1795ef65ce20eb25e40a24b3ea17d71b2dfc7aeeb06b2302b097feaf"
+  },
+  "Main/sdk/software/standalone/driver/clint.h": {
+    "bytes": 6069,
+    "sha256": "43bca7f578c070dfde36cd82b27701cf3a468925e23f4d1af3a5612cc1623a68"
+  }
+}

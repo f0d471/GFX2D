@@ -1,0 +1,19 @@
+RUN Main/sim/build/check-runs/sw16-board-20261029-192837
+Traceback (most recent call last):
+  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_sw16_board.py", line 196, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_sw16_board.py", line 163, in main
+    results['sdk-'+name]=current.perform('sw16.sdk.'+name,sdk_case,reusable=False)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_run.py", line 196, in perform
+    result = action()
+             ^^^^^^^^
+  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_sw16_board.py", line 157, in sdk_case
+    debug('sdk-'+name+'-dump',[f'dump_image {{{target}}} {front:#x} {STRIDE*HEIGHT}'],180)
+  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_sw16_board.py", line 134, in debug
+    require(ok and 'Error:' not in text and '[TIMEOUT' not in text,'OpenOCD readback failed: '+label)
+  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_sw16_board.py", line 21, in require
+    if not value:raise RuntimeError(message)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: OpenOCD readback failed: sdk-pixels-dump

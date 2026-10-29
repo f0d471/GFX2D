@@ -73,8 +73,8 @@ def protocols():
 def lease():
     game=MAIN/'sw/apps/game/gfx2dGame/src'
     flags=['gcc','-O1','-g','-std=c11','-Wall','-Wextra','-Werror','-ffunction-sections','-fdata-sections','-Wl,--gc-sections','-DGFX_FRONTEND_INST=1',
-        '-I'+str(MAIN/'sw/lib'),'-I'+str(MAIN/'sw/bsp/include'),'-I'+str(game)]
-    run('lease_compile',flags+[SIM/'test_instance_lease.c',game/'renderer.c',MAIN/'sw/bsp/memmap.c',
+        '-I'+str(MAIN/'sw/lib'),'-I'+str(MAIN/'sw/bsp/include'),'-I'+str(MAIN/'sw/ports/myriad'),'-I'+str(game),'-I'+str(MAIN/'sw/services/gfx')]
+    run('lease_compile',flags+[SIM/'test_instance_lease.c',MAIN/'sw/services/gfx/renderer.c',MAIN/'sw/bsp/memmap.c',
         *sorted((MAIN/'sw/lib/gfx').glob('*.c')),*GFX_CORE,'-o',BUILD/'lease'])
     print(run('lease',[BUILD/'lease']).strip(),flush=True)
 def v2():

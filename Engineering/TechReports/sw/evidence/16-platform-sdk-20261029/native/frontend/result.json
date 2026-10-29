@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "scope": "native Windows SDL dummy four-app flow",
+  "completions": [
+    {
+      "app": "menu",
+      "id": "0",
+      "frames": "5",
+      "presents": "5",
+      "errors": "0"
+    },
+    {
+      "app": "demo",
+      "id": "1",
+      "frames": "14",
+      "presents": "14",
+      "errors": "0"
+    },
+    {
+      "app": "stg",
+      "id": "2",
+      "frames": "14",
+      "presents": "14",
+      "errors": "0"
+    },
+    {
+      "app": "press",
+      "id": "3",
+      "frames": "14",
+      "presents": "14",
+      "errors": "0"
+    },
+    {
+      "app": "r4",
+      "id": "4",
+      "frames": "19",
+      "presents": "19",
+      "errors": "0"
+    },
+    {
+      "app": "menu",
+      "id": "0",
+      "frames": "9",
+      "presents": "9",
+      "errors": "0"
+    }
+  ],
+  "board": false
+}

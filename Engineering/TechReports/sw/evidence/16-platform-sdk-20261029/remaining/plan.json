@@ -1,0 +1,78 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "demo",
+    "pc",
+    "game",
+    "stats",
+    "layers",
+    "workflow",
+    "regs",
+    "paths"
+  ],
+  "changed": null,
+  "commands": {
+    "demo": [
+      "bash",
+      "Main/tools/check/check_sw6_demo.sh"
+    ],
+    "pc": [
+      "bash",
+      "Main/tools/check/check_sw4_pc.sh"
+    ],
+    "game": [
+      "bash",
+      "Main/tools/check/check_sw7_game.sh"
+    ],
+    "stats": [
+      "bash",
+      "Main/tools/check/check_sw8_stats.sh"
+    ],
+    "layers": [
+      "bash",
+      "Main/tools/check/check_sw_layers.sh"
+    ],
+    "workflow": [
+      "/usr/bin/python3",
+      "Main/tools/check/test_validation.py"
+    ],
+    "regs": [
+      "/usr/bin/python3",
+      "Main/tools/check/regs_gen.py",
+      "--check"
+    ],
+    "paths": [
+      "/usr/bin/python3",
+      "Main/tools/check/localize_paths.py",
+      "--check",
+      "--tracked"
+    ]
+  },
+  "timeouts": {
+    "demo": 1800,
+    "pc": 1800,
+    "game": 1800,
+    "stats": 1800,
+    "layers": 1800,
+    "workflow": 1800,
+    "regs": 1800,
+    "paths": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log",
+    "Main/sw/lib/test/golden.txt",
+    "Main/tools/check/regs_gen.py",
+    "Main/rtl/engine/engine_regs_offsets.vh",
+    "Main/sw/bsp/include/gfx_regs.h",
+    "@tracked-text"
+  ]
+}

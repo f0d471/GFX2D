@@ -61,6 +61,11 @@ def main():
     missing = [str(p) for p in inputs.values() if not p.is_file()]
     if missing:
         ap.error('missing inputs: ' + ', '.join(missing))
+    board_console=b'console protocol 2' in args.bin.read_bytes()
+    pc_console=b'console protocol 2' in args.pc.read_bytes()
+    if board_console!=pc_console:
+        ap.error('PC and board must use the same product frontend')
+    frontend='console' if board_console else 'legacy'
     for name, source in inputs.items():
         dest = output / name
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -150,15 +155,19 @@ try {
     (output / 'README.md').write_text(
         '# ' + args.name + '\n\n' + args.note + '\n\n'
         '双击 `Run-PC.cmd` 启动原生 Windows 游戏；双击 `Run-Board.cmd` 重新加载本包 bit/BIN 并打开控制面板。\n'
-        '`Run-PC-Fullscreen.cmd` 直接全屏启动；F11/Alt+Enter切全屏，Esc退回窗口，F1/F2/F3调窗口，F4切平滑/像素放大。\n'
+        '`Run-PC-Fullscreen.cmd` 直接全屏启动；F11/Alt+Enter切全屏，F1/F2/F3调窗口，F4切平滑/像素放大。\n'
         '模式4默认自动适应宽屏；固定640×480对照可运行 `Run-PC.ps1 -FixedAspect`。\n'
         'PC 不需要板卡或 Efinity。板端需要 Efinity 2026.1/IDE、FT4232H 驱动和已装入 Flash 的原配素材包；本包保留 assets.pak。\n'
         '板端仅 JTAG 重载，不写 Flash。UART 自动定位 C 通道；多板时用 Run-Board.ps1 -Port 指定。\n'
-        '加载前关闭占用同一串口的控制面板；程序退出/断电后可再次运行本包入口恢复。\n'
-        '按 4 进入三维、三维内再按 4 切茶杯；Shift 切 L1/L2，Tab 切软/硬件；WASD/方向键移动，Space 炸弹。\n'
+        '加载前关闭占用同一串口的控制面板；程序退出/断电后可再次运行本包入口恢复。\n'+
+        ('PC 与板端默认同一应用菜单。1/2/3/4 全局进入 2D演示/弹幕/压力/三维；Enter/Space确认，Esc返回，C切三维场景。\n'
+         '板载四键：左右同按确认，上下同按返回；游戏中确认可使用炸弹。Shift切阶梯，Tab切后端。\n'
+         if frontend=='console' else
+         '旧开发入口：4进入三维、三维内再按4切茶杯；Shift切L1/L2，Tab切后端。\n')+
         '`source.zip` 是此包冻结时的源码，`source.diff` 保留当时相对 Git 的变更。\n'
         '文件身份及旧/新版本的实际构建说明见 manifest.json，运行日志写 runtime/。\n', encoding='utf-8')
-    manifest = dict(name=args.name, note=args.note, deployment='JTAG; no Flash write',
+    manifest = dict(name=args.name, note=args.note, deployment='JTAG; no Flash write',frontend=frontend,
+        hardware_scope='reused bitstream; packaging does not rebuild or accept current RTL',
         bit_sha256=digest(args.bit), source_head=subprocess.check_output(git + ['rev-parse', 'HEAD'], cwd=ROOT).decode().strip(),
         rtl={p.relative_to(ROOT).as_posix(): digest(p) for p in (ROOT / 'Main/rtl').rglob('*') if p.suffix in ('.v','.vh')},
         files=[dict(path=p.relative_to(output).as_posix(), bytes=p.stat().st_size, sha256=digest(p))

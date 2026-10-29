@@ -1,0 +1,149 @@
+== G1 正弦表可重生成 ==
+G1 重新生成的 sin_tab.c 与入库的逐字节相同（13445 字节） ok
+G1i 注错 改一项之后比对见红 ok
+== G2 主机测试（64 位 ASan/UBSan 与 -m32） ==
+REUSE shared libtest
+G2 test 目标退出码 0、64/32 逐字节相同、fail 0、done（375 行） ok
+G2s stderr 里没有 sanitizer 报告 ok
+G2f 数值基础 21 行全 ok ok
+    F2 sin_tab vs double (LSB, 1280) max=0.499 limit<=1.000 ok
+    F2 sin^2+cos^2-2^28 range [-18651, 22314] bound 23171 ok
+    F4 atan2 [-512,511]^2 vs double (BAM) max=1.400 limit<64.000 ok
+    F5 atan2 Q.8 random +-2^17 x1e6 (BAM) max=1.847 limit<64.000 ok
+    F6 ring 32 shots 0.5px/f 600f dev (px) max=2.889 limit<=4.000 ok
+    F6 ring radius range 298.310~302.271 (ideal 300)
+G2k 批量提交 8 行全 ok ok
+    K1 calls appended 3298 rejected 16601 full-mid-run groups 80
+    K1 coverage ok=1655 eq=962/1256 c=1828 key=2325 wh=2223 surf=1048/1887 fmt=1863/433 overlap=151 same-ok=1643 coord=271 full=962 closed=853 ok
+    K2 coverage groups rejected after rewrite 88 ok
+== G3 数值基础的注错（每个都要让指定的行 FAIL） ==
+G3 INJECT=FX_IDX_TRUNC 见红：F3 index rounding 31->0 32->1 95->1 96->2 FAIL ok
+G3 INJECT=FX_VEL_Q4 见红：F6 ring 32 shots 0.5px/f 600f dev (px) max=41.954 limit<=4.000 FAIL ok
+G3 INJECT=FX_ATAN_NOSCALE 见红：F5 atan2 Q.8 random +-2^17 x1e6 (BAM) max=16371.910 limit<64.000 FAIL ok
+G3 INJECT=FX_ATAN_UNIT 见红：F4 atan2 [-512,511]^2 vs double (BAM) max=4090.844 limit<64.000 FAIL ok
+== G4 app 测试：实体池与发射器（64 位 ASan/UBSan 与 -m32，不链 bsp） ==
+    选项：-std=gnu11 -O2 -g -Wall -Wextra -Werror -Werror=double-promotion -Werror=float-conversion
+EXECUTE shared apptest
+G4 app 测试 64/32 逐字节相同、fail 0、done（147 行 ok） ok
+    P2 totals added 21946 oob 4235 marked 16826 overflow 1412 alive-sum 252178
+G4s app 测试没有 sanitizer 报告 ok
+== G5 实体池的注错（每个都要让指定的行 FAIL） ==
+G5 INJECT=STG_POOL_STALL 见红：P2 300 rounds: removed == oob + marked FAIL ok
+G5 INJECT=STG_POOL_SWAP 见红：P3 300 rounds: survivors keep relative order FAIL ok
+== G6 批量提交的注错（每个都要让指定的行 FAIL） ==
+G6 INJECT=BLIT_RUN_W7 见红：K1 1000 groups: run == per-call gfx_blit (buffer used rejected overflow  ok
+G6 INJECT=BLIT_RUN_SXY 见红：K1 1000 groups: run == per-call gfx_blit (buffer used rejected overflow  ok
+G6 INJECT=BLIT_RUN_NO_FALLBACK 见红：K1 src==dst groups 134: run == per-call gfx_blit FAIL ok
+== G7 弹型（期望文件由 Python 独立实现生成） ==
+G7 重新生成的期望文件与入库的逐字节相同（742 行） ok
+G7m 轨迹 64/32 逐字节相同（742 行） ok
+G7c C 的轨迹与期望文件逐行一致：参数行、六段各 120 帧、溢出计数 ok
+    ring   第 119 帧存活 189
+    spiral 第 119 帧存活 343
+    aim    第 119 帧存活 40
+    fan    第 119 帧存活 34
+    rain   第 119 帧存活 160
+    mix    第 119 帧存活 766
+== G7i 弹型的注错（比对必须在指定的段见红） ==
+G7i INJECT=EMIT_SEQ_NOACC 见红：seg 1 spiral: 第 1 帧不一致 ok
+    第一颗不同的弹：第 3 颗
+    C      b 3 51200 51200 512 0 1 5
+    期望   b 3 51200 51200 508 59 1 5
+G7i INJECT=EMIT_AIM_SWAP 见红：seg 2 aim: 第 0 帧不一致 ok
+    第一颗不同的弹：第 0 颗
+    C      b 0 51200 20480 709 -294 47 10
+    期望   b 0 51200 20480 293 709 35 10
+G7i INJECT=EMIT_RAIN_ORDER 见红：seg 4 rain: 第 0 帧不一致 ok
+    第一颗不同的弹：第 0 颗
+    C      b 0 15196 0 0 377 0 4
+    期望   b 0 63566 0 0 256 0 4
+== G8 碰撞（自机判定点对敌弹） ==
+G8 碰撞 13 行全 ok（64/32 同 G4） ok
+    X7 totals rounds 200 x 2000: hits 6106 grazes 89836 culled 254941 exact-tangent 294
+    X8 aim 240 frames: hits 9 grazes 10
+== G8i 碰撞的注错 ==
+G8i INJECT=COLLIDE_LE 见红：X1 distance == r_p + r_b (1536) in 4 directions: no hit, graze FAIL ok
+G8i INJECT=COLLIDE_NO_CULL 见红：X3 differences near field size (104959, 125439), either axis: culled, no hit, no ok
+    runtime error: signed integer overflow: 107519 * 107519 cannot be represented in type 'int'
+== G9 按池发出与组帧（app 测试的 W 组） ==
+G9 按池发出与组帧 12 行全 ok（64/32 同 G4） ok
+    W2 totals 50 pools x 3000: drawn 105014 culled or unused kind 30051
+    W4 totals 6 segments x 300 frames: frames 1800 max active 1012
+== G10 弹幕场的判据模式（PC，无窗口两遍） ==
+G10 两遍日志逐字节相同、fail 0、done（6 段、840 帧，850 行） ok
+    f 119 0 pool 189 0 0 0 act 190 hit 0 graze 0 crc dbe55c16
+    f 359 2 pool 39 0 0 0 act 40 hit 1 graze 2 crc 53a362a6
+    f 839 5 pool 970 0 0 0 act 951 hit 25 graze 42 crc 04a11b40
+== G11 板上构建（STG_FIELD=1、2、4）与逐颗循环的反汇编 ==
+G11 STG_FIELD=1 板上构建零告警（bin 213546 字节） ok
+G11 STG_FIELD=2 板上构建零告警（bin 213594 字节） ok
+G11 STG_FIELD=4 板上构建零告警（bin 213978 字节） ok
+G11 stg_pool_step：86 条指令，没有除法、取模与间接跳转 ok
+G11 stg_pool_collide：75 条指令，没有除法、取模与间接跳转 ok
+G11 stg_pool_draw：89 条指令，没有除法、取模与间接跳转 ok
+G11 stg_pool_hit_targets：72 条指令，没有除法、取模与间接跳转 ok
+G11 stg_pool_cancel：58 条指令，没有除法、取模与间接跳转 ok
+G11 stg_pool_age：23 条指令，没有除法、取模与间接跳转 ok
+G11 stg_pool_danger：73 条指令，没有除法、取模与间接跳转 ok
+G11i INJECT=STG_LOOP_DIV 见红：stg_pool_step 里查到 div ok
+G11i INJECT=PHIT_LOOP_DIV 见红：stg_pool_hit_targets 里查到 div ok
+G11i INJECT=AGE_LOOP_DIV 见红：stg_pool_age 里查到 divu ok
+G11i INJECT=DANGER_LOOP_DIV 见红：stg_pool_danger 里查到 div ok
+== G12 自机与规则（app 测试的 R 组） ==
+G12 自机与规则 28 行全 ok（64/32 同 G4） ok
+    R2 steady beams (max) 20
+    R3 gap hidden 121 60
+    R6 cancelled sparks particle_overflow 3000 2048 952
+    R8 bullets grazes score 289 121 1210
+    R9 totals hits tangent_pairs 4589 1781
+== G12i 规则的注错 ==
+G12i INJECT=GAME_NO_AUTOBOMB 见红：R4 auto bomb: no life lost, bombs 3 -> 2, 10 cancelled, NOCANCEL kept, 10 sparks ok
+G12i INJECT=GAME_NO_INVINCIBLE 见红：R3 invincible exactly 120 frames: next hit on the 121st frame FAIL ok
+G12i INJECT=PHIT_LE 见红：R9 tangent (T = 3328 in 4 directions, 3-4-5 with T = 2560): no hit FAIL ok
+== G13 敌机、Boss 与关卡（app 测试的 S 组） ==
+G13 敌机、Boss 与关卡 21 行全 ok（64/32 同 G4） ok
+    S5 starts 0 120 1860 1934 3734 5624 7514 10004 10184
+    S6 starts 0 120 1860 1934 3719 5609 7499 9989 10169
+    S6 darts crosses cards_killed bonus graze score 17 1 1 10000 2397 35970
+    S9 steady bullets 233 471 939 1880 3761
+    S10 settle max 282
+    S11 frame 1999: K fired_total ebullets 2099 21574 2369
+== G13i 关卡的注错 ==
+G13i INJECT=CARD_TIMEOUT_GT 见红：S5 no shots, hits off: segment starts == independent (title, stage, boss, 4 card ok
+G13i INJECT=GATE_NO_ACC 见红：S11 in-game gate: K = 600 + (t*3)>>2, fired + tokens == floor(sum K / 125) every ok
+== G13x EX 关卡（app 测试的 E 组） ==
+G13x EX 关卡 12 行全 ok（64/32 同 G4） ok
+    L1 classic route: 2400 frames of normal keys keep stage set classic, ex 0 ok
+    L1 classic route: boss entered by frame 2400 ok
+    L2 all-arrows at the transition frame selects EX stage set ok
+    L4 EX event table ends with the boss event ok
+== G14 霓虹素材可重生成（gen_stg_neon.py） ==
+G14 连跑两次，13 张 PNG 逐字节相同 ok
+G14 重新生成与入库的 Main/assets/neon/ 逐像素相同（check 13 张，不同 0 张） ok
+G14i 注错 改一个像素之后比对见红（bul16.png 与重新生成的不同（尺） ok
+G14f 字库文本由入库的 BDF 重新生成，与入库的逐字节相同 ok
+G14fi 注错 改一个像素之后比对见红（gen_font_txt: check 不同，第一处在第 290 行） ok
+== G15 组帧与游戏的判据入口（STG_FIELD=4，PC，无窗口两遍） ==
+G15v 组帧与共用文字绘制 V 组 5 行全 ok（64/32 同 G4） ok
+G15 两遍日志逐字节相同、fail 0、done、九行 seg 齐全（10185 帧，10198 行） ok
+    0  120  1860  1934  3734  5624  7514  10004  10184
+    g 10184 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 6390bb33
+== G15i HUD 的注错（判据入口照样显示实测值） ==
+G15i INJECT=STG_LIVE_HUD 见红：与正常判据入口的前 1200 帧比，整帧 CRC 从第 249 帧起不同（第一个完整的一秒之前两边都是 --） ok
+== G16 可玩：工具辅助通关录像（搜索器重生成与复核、判据入口回放两遍、与搜索器的摘要逐行比） ==
+G16a 入库的录像从头按键跑一遍：走到 CLEAR、残机没用完、帧恰好用完（36848 字节） ok
+    clear 9027 score 21280 graze 938 lives 2 bombs 3
+    end frames 9208 hits 4 over 0
+G16b 搜索器重新搜出的录像与入库的逐字节相同（304 秒） ok
+    search blocks 2227 evals 1174856 backtracks 5032 forced 222
+G16c 判据入口回放两遍整份日志逐字节相同（9208 帧）、fail 0，seg/clear/end 与搜索器逐行相同 ok
+    最后一帧：g 9207 0 0 pool 0 0 0 act 0 0 0 0 0 life 3 bomb 3 score 0 graze 0 crc 174df237
+== G16i 回放的注错（第 200~203 帧的按键换成别的方向） ==
+G16i INJECT=REPLAY_KEY 见红：逐帧日志从第 200 帧起不同，摘要也与搜索器不同 ok
+    end frames 5633 hits 12 over 1
+== G17 规模：场景 S1（模式 3、16x16、旋钮固定 1744）在 PC 上按 60 Hz 跑 20 秒并截帧 ==
+G17 S1 规模：第 10 秒以后每秒抽样帧的敌弹不少于 2025、溢出 0、fail 0，第 900 帧截出 640x480 的图 ok
+    抽样帧平均的方程像素（COPY/ALPHA/ADD/CONST/MUL/ALPHA_ST）：392862/533803/179/0/0/0
+fail 0
+done
+VALIDATION PASS scope=acceptance not_applicable=0

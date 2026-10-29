@@ -604,3 +604,9 @@ JTAG加载核对字节数，周期性短暂停CPU读header，完成后dump原始
 入口为 check_f5_bin.py --ddr-log 或 validate.py --checks ddr-log；完整汇总不再依赖手工生成该日志。
 分块done、伪done和溢出保护。部署身份仍进入唯一f5_artifacts.json；JTAG功能
 日志带单独产物键，普通UART性能日志不替换。
+
+`platform-sdk`：PC上的公开API负向编译、两个独立消费者、缓冲所有权、实际驱动/调度/IRQ桥替身、持久化/健康/镜像错误路径。
+
+`sw16-board`：Windows下用既有B7快照JTAG装载新编译软件，覆盖引擎、两份SDK消费者的完整DDR帧CRC/
+独立JTAG抽样/交换计数、RTOS五应用和故障恢复，以及R4完整板端判据。acceptance包含两组1800帧节拍；
+结束或失败均恢复正常菜单并释放串口，不写Flash。`r4`另要求O2/O3的64/32位输出一致及sanitizer通过。

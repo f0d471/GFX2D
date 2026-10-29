@@ -150,7 +150,8 @@ def run_openocd(ocd, cfg, workspace, cmds, timeout=90):
 
 
 def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result,
-                  forward_input=False, input_script=None, script_after=None, stop_line=None):
+                  forward_input=False, input_script=None, script_after=None, stop_line=None,
+                  boundary_ready=None):
     """先开串口再让主线程去加载程序；读到的内容边读边写文件。
 
     `armed` 是主线程在 load_image + resume 之后置位的事件。它之前收到的字节
@@ -197,11 +198,17 @@ def serial_worker(port, baud, out_path, seconds, stop_on, ready, armed, result,
                 if forwarder is not None and armed.is_set():
                     forwarder.send(sp, time.monotonic())
                 if match_from is None and armed.is_set():
+                    if boundary_ready is not None:
+                        # Precise mode arms while CPU is halted after load.
+                        # Discard old firmware bytes before the separate resume.
+                        sp.reset_input_buffer();dec.reset();text=""
                     match_from = len(text)
                     marker_pending = True
                     if not text or text.endswith("\n"):
                         f.write("# --- 程序已加载，以下才是它的输出 ---\n")
                         marker_pending = False
+                    if boundary_ready is not None:
+                        f.flush();boundary_ready.set()
                 chunk = sp.read(4096)
                 if not chunk:
                     continue
@@ -254,12 +261,14 @@ def main():
     ap.add_argument("--bit", default=None,
                     help="要烧的比特流，默认 Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit")
     ap.add_argument("--no-program", action="store_true", help="跳过烧写比特流")
+    ap.add_argument("--precise-boundary", action="store_true",
+                    help="分离加载与运行，清空旧串口后再启动，保留完整启动证据")
     ap.add_argument("--port", default="COM11", help="串口号，默认 COM11")
     ap.add_argument("--baud", type=int, default=115200)
     ap.add_argument("--forward-input", action="store_true",
                     help="同一串口会话转发启动时前台窗口的键盘和 XInput 手柄")
     ap.add_argument("--input-script", default=None,
-                    help="诊断输入，毫秒:10位按键位图，逗号分隔；如 500:64,550:0")
+                    help="诊断输入，毫秒:14位按键快照（兼容10位），逗号分隔；如 500:2048,650:0")
     ap.add_argument("--input-script-after", default=None,
                     help="诊断输入在本次程序串口输出包含此文本后才开始计时")
     ap.add_argument("--seconds", type=int, default=60, help="串口采集时长上限")
@@ -281,6 +290,8 @@ def main():
         ap.error("--forward-input 与 --input-script 只能选一个")
     if args.input_script_after and not args.input_script:
         ap.error("--input-script-after 需要 --input-script")
+    if args.precise_boundary and not args.bin:
+        ap.error("--precise-boundary 只用于 --bin 易失加载")
     script = None
     if args.input_script:
         try:
@@ -288,7 +299,7 @@ def main():
             for item in args.input_script.split(","):
                 ms, keys = item.split(":", 1)
                 pair = (int(ms, 0), int(keys, 0))
-                if pair[0] < 0 or pair[1] < 0 or pair[1] > 0x3ff:
+                if pair[0] < 0 or pair[1] < 0 or pair[1] > 0x3fff:
                     raise ValueError(item)
                 script.append(pair)
             if any(script[i][0] > script[i + 1][0] for i in range(len(script) - 1)):
@@ -328,6 +339,8 @@ def main():
             return 2
     load_cmds = ["reset halt", "load_image {%s} %s bin" % (os.path.abspath(args.bin or "").replace("\\", "/"), args.addr),
                  "resume %s" % args.addr, "shutdown"]
+    if args.precise_boundary:
+        load_cmds = load_cmds[:2]+["shutdown"]
 
     # 从 Flash 启动：串口必须先开，再把比特流烧进去——FPGA 配置完成的那一刻
     # SoC 就复位了，bootloader 立刻开始拷程序并打印，晚开串口就丢开头。
@@ -400,6 +413,8 @@ def main():
         else:
             print("串口      : %s @ %d -> %s" % (args.port, args.baud, log))
             print("命令      : %s" % "; ".join(load_cmds))
+            if args.precise_boundary:
+                print("随后      : 清空旧串口并建立边界；resume %s; shutdown" % args.addr)
         return 0
 
     if not args.no_program:
@@ -439,11 +454,12 @@ def main():
     print("=== 先开串口 %s，再加载程序（顺序不能反）" % args.port)
     ready = threading.Event()
     armed = threading.Event()       # 加载完成之前收到的字节不参与 stop_on 匹配
+    boundary_ready = threading.Event() if args.precise_boundary else None
     result = {}
     th = threading.Thread(target=serial_worker, daemon=True,
                           args=(args.port, args.baud, log, args.seconds,
                           args.stop_on, ready, armed, result, args.forward_input, script,
-                          args.input_script_after, args.stop_line))
+                          args.input_script_after, args.stop_line, boundary_ready))
     th.start()
     ready.wait(timeout=10)
     if result.get("error"):
@@ -463,6 +479,14 @@ def main():
     # 从这里开始收到的才算这个程序的输出：烧完比特流板子会从 Flash 自启动，
     # 那一份程序打的 done / fail 0 不能拿来当本次的证据（见 serial_worker）。
     armed.set()
+    if args.precise_boundary:
+        if not loaded or not boundary_ready.wait(timeout=5):
+            print("ERROR: precise serial boundary was not established",file=sys.stderr)
+            return 1
+        resumed, resume_output = run_openocd(ocd,cfg,workspace,
+            ["resume %s" % args.addr,"shutdown"])
+        print(resume_output)
+        loaded = bool(loaded and resumed)
 
     print("=== 等串口采集结束（上限 %d 秒）" % args.seconds)
     th.join(timeout=args.seconds + 30)

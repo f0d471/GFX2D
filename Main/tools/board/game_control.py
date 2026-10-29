@@ -15,9 +15,10 @@ import serial
 from input_forward import InputForwarder, packet
 
 
-MODE_NAMES = {"demo": "1 · 图形演示", "game": "2 · 弹幕游戏", "press": "3 · 压力测试", "r3d": "4 · 三维演示"}
+MODE_NAMES = {"menu":"应用菜单", "about":"系统信息", "fault":"故障恢复",
+              "demo": "1 · 图形演示", "game": "2 · 弹幕游戏", "press": "3 · 压力测试", "r3d": "4 · 三维演示"}
 MODE_IDS = {"1": "demo", "2": "game", "3": "press", "4": "r3d"}
-KEY_NAMES = ("上", "下", "左", "右", "炸弹", "慢速", "切后端", "模式1", "模式2", "模式3")
+KEY_NAMES = ("上", "下", "左", "右", "炸弹", "慢速", "切后端", "2D [1]", "弹幕 [2]", "压力 [3]", "确认", "返回", "场景")
 
 
 class BoardState:
@@ -34,10 +35,38 @@ class BoardState:
         self.render_fps = None
         self.last_csv = 0.0
         self.headers = None
+        self.protocol = 1
+        self.app_id = None
+        self.errors = 0
+        self.last_error = None
 
     def consume(self, line):
         before = (self.mode, self.backend)
-        if line.startswith("csvh,"):
+        if line.startswith("console protocol 2"):
+            self.protocol=2
+        elif line.startswith("console status "):
+            values=line.split()[2:]
+            data=dict(zip(values[::2],values[1::2]))
+            try:
+                if data.get("v")!="2":return False
+                self.protocol=2;self.app_id=int(data["id"])
+                self.mode={"stg":"game","r4":"r3d"}.get(data["app"],data["app"])
+                self.backend=None if data["backend"]=="none" else data["backend"]
+                self.fps=int(data["fps_milli"])/1000.0
+                self.errors=int(data["errors"])
+                self.scene=int(data.get("scene",0));self.ladder=int(data.get("ladder",0))
+                self.last_csv=time.monotonic()
+                if self.mode!="r3d":self.triangles=None;self.render_fps=None
+                if self.mode not in ("game","press"):self.bullets=None
+            except (KeyError,ValueError):return False
+        elif line.startswith("console enter "):
+            app=line.split()[-1]
+            self.protocol=2;self.mode={"stg":"game","r4":"r3d"}.get(app,app)
+            self.backend=None;self.fps=None;self.last_csv=time.monotonic()
+            if self.mode!="r3d":self.triangles=None;self.render_fps=None
+        elif line.startswith("console error ") or line.startswith("console fatal "):
+            self.last_error=line;self.mode="fault";self.fps=None;self.backend=None
+        elif line.startswith("csvh,"):
             self.headers = line.split(",")[1:]
         elif line.startswith("csv,"):
             fields = line.split(",")
@@ -113,7 +142,7 @@ class ControlPanel:
         self.forwarder.focus = user32.GetAncestor(root.winfo_id(), 2)
         root.protocol("WM_DELETE_WINDOW", self.close)
         root.bind("<Tab>", lambda event: "break")
-        root.bind("<Escape>", self.toggle_input)
+        root.bind("<F8>", self.toggle_input)
         root.after(100, self.connect)
         root.after(20, self.poll)
 
@@ -150,10 +179,16 @@ class ControlPanel:
         ttk.Button(actions, text="HW/TEX（推荐）", command=lambda: self.set_backend("hw-tex")).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="HW/STRIP 条带", command=lambda: self.set_backend("hw-strip")).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="SW 软件对比", command=lambda: self.set_backend("sw")).pack(side="left", padx=(0, 6))
-        ttk.Button(actions, text="重开本局（1 → 2）", command=self.restart_game).pack(side="left", padx=(0, 6))
+        ttk.Button(actions, text="返回菜单 [Esc]", command=lambda:self.send_action(1<<11)).pack(side="left", padx=(0,6))
+        ttk.Button(actions, text="确认 [Enter]", command=lambda:self.send_action(1<<10)).pack(side="left", padx=(0,6))
+        ttk.Button(actions, text="重开弹幕游戏", command=self.restart_game).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="重新连接", command=self.connect).pack(side="right")
         three_d=ttk.Frame(outer);three_d.pack(fill="x",pady=(0,8))
-        ttk.Button(three_d,text="3D / 茶杯 [4]",command=lambda:self.send_action(0x380)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="2D 演示 [1]",command=lambda:self.send_action(1<<7)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="弹幕 [2]",command=lambda:self.send_action(1<<8)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="压力 [3]",command=lambda:self.send_action(1<<9)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="三维 [4]",command=lambda:self.send_action(0x380)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="场景 [C]",command=lambda:self.send_action((1<<12) if self.state.protocol>=2 else 0x380)).pack(side="left",padx=(0,6))
         ttk.Button(three_d,text="L1 / L2 [Shift]",command=lambda:self.send_action(1<<5)).pack(side="left",padx=(0,6))
         ttk.Button(three_d,text="炸弹 [Space]",command=lambda:self.send_action(1<<4)).pack(side="left",padx=(0,6))
         self.scene_label=ttk.Label(three_d,text="三维场景：等待板上反馈")
@@ -175,24 +210,26 @@ class ControlPanel:
             ("左 Shift（按住）", "慢速移动，并显示判定点"),
             ("空格（每次按下）", "使用一颗炸弹；三维也可清弹并获得短暂无敌"),
             ("射击", "自动射击，无需按射击键"),
-            ("1 / 2 / 3 / 4", "演示 / 游戏 / 压力 / 三维；三维内再按4切茶杯"),
+            ("1 / 2 / 3 / 4", "全局进入演示 / 游戏 / 压力 / 三维"),
+            ("Enter / Esc / C", "确认 / 返回菜单 / 切三维场景"),
             ("三维 Shift / Tab", "L1、L2阶梯 / 板上CPU、硬件光栅对照"),
             ("Tab", "HW ↔ SW；SW 由板上 CPU 绘图，会很慢"),
-            ("重开游戏", "先按 1，待切换后再按 2；或点重开按钮"),
-            ("Esc", "启用 / 停止输入转发，板上游戏继续运行"),
+            ("重开游戏", "先返回菜单再进入游戏；或点重开按钮"),
+            ("F8", "启用 / 停止输入转发，板上游戏继续运行"),
         ))
         self._rules(right, (
             ("手柄方向键 / 左摇杆", "移动飞船（第一个 XInput 手柄）"),
-            ("手柄 A / LB / Start", "炸弹 / 慢速 / 切换 HW、SW"),
+            ("手柄 A / LB / Start", "炸弹 / 慢速 / 确认"),
+            ("手柄 Back / RB / B", "返回 / 场景 / 切后端"),
             ("板上 SW0 / SW1", "左 / 下"),
             ("板上 SW2 / SW3", "上 / 右"),
-            ("上 + 下，保持 8 帧", "切到下一个模式：1 → 2 → 3 → 4 → 1"),
-            ("左 + 右，保持 8 帧", "切换 HW、SW；键盘 A+D 同样会触发"),
-            ("组合键再次触发", "这一对键都松开后，才能再次触发"),
+            ("板上物理上 + 下", "返回菜单"),
+            ("板上物理左 + 右", "确认选择；游戏中为炸弹"),
+            ("键盘方向组合", "保持为方向输入，不再切应用或后端"),
             ("模式 1 / 模式 3", "演示或压力测试，不是可操作的游戏"),
         ))
-        warning = tk.Label(outer, text="误触提醒：A+D / 左右同时按 8 帧会切换绘图后端；W+S / 上下会切换模式。\n"
-                           "在 60 FPS 下，8 帧只需约 0.13 秒。切换后看上方当前状态，卡顿时点“回到 HW”。",
+        warning = tk.Label(outer, text="产品前端：数字键始终启动同一个应用；Esc 返回菜单，C 切三维场景。\n"
+                           "菜单、系统页与应用状态都由板上反馈；软件参考后端较慢，可用 Tab 切回硬件。",
                            bg="#fff0d8", fg="#854b00", anchor="w", justify="left", padx=12, pady=9,
                            font=("Microsoft YaHei UI", 10, "bold"))
         warning.pack(fill="x", pady=(10, 8))
@@ -204,7 +241,7 @@ class ControlPanel:
             ("自动驾驶", "连续 600 帧无输入后接管（60 FPS 下约 10 秒）；任意游戏按键立即接管回来。"),
             ("窗口与退出", "切到其它窗口时停止键盘输入，手柄仍可用；关闭面板会松开转发键，板上游戏继续。"),
         ))
-        ttk.Checkbutton(outer, text="启用键盘与手柄转发（Esc 切换；停止转发不会暂停游戏）",
+        ttk.Checkbutton(outer, text="启用键盘与手柄转发（F8 切换；停止转发不会暂停游戏）",
                         variable=self.enabled, command=self.release_keys).pack(anchor="w", pady=(8, 0))
 
     @staticmethod
@@ -266,6 +303,9 @@ class ControlPanel:
             return False
 
     def set_backend(self, target):
+        if self.state.protocol>=2 and self.state.mode not in ("demo","game","press","r3d"):
+            self.notify("先进入应用，再切换绘图后端。")
+            return
         if self.state.mode == "r3d" and target.startswith("hw"):
             target = "hw"
         if self.pending_backend is not None:
@@ -286,7 +326,14 @@ class ControlPanel:
         if self.state.mode is None:
             self.notify("尚未收到当前模式；等待板上反馈后再重开。")
             return
-        if self.state.mode == "demo":
+        if self.state.protocol>=2:
+            if self.state.mode=="menu":
+                self.send_action(1<<8)
+            elif self.send_action(1<<11):
+                self.restart_pending=True
+                self.restart_since=time.monotonic()
+                self.notify("返回菜单后重开弹幕游戏。")
+        elif self.state.mode == "demo":
             if self.send_action(1 << 8):
                 self.notify("已请求进入游戏模式，等待板上确认。")
         elif self.send_action(1 << 7):
@@ -319,6 +366,17 @@ class ControlPanel:
     def process_line(self, line):
         before_backend = self.state.backend
         changed = self.state.consume(line)
+        if line.startswith("console enter "):
+            # A backend confirmation belongs to one application. Never replay
+            # its remaining Tab actions into the newly selected application.
+            self.pending_backend=None
+            if self.restart_pending and self.state.mode!="menu":
+                self.restart_pending=False
+                self.notify("应用已切换，取消尚未完成的重开请求。")
+        if line.startswith("console error ") or line.startswith("console fatal "):
+            self.pending_backend=None;self.restart_pending=False
+            self.notify("板端报告故障："+line)
+            return
         if changed:
             mode = MODE_NAMES.get(self.state.mode, "模式未知")
             backend = (self.state.backend or "未知").upper()
@@ -333,7 +391,7 @@ class ControlPanel:
             elif self.send_action(1 << 6):
                 self.pending_steps += 1
                 self.pending_since = time.monotonic()
-        if self.restart_pending and self.state.mode == "demo":
+        if self.restart_pending and self.state.mode == ("menu" if self.state.protocol>=2 else "demo"):
             self.restart_pending = False
             self.send_action(1 << 8)
         if self.ensure_hw and self.state.backend is not None:
@@ -347,7 +405,8 @@ class ControlPanel:
         self.backend_label.configure(text={"hw": "HW/DDR · FPGA 加速", "hw-tex": "HW/TEX · 片上纹理", "hw-strip": "HW/STRIP · 条带渲染", "sw": "SW · CPU 绘图"}.get(backend, "等待板上反馈"),
                                      fg="#167144" if backend in ("hw", "hw-tex", "hw-strip") else "#b42318" if backend == "sw" else "#17243b")
         if self.state.mode=="r3d":
-            self.backend_label.configure(text="HW · 三维光栅" if backend=="hw" else "SW · CPU 参考")
+            self.backend_label.configure(text="等待三维反馈" if backend is None else
+                                         "HW · 三维光栅" if backend=="hw" else "SW · CPU 参考")
         fps = f"{self.state.fps:.1f}" if self.state.fps is not None else "—"
         bullets = str(self.state.bullets) if self.state.bullets is not None else "—"
         self.fps_label.configure(text=f"{fps} FPS / {bullets} 颗")
@@ -359,7 +418,12 @@ class ControlPanel:
                               fg="#b42318" if backend == "sw" or self.port is None else "#164582")
         focus = self.forwarder.user32.GetForegroundWindow() == self.forwarder.focus
         keys = self.forwarder.last or 0
-        pressed = "、".join(name for index, name in enumerate(KEY_NAMES) if keys & (1 << index)) or "无"
+        display_keys=keys
+        names=[]
+        if display_keys&0x380==0x380:
+            names.append("三维 [4]");display_keys&=~0x380
+        names.extend(name for index,name in enumerate(KEY_NAMES) if display_keys&(1<<index))
+        pressed="、".join(names) or "无"
         self.input_label.configure(text=("输入转发已停止（游戏继续）" if not self.enabled.get() else
                                   "键盘前台可用；手柄可用" if focus else "键盘已松开：点击面板可恢复；手柄可用") + f" · 当前按键：{pressed}")
         if self.port is not None and self.state.last_csv:
@@ -371,6 +435,7 @@ class ControlPanel:
             path = Path(self.args.status_file)
             path.parent.mkdir(parents=True, exist_ok=True)
             snapshot = dict(mode=self.state.mode, backend=backend, fps=self.state.fps, bullets=self.state.bullets,
+                            protocol=self.state.protocol,app_id=self.state.app_id,errors=self.state.errors,
                             triangles=self.state.triangles,ladder=self.state.ladder,scene=self.state.scene,
                             render_fps=self.state.render_fps,
                             connected=self.port is not None, keyboard_focus=focus, keys=keys,
@@ -381,8 +446,21 @@ class ControlPanel:
             self.last_status_write = time.monotonic()
 
     def poll(self):
-        if self.closed:
-            return
+        # 整个循环体包自愈守卫：这里靠末尾 after() 自我续排，回调里抛任何
+        # 未捕获异常都会让轮询静默死亡（窗口还在、串口还在，但收发全停，
+        # 现象就是"面板卡住"——2026-10-28 检阅时实际发生）。任何异常都打印
+        # 并继续调度；串口层面的断开仍走 disconnect 的用户提示。
+        try:
+            self._poll_body()
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            if self.log:
+                self.log.write("# poll exception (recovered)\n")
+        if not self.closed:
+            self.root.after(20, self.poll)
+
+    def _poll_body(self):
         if self.port is not None:
             try:
                 if self.enabled.get():
@@ -409,7 +487,6 @@ class ControlPanel:
             self.restart_pending = False
             self.notify("10 秒内没有确认演示模式，重开未继续。查看模式状态后再操作。")
         self.refresh()
-        self.root.after(20, self.poll)
 
     def close(self):
         self.closed = True

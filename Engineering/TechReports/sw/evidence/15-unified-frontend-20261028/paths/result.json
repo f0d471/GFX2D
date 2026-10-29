@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "paths"
+  ],
+  "run_id": "acceptance-paths-02"
+}

@@ -1,0 +1,46 @@
+{
+  "unrelated_changed": [
+    "Deliverables/Report/gfx2d技术报告.docx",
+    "Deliverables/Report/gfx2d技术报告.pdf",
+    "Deliverables/Report/parts/00-封面摘要.md",
+    "Deliverables/Report/parts/01-作品概述.md",
+    "Deliverables/Report/parts/04-完成情况.md"
+  ],
+  "unexpected_unrelated_changes": [],
+  "separately_observed_report_updates": [
+    {
+      "path": "Deliverables/Report/gfx2d技术报告.docx",
+      "before_sha256": "b8bd2f604b04d8a281ea682559eac0f0998c8a1ea7575a90a86bbb4994b4e287",
+      "current_sha256": "1954efc38388c56bb8fd0d468fc35801647f7d6f19556b4bebfda324c4384a44",
+      "mtime_ns": 1793205331069444800
+    },
+    {
+      "path": "Deliverables/Report/gfx2d技术报告.pdf",
+      "before_sha256": "8db0567dfc027337844916bb3da33da61a793a60d50b46476b1875057494641e",
+      "current_sha256": "90a2fdef829dfeb8f5aa7c8ef6c0df19704da5b5ceccf10eee31d861956b348d",
+      "mtime_ns": 1793205354626882800
+    },
+    {
+      "path": "Deliverables/Report/parts/00-封面摘要.md",
+      "before_sha256": "3d0d8387b9f77b87f7034c06f74ae05bc5157cce60c579af3df2ee5bda74f57b",
+      "current_sha256": "f423a5da9b92ec773fa0e088acc8fee2d22b69f0c5ce972a1147787ce3747ee9",
+      "mtime_ns": 1793205330488164900
+    },
+    {
+      "path": "Deliverables/Report/parts/01-作品概述.md",
+      "before_sha256": "1c65b645dc628d92ba10e4628be439dfb56ca7f7896c5db4d07ec4f66a9073f6",
+      "current_sha256": "7c749478b122774bbad546d3b7ef4fbad90dae815d5ceb12540c242fa8319ff1",
+      "mtime_ns": 1793204267586508500
+    },
+    {
+      "path": "Deliverables/Report/parts/04-完成情况.md",
+      "before_sha256": "c812f873450e0f0e03f578c51defb843a59ef2a382ef0da2bf3f0a2bea9c0146",
+      "current_sha256": "9cb57be81f8eaebf99169a9f4e8934949932b93906a5ddba6ce403981e3bbb4b",
+      "mtime_ns": 1793201572144051600
+    }
+  ],
+  "report_update_note": "These report files were not edited by this software task; preserve their current contents. This is not a byte-unchanged claim for the whole report directory.",
+  "user_poll_guard_preserved": true,
+  "local_links_checked": 113,
+  "missing_links": []
+}

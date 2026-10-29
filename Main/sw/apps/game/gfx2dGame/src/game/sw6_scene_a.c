@@ -4,7 +4,7 @@
 * @brief  实现见 sw6_scene_a.h。全部是整数运算，没有浮点、没有 malloc。
 ******************************************************************************/
 
-#include "board.h"
+#include "sw6_cfg.h"
 
 #include "core/xorshift32.h"
 
@@ -116,11 +116,11 @@ void sw6_a_begin(sw6_scene_a *a, uint32_t seed, uint32_t n0)
         }
 
         b->xmin = 0;
-        b->xmax = q16_range(FB_WIDTH - (uint32_t)b->w);
+        b->xmax = q16_range(SW6_CANVAS_WIDTH - (uint32_t)b->w);
         b->ymin = 0;
-        b->ymax = q16_range(FB_HEIGHT - (uint32_t)b->h);
-        b->x    = (int32_t)((r[3] % (FB_WIDTH - (uint32_t)b->w + 1u)) * 16u);
-        b->y    = (int32_t)((r[4] % (FB_HEIGHT - (uint32_t)b->h + 1u)) * 16u);
+        b->ymax = q16_range(SW6_CANVAS_HEIGHT - (uint32_t)b->h);
+        b->x    = (int32_t)((r[3] % (SW6_CANVAS_WIDTH - (uint32_t)b->w + 1u)) * 16u);
+        b->y    = (int32_t)((r[4] % (SW6_CANVAS_HEIGHT - (uint32_t)b->h + 1u)) * 16u);
 
         b->vx = (int32_t)(1u + r[6] % 3u) * 16;
         if ((r[6] & 0x10000u) != 0u)
@@ -204,8 +204,8 @@ void sw6_a_build(const sw6_scene_a *a, gfx_list *l, int dst, sw6_build_stat *fs)
         const int32_t    x1 = x0 + (int32_t)b->w - 1;
         const int32_t    y1 = y0 + (int32_t)b->h - 1;
         const int        partial = (x0 < 0) || (y0 < 0)
-                                || (x1 > (int32_t)FB_WIDTH - 1)
-                                || (y1 > (int32_t)FB_HEIGHT - 1);
+                                || (x1 > (int32_t)SW6_CANVAS_WIDTH - 1)
+                                || (y1 > (int32_t)SW6_CANVAS_HEIGHT - 1);
         int              rc;
 
         fs->cmds++;

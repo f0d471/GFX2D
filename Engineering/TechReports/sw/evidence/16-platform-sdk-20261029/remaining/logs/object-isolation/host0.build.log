@@ -1,0 +1,12 @@
+make: Entering directory '/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sim/build/check-runs/20261029-053822-759174b5/build/object-isolation/tree/apps/game'
+CC src/main.c
+CC bsp/board_wait.c
+CC bsp/memmap.c
+CC bsp/key_packet.c
+CC bsp/host/board.c
+CC ../../shared/shared.c
+CC bsp/host/display_diag.c
+CC bsp/host/gfx_engine.c
+CC(service) services/input/board_input.c
+LD /mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sim/build/check-runs/20261029-053822-759174b5/build/object-isolation/tree/host-a/objectFixture
+make: Leaving directory '/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sim/build/check-runs/20261029-053822-759174b5/build/object-isolation/tree/apps/game'

@@ -145,7 +145,7 @@ def rtl():
     run('game_dump_compile', ['gcc', '-O2', '-std=c11', '-Wall', '-Wextra', '-Werror',
         '-ffunction-sections', '-fdata-sections', '-Wl,--gc-sections',
         *['-I' + str(p) for p in (lib, MAIN/'sw/bsp/include', game, MAIN/'assets/build')],
-        MAIN/'tools/check/g4_game_dump.c', game/'stg_modes.c',
+        MAIN/'tools/check/g4_game_dump.c', MAIN/'sw/ports/myriad/stg_modes.c',
         *sorted((game/'game').glob('stg_*.c')), *sorted((lib/'gfx').glob('*.c')),
         *sorted((lib/'core').glob('*.c')), '-o', BUILD/'game_dump'])
     result = run('game_golden', [BUILD/'game_dump', BUILD/'game',

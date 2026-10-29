@@ -1,0 +1,15 @@
+{
+  "target_examined": true,
+  "commands": [
+    "halt",
+    "reg pc",
+    "mdw 0xf8b0bff8 2",
+    "mdw 0x0f8bbff8 2",
+    "mdw 0xf8b04000 2",
+    "resume",
+    "shutdown"
+  ],
+  "configured_mtime": "0xf8b0bff8",
+  "literal_mtime_in_rtos_irq": "0xf8bbff8",
+  "flash_write": false
+}

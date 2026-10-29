@@ -1,0 +1,29 @@
+board: GFX2D_UNPACED=1，呈现不等场
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+console enter menu
+menu crc 24eeb9cf sel 0
+console complete app menu id 0 frames 5 presents 5 errors 0
+console leave menu
+console enter demo
+console complete app demo id 1 frames 14 presents 14 errors 0
+console leave demo
+console enter stg
+console complete app stg id 2 frames 14 presents 14 errors 0
+console leave stg
+nmax load 16x16
+nmax cfg N0=64 STEP_MIN=16 T_PROBE=120 T_CONFIRM=3600 SETTLE_MIN=300 SETTLE_FRAMES=30 SETTLE_ABS=2 SETTLE_MAX=600 CONFIRM_RETRY=3 KNOB_MAX=16000 F=1666667
+console enter press
+console complete app press id 3 frames 14 presents 14 errors 0
+console leave press
+r4 enter ladder/hw 2 0
+console scene 0 ladder 2
+console enter r4
+r4 leave frames/late 19 0
+console complete app r4 id 4 frames 19 presents 19 errors 0
+console leave r4
+console enter menu
+menu crc 24eeb9cf sel 0
+console complete app menu id 0 frames 9 presents 9 errors 0
+console leave menu
