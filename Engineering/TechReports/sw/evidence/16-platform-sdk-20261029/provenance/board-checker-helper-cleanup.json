@@ -1,9 +1,0 @@
-{
-  "status": "PASS",
-  "removed_function": "save_png",
-  "call_sites": 0,
-  "remaining_executable_ast_identical": true,
-  "device_operations_changed": false,
-  "before_sha256": "128ee89e23c8f3ceca2e2c2f9d09188b45a4583f17f23c2fae8d46bd0e8698ae",
-  "after_sha256": "522718a7c672fc246ff604f3ed86fe64aee2f3729dd59f8a171126adc410bcb3"
-}

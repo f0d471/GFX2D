@@ -1,2 +1,0 @@
-RUN Main/sim/build/check-runs/sw16-opt-host-20261029
-CONSOLE HOST PASS lifecycle/input/faults/menu/four-apps/perf-policy

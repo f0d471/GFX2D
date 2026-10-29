@@ -1,7 +1,0 @@
-# COM11 @ 115200 8N1, opened 20:17:07
-gfx2dGame MODES
-# --- 程序已加载，以下才是它的输出 ---
-SDK bounce frames 24 presents 24 PASS
-SDKCHECK bounce crc0 1bc5cd76 crc1 6a04e790 swaps 24 PASS
-
-# closed 20:17:13, 114 bytes

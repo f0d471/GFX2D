@@ -1,8 +1,0 @@
-/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/rtos/rtos_irq.c: In function ‘freertos_risc_v_application_interrupt_handler’:
-/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/rtos/rtos_irq.c:37:13: error: implicit declaration of function ‘xTaskGetSchedulerState’ [-Wimplicit-function-declaration]
-   37 |         if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-      |             ^~~~~~~~~~~~~~~~~~~~~~
-/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/rtos/rtos_irq.c:37:41: error: ‘taskSCHEDULER_NOT_STARTED’ undeclared (first use in this function)
-   37 |         if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-      |                                         ^~~~~~~~~~~~~~~~~~~~~~~~~
-/mnt/e/Workspace/FPGA/.worktrees/Efinix-sw16/Main/sw/rtos/rtos_irq.c:37:41: note: each undeclared identifier is reported only once for each function it appears in

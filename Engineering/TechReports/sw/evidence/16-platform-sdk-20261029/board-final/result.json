@@ -1,8 +1,0 @@
-{
-  "status": "PASS",
-  "profile": "acceptance",
-  "checks": [
-    "sw16-board"
-  ],
-  "run_id": "sw16-board-20261029-final2"
-}

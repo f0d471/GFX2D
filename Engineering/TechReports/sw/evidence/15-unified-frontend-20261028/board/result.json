@@ -1,9 +1,0 @@
-{
-  "status": "PASS",
-  "profile": "acceptance",
-  "checks": [
-    "console-board",
-    "r4-frozen-board"
-  ],
-  "run_id": "acceptance-board-02"
-}

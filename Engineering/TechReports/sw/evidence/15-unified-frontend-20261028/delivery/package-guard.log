@@ -1,4 +1,0 @@
-usage: package_game.py [-h] --name NAME --pc PC --dll DLL --bin BIN --bit BIT
-                       [--license LICENSE] [--qa QA]
-                       [--verification VERIFICATION] --note NOTE
-package_game.py: error: PC and board must use the same product frontend

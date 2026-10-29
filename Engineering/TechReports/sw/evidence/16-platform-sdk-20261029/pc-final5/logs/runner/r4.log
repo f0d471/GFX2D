@@ -1,2 +1,0 @@
-RUN Main/sim/build/check-runs/sw16-final5-pc-20261029
-R4 HOST PASS scenes=3 frames=60

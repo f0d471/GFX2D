@@ -1,8 +1,0 @@
-{
-  "status": "PASS",
-  "profile": "quick",
-  "checks": [
-    "synthesis"
-  ],
-  "run_id": "pix-refactor-syn"
-}

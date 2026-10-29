@@ -1,9 +1,0 @@
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 10124 presents 10124 errors 0 scene 0 ladder 0 dropped 0 tick_ms 175701 irqA 10543 heap 57920 faults 0 tasks 4 idle 310144033 monitor 168
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 10184 presents 10184 errors 0 scene 0 ladder 0 dropped 0 tick_ms 176701 irqA 10603 heap 57920 faults 0 tasks 4 idle 311980346 monitor 169
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 10244 presents 10244 errors 0 scene 0 ladder 0 dropped 0 tick_ms 177701 irqA 10663 heap 57920 faults 0 tasks 4 idle 313816548 monitor 170
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 10304 presents 10304 errors 0 scene 0 ladder 0 dropped 0 tick_ms 178701 irqA 10723 heap 57920 faults 0 tasks 4 idle 315652673 monitor 171
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 10364 presents 10364 errors 0 scene 0 ladder 0 dropped 0 tick_ms 179701 irqA 10783 heap 57920 faults 0 tasks 4 idle 317489054 monitor 172
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 10424 presents 10424 errors 0 scene 0 ladder 0 dropped 0 tick_ms 180701 irqA 10843 heap 57920 faults 0 tasks 4 idle 319325927 monitor 173
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 10484 presents 10484 errors 0 scene 0 ladder 0 dropped 0 tick_ms 181701 irqA 10903 heap 57920 faults 0 tasks 4 idle 321162869 monitor 174
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 10544 presents 10544 errors 0 scene 0 ladder 0 dropped 0 tick_ms 182701 irqA 10963 heap 57920 faults 0 tasks 4 idle 322999995 monitor 175
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 10604 presents 10604 errors 0 scene 0 ladder 0 dropped 0 tick

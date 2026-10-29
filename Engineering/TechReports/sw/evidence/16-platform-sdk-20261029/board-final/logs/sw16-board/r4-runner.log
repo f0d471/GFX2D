@@ -1,4 +1,0 @@
-RUN Main/sim/build/check-runs/sw16-board-20261029-final2
-R4 BOARD PASS l1
-R4 BOARD PASS l2
-R4 BOARD PASS cup

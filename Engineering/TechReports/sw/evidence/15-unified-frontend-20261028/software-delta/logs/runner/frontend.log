@@ -1,7 +1,0 @@
-RUN Main/sim/build/check-runs/20261028-190528-software-convergence/acceptance-software-delta-01
-FRONTEND MODELS PASS
-FRONTEND LOG CHECKER SELFTEST PASS
-FAIL: pipeline_model_compile: unexpected exit 1: /usr/bin/x86_64-linux-gnu-ld.bfd: /tmp/ccKt8Aev.o: in function `submit_list':
-/mnt/e/Workspace/FPGA/Efinix/Main/sw/apps/game/gfx2dGame/src/renderer.c:187:(.text.submit_list+0xe1): undefined reference to `gfx_engine_submit_pb'
-collect2: error: ld returned 1 exit status
-

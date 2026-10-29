@@ -1,9 +1,0 @@
-{
-  "status": "PASS",
-  "accepted_run": "sw16-board-20261029-final2",
-  "inputs": 965,
-  "changed": [],
-  "executable_changes": 0,
-  "hardware_changes": 0,
-  "reason": "Current Main documentation was updated before the final freeze. After acceptance, executable and source inputs remain identical. XML identities use validator normalization."
-}

@@ -1,2 +1,0 @@
-RUN Main/sim/build/check-runs/sw16-board-20261029-final2
-SW16 BOARD PASS engine/SDK pixels/RTOS/faults/R4; normal menu restored, UART released

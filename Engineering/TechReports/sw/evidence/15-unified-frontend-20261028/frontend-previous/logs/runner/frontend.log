@@ -1,5 +1,0 @@
-RUN Main/sim/build/check-runs/20261028-190528-software-convergence/acceptance-frontend-01
-FRONTEND MODELS PASS
-FRONTEND LOG CHECKER SELFTEST PASS
-FAIL: pipeline_instance_reset: unexpected exit 1: FAIL pipeline: instance lease begin
-

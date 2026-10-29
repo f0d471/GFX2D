@@ -1,4 +1,0 @@
-ERROR_INDEX          0
-ERROR_STAGE          0
-RESULT: PASS errors=          0 guard=       7815
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/engine/frontend/tb_engine_pb.v:251: $finish called at 235415000 (1ps)

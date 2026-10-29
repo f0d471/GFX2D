@@ -1,8 +1,0 @@
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 4303 presents 4303 errors 0 scene 0 ladder 0 dropped 0 tick_ms 78699 irqA 4723 heap 57920 faults 0 tasks 4 idle 131868761 monitor 71
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 4363 presents 4363 errors 0 scene 0 ladder 0 dropped 0 tick_ms 79699 irqA 4783 heap 57920 faults 0 tasks 4 idle 133707680 monitor 72
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 4423 presents 4423 errors 0 scene 0 ladder 0 dropped 0 tick_ms 80699 irqA 4843 heap 57920 faults 0 tasks 4 idle 135546547 monitor 73
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 4483 presents 4483 errors 0 scene 0 ladder 0 dropped 0 tick_ms 81699 irqA 4903 heap 57920 faults 0 tasks 4 idle 137385821 monitor 74
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 4543 presents 4543 errors 0 scene 0 ladder 0 dropped 0 tick_ms 82699 irqA 4963 heap 57920 faults 0 tasks 4 idle 139225213 monitor 75
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 4603 presents 4603 errors 0 scene 0 ladder 0 dropped 0 tick_ms 83699 irqA 5023 heap 57920 faults 0 tasks 4 idle 141064297 monitor 76
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 4663 presents 4663 errors 0 scene 0 ladder 0 dropped 0 tick_ms 84699 irqA 5083 heap 57920 faults 0 tasks 4 idle 142903609 monitor 77
-console status v 2 app menu id 0 backend hw fps_milli 60000 frames 4723 presents 4723 errors 0 scene 0 ladder 0 dropped 0 tick_ms 85699 irqA 5143 heap 57920 faults 0 tasks 4 idle 144741930 monitor 78

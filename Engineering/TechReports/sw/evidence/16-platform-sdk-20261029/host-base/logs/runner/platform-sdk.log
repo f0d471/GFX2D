@@ -1,2 +1,0 @@
-RUN Main/sim/build/check-runs/20261029-031110-e416c678
-PLATFORM SDK PC PASS public-build/ownership/driver-deadline/scheduler/persistence/health/image

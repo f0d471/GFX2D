@@ -1,4 +1,0 @@
-F4 LEASE RESET PASS failed_drain=held later_successful_reset=released generation=renewed
-engine err code 1 index 0 tag 0
-engine err code 4294967293 index 0 tag 0
-PASS: 64 async frames plus cached pass, two owned BG/CMD sets, generation/ticket wrap, whole PERF, no scan overwrite, error no present
