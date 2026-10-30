@@ -180,12 +180,12 @@ def add_figure(doc, path, caption, fig_no, width_cm=14.4):
     height_cm = width_cm * h_px / w_px
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_before = Pt(4)
     p.paragraph_format.keep_with_next = True
     p.add_run().add_picture(str(img), width=Cm(width_cm))
     cap = para(doc, f"图{fig_no}　{caption}", size=10.5, hei=True, bold=True,
                align=WD_ALIGN_PARAGRAPH.CENTER, indent=False, spacing=1.15,
-               before=3, after=10)
+               before=3, after=8)
 
 
 def add_placeholder(doc, title, note):
@@ -212,11 +212,13 @@ def add_placeholder(doc, title, note):
 
 def build():
     doc = Document()
-    for name in ("Normal", "Heading 1", "Heading 2", "Heading 3"):
+    for name in ("Normal", "Heading 1", "Heading 2", "Heading 3", "Heading 4"):
         style = doc.styles[name]
         style.font.name = "Times New Roman"
         style.font.color.rgb = RGBColor(0, 0, 0)
-        style._element.get_or_add_rPr().get_or_add_rFonts().set(qn("w:eastAsia"), "宋体" if name == "Normal" else "黑体")
+        # 四级标题与正文同族(宋体)，只靠加粗区分，避免比正文还抢眼
+        east = "宋体" if name in ("Normal", "Heading 4") else "黑体"
+        style._element.get_or_add_rPr().get_or_add_rFonts().set(qn("w:eastAsia"), east)
         style.paragraph_format.widow_control = True
     sec = doc.sections[0]
     sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
@@ -288,6 +290,13 @@ def build():
                      before=6, after=12)
             p.style = doc.styles["Heading 1"]
             p.paragraph_format.page_break_before = True
+        elif line.startswith("#### "):
+            p = para(doc, line[5:], size=12, bold=True, hei=False, indent=False,
+                     before=6, after=2, keep_with_next=True)
+            p.style = doc.styles["Heading 4"]
+            if pending_pb:
+                p.paragraph_format.page_break_before = True
+                pending_pb = False
         elif line.startswith("### "):
             p = para(doc, line[4:], size=12, bold=True, hei=True, indent=False,
                      before=8, after=4, keep_with_next=True)
