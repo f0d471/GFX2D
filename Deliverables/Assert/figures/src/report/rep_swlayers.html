@@ -1,60 +1,42 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="900x400">
+<meta name="fig-size" content="900x430">
 <link rel="stylesheet" href="_rep.css">
 <style>
-.lay { position: absolute; left: 0; width: 96px; text-align: left; font-size: 18px; font-weight: 700;
-       color: #1D2733; line-height: 1.2; }
+.lay { position: absolute; left: 0; width: 100px; font-size: 19px; font-weight: 700; color: #1D2733; line-height: 1.2; }
 .box { position: absolute; box-sizing: border-box; border: 2px solid #87929E; border-radius: 6px;
-       background: #F4F5F7; display: flex; flex-direction: column; align-items: center;
-       justify-content: center; text-align: center; padding: 6px 10px; }
-.box .t { font-size: 20px; font-weight: 700; color: #1D2733; line-height: 1.25; }
-.box .s { font-size: 16px; color: #4A5568; line-height: 1.3; margin-top: 3px; }
+       background: #F4F5F7; display: flex; align-items: center; justify-content: center;
+       text-align: center; font-size: 21px; font-weight: 700; color: #1D2733; padding: 0 8px; }
 .ctl { background: #FBEEF0; border-color: #E8546B; }
 .cmp { background: #EEF7E9; border-color: #67BA4A; }
 .dat { background: #EDF3FB; border-color: #4A7FD0; }
 .ext { background: #F4F5F7; border-color: #87929E; }
 </style></head>
-<body><div id="fig" style="width:900px;height:400px">
+<body><div id="fig" style="width:900px;height:430px">
 
-<div class="lay" style="top:46px">应用层</div>
-<div class="lay" style="top:144px">算法层</div>
-<div class="lay" style="top:242px">板级支持层</div>
-<div class="lay" style="top:332px">厂商层</div>
+<div class="lay" style="top:57px">应用层</div>
+<div class="lay" style="top:167px">算法层</div>
+<div class="lay" style="top:277px">板级支持层</div>
+<div class="lay" style="top:380px">厂商层</div>
 
-<div class="box ctl" style="left:100px;top:20px;width:330px;height:78px">
-  <div class="t">系统菜单与应用框架</div><div class="s">应用切换 · 回调调度 · 故障返回</div>
-</div>
-<div class="box ctl" style="left:446px;top:20px;width:444px;height:78px">
-  <div class="t">四个应用</div><div class="s">基础演示 · 弹幕游戏 · 压力测试 · 三维走廊射击</div>
-</div>
+<div class="box ctl" style="left:110px;top:24px;width:330px;height:86px">应用前端</div>
+<div class="box ctl" style="left:466px;top:24px;width:414px;height:86px">测量程序</div>
 
-<div class="box cmp" style="left:100px;top:118px;width:290px;height:78px">
-  <div class="t">命令构造</div><div class="s">直通 · 条带 · 分桶三条路径</div>
-</div>
-<div class="box cmp" style="left:406px;top:118px;width:240px;height:78px">
-  <div class="t">软件执行器</div><div class="s">按命令语义写像素</div>
-</div>
-<div class="box cmp" style="left:662px;top:118px;width:228px;height:78px">
-  <div class="t">定点与统计</div><div class="s">定点运算 · 计时与计数</div>
-</div>
+<div class="box cmp" style="left:110px;top:134px;width:290px;height:86px">命令构造</div>
+<div class="box cmp" style="left:426px;top:134px;width:220px;height:86px">基础支撑</div>
+<div class="box cmp" style="left:672px;top:134px;width:208px;height:86px">判据</div>
 
-<div class="box dat" style="left:100px;top:216px;width:330px;height:78px">
-  <div class="t">板上驱动</div><div class="s">内存映射 · 引擎寄存器 · 显示与输入</div>
-</div>
-<div class="box dat" style="left:446px;top:216px;width:444px;height:78px">
-  <div class="t">PC 模拟板</div><div class="s">窗口 · 输入 · 计时，与板上同一套接口</div>
-</div>
+<div class="box dat" style="left:110px;top:244px;width:250px;height:86px">接口定义</div>
+<div class="box dat" style="left:386px;top:244px;width:240px;height:86px">板上实现</div>
+<div class="box dat" style="left:652px;top:244px;width:228px;height:86px">PC 模拟板</div>
 
-<div class="box ext" style="left:100px;top:314px;width:790px;height:64px">
-  <div class="t">处理器支持包与驱动</div><div class="s">厂商提供，只读</div>
-</div>
+<div class="box ext" style="left:110px;top:354px;width:770px;height:60px">处理器支持包</div>
 
-<svg class="links" viewBox="0 0 900 400">
+<svg class="links" viewBox="0 0 900 430">
   <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="5" orient="auto"><path d="M1,1 L12,5 L1,9" stroke="#4A5568" stroke-width="2" fill="none"/></marker></defs>
-  <line x1="300" y1="98" x2="300" y2="115" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="300" y1="196" x2="300" y2="213" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="300" y1="294" x2="300" y2="311" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="300" y1="110" x2="300" y2="131" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="300" y1="220" x2="300" y2="241" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="300" y1="330" x2="300" y2="351" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
 </svg>
 
 </div></body></html>
