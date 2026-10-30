@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="1040x470">
+<meta name="fig-size" content="1040x410">
 <link rel="stylesheet" href="_rep.css">
 <style>
 .lane { position: absolute; left: 150px; right: 30px; height: 52px; }
@@ -12,7 +12,7 @@
 .dm { position: absolute; width: 15px; height: 15px; background: #EFD9A8; border: 2px solid #8A6410;
       transform: rotate(45deg); }
 </style></head>
-<body><div id="fig" style="width:1040px;height:470px">
+<body><div id="fig" style="width:1040px;height:410px">
 
 <!-- field boundaries abs x: 140 + k*176 -->
 <div class="vl" style="left:140px"></div><div class="vl" style="left:316px"></div>
@@ -50,12 +50,10 @@
 <div class="dm" style="left:661px;top:302px"></div>
 <div class="dm" style="left:1013px;top:302px"></div>
 <div class="lbl bg" style="left:522px;top:330px;color:#8A6410">菱形 = 消隐期切换点</div>
-<div class="lbl bg" style="left:560px;top:224px;color:#B23A48">list_done 晚于消隐 → 该场不切换</div>
+<div class="lbl bg" style="left:560px;top:224px;color:#B23A48">完成信号晚于消隐 → 该场不切换</div>
 
-<div class="lbl b" style="left:34px;top:372px">流水关系</div>
-<div class="lbl" style="left:150px;top:372px;line-height:1.7">CPU 填第 N 帧命令表与引擎渲第 N−1 帧并行；list_done 后置 SWAP_REQ，<br>下一场消隐期锁存切换；引擎超期则保持前帧并计入掉帧（帧率 = 场数 − 切换数）。</div>
 
-<div class="lg" style="left:34px;top:436px">
+<div class="lg" style="left:34px;top:378px">
 <span class="bx" style="border-color:#E8546B;background:#FBEEF0"></span>CPU 侧
 <span class="bx" style="border-color:#67BA4A;background:#EEF7E9;margin-left:12px"></span>引擎侧
 <span class="bx" style="border-color:#4A7FD0;background:#EDF3FB;margin-left:12px"></span>呈现
