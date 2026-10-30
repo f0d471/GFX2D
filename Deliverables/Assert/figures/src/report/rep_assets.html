@@ -1,39 +1,66 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="1040x430">
-<link rel="stylesheet" href="_rep.css"></head>
-<body><div id="fig" style="width:1040px;height:430px">
+<meta name="fig-size" content="900x330">
+<link rel="stylesheet" href="_rep.css">
+<style>
+.lane { position: absolute; left: 0; width: 88px; font-size: 20px; font-weight: 700; color: #1D2733; line-height: 1.2; }
+.box { position: absolute; box-sizing: border-box; border: 2px solid #87929E; border-radius: 6px;
+       display: flex; flex-direction: column; align-items: center; justify-content: center;
+       text-align: center; padding: 6px 8px; }
+.box .t { font-size: 19px; font-weight: 700; color: #1D2733; line-height: 1.2; }
+.box .s { font-size: 15.5px; color: #4A5568; line-height: 1.25; margin-top: 3px; }
+.mem { background: #F9F2E1; border-color: #A37A1C; }
+.cmp { background: #EEF7E9; border-color: #67BA4A; }
+.dat { background: #EDF3FB; border-color: #4A7FD0; }
+.ctl { background: #FBEEF0; border-color: #E8546B; }
+.ext { background: #F4F5F7; border-color: #87929E; }
+.note { position: absolute; font-size: 15.5px; color: #4A5568; }
+</style></head>
+<body><div id="fig" style="width:900px;height:330px">
 
-<div class="n mem" style="left:40px;top:44px;width:210px;height:96px"><div class="t" style="font-size:20px">素材源</div>
-<div class="s">图集 12 张 · 字库</div></div>
-<div class="n cmp" style="left:290px;top:44px;width:210px;height:96px"><div class="t" style="font-size:20px">pack_assets.py</div>
-<div class="s">预乘 ARGB</div></div>
-<div class="n mem" style="left:540px;top:44px;width:210px;height:96px"><div class="t" style="font-size:20px">素材包</div>
-<div class="s">20 项 · 包 CRC</div></div>
-<div class="n cmp" style="left:790px;top:44px;width:210px;height:96px"><div class="t" style="font-size:20px">Flash 镜像合成</div>
-<div class="s">比特流 + 应用 + 素材</div></div>
+<div class="lane" style="top:64px">开发机</div>
+<div class="lane" style="top:238px">目标板</div>
 
-<div class="n mem" style="left:790px;top:236px;width:210px;height:96px"><div class="t" style="font-size:20px">SPI Flash 0x400000</div>
-<div class="s">JTAG 烧写 · 读回校验</div></div>
-<div class="n cmp" style="left:540px;top:236px;width:210px;height:96px"><div class="t" style="font-size:20px">两段式装载</div>
-<div class="s">bootloader→应用→素材</div></div>
-<div class="n ctl" style="left:290px;top:236px;width:210px;height:96px"><div class="t" style="font-size:20px">表面登记</div>
-<div class="s">基址 / 尺寸 / 格式</div></div>
-<div class="n ext" style="left:40px;top:236px;width:210px;height:96px"><div class="t" style="font-size:20px">断电重启</div>
-<div class="s">上电自启动</div></div>
+<div class="box mem" style="left:96px;top:16px;width:180px;height:104px">
+  <div class="t">素材源</div><div class="s">图集 12 张 · 字库</div>
+</div>
+<div class="box cmp" style="left:300px;top:16px;width:180px;height:104px">
+  <div class="t">打包</div><div class="s">转成预乘 ARGB</div>
+</div>
+<div class="box mem" style="left:504px;top:16px;width:180px;height:104px">
+  <div class="t">素材包</div><div class="s">目录 · 尺寸 · 校验</div>
+</div>
+<div class="box cmp" style="left:708px;top:16px;width:180px;height:104px">
+  <div class="t">镜像合成</div><div class="s">比特流 + 应用 + 素材</div>
+</div>
 
-<svg class="links" viewBox="0 0 1040 430">
-  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="13" refX="13" refY="5.5" orient="auto"><path d="M1,1 L13,5.5 L1,10" stroke="#4A5568" stroke-width="2"/></marker></defs>
-  <line x1="250" y1="92" x2="284" y2="92" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="500" y1="92" x2="534" y2="92" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="750" y1="92" x2="784" y2="92" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="895" y1="140" x2="895" y2="230" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="784" y1="284" x2="756" y2="284" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="534" y1="284" x2="506" y2="284" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="284" y1="284" x2="256" y2="284" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+<div class="box ext" style="left:96px;top:190px;width:140px;height:104px">
+  <div class="t">上电启动</div><div class="s">引导程序</div>
+</div>
+<div class="box cmp" style="left:256px;top:190px;width:140px;height:104px">
+  <div class="t">读取校验</div><div class="s">校验素材包</div>
+</div>
+<div class="box mem" style="left:416px;top:190px;width:140px;height:104px">
+  <div class="t">装入内存</div><div class="s">写 DDR3<br>登记表面</div>
+</div>
+<div class="box mem" style="left:576px;top:190px;width:140px;height:104px">
+  <div class="t">复制热集</div><div class="s">到片上纹理</div>
+</div>
+<div class="box dat" style="left:736px;top:190px;width:140px;height:104px">
+  <div class="t">绘制</div><div class="s">引用表面与矩形</div>
+</div>
+
+<svg class="links" viewBox="0 0 900 330">
+  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="5" orient="auto"><path d="M1,1 L12,5 L1,9" stroke="#4A5568" stroke-width="2" fill="none"/></marker></defs>
+  <line x1="276" y1="68" x2="297" y2="68" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="480" y1="68" x2="501" y2="68" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="684" y1="68" x2="705" y2="68" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <polyline points="798,120 798,157 166,157 166,187" fill="none" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="236" y1="242" x2="253" y2="242" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="396" y1="242" x2="413" y2="242" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="556" y1="242" x2="573" y2="242" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="716" y1="242" x2="733" y2="242" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
 </svg>
+<div class="note" style="left:462px;top:132px">烧写</div>
 
-<div class="lbl" style="left:290px;top:166px">开发机（WSL）</div>
-<div class="lbl" style="left:540px;top:356px">目标板（Ti60F225）</div>
-<div class="lbl c bg" style="left:915px;top:176px">烧写</div>
 </div></body></html>
