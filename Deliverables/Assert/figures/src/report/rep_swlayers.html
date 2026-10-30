@@ -1,42 +1,62 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="900x430">
+<meta name="fig-size" content="1040x580">
 <link rel="stylesheet" href="_rep.css">
 <style>
-.lay { position: absolute; left: 0; width: 100px; font-size: 19px; font-weight: 700; color: #1D2733; line-height: 1.2; }
-.box { position: absolute; box-sizing: border-box; border: 2px solid #87929E; border-radius: 6px;
-       background: #F4F5F7; display: flex; align-items: center; justify-content: center;
-       text-align: center; font-size: 21px; font-weight: 700; color: #1D2733; padding: 0 8px; }
-.ctl { background: #FBEEF0; border-color: #E8546B; }
-.cmp { background: #EEF7E9; border-color: #67BA4A; }
-.dat { background: #EDF3FB; border-color: #4A7FD0; }
-.ext { background: #F4F5F7; border-color: #87929E; }
+.layer { position: absolute; left: 40px; width: 660px; height: 88px; display: flex; gap: 12px; padding: 8px; box-sizing: border-box; }
+.cell { flex: 1; border: 2px solid #87929E; border-radius: 5px; background: #F4F5F7; box-sizing: border-box;
+        display: flex; flex-direction: column; justify-content: center; text-align: center;
+        font-size: 18px; line-height: 1.3; padding: 4px; }
+.cell.ctl { background: #FBEEF0; border-color: #E8546B; }
+.cell.cmp { background: #EEF7E9; border-color: #67BA4A; }
+.cell.dat { background: #EDF3FB; border-color: #4A7FD0; }
+.cell.ext { background: #F4F5F7; border-color: #87929E; }
+.cell .t { font-weight: 700; }
+.cell .s { font-size: 14.5px; color: #4A5568; margin-top: 2px; }
 </style></head>
-<body><div id="fig" style="width:900px;height:430px">
+<body><div id="fig" style="width:1040px;height:580px">
 
-<div class="lay" style="top:57px">应用层</div>
-<div class="lay" style="top:167px">算法层</div>
-<div class="lay" style="top:277px">板级支持层</div>
-<div class="lay" style="top:380px">厂商层</div>
+<div class="lbl b" style="left:40px;top:16px">应用层（sw/apps）</div>
+<div class="layer" style="top:40px">
+  <style>.apps .cell{background:#FBEEF0;border-color:#E8546B}</style>
+  <div class="cell ctl" style="flex:1.4"><div class="t">apps/console</div><div class="s">游戏机前端 · 四个应用</div></div>
+  <div class="cell ctl"><div class="t">test/probe</div><div class="s">判据程序 · 测量探针</div></div>
+</div>
 
-<div class="box ctl" style="left:110px;top:24px;width:330px;height:86px">应用前端</div>
-<div class="box ctl" style="left:466px;top:24px;width:414px;height:86px">测量程序</div>
+<div class="lbl b" style="left:40px;top:140px">算法层（sw/lib）</div>
+<div class="layer" style="top:164px">
+  <div class="cell cmp" style="flex:1.2"><div class="t">lib/gfx</div><div class="s">命令构造 · 软件执行器</div></div>
+  <div class="cell cmp" style="flex:1.2"><div class="t">lib/core</div><div class="s">定点 · CRC · 正弦表 · 统计</div></div>
+  <div class="cell cmp"><div class="t">lib/test</div><div class="s">主机侧金标准</div></div>
+</div>
 
-<div class="box cmp" style="left:110px;top:134px;width:290px;height:86px">命令构造</div>
-<div class="box cmp" style="left:426px;top:134px;width:220px;height:86px">基础支撑</div>
-<div class="box cmp" style="left:672px;top:134px;width:208px;height:86px">判据</div>
+<div class="lbl b" style="left:40px;top:264px">板级支持层（sw/bsp）</div>
+<div class="layer" style="top:288px">
+  <div class="cell dat"><div class="t">bsp/include</div><div class="s">board.h · memmap.h</div></div>
+  <div class="cell dat"><div class="t">bsp/ti60</div><div class="s">板上实现 · 链接脚本</div></div>
+  <div class="cell dat"><div class="t">bsp/host</div><div class="s">SDL2 模拟板</div></div>
+</div>
 
-<div class="box dat" style="left:110px;top:244px;width:250px;height:86px">接口定义</div>
-<div class="box dat" style="left:386px;top:244px;width:240px;height:86px">板上实现</div>
-<div class="box dat" style="left:652px;top:244px;width:228px;height:86px">PC 模拟板</div>
+<div class="lbl b" style="left:40px;top:388px">厂商层（sdk/）</div>
+<div class="layer" style="top:412px;height:72px">
+  <div class="cell ext"><div class="t">EfxSapphireSoc BSP 与驱动</div></div>
+</div>
 
-<div class="box ext" style="left:110px;top:354px;width:770px;height:60px">处理器支持包</div>
-
-<svg class="links" viewBox="0 0 900 430">
-  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="5" orient="auto"><path d="M1,1 L12,5 L1,9" stroke="#4A5568" stroke-width="2" fill="none"/></marker></defs>
-  <line x1="300" y1="110" x2="300" y2="131" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="300" y1="220" x2="300" y2="241" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
-  <line x1="300" y1="330" x2="300" y2="351" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+<svg class="links" viewBox="0 0 1040 580">
+  <defs><marker id="ar" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="13" refX="13" refY="5.5" orient="auto"><path d="M1,1 L13,5.5 L1,10" stroke="#4A5568" stroke-width="2"/></marker></defs>
+  <line x1="440" y1="120" x2="440" y2="172" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="440" y1="244" x2="440" y2="296" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="440" y1="368" x2="440" y2="420" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)"/>
 </svg>
 
+<div class="grp" style="left:740px;top:40px;width:280px;height:260px"><div class="gl">双目标构建（sw/mk）</div></div>
+<div class="lbl" style="left:760px;top:78px;line-height:1.7">
+<b>target.mk</b>：riscv-gcc → 板上<br>
+<b>host.mk</b>：gcc + SDL2 → PC<br><br>
+同一份 lib 与应用；<br>
+应用内无平台 <span class="mono">#ifdef</span>
+</div>
+<div class="lbl" style="left:715px;top:330px;color:#6B7684;line-height:1.6">PC 端先行验证<br>板上判据与 PC 逐行对账</div>
+
+<div class="lbl" style="left:40px;top:508px;color:#6B7684">#include 自上而下可见，反向不可见（check_sw_layers.sh 故障注入验证）<br>配色：红=应用（控制流）· 绿=算法（计算）· 蓝=板级支持 · 灰=厂商只读</div>
 </div></body></html>
