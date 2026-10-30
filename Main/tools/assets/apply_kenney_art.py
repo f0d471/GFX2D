@@ -162,7 +162,7 @@ def do_ships(src):
 
 
 def do_boss(src):
-    boss = tint_dark_magenta(trim(Image.open(os.path.join(src, "Enemies", "enemyBlack4.png")).convert("RGBA")))
+    boss = tint_dark_magenta(trim(Image.open(os.path.join(src, "Enemies", "enemyBlack3.png")).convert("RGBA")))
     w, h = boss.size
     s = 74.0 / max(w, h)
     boss = boss.resize((max(1, round(w * s)), max(1, round(h * s))), Image.BICUBIC)

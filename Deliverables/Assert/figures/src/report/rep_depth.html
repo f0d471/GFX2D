@@ -1,35 +1,34 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="900x322">
+<meta name="fig-size" content="900x330">
 <link rel="stylesheet" href="_rep.css">
 <style>
-.scene { position: absolute; width: 380px; height: 240px; box-sizing: border-box; border: 1px solid #B9C0C8; background: #F4F6F8; overflow: hidden; }
-.q { position: absolute; box-sizing: border-box; border: 1px solid #6E7A88; }
-.q img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.cap { position: absolute; width: 340px; text-align: center; font-size: 16px; color: #1D2733; }
+.cell { position: absolute; width: 380px; height: 240px; box-sizing: border-box;
+        border: 1px solid #B9C0C8; overflow: hidden; background: #FFFFFF; }
+.cell img { width: 380px; height: 240px; display: block; }
+.cap { position: absolute; width: 420px; text-align: center; font-size: 16px; color: #1D2733; }
+.badge { position: absolute; width: 30px; height: 30px; border-radius: 15px; background: #FFFFFF;
+         color: #1D2733; font-size: 21px; font-weight: 700; line-height: 30px; text-align: center; }
+.legend { position: absolute; width: 900px; text-align: center; font-size: 15.5px; color: #4A5568; }
 </style></head>
-<body><div id="fig" style="width:900px;height:322px">
+<body><div id="fig" style="width:900px;height:330px">
 
-<div class="scene" style="left:20px;top:16px">
-  <div class="q" style="left:26px;top:76px;width:246px;height:146px;box-shadow:0 2px 6px rgba(0,0,0,.18)">
-    <img src="../../../third-party/starry_night_520.jpg">
-  </div>
-  <div class="q" style="left:170px;top:34px;width:186px;height:128px;box-shadow:0 2px 6px rgba(0,0,0,.18)">
-    <img src="../../../third-party/monalisa_520.jpg">
-  </div>
+<div class="cell" style="left:20px;top:10px">
+  <img src="../../../third-party/depth_off.png">
+  <div class="badge" style="left:70px;top:196px">①</div>
+  <div class="badge" style="left:126px;top:16px">②</div>
 </div>
-<div class="cap" style="left:0px;top:270px;width:440px">关闭深度判断：后绘制的远物覆盖近物</div>
+<div class="cap" style="left:0px;top:258px">关闭深度判断：后画的卡片整片覆盖</div>
 
-<div class="scene" style="left:520px;top:16px">
-  <div class="q" style="left:170px;top:34px;width:186px;height:128px;box-shadow:0 2px 6px rgba(0,0,0,.18)">
-    <img src="../../../third-party/monalisa_520.jpg">
-  </div>
-  <div class="q" style="left:26px;top:76px;width:246px;height:146px;box-shadow:0 2px 6px rgba(0,0,0,.18)">
-    <img src="../../../third-party/starry_night_520.jpg">
-  </div>
+<div class="cell" style="left:500px;top:10px">
+  <img src="../../../third-party/depth_on.png">
+  <div class="badge" style="left:70px;top:196px">①</div>
+  <div class="badge" style="left:126px;top:16px">②</div>
 </div>
-<div class="cap" style="left:500px;top:270px;width:440px">开启深度判断：保留较近的像素</div>
+<div class="cap" style="left:480px;top:258px">开启深度判断：交线两侧各留更近的像素</div>
 
-<div class="lbl" style="left:424px;top:112px;font-size:28px">→</div>
+<div class="lbl" style="left:432px;top:112px;font-size:26px">→</div>
+
+<div class="legend" style="left:0px;top:296px">① 先绘制的卡片　② 后绘制的卡片</div>
 
 </div></body></html>
