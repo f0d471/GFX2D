@@ -193,18 +193,22 @@ void sw6_a_adjust(sw6_scene_a *a, int up, int down)
     }
 }
 
-void sw6_a_build(const sw6_scene_a *a, gfx_list *l, int dst, sw6_build_stat *fs)
+void sw6_a_build_view(const sw6_scene_a *a,gfx_list *l,int dst,unsigned width,sw6_build_stat *fs)
 {
     uint32_t i;
 
     for (i = 0u; i < a->n; i++) {
         const sw6_block *b  = &a->blk[i];
-        const int32_t    x0 = b->x >> 4;    /* 算术右移：负数向下取整 */
+        int32_t          x0 = b->x >> 4;    /* 算术右移：负数向下取整 */
+        if(width!=SW6_CANVAS_WIDTH) {
+            if(x0+(int)b->w>(int)SW6_CANVAS_WIDTH)x0+=(int)width-(int)SW6_CANVAS_WIDTH;
+            else if(x0>=0)x0=(int32_t)((int64_t)x0*(width-b->w)/(SW6_CANVAS_WIDTH-b->w));
+        }
         const int32_t    y0 = b->y >> 4;
         const int32_t    x1 = x0 + (int32_t)b->w - 1;
         const int32_t    y1 = y0 + (int32_t)b->h - 1;
         const int        partial = (x0 < 0) || (y0 < 0)
-                                || (x1 > (int32_t)SW6_CANVAS_WIDTH - 1)
+                                || (x1 > (int32_t)width - 1)
                                 || (y1 > (int32_t)SW6_CANVAS_HEIGHT - 1);
         int              rc;
 
@@ -254,3 +258,6 @@ void sw6_a_build(const sw6_scene_a *a, gfx_list *l, int dst, sw6_build_stat *fs)
             fs->off++;
     }
 }
+
+void sw6_a_build(const sw6_scene_a *a,gfx_list *l,int dst,sw6_build_stat *fs)
+{sw6_a_build_view(a,l,dst,SW6_CANVAS_WIDTH,fs);}

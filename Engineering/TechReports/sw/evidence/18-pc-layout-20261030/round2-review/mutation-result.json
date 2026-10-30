@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "mutation": "EXPECTED_RED",
+  "change": "Render scenery at the original 400px width while keeping the larger canvas",
+  "observed": "FAIL scenery reaches former margins",
+  "returncode": 1,
+  "normal_source_unchanged": true
+}

@@ -29,7 +29,7 @@ static int frame(appfw_ctx *c,uint32_t keys,uint32_t n)
     const uint32_t now=app_port_ms();
     int dst;
     gfx_list list;
-    const gfx_rect all={0,0,CONSOLE_WIDTH-1,CONSOLE_HEIGHT-1};
+    gfx_rect all={0,0,CONSOLE_WIDTH-1,CONSOLE_HEIGHT-1};
     sw6_build_stat fs;
     sw6_hud_in hud={0};
     uint32_t cmd,pix;
@@ -43,25 +43,28 @@ static int frame(appfw_ctx *c,uint32_t keys,uint32_t n)
     if(now-s_start>=10000u || (pressed&PLATFORM_KEY_SCENE)) { s_stage^=1u;s_start=now; }
     sw6_build_stat_clear(&fs);
     if(console_view_begin(c,&list,&dst)!=0)return -1;
+    const unsigned width=console_view_width(c,dst);all.x1=(int)width-1;
     if(gfx_set_clip(&list,all)!=0)return -1;
     if(!s_stage) {
         sw6_a_adjust(&s_a,(pressed&PLATFORM_KEY_UP)!=0,(pressed&PLATFORM_KEY_DOWN)!=0);
         sw6_a_update(&s_a);
         if(gfx_fill(&list,dst,all,SW6_BG_COLOR,GFX_EQ_COPY,0)!=0)return -1;
-        sw6_a_build(&s_a,&list,dst,&fs);
+        sw6_a_build_view(&s_a,&list,dst,width,&fs);
     } else {
         uint32_t scene;
         sw6_b_adjust(&s_b,(pressed&PLATFORM_KEY_UP)!=0,(pressed&PLATFORM_KEY_DOWN)!=0);
         scene=sw6_b_step(&s_b);
-        if(gfx_blit(&list,SW6_SLOT_OFF(scene),0,0,dst,0,0,CONSOLE_WIDTH,CONSOLE_HEIGHT,GFX_EQ_COPY,0,0,0)!=0)return -1;
+        if(width==CONSOLE_WIDTH) {
+            if(gfx_blit(&list,SW6_SLOT_OFF(scene),0,0,dst,0,0,CONSOLE_WIDTH,CONSOLE_HEIGHT,GFX_EQ_COPY,0,0,0)!=0)return -1;
+        } else sw6_b_build_view(scene,&list,dst,width,&fs);
     }
     hud.n=s_stage?0:s_a.n;hud.k=s_stage?s_b.k:0;
     hud.sw_fps=c->fps_milli/1000u;hud.sw_fps_valid=!s_hw && c->fps_milli!=0;
     hud.hw_fps=hud.sw_fps;hud.hw_fps_valid=s_hw && c->fps_milli!=0;hud.live=1;
-    sw6_hud_build(&list,dst,&hud,&cmd,&pix);
+    sw6_hud_build_at(&list,dst,&hud,(int)width-(int)SW6_HUD_W,&cmd,&pix);
     if(fs.bad || sw6_hud_bad() || gfx_list_end(&list)!=0 || list.rejected || list.overflow)
         return appfw_error("demo build",-1);
     if(console_view_submit(c,&list,dst,s_hw)!=0)return -1;
     return APPFW_FRAME_OK;
 }
-const appfw_app g_app_demo={APPFW_DEMO,"demo","2D GRAPHICS DEMO",enter,leave,frame};
+const appfw_app g_app_demo={APPFW_DEMO,CONSOLE_KEY_APPFW_DEMO,CONSOLE_TITLE_APPFW_DEMO,enter,leave,frame};

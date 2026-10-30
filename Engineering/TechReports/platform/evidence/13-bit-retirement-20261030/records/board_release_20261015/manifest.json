@@ -1,0 +1,58 @@
+[
+  {
+    "name": "gfx2d_ti60.bit",
+    "bytes": 2775270,
+    "sha256": "6E04EB4F4A7D4B9994807C5736E0FA12B2F434893A3BFBE5BE14455F551EBAAE",
+    "source": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit",
+    "copy_verified": true
+  },
+  {
+    "name": "gfx2d_ti60.hex",
+    "bytes": 2775330,
+    "sha256": "FD2ED2FF7E2C579C42577D1C6889F7C94CFD1C1ED23FE177AADB538B017B7059",
+    "source": "Main/fpga/gfx2d_ti60/outflow/gfx2d_ti60.hex",
+    "copy_verified": true
+  },
+  {
+    "name": "gfx2dGame-O2-perf.bin",
+    "bytes": 121270,
+    "sha256": "1D58339966BD83B18F935091009E21D0916D75390894CAA440E767B0CEC305B2",
+    "source": "Main/sw/apps/game/gfx2dGame/build_board_play/gfx2dGame-O2-perf.bin",
+    "copy_verified": true
+  },
+  {
+    "name": "gfx2dGame-O2-perf.elf",
+    "bytes": 879348,
+    "sha256": "5F02058249CC39C67B8502F1CA08E1EB5F67D8C5A217F985890BF75EBD0226CA",
+    "source": "Main/sw/apps/game/gfx2dGame/build_board_play/gfx2dGame-O2-perf.elf",
+    "copy_verified": true
+  },
+  {
+    "name": "gfx2dGame-O2-perf.map",
+    "bytes": 235220,
+    "sha256": "6010115C6826F382257FFEA3DB750BB7ED70E632B813CFBBDE54C96400E8313F",
+    "source": "Main/sw/apps/game/gfx2dGame/build_board_play/gfx2dGame-O2-perf.map",
+    "copy_verified": true
+  },
+  {
+    "name": "gfx2d_debug.cfg",
+    "bytes": 2946,
+    "sha256": "FC5F057FB30E82293DBA1EFD160289B73AA37E191A0B45D3183B6FFB9C8D3F99",
+    "source": "Main/tools/board/gfx2d_debug.cfg",
+    "copy_verified": true
+  },
+  {
+    "name": "cpu0.yaml",
+    "bytes": 202,
+    "sha256": "047917680026BD877CCD9BE3575FE7ABF48F50954DB7485B468D346E32F879F3",
+    "source": "Main/sdk/cpu0.yaml",
+    "copy_verified": true
+  },
+  {
+    "name": "board_game_hw_ddr_20261015.log",
+    "bytes": 1738,
+    "sha256": "148E43F9AFE03F8FDABDF3691623EE5155BACE5670537C9E83393A4EE67FAC80",
+    "source": "Main/sw/apps/game/gfx2dGame/logs/board_game_hw_ddr_20261015.log",
+    "copy_verified": true
+  }
+]

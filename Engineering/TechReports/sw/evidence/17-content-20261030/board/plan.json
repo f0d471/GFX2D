@@ -1,0 +1,31 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "console-profiles-board"
+  ],
+  "changed": null,
+  "commands": {
+    "console-profiles-board": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_console_profiles_board.py"
+    ]
+  },
+  "timeouts": {
+    "console-profiles-board": 2400
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log",
+    "Main/doc/三维数值契约.md",
+    "Main/sim/engine/r4/**",
+    "Main/rtl/**"
+  ]
+}

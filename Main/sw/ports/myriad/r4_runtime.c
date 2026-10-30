@@ -32,6 +32,7 @@
 #include "assets.h"
 #include "stg_slots.h"
 #include "game/stg_text.h"
+#include "game/myriad_hud.h"
 
 #include "r4.h"
 #include "r4_scene.h"
@@ -165,7 +166,7 @@ static void say_u32(const char *tag, uint32_t a, uint32_t b)
 }
 
 /* 周期数 -> 16.16 定点毫秒（仅显示用）。 */
-#if !R4_HUD_NONE
+#if !R4_HUD_NONE && !GFX_PRODUCT_HUD
 static uint32_t cycles_to_ms16(uint32_t cycles)
 {
     uint64_t v = (uint64_t)cycles * 65536u / 100000u;
@@ -223,6 +224,29 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
             core_out_u32(&o,(s_render_fps[i]/100)%10);
         } else core_out_str(&o,"--");
     }
+#if GFX_PRODUCT_HUD
+    /* Same rows, glyph sizes and right edge as the product's danmaku HUD. */
+    memset(rows,0,sizeof rows);memset(values,0,sizeof values);
+    strcpy(rows[1],"MYRIAD");
+    strcpy(rows[4],s_scene?"3D CUP":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
+    strcpy(rows[6],"SCORE");hud_number(rows[7],s_world.score,9);
+    strcpy(rows[9],"HI-SCORE");hud_number(rows[10],s_world.hiscore,9);
+    strcpy(rows[12],"PLAYER");strcpy(rows[14],"BOMB");
+    strcpy(rows[16],"GRAZE");hud_number(values[16],s_world.graze,0);
+    strcpy(rows[20],s_ladder>=2?"L2 MATERIALS":"L1 SOLID");
+    strcpy(rows[21],s_scene?"ADAPTIVE VIEW":s_hw?"FPGA RASTER":"CPU RASTER");
+    strcpy(rows[24],s_scene?"FACES":"OBJECTS");hud_number(values[24],s_scene?396u:objects,0);
+    strcpy(rows[25],"TRIS");hud_number(values[25],s_records,0);
+    strcpy(rows[27],"SW FPS");strcpy(rows[28],"HW FPS");
+    for(unsigned i=0;i<2;++i) {
+        core_out o;core_out_init(&o,values[27+i],sizeof values[0]);
+        if(s_render_valid[i] && !GFX2D_R4_JUDGE) {
+            core_out_u32(&o,s_render_fps[i]/1000);core_out_ch(&o,'.');
+            core_out_u32(&o,(s_render_fps[i]/100)%10);
+        } else core_out_str(&o,"--");
+    }
+    strcpy(rows[29],"ESC MENU  C SCENE");
+#else
     {
         core_out o;core_out_init(&o,rows[29],sizeof rows[0]);
         if(GFX2D_R4_JUDGE)core_out_str(&o,"PRESENT/RAST TEST");
@@ -237,21 +261,22 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
             } else core_out_str(&o,"--");
         }
     }
+#endif
     for(unsigned s=0;s<30;++s) {
         gfx_list l;gfx_rect bar={(int)R4_WORLD_WIDTH,0,639,15};
-        if(s<4){list[s]=0;continue;} /* static precomposed compact title in BG */
+        if(!GFX_PRODUCT_HUD && s<4){list[s]=0;continue;}
         /* Each destination owns one persistent arena. A row is reused only
            when all its visible inputs match, after the previous frame drained. */
         int same=s_hud_valid[fb][s] && !strcmp(rows[s],previous_rows[fb][s]) &&
             !strcmp(values[s],previous_values[fb][s]);
         if(s==12)same&=previous_icons[fb][0]==s_world.shield;
         if(s==14)same&=previous_icons[fb][1]==s_world.bombs;
-        if(s==21 || s==22)same&=!strcmp(active,previous_active[fb]);
+        if(!GFX_PRODUCT_HUD && (s==21 || s==22))same&=!strcmp(active,previous_active[fb]);
         if(same){list[s]=s_hud_count[fb][s];continue;}
         gfx_list_begin(&l,(gfx_cmd *)(void *)((uint8_t *)list+(s+1)*32768u),1016,tab);
         bad+=gfx_fill(&l,dst,bar,R4_HUD_BG,GFX_EQ_COPY,0)!=0;
         bar.x1=(int)R4_WORLD_WIDTH+1;bad+=gfx_fill(&l,dst,bar,R4_HUD_LINE,GFX_EQ_COPY,0)!=0;
-        if(s==17) {
+        if(s==(GFX_PRODUCT_HUD?18u:17u)) {
             gfx_rect line={492,0,627,1};
             bad+=gfx_fill(&l,dst,line,0x00224a5cu,GFX_EQ_COPY,0)!=0;
         }
@@ -263,11 +288,18 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
         }
 #if R4_HUD_TEXT
         uint32_t drawn=0;
+#if GFX_PRODUCT_HUD
+        char fit[18];myriad_hud_fit(fit,rows[s],values[s][0]?7u:17u);
+        if(fit[0])bad+=stg_text_draw(&l,(s==7 || s==10 || s==21)?&white:&cyan,
+            dst,MYRIAD_HUD_TEXT_X,0,fit,&drawn);
+        if(values[s][0])bad+=stg_text_draw(&l,&white,dst,myriad_hud_value_x(values[s]),0,values[s],&drawn);
+#else
         if(rows[s][0])bad+=stg_text_draw(&l,(s==7 || s==10 || s==18 || s==19)?&white:&cyan,
             dst,492,0,rows[s],&drawn);
         if(values[s][0])bad+=stg_text_draw(&l,&white,dst,584,0,values[s],&drawn);
 #endif
-        if(s==21 || s==22)for(unsigned i=0;active[i];++i)
+#endif
+        if(!GFX_PRODUCT_HUD && (s==21 || s==22))for(unsigned i=0;active[i];++i)
             bad+=gfx_blit(&l,STG_SLOT_DIGITS,(active[i]-'0')*16,(s-21)*16,dst,
                 492+(int)i*16,0,16,16,GFX_EQ_COPY,0,1,0)!=0;
         bad+=gfx_list_end(&l)!=0;list[s]=l.used-1;
@@ -296,6 +328,7 @@ static int build_background(const gfx_surface_table *tab,const gfx_mem *mem)
             row[x] = x<R4_WORLD_WIDTH?c:R4_HUD_BG;
         row[R4_WORLD_WIDTH]=R4_HUD_LINE;
     }
+    if(GFX_PRODUCT_HUD)return 0;
     /* Area-filter the existing premultiplied 240x80 title to 144x48 once at
        entry. It remains in DDR BG; no new Flash assets or per-frame rescale. */
     const gfx_surf_raw *title=&tab->s[STG_SLOT_TITLE];

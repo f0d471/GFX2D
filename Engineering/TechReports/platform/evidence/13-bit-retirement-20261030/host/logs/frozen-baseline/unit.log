@@ -1,0 +1,19 @@
+test_bad_reports_are_not_silently_accepted (__main__.FrozenIdentityTests.test_bad_reports_are_not_silently_accepted) ... ok
+test_default_alias_uses_snapshot (__main__.FrozenIdentityTests.test_default_alias_uses_snapshot) ... ok
+test_explicit_tree_never_falls_back_to_wrong_bit (__main__.FrozenIdentityTests.test_explicit_tree_never_falls_back_to_wrong_bit) ... ok
+test_frozen_allows_different_current_rtl (__main__.FrozenIdentityTests.test_frozen_allows_different_current_rtl) ... ok
+test_generic_product_package (__main__.FrozenIdentityTests.test_generic_product_package) ... ok
+test_historical_package (__main__.FrozenIdentityTests.test_historical_package) ... ok
+test_missing_reports_is_incomplete (__main__.FrozenIdentityTests.test_missing_reports_is_incomplete) ... ok
+test_reject_ambiguous_package (__main__.FrozenIdentityTests.test_reject_ambiguous_package) ... ok
+test_reject_manifest_path_escape (__main__.FrozenIdentityTests.test_reject_manifest_path_escape) ... ok
+test_reject_missing_bit (__main__.FrozenIdentityTests.test_reject_missing_bit) ... ok
+test_reject_modified_or_invalid_snapshot (__main__.FrozenIdentityTests.test_reject_modified_or_invalid_snapshot) ... ok
+test_reject_non_b7_package (__main__.FrozenIdentityTests.test_reject_non_b7_package) ... ok
+test_reject_non_object (__main__.FrozenIdentityTests.test_reject_non_object) ... ok
+test_snapshot_identity (__main__.FrozenIdentityTests.test_snapshot_identity) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 1.785s
+
+OK

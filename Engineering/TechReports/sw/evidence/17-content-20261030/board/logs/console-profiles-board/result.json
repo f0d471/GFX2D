@@ -1,0 +1,151 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "deployments": [
+    {
+      "preset": "B0",
+      "content_profile": "2d",
+      "content_hash": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+      "caps": "0x0000040F",
+      "identities": {
+        "bit": {
+          "size": 2380467,
+          "mtime_ns": 1793223241484438500,
+          "sha256": "86138e9b1b5d82ecfb1f86ad555b31ef5e172aee27eaf56f3229d4a4ea337330"
+        },
+        "bin": {
+          "size": 174402,
+          "mtime_ns": 1793295827824446800,
+          "sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744"
+        },
+        "assets": {
+          "size": 4085504,
+          "mtime_ns": 1793295705344909500,
+          "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+        }
+      },
+      "serial_sha256": "f7a351fb71776ba501ca9ad17e7764916304a5ec8ccfd0aed8864e634cd45fb4",
+      "status_samples": 66,
+      "completed_apps": [
+        "about",
+        "demo",
+        "menu",
+        "press",
+        "stg"
+      ],
+      "bin": "Main\\sim\\build\\check-runs\\20261030-014306-a1081dbe\\build\\console-profiles-board\\2d\\console-O2-perf.bin",
+      "status": "PASS"
+    },
+    {
+      "preset": "B3",
+      "content_profile": "2d",
+      "content_hash": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+      "caps": "0x0000146F",
+      "identities": {
+        "bit": {
+          "size": 2522958,
+          "mtime_ns": 1793223242345613300,
+          "sha256": "f88b5430455c84c99e9d69602f1376d78e96173836d99d2fa7ae184b426f385f"
+        },
+        "bin": {
+          "size": 174402,
+          "mtime_ns": 1793295827824446800,
+          "sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744"
+        },
+        "assets": {
+          "size": 4085504,
+          "mtime_ns": 1793295705344909500,
+          "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+        }
+      },
+      "serial_sha256": "d0387da0e11549a2d0653a781dbbacf6384936c056a1c4510dc1697d5c342b24",
+      "status_samples": 65,
+      "completed_apps": [
+        "about",
+        "demo",
+        "menu",
+        "press",
+        "stg"
+      ],
+      "bin": "Main\\sim\\build\\check-runs\\20261030-014306-a1081dbe\\build\\console-profiles-board\\2d\\console-O2-perf.bin",
+      "status": "PASS"
+    },
+    {
+      "preset": "B5",
+      "content_profile": "2d",
+      "content_hash": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+      "caps": "0x0000346F",
+      "identities": {
+        "bit": {
+          "size": 2768349,
+          "mtime_ns": 1793223243247427700,
+          "sha256": "c4f5a82118602d031ba652491cf63741b1ceb6e35f90f9706823b6ef1153c1cc"
+        },
+        "bin": {
+          "size": 174402,
+          "mtime_ns": 1793295827824446800,
+          "sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744"
+        },
+        "assets": {
+          "size": 4085504,
+          "mtime_ns": 1793295705344909500,
+          "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+        }
+      },
+      "serial_sha256": "b7fa0e898a19d1103fc0db921412d4f0fd92ce7e78029c4a25219bcbfa696448",
+      "status_samples": 65,
+      "completed_apps": [
+        "about",
+        "demo",
+        "menu",
+        "press",
+        "stg"
+      ],
+      "bin": "Main\\sim\\build\\check-runs\\20261030-014306-a1081dbe\\build\\console-profiles-board\\2d\\console-O2-perf.bin",
+      "status": "PASS"
+    },
+    {
+      "preset": "B7",
+      "content_profile": "full",
+      "content_hash": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+      "caps": "0x0000D46F",
+      "identities": {
+        "bit": {
+          "size": 2765409,
+          "mtime_ns": 1793223244050324300,
+          "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+        },
+        "bin": {
+          "size": 253806,
+          "mtime_ns": 1793295874602807400,
+          "sha256": "507e2c1551a6491898ee2b75fa16a707c29424415fdc1fa4a5e2989a5ec94a7f"
+        },
+        "assets": {
+          "size": 4085504,
+          "mtime_ns": 1793295705344909500,
+          "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+        }
+      },
+      "serial_sha256": "351b9875364caeab21b57ebc341fed94ae05b3bbdb5570d04b10847d29ea1593",
+      "status_samples": 86,
+      "completed_apps": [
+        "about",
+        "demo",
+        "menu",
+        "press",
+        "r4",
+        "stg"
+      ],
+      "bin": "Main\\sim\\build\\check-runs\\20261030-014306-a1081dbe\\build\\console-profiles-board\\full\\console-O2-perf.bin",
+      "status": "PASS"
+    }
+  ],
+  "port": "COM11",
+  "scope": "four unchanged snapshot bitstreams with selected firmware, real frames, capabilities, RTOS clock and background progress",
+  "excluded": [
+    "RTL synthesis",
+    "Flash writes/boot",
+    "manual HDMI and physical-input observation",
+    "N_max search"
+  ]
+}

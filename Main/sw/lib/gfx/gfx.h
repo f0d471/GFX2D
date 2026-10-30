@@ -234,6 +234,11 @@ void exec_sw_reset(exec_sw_state *es);
 int  exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
                  const gfx_cmd *list, uint32_t list_count, uint32_t readable_count,
                  exec_sw_stats *st, exec_sw_error *err);
+/* Explicit software canvas. Legacy exec_sw_run and all hardware/strip ABI
+ * retain 640x480 clipping. The command stream supplies its SET_CLIP as usual. */
+int exec_sw_run_frame(exec_sw_state *es,const gfx_surface_table *t,const gfx_mem *m,
+                      const gfx_cmd *list,uint32_t count,uint32_t readable,
+                      exec_sw_stats *stats,exec_sw_error *error,unsigned width,unsigned height);
 
 /* 显式只读数组 view；旧执行入口继续只解释 v1 标量。 */
 int exec_sw_run_instances(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,

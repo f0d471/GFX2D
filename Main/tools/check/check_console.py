@@ -15,20 +15,30 @@ def require(condition,message):
 
 def main():
     current=session();logs=current.logs('console');build=current.build('console')
+    catalog_dir=build/'presentation-catalog'
+    command([sys.executable,ROOT/'Main/tools/board/console_catalog.py','--catalog',APP/'catalog.json',
+             '--profile','full','--out',catalog_dir],logs/'presentation-catalog.log')
     include=['-I'+str(ROOT/'Main/sw/lib'),'-I'+str(ROOT/'Main/sw/bsp/include'),
              '-I'+str(APP/'src'),'-I'+str(ROOT/'Main/sw/ports/myriad'),'-I'+str(ROOT/'Main/sw/ports/myriad'),'-I'+str(GAME),'-I'+str(ROOT/'Main/sw/api'),'-I'+str(ROOT/'Main/sw/runtime/include'),'-I'+str(ROOT/'Main/sw/system/include'),'-I'+str(ROOT/'Main/sw/services/gfx')]
+    include.append('-I'+str(catalog_dir))
+    include.append('-I'+str(ROOT/'Main/assets/build'))
     groups={
         'lifecycle':[APP/'test/test_appfw.c',ROOT/'Main/sw/runtime/appfw.c',APP/'test/test_registry.c',
                      ROOT/'Main/sw/lib/core/format.c',ROOT/'Main/sw/lib/core/logq.c'],
         'input':[APP/'test/test_input.c',ROOT/'Main/sw/bsp/key_packet.c',ROOT/'Main/sw/services/input/board_input.c'],
+        'presentation':[APP/'test/test_console_present.c',ROOT/'Main/sw/ports/myriad/console_present.c'],
+        'scene-view':[APP/'test/test_scene_view.c',*sorted((GAME/'game').glob('*.c')),
+                      *sorted((ROOT/'Main/sw/lib/core').glob('*.c')),*sorted((ROOT/'Main/sw/lib/gfx').glob('*.c'))],
     }
     outputs={}
     for label,flags in [('64',['-fsanitize=address,undefined','-fno-sanitize-recover=all']),('32',['-m32'])]:
         for name,sources in groups.items():
             exe=build/(name+label)
-            command(['gcc','-std=gnu11','-O2','-g','-Wall','-Wextra','-Werror',*flags,*include,
+            defines=['-DGFX_FRAME_DIAGNOSTIC=0'] if name=='presentation' else []
+            if name=='scene-view':defines=['-DGFX_PRODUCT_HUD=1','-ffunction-sections','-fdata-sections','-Wl,--gc-sections']
+            command(['gcc','-std=gnu11','-O2','-g','-Wall','-Wextra','-Werror',*flags,*defines,*include,
                      *sources,'-o',exe],logs/(name+label+'.build.log'))
-            body=command([exe],logs/(name+label+'.log'),timeout=20)
+            body=command([exe],logs/(name+label+'.log'),timeout=60)
             require('fail 0' in body,'unit tests did not finish: '+name)
             if label=='64':outputs[name]=body
             else:require(outputs[name]==body,'64/32 behavior differs: '+name)

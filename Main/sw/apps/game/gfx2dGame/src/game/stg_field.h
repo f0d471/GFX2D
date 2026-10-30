@@ -141,6 +141,8 @@ int  stg_field_compose(const stg_field *f, gfx_list *l, const stg_compose_cfg *c
    返回成功追加的条数；by_eq 不为 NULL 时按方程把成功的条数加进去。 */
 uint32_t stg_draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cfg,
                        const gfx_rect *clip, uint32_t *by_eq);
+uint32_t stg_draw_pool_offset(const stg_pool *p,gfx_list *list,const stg_compose_cfg *cfg,
+                             const gfx_rect *clip,uint32_t *by_eq,int offset_x);
 
 /* 游戏区（400x480）与全屏（640x480）两个裁剪框，闭区间。 */
 void stg_rect_field(gfx_rect *r);

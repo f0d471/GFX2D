@@ -34,14 +34,20 @@ add('r4',[sys.executable,P+'check_r4.py'],
 add('r4-board',[sys.executable,P+'check_r4_board.py'],
     'R4 B7 三场景CRC、板上SW/HW、注错、模式往返与60秒两场节拍',timeout=3600)
 add('r4-frozen-board',[sys.executable,P+'check_r4_board.py','--frozen-release',
-    'Main/bit/board_release_game_current_20261024'],
+    'Main/bit/snapshots/B7'],
     '冻结B7上的当前软件CRC/注错/模式往返/节拍；不验收当前RTL',timeout=3600)
+add('frozen-baseline',[sys.executable,P+'check_frozen_baseline.py'],
+    '冻结快照/发布包身份正反例与匹配综合树选择',timeout=300)
 add('pc-window',[sys.executable,P+'check_pc_window.py'],
     '原生Windows全屏/比例/缩放/纹理恢复/帧缓冲不变',timeout=900)
 add('pc-wide',[sys.executable,P+'check_pc_wide.py'],
     '软件宽屏解析覆盖/边界/投影比例/世界状态不变/64与32位/变异',timeout=900)
 add('console',[sys.executable,P+'check_console.py'],
     '共享前端/生命周期故障/输入协议/实际PC菜单与四应用',['pack'],timeout=1800)
+add('console-profiles',[sys.executable,P+'check_console_profiles.py'],
+    '可选应用集合/真实裁剪/多页菜单/稀疏ID/能力目录与配置隔离',['pack'],timeout=2400)
+add('console-profiles-board',[sys.executable,P+'check_console_profiles_board.py'],
+    'B0/B3/B5仅2D与B7完整应用的四档JTAG验证（Windows）',timeout=2400)
 add('platform-sdk',[sys.executable,P+'check_platform_sdk.py'],
     'PC公开SDK/双消费者/缓冲所有权/真实驱动与调度端口替身/持久化与故障',timeout=1800)
 add('console-board',[sys.executable,P+'check_console_board.py'],
@@ -67,6 +73,9 @@ for name, script, purpose in [('layers','check_sw_layers.sh','软件分层与构
     ('demo','check_sw6_demo.sh','基础 Demo'),('game','check_sw7_game.sh','游戏规则、回放与相关变异'),
     ('stats','check_sw8_stats.sh','统计、日志队列、模式与相关变异')]:
     add(name, ['bash', P+script], purpose)
+CHECKS['layers']['command']=[sys.executable,P+'check_layers_isolated.py']
+CHECKS['layers']['purpose']='隔离副本中的软件分层/真实交叉构建与对象隔离'
+CHECKS['layers']['timeout']=3000
 for name in ['hdmi','apb_probe','axi_probe','axi_mux_guard','display','engine/blend',
              'engine/mover','engine/geom','engine/pix','engine/ctrl','engine/frame','engine/tex']:
     add(name.replace('engine/',''), ['bash','Main/sim/'+name+'/run.sh'], name+' 模块与变异')
@@ -117,8 +126,10 @@ for name,item in CHECKS.items():
     elif name=='workflow':inputs=['Main/tools/check/**','Main/tools/board/**','Main/sw/lib/test/golden.txt']
     elif name=='regs':inputs=[P+'regs_gen.py','Main/rtl/engine/engine_regs_offsets.vh','Main/sw/bsp/include/gfx_regs.h']
     elif name=='semantics':inputs=[P+'check_cmd_semantics.py','Main/doc/赛题二总体设计.md']
-    elif name in ('rast','r4','r4-board','r4-frozen-board','console','console-board','platform-sdk','sw16-board'):inputs=SOFTWARE + ['Main/doc/三维数值契约.md',
+    elif name in ('rast','r4','r4-board','r4-frozen-board','console','console-profiles','console-profiles-board','console-board','platform-sdk','sw16-board'):inputs=SOFTWARE + ['Main/doc/三维数值契约.md',
         'Main/sim/engine/r4/**','Main/tools/board/**','Main/rtl/**']
+    elif name=='frozen-baseline':inputs=[P+'check_frozen_baseline.py',P+'check_r4_board.py',P+'feature_synthesis.py',
+        'Main/bit/snapshots/B7/manifest.json','Main/bit/snapshots/B7/gfx2d_ti60.bit']
     elif name=='pc-window':inputs=['Main/sw/bsp/**','Main/sim/host/**','Main/tools/board/build_pc.py',P+'check_pc_window.py']
     elif name=='pc-wide':inputs=['Main/sw/lib/**','Main/sw/apps/game/gfx2dGame/src/**',
         'Main/sim/host/**',P+'check_pc_wide.py']

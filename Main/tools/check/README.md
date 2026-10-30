@@ -1,5 +1,12 @@
 # check：提交前检查与规格校验
 
+可选应用集合使用 `console-profiles`：2d/full 的真实编译与符号裁剪、A/B/A 输出隔离、
+稀疏 ID、二十个额外应用的真实滚动菜单、多个三维分类的能力要求，以及目录/配置反例。
+`console-profiles-board` 在 Windows 上构建两套固件，逐档验证 B0/B3/B5=2d、B7=full；
+绑定原快照位流、实际 CAPS、应用目录与出帧、内核时钟及后台进展。JTAG运行，不写Flash。
+`console` 保留生命周期/输入协议与完整前端检查；裁剪包按预先选定的 content.json 判分，
+不能从本轮实际缺失的应用反推期望名单。
+
 PC自适应宽屏使用`validate.py --checks pc-wide --profile acceptance --run`，覆盖显式软件画布、
 解析矩形覆盖/深度、stride哨兵、错误原子性、分桶独立计数/画序、投影比例与世界状态不变，
 并要求固定640宽度变异在新增区域的覆盖判据见红。原生Windows使用`--checks pc-window`，
@@ -8,6 +15,11 @@ PC自适应宽屏使用`validate.py --checks pc-wide --profile acceptance --run`
 三维演示使用`r4`（三场景、64/32、sanitizer、图集/采集器反例）与Windows的`r4-board`
 （B7三场景CRC、CPU/HW、模式往返、1800帧性能及旧功能恢复）。
 详细范围和字段见[三维演示验证](../../sim/engine/r4/README.md)；quick取样不代替acceptance。
+
+`r4-frozen-board` 默认以 `bit/snapshots/B7` 为冻结硬件基线，读取快照身份并按同一位流
+SHA256查找配套综合树、配置与完整报告；它不验收当前RTL。`r4-board`继续要求RTL一致。
+身份读取兼容旧文件清单与新版运行包的显式board_bit，但当前入口不依赖历史发布目录。
+`frozen-baseline`覆盖解析正反例、缺件、路径边界、构型/摘要错误、树选择和两类验收边界。
 
 检查范围、档位与状态统一见 [验证流程](../../doc/验证流程.md)。
 `python3 Main/tools/check/validate.py --list` 是唯一可执行清单；表中的“提交前”指受影响项，

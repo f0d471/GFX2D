@@ -1,0 +1,156 @@
+{
+  "apps": [
+    {
+      "enum": "APPFW_DEMO",
+      "graphics": "2d",
+      "host": true,
+      "id": 1,
+      "key": "demo",
+      "kind": "demo",
+      "modules": [
+        "myriad2d"
+      ],
+      "shortcut": 1,
+      "symbol": "g_app_demo",
+      "target_requires": [
+        "KEY",
+        "ALPHA_PM",
+        "ALPHA_ST",
+        "EQ_EXT"
+      ],
+      "title": "2D GRAPHICS DEMO"
+    },
+    {
+      "enum": "APPFW_GAME",
+      "graphics": "2d",
+      "host": true,
+      "id": 2,
+      "key": "stg",
+      "kind": "game",
+      "modules": [
+        "myriad2d"
+      ],
+      "shortcut": 2,
+      "symbol": "g_app_stg",
+      "target_requires": [
+        "KEY",
+        "ALPHA_PM",
+        "ALPHA_ST",
+        "EQ_EXT"
+      ],
+      "title": "DANMAKU GAME"
+    },
+    {
+      "enum": "APPFW_PRESS",
+      "graphics": "2d",
+      "host": true,
+      "id": 3,
+      "key": "press",
+      "kind": "benchmark",
+      "modules": [
+        "myriad2d"
+      ],
+      "shortcut": 3,
+      "symbol": "g_app_press",
+      "target_requires": [
+        "KEY",
+        "ALPHA_PM",
+        "ALPHA_ST",
+        "EQ_EXT"
+      ],
+      "title": "STRESS TEST"
+    },
+    {
+      "describe": "console_r4_describe",
+      "enum": "APPFW_R4",
+      "graphics": "3d",
+      "host": true,
+      "id": 4,
+      "key": "r4",
+      "kind": "game",
+      "modules": [
+        "r4"
+      ],
+      "shortcut": 4,
+      "symbol": "g_app_r4",
+      "target_requires": [
+        "RAST",
+        "RAST_TEX",
+        "TEX"
+      ],
+      "title": "3D CORRIDOR / CUP"
+    },
+    {
+      "enum": "APPFW_ABOUT",
+      "graphics": "2d",
+      "host": true,
+      "id": 5,
+      "key": "about",
+      "kind": "system",
+      "modules": [
+        "myriad2d"
+      ],
+      "shortcut": 0,
+      "symbol": "g_app_about",
+      "target_requires": [],
+      "title": "SYSTEM INFORMATION"
+    }
+  ],
+  "asset_limit_bytes": 4194304,
+  "capability_bits": {
+    "ALPHA_PM": 1,
+    "ALPHA_ST": 2,
+    "BAND_HW": 5,
+    "EQ_EXT": 3,
+    "INST": 12,
+    "KEY": 0,
+    "PB": 13,
+    "RAST": 14,
+    "RAST_TEX": 15,
+    "TEX": 6
+  },
+  "catalog_sha256": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+  "content_ids": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "enable_3d": true,
+  "image_limit_bytes": 524288,
+  "modules": {
+    "myriad2d": {
+      "defines": [],
+      "libraries": [],
+      "sources": [
+        "../../ports/myriad/app_game.c",
+        "src/app_demo.c",
+        "../../ports/myriad/frontend_game.c",
+        "../../ports/myriad/stg_modes.c",
+        "../game/gfx2dGame/src/game/*.c",
+        "../../ports/myriad/sw6_input.c",
+        "../../ports/myriad/sw6_report.c"
+      ]
+    },
+    "r4": {
+      "boot": "console_r4_boot",
+      "defines": [
+        "GFX_CONTENT_R4"
+      ],
+      "libraries": [
+        "core/replay_r4.c",
+        "gfx/rast_setup.c",
+        "gfx/rast_ref.c"
+      ],
+      "sources": [
+        "../../ports/myriad/app_r4.c",
+        "../game/gfx2dGame/src/r4_cup.c",
+        "../game/gfx2dGame/src/r4_geometry.c",
+        "../../ports/myriad/r4_runtime.c",
+        "../game/gfx2dGame/src/r4_scene.c"
+      ]
+    }
+  },
+  "profile": "full",
+  "version": 1
+}

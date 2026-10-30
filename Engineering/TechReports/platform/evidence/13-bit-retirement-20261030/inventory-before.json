@@ -1,0 +1,1052 @@
+{
+  "version": 1,
+  "retired": {
+    "board_release_20261015": {
+      "board_game_hw_ddr_20261015.log": {
+        "bytes": 1738,
+        "sha256": "148e43f9afe03f8fdabdf3691623ee5155bace5670537c9e83393a4ee67fac80"
+      },
+      "cpu0.yaml": {
+        "bytes": 202,
+        "sha256": "047917680026bd877ccd9be3575fe7abf48f50954db7485b468d346e32f879f3"
+      },
+      "gfx2d_debug.cfg": {
+        "bytes": 2946,
+        "sha256": "fc5f057fb30e82293dba1efd160289b73aa37e191a0b45d3183b6ffb9c8d3f99"
+      },
+      "gfx2d_ti60.bit": {
+        "bytes": 2775270,
+        "sha256": "6e04eb4f4a7d4b9994807c5736e0fa12b2f434893a3bfbe5be14455f551ebaae"
+      },
+      "gfx2d_ti60.hex": {
+        "bytes": 2775330,
+        "sha256": "fd2ed2ff7e2c579c42577d1c6889f7c94cfd1c1ed23fe177aadb538b017b7059"
+      },
+      "gfx2dGame-O2-perf.bin": {
+        "bytes": 121270,
+        "sha256": "1d58339966bd83b18f935091009e21d0916d75390894caa440e767b0cec305b2"
+      },
+      "gfx2dGame-O2-perf.elf": {
+        "bytes": 879348,
+        "sha256": "5f02058249cc39c67b8502f1ca08e1eb5f67d8c5a217f985890bf75ebd0226ca"
+      },
+      "gfx2dGame-O2-perf.map": {
+        "bytes": 235220,
+        "sha256": "6010115c6826f382257ffea3db750bb7ed70e632b813cfbbde54c96400e8313f"
+      },
+      "manifest.json": {
+        "bytes": 1974,
+        "sha256": "2ea361e3eefa79cf3b07689545a02f9c65ec882e416e3a0a79a1c9dbe08f9954"
+      },
+      "README.md": {
+        "bytes": 4404,
+        "sha256": "9b11f9c4b35154328ae53e3e962712f91daca3e1884ebf662371ae051f35440c"
+      }
+    },
+    "board_release_console_20261028": {
+      "assets.pak": {
+        "bytes": 4085504,
+        "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+      },
+      "board/B7.bit": {
+        "bytes": 2798274,
+        "sha256": "2bd49db6e4f1a6e35e23be5a13d4877526fecf18ee75b75ca088b222ae7bf16f"
+      },
+      "board/gfx2dGame.bin": {
+        "bytes": 232302,
+        "sha256": "62ebb1529ccce69c97991722866b781a5e7f27b5df6de87f2f68b8d25abae813"
+      },
+      "board/gfx2dGame.elf": {
+        "bytes": 1436604,
+        "sha256": "0f58b2097ee873c8a62a64fca33743f830e0ec7502cef8465f7c50411833ecac"
+      },
+      "board/gfx2dGame.map": {
+        "bytes": 856093,
+        "sha256": "843b583a060ca8d23a41f6ec7c8b79f6563499b5d418af087f42d26d6e934099"
+      },
+      "manifest.json": {
+        "bytes": 10759,
+        "sha256": "a21336be4f4d52c0bd72c7e514bd248de225cc27e7f861e1fa77eed3a60f1ec1"
+      },
+      "pc/assets.pak": {
+        "bytes": 4085504,
+        "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+      },
+      "pc/build.json": {
+        "bytes": 749,
+        "sha256": "e836c7698e64628f1d3a1f55b7bf2635ef0fb336cc8d2da35722ceefea7a86f5"
+      },
+      "pc/gfx2dGame.exe": {
+        "bytes": 1385954,
+        "sha256": "3a110c21ed6bc59ec366adc15ed534d38a906531c058ff949431dbba7cda2cda"
+      },
+      "pc/SDL2.dll": {
+        "bytes": 1785344,
+        "sha256": "53e8fa7e9ed43c30bd650c39396f0d9d2067d2fff0b926c9433b75202592e4aa"
+      },
+      "README.md": {
+        "bytes": 1469,
+        "sha256": "aafca6bd5f98f9bf7b267b3eb996fcfc954333b10882c28ef9df6b54e87ffe41"
+      },
+      "Run-Board.cmd": {
+        "bytes": 118,
+        "sha256": "f0af4ae32a1e9d2441729da098323910b38bedc0d3510d8d018ad951730cf206"
+      },
+      "Run-Board.ps1": {
+        "bytes": 1577,
+        "sha256": "85af025ea6a98bbd9c965526da83c56065048566392e829108bd55f71336b96f"
+      },
+      "Run-PC-Fullscreen.cmd": {
+        "bytes": 124,
+        "sha256": "b643ce202a444861443fbac484e2022757d28fff934ad4970a1b45f86bbcb87a"
+      },
+      "Run-PC.cmd": {
+        "bytes": 115,
+        "sha256": "5e022b979d6503956040159c02a53cbb13c29064d4a9a6be647de04289358d00"
+      },
+      "Run-PC.ps1": {
+        "bytes": 1534,
+        "sha256": "a7b49c92dd92aa43d9bb4938559e551dc1d6e2d47a037fa23d56e87abca06187"
+      },
+      "runtime/20261029_004933/deploy.log": {
+        "bytes": 1703,
+        "sha256": "d20c0668dc1ab203a7aa63811d1b9a401e7e6fad61e7b165d863844dfb98155b"
+      },
+      "runtime/20261029_004933/serial.log": {
+        "bytes": 444,
+        "sha256": "97deb85d4a03a3eaca8c0f52b56622592067eb057e67dfe9dd3863fcf2e825f2"
+      },
+      "runtime/20261029_005432/deploy.log": {
+        "bytes": 1703,
+        "sha256": "a08a69fe4adadfc5490d267f545c6e43e91240e3b0368d6de1d4938e6832d1ff"
+      },
+      "runtime/20261029_005432/panel.log": {
+        "bytes": 8576,
+        "sha256": "5d5d6deda4eafc476ea48f39eb3a385e59fd3cf5b8a91a0a400805ef85823c44"
+      },
+      "runtime/20261029_005432/panel_status.json": {
+        "bytes": 327,
+        "sha256": "7996514bc410abfc18fe5d3e6c7547c51c7268388016deed6c0073909fdb358c"
+      },
+      "runtime/20261029_005432/serial.log": {
+        "bytes": 444,
+        "sha256": "6ebe45972dbd68f9a0806840d7057a4757d132ecdc89cbdd1398bf9c0d64d37e"
+      },
+      "sdk/cpu0.yaml": {
+        "bytes": 202,
+        "sha256": "047917680026bd877ccd9be3575fe7abf48f50954db7485b468d346e32f879f3"
+      },
+      "source.diff": {
+        "bytes": 308076,
+        "sha256": "603a03a176210be474fbb5c54dee162257133427adfed83d2e9d2cf21acf07f7"
+      },
+      "source.zip": {
+        "bytes": 7824201,
+        "sha256": "11d2a6b5281f979adfa0f28d0f582bb4c0ba9f7b842061b953f43d6ae305659e"
+      },
+      "tools/board/board_run.py": {
+        "bytes": 26896,
+        "sha256": "0e73dd0a5ce9c2ee546410fa786db4f84621c1af3da684f00ce4383733deae51"
+      },
+      "tools/board/game_control.py": {
+        "bytes": 28173,
+        "sha256": "2143dddb69f45da81bcd4605b98f453954efa01eb533d10d0bf46427809a171b"
+      },
+      "tools/board/gfx2d_debug.cfg": {
+        "bytes": 2946,
+        "sha256": "fc5f057fb30e82293dba1efd160289b73aa37e191a0b45d3183b6ffb9c8d3f99"
+      },
+      "tools/board/input_forward.py": {
+        "bytes": 3492,
+        "sha256": "5155c10c85b75b2cdd9facea2e0ee8b154741df03185500b6ffebc4cb47610f2"
+      },
+      "tools/release_launch.py": {
+        "bytes": 3925,
+        "sha256": "a88727c1f739e5d94b9790ce43f51c847496a89b7895f315f3cf9a4a071b6de1"
+      },
+      "verification.json": {
+        "bytes": 3555,
+        "sha256": "114609f903b85d29c0eeafbfce25002ffef6ce4b0cbe50517413f929a7ff9d1b"
+      }
+    },
+    "board_release_game_current_20261024": {
+      "assets.pak": {
+        "bytes": 2840320,
+        "sha256": "90c9a42af5cac86050c50d05ec70c719863f148905acd10ef803a04ee2e806dc"
+      },
+      "board/B7.bit": {
+        "bytes": 2798274,
+        "sha256": "2bd49db6e4f1a6e35e23be5a13d4877526fecf18ee75b75ca088b222ae7bf16f"
+      },
+      "board/gfx2dGame.bin": {
+        "bytes": 190678,
+        "sha256": "24023832a52e8c1d84786baf6d1add3bf46e51adb88d63347950b7aac811b495"
+      },
+      "manifest.json": {
+        "bytes": 9971,
+        "sha256": "529af7f707a774b29a35c711c5c4d223ab346f1b05cabb754ebd5a1137786b29"
+      },
+      "manifest.original.json": {
+        "bytes": 9697,
+        "sha256": "096c88e00817a58717a685f930c699d7abc4a239fc99e81b20430d16fa16a7a3"
+      },
+      "pc/gfx2dGame.exe": {
+        "bytes": 1246534,
+        "sha256": "f11be20815ffdac27f4c227b093422827a6b3dc11be908bef774f7358e5f460c"
+      },
+      "pc/SDL2.dll": {
+        "bytes": 1785344,
+        "sha256": "53e8fa7e9ed43c30bd650c39396f0d9d2067d2fff0b926c9433b75202592e4aa"
+      },
+      "README.md": {
+        "bytes": 1120,
+        "sha256": "96243359750716dfd1173193b0ef311d308ca6cb3e7de0c0b8f96053ba58af96"
+      },
+      "Run-Board.cmd": {
+        "bytes": 118,
+        "sha256": "f0af4ae32a1e9d2441729da098323910b38bedc0d3510d8d018ad951730cf206"
+      },
+      "Run-Board.ps1": {
+        "bytes": 1577,
+        "sha256": "85af025ea6a98bbd9c965526da83c56065048566392e829108bd55f71336b96f"
+      },
+      "Run-PC.cmd": {
+        "bytes": 115,
+        "sha256": "5e022b979d6503956040159c02a53cbb13c29064d4a9a6be647de04289358d00"
+      },
+      "Run-PC.ps1": {
+        "bytes": 1058,
+        "sha256": "30d5e0239d7ce6f9cdb2499038b3e2e3863542ba2fca6e649af360d380588641"
+      },
+      "runtime/20261024_155131/deploy.log": {
+        "bytes": 1394,
+        "sha256": "e7f3ada37618c0a529091fc94093b7c3529394b88e23e61759a08566df4e4749"
+      },
+      "runtime/20261024_155131/serial.log": {
+        "bytes": 850,
+        "sha256": "22399e49e821806ad57fef8a37a20fb9a73cededa09212bb7167b2bb719d7e65"
+      },
+      "sdk/cpu0.yaml": {
+        "bytes": 202,
+        "sha256": "047917680026bd877ccd9be3575fe7abf48f50954db7485b468d346e32f879f3"
+      },
+      "source.diff": {
+        "bytes": 231800,
+        "sha256": "216e60e794f20d6776259349f021ed35ddd86008d280be75e6975404f0f4eb6a"
+      },
+      "source.zip": {
+        "bytes": 7426614,
+        "sha256": "c68f139161c4bfbb2da35c7b3ecdc57265cd3fc6b4942d2036fc5e959d4b8e2c"
+      },
+      "tools/board/board_run.py": {
+        "bytes": 25476,
+        "sha256": "afca1145ba543aff049330a605c54468466cb439c5480353d45949c67831b567"
+      },
+      "tools/board/game_control.py": {
+        "bytes": 23542,
+        "sha256": "7bbed5ce48b9f16038cbdc27c0ba844ee9571ed2c7b02d3301ee113b9b280cf1"
+      },
+      "tools/board/gfx2d_debug.cfg": {
+        "bytes": 2946,
+        "sha256": "fc5f057fb30e82293dba1efd160289b73aa37e191a0b45d3183b6ffb9c8d3f99"
+      },
+      "tools/board/input_forward.py": {
+        "bytes": 2832,
+        "sha256": "4b5b35d4662cdfcba30975701a1afdd00f089ef9a77b0a45e3e7a6ad229781e3"
+      },
+      "tools/release_launch.py": {
+        "bytes": 3567,
+        "sha256": "71a261ee19ccb9090839ce57b71e9b4c92adb901d5f9d9767d027c716bd7fa25"
+      }
+    },
+    "board_release_game_next_20261024": {
+      "assets.pak": {
+        "bytes": 2840320,
+        "sha256": "90c9a42af5cac86050c50d05ec70c719863f148905acd10ef803a04ee2e806dc"
+      },
+      "board/B7.bit": {
+        "bytes": 2798274,
+        "sha256": "2bd49db6e4f1a6e35e23be5a13d4877526fecf18ee75b75ca088b222ae7bf16f"
+      },
+      "board/gfx2dGame.bin": {
+        "bytes": 199062,
+        "sha256": "ef23696675ba3d91f0ffc7474a235cda2b89f358dbbdaed22993e5bbb04a865d"
+      },
+      "board/gfx2dGame.elf": {
+        "bytes": 1173136,
+        "sha256": "177f6900559c89dafd45079885e1cfd815ed81afe0f9d4eab09c0bc554142f37"
+      },
+      "board/gfx2dGame.map": {
+        "bytes": 321849,
+        "sha256": "89ada351898956c9f3ed46a830fdffc926fd6a50ef6345851e779bfa8d2abca9"
+      },
+      "manifest.json": {
+        "bytes": 16164,
+        "sha256": "8e0652f0fc4547f72dc1e543bcf83911d8c1b4627a915116bc6e688671ddf47d"
+      },
+      "pc/assets.pak": {
+        "bytes": 2840320,
+        "sha256": "90c9a42af5cac86050c50d05ec70c719863f148905acd10ef803a04ee2e806dc"
+      },
+      "pc/build.json": {
+        "bytes": 751,
+        "sha256": "14edf9f6efff94ccdec64d20327555dcb2f12829bee28a04468c65f7de09aff7"
+      },
+      "pc/gfx2dGame.exe": {
+        "bytes": 1294869,
+        "sha256": "a4c1404e2d23d1dcaba6841697d42d129f23bd52d9bb8c1cd7eb19506f52b502"
+      },
+      "pc/SDL2-LICENSE.txt": {
+        "bytes": 884,
+        "sha256": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127"
+      },
+      "pc/SDL2.dll": {
+        "bytes": 1785344,
+        "sha256": "53e8fa7e9ed43c30bd650c39396f0d9d2067d2fff0b926c9433b75202592e4aa"
+      },
+      "qa/cup-compare-000.png": {
+        "bytes": 42906,
+        "sha256": "a8e80da88a4f639e6ddc53e53aae8690ad3efe99187a0d4dcd1c46a758c14d2a"
+      },
+      "qa/cup-compare-030.png": {
+        "bytes": 40540,
+        "sha256": "ee5f50ed0c745fff50280644d654f90ff829c19460ed8e821638963d318aecff"
+      },
+      "qa/cup-compare-059.png": {
+        "bytes": 38448,
+        "sha256": "4afb5c632f6ee5a4170f27dd1433dd6f053d77bef5b5c2d430e1b1fa7355d96e"
+      },
+      "qa/current/cup/frame-000.png": {
+        "bytes": 9295,
+        "sha256": "fcc9957c41c1643a34325d88b65f405f7f4f2f2224d1f01ae82b2d12d8950e43"
+      },
+      "qa/current/cup/frame-030.png": {
+        "bytes": 8329,
+        "sha256": "d152fd58fd566a9b8f0db1b54ad22ed8ad521ea8bacbc7521b13281876500621"
+      },
+      "qa/current/cup/frame-059.png": {
+        "bytes": 7520,
+        "sha256": "2512777dc0ff7dc39c8fa29533dc9d81d87f67c78eb59c78eb2308cda313e4ab"
+      },
+      "qa/current/cup/frames.log": {
+        "bytes": 5366,
+        "sha256": "f80e3929cd0a9a156a0e061fda30758ab0e8ea69458f28721e67c0460127872b"
+      },
+      "qa/current/l2/frame-000.png": {
+        "bytes": 15169,
+        "sha256": "4eceff7e5c4968bb567956273eb1c7c1273b23a60634f57dc55b95a7abffad4b"
+      },
+      "qa/current/l2/frame-030.png": {
+        "bytes": 16148,
+        "sha256": "ac89d5586b299b58e48ee2cc9555e536e07cde2e82cb5b7a1804b6c10c5c3800"
+      },
+      "qa/current/l2/frame-090.png": {
+        "bytes": 15775,
+        "sha256": "016c0e0c2cb2acae3ff55bc8a274779ad0bbd4fe7af70409a4fb52a7e4012cbd"
+      },
+      "qa/current/l2/frame-150.png": {
+        "bytes": 15673,
+        "sha256": "fb7e0c0e1785b752a62c441f79237ebde304022d1ff66a33eae9c1a0b2f2dba0"
+      },
+      "qa/current/l2/frame-210.png": {
+        "bytes": 14014,
+        "sha256": "0d0762efeafc5c719e51782be9641f598e21fb8e5974fa853606364b2a32c0f1"
+      },
+      "qa/current/l2/frame-239.png": {
+        "bytes": 15928,
+        "sha256": "9250141436e3c715d56d301b9970a3caaa80bd7731c7afccb296ce2e1363c488"
+      },
+      "qa/current/l2/frames.log": {
+        "bytes": 16623,
+        "sha256": "c5e245423d6a120f88a8fa9593e28e126a6aba4d25eac3de882c7c7307727ffc"
+      },
+      "qa/l2-compare-000.png": {
+        "bytes": 80623,
+        "sha256": "9cfedf62b43ad9abe781fb7f6dde2d7cd1bc593f8eed74b290afbdd332b29e26"
+      },
+      "qa/l2-compare-030.png": {
+        "bytes": 82434,
+        "sha256": "4bf347f4c1d1b03fd357fa470eb375423661213e4c66f99ef7245a6977089457"
+      },
+      "qa/l2-compare-090.png": {
+        "bytes": 81722,
+        "sha256": "bc56c395cb260d4a7876c913e05762f7a6965b82c0df88a77cab7334fb28e1d5"
+      },
+      "qa/l2-compare-150.png": {
+        "bytes": 81873,
+        "sha256": "4ecfa73787152a2856dcca660363f3696e18c2e73b96f1bef9539bc7449c5386"
+      },
+      "qa/l2-compare-210.png": {
+        "bytes": 78381,
+        "sha256": "eae628cf20baa43acb048b9bcd16364b1cd3ed8ce19f16296e4d2bd4185baaba"
+      },
+      "qa/l2-compare-239.png": {
+        "bytes": 80912,
+        "sha256": "b8ce74a348fe09c997331f62061504716477fc643a42a73811062adbbcc4d96f"
+      },
+      "qa/manifest.json": {
+        "bytes": 3859,
+        "sha256": "3c33ad7d0abb6264087965248d333013e2e723b703e9a90b916f4b15fb8801b3"
+      },
+      "qa/next/cup/frame-000.png": {
+        "bytes": 30185,
+        "sha256": "7f2e04ac43fc2416dae3f577c3a6a39c8006d7ed2e9de832521c1ad00b4fb3ce"
+      },
+      "qa/next/cup/frame-030.png": {
+        "bytes": 28833,
+        "sha256": "fa1a38bf45e7a34806c994f33c4bc96269837f44d7036cd7208c1e15227f1b7a"
+      },
+      "qa/next/cup/frame-059.png": {
+        "bytes": 27519,
+        "sha256": "bc2ac71027f7f709de31343e5614123ee19a42c1580134c9c04fedd7011038a9"
+      },
+      "qa/next/cup/frames.log": {
+        "bytes": 5351,
+        "sha256": "b19ddda6101600e7681a489ee5a76b83b1884b74e25a6a201fa7a55e63a5e3d3"
+      },
+      "qa/next/l2/frame-000.png": {
+        "bytes": 60516,
+        "sha256": "21e7166cc24f6b5e33dfc2c5141dce4d8cdb1dbe624430c9fad4fc4f8d31bfc0"
+      },
+      "qa/next/l2/frame-030.png": {
+        "bytes": 61329,
+        "sha256": "aa01396d8f5ce32ba0be9746d8ee9e31cc9ed5c2186ad07cdd9cdb2afcaa1109"
+      },
+      "qa/next/l2/frame-090.png": {
+        "bytes": 60935,
+        "sha256": "a963628d146230f3dc285912de92ee496e85f874e3ccd4eeea9835b20bf7756b"
+      },
+      "qa/next/l2/frame-150.png": {
+        "bytes": 61268,
+        "sha256": "81c6e857fc868a6c08e65bc74ecb790eff2382c850467596f9dbb5041e89d7ee"
+      },
+      "qa/next/l2/frame-210.png": {
+        "bytes": 59977,
+        "sha256": "d4a2d7f747fc44fb25b4a508accac46fcd1e6097792db250bc32ed771354f04e"
+      },
+      "qa/next/l2/frame-239.png": {
+        "bytes": 60079,
+        "sha256": "81fdd78c55e42b39c59224f3288029b6ccb4becbc6cf4fb6e56217eb13381034"
+      },
+      "qa/next/l2/frames.log": {
+        "bytes": 16540,
+        "sha256": "e9a12dd7410db812342f25923405f9d95d211ea1817b60c1a831a274c6624d7a"
+      },
+      "README.md": {
+        "bytes": 1346,
+        "sha256": "4d420b00f24c7f812fbf2bbff3a12e91c1c4bb5c8f763a6948efdfb90d7450bf"
+      },
+      "Run-Board.cmd": {
+        "bytes": 118,
+        "sha256": "f0af4ae32a1e9d2441729da098323910b38bedc0d3510d8d018ad951730cf206"
+      },
+      "Run-Board.ps1": {
+        "bytes": 1577,
+        "sha256": "85af025ea6a98bbd9c965526da83c56065048566392e829108bd55f71336b96f"
+      },
+      "Run-PC-Fullscreen.cmd": {
+        "bytes": 124,
+        "sha256": "b643ce202a444861443fbac484e2022757d28fff934ad4970a1b45f86bbcb87a"
+      },
+      "Run-PC.cmd": {
+        "bytes": 115,
+        "sha256": "5e022b979d6503956040159c02a53cbb13c29064d4a9a6be647de04289358d00"
+      },
+      "Run-PC.ps1": {
+        "bytes": 1426,
+        "sha256": "7364939532fab04d94945143d8e68a8fea0f304e81f7af525e8da38af66cc2b4"
+      },
+      "runtime/20261024_195820/deploy.log": {
+        "bytes": 1388,
+        "sha256": "100e7ca10a6ba5f11fe792d34246c1057dd5706334de4b8a26e2a5453cb6d2ee"
+      },
+      "runtime/20261024_195820/panel.log": {
+        "bytes": 114347,
+        "sha256": "5ea4668b1174a7d32a4075213708ebe1d88f0aed976a32e9ffb0834426a058be"
+      },
+      "runtime/20261024_195820/panel_status.json": {
+        "bytes": 284,
+        "sha256": "31363cb9681c5153efdcef9af665e9970963e0a76d7defc248519169546c6db4"
+      },
+      "runtime/20261024_195820/serial.log": {
+        "bytes": 850,
+        "sha256": "98beca43c3f4a01de224323cf51a9d28001125013c819fcc7b86d28a5af3cca5"
+      },
+      "runtime/ready.json": {
+        "bytes": 1026,
+        "sha256": "8c65a59307f0557f929ba2db29650e27ddef5a6ffc1a85a6f87d88465ebfadce"
+      },
+      "sdk/cpu0.yaml": {
+        "bytes": 202,
+        "sha256": "047917680026bd877ccd9be3575fe7abf48f50954db7485b468d346e32f879f3"
+      },
+      "source.diff": {
+        "bytes": 265789,
+        "sha256": "58b78a6342ab86f4621b4747c983d1345d84852f028483f49513fbad57ed81bd"
+      },
+      "source.zip": {
+        "bytes": 7443250,
+        "sha256": "994f408a6ca3820f59fc599909ac197501da8292a92d31dca315d583fa304b8e"
+      },
+      "tools/board/board_run.py": {
+        "bytes": 25476,
+        "sha256": "afca1145ba543aff049330a605c54468466cb439c5480353d45949c67831b567"
+      },
+      "tools/board/game_control.py": {
+        "bytes": 23542,
+        "sha256": "7bbed5ce48b9f16038cbdc27c0ba844ee9571ed2c7b02d3301ee113b9b280cf1"
+      },
+      "tools/board/gfx2d_debug.cfg": {
+        "bytes": 2946,
+        "sha256": "fc5f057fb30e82293dba1efd160289b73aa37e191a0b45d3183b6ffb9c8d3f99"
+      },
+      "tools/board/input_forward.py": {
+        "bytes": 2832,
+        "sha256": "4b5b35d4662cdfcba30975701a1afdd00f089ef9a77b0a45e3e7a6ad229781e3"
+      },
+      "tools/release_launch.py": {
+        "bytes": 3721,
+        "sha256": "92c661101afafe325227595676fc5b083b6009f7ead573801f7a134791abfd6c"
+      },
+      "verification.json": {
+        "bytes": 4552,
+        "sha256": "d07155aadf71eb9ed376dd662067b91e0e63ae71f432a37f06d8f9a436f44410"
+      }
+    },
+    "board_release_game_wide_20261025": {
+      "assets.pak": {
+        "bytes": 2840320,
+        "sha256": "90c9a42af5cac86050c50d05ec70c719863f148905acd10ef803a04ee2e806dc"
+      },
+      "board/B7.bit": {
+        "bytes": 2798274,
+        "sha256": "2bd49db6e4f1a6e35e23be5a13d4877526fecf18ee75b75ca088b222ae7bf16f"
+      },
+      "board/gfx2dGame.bin": {
+        "bytes": 200454,
+        "sha256": "e6481c88c7cf8360d4bf6aca4d49179a41b75cfea5ba6b3089c52a6ea4653ccd"
+      },
+      "board/gfx2dGame.elf": {
+        "bytes": 1185036,
+        "sha256": "8452189a824d79ef65574a9ebba1f87ea1bc9fb4369c990db06103c0a97326cb"
+      },
+      "board/gfx2dGame.map": {
+        "bytes": 480922,
+        "sha256": "e5e2605e2723b5d27f54b1860f49510ef6b3f6a842e95c4ec00cac16ff309235"
+      },
+      "manifest.json": {
+        "bytes": 10860,
+        "sha256": "8a22203dfbf90080d9a36b6881eb9b4b2f8a5db715ef677731b9805c99dc1474"
+      },
+      "pc/assets.pak": {
+        "bytes": 2840320,
+        "sha256": "90c9a42af5cac86050c50d05ec70c719863f148905acd10ef803a04ee2e806dc"
+      },
+      "pc/build.json": {
+        "bytes": 781,
+        "sha256": "a8d98dd62979e389420916821c9363f421f9217865635fa974fecd0be6db4d9a"
+      },
+      "pc/gfx2dGame.exe": {
+        "bytes": 1317827,
+        "sha256": "dca5a799f8ac106209f15972d1b3cea9e0206e580d0afa624d855f40b5d82d19"
+      },
+      "pc/SDL2-LICENSE.txt": {
+        "bytes": 884,
+        "sha256": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127"
+      },
+      "pc/SDL2.dll": {
+        "bytes": 1785344,
+        "sha256": "53e8fa7e9ed43c30bd650c39396f0d9d2067d2fff0b926c9433b75202592e4aa"
+      },
+      "README.md": {
+        "bytes": 1407,
+        "sha256": "1542565ed839c7a7cf907c715e35c0de7c6da68b5d305ed1acba5318e421e5ca"
+      },
+      "Run-Board.cmd": {
+        "bytes": 118,
+        "sha256": "f0af4ae32a1e9d2441729da098323910b38bedc0d3510d8d018ad951730cf206"
+      },
+      "Run-Board.ps1": {
+        "bytes": 1577,
+        "sha256": "85af025ea6a98bbd9c965526da83c56065048566392e829108bd55f71336b96f"
+      },
+      "Run-PC-Fullscreen.cmd": {
+        "bytes": 124,
+        "sha256": "b643ce202a444861443fbac484e2022757d28fff934ad4970a1b45f86bbcb87a"
+      },
+      "Run-PC.cmd": {
+        "bytes": 115,
+        "sha256": "5e022b979d6503956040159c02a53cbb13c29064d4a9a6be647de04289358d00"
+      },
+      "Run-PC.ps1": {
+        "bytes": 1534,
+        "sha256": "a7b49c92dd92aa43d9bb4938559e551dc1d6e2d47a037fa23d56e87abca06187"
+      },
+      "sdk/cpu0.yaml": {
+        "bytes": 202,
+        "sha256": "047917680026bd877ccd9be3575fe7abf48f50954db7485b468d346e32f879f3"
+      },
+      "source.diff": {
+        "bytes": 304602,
+        "sha256": "d315235df641ee072bb6a4ae778e63519cfe648c656f4310a99d27a4171ab69f"
+      },
+      "source.zip": {
+        "bytes": 7455605,
+        "sha256": "ea391ca691173efd018a94921e6c0669db6ba27c54f1737b1e08f2b7376db272"
+      },
+      "tools/board/board_run.py": {
+        "bytes": 25476,
+        "sha256": "afca1145ba543aff049330a605c54468466cb439c5480353d45949c67831b567"
+      },
+      "tools/board/game_control.py": {
+        "bytes": 23542,
+        "sha256": "7bbed5ce48b9f16038cbdc27c0ba844ee9571ed2c7b02d3301ee113b9b280cf1"
+      },
+      "tools/board/gfx2d_debug.cfg": {
+        "bytes": 2946,
+        "sha256": "fc5f057fb30e82293dba1efd160289b73aa37e191a0b45d3183b6ffb9c8d3f99"
+      },
+      "tools/board/input_forward.py": {
+        "bytes": 2832,
+        "sha256": "4b5b35d4662cdfcba30975701a1afdd00f089ef9a77b0a45e3e7a6ad229781e3"
+      },
+      "tools/release_launch.py": {
+        "bytes": 3721,
+        "sha256": "92c661101afafe325227595676fc5b083b6009f7ead573801f7a134791abfd6c"
+      },
+      "verification.json": {
+        "bytes": 4689,
+        "sha256": "f7f926c87d0fcedb6a4fde38dc91fb8077ea7d844c09a898e27d2f2b6049b5e5"
+      }
+    },
+    "board_release_r3_20261023": {
+      "B7.bit": {
+        "bytes": 2798274,
+        "sha256": "87e5c80a4bb6ec642d6059dee509987f9cf5aa923bc8434caa12fc7edb54f904"
+      },
+      "featureTest.bin": {
+        "bytes": 93642,
+        "sha256": "c6ba2f506b68f1853d479870c59e5e20b04d009cd9fda9d4bf5897a2d5406efa"
+      },
+      "identity.json": {
+        "bytes": 604,
+        "sha256": "2855deec84e5fb3732bd85759f2cf20d1a02d9d62d1bfa95de07403187cc30f7"
+      },
+      "rastTest.bin": {
+        "bytes": 95058,
+        "sha256": "71f7eae9b77fde6ffd017260f644c2f35ae78f0a838360181a7cd46e7c3220c8"
+      },
+      "README.md": {
+        "bytes": 748,
+        "sha256": "ab88b2832eafc0a1d2461adb76a66ca8bc30e7c1b0fe67891071eda6a4377ca2"
+      }
+    },
+    "board_release_r4_visual_20261024": {
+      "B7.bit": {
+        "bytes": 2798274,
+        "sha256": "2bd49db6e4f1a6e35e23be5a13d4877526fecf18ee75b75ca088b222ae7bf16f"
+      },
+      "gfx2dGame.bin": {
+        "bytes": 190678,
+        "sha256": "24023832a52e8c1d84786baf6d1add3bf46e51adb88d63347950b7aac811b495"
+      },
+      "manifest.json": {
+        "bytes": 2097,
+        "sha256": "997d212bf57c03185d870bd18e6e6463b05fb7c00acc6dd7201b53bb374eb954"
+      },
+      "README.md": {
+        "bytes": 437,
+        "sha256": "99d4ab3224bc1b6c2e61f9455b9bdfdfa35969ef85e3fd30933ba1177d345901"
+      }
+    }
+  },
+  "retained": {
+    "snapshots": {
+      "B0/console-O2-perf.bin": {
+        "bytes": 174402,
+        "sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744"
+      },
+      "B0/content.json": {
+        "bytes": 2318,
+        "sha256": "27fc78cd8fb85d6317816bfad1990cdc68847b0387838fff89a1756594efe189"
+      },
+      "B0/firmware.json": {
+        "bytes": 1649,
+        "sha256": "fbac2f3297258ce13256beaf24c97cfcdf73d6f7dbaf93563918894c846d5c94"
+      },
+      "B0/gfx2d_ti60.bit": {
+        "bytes": 2380467,
+        "sha256": "86138e9b1b5d82ecfb1f86ad555b31ef5e172aee27eaf56f3229d4a4ea337330"
+      },
+      "B0/manifest.json": {
+        "bytes": 1329,
+        "sha256": "061ee4b92f53a7f3e8272162fca962613d27f73ccbac3500e90bc89a1fe9619e"
+      },
+      "B0/verification.json": {
+        "bytes": 1277,
+        "sha256": "c12ec3bef02fb9813e1fe7590f4c59e7e9ee46451cb00856a92e51386bf445aa"
+      },
+      "B3/console-O2-perf.bin": {
+        "bytes": 174402,
+        "sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744"
+      },
+      "B3/content.json": {
+        "bytes": 2318,
+        "sha256": "27fc78cd8fb85d6317816bfad1990cdc68847b0387838fff89a1756594efe189"
+      },
+      "B3/firmware.json": {
+        "bytes": 1649,
+        "sha256": "fbac2f3297258ce13256beaf24c97cfcdf73d6f7dbaf93563918894c846d5c94"
+      },
+      "B3/gfx2d_ti60.bit": {
+        "bytes": 2522958,
+        "sha256": "f88b5430455c84c99e9d69602f1376d78e96173836d99d2fa7ae184b426f385f"
+      },
+      "B3/manifest.json": {
+        "bytes": 1329,
+        "sha256": "bca12847239bfb5caf9bb175b4c6bc392aba505cfafd5404672ad723e25c631d"
+      },
+      "B3/verification.json": {
+        "bytes": 1277,
+        "sha256": "177ece3ad2c3ad39034c5efc239491640447d9606540e4df30178f731297afb4"
+      },
+      "B5/console-O2-perf.bin": {
+        "bytes": 174402,
+        "sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744"
+      },
+      "B5/content.json": {
+        "bytes": 2318,
+        "sha256": "27fc78cd8fb85d6317816bfad1990cdc68847b0387838fff89a1756594efe189"
+      },
+      "B5/firmware.json": {
+        "bytes": 1649,
+        "sha256": "fbac2f3297258ce13256beaf24c97cfcdf73d6f7dbaf93563918894c846d5c94"
+      },
+      "B5/gfx2d_ti60.bit": {
+        "bytes": 2768349,
+        "sha256": "c4f5a82118602d031ba652491cf63741b1ceb6e35f90f9706823b6ef1153c1cc"
+      },
+      "B5/manifest.json": {
+        "bytes": 1330,
+        "sha256": "c7ba5a2644bf59bbd4cc3d92725353769efeba6955dedd20066f54aaf6dcdc9c"
+      },
+      "B5/verification.json": {
+        "bytes": 1277,
+        "sha256": "602a50d269618c488267054d48ee289516f58eff68d089af006240825a3f3822"
+      },
+      "B7/console-O2-perf.bin": {
+        "bytes": 253806,
+        "sha256": "507e2c1551a6491898ee2b75fa16a707c29424415fdc1fa4a5e2989a5ec94a7f"
+      },
+      "B7/content.json": {
+        "bytes": 3174,
+        "sha256": "274552b8520dfa040d8b6e57b39f53a2b9d8ee92acd925485d044ad6ffc5f416"
+      },
+      "B7/firmware.json": {
+        "bytes": 1631,
+        "sha256": "da8b5aaac5277391e63116b0b5e2d12aa27a5b8d38d4e87981988b536432e1d1"
+      },
+      "B7/gfx2d_ti60.bit": {
+        "bytes": 2765409,
+        "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+      },
+      "B7/manifest.json": {
+        "bytes": 1423,
+        "sha256": "f08f14c34d1d81bc673b016fe131922c7082cdd321157bd58765521da42430dc"
+      },
+      "B7/verification.json": {
+        "bytes": 1292,
+        "sha256": "8410d92e3c852ab0d06378bc560ac16f8d9baf0e744999d5e038042b25b31bb5"
+      },
+      "README.md": {
+        "bytes": 3810,
+        "sha256": "de8633a5f64bac2e7bb231a666f1f0e5d07c7f04dad0f345e7b55bcbaf5fb8e4"
+      }
+    },
+    "official": {
+      "ddr_demo_ti60.bit": {
+        "bytes": 1954272,
+        "sha256": "54bfd6ec13fbf1cf1f7d796bf8e011b6be38a795c185f164ba972abf36e60c1c"
+      },
+      "ddr_demo_ti60.hex": {
+        "bytes": 1954332,
+        "sha256": "62490c839ec2696148eb582d951646fba4a3c37fca439afeafb0a315aed1b70f"
+      }
+    },
+    "flash_backup": {
+      "flash_20261004_W25Q64_before_SW9_acceptance.hex": {
+        "bytes": 25165824,
+        "sha256": "139a54ed82189589eca1ea128bf1630756ef63dd3521cdcec0c877a1002e44be"
+      },
+      "sw9_acceptance_20261004/.cflags": {
+        "bytes": 593,
+        "sha256": "efa5aa8dc46bc1e203a3c2dc50ae072f8291d3ae27a2e0ed7a9e86a0e681b689"
+      },
+      "sw9_acceptance_20261004/flash_after.hex": {
+        "bytes": 25165824,
+        "sha256": "67ec402ba440df88c91dfba5ed555c8d86f7a71320eeae848e88b8d571dc9613"
+      },
+      "sw9_acceptance_20261004/flash_evidence.json": {
+        "bytes": 859,
+        "sha256": "fa2e5bff323a34db4213190ecc48c2f428ae83bda5b459f8d5039b53907702fe"
+      },
+      "sw9_acceptance_20261004/gfx2dGame-O2-perf.asm": {
+        "bytes": 1256005,
+        "sha256": "0db3ee882bfa9cd432f943bdb42e467d3b4bab4ee4cdcb386314fe71238fbb2d"
+      },
+      "sw9_acceptance_20261004/gfx2dGame-O2-perf.bin": {
+        "bytes": 83974,
+        "sha256": "dd43775236a67937009ccddea31d97cd5366e13573bc91567632ca324218ce5e"
+      },
+      "sw9_acceptance_20261004/gfx2dGame-O2-perf.elf": {
+        "bytes": 643820,
+        "sha256": "205f89a711f71b4c6de209459890f96395816a74c31d3de2b913ac90cb18a482"
+      },
+      "sw9_acceptance_20261004/gfx2dGame-O2-perf.hex": {
+        "bytes": 251922,
+        "sha256": "a44424941967ec21c51b25c491f3da93698bf6a3a41768fd6011ebbf4acab294"
+      },
+      "sw9_acceptance_20261004/gfx2dGame-O2-perf.map": {
+        "bytes": 230965,
+        "sha256": "344db622d39a4ba63636f43280f7146e887a78361d38b1e77d9f2aeaa72f64e2"
+      }
+    },
+    "board_release_console_2d_20261030": {
+      "assets.pak": {
+        "bytes": 4085504,
+        "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+      },
+      "board/firmware.json": {
+        "bytes": 1340,
+        "sha256": "262d26c3067cc00de854b81f3573ef392fe2385132e6af0b05169246a9827ed4"
+      },
+      "board/gfx2d_ti60.bit": {
+        "bytes": 2380467,
+        "sha256": "86138e9b1b5d82ecfb1f86ad555b31ef5e172aee27eaf56f3229d4a4ea337330"
+      },
+      "board/gfx2dGame.bin": {
+        "bytes": 174402,
+        "sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744"
+      },
+      "board/gfx2dGame.elf": {
+        "bytes": 1243740,
+        "sha256": "c4c4ac54da63ee74d8741eb61c29501e4e0f222d864c36b3689e9078c69a479c"
+      },
+      "board/gfx2dGame.map": {
+        "bytes": 760321,
+        "sha256": "15e808f48cab9376df4afac1a16a68bdeb5a8ac22e4ad06bee7a91355a264940"
+      },
+      "board/hardware.json": {
+        "bytes": 1329,
+        "sha256": "061ee4b92f53a7f3e8272162fca962613d27f73ccbac3500e90bc89a1fe9619e"
+      },
+      "content.json": {
+        "bytes": 2318,
+        "sha256": "27fc78cd8fb85d6317816bfad1990cdc68847b0387838fff89a1756594efe189"
+      },
+      "manifest.json": {
+        "bytes": 15477,
+        "sha256": "59ce0cb8fc337e5a1a5d71b1cb89b7faa389e4a25ab464a293041f1ef64e7fc8"
+      },
+      "pc/assets.pak": {
+        "bytes": 4085504,
+        "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+      },
+      "pc/build.json": {
+        "bytes": 726,
+        "sha256": "89980a4118fc3992d12da3ba3359c8542aa5bafac8b3d612ec63bc063fcc74d3"
+      },
+      "pc/gfx2dGame.exe": {
+        "bytes": 1212010,
+        "sha256": "b3fb967738b34f8c77950d2fd1ea474c598ef0e5ab3897a971a9b5a1f2889e08"
+      },
+      "pc/SDL2-LICENSE.txt": {
+        "bytes": 884,
+        "sha256": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127"
+      },
+      "pc/SDL2.dll": {
+        "bytes": 1785344,
+        "sha256": "53e8fa7e9ed43c30bd650c39396f0d9d2067d2fff0b926c9433b75202592e4aa"
+      },
+      "README.md": {
+        "bytes": 1378,
+        "sha256": "235b7822e86a05534c98ca33375ca3d5aed858bc7ad4be117bba73b2ddf53172"
+      },
+      "Run-Board.cmd": {
+        "bytes": 118,
+        "sha256": "f0af4ae32a1e9d2441729da098323910b38bedc0d3510d8d018ad951730cf206"
+      },
+      "Run-Board.ps1": {
+        "bytes": 1577,
+        "sha256": "85af025ea6a98bbd9c965526da83c56065048566392e829108bd55f71336b96f"
+      },
+      "Run-PC-Fullscreen.cmd": {
+        "bytes": 124,
+        "sha256": "b643ce202a444861443fbac484e2022757d28fff934ad4970a1b45f86bbcb87a"
+      },
+      "Run-PC.cmd": {
+        "bytes": 115,
+        "sha256": "5e022b979d6503956040159c02a53cbb13c29064d4a9a6be647de04289358d00"
+      },
+      "Run-PC.ps1": {
+        "bytes": 1534,
+        "sha256": "a7b49c92dd92aa43d9bb4938559e551dc1d6e2d47a037fa23d56e87abca06187"
+      },
+      "sdk/cpu0.yaml": {
+        "bytes": 202,
+        "sha256": "047917680026bd877ccd9be3575fe7abf48f50954db7485b468d346e32f879f3"
+      },
+      "source.diff": {
+        "bytes": 99570,
+        "sha256": "019c81d2198ea976e358bfa2cf843dd9fb9706a5141a11bfaf20cfdd376becdb"
+      },
+      "source.zip": {
+        "bytes": 12496428,
+        "sha256": "bab7d1779fa0c599bb2a29704da30dec157b9e0d073583026c71f545db886c54"
+      },
+      "tools/board/board_run.py": {
+        "bytes": 26896,
+        "sha256": "0e73dd0a5ce9c2ee546410fa786db4f84621c1af3da684f00ce4383733deae51"
+      },
+      "tools/board/game_control.py": {
+        "bytes": 34680,
+        "sha256": "0006be9e02c5e5ee91e40a532c8773982c316ea7000666969a999440575f74c1"
+      },
+      "tools/board/gfx2d_debug.cfg": {
+        "bytes": 2946,
+        "sha256": "fc5f057fb30e82293dba1efd160289b73aa37e191a0b45d3183b6ffb9c8d3f99"
+      },
+      "tools/board/input_forward.py": {
+        "bytes": 3492,
+        "sha256": "5155c10c85b75b2cdd9facea2e0ee8b154741df03185500b6ffebc4cb47610f2"
+      },
+      "tools/release_launch.py": {
+        "bytes": 4175,
+        "sha256": "e6e802bf506337b9469d1fae0e88d8cd3a0a800b414b31d47cf6571562fe4adc"
+      },
+      "verification.json": {
+        "bytes": 1277,
+        "sha256": "c12ec3bef02fb9813e1fe7590f4c59e7e9ee46451cb00856a92e51386bf445aa"
+      }
+    },
+    "board_release_console_full_20261030": {
+      "assets.pak": {
+        "bytes": 4085504,
+        "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+      },
+      "board/firmware.json": {
+        "bytes": 1348,
+        "sha256": "fa29cda1202bed7cfd39dcc784fd3310a10453c6d932ae97e87ee36e62805d9e"
+      },
+      "board/gfx2d_ti60.bit": {
+        "bytes": 2765409,
+        "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+      },
+      "board/gfx2dGame.bin": {
+        "bytes": 253806,
+        "sha256": "507e2c1551a6491898ee2b75fa16a707c29424415fdc1fa4a5e2989a5ec94a7f"
+      },
+      "board/gfx2dGame.elf": {
+        "bytes": 1585436,
+        "sha256": "7f41e7d1f74ec088ff8db8d53ee05dd1b5cd4c4706dd3ccfbd92165afb2b5c8e"
+      },
+      "board/gfx2dGame.map": {
+        "bytes": 860755,
+        "sha256": "fdf5c64d1db0dc33d9f3446f906d13d5a77fad7b6ebbfe10b337e6a867c503b7"
+      },
+      "board/hardware.json": {
+        "bytes": 1423,
+        "sha256": "f08f14c34d1d81bc673b016fe131922c7082cdd321157bd58765521da42430dc"
+      },
+      "content.json": {
+        "bytes": 3174,
+        "sha256": "274552b8520dfa040d8b6e57b39f53a2b9d8ee92acd925485d044ad6ffc5f416"
+      },
+      "manifest.json": {
+        "bytes": 16549,
+        "sha256": "b1d157c209304807eae69983f87df6537cde9fa754498b5ed7f713f730b6a875"
+      },
+      "pc/assets.pak": {
+        "bytes": 4085504,
+        "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+      },
+      "pc/build.json": {
+        "bytes": 730,
+        "sha256": "92440ecbd97ed1b35e4f873f75c6853839d2019ac1b2bc19e71512c71643eca9"
+      },
+      "pc/gfx2dGame.exe": {
+        "bytes": 1534141,
+        "sha256": "f1f87e5b7595e930b487cb2772a077c990950f9337801b7f83cb151a99f34121"
+      },
+      "pc/SDL2-LICENSE.txt": {
+        "bytes": 884,
+        "sha256": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127"
+      },
+      "pc/SDL2.dll": {
+        "bytes": 1785344,
+        "sha256": "53e8fa7e9ed43c30bd650c39396f0d9d2067d2fff0b926c9433b75202592e4aa"
+      },
+      "README.md": {
+        "bytes": 1379,
+        "sha256": "1ffcc7a92b8ddb3fb2fef12e6ea936de85518868ba0c7a7d9740021bad86a859"
+      },
+      "Run-Board.cmd": {
+        "bytes": 118,
+        "sha256": "f0af4ae32a1e9d2441729da098323910b38bedc0d3510d8d018ad951730cf206"
+      },
+      "Run-Board.ps1": {
+        "bytes": 1577,
+        "sha256": "85af025ea6a98bbd9c965526da83c56065048566392e829108bd55f71336b96f"
+      },
+      "Run-PC-Fullscreen.cmd": {
+        "bytes": 124,
+        "sha256": "b643ce202a444861443fbac484e2022757d28fff934ad4970a1b45f86bbcb87a"
+      },
+      "Run-PC.cmd": {
+        "bytes": 115,
+        "sha256": "5e022b979d6503956040159c02a53cbb13c29064d4a9a6be647de04289358d00"
+      },
+      "Run-PC.ps1": {
+        "bytes": 1534,
+        "sha256": "a7b49c92dd92aa43d9bb4938559e551dc1d6e2d47a037fa23d56e87abca06187"
+      },
+      "sdk/cpu0.yaml": {
+        "bytes": 202,
+        "sha256": "047917680026bd877ccd9be3575fe7abf48f50954db7485b468d346e32f879f3"
+      },
+      "source.diff": {
+        "bytes": 99570,
+        "sha256": "019c81d2198ea976e358bfa2cf843dd9fb9706a5141a11bfaf20cfdd376becdb"
+      },
+      "source.zip": {
+        "bytes": 12496428,
+        "sha256": "bab7d1779fa0c599bb2a29704da30dec157b9e0d073583026c71f545db886c54"
+      },
+      "tools/board/board_run.py": {
+        "bytes": 26896,
+        "sha256": "0e73dd0a5ce9c2ee546410fa786db4f84621c1af3da684f00ce4383733deae51"
+      },
+      "tools/board/game_control.py": {
+        "bytes": 34680,
+        "sha256": "0006be9e02c5e5ee91e40a532c8773982c316ea7000666969a999440575f74c1"
+      },
+      "tools/board/gfx2d_debug.cfg": {
+        "bytes": 2946,
+        "sha256": "fc5f057fb30e82293dba1efd160289b73aa37e191a0b45d3183b6ffb9c8d3f99"
+      },
+      "tools/board/input_forward.py": {
+        "bytes": 3492,
+        "sha256": "5155c10c85b75b2cdd9facea2e0ee8b154741df03185500b6ffebc4cb47610f2"
+      },
+      "tools/release_launch.py": {
+        "bytes": 4175,
+        "sha256": "e6e802bf506337b9469d1fae0e88d8cd3a0a800b414b31d47cf6571562fe4adc"
+      },
+      "verification.json": {
+        "bytes": 1292,
+        "sha256": "8410d92e3c852ab0d06378bc560ac16f8d9baf0e744999d5e038042b25b31bb5"
+      }
+    }
+  },
+  "runtime_files": "mutable runtime files of retained packages excluded from content comparison"
+}

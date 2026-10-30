@@ -1,0 +1,193 @@
+{
+  "status": "PASS",
+  "scope": "PC adaptive R4 canvas; fixed 640x480 PC/FPGA reference retained",
+  "acceptance": {
+    "software": {
+      "status": "PASS",
+      "profile": "acceptance",
+      "checks": [
+        "pack",
+        "lib",
+        "rast",
+        "pc-wide",
+        "r4",
+        "app",
+        "pc",
+        "demo",
+        "game",
+        "stats",
+        "workflow",
+        "regs"
+      ],
+      "run_id": "20261025-184831-32bbc76c"
+    },
+    "window": {
+      "status": "PASS",
+      "profile": "acceptance",
+      "checks": [
+        "pc-window"
+      ],
+      "run_id": "20261025-181352-816b121f"
+    },
+    "layers": {
+      "status": "PASS",
+      "profile": "acceptance",
+      "checks": [
+        "layers"
+      ],
+      "run_id": "20261025-193950-f258c38d"
+    },
+    "board_run": "20261025-184825-fcfcb370",
+    "board_cases": [
+      {
+        "case": "l1",
+        "status": "PASS",
+        "frames": 60,
+        "mismatched": []
+      },
+      {
+        "case": "software-l1",
+        "status": "PASS",
+        "frames": 2,
+        "mismatched": []
+      },
+      {
+        "case": "l2",
+        "status": "PASS",
+        "frames": 240,
+        "mismatched": []
+      },
+      {
+        "case": "software-l2",
+        "status": "PASS",
+        "frames": 2,
+        "mismatched": []
+      },
+      {
+        "case": "cup",
+        "status": "PASS",
+        "frames": 60,
+        "mismatched": []
+      },
+      {
+        "case": "software-cup",
+        "status": "PASS",
+        "frames": 2,
+        "mismatched": []
+      },
+      {
+        "case": "pixel-injection",
+        "status": "EXPECTED_RED",
+        "frames": 1,
+        "mismatched": [
+          0
+        ]
+      },
+      {
+        "case": "performance",
+        "status": "PASS",
+        "samples": 1800,
+        "p50": 2640245,
+        "p99": 3067610,
+        "maximum": 3144405,
+        "late": 0,
+        "fields": 3600,
+        "swaps": 1800
+      },
+      {
+        "case": "performance-input",
+        "status": "PASS",
+        "samples": 1800,
+        "p50": 2662054,
+        "p99": 3058801,
+        "maximum": 3170006,
+        "late": 0,
+        "fields": 3600,
+        "swaps": 1800
+      },
+      {
+        "case": "switches",
+        "status": "PASS"
+      },
+      {
+        "case": "recording",
+        "status": "PASS",
+        "ticks": 8
+      },
+      {
+        "case": "legacy-game",
+        "status": "PASS",
+        "frames": 240,
+        "backend": "hw-tex"
+      },
+      {
+        "case": "r3-physical-fault-recovery",
+        "status": "PASS"
+      }
+    ]
+  },
+  "fixed_baseline": {
+    "frames": 180,
+    "pixels": "identical",
+    "records": "identical",
+    "native_windows": "180 frames identical"
+  },
+  "displays": [
+    {
+      "width": 2560,
+      "height": 1600,
+      "dpi": 144
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "dpi": 96
+    }
+  ],
+  "display_scope": "actual two-display/DPI switching; ultrawide window L1/L2/cup; synthetic disconnect recovery",
+  "unobserved": [
+    "physical monitor unplug/replug",
+    "other DPI modes"
+  ],
+  "native_flags": "PERF=1 START_MODE=4 R4_HW=0; unlimited; adaptive by default",
+  "target_flags": "PERF=1 START_MODE=4 START_BACKEND=2 R4_HW=1 R4_LADDER=2; unlimited; no JUDGE",
+  "target_ram_bytes": 3264320,
+  "board_startup": {
+    "status": "PASS",
+    "port": "COM11",
+    "deployment": "JTAG only; no Flash write",
+    "bit_sha256": "2bd49db6e4f1a6e35e23be5a13d4877526fecf18ee75b75ca088b222ae7bf16f",
+    "bin_sha256": "e6481c88c7cf8360d4bf6aca4d49179a41b75cfea5ba6b3089c52a6ea4653ccd",
+    "bin_bytes": 200454,
+    "state": [
+      30,
+      39653,
+      149,
+      2,
+      1,
+      0
+    ],
+    "scope": "unlimited mode4/L2/HW startup; distinct from finite performance BIN"
+  },
+  "entry_integrity": {
+    "status": "PASS",
+    "results": {
+      "ps51": {
+        "status": "EXPECTED_RED",
+        "returncode": 1,
+        "reason": "modified EXE rejected before game startup; both new switches parsed"
+      },
+      "ps7": {
+        "status": "EXPECTED_RED",
+        "returncode": 1,
+        "reason": "modified EXE rejected before game startup; both new switches parsed"
+      }
+    }
+  },
+  "pc_sha256": "dca5a799f8ac106209f15972d1b3cea9e0206e580d0afa624d855f40b5d82d19",
+  "isolation": {
+    "copied_files": 1143,
+    "original_sources_unchanged": true
+  },
+  "note": "Finite acceptance BINs and unlimited release BIN are distinct; JTAG only; no Flash write; awaiting user visual review."
+}

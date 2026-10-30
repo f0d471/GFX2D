@@ -92,6 +92,17 @@ def main():
         manifest['note'] = args.note
     target = ROOT / 'Main' / 'bit' / 'snapshots' / args.preset
     target.mkdir(parents=True, exist_ok=True)
+    previous=target/'manifest.json'
+    if previous.is_file():
+        old=json.loads(previous.read_text(encoding='utf-8'))
+        # The hardware generator never silently deletes the separately bound
+        # firmware identity. A changed bitstream invalidates its board evidence.
+        for key in ('bin','bin_sha256','bin_bytes','content','firmware'):
+            if key in old:manifest[key]=old[key]
+        if old.get('bit_sha256')==manifest['bit_sha256'] and old.get('caps')==manifest['caps']:
+            if 'bin_verified_by' in old:manifest['bin_verified_by']=old['bin_verified_by']
+        elif 'bin' in old:
+            manifest['bin_verified_by']='INCOMPLETE: bitstream changed; selected firmware requires fresh board verification'
     (target / 'gfx2d_ti60.bit').write_bytes(payload)
     (target / 'manifest.json').write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

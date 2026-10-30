@@ -1,0 +1,11 @@
+# COM11 @ 115200 8N1, opened 00:54:37
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+console enter menu
+menu crc 24eeb9cf sel 0
+console status v 2 app menu id 0 backend hw fps_milli 43478 frames 44 presents 44 errors 0 scene 0 ladder 0 dropped 0 tick_ms 7710 irqA 463 heap 57920 faults 0 tasks 4 idle 1353753 monitor 1
+
+# closed 00:54:59, 323 bytes

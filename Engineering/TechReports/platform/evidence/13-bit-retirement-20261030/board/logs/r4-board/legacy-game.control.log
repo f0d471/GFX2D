@@ -1,0 +1,27 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   222234 bytes written at address 0x00001000
+   downloaded 222234 bytes in 12.028363s (18.043 KiB/s)
+=== 等串口采集结束（上限 180 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\20261030-030035-e3284c97\logs\r4-board\legacy-game.serial.log）---
+# COM11 @ 115200 8N1, opened 03:13:34
+# --- 程序已加载，以下才是它的输出 ---
+gfx2dGame MODES
+pak 4085504 87500897
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+csv,0,game,hw-tex,59,1,0,0,0,201,429182,0,543825,11883,405517,0,263,197,2,0,0,0,0,2,385982,43200,0,0,0,0,11849,25325866,2049536,216823,610517,5104710,6641961,8027541,26354484,pipeline,warming,534145,0,60,59000
+csv,1,game,hw-tex,60,0,0,0,0,201,429180,0,543981,18172,508601,585743,379,197,2,0,0,0,0,2,385980,43200,0,0,0,0,23901,51076512,4103095,437284,1231359,10295311,13395917,16196211,53161392,pipeline,cpu,537924,446781,60,60000
+csv,2,game,hw-tex,60,0,3,0,0,203,408894,0,592318,47259,503247,611461,371,198,1,2,0,0,0,2,387006,21600,288,0,0,0,36772,75745760,6220825,685873,1868557,14944209,19888377,24193388,80018264,pipeline,cpu,575405,447614,60,60000
+csv,3,game,hw-tex,60,0,19,0,0,220,411710,0,604463,74542,496623,631438,371,199,1,18,0,0,0,2,387518,21600,2592,0,0,0,50090,100533896,8407251,951529,2516326,19640225,26414888,32323250,107506049,pipeline,cpu,591239,458129,60,60000
+csvsum,240,241,1,604463,604463,4,0
+diag fifo_min 336 samples 240 zero 0 under 0 irqA 799 irqB 240 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 03:14:01, 1621 bytes

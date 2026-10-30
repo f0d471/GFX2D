@@ -8,7 +8,7 @@ typedef struct appfw_app {
     int (*enter)(appfw_ctx *);int (*leave)(appfw_ctx *);
     int (*frame)(appfw_ctx *,uint32_t keys,uint32_t frame);
 } appfw_app;
-typedef struct { const char *backend;uint32_t scene,ladder; } appfw_detail;
+typedef struct { const char *backend;uint32_t scene,ladder;const char *catalog;uint32_t capabilities; } appfw_detail;
 typedef struct {
     void *user;const appfw_app *menu;const appfw_app *const *apps;uint32_t count;
     uint32_t system_mask,transition_mask;
@@ -21,6 +21,8 @@ typedef struct {
 /* One manager owner per firmware; configure only at initialization. */
 const appfw_app *const *appfw_apps(uint32_t *count);
 const appfw_app *appfw_app_at(uint32_t index);
+uint32_t appfw_visible_count(void);
+const appfw_app *appfw_visible_at(uint32_t index);
 const appfw_app *appfw_find(const char *name);
 const appfw_app *appfw_app_id(uint32_t id);
 int appfw_available(const appfw_app *app);

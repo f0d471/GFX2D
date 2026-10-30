@@ -5,6 +5,12 @@
 Enter/Space确认、Esc返回、C切三维场景。板载物理左右同按确认、上下同按返回。
 详见 [应用与输入契约](../../doc/应用与输入契约.md)。
 
+产品应用清单为 `sw/apps/console/catalog.json`。原生 PC 构建加 `--app-profile 2d|full`，
+Ti60 固件使用 `build_console.py --out Main/sim/build/<目录> --app-profile 2d|full`；可选
+`--apps demo,stg`，空列表只保留系统功能。2D 构建真正移除 R4 应用、atlas 和专用库。
+新应用的 ID、顺序、类型与数量来自目录；上下/确认是完整导航，数字键是可选快捷入口。
+构建生成 content.json；BIN预算、程序内存、素材预算和三维符号由 build_console.py 检查。
+
 原生PC模式4默认按窗口/当前显示器比例渲染宽屏。打包器保留`Run-PC.ps1 -FixedAspect`
 供640×480对照；`-Fullscreen`为桌面全屏。旧冻结包不因工具更新而原地改写。
 
@@ -15,6 +21,8 @@ Enter/Space确认、Esc返回、C切三维场景。板载物理左右同按确�
 | `game_control.py` | 正在运行的游戏的电脑控制面板；固定操作说明、实时模式/后端/FPS、切换提示、硬件后端恢复和重开按钮 |
 | `play.ps1` | 游戏控制面板的 PowerShell 启动入口；定位 Efinity Python，日志与状态写入项目内的构建目录 |
 | `build_pc.py` | WSL MinGW+固定SDL2版本构建原生Windows游戏或窗口集成检查；构建依赖缓存于忽略目录 |
+| `build_console.py` | 交叉构建选定内容的 Ti60 BIN/ELF，检查镜像/内存/素材预算与2D裁剪，登记 firmware.json |
+| `console_catalog.py` | 从唯一目录生成应用集合、注册表、能力元数据、源依赖和内容身份；输出位于当前OBJDIR |
 | `package_game.py` | 冻结PC EXE/DLL、素材、板端bit/BIN、独立部署工具及源码快照到`bit/board_release_*/` |
 | `release_launch.py` | 冻结包校验、自动定位当前UART、JTAG重载和连接包内面板；不写Flash |
 | `gfx2d_debug.cfg` | 本板用的 OpenOCD 配置，修掉官方 cfg 在本板上的两处对不上，`board_run.py` 用它 |

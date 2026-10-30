@@ -132,7 +132,7 @@ static int surf_in_window(const gfx_mem *m, const gfx_surf_raw *s)
    宽高为 0 先判，避免 w - 1 在无符号下溢。返回 0 表示没有要画的像素。 */
 static int dst_window(const gfx_surface_table *t, const gfx_rect *clip,
                       uint32_t dstid, int32_t dx, int32_t dy,
-                      uint32_t w, uint32_t h, gfx_rect *out)
+                      uint32_t w, uint32_t h, gfx_rect *out,unsigned frame_w,unsigned frame_h)
 {
     const gfx_surf_raw *s = &t->s[dstid];
     int32_t             x0, y0, x1, y1;
@@ -148,12 +148,12 @@ static int dst_window(const gfx_surface_table *t, const gfx_rect *clip,
     if (dy > y0)       y0 = dy;
     if (clip->y0 > y0) y0 = clip->y0;
 
-    x1 = GFX_SCREEN_W - 1;
+    x1 = (int32_t)frame_w - 1;
     if (dx + (int32_t)w - 1 < x1)            x1 = dx + (int32_t)w - 1;
     if (clip->x1 < x1)                       x1 = clip->x1;
     if ((int32_t)gfx_surf_width(s) - 1 < x1) x1 = (int32_t)gfx_surf_width(s) - 1;
 
-    y1 = GFX_SCREEN_H - 1;
+    y1 = (int32_t)frame_h - 1;
     if (dy + (int32_t)h - 1 < y1)             y1 = dy + (int32_t)h - 1;
     if (clip->y1 < y1)                        y1 = clip->y1;
     if ((int32_t)gfx_surf_height(s) - 1 < y1) y1 = (int32_t)gfx_surf_height(s) - 1;
@@ -263,7 +263,7 @@ void exec_sw_stats_clear(exec_sw_stats *st)
 /* SET_CLIP：w1 是左上角、w3 是尺寸，闭区间，新框替换旧框。
    「只能缩小」是相对游戏区而言，所以截断在设置时做；
    游戏区本来就是四者求交的一项，设置时截断与使用时求交结果相同。 */
-static void apply_set_clip(exec_sw_state *es, const gfx_cmd *c)
+static void apply_set_clip(exec_sw_state *es,const gfx_cmd *c,unsigned frame_w,unsigned frame_h)
 {
     int32_t x0 = gfx_s16(c->w[1]);
     int32_t y0 = gfx_s16(c->w[1] >> 16);
@@ -272,8 +272,8 @@ static void apply_set_clip(exec_sw_state *es, const gfx_cmd *c)
 
     es->clip.x0 = (x0 > 0) ? x0 : 0;
     es->clip.y0 = (y0 > 0) ? y0 : 0;
-    es->clip.x1 = (x1 < GFX_SCREEN_W - 1) ? x1 : GFX_SCREEN_W - 1;
-    es->clip.y1 = (y1 < GFX_SCREEN_H - 1) ? y1 : GFX_SCREEN_H - 1;
+    es->clip.x1 = (x1 < (int32_t)frame_w - 1) ? x1 : (int32_t)frame_w - 1;
+    es->clip.y1 = (y1 < (int32_t)frame_h - 1) ? y1 : (int32_t)frame_h - 1;
 }
 
 static int fail(exec_sw_error *err, int code, uint32_t index, uint32_t tag)
@@ -288,7 +288,7 @@ static int fail(exec_sw_error *err, int code, uint32_t index, uint32_t tag)
 
 static int run_core(const gfx_mem *source_m, exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
                 const gfx_cmd *list, uint32_t list_count, uint32_t readable_count,
-                exec_sw_stats *st, exec_sw_error *err)
+                exec_sw_stats *st, exec_sw_error *err,unsigned frame_w,unsigned frame_h)
 {
     uint32_t idx;
 
@@ -331,7 +331,7 @@ static int run_core(const gfx_mem *source_m, exec_sw_state *es, const gfx_surfac
             continue;
         }
         if (op == GFX_OP_SET_CLIP) {
-            apply_set_clip(es, c);
+            apply_set_clip(es,c,frame_w,frame_h);
             if (st != 0) st->cmd++;
             continue;
         }
@@ -358,7 +358,7 @@ static int run_core(const gfx_mem *source_m, exec_sw_state *es, const gfx_surfac
         }
 
         if (!dst_window(t, &es->clip, dstid, gfx_s16(c->w[2]),
-                        gfx_s16(c->w[2] >> 16), w, h, &win)) {
+                        gfx_s16(c->w[2] >> 16), w, h, &win,frame_w,frame_h)) {
             if (st != 0) st->cmd++;             /* 零面积或全裁掉，仍是成功执行完 */
             continue;
         }
@@ -435,7 +435,15 @@ int exec_sw_run(exec_sw_state *es, const gfx_surface_table *t, const gfx_mem *m,
                 const gfx_cmd *list, uint32_t list_count, uint32_t readable_count,
                 exec_sw_stats *st, exec_sw_error *err)
 {
-    return run_core(m,es,t,m,list,list_count,readable_count,st,err);
+    return run_core(m,es,t,m,list,list_count,readable_count,st,err,GFX_SCREEN_W,GFX_SCREEN_H);
+}
+
+int exec_sw_run_frame(exec_sw_state *es,const gfx_surface_table *t,const gfx_mem *m,
+                      const gfx_cmd *list,uint32_t count,uint32_t readable,
+                      exec_sw_stats *stats,exec_sw_error *error,unsigned width,unsigned height)
+{
+    if(width<640u || width>1792u || height!=480u)return fail(error,GFX_E_BAD_SURFACE,0,0);
+    return run_core(m,es,t,m,list,count,readable,stats,error,width,height);
 }
 
 int exec_sw_run_strips(const gfx_surface_table *t, const gfx_mem *m,
@@ -484,7 +492,7 @@ int exec_sw_run_strips(const gfx_surface_table *t, const gfx_mem *m,
 #else
             const gfx_cmd *c=&bucket[k];
 #endif
-            e=run_core(m,&es,&shadow,&local,c,1u,1u,st,&local_err);
+            e=run_core(m,&es,&shadow,&local,c,1u,1u,st,&local_err,GFX_SCREEN_W,GFX_SCREEN_H);
             if(e)return fail(err,e,idx,c->w[7]);
         }
 #ifndef INJ_STRIP_NOFLUSH

@@ -7,11 +7,13 @@
 *         的反汇编判据查的就是它。
 ******************************************************************************/
 
+#include <stddef.h>
 #include "stg_draw.h"
 
 #include "stg_enemy.h"
 #include "stg_kind.h"
 #include "stg_stage.h"
+#include "myriad_hud.h"
 #ifdef GFX_FRONTEND_PROFILE
 extern void frontend_stage(uint32_t stage,const gfx_list *list);
 #define FRONTEND_STAGE(n,l) frontend_stage(n,l)
@@ -27,6 +29,9 @@ typedef struct {
     int                  dst;
     gfx_rect             clip;          /* 当前裁剪框（闭区间） */
     int                  static_base;
+    const stg_draw_view  *view;
+    int                  offset_x;
+    int                  scenery_w;
 } dctx;
 
 static void count(dctx *d, int rc, int eq)
@@ -41,9 +46,9 @@ static void fill(dctx *d, int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32
 {
     gfx_rect r;
 
-    r.x0 = x0;
+    r.x0 = x0+d->offset_x;
     r.y0 = y0;
-    r.x1 = x1;
+    r.x1 = x1+d->offset_x;
     r.y1 = y1;
     count(d, gfx_fill(d->l, d->dst, r, argb, eq, c), eq);
 }
@@ -56,7 +61,7 @@ static int sprite(dctx *d, int src, int sx, int sy, int32_t dx, int32_t dy, int3
 
     if (dx > d->clip.x1 || dx + w - 1 < d->clip.x0 || dy > d->clip.y1 || dy + h - 1 < d->clip.y0)
         return 0;
-    rc = gfx_blit(d->l, src, sx, sy, d->dst, (int)dx, (int)dy, (int)w, (int)h, eq, 0u, key_en, 0u);
+    rc = gfx_blit(d->l, src, sx, sy, d->dst, (int)dx+d->offset_x, (int)dy, (int)w, (int)h, eq, 0u, key_en, 0u);
     count(d, rc, eq);
     return rc == 0;
 }
@@ -65,7 +70,7 @@ static void text(dctx *d, const stg_font *f, int x, int y, const char *s)
 {
     uint32_t drawn = 0u;
 
-    d->st->rejected += stg_text_draw(d->l, f, d->dst, x, y, s, &drawn);
+    d->st->rejected += stg_text_draw(d->l, f, d->dst, x+d->offset_x, y, s, &drawn);
     d->st->by_eq[GFX_EQ_COPY] += drawn;
 }
 
@@ -99,7 +104,8 @@ static void draw_band(dctx *d, int src_y, int32_t dst_y, int32_t band_h, uint32_
     const int32_t off = -(int32_t)(((g->frame * speed) >> 8) % STG_BG_BAND_W);
     uint32_t c, s;
 
-    for (c = 0u; c < 2u; c++) {
+    const unsigned copies=d->view?(unsigned)d->scenery_w/STG_BG_BAND_W+2u:2u;
+    for (c = 0u; c < copies; c++) {
         const int32_t dx = off + shx + (int32_t)(c * STG_BG_BAND_W);
 
         for (s = 0u; s < STG_BG_BAND_W / STG_BG_SLICE_W; s++)
@@ -118,16 +124,18 @@ static void draw_background(dctx *d, const stg_game *g)
     bg_shake(g, &shx, &shy);
 
     /* 天空底图：两笔 200 宽列切片铺满游戏区（不震动，保证整帧覆盖）；接网格线与两条剪影带。 */
-    sprite(d, d->cfg->bglayers_slot, 0, 0, 0, 0, STG_BG_SKY_SLICE_W, STG_FIELD_H, GFX_EQ_COPY, 0);
-    sprite(d, d->cfg->bglayers_slot, STG_BG_SKY_SLICE_W, 0, STG_BG_SKY_SLICE_W, 0,
-           STG_FIELD_W - STG_BG_SKY_SLICE_W, STG_FIELD_H, GFX_EQ_COPY, 0);
+    for(int x=0;x<d->scenery_w;x+=STG_BG_SKY_SLICE_W) {
+        int w=d->scenery_w-x;if(w>STG_BG_SKY_SLICE_W)w=STG_BG_SKY_SLICE_W;
+        sprite(d,d->cfg->bglayers_slot,x%STG_FIELD_W,0,x,0,w,STG_FIELD_H,GFX_EQ_COPY,0);
+    }
     for (k = 0u; k < STG_BG_HLINES; k++) {
         const int32_t y = stg_bg_hline_y(bg, k) + shy;
 
-        fill(d, 0, y, STG_FIELD_W - 1, y, stg_bg_hline_bright(bg, k) ? STG_BG_BRIGHT : STG_BG_DIM,
+        fill(d, 0, y, d->scenery_w - 1, y, stg_bg_hline_bright(bg, k) ? STG_BG_BRIGHT : STG_BG_DIM,
              GFX_EQ_COPY, 0u);
     }
-    for (k = 0u; k < STG_BG_VLINES; k++) {
+    const unsigned vlines=d->view?(unsigned)d->scenery_w/STG_BG_SPACING_PX+1u:STG_BG_VLINES;
+    for (k = 0u; k < vlines; k++) {
         const int32_t x = stg_bg_vline_x(k) + shx;
 
         fill(d, x, 0, x, STG_FIELD_H - 1, stg_bg_vline_bright(k) ? STG_BG_BRIGHT : STG_BG_DIM,
@@ -135,11 +143,11 @@ static void draw_background(dctx *d, const stg_game *g)
     }
     draw_band(d, STG_FIELD_H, STG_BG_FAR_Y, STG_BG_FAR_H, STG_BG_FAR_SPEED, g, shx, shy);
     draw_band(d, STG_FIELD_H + STG_BG_FAR_H, STG_BG_CITY_Y, STG_BG_CITY_H, STG_BG_CITY_SPEED, g, shx, shy);
-    for (k = 0u; k < STG_BG_STARS; k++) {
+    for(int tile=0;tile<d->scenery_w;tile+=STG_FIELD_W)for (k = 0u; k < STG_BG_STARS; k++) {
         const stg_star *s = &bg->star[k];
 
         (void)sprite(d, d->cfg->stars_slot, (int)(s->kind * (uint32_t)STG_STAR_PX), 0,
-                     fx_px(s->x) + shx, fx_px(s->y) + shy, STG_STAR_PX, STG_STAR_PX, GFX_EQ_COPY, 1);
+                     fx_px(s->x) + tile + shx, fx_px(s->y) + shy, STG_STAR_PX, STG_STAR_PX, GFX_EQ_COPY, 1);
     }
 }
 
@@ -265,7 +273,7 @@ static void icons(dctx *d, uint32_t icon, uint32_t n, int y)
                      HUD_VX + (int32_t)i * 22, y, STG_ICON_PX, STG_ICON_PX, GFX_EQ_COPY, 1);
 }
 
-static void draw_hud(dctx *d, const stg_game *g, const stg_hud_live *live)
+static void draw_hud_legacy(dctx *d, const stg_game *g, const stg_hud_live *live)
 {
     const stg_font *lab = &d->cfg->font_cyan;
 
@@ -308,11 +316,72 @@ static void draw_hud(dctx *d, const stg_game *g, const stg_hud_live *live)
     value(d, HUD_VX, 434, live->hw_fps, live->hw_fps_valid, 0u);
 }
 
+static void compact_row(dctx *d,unsigned row,const char *label,const char *number)
+{
+    char fit[18];
+    myriad_hud_fit(fit,label,number?7u:17u);
+    text(d,&d->cfg->font_cyan,MYRIAD_HUD_TEXT_X,(int)row*16,fit);
+    if(number)text(d,&d->cfg->font,myriad_hud_value_x(number),(int)row*16,number);
+}
+
+static void compact_value(dctx *d,unsigned row,const char *label,uint32_t number,int valid)
+{
+    char value_text[12];
+    if(valid)fmt_u32(value_text,number,0);else {value_text[0]='-';value_text[1]='-';value_text[2]=0;}
+    compact_row(d,row,label,value_text);
+}
+
+static void draw_hud_compact(dctx *d,const stg_game *g,const stg_hud_live *live)
+{
+    char score[12],segment[18];
+    const char *name=live->seg_text?live->seg_text:stg_game_seg_name_g(g,g->seg);
+    if(!d->static_base)fill(d,d->view?MYRIAD_HUD_X:HUD_X0,0,639,479,MYRIAD_HUD_BG,GFX_EQ_COPY,0);
+    fill(d,MYRIAD_HUD_X,0,MYRIAD_HUD_X+1,479,MYRIAD_HUD_LINE,GFX_EQ_COPY,0);
+    compact_row(d,1,"MYRIAD",NULL);
+    compact_row(d,4,live->seg_text?"STRESS TEST":"DANMAKU",NULL);
+    compact_row(d,6,"SCORE",NULL);fmt_u32(score,g->score,9);
+    text(d,&d->cfg->font,MYRIAD_HUD_TEXT_X,7*16,score);
+    compact_row(d,9,"HI-SCORE",NULL);fmt_u32(score,g->hiscore,9);
+    text(d,&d->cfg->font,MYRIAD_HUD_TEXT_X,10*16,score);
+    compact_row(d,12,"PLAYER",NULL);compact_row(d,14,"BOMB",NULL);
+    for(unsigned kind=0;kind<2;++kind)for(unsigned i=0;i<3;++i) {
+        const unsigned count=kind?g->bombs:g->lives;
+        fill(d,564+(int)i*22,(kind?14:12)*16+3,577+(int)i*22,(kind?14:12)*16+14,
+             i<count?(kind?0x00c9a6ffu:0x0041ffb0u):0x0012314au,GFX_EQ_COPY,0);
+    }
+    compact_value(d,16,"GRAZE",g->graze,1);
+    fill(d,MYRIAD_HUD_TEXT_X,18*16,MYRIAD_HUD_RIGHT-1,18*16+1,MYRIAD_HUD_RULE,GFX_EQ_COPY,0);
+    compact_row(d,20,live->seg_text?"LOAD":"STAGE",NULL);
+    myriad_hud_fit(segment,name,17);text(d,&d->cfg->font,MYRIAD_HUD_TEXT_X,21*16,segment);
+    unsigned len=0;while(name[len])++len;
+    if(len>17u) {
+        myriad_hud_fit(segment,name+17,17);text(d,&d->cfg->font,MYRIAD_HUD_TEXT_X,22*16,segment);
+    }
+    if(g->boss.on==STG_BOSS_CARD) {
+        const int32_t full=g->ss->cards[g->boss.card].hp;
+        const int32_t hp=g->boss.hp<0?0:g->boss.hp;
+        const int32_t w=(int32_t)((int64_t)hp*134/(full>0?full:1));
+        fill(d,MYRIAD_HUD_TEXT_X,23*16,MYRIAD_HUD_RIGHT-1,23*16+7,STG_HP_FRAME,GFX_EQ_COPY,0);
+        if(w>0)fill(d,MYRIAD_HUD_TEXT_X+1,23*16+1,MYRIAD_HUD_TEXT_X+w,23*16+6,
+                   hp*4>full*2?STG_HP_HI:hp*4>full?STG_HP_MID:STG_HP_LOW,GFX_EQ_COPY,0);
+    }
+    compact_value(d,24,"SPRITES",d->st->act.total,1);
+    compact_value(d,25,"BULLETS",stg_pool_count(&g->f.pools.ebullet),1);
+    compact_value(d,27,"SW FPS",live->sw_fps,live->sw_fps_valid);
+    compact_value(d,28,"HW FPS",live->hw_fps,live->hw_fps_valid);
+    compact_row(d,29,"ESC MENU",NULL);
+}
+
+static void draw_hud(dctx *d,const stg_game *g,const stg_hud_live *live)
+{
+    if(GFX_PRODUCT_HUD)draw_hud_compact(d,g,live);else draw_hud_legacy(d,g,live);
+}
+
 /* --- 一帧 --------------------------------------------------------------------- */
 
-int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
+static int compose_layers_view(const stg_game *g,gfx_list *l,gfx_list *background,
                             int bg_dst,int static_base,const stg_draw_cfg *cfg,
-                            const stg_hud_live *live,stg_frame_stats *st)
+                            const stg_hud_live *live,stg_frame_stats *st,const stg_draw_view *view)
 {
     stg_frame_stats zero = { { 0u, 0u, 0u, 0u, 0u, 0u }, 0u, 0u, 0u, 0u, { 0u }, 0u };
     stg_active     *a = &st->act;
@@ -320,7 +389,10 @@ int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
     gfx_rect        screen;
 
     *st = zero;
-    if (l == 0 || l->t == 0 || l->ended)
+    if (l == 0 || l->t == 0 || l->ended ||
+        (view && (!GFX_PRODUCT_HUD || view->width<640u || view->width>1792u ||
+                  view->hud_x!=(int)view->width-160 || view->field_x<0 ||
+                  view->field_x+STG_FIELD_W>view->hud_x)))
         return -1;
 
     d.l   = l;
@@ -328,8 +400,11 @@ int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
     d.st  = st;
     d.dst = cfg->pool.dst;
     d.static_base = static_base;
+    d.view=view;d.offset_x=0;d.scenery_w=view?view->hud_x:STG_FIELD_W;
     stg_rect_field(&d.clip);
+    if(view)d.clip.x1=d.scenery_w-1;
     stg_rect_screen(&screen);
+    if(view)screen.x1=(int)view->width-1;
 
     if (gfx_set_clip(l, d.clip) != 0)
         st->rejected++;
@@ -341,15 +416,20 @@ int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
     draw_background(&d, g);
     if(static_base)st->by_eq[GFX_EQ_COPY]++;
     d.l=l;d.dst=cfg->pool.dst;
+    if(view) {
+        gfx_rect field={view->field_x,0,view->field_x+STG_FIELD_W-1,STG_FIELD_H-1};
+        if(gfx_set_clip(l,field))++st->rejected;
+        stg_rect_field(&d.clip);d.offset_x=view->field_x;
+    }
     FRONTEND_STAGE(1,l);
     draw_enemies(&d, g);
     draw_player(&d, g);
     FRONTEND_STAGE(2,l);
-    a->pbullet  = stg_draw_pool(&g->f.pools.pbullet, l, &cfg->pool, &d.clip, st->by_eq);
+    a->pbullet  = stg_draw_pool_offset(&g->f.pools.pbullet,l,&cfg->pool,&d.clip,st->by_eq,d.offset_x);
     FRONTEND_STAGE(3,l);
-    a->ebullet  = stg_draw_pool(&g->f.pools.ebullet, l, &cfg->pool, &d.clip, st->by_eq);
+    a->ebullet  = stg_draw_pool_offset(&g->f.pools.ebullet,l,&cfg->pool,&d.clip,st->by_eq,d.offset_x);
     FRONTEND_STAGE(4,l);
-    a->particle = stg_draw_pool(&g->f.pools.particle, l, &cfg->pool, &d.clip, st->by_eq);
+    a->particle = stg_draw_pool_offset(&g->f.pools.particle,l,&cfg->pool,&d.clip,st->by_eq,d.offset_x);
     FRONTEND_STAGE(5,l);
     a->total    = a->ebullet + a->pbullet + a->enemy + a->particle + a->player;
     /* 擦弹特效：本帧擦到弹就在自机四角放四粒 ADD 火花（fx_graze 计入 ADD 恒等式）。 */
@@ -361,7 +441,7 @@ int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
 
         for (k = 0u; k < 4u; k++) {
             const int rc = gfx_blit(l, cfg->pool.src_slot[STG_SRC_SPARK], src_x, 16,
-                                    d.dst, stg_draw_origin(g->f.px, 8) + gx[k],
+                                    d.dst, stg_draw_origin(g->f.px, 8) + gx[k]+d.offset_x,
                                     stg_draw_origin(g->f.py, 8) + gy[k], 8, 8,
                                     GFX_EQ_ADD, 0u, 0u, 0u);
             count(&d, rc, GFX_EQ_ADD);
@@ -382,6 +462,7 @@ int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
     if (gfx_set_clip(l, screen) != 0)
         st->rejected++;
     d.clip = screen;
+    d.offset_x=view?view->hud_x-MYRIAD_HUD_X:0;
     if(background){d.l=background;d.dst=bg_dst;if(gfx_set_clip(background,screen))st->rejected++;}
     draw_hud(&d, g, live);
     if(static_base)st->by_eq[GFX_EQ_COPY]++;
@@ -392,6 +473,15 @@ int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
     FRONTEND_STAGE(8,l);
     return 0;
 }
+
+int stg_game_compose_layers(const stg_game *g,gfx_list *l,gfx_list *background,
+                           int bg_dst,int static_base,const stg_draw_cfg *cfg,
+                           const stg_hud_live *live,stg_frame_stats *st)
+{return compose_layers_view(g,l,background,bg_dst,static_base,cfg,live,st,NULL);}
+
+int stg_game_compose_view(const stg_game *g,gfx_list *l,const stg_draw_cfg *cfg,
+                         const stg_hud_live *live,stg_frame_stats *st,const stg_draw_view *view)
+{return compose_layers_view(g,l,NULL,0,0,cfg,live,st,view);}
 
 int stg_game_compose(const stg_game *g,gfx_list *l,const stg_draw_cfg *cfg,
                      const stg_hud_live *live,stg_frame_stats *st)

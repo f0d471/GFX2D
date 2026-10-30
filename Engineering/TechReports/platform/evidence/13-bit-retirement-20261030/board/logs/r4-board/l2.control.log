@@ -1,0 +1,37 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   221514 bytes written at address 0x00001000
+   downloaded 221514 bytes in 12.045106s (17.959 KiB/s)
+=== 等串口采集结束（上限 180 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\20261030-030035-e3284c97\logs\r4-board\l2.serial.log）---
+# COM11 @ 115200 8N1, opened 03:03:55
+# --- 程序已加载，以下才是它的输出 ---
+gfx2dGame MODES
+pak 4085504 87500897
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+r4 enter ladder/hw 2 1
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+R4CAD 0 2458956 1506 1525 2  626324 21e401cd 1b138885
+mode 4 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4CAD 1 2441226 1508 1546 3  624354 39741632 87e17c0c
+R4CAD 2 2074944 1510 1567 4  622712 cc622278 a705a31f
+R4CAD 3 2124966 1512 1588 5  622816 11f088fa 196cc7e6
+R4CAD 4 2123770 1514 1609 6  622494 c5fdc4d6 c9f19a4c
+R4CAD 5 2080479 1516 1630 7  620192 8e437fa8 796e1090
+R4CAD 6 2115811 1518 1651 8  619046 d54a8f1b 4f0b068f
+R4CAD 7 2266632 1520 1672 9  621189 99342cf3 fd687a4f
+R4CAD 8 2247483 1522 1693 10  619109 cc590716 2f527320
+R4CAD 9 2303587 1524 1714 11  621177 07632e6a 23e8ac06
+R4CAD 10 2309426 1526 1735 12  622184 1d8f570b 720dc945
+R4CAD 11 2273374 1528 1756 13  619640 965c034a 752f4101
+r4 leave frames/late 12 12
+R4HEALTH 10563 348 0 0 0
+diag fifo_min 347 samples 12 zero 0 under 0 irqA 1018 irqB 12 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 03:04:25, 1445 bytes

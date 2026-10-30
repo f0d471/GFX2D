@@ -1,0 +1,33 @@
+{
+  "profile": "quick",
+  "checks": [
+    "r4-frozen-board"
+  ],
+  "changed": null,
+  "commands": {
+    "r4-frozen-board": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_r4_board.py",
+      "--frozen-release",
+      "Main/bit/snapshots/B7"
+    ]
+  },
+  "timeouts": {
+    "r4-frozen-board": 3600
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log",
+    "Main/doc/三维数值契约.md",
+    "Main/sim/engine/r4/**",
+    "Main/rtl/**"
+  ]
+}

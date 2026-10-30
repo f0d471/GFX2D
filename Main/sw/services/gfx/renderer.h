@@ -25,6 +25,9 @@ int renderer_prepare(int hw, const gfx_surface_table *tab);
 int renderer_run(int hw, const gfx_surface_table *tab, const gfx_mem *mem,
                  exec_sw_state *es, exec_sw_error *err, const gfx_list *list,
                  exec_sw_stats *st, uint32_t *cycles);
+int renderer_run_view(const gfx_surface_table *tab,const gfx_mem *mem,
+                      exec_sw_state *es,exec_sw_error *err,const gfx_list *list,
+                      exec_sw_stats *stats,uint32_t *cycles,unsigned width);
 int renderer_perf_read(uint32_t values[9]);
 int renderer_pipeline_enabled(int hw);
 /* 先收尾上一张表（done_st、exec_cycles、presented 都属于它），再提交 list。

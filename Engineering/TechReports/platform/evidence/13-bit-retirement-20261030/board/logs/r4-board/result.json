@@ -1,0 +1,201 @@
+{
+  "status": "PASS",
+  "profile": "quick",
+  "port": "COM11",
+  "b7_tree": "Main/sim/build/check-runs/ppa-after4/build/feature-presets/B7",
+  "timing": {
+    "xlr": 59551,
+    "ram": 187,
+    "dsp": 26,
+    "slacks": [
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "setup",
+        "slack_ns": 0.706
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "setup",
+        "slack_ns": 0.244
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.253
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "setup",
+        "slack_ns": 0.23
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "setup",
+        "slack_ns": 0.294
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "setup",
+        "slack_ns": 32.548
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 95.497
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "setup",
+        "slack_ns": 48.317
+      },
+      {
+        "clock": "core_clk",
+        "to_clock": "core_clk",
+        "kind": "hold",
+        "slack_ns": 0.027
+      },
+      {
+        "clock": "sdram_clk",
+        "to_clock": "sdram_clk",
+        "kind": "hold",
+        "slack_ns": 0.043
+      },
+      {
+        "clock": "rx_cal_clk",
+        "to_clock": "rx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.026
+      },
+      {
+        "clock": "tx_cal_clk",
+        "to_clock": "tx_cal_clk",
+        "kind": "hold",
+        "slack_ns": 0.044
+      },
+      {
+        "clock": "tx_cal_clk_90edge",
+        "to_clock": "tx_cal_clk_90edge",
+        "kind": "hold",
+        "slack_ns": 0.072
+      },
+      {
+        "clock": "hdmi_tx_slow_clk",
+        "to_clock": "hdmi_tx_slow_clk",
+        "kind": "hold",
+        "slack_ns": 0.091
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 0.097
+      },
+      {
+        "clock": "jtag_inst1_TCK",
+        "to_clock": "jtag_inst1_TCK",
+        "kind": "hold",
+        "slack_ns": 48.724
+      }
+    ],
+    "own_width_warnings": 0
+  },
+  "results": [
+    {
+      "case": "l1",
+      "status": "PASS",
+      "frames": 12,
+      "mismatched": []
+    },
+    {
+      "case": "software-l1",
+      "status": "PASS",
+      "frames": 2,
+      "mismatched": []
+    },
+    {
+      "case": "l2",
+      "status": "PASS",
+      "frames": 12,
+      "mismatched": []
+    },
+    {
+      "case": "software-l2",
+      "status": "PASS",
+      "frames": 2,
+      "mismatched": []
+    },
+    {
+      "case": "cup",
+      "status": "PASS",
+      "frames": 12,
+      "mismatched": []
+    },
+    {
+      "case": "software-cup",
+      "status": "PASS",
+      "frames": 2,
+      "mismatched": []
+    },
+    {
+      "case": "pixel-injection",
+      "status": "EXPECTED_RED",
+      "frames": 1,
+      "mismatched": [
+        0
+      ]
+    },
+    {
+      "case": "performance",
+      "status": "PASS",
+      "samples": 120,
+      "p50": 2756821,
+      "p99": 3045581,
+      "maximum": 3086391,
+      "late": 0,
+      "fields": 240,
+      "swaps": 120
+    },
+    {
+      "case": "performance-input",
+      "status": "PASS",
+      "samples": 120,
+      "p50": 2735524,
+      "p99": 3105130,
+      "maximum": 3142400,
+      "late": 0,
+      "fields": 240,
+      "swaps": 120
+    },
+    {
+      "case": "switches",
+      "status": "PASS"
+    },
+    {
+      "case": "recording",
+      "status": "PASS",
+      "ticks": 8
+    },
+    {
+      "case": "legacy-game",
+      "status": "PASS",
+      "frames": 240,
+      "backend": "hw-tex"
+    },
+    {
+      "case": "current-RTL-r3-acceptance",
+      "status": "NOT_APPLICABLE",
+      "reason": "software-only work point uses unchanged, manifest-bound B7; current RTL is not rebuilt"
+    }
+  ],
+  "frozen_release": "Main\\bit\\snapshots\\B7",
+  "frozen_bit_sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9",
+  "scope": "frozen B7 / current software; no Flash or human HDMI observation"
+}

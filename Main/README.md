@@ -8,30 +8,33 @@ Efinity 工程名 `gfx2d_ti60`，顶层模块 `gfx2d_top`。
 ## 现在的状态
 
 产品 PC 与 Ti60 使用同一应用菜单与应用管理器：基础2D演示、弹幕、压力测试、三维、
-系统信息均可进入；全局1/2/3/4与确认/返回语义一致。板端使用独立CLINT 1kHz FreeRTOS
+系统信息按所选内容集合提供；全局快捷键与确认/返回语义一致。板端使用独立CLINT 1kHz FreeRTOS
 tick，PC使用宿主事件循环。当前软件与输入契约见[应用与输入契约](doc/应用与输入契约.md)，
-构建与检查见[软件登记](sw/README.md)。旧 `gfx2dGame` 与下面的历史运行包保留开发/证据边界。
-统一菜单的本地运行包在 `bit/board_release_console_20261028/`，PC与板端入口一致；
-包内manifest和verification记录软件验收范围，板端仅JTAG重载，不改Flash。
+构建与检查见[软件登记](sw/README.md)。旧 `gfx2dGame` 保留开发/判据入口。
+板端基线为[四档快照](bit/snapshots/README.md)：B0/B3/B5配2D固件，B7配完整固件。
+独立PC/板端运行包为 `bit/board_release_console_2d_20261030/` 和
+`bit/board_release_console_full_20261030/`，包内manifest和verification登记所选内容与验证边界；
+板端启动器仅JTAG重载，不改Flash。
 
 PC 模式4支持自适应宽屏：世界按窗口比例增加横向视野，HUD靠右；内部高480、宽640～1792。
-固定录像/CRC与板端继续使用640×480。新的独立运行包在
-`bit/board_release_game_wide_20261025/`，`Run-PC-Fullscreen.cmd`直接全屏，
+固定录像/CRC与板端继续使用640×480。完整运行包的
+`Run-PC-Fullscreen.cmd`直接全屏，
 `Run-PC.ps1 -FixedAspect`保留固定比例对照；显示能力与边界见`sw/README.md`。
 
 当前开发默认构型是B0。可选B7已接入固定功能三维条带光栅：CPU setup、
 第1页影子参数、单一门铃/帧控制、片上颜色/z、纹理与HUD分相执行。
-B7冻结构建为59623 XLR/187 RAM/26 DSP，core setup/hold +0.762/+0.026ns；
-11帧三方CRC、显示健康及错误/复位恢复已上板验证。HW/TEX记录性N_max为1870/1969，
-各3600场确认，不作为门槛。JTAG位流与程序保存在本地忽略目录
-`bit/board_release_r3_20261023/`，使用方法见目录README；Flash未改。
+当前B7位流、资源/时序和来源以 `bit/snapshots/B7/manifest.json` 为准。
+三维诊断程序源码在 `sw/apps/test/rastTest/`，二维特性诊断在 `sw/apps/test/featureTest/`；
+检查入口每轮按选定输入构建，不依赖历史发布包中的旧BIN。
 接口与复现入口见`rtl/engine/engine-manual.md`第8节和`sim/engine/r3/README.md`。
 
 模式4已接入480x480三维世界/160px HUD、倒角走廊、顶点光照、近景实体、世界弹幕和周期相机视差，
-L1/L2与完整396面平滑茶杯支持同源SW/HW对照。软件升级复用上述B7；实板自动/脚本各1800帧，
+L1/L2与完整396面平滑茶杯支持同源SW/HW对照。早期软件视觉升级复用当时的B7；实板自动/脚本各1800帧，
 均3600场/1800交换、迟到0，max分别30.95632/32.34376ms。本批RTL未变且未重新综合。操作与验证见
 [软件登记](sw/README.md#r4-模式4与同构茶杯)和[三维演示验证](sim/engine/r4/README.md)。
-旧/新完整包见[bit目录](bit/README.md)，分别提供PC窗口/全屏和板端JTAG启动入口；Flash未写。
+当前运行包见[bit目录](bit/README.md)，提供PC窗口/全屏和板端JTAG启动入口；Flash未写。
+`r4-frozen-board` 默认按快照B7的SHA256查找配套综合树与报告，只验收冻结硬件上的当前软件；
+`r4-board` 保留当前RTL一致性要求。两者不依赖已退役的旧发布目录。
 
 以下早期整机资源/性能数字保留其历史构型与验收边界。
 

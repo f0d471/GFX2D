@@ -1,0 +1,75 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   222538 bytes written at address 0x00001000
+   downloaded 222538 bytes in 12.035786s (18.056 KiB/s)
+=== 等串口采集结束（上限 240 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\20261030-030035-e3284c97\logs\r4-board\switches.serial.log）---
+# COM11 @ 115200 8N1, opened 03:11:08
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 4085504 87500897
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+r4 enter ladder/hw 2 1
+mode 4 enter frame 6 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 36422 338 0 0 0
+r4 enter ladder/hw 1 1
+mode 4 enter frame 11 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 36823 337 0 0 0
+r4 enter ladder/hw 1 0
+R4STAT 0 414 118 1 0 0
+R4TIME 5070 1016395 122705 328605 239808980 0 612451 481
+mode 4 enter frame 16 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4STAT 0 414 117 1 0 0
+R4TIME 3492 1006075 121626 329830 239685947 0 611533 482
+R4STAT 0 415 116 1 0 0
+R4TIME 3568 994604 119536 83144 239396010 0 609850 480
+R4STAT 0 415 119 1 0 0
+R4TIME 3939 1045524 123098 56417 239602387 0 609730 488
+R4STAT 0 415 119 1 0 0
+R4TIME 3501 1046240 123325 56478 239458324 0 608791 488
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 5
+R4HEALTH 37786 347 0 0 0
+r4 enter ladder/hw 1 1
+mode 4 enter frame 21 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 38034 335 0 0 0
+r4 enter ladder/hw 1 1
+mode 4 enter frame 26 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 5
+R4HEALTH 38224 337 0 0 0
+r4 enter ladder/hw 1 1
+mode 4 enter frame 31 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 38472 338 0 0 0
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 36 crc skip pool 0 0 0 0 clip 0 0 639 479
+press fixed knob 64 kind 16x16
+mode 3 enter frame 41 crc skip pool 0 0 0 0 clip 0 0 639 479
+mode 1 enter frame 46 crc skip pool 0 0 0 0 clip 0 0 639 479
+r4 enter ladder/hw 1 1
+mode 4 enter frame 51 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4 LEGACY OFFSCREEN preserved
+r4 leave frames/late 5 0
+R4HEALTH 38737 336 0 0 0
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 2 enter frame 56 crc skip pool 0 0 0 0 clip 0 0 639 479
+csvsum,4,4,0,521712,521712,0,0
+diag fifo_min 335 samples 60 zero 0 under 0 irqA 3292 irqB 55 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 03:12:16, 3435 bytes

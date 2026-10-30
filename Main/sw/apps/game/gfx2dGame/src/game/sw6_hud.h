@@ -40,6 +40,8 @@ typedef struct {
    （首帧是 SW6_NONE），供逐帧日志的 hud 列使用。 */
 void sw6_hud_build(gfx_list *l, int dst, const sw6_hud_in *in,
                    uint32_t *out_cmd, uint32_t *out_pix);
+void sw6_hud_build_at(gfx_list *l,int dst,const sw6_hud_in *in,int left,
+                     uint32_t *out_cmd,uint32_t *out_pix);
 
 /* HUD 段里被构造层拒绝的追加次数（正常路径恒为 0），主循环并进 fail。 */
 uint32_t sw6_hud_bad(void);

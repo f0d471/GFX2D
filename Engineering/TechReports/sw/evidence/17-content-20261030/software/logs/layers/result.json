@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "scope": "real host/target structural and object-isolation checks in a private source copy",
+  "production_mutations": false
+}

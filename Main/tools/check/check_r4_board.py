@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """R4 physical B7: 3 scene CRCs, CPU/HW equivalence, mutation, switches and 60-second cadence."""
-import argparse,hashlib,json,os,shlex,sys
-from pathlib import Path
+import argparse,hashlib,json,os,re,shlex,sys
+from pathlib import Path,PurePosixPath,PureWindowsPath
 from check_run import ROOT,session,command,write_json,IncompleteCheck
 from check_board_smoke import uart_port
 from feature_synthesis import collect
@@ -10,12 +10,43 @@ from r4_checks import build,flags,frames,compare,complete,health,performance,rec
 def frozen_bit_identity(release):
     release=Path(release).resolve()
     manifest=release/'manifest.json'
-    data=json.loads(manifest.read_text(encoding='utf-8'))
-    records=[x for x in data['files'] if x['path'] in ('board/B7.bit','B7.bit')]
-    if len(records)!=1:raise RuntimeError('frozen release must identify exactly one B7 bitstream')
-    bit=release/records[0]['path']
+    try:data=json.loads(manifest.read_text(encoding='utf-8-sig'))
+    except (OSError,ValueError) as exc:raise RuntimeError('invalid frozen manifest: '+str(exc)) from exc
+    if not isinstance(data,dict):raise RuntimeError('frozen manifest must be an object')
+    if 'config' in data or 'bit_sha256' in data and 'files' not in data:
+        try:valid=data.get('config')=='B7' and int(str(data.get('caps')),0)==0xd46f
+        except ValueError:valid=False
+        if not valid:raise RuntimeError('frozen snapshot must identify the B7 raster configuration')
+        record=dict(path='gfx2d_ti60.bit',sha256=data.get('bit_sha256'),bytes=data.get('bit_bytes'))
+    else:
+        files=data.get('files')
+        if not isinstance(files,list):raise RuntimeError('frozen release has no file identity list')
+        selected=data.get('board_bit')
+        names=(selected,) if selected else ('board/B7.bit','B7.bit')
+        records=[x for x in files if isinstance(x,dict) and x.get('path') in names]
+        if len(records)!=1:raise RuntimeError('frozen release must identify exactly one B7 bitstream')
+        record=records[0]
+        hardware=data.get('hardware')
+        if hardware is not None:
+            try:valid=isinstance(hardware,dict) and hardware.get('config')=='B7' and int(str(hardware.get('caps')),0)==0xd46f
+            except ValueError:valid=False
+            if not valid:raise RuntimeError('frozen package hardware is not B7 raster')
+    name=record.get('path');expected=record.get('sha256')
+    if not isinstance(name,str) or not name:raise RuntimeError('missing frozen bitstream path')
+    relative=PurePosixPath(name.replace('\\','/'))
+    if relative.is_absolute() or PureWindowsPath(name).is_absolute() or '..' in relative.parts:
+        raise RuntimeError('frozen bitstream path escapes its manifest directory')
+    bit=(release/Path(*relative.parts)).resolve()
+    if not bit.is_relative_to(release) or bit.suffix!='.bit':raise RuntimeError('invalid frozen bitstream path')
+    if not isinstance(expected,str) or not re.fullmatch(r'[0-9a-fA-F]{64}',expected):
+        raise RuntimeError('invalid frozen bitstream SHA256')
+    if not bit.is_file():raise RuntimeError('frozen bitstream is missing')
+    if record.get('bytes') is not None and record['bytes']!=bit.stat().st_size:
+        raise RuntimeError('frozen B7 bitstream byte count mismatch')
     actual=hashlib.sha256(bit.read_bytes()).hexdigest()
-    if actual!=records[0]['sha256']:raise RuntimeError('frozen B7 bitstream identity mismatch')
+    if actual!=expected.lower():raise RuntimeError('frozen B7 bitstream identity mismatch')
+    if data.get('files') and data.get('bit_sha256') and str(data['bit_sha256']).lower()!=actual:
+        raise RuntimeError('package and file-list bitstream identities differ')
     return actual,manifest
 
 def b7_tree(explicit,frozen_release=None):
@@ -34,12 +65,14 @@ def b7_tree(explicit,frozen_release=None):
             if p.name in ('engine_feature.vh','engine_regs_offsets.vh'):continue
             if not source.is_file() or source.read_bytes()!=p.read_bytes():differences.append(str(p))
         if not differences or expected:
-            timing=collect(tree)
-            config=json.loads((tree/'config.json').read_text())
+            try:config=json.loads((tree/'config.json').read_text())
+            except FileNotFoundError:continue
             if int(str(config['caps']),0)!=0xd46f:continue
+            try:timing=collect(tree)
+            except FileNotFoundError:continue
             return tree,timing
-    raise IncompleteCheck('no built B7 matching selected frozen identity' if expected else
-                          'no built B7 matching current RTL; run r3-synthesis')
+    raise IncompleteCheck('no built B7 with complete reports matching selected frozen identity' if expected else
+                          'no built B7 with complete reports matching current RTL; run r3-synthesis')
 
 def main():
     current=session();p=argparse.ArgumentParser();p.add_argument('--tree')
@@ -50,6 +83,9 @@ def main():
     logs=current.logs('r4-board');tree,timing=b7_tree(a.tree,a.frozen_release)
     if a.frozen_release:current.artifact(frozen_bit_identity(a.frozen_release)[1])
     bit=tree/'fpga/gfx2d_ti60/outflow/gfx2d_ti60.bit';current.artifact(bit)
+    for report in ('gfx2d_ti60.place.rpt','gfx2d_ti60.timing.rpt','gfx2d_ti60.warn.log'):
+        current.artifact(bit.parent/report)
+    current.artifact(tree/'config.json')
     port=uart_port();count=12 if current.profile=='quick' else 60
     env=dict(os.environ)
     for key in ('EFINITY_HOME','PYTHONHOME','EFXPGM_HOME','EFXPT_HOME','EFXDBG_HOME',
@@ -144,6 +180,7 @@ def main():
     write_json(logs/'result.json',dict(status='PASS',profile=current.profile,port=port,
         b7_tree=tree.relative_to(ROOT).as_posix(),timing=timing,results=results,
         frozen_release=str(a.frozen_release) if a.frozen_release else None,
+        frozen_bit_sha256=frozen_bit_identity(a.frozen_release)[0] if a.frozen_release else None,
         scope=('frozen B7 / current software' if a.frozen_release else 'current B7 / current software')+
               '; no Flash or human HDMI observation'))
 

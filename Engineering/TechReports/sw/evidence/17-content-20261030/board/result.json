@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "console-profiles-board"
+  ],
+  "run_id": "20261030-014306-a1081dbe"
+}

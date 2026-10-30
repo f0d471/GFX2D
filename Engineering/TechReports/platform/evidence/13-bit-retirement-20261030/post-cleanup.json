@@ -1,0 +1,94 @@
+{
+  "status": "PASS",
+  "removed_bytes": 97957696,
+  "retired_absent": [
+    "board_release_20261015",
+    "board_release_console_20261028",
+    "board_release_game_current_20261024",
+    "board_release_game_next_20261024",
+    "board_release_game_wide_20261025",
+    "board_release_r3_20261023",
+    "board_release_r4_visual_20261024"
+  ],
+  "retained_static_files": {
+    "snapshots": {
+      "files": 25,
+      "bytes": 11245245
+    },
+    "official": {
+      "files": 2,
+      "bytes": 3908604
+    },
+    "flash_backup": {
+      "files": 9,
+      "bytes": 52799786
+    },
+    "board_release_console_2d_20261030": {
+      "files": 29,
+      "bytes": 28423878
+    },
+    "board_release_console_full_20261030": {
+      "files": 29,
+      "bytes": 29654535
+    }
+  },
+  "retained_static_identity": "byte-identical to inventory-before.json",
+  "historical_records_and_source_deltas_bytes": 3791164,
+  "history_verification": {
+    "status": "PASS",
+    "retired_directories_read": false,
+    "record_references": 65,
+    "restored_source_files": 4639
+  },
+  "hardware_reports": {
+    "file": "hardware-reports.zip",
+    "bytes": 41654,
+    "sha256": "ad61d9c0f5a63d247526f4fb3d42ae6b0a144c54fd04415bc3da85fc1a19831d",
+    "files": {
+      "config.json": {
+        "bytes": 3314,
+        "sha256": "3823be22c12c61ab92e4e703f98a76309cf03a92516c2a7fb114d73d24bee5c7"
+      },
+      "fpga/gfx2d_ti60/outflow/gfx2d_ti60.place.rpt": {
+        "bytes": 2020,
+        "sha256": "cd43c0c97210a38571dd314bd987a06c77b4bb47f509efb9d61671673953021c"
+      },
+      "fpga/gfx2d_ti60/outflow/gfx2d_ti60.timing.rpt": {
+        "bytes": 928306,
+        "sha256": "31dded6af3aacd6eb3f8733f1d633d48ae4fc6f4e34473760af4a8f228cd7f37"
+      },
+      "fpga/gfx2d_ti60/outflow/gfx2d_ti60.warn.log": {
+        "bytes": 87972,
+        "sha256": "cc9475858ab09b76b2d587e62fdb0c96894d1934b8ceeef36b824a19195ad7c5"
+      }
+    },
+    "bit": "Main/bit/snapshots/B7/gfx2d_ti60.bit",
+    "bit_identity": {
+      "bytes": 2765409,
+      "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+    },
+    "scope": "existing matching B7 reports; no current-RTL synthesis"
+  },
+  "board_restore": {
+    "status": "PASS",
+    "package": "Main/bit/board_release_console_full_20261030",
+    "transport": "JTAG",
+    "flash_written": false,
+    "serial_status": "console status v 2 app menu id 0 backend hw fps_milli 43564 frames 44 presents 44 errors 0 scene 0 ladder 0 dropped 0 tick_ms 7771 irqA 467 heap 57824 faults 0 tasks 4 idle 1345163 monitor 1 health 0 stack_free 64716 catalog 6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175 caps 0000d46f",
+    "logs": {
+      "restore/serial.log": {
+        "bytes": 1321,
+        "sha256": "523a51a95dec57dfb3792ce14258e568a4e5d1385d5e2eb65cf391cf19f8e69a"
+      },
+      "restore/deploy.log": {
+        "bytes": 2603,
+        "sha256": "1f32c6ea30d3420590f19a77cec3c1dcbca1d046467b5ce37c85ba86d33a0bb9"
+      },
+      "restore/bit-retirement-restore.log": {
+        "bytes": 220,
+        "sha256": "b3b1f23bb6422d3e75bfdce5f1f97f28aa67a0d54e75cbfd32618430753c9297"
+      }
+    }
+  },
+  "scope": "post-deletion integrity and startup; no current-RTL or full-performance acceptance"
+}

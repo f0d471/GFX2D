@@ -72,5 +72,7 @@ void sw6_a_adjust(sw6_scene_a *a, int up, int down);
 
 /* 把前 n 个方块追加进命令表（dst 是本帧的目的槽），统计写进 fs。 */
 void sw6_a_build(const sw6_scene_a *a, gfx_list *l, int dst, sw6_build_stat *fs);
+/* Reposition blocks across the actual viewport without stretching sprites. */
+void sw6_a_build_view(const sw6_scene_a *a,gfx_list *l,int dst,unsigned width,sw6_build_stat *fs);
 
 #endif /* SW6_SCENE_A_H */

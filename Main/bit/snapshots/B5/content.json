@@ -1,0 +1,117 @@
+{
+  "apps": [
+    {
+      "enum": "APPFW_DEMO",
+      "graphics": "2d",
+      "host": true,
+      "id": 1,
+      "key": "demo",
+      "kind": "demo",
+      "modules": [
+        "myriad2d"
+      ],
+      "shortcut": 1,
+      "symbol": "g_app_demo",
+      "target_requires": [
+        "KEY",
+        "ALPHA_PM",
+        "ALPHA_ST",
+        "EQ_EXT"
+      ],
+      "title": "2D GRAPHICS DEMO"
+    },
+    {
+      "enum": "APPFW_GAME",
+      "graphics": "2d",
+      "host": true,
+      "id": 2,
+      "key": "stg",
+      "kind": "game",
+      "modules": [
+        "myriad2d"
+      ],
+      "shortcut": 2,
+      "symbol": "g_app_stg",
+      "target_requires": [
+        "KEY",
+        "ALPHA_PM",
+        "ALPHA_ST",
+        "EQ_EXT"
+      ],
+      "title": "DANMAKU GAME"
+    },
+    {
+      "enum": "APPFW_PRESS",
+      "graphics": "2d",
+      "host": true,
+      "id": 3,
+      "key": "press",
+      "kind": "benchmark",
+      "modules": [
+        "myriad2d"
+      ],
+      "shortcut": 3,
+      "symbol": "g_app_press",
+      "target_requires": [
+        "KEY",
+        "ALPHA_PM",
+        "ALPHA_ST",
+        "EQ_EXT"
+      ],
+      "title": "STRESS TEST"
+    },
+    {
+      "enum": "APPFW_ABOUT",
+      "graphics": "2d",
+      "host": true,
+      "id": 5,
+      "key": "about",
+      "kind": "system",
+      "modules": [
+        "myriad2d"
+      ],
+      "shortcut": 0,
+      "symbol": "g_app_about",
+      "target_requires": [],
+      "title": "SYSTEM INFORMATION"
+    }
+  ],
+  "asset_limit_bytes": 4194304,
+  "capability_bits": {
+    "ALPHA_PM": 1,
+    "ALPHA_ST": 2,
+    "BAND_HW": 5,
+    "EQ_EXT": 3,
+    "INST": 12,
+    "KEY": 0,
+    "PB": 13,
+    "RAST": 14,
+    "RAST_TEX": 15,
+    "TEX": 6
+  },
+  "catalog_sha256": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+  "content_ids": [
+    1,
+    2,
+    3
+  ],
+  "enable_3d": false,
+  "image_limit_bytes": 524288,
+  "modules": {
+    "myriad2d": {
+      "defines": [],
+      "libraries": [],
+      "sources": [
+        "../../ports/myriad/app_game.c",
+        "src/app_demo.c",
+        "../../ports/myriad/frontend_game.c",
+        "../../ports/myriad/stg_modes.c",
+        "../game/gfx2dGame/src/game/*.c",
+        "../../ports/myriad/sw6_input.c",
+        "../../ports/myriad/sw6_report.c"
+      ]
+    }
+  },
+  "profile": "2d",
+  "version": 1
+}

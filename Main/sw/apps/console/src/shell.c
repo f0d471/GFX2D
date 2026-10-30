@@ -29,6 +29,8 @@
 
 #include "console_views.h"
 #include "shell.h"
+#include "console_catalog.h"
+#include "menu_cursor.h"
 
 /* 与游戏一致的字体几何（sw6_hud 的那套；青字库同规格） */
 static const stg_font s_font = {
@@ -48,7 +50,8 @@ static const stg_font s_font_cyan = {
 #define DESC_X      420
 #define FOOT_Y      440
 
-static uint32_t s_sel;             /* 光标条目 */
+#define MENU_ROWS 6u
+static menu_cursor s_cursor;
 static uint32_t s_prev_keys;
 static int      s_first_logged;
 static int      s_hw;              /* 1=引擎渲染，0=SW 兜底（引擎不在的老位流） */
@@ -76,19 +79,16 @@ static int shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
     gfx_list       l;
     gfx_rect       all;
     uint32_t       bad = 0u;
+    const uint32_t previous_selection=s_cursor.selected;
+    const int report_selection=!s_first_logged;
 
     s_prev_keys = keys;
 
     /* --- 输入 --- */
-    (void)appfw_apps(&count);
-    if(!count)return -1;
-    if(s_sel>=count)s_sel=0;
-    if (pressed & PLATFORM_KEY_UP)
-        s_sel = (s_sel == 0u) ? count - 1u : s_sel - 1u;
-    if (pressed & PLATFORM_KEY_DOWN)
-        s_sel = (s_sel + 1u) % count;
-    if (pressed & (PLATFORM_KEY_ACTION|PLATFORM_KEY_CONFIRM))
-        appfw_request(appfw_app_at(s_sel));
+    count=appfw_visible_count();
+    menu_cursor_step(&s_cursor,count,MENU_ROWS,(pressed&PLATFORM_KEY_UP)!=0,(pressed&PLATFORM_KEY_DOWN)!=0);
+    if(count && (pressed&(PLATFORM_KEY_ACTION|PLATFORM_KEY_CONFIRM)))
+        appfw_request(appfw_visible_at(s_cursor.selected));
 
     /* --- 组帧 --- */
     {
@@ -109,15 +109,17 @@ static int shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
 
     /* 列表：光标小飞船（ships 第 0 格，黑键透明）+ 名称 + 说明 */
     {
-        const appfw_app *const *apps = appfw_apps(&count);
         char sel_line[48];
         core_out o;
 
-        for (i = 0u; i < count; i++) {
+        for (i = 0u; i < MENU_ROWS && i < count-s_cursor.first; i++) {
+            const uint32_t index=s_cursor.first+i;
+            const appfw_app *app=appfw_visible_at(index);
+            const console_app_meta *meta=console_app_metadata(app->id);
             const int          y = MENU_Y0 + (int)(i * MENU_STEP);
-            const stg_font    *f = (i == s_sel) ? &s_font_cyan : &s_font;
+            const stg_font    *f = (index == s_cursor.selected) ? &s_font_cyan : &s_font;
 
-            if (i == s_sel) {
+            if (index == s_cursor.selected) {
                 bad += (uint32_t)(gfx_blit(&l, STG_SLOT_SHIPS, 0, 0, dst,
                                            CURSOR_X,
                                            y - ((int)ASSET_SHIPS_CELL_H - (int)f->cell_h) / 2,
@@ -125,12 +127,16 @@ static int shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
                                            GFX_EQ_COPY, 0u, 1, ASSET_SHIPS_KEY) != 0);
             }
             core_out_init(&o,sel_line,sizeof sel_line);
-            if(apps[i]->id<=APPFW_R4)core_out_u32(&o,apps[i]->id);
+            if(meta && meta->shortcut)core_out_u32(&o,meta->shortcut);
             else core_out_ch(&o,' ');
-            core_out_ch(&o,' ');core_out_str(&o,apps[i]->desc);
+            core_out_ch(&o,' ');core_out_str(&o,app->desc);
             bad += stg_text_draw(&l,f,dst,NAME_X,y,sel_line,NULL);
-            if(!appfw_available(apps[i]))
-                bad += stg_text_draw(&l,&s_font,dst,NAME_X,y+16,"UNAVAILABLE",NULL);
+        }
+        if(!count)bad+=stg_text_draw(&l,&s_font,dst,NAME_X,MENU_Y0,"NO APPS AVAILABLE",NULL);
+        if(count>MENU_ROWS) {
+            core_out_init(&o,sel_line,sizeof sel_line);core_out_u32(&o,s_cursor.selected+1);
+            core_out_ch(&o,'/');core_out_u32(&o,count);
+            bad+=stg_text_draw(&l,&s_font,dst,NAME_X,408,sel_line,NULL);
         }
 
         /* 选中条目号（判据锚点：菜单行） */
@@ -141,7 +147,7 @@ static int shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
 
     /* 页脚、版本与 fps */
     bad += stg_text_draw(&l, &s_font, dst, 76, FOOT_Y,
-                         "1-4 APP  ENTER/SPACE OK  ESC BACK  C SCENE", NULL);
+                         "UP/DOWN SELECT  ENTER OK  ESC BACK", NULL);
     bad += stg_text_draw(&l,&s_font,dst,76,456,"BOARD: LEFT+RIGHT OK  UP+DOWN BACK",NULL);
     bad += stg_text_draw(&l, &s_font, dst, 508, 8, "CONSOLE V2", NULL);
     {
@@ -168,11 +174,18 @@ static int shell_frame(appfw_ctx *c, uint32_t keys, uint32_t frame)
         core_out_str(&o, "menu crc ");
         core_out_hex32(&o, console_view_crc(c));
         core_out_str(&o, " sel ");
-        core_out_u32(&o, s_sel);
+        core_out_u32(&o, s_cursor.selected);
         core_out_str(&o, "\r\n");
         appfw_log(buf);
     }
 
+    if(report_selection || previous_selection!=s_cursor.selected) {
+        char buf[96];core_out o;
+        const appfw_app *app=appfw_visible_at(s_cursor.selected);
+        core_out_init(&o,buf,sizeof buf);core_out_str(&o,"console menu index ");core_out_u32(&o,s_cursor.selected);
+        core_out_str(&o," id ");core_out_u32(&o,app?app->id:UINT32_MAX);
+        core_out_str(&o," count ");core_out_u32(&o,count);core_out_str(&o,"\r\n");appfw_log(buf);
+    }
     (void)frame;
     return APPFW_FRAME_OK;
 }

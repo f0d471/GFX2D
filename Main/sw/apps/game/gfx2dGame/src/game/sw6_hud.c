@@ -41,54 +41,57 @@ static void fmt(char *buf, uint32_t cap, const char *tag, uint32_t v, int has)
 }
 
 /* 逐字 BLIT（共用的 stg_text_draw）。字符都在 0x20~0x7E 之内，落不进第 96 格（空的黑格）。 */
-static void draw_text(gfx_list *l, int dst, uint32_t line, const char *s)
+static void draw_text(gfx_list *l,int dst,int left,uint32_t line,const char *s)
 {
     static const stg_font font = {
         SW6_SLOT_FONT, SW6_FONT_CELL_W, SW6_FONT_CELL_H, SW6_FONT_COLS,
         SW6_FONT_FIRST, ASSET_FONT8X16_CELLS, SW6_FONT_KEY,
     };
 
-    s_hud_bad += stg_text_draw(l, &font, dst, (int)SW6_HUD_X,
+    s_hud_bad += stg_text_draw(l, &font, dst, left,
                                (int)(SW6_HUD_Y + line * SW6_FONT_CELL_H), s, NULL);
 }
 
-void sw6_hud_build(gfx_list *l, int dst, const sw6_hud_in *in,
+void sw6_hud_build_at(gfx_list *l, int dst, const sw6_hud_in *in,int left,
                    uint32_t *out_cmd, uint32_t *out_pix)
 {
     char     line[40];
     gfx_rect box;
 
-    box.x0 = (int32_t)SW6_HUD_X;
+    box.x0 = left;
     box.y0 = (int32_t)SW6_HUD_Y;
-    box.x1 = (int32_t)(SW6_HUD_X + SW6_HUD_W - 1u);
+    box.x1 = left+(int32_t)SW6_HUD_W-1;
     box.y1 = (int32_t)(SW6_HUD_Y + SW6_HUD_H - 1u);
     if (gfx_fill(l, dst, box, SW6_HUD_BG, GFX_EQ_COPY, 0u) != 0)
         s_hud_bad++;
 
     fmt(line, (uint32_t)sizeof line, "SW FPS ", in->sw_fps, in->live && in->sw_fps_valid);
-    draw_text(l, dst, 0u, line);
+    draw_text(l, dst,left, 0u, line);
     fmt(line, (uint32_t)sizeof line, "HW FPS ", in->hw_fps, in->live && in->hw_fps_valid);
-    draw_text(l, dst, 1u, line);
+    draw_text(l, dst,left, 1u, line);
 
     fmt(line, (uint32_t)sizeof line, "N ", in->n, 1);
-    draw_text(l, dst, 2u, line);
+    draw_text(l, dst,left, 2u, line);
     fmt(line, (uint32_t)sizeof line, "K ", in->k, 1);
-    draw_text(l, dst, 3u, line);
+    draw_text(l, dst,left, 3u, line);
 
     fmt(line, (uint32_t)sizeof line, "CMD ", in->prev_cmd, in->prev_valid);
-    draw_text(l, dst, 4u, line);
+    draw_text(l, dst,left, 4u, line);
     fmt(line, (uint32_t)sizeof line, "PIX ", in->prev_pix, in->prev_valid);
-    draw_text(l, dst, 5u, line);
+    draw_text(l, dst,left, 5u, line);
 
     fmt(line, (uint32_t)sizeof line, "LOG ", in->cyc_in, in->live);
-    draw_text(l, dst, 6u, line);
+    draw_text(l, dst,left, 6u, line);
     fmt(line, (uint32_t)sizeof line, "BLD ", in->cyc_bld, in->live);
-    draw_text(l, dst, 7u, line);
+    draw_text(l, dst,left, 7u, line);
     fmt(line, (uint32_t)sizeof line, "EXE ", in->cyc_exe, in->live);
-    draw_text(l, dst, 8u, line);
+    draw_text(l, dst,left, 8u, line);
 
     if (out_cmd != NULL)
         *out_cmd = in->prev_valid ? in->prev_cmd : SW6_NONE;
     if (out_pix != NULL)
         *out_pix = in->prev_valid ? in->prev_pix : SW6_NONE;
 }
+
+void sw6_hud_build(gfx_list *l,int dst,const sw6_hud_in *in,uint32_t *out_cmd,uint32_t *out_pix)
+{sw6_hud_build_at(l,dst,in,(int)SW6_HUD_X,out_cmd,out_pix);}

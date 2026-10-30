@@ -1,0 +1,36 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   222810 bytes written at address 0x00001000
+   downloaded 222810 bytes in 12.039476s (18.073 KiB/s)
+=== 等串口采集结束（上限 240 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\20261030-030035-e3284c97\logs\r4-board\performance-input.serial.log）---
+# COM11 @ 115200 8N1, opened 03:10:10
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+pak 4085504 87500897
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+r4 enter ladder/hw 2 1
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+mode 4 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4STAT 30 40085 146 2 1 0
+R4TIME 4018 1586342 147561 39115 964520 640851 627432 567
+R4STAT 30 35676 163 2 1 0
+R4TIME 4175 1831590 167860 68789 1013118 688262 672207 674
+R4STAT 30 36437 135 2 1 0
+R4TIME 3997 1497035 137771 39503 954788 631095 618334 541
+R4STAT 30 37833 152 2 1 0
+R4TIME 4750 1648853 153371 69648 971716 646784 632598 604
+R4STAT 30 33933 143 2 1 0
+R4TIME 4148 1431322 146002 68060 958425 635079 622570 518
+R4PERF 120 2735524 3105130 3142400 0 120 0 240 120
+r4 leave frames/late 151 0
+R4HEALTH 33153 335 0 0 0
+diag fifo_min 332 samples 151 zero 0 under 0 irqA 1085 irqB 151 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 03:10:41, 1264 bytes

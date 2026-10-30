@@ -23,7 +23,8 @@
 两端共享应用管理器与内容，只有宿主循环/FreeRTOS 调度适配不同。旧 `gfx2dGame`
 保留为开发/判据入口。完整机制、协议、错误恢复与构建策略见
 [应用与输入契约](../doc/应用与输入契约.md)。
-本地冻结检阅包为 `../bit/board_release_console_20261028/`，提供PC和板端启动入口，
+本地冻结检阅包为 `../bit/board_release_console_2d_20261030/` 和
+`../bit/board_release_console_full_20261030/`，提供PC和板端启动入口，
 实际检查范围记录在包内verification.json；用户观感检阅与Flash固化分开。
 
 ```sh
@@ -178,6 +179,14 @@ PC支持F11/Alt+Enter切全屏、Esc退回窗口、F1/F2/F3切窗口大小、F4�
 带 `logs/` 目录的程序，里面是与当前产物对应的上板原始日志（入库）。
 
 ## 编译两套
+
+产品固件的内容由 `apps/console/catalog.json` 统一登记。`make -C apps/console APP_PROFILE=2d`
+构建仅 demo/stg/press 加系统功能的版本，`APP_PROFILE=full` 加 R4；自定义内容用
+`APPS="demo stg"`，不按 ID 范围或固定游戏数量分支。两端使用相同内容清单与稳定 ID。
+生成的注册、能力、模块依赖与 content.json 位于活动 OBJDIR/catalog；2D 不链接 R4/atlas
+及专用光栅库。默认目录按配置区分，显式共享 OBJDIR 也由目录摘要触发完整重编。
+预算检查与原生 Windows 打包入口见 `../tools/board/README.md`，运行契约见
+`../doc/应用与输入契约.md`。菜单仅列出可用应用并支持滚动；快捷键不限制应用数量。
 
 绘制前端的软件候选位于 `lib/gfx/frame.h/.c` 与 `strip_plan.c`：前者定义
 最多三个 pass 的资源租约、依赖和完成边界；后者提供 planned/ref/seal 与

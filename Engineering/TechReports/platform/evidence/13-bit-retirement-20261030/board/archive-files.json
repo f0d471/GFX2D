@@ -1,0 +1,242 @@
+{
+  "logs/r4-board/cup.control.log": {
+    "size": 2006,
+    "mtime_ns": 1793300813105738900,
+    "sha256": "cd8710080b98202de4977b5caf35312455defd40eb88f266132040c3e054b4a2"
+  },
+  "logs/r4-board/cup.host-build.log": {
+    "size": 2573,
+    "mtime_ns": 1793300784950228800,
+    "sha256": "5f90333479e011269acabf4ae32391f0971eb77eeb42a4a39ed32dacb1c85ad2"
+  },
+  "logs/r4-board/cup.host.log": {
+    "size": 1415,
+    "mtime_ns": 1793300785394253200,
+    "sha256": "e4ab2fc833f1b62882f56af0026d670229b16973b5a206ebd76ebfd36d0d815b"
+  },
+  "logs/r4-board/cup.serial.log": {
+    "size": 1566,
+    "mtime_ns": 1793300812968814700,
+    "sha256": "e86ae379cb60859f48095ebfc8615c21a894f40fc676c21b55a11131fa0e018f"
+  },
+  "logs/r4-board/debug-twice.log": {
+    "size": 118,
+    "mtime_ns": 1793300520806016400,
+    "sha256": "05d1fd8e16215abfcb140ef3e8a0249b602a6ff3dd4d4cbeec429970ae7c0448"
+  },
+  "logs/r4-board/expected.json": {
+    "size": 4884,
+    "mtime_ns": 1793301241580959700,
+    "sha256": "b45aaf1416e3ebfcd44462e80b03fbf789629f6a61c950382ee4bf4d020df734"
+  },
+  "logs/r4-board/l1.control.log": {
+    "size": 2169,
+    "mtime_ns": 1793300519322238100,
+    "sha256": "3145a85929a7f5da0a2a2ff7e8b92151a9f87c823e7b9b9a4237c27a6076f117"
+  },
+  "logs/r4-board/l1.host-build.log": {
+    "size": 2569,
+    "mtime_ns": 1793300483589258500,
+    "sha256": "5ae9e34da25b75d9a3bd1b280d75851be5e8cf49f277ff3378d74bf4d52702c3"
+  },
+  "logs/r4-board/l1.host.log": {
+    "size": 1412,
+    "mtime_ns": 1793300484015044200,
+    "sha256": "4607f617d9d8816ac0a503754a97b3c89433166a1a982b1c8e7f5f815e3bb0b4"
+  },
+  "logs/r4-board/l1.serial.log": {
+    "size": 1583,
+    "mtime_ns": 1793300519193605800,
+    "sha256": "a52d623f623b36c8cfff4e6296a5fbd462cfed1af1517a45a98b51ab58e1f0b3"
+  },
+  "logs/r4-board/l2.control.log": {
+    "size": 2006,
+    "mtime_ns": 1793300665370196200,
+    "sha256": "9d9b9fc87dcb4e255b9fae65024fc7266d52259ae128386ec98c5f248af8750c"
+  },
+  "logs/r4-board/l2.host-build.log": {
+    "size": 2569,
+    "mtime_ns": 1793300634440495100,
+    "sha256": "468684fc7871eefb1d0d7b91d51bfc25341b5cbbe88b6f71ceaa9c9a5aeb65be"
+  },
+  "logs/r4-board/l2.host.log": {
+    "size": 1419,
+    "mtime_ns": 1793300634910966500,
+    "sha256": "cf4fb9dd82f3f9d589fa2f5a4d37b3898ce28c3532355367011748444b430b14"
+  },
+  "logs/r4-board/l2.serial.log": {
+    "size": 1567,
+    "mtime_ns": 1793300665230586600,
+    "sha256": "2183548d1b29be051aa415a4cfb9ef42fac40b027ee3196af1307815068b9a27"
+  },
+  "logs/r4-board/legacy-game.control.log": {
+    "size": 2191,
+    "mtime_ns": 1793301241342019800,
+    "sha256": "8d2234f021c4cbbd635a6e79e545c769fab61d52bf2a7bcc2bcb181a3cc4b105"
+  },
+  "logs/r4-board/legacy-game.serial.log": {
+    "size": 1743,
+    "mtime_ns": 1793301241196795500,
+    "sha256": "c2c59cdd639982e3e4a811a169c232d1a9eba3a826aad0652df9fb3513222ef4"
+  },
+  "logs/r4-board/legacy-game.validation.log": {
+    "size": 153,
+    "mtime_ns": 1793301241437290900,
+    "sha256": "0ba9fd5a2be4e862133debe299e50953f9e8d0e62a7f81dd86e4ac60c7856112"
+  },
+  "logs/r4-board/performance-input.control.log": {
+    "size": 1840,
+    "mtime_ns": 1793301041867680300,
+    "sha256": "bab2057ee61538efc9c49522981e29351cb888d48e7c24dcbef48da505095dd1"
+  },
+  "logs/r4-board/performance-input.serial.log": {
+    "size": 1386,
+    "mtime_ns": 1793301041735244900,
+    "sha256": "0bff58e70e163e7d3863cb0ed1d0a1a158124976362738bd6a9cfb074678eacb"
+  },
+  "logs/r4-board/performance.control.log": {
+    "size": 1834,
+    "mtime_ns": 1793300985814763000,
+    "sha256": "8e154cff76378f301dd1d11ecd97bb47e13815c8e77e8bf08916bc8a17fd3679"
+  },
+  "logs/r4-board/performance.serial.log": {
+    "size": 1386,
+    "mtime_ns": 1793300985690327200,
+    "sha256": "284a8cc7dde530abb7e02a337e7464a0a35a799fa33bbe73333b579c463bc9dc"
+  },
+  "logs/r4-board/pixel-injection.control.log": {
+    "size": 1402,
+    "mtime_ns": 1793300927803017500,
+    "sha256": "a71fc02d7df49710f35daa08bec12e702d305dfd82fa9bdbe1100c6860af502c"
+  },
+  "logs/r4-board/pixel-injection.serial.log": {
+    "size": 950,
+    "mtime_ns": 1793300927670211000,
+    "sha256": "ed83dde9d39e6ade014766a07be6a0f853d2a8688017c43a40b93b5259f043a8"
+  },
+  "logs/r4-board/recording.control.log": {
+    "size": 1521,
+    "mtime_ns": 1793301192193130800,
+    "sha256": "1440ab8a20f577fc650deec87f7c7579b434cc9244a6584979345381483be599"
+  },
+  "logs/r4-board/recording.serial.log": {
+    "size": 1075,
+    "mtime_ns": 1793301192061392200,
+    "sha256": "972928afdf6ee187c854fadd4bd3d81576253294eb546f32a95db27af4cad81e"
+  },
+  "logs/r4-board/result.json": {
+    "size": 4543,
+    "mtime_ns": 1793301241587297000,
+    "sha256": "289620ea08390be0efa6e813cd0c9b1dbd016b724313ed341c1f6d51344dadb9"
+  },
+  "logs/r4-board/software-cup.control.log": {
+    "size": 1448,
+    "mtime_ns": 1793300870803771700,
+    "sha256": "29e5de642db499ac784a7e1c901dfcc9488506e32fe8133c150ff8663de62520"
+  },
+  "logs/r4-board/software-cup.serial.log": {
+    "size": 999,
+    "mtime_ns": 1793300870667463100,
+    "sha256": "7844b617d3782e1945976f0596434df596eab4b59c29850448f3d1a770e13b9a"
+  },
+  "logs/r4-board/software-l1.control.log": {
+    "size": 1447,
+    "mtime_ns": 1793300584384591100,
+    "sha256": "f3960727d9e6a7aec859b703d0143ae2597a7ca922d6de9b3e322c898f1421d0"
+  },
+  "logs/r4-board/software-l1.serial.log": {
+    "size": 999,
+    "mtime_ns": 1793300584249209000,
+    "sha256": "8437e153fa3d26b55f726f00e5f0cd730012b22630c7554aae00babb79587277"
+  },
+  "logs/r4-board/software-l2.control.log": {
+    "size": 1448,
+    "mtime_ns": 1793300725158275500,
+    "sha256": "6777369cc536e6c9eb4aefbb3b14db8a7fe63116159b855b603fe6e7467490b5"
+  },
+  "logs/r4-board/software-l2.serial.log": {
+    "size": 1000,
+    "mtime_ns": 1793300725024888800,
+    "sha256": "0fa1a00960e709ce100169b9f05ce8d360352eb79ab24d56c142a87a75e4bbd2"
+  },
+  "logs/r4-board/switches.control.log": {
+    "size": 4002,
+    "mtime_ns": 1793301136294789700,
+    "sha256": "ce6f2f4ae181356e6e58dc4636de14286da3be54ff38bd94356a95c269169d16"
+  },
+  "logs/r4-board/switches.serial.log": {
+    "size": 3557,
+    "mtime_ns": 1793301136151304100,
+    "sha256": "24da10d81726e820d901c1201fdd17932de57041f1d00937872f30df11ef3546"
+  },
+  "logs/r4-board/usb.log": {
+    "size": 130,
+    "mtime_ns": 1793300438682356500,
+    "sha256": "e2312dace9e639c05fc0759abddef9f64d159f84a2cd894c49b560c9b150f926"
+  },
+  "logs/r4-build/legacy-game.log": {
+    "size": 2795,
+    "mtime_ns": 1793301214398349400,
+    "sha256": "5a13f2735c6b54bebac94a8d5b6fe6cd18119589a024d83ec8499298d8804fc1"
+  },
+  "logs/r4-build/performance-input.log": {
+    "size": 2819,
+    "mtime_ns": 1793301010307885900,
+    "sha256": "f0a4e386a8c19a23b8da7abf6afd6d51c33afab92f200f45872c09cbd9a8ddcb"
+  },
+  "logs/r4-build/performance.log": {
+    "size": 2795,
+    "mtime_ns": 1793300954218026400,
+    "sha256": "8b96ddf9352984e905d95cf3aeccf8a8875cfdfbcedc88ae10f8e6ade564cc35"
+  },
+  "logs/r4-build/pixel-injection.log": {
+    "size": 2811,
+    "mtime_ns": 1793300901224293300,
+    "sha256": "5830eab9afba903f78626b6974ad23fc9aa983332faecbcb13551943ec64906c"
+  },
+  "logs/r4-build/recording.log": {
+    "size": 2787,
+    "mtime_ns": 1793301165106937200,
+    "sha256": "5e230084c036587a4f630c7e4735953ef4a343dc7f53feedd78087af290f879e"
+  },
+  "logs/r4-build/software-cup.log": {
+    "size": 2799,
+    "mtime_ns": 1793300844064550900,
+    "sha256": "5c22f16c7a2fef3e2f69d2f4c7e043fcd95fdcf2234f4a6d5ced4e302e89a78b"
+  },
+  "logs/r4-build/software-l1.log": {
+    "size": 2795,
+    "mtime_ns": 1793300552479348700,
+    "sha256": "badfc399da636a650584ae3722f1ba6dd02dbdf5bf160f347476011d61baa3b6"
+  },
+  "logs/r4-build/software-l2.log": {
+    "size": 2795,
+    "mtime_ns": 1793300692160747300,
+    "sha256": "645664bc5983ef057fc5ea50966b6e3c1488b4111c8f45516efa667407b0d47d"
+  },
+  "logs/r4-build/switches.log": {
+    "size": 2783,
+    "mtime_ns": 1793301067847047400,
+    "sha256": "48361d9e0f1098b3c38bcc9ef208e6a88bc8c4d0741c2634101a3782b740e73a"
+  },
+  "logs/r4-build/target-cup.log": {
+    "size": 2791,
+    "mtime_ns": 1793300756491846500,
+    "sha256": "43f76e08ed3efe28a6b08be514165bc0246a558614e10729a810d53bb9800a69"
+  },
+  "logs/r4-build/target-l1.log": {
+    "size": 2787,
+    "mtime_ns": 1793300461742750600,
+    "sha256": "29f6fddef4f564f4affefa482b3d3cfd2de828eb313296e5828a699d7d1930f1"
+  },
+  "logs/r4-build/target-l2.log": {
+    "size": 2787,
+    "mtime_ns": 1793300610416068700,
+    "sha256": "eedec2e72c1a29a58b73b4455c7db99dad154a51c9e4016db6234d2446dcf7f1"
+  },
+  "logs/runner/r4-frozen-board.log": {
+    "size": 111,
+    "mtime_ns": 1793300870854402500,
+    "sha256": "cbc8e34e002b82667c4dccbd802ed9290fc7f1cf7304d06c606e4acef3b2c2de"
+  }
+}

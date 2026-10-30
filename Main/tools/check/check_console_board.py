@@ -12,7 +12,7 @@ from check_run import ROOT,IncompleteCheck,session,command,identity,write_json
 from console_checks import validate_board,validate_fault
 
 MAIN=ROOT/'Main'
-B7_DEFAULT=MAIN/'bit/board_release_game_current_20261024/board/B7.bit'
+B7_DEFAULT=MAIN/'bit/snapshots/B7/gfx2d_ti60.bit'
 BOUNDARY='# --- 程序已加载，以下才是它的输出 ---'
 
 def input_script():

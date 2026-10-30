@@ -25,6 +25,8 @@ def main():
     ap.add_argument('--license', type=Path)
     ap.add_argument('--qa',type=Path)
     ap.add_argument('--verification',type=Path)
+    ap.add_argument('--content',type=Path)
+    ap.add_argument('--bit-manifest',type=Path)
     ap.add_argument('--note', required=True)
     args = ap.parse_args()
     if not args.name.startswith('board_release_') or Path(args.name).name != args.name:
@@ -36,7 +38,7 @@ def main():
         'pc/gfx2dGame.exe': args.pc,
         'pc/SDL2.dll': args.dll,
         'board/gfx2dGame.bin': args.bin,
-        'board/B7.bit': args.bit,
+        'board/gfx2d_ti60.bit': args.bit,
         'assets.pak': ROOT / 'Main/assets/build/assets.pak',
         'pc/assets.pak': ROOT / 'Main/assets/build/assets.pak',
         'sdk/cpu0.yaml': ROOT / 'Main/sdk/cpu0.yaml',
@@ -66,6 +68,36 @@ def main():
     if board_console!=pc_console:
         ap.error('PC and board must use the same product frontend')
     frontend='console' if board_console else 'legacy'
+    content=None;hardware=None
+    if frontend=='console':
+        board_content=args.content or args.bin.parent/'catalog/content.json'
+        if not board_content.is_file():board_content=args.bin.parent/'content.json'
+        pc_content=args.pc.parent/'content.json'
+        if not pc_content.is_file():pc_content=args.pc.parent/'catalog/content.json'
+        if not board_content.is_file() or not pc_content.is_file():ap.error('console package requires PC and firmware content manifests')
+        from console_catalog import CAPS_BIT,validate_selection
+        content=validate_selection(json.loads(board_content.read_text(encoding='utf-8')))
+        pc_selected=json.loads(pc_content.read_text(encoding='utf-8'))
+        if content!=pc_selected:ap.error('PC and firmware application selections differ')
+        fingerprint=content['catalog_sha256'].encode('ascii')
+        if fingerprint not in args.bin.read_bytes() or fingerprint not in args.pc.read_bytes():ap.error('content identity not embedded in both binaries')
+        bit_manifest=args.bit_manifest or args.bit.parent/'manifest.json'
+        if not bit_manifest.is_file():ap.error('console package requires a bitstream identity manifest')
+        hardware=json.loads(bit_manifest.read_text(encoding='utf-8'))
+        if hardware['bit_sha256']!=digest(args.bit):ap.error('bitstream identity mismatch')
+        caps=int(hardware['caps'],16)
+        unsupported=[a['key'] for a in content['apps'] if any(not caps&(1<<CAPS_BIT[f]) for f in a['target_requires'])]
+        if unsupported:ap.error('selected bitstream cannot run packaged applications: '+','.join(unsupported))
+        if args.bin.stat().st_size>content['image_limit_bytes']:ap.error('firmware exceeds boot image budget')
+        if inputs['assets.pak'].stat().st_size>content['asset_limit_bytes']:ap.error('assets exceed Flash partition budget')
+        inputs['content.json']=board_content
+        inputs['board/hardware.json']=bit_manifest
+        firmware=args.bin.parent/'firmware.json'
+        if not firmware.is_file():ap.error('firmware build identity missing')
+        built=json.loads(firmware.read_text(encoding='utf-8'))
+        if built['files'][args.bin.name]['sha256']!=digest(args.bin) or built['assets']['sha256']!=digest(inputs['assets.pak']):
+            ap.error('firmware/asset build identities differ from package inputs')
+        inputs['board/firmware.json']=firmware
     for name, source in inputs.items():
         dest = output / name
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -160,13 +192,15 @@ try {
         'PC 不需要板卡或 Efinity。板端需要 Efinity 2026.1/IDE、FT4232H 驱动和已装入 Flash 的原配素材包；本包保留 assets.pak。\n'
         '板端仅 JTAG 重载，不写 Flash。UART 自动定位 C 通道；多板时用 Run-Board.ps1 -Port 指定。\n'
         '加载前关闭占用同一串口的控制面板；程序退出/断电后可再次运行本包入口恢复。\n'+
-        ('PC 与板端默认同一应用菜单。1/2/3/4 全局进入 2D演示/弹幕/压力/三维；Enter/Space确认，Esc返回，C切三维场景。\n'
+        ('PC 与板端使用包内 content.json 的同一应用集合。上下选择，Enter/Space确认，Esc返回；数字键为该集合的可选快捷入口。\n'
          '板载四键：左右同按确认，上下同按返回；游戏中确认可使用炸弹。Shift切阶梯，Tab切后端。\n'
          if frontend=='console' else
          '旧开发入口：4进入三维、三维内再按4切茶杯；Shift切L1/L2，Tab切后端。\n')+
         '`source.zip` 是此包冻结时的源码，`source.diff` 保留当时相对 Git 的变更。\n'
         '文件身份及旧/新版本的实际构建说明见 manifest.json，运行日志写 runtime/。\n', encoding='utf-8')
     manifest = dict(name=args.name, note=args.note, deployment='JTAG; no Flash write',frontend=frontend,
+        board_bit='board/gfx2d_ti60.bit',board_bin='board/gfx2dGame.bin',
+        content=content,hardware=hardware,
         hardware_scope='reused bitstream; packaging does not rebuild or accept current RTL',
         bit_sha256=digest(args.bit), source_head=subprocess.check_output(git + ['rev-parse', 'HEAD'], cwd=ROOT).decode().strip(),
         rtl={p.relative_to(ROOT).as_posix(): digest(p) for p in (ROOT / 'Main/rtl').rglob('*') if p.suffix in ('.v','.vh')},

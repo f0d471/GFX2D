@@ -625,6 +625,17 @@ int renderer_submit_plan(int hw,gfx_frame_plan *p,const gfx_mem *mem,
     *cycles=board_cycles()-t0;return 0;
 }
 
+int renderer_run_view(const gfx_surface_table *tab,const gfx_mem *mem,
+                      exec_sw_state *es,exec_sw_error *err,const gfx_list *list,
+                      exec_sw_stats *stats,uint32_t *cycles,unsigned width)
+{
+    const uint32_t start=board_cycles();
+    if(list->strip_table || list->instances || list->frame)return GFX_BUILD_BAD_ARG;
+    exec_sw_stats_clear(stats);
+    int rc=exec_sw_run_frame(es,tab,mem,list->buf,list->used,list->used,stats,err,width,480);
+    *cycles=board_cycles()-start;return rc;
+}
+
 int renderer_perf_read(uint32_t values[9])
 {
 #ifdef __riscv

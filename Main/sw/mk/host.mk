@@ -127,7 +127,7 @@ $(shell if [ "$$(cat $(FLAGS_STAMP) 2>/dev/null)" != "$(STAMP_VALUE)" ]; then rm
 
 gfx_app_object = $(OBJDIR)/app/$(subst ../,__up__/,$(1:.c=.o))
 APP_OBJS := $(foreach source,$(APP_SRCS),$(call gfx_app_object,$(source)))
-LIB_SRCS := $(foreach l,$(LIBS),$(wildcard $(SW)lib/$(l)/*.c))
+LIB_SRCS := $(filter-out $(addprefix $(SW)lib/,$(LIB_EXCLUDE)),$(foreach l,$(LIBS),$(wildcard $(SW)lib/$(l)/*.c)))
 LIB_OBJS := $(patsubst $(SW)lib/%.c,$(OBJDIR)/lib/%.o,$(LIB_SRCS))
 BSP_SRCS := $(wildcard $(SW)bsp/*.c) $(wildcard $(SW)bsp/host/*.c)
 BSP_OBJS := $(patsubst $(SW)bsp/%.c,$(OBJDIR)/bsp/%.o,$(BSP_SRCS))
@@ -138,7 +138,7 @@ ifeq ($(GRAPHICS_RUNTIME),1)
 SERVICE_SRCS += $(wildcard $(SW)services/gfx/*.c)
 endif
 ifeq ($(APP_RUNTIME),1)
-SERVICE_SRCS += $(SW)runtime/appfw.c
+SERVICE_SRCS += $(wildcard $(SW)runtime/*.c)
 endif
 ifeq ($(PLATFORM_SDK),1)
 SERVICE_SRCS += $(SW)services/platform/platform.c $(SW)services/platform/store_host.c

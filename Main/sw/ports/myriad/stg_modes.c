@@ -168,6 +168,11 @@ static void say_err(const char *what, uint32_t v)
 }
 
 /* 组帧、普查自查、执行、整帧 CRC、呈现。census 不为 NULL 时把普查结果交回去（模式 3 算代价）。 */
+static int (*s_presenter)(int,uint32_t *);
+static int (*s_frame_begin)(gfx_surface_table *,int,stg_draw_view *);
+void stg_modes_set_presenter(int (*present)(int,uint32_t *)) {s_presenter=present;}
+void stg_modes_set_frame_begin(int (*begin)(gfx_surface_table *,int,stg_draw_view *)) {s_frame_begin=begin;}
+
 static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *live, stg_mode_out *o,
                        gfx_census *census)
 {
@@ -181,6 +186,18 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
 #endif
     int              rc;
     uint32_t         t0 = board_cycles();
+    stg_draw_view view;
+#ifndef __riscv
+    gfx_surface_table view_tab;
+    stg_main_ctx view_ctx=*ctx;
+    if(s_frame_begin)view_tab=*ctx->tab;
+    const int adaptive=s_frame_begin?s_frame_begin(&view_tab,dst,&view):1;
+    if(adaptive==0) {view_ctx.tab=&view_tab;ctx=&view_ctx;}
+#else
+    const int adaptive=1;
+#endif
+
+    if(adaptive<0) {say_err("frame layout",0);return;}
 
     o->presented_dst=-1;o->cyc_build=0;o->cyc_exec=0;o->crc=0;o->used=0;
     o->instances=NULL;o->instance_generation=0;
@@ -193,7 +210,8 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
         return;
     }
     stg_modes_draw_cfg(&cfg, dst);
-    if (frontend_game_compose(&s_game, &l, &cfg, live, &o->st) != 0) {
+    if ((adaptive==0?stg_game_compose_view(&s_game,&l,&cfg,live,&o->st,&view):
+         frontend_game_compose(&s_game,&l,&cfg,live,&o->st)) != 0) {
         say_err("compose", 0u);
         return;
     }
@@ -318,8 +336,8 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
         rc = renderer_pipeline_step(&l, dst, &xs, &o->cyc_exec,
                                     &o->t_present, &o->presented_dst);
     } else {
-        rc = renderer_run(ctx->hw, ctx->tab, ctx->mem, ctx->es, ctx->err,
-                          &l, &xs, &o->cyc_exec);
+        rc = adaptive==0?renderer_run_view(ctx->tab,ctx->mem,ctx->es,ctx->err,&l,&xs,&o->cyc_exec,view.width):
+            renderer_run(ctx->hw,ctx->tab,ctx->mem,ctx->es,ctx->err,&l,&xs,&o->cyc_exec);
     }
     if (rc != GFX_OK) {
         say_err("exec", (uint32_t)rc);
@@ -342,7 +360,7 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     if (!renderer_pipeline_enabled(ctx->hw)) {
         uint32_t ticket;
         o->t_present = board_cycles();
-        if (board_present_request(dst, &ticket) != 0 || board_present_wait(ticket) != 0)
+        if ((s_presenter?s_presenter(dst,&ticket):board_present_request(dst,&ticket)) != 0 || board_present_wait(ticket) != 0)
             say_err("present", (uint32_t)dst);
         else
             o->presented_dst = dst;

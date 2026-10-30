@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "profile": "full",
+  "catalog_sha256": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+  "compiler": "riscv-none-elf-gcc (xPack GNU RISC-V Embedded GCC x86_64) 13.4.0",
+  "command": [
+    "make",
+    "-C",
+    "<REPO>/Main/sw/apps/console",
+    "-j4",
+    "PLATFORM=target",
+    "APP_PROFILE=full",
+    "OBJDIR=../../../sim/build/check-runs/20261030-014306-a1081dbe/build/console-profiles-board/full",
+    "RISCV_BIN=<RISCV_BIN>"
+  ],
+  "source_commit": "4beeff7b386133fe7795258e73ed73fa6b8d3f11",
+  "source_dirty": true,
+  "files": {
+    "console-O2-perf.bin": {
+      "bytes": 253806,
+      "sha256": "507e2c1551a6491898ee2b75fa16a707c29424415fdc1fa4a5e2989a5ec94a7f"
+    },
+    "console-O2-perf.elf": {
+      "bytes": 1585436,
+      "sha256": "7f41e7d1f74ec088ff8db8d53ee05dd1b5cd4c4706dd3ccfbd92165afb2b5c8e"
+    },
+    "console-O2-perf.map": {
+      "bytes": 860755,
+      "sha256": "fdf5c64d1db0dc33d9f3446f906d13d5a77fad7b6ebbfe10b337e6a867c503b7"
+    }
+  },
+  "assets": {
+    "bytes": 4085504,
+    "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+  },
+  "memory": {
+    "text": 213712,
+    "data": 39950,
+    "bss": 3194012,
+    "limit": 4190208
+  },
+  "image_limit_bytes": 524288,
+  "three_d_symbols": 58,
+  "scope": "build and budget inspection; not board acceptance",
+  "board_validation": {
+    "status": "PASS",
+    "run": "20261030-014306-a1081dbe",
+    "verification": "verification.json",
+    "presets": [
+      "B7"
+    ],
+    "flash_written": false,
+    "manual_hdmi": "NOT_OBSERVED"
+  }
+}

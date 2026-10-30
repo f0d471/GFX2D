@@ -16,7 +16,26 @@
   "bit_bytes": 2522958,
   "date": "2026-10-29T05:34:02+08:00",
   "bin": "console-O2-perf.bin",
-  "bin_sha256": "b0ed13c4f1cb64ba7caa954694204c33109f55e6ef3655f2b0632cbbf0ad8bcd",
-  "bin_bytes": 236982,
-  "bin_verified_by": "check-runs/snap-b3: 菜单/demo/about 等应用 60fps errors 0;r4 三维无完成帧=B3 无 RAST 硬件,构型定义内"
+  "bin_sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744",
+  "bin_bytes": 174402,
+  "bin_verified_by": "verification.json; acceptance 20261030-014306-a1081dbe console-profiles-board B3 PASS; JTAG only",
+  "content": {
+    "file": "content.json",
+    "sha256": "27fc78cd8fb85d6317816bfad1990cdc68847b0387838fff89a1756594efe189",
+    "profile": "2d",
+    "catalog_sha256": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+    "content_ids": [
+      1,
+      2,
+      3
+    ]
+  },
+  "firmware": {
+    "file": "firmware.json",
+    "sha256": "fbac2f3297258ce13256beaf24c97cfcdf73d6f7dbaf93563918894c846d5c94"
+  },
+  "verification": {
+    "file": "verification.json",
+    "sha256": "177ece3ad2c3ad39034c5efc239491640447d9606540e4df30178f731297afb4"
+  }
 }

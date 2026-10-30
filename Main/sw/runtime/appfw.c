@@ -34,6 +34,18 @@ const appfw_app *appfw_app_id(uint32_t id)
         if(s_config.apps[i]->id==id)return s_config.apps[i];
     return NULL;
 }
+uint32_t appfw_visible_count(void)
+{
+    uint32_t n=0;
+    for(uint32_t i=0;i<s_config.count;i++)if(appfw_available(s_config.apps[i]))++n;
+    return n;
+}
+const appfw_app *appfw_visible_at(uint32_t index)
+{
+    for(uint32_t i=0;i<s_config.count;i++)
+        if(appfw_available(s_config.apps[i]) && index--==0)return s_config.apps[i];
+    return NULL;
+}
 const appfw_app *appfw_find(const char *name)
 {
     uint32_t i;
@@ -149,9 +161,9 @@ static void status(void)
 {
     const uint32_t now=app_port_ms(), elapsed=now-s_stat_ms;
     app_port_stats p;
-    appfw_detail detail={"none",0,0};
+    appfw_detail detail={.backend="none"};
     if(s_config.describe)s_config.describe(&s_ctx,s_active,&detail);
-    char line[384];core_out out;
+    char line[640];core_out out;
     if(elapsed<1000u)return;
     s_ctx.fps_milli=(uint32_t)(((uint64_t)(app_port_swap_count()-s_stat_swaps)*1000000u)/elapsed);
     s_stat_ms=now;s_stat_swaps=app_port_swap_count();
@@ -169,17 +181,23 @@ static void status(void)
     VALUE(" faults ",app_port_faults());
     VALUE(" tasks ",p.tasks);VALUE(" idle ",p.idle);VALUE(" monitor ",p.monitor);
     VALUE(" health ",p.health_faults);VALUE(" stack_free ",p.stack_free);
+    if(detail.catalog) {
+        core_out_str(&out," catalog ");core_out_str(&out,detail.catalog);
+        core_out_str(&out," caps ");core_out_hex32(&out,detail.capabilities);
+    }
     core_out_str(&out,"\r\n");appfw_log(line);
 #undef VALUE
 }
 int appfw_init(const appfw_config *config,uint32_t start_id)
 {
     if(s_active || s_fault)return -1; /* Never replace a live/faulted owner's resources. */
-    if(!config || !config->menu || !config->apps || !config->count)return -1;
+    if(!config || !config->menu || (config->count && !config->apps))return -1;
     for(uint32_t i=0;i<config->count;i++) {
         const appfw_app *a=config->apps[i];
         if(!a || !a->name || !a->enter || !a->leave || !a->frame || a->id==config->menu->id)return -1;
-        for(uint32_t j=0;j<i;j++)if(config->apps[j]->id==a->id)return -1;
+        if(strcmp(a->name,config->menu->name)==0)return -1;
+        for(uint32_t j=0;j<i;j++)
+            if(config->apps[j]->id==a->id || strcmp(config->apps[j]->name,a->name)==0)return -1;
     }
     if(!config->menu->name || !config->menu->enter || !config->menu->leave || !config->menu->frame)return -1;
     s_config=*config;

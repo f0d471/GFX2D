@@ -55,12 +55,14 @@ def main():
     serial = output / 'serial.log'
     frontend=manifest.get('frontend','legacy')
     marker='console status ' if frontend=='console' else 'R4STAT '
+    bit=root/manifest.get('board_bit','board/B7.bit')
+    binary=root/manifest.get('board_bin','board/gfx2dGame.bin')
     command = [sys.executable, str(root / 'tools/board/board_run.py'), '--bit',
-        str(root / 'board/B7.bit'), '--bin', str(root / 'board/gfx2dGame.bin'),
+        str(bit), '--bin', str(binary),
         '--workspace', str(root / 'sdk'), '--port', port, '--seconds', '120',
         '--stop-on', marker, '--log', str(serial)]
     if frontend=='console':command.append('--precise-boundary')
-    print('Loading B7 and '+frontend+' over JTAG on '+port+'; waiting for live feedback...',flush=True)
+    print('Loading '+(manifest.get('hardware') or {}).get('config',bit.name)+' and '+frontend+' over JTAG on '+port+'; waiting for live feedback...',flush=True)
     with (output / 'deploy.log').open('w', encoding='utf-8') as log:
         process = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
     body = serial.read_text(encoding='utf-8-sig') if serial.exists() else ''
@@ -68,15 +70,17 @@ def main():
     boundary = '# --- 程序已加载，以下才是它的输出 ---'
     if process.returncode or boundary not in body or marker not in body.split(boundary, 1)[1]:
         raise RuntimeError('Game startup incomplete; inspect ' + str(output))
-    if str((root / 'board/gfx2dGame.bin').stat().st_size) + ' bytes written at address' not in deploy:
+    if str(binary.stat().st_size) + ' bytes written at address' not in deploy:
         raise RuntimeError('Missing program byte-count identity')
     if '# serial lost' in body or re.search(r'^fail [1-9]|^console (?:error|fatal)\b', body, re.M):
         raise RuntimeError('Board reported a failure')
     print('GAME RUNNING ' + port + '; ' + str(output))
     if not args.no_panel:
-        subprocess.Popen([sys.executable, '-B', str(root / 'tools/board/game_control.py'),
+        panel=[sys.executable, '-B', str(root / 'tools/board/game_control.py'),
             '--port', port, '--ensure-hw', '--log', str(output / 'panel.log'),
-            '--status-file', str(output / 'panel_status.json')], creationflags=0x08000000)
+            '--status-file', str(output / 'panel_status.json'),'--bootstrap-log',str(serial)]
+        if (root/'content.json').is_file():panel+=['--content',str(root/'content.json')]
+        subprocess.Popen(panel, creationflags=0x08000000)
 
 
 if __name__ == '__main__':

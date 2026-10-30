@@ -39,10 +39,76 @@ class BoardState:
         self.app_id = None
         self.errors = 0
         self.last_error = None
+        self.catalog = {}
+        self.catalog_hash = None
+        self.profile = None
+        self.capabilities = None
+        self._catalog_pending = None
+        self.menu_index = None
+        self._content_manifest = None
+
+    def label(self):
+        entry=self.catalog.get(self.app_id)
+        return entry['title'] if entry else MODE_NAMES.get(self.mode,self.mode or '等待板上反馈')
+
+    def seed_content(self, content, caps=None):
+        if content.get('version')!=1:return
+        self._content_manifest=content
+        entries={}
+        for a in content['apps']:
+            mask=sum(1<<content['capability_bits'][k] for k in set(a['target_requires']))
+            entries[a['id']]={**a,'available':None if caps is None else (caps&mask)==mask}
+        self.catalog=entries;self.catalog_hash=content['catalog_sha256'];self.profile=content['profile']
+
+    def _load_local_content(self, fingerprint):
+        # A bare panel may attach after the boot catalog. Match the live identity;
+        # never infer a directory from mode IDs or from the latest source alone.
+        try:
+            from console_catalog import load,resolve
+            data=load()
+            for name in data['profiles']:
+                selected=resolve(data,name)
+                if selected['catalog_sha256']==fingerprint:
+                    self.seed_content(selected,self.capabilities);return
+        except (ImportError,OSError,ValueError,KeyError):pass
 
     def consume(self, line):
         before = (self.mode, self.backend)
-        if line.startswith("console protocol 2"):
+        if line=='console boot':
+            self.catalog={};self.catalog_hash=None;self.profile=None;self._catalog_pending=None
+            self.menu_index=None;self.mode=None;self.app_id=None
+        elif line.startswith('console menu '):
+            values=line.split()[2:];data=dict(zip(values[::2],values[1::2]))
+            try:self.menu_index=int(data['index'])
+            except (KeyError,ValueError):return False
+        elif line.startswith('console catalog begin '):
+            values=line.split()[3:];data=dict(zip(values[::2],values[1::2]))
+            try:
+                if data.get('v')!='1' or not re.fullmatch('[0-9a-f]{64}',data['hash']):return False
+                self._catalog_pending=(data,{})
+            except KeyError:self._catalog_pending=None
+        elif line.startswith('console catalog app '):
+            if self._catalog_pending is None:return False
+            values=line.split()[3:];data=dict(zip(values[::2],values[1::2]))
+            try:
+                entry=dict(id=int(data['id']),key=data['key'],kind=data['kind'],graphics=data['graphics'],
+                           shortcut=int(data['shortcut']),available=bool(int(data['available'])),title=bytes.fromhex(data['title']).decode('ascii'))
+                if not (0<entry['id']<0xffffffff and entry['shortcut'] in range(5) and data['available'] in ('0','1')
+                        and entry['kind'] in ('game','demo','benchmark','system') and entry['graphics'] in ('2d','3d')
+                        and 0<len(entry['title'])<=80 and re.fullmatch(r'[A-Za-z_]\w{0,47}',entry['key'],re.ASCII)):
+                    raise ValueError('invalid entry')
+                entries=self._catalog_pending[1]
+                if entry['id'] in entries or any(e['key']==entry['key'] for e in entries.values()):raise ValueError('duplicate entry')
+                entries[entry['id']]=entry
+            except (KeyError,ValueError,UnicodeError):self._catalog_pending=None
+        elif line=='console catalog end':
+            if self._catalog_pending is not None:
+                header,entries=self._catalog_pending;self._catalog_pending=None
+                try:
+                    if len(entries)!=int(header['count']):return False
+                    self.catalog=entries;self.profile=header['profile'];self.catalog_hash=header['hash']
+                except (KeyError,ValueError):return False
+        elif line.startswith("console protocol 2"):
             self.protocol=2
         elif line.startswith("console status "):
             values=line.split()[2:]
@@ -55,6 +121,12 @@ class BoardState:
                 self.fps=int(data["fps_milli"])/1000.0
                 self.errors=int(data["errors"])
                 self.scene=int(data.get("scene",0));self.ladder=int(data.get("ladder",0))
+                if 'catalog' in data:
+                    self.capabilities=int(data['caps'],16)
+                    if self._content_manifest and self._content_manifest['catalog_sha256']==data['catalog']:
+                        self.seed_content(self._content_manifest,self.capabilities)
+                    if self.catalog_hash!=data['catalog']:
+                        self.catalog={};self.catalog_hash=None;self._load_local_content(data['catalog'])
                 self.last_csv=time.monotonic()
                 if self.mode!="r3d":self.triangles=None;self.render_fps=None
                 if self.mode not in ("game","press"):self.bullets=None
@@ -62,6 +134,8 @@ class BoardState:
         elif line.startswith("console enter "):
             app=line.split()[-1]
             self.protocol=2;self.mode={"stg":"game","r4":"r3d"}.get(app,app)
+            self.app_id=next((i for i,e in self.catalog.items() if e['key']==app),None)
+            if app=='menu':self.menu_index=None
             self.backend=None;self.fps=None;self.last_csv=time.monotonic()
             if self.mode!="r3d":self.triangles=None;self.render_fps=None
         elif line.startswith("console error ") or line.startswith("console fatal "):
@@ -115,6 +189,11 @@ class ControlPanel:
     def __init__(self, root, args):
         self.root, self.args = root, args
         self.state = BoardState()
+        if getattr(args,'content',None):
+            self.state.seed_content(json.loads(Path(args.content).read_text(encoding='utf-8')))
+        if getattr(args,'bootstrap_log',None):
+            for line in Path(args.bootstrap_log).read_text(encoding='utf-8-sig',errors='replace').splitlines():
+                self.state.consume(line)
         self.port = None
         self.decoder = codecs.getincrementaldecoder("utf-8")("replace")
         self.buffer = ""
@@ -124,6 +203,7 @@ class ControlPanel:
         self.pending_steps = 0
         self.restart_pending = False
         self.restart_since = 0.0
+        self.restart_target = None
         self.closed = False
         self.last_status_write = 0.0
         self.notice_text = "连接后从板上读取当前模式、后端和 FPS。"
@@ -181,18 +261,18 @@ class ControlPanel:
         ttk.Button(actions, text="SW 软件对比", command=lambda: self.set_backend("sw")).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="返回菜单 [Esc]", command=lambda:self.send_action(1<<11)).pack(side="left", padx=(0,6))
         ttk.Button(actions, text="确认 [Enter]", command=lambda:self.send_action(1<<10)).pack(side="left", padx=(0,6))
-        ttk.Button(actions, text="重开弹幕游戏", command=self.restart_game).pack(side="left", padx=(0, 6))
+        ttk.Button(actions, text="重开当前应用", command=self.restart_game).pack(side="left", padx=(0, 6))
         ttk.Button(actions, text="重新连接", command=self.connect).pack(side="right")
         three_d=ttk.Frame(outer);three_d.pack(fill="x",pady=(0,8))
-        ttk.Button(three_d,text="2D 演示 [1]",command=lambda:self.send_action(1<<7)).pack(side="left",padx=(0,6))
-        ttk.Button(three_d,text="弹幕 [2]",command=lambda:self.send_action(1<<8)).pack(side="left",padx=(0,6))
-        ttk.Button(three_d,text="压力 [3]",command=lambda:self.send_action(1<<9)).pack(side="left",padx=(0,6))
-        ttk.Button(three_d,text="三维 [4]",command=lambda:self.send_action(0x380)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="菜单向上",command=lambda:self.send_action(1)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="菜单向下",command=lambda:self.send_action(2)).pack(side="left",padx=(0,6))
         ttk.Button(three_d,text="场景 [C]",command=lambda:self.send_action((1<<12) if self.state.protocol>=2 else 0x380)).pack(side="left",padx=(0,6))
         ttk.Button(three_d,text="L1 / L2 [Shift]",command=lambda:self.send_action(1<<5)).pack(side="left",padx=(0,6))
         ttk.Button(three_d,text="炸弹 [Space]",command=lambda:self.send_action(1<<4)).pack(side="left",padx=(0,6))
         self.scene_label=ttk.Label(three_d,text="三维场景：等待板上反馈")
         self.scene_label.pack(side="left",padx=12)
+        self.catalog_label=ttk.Label(outer,text='应用目录：等待固件目录；上下选择，Enter 确认',wraplength=980)
+        self.catalog_label.pack(fill='x',pady=(0,8))
         self.connection = ttk.Label(outer, text="串口：等待连接", foreground="#53657e")
         self.connection.pack(anchor="w")
         self.input_label = ttk.Label(outer, text="按键：等待连接", foreground="#53657e")
@@ -210,7 +290,7 @@ class ControlPanel:
             ("左 Shift（按住）", "慢速移动，并显示判定点"),
             ("空格（每次按下）", "使用一颗炸弹；三维也可清弹并获得短暂无敌"),
             ("射击", "自动射击，无需按射击键"),
-            ("1 / 2 / 3 / 4", "全局进入演示 / 游戏 / 压力 / 三维"),
+            ("菜单上下 / Enter", "选择并进入本固件提供的应用；数字键为可选快捷入口"),
             ("Enter / Esc / C", "确认 / 返回菜单 / 切三维场景"),
             ("三维 Shift / Tab", "L1、L2阶梯 / 板上CPU、硬件光栅对照"),
             ("Tab", "HW ↔ SW；SW 由板上 CPU 绘图，会很慢"),
@@ -303,7 +383,7 @@ class ControlPanel:
             return False
 
     def set_backend(self, target):
-        if self.state.protocol>=2 and self.state.mode not in ("demo","game","press","r3d"):
+        if self.state.protocol>=2 and self.state.mode in (None,"menu","about","fault"):
             self.notify("先进入应用，再切换绘图后端。")
             return
         if self.state.mode == "r3d" and target.startswith("hw"):
@@ -322,6 +402,15 @@ class ControlPanel:
 
     def restart_game(self):
         if self.restart_pending:
+            return
+        if self.state.catalog:
+            entry=self.state.catalog.get(self.state.app_id)
+            if not entry or entry['kind']=='system':
+                self.notify('先进入要重开的应用。');return
+            self.restart_target=entry['id']
+            if self.send_action(1<<11):
+                self.restart_pending=True;self.restart_since=time.monotonic()
+                self.notify('返回菜单后按应用目录重开 '+entry['title'])
             return
         if self.state.mode is None:
             self.notify("尚未收到当前模式；等待板上反馈后再重开。")
@@ -378,7 +467,7 @@ class ControlPanel:
             self.notify("板端报告故障："+line)
             return
         if changed:
-            mode = MODE_NAMES.get(self.state.mode, "模式未知")
+            mode = self.state.label()
             backend = (self.state.backend or "未知").upper()
             self.notify(f"{time.strftime('%H:%M:%S')} 板上反馈：{mode} · {backend} 后端。" +
                         (" SW 软件绘图会很慢，正常游玩请回到 HW。" if self.state.backend == "sw" else ""))
@@ -392,15 +481,29 @@ class ControlPanel:
                 self.pending_steps += 1
                 self.pending_since = time.monotonic()
         if self.restart_pending and self.state.mode == ("menu" if self.state.protocol>=2 else "demo"):
-            self.restart_pending = False
-            self.send_action(1 << 8)
+            if self.state.catalog:
+                if line.startswith('console menu '):
+                    available=[i for i,e in self.state.catalog.items() if e.get('available') is not False]
+                    target=getattr(self,'restart_target',None)
+                    if target not in available:
+                        self.restart_pending=False;self.notify('当前固件无法启动该应用。')
+                    elif available.index(target)==self.state.menu_index:
+                        self.restart_pending=False;self.send_action(1<<10)
+                    else:self.send_action(2) # Wait for the next observed selection before moving again.
+            else:
+                self.restart_pending = False
+                self.send_action(1 << 8)
         if self.ensure_hw and self.state.backend is not None:
             self.ensure_hw = False
             if self.state.backend == "sw":
                 self.set_backend("hw")
 
     def refresh(self):
-        self.mode_label.configure(text=MODE_NAMES.get(self.state.mode, "等待板上反馈"))
+        self.mode_label.configure(text=self.state.label())
+        if self.state.catalog:
+            names=[e['title'] for e in self.state.catalog.values() if e.get('available') is not False]
+            text=' / '.join(names[:6])+(' …' if len(names)>6 else '')
+            self.catalog_label.configure(text=f"应用目录 [{self.state.profile}]：{text}；上下选择，Enter 确认")
         backend = self.state.backend
         self.backend_label.configure(text={"hw": "HW/DDR · FPGA 加速", "hw-tex": "HW/TEX · 片上纹理", "hw-strip": "HW/STRIP · 条带渲染", "sw": "SW · CPU 绘图"}.get(backend, "等待板上反馈"),
                                      fg="#167144" if backend in ("hw", "hw-tex", "hw-strip") else "#b42318" if backend == "sw" else "#17243b")
@@ -413,7 +516,7 @@ class ControlPanel:
         if self.state.mode=="r3d":self.fps_label.configure(text=f"{fps} FPS / {self.state.triangles or '—'} 三角形")
         if self.state.mode=="r3d":
             self.scene_label.configure(text=f"{'茶杯 396 面' if self.state.scene else '走廊 · 世界弹幕'} · L{self.state.ladder or '—'}")
-        else:self.scene_label.configure(text="三维场景：按 4 进入")
+        else:self.scene_label.configure(text="场景操作由当前应用提供")
         self.notice.configure(bg="#ffe4e0" if backend == "sw" or self.port is None else "#e0ecff",
                               fg="#b42318" if backend == "sw" or self.port is None else "#164582")
         focus = self.forwarder.user32.GetForegroundWindow() == self.forwarder.focus
@@ -430,12 +533,13 @@ class ControlPanel:
             age = time.monotonic() - self.state.last_csv
             self.connection.configure(text=f"已连接 {self.args.port} · 最近 FPS 反馈 {age:.1f} 秒前" +
                                       (" · 正在等待新统计" if age > 5 else ""))
-        self.root.title(f"gfx2d 控制 · {MODE_NAMES.get(self.state.mode, '等待反馈')} · {(backend or '未知').upper()} · {fps} FPS")
+        self.root.title(f"gfx2d 控制 · {self.state.label()} · {(backend or '未知').upper()} · {fps} FPS")
         if self.args.status_file and time.monotonic() - self.last_status_write >= 1:
             path = Path(self.args.status_file)
             path.parent.mkdir(parents=True, exist_ok=True)
             snapshot = dict(mode=self.state.mode, backend=backend, fps=self.state.fps, bullets=self.state.bullets,
                             protocol=self.state.protocol,app_id=self.state.app_id,errors=self.state.errors,
+                            catalog=self.state.catalog,content_hash=self.state.catalog_hash,profile=self.state.profile,caps=self.state.capabilities,
                             triangles=self.state.triangles,ladder=self.state.ladder,scene=self.state.scene,
                             render_fps=self.state.render_fps,
                             connected=self.port is not None, keyboard_focus=focus, keys=keys,
@@ -506,6 +610,8 @@ def main():
     ap.add_argument("--ensure-hw", action="store_true", help="连接后根据板上反馈恢复硬件后端")
     ap.add_argument("--log", help="追加板上原始日志")
     ap.add_argument("--status-file", help="写出面板当前状态 JSON")
+    ap.add_argument('--content',type=Path,help='冻结的应用清单')
+    ap.add_argument('--bootstrap-log',type=Path,help='本次精确加载边界后的启动日志')
     args = ap.parse_args()
     root = tk.Tk()
     ControlPanel(root, args)

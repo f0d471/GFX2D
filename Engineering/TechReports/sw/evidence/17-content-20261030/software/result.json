@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "pack",
+    "console",
+    "console-profiles",
+    "platform-sdk",
+    "layers",
+    "r4",
+    "workflow",
+    "app"
+  ],
+  "run_id": "20261030-014120-259b9a00"
+}

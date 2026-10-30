@@ -1,0 +1,23 @@
+board: GFX2D_UNPACED=1，呈现不等场
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+console catalog begin v 1 profile full hash 6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175 count 5
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52202f20435550
+console catalog app id 5 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+r4 enter ladder/hw 2 0
+console scene 0 ladder 2
+console enter r4
+r4 leave frames/late 5 0
+r4 enter ladder/hw 2 0
+console scene 1 ladder 2
+R4STAT 0 279552 396 2 0 1
+R4TIME 20 21267 1090 143 339525 0 277117 1097
+R4PERF 2 357195 365266 365266 0 0 0 0 2
+r4 leave frames/late 33 0
+console complete app r4 id 4 frames 38 presents 39 errors 0
+console leave r4

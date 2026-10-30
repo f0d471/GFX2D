@@ -1,0 +1,218 @@
+{
+  "status": "PASS",
+  "software_run": "20261030-014120-259b9a00",
+  "board_run": "20261030-014306-a1081dbe",
+  "packages": [
+    {
+      "profile": "2d",
+      "package": "Main/bit/board_release_console_2d_20261030",
+      "manifest_sha256": "59ce0cb8fc337e5a1a5d71b1cb89b7faa389e4a25ab464a293041f1ef64e7fc8",
+      "payload_files": 28,
+      "content_hash": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+      "startup": {
+        "status": "PASS",
+        "state": {
+          "v": "2",
+          "app": "menu",
+          "id": "0",
+          "backend": "hw",
+          "fps_milli": "45499",
+          "frames": "46",
+          "presents": "46",
+          "errors": "0",
+          "scene": "0",
+          "ladder": "0",
+          "dropped": "0",
+          "tick_ms": "7761",
+          "irqA": "466",
+          "heap": "57840",
+          "faults": "0",
+          "tasks": "4",
+          "idle": "1362514",
+          "monitor": "1",
+          "health": "0",
+          "stack_free": "64716",
+          "catalog": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+          "caps": "0000040f"
+        },
+        "raw": [
+          {
+            "file": "2d-package.serial.log",
+            "bytes": 1236,
+            "sha256": "1fc92c067500264f370105c4ae22f4b1c6d6d1615beea14843a458a25193b3f2"
+          },
+          {
+            "file": "2d-package.deploy.log",
+            "bytes": 2511,
+            "sha256": "9364817a4a8e8891c4d71caa2b0fbf9f225116467371d8bcc9d07f0e63e51ed3"
+          },
+          {
+            "file": "2d-native.stdout.log",
+            "bytes": 1510,
+            "sha256": "65c51de2d7cc11128a406264c990f70600b8211db715eb0511a99fe1363064f4"
+          },
+          {
+            "file": "2d-native.stderr.log",
+            "bytes": 42,
+            "sha256": "140fa8d69a7568be28d19a691788999afa967b39237e9d35039bc9b555b19d0a"
+          }
+        ]
+      },
+      "powershell_check_only": [
+        "5.1 PASS",
+        "7 PASS"
+      ]
+    },
+    {
+      "profile": "full",
+      "package": "Main/bit/board_release_console_full_20261030",
+      "manifest_sha256": "b1d157c209304807eae69983f87df6537cde9fa754498b5ed7f713f730b6a875",
+      "payload_files": 28,
+      "content_hash": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+      "startup": {
+        "status": "PASS",
+        "state": {
+          "v": "2",
+          "app": "menu",
+          "id": "0",
+          "backend": "hw",
+          "fps_milli": "42957",
+          "frames": "43",
+          "presents": "43",
+          "errors": "0",
+          "scene": "0",
+          "ladder": "0",
+          "dropped": "0",
+          "tick_ms": "7762",
+          "irqA": "466",
+          "heap": "57824",
+          "faults": "0",
+          "tasks": "4",
+          "idle": "1331411",
+          "monitor": "0",
+          "health": "0",
+          "stack_free": "64716",
+          "catalog": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+          "caps": "0000d46f"
+        },
+        "raw": [
+          {
+            "file": "full-package.serial.log",
+            "bytes": 1321,
+            "sha256": "68e908d8e5e7c0d7409fc8f3799bdcbad439e2b90897018895ef0827fd54eb3a"
+          },
+          {
+            "file": "full-package.deploy.log",
+            "bytes": 2603,
+            "sha256": "3e7cea9ce6d5e321f86c77eebc42b60e1bf30a898af79b19bde3052e90d686dc"
+          },
+          {
+            "file": "full-native.stdout.log",
+            "bytes": 1812,
+            "sha256": "c7f08a0970ed9ba577141e39da934ee68f0529bc6e11d535902b988783c85121"
+          },
+          {
+            "file": "full-native.stderr.log",
+            "bytes": 42,
+            "sha256": "140fa8d69a7568be28d19a691788999afa967b39237e9d35039bc9b555b19d0a"
+          }
+        ]
+      },
+      "powershell_check_only": [
+        "5.1 PASS",
+        "7 PASS"
+      ]
+    }
+  ],
+  "snapshots": [
+    {
+      "preset": "B0",
+      "profile": "2d",
+      "bin_bytes": 174402,
+      "bin_sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744",
+      "bit_sha256": "86138e9b1b5d82ecfb1f86ad555b31ef5e172aee27eaf56f3229d4a4ea337330"
+    },
+    {
+      "preset": "B3",
+      "profile": "2d",
+      "bin_bytes": 174402,
+      "bin_sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744",
+      "bit_sha256": "f88b5430455c84c99e9d69602f1376d78e96173836d99d2fa7ae184b426f385f"
+    },
+    {
+      "preset": "B5",
+      "profile": "2d",
+      "bin_bytes": 174402,
+      "bin_sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744",
+      "bit_sha256": "c4f5a82118602d031ba652491cf63741b1ceb6e35f90f9706823b6ef1153c1cc"
+    },
+    {
+      "preset": "B7",
+      "profile": "full",
+      "bin_bytes": 253806,
+      "bin_sha256": "507e2c1551a6491898ee2b75fa16a707c29424415fdc1fa4a5e2989a5ec94a7f",
+      "bit_sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+    }
+  ],
+  "native": [
+    {
+      "log": "<REPO>\\Main\\sim\\build\\sw17-release\\pc-2d\\native-smoke.stdout.log",
+      "status": "PASS",
+      "stderr": "<REPO>\\Main\\sim\\build\\sw17-release\\pc-2d\\native-smoke.stderr.log",
+      "content_hash": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+      "exit_code": 0,
+      "exe_sha256": "b3fb967738b34f8c77950d2fd1ea474c598ef0e5ab3897a971a9b5a1f2889e08",
+      "profile": "2d"
+    },
+    {
+      "log": "<REPO>\\Main\\sim\\build\\sw17-release\\pc-full\\native-smoke.stdout.log",
+      "status": "PASS",
+      "stderr": "<REPO>\\Main\\sim\\build\\sw17-release\\pc-full\\native-smoke.stderr.log",
+      "content_hash": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+      "exit_code": 0,
+      "exe_sha256": "f1f87e5b7595e930b487cb2772a077c990950f9337801b7f83cb151a99f34121",
+      "profile": "full"
+    }
+  ],
+  "negative_packages": [
+    {
+      "case": "mismatch",
+      "status": "PASS",
+      "exit_code": 2,
+      "marker": "application selections differ"
+    },
+    {
+      "case": "capability",
+      "status": "PASS",
+      "exit_code": 2,
+      "marker": "cannot run packaged applications"
+    },
+    {
+      "case": "modified",
+      "status": "PASS",
+      "exit_code": 1,
+      "marker": "fingerprint mismatch"
+    }
+  ],
+  "desktop": {
+    "session": 1,
+    "launcher": "Windows PowerShell 5.1 Run-PC.ps1",
+    "exe": "<REPO>\\Main\\bit\\board_release_console_2d_20261030\\pc\\gfx2dGame.exe",
+    "pid": 48776,
+    "exe_sha256": "b3fb967738b34f8c77950d2fd1ea474c598ef0e5ab3897a971a9b5a1f2889e08",
+    "status": "PASS",
+    "foreground": false,
+    "windowTitle": "MYRIAD | F11 fullscreen | F4 smooth/pixel"
+  },
+  "desktop_environment": {
+    "input_desktop": "Default",
+    "window_station": "WinSta0",
+    "foreground_pid": 18996,
+    "desktop": "Default",
+    "foreground_handle": 394608
+  },
+  "sdk_original_diff_exit": 0,
+  "rtl_sdk_fpga_modified": false,
+  "flash_written": false,
+  "user_acceptance": "PENDING"
+}

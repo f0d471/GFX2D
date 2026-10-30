@@ -1,0 +1,30 @@
+# COM11 @ 115200 8N1, opened 03:06:25
+# --- 程序已加载，以下才是它的输出 ---
+gfx2dGame MODES
+pak 4085504 87500897
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+r4 enter ladder/hw 1 1
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+R4CAD 0 7398298 1300 1322 2  289832 74dc4000 8a92a7d5
+mode 4 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4CAD 1 7387638 1302 1346 3  290216 b815f830 cc965e96
+R4CAD 2 7063583 1304 1370 4  291764 e3386702 55771c6f
+R4CAD 3 7050867 1306 1394 5  290417 41253947 c95d898c
+R4CAD 4 7035691 1308 1418 6  291393 32a28aea d040e07e
+R4CAD 5 7017253 1310 1442 7  291691 b30e4901 e66afdcc
+R4CAD 6 7033666 1312 1466 8  291985 ac0c1125 8a4bea95
+R4CAD 7 7053558 1314 1490 9  292504 cfe77431 5813d429
+R4CAD 8 7044362 1316 1514 10  294302 2ac6116d 34823083
+R4CAD 9 7032082 1318 1538 11  293506 a79fabad 11d06060
+R4CAD 10 7040443 1320 1562 12  293401 84f5f3ff 991d5468
+R4CAD 11 7040367 1322 1586 13  294466 8ed31596 63c37d39
+r4 leave frames/late 12 12
+R4HEALTH 19431 347 0 0 0
+diag fifo_min 347 samples 12 zero 0 under 0 irqA 849 irqB 12 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 03:06:52, 1444 bytes

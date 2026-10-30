@@ -56,4 +56,4 @@ static int frame(appfw_ctx *c,uint32_t keys,uint32_t n)
     if(console_view_submit(c,&list,dst,s_hw)!=0)return -1;
     return APPFW_FRAME_OK;
 }
-const appfw_app g_app_about={APPFW_ABOUT,"about","SYSTEM INFORMATION",enter,leave,frame};
+const appfw_app g_app_about={APPFW_ABOUT,CONSOLE_KEY_APPFW_ABOUT,CONSOLE_TITLE_APPFW_ABOUT,enter,leave,frame};

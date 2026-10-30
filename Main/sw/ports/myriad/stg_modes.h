@@ -87,6 +87,10 @@ uint32_t stg_modes_overflow(void);
 
 /* 日志行（nmax 的几种行、err 行）写进哪里：q 为 NULL 时直接 board_puts。 */
 void     stg_modes_set_log(logq *q);
+/* Product presentation may reflow the completed fixed frame. Legacy callers
+ * leave this unset and retain the original framebuffer/CRC path. */
+void     stg_modes_set_presenter(int (*present)(int,uint32_t *));
+void     stg_modes_set_frame_begin(int (*begin)(gfx_surface_table *,int,stg_draw_view *));
 
 void     stg_mode_game_enter(void);
 void     stg_mode_game_frame(const stg_main_ctx *ctx, int dst, uint32_t keys,

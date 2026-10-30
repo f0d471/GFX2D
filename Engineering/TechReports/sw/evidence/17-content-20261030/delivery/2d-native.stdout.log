@@ -1,0 +1,30 @@
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+console catalog begin v 1 profile 2d hash b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0 count 4
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 5 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+console enter menu
+menu crc 4e853ef5 sel 0
+console menu index 0 id 1 count 4
+console complete app menu id 0 frames 5 presents 5 errors 0
+console leave menu
+console enter demo
+console complete app demo id 1 frames 14 presents 14 errors 0
+console leave demo
+console enter stg
+console complete app stg id 2 frames 14 presents 14 errors 0
+console leave stg
+nmax load 16x16
+nmax cfg N0=64 STEP_MIN=16 T_PROBE=120 T_CONFIRM=3600 SETTLE_MIN=300 SETTLE_FRAMES=30 SETTLE_ABS=2 SETTLE_MAX=600 CONFIRM_RETRY=3 KNOB_MAX=16000 F=1666667
+console enter press
+console complete app press id 3 frames 34 presents 34 errors 0
+console leave press
+console enter menu
+menu crc 4e853ef5 sel 0
+console menu index 0 id 1 count 4
+console complete app menu id 0 frames 9 presents 9 errors 0
+console leave menu

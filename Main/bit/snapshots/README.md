@@ -17,21 +17,29 @@ B1/B2/B4/B6 是消融测量档，按需构建不留快照；快照集与 `check_
 
 ## 默认 BIN 与各档预期现象
 
-每档随附 **同一个** `console-O2-perf.bin`（当前源码构建的游戏机前端，CAPS 自适应：
-运行期读 CAPS 决定走哪条后端、显示哪些入口）。程序可由 manifest 的 source_commit
-确定性重建，BIN 入档是为了「烧写即用」的自足性；`bin_sha256` 登记。
+每档随附 `console-O2-perf.bin`、`content.json` 和 `firmware.json`。B0/B3/B5 使用同一份
+`2d` 内容固件（demo/stg/press 加系统菜单/about），B7 使用 `full`（再加入 R4）。2D BIN
+实际裁掉 R4、atlas 和专用库；运行时仍按真实能力保护所有入口，菜单只列可用内容。
+本轮软件替换的验证状态与原始运行引用见各 manifest 的 `bin_verified_by`。
+硬件 `source_commit` 不代表新软件版本；软件编译器、参数、预算、程序/素材摘要与源码
+状态独立登记在 firmware.json，content.json 绑定实际编入的应用集合。
 
-| 档 | 上板实测现象（2026-10-29，console-board） |
+| 档 | 配套内容及能力边界 |
 | --- | --- |
-| B0 | 五应用全跑：菜单/about/press/demo 60fps，**stg 弹幕 2D 走直通硬件后端 60fps**；r4 三维无完成帧（无 RAST，定义内） |
-| B3 | 菜单/demo/press/about/stg（条带后端）60fps 全跑；r4 三维缺席（无 RAST） |
-| B5 | 菜单/demo/press/about/stg（PB 后端）60fps 全跑；r4 三维缺席（无 RAST） |
-| B7 | 五应用全跑含 r4 三维；另经 r4-board 三场景 CRC/SW-HW 等价/注错/节拍 PASS |
+| B0 | 2d；基础像素引擎，无 TEX/RAST |
+| B3 | 2d；有 TEX/BAND/INST，无 RAST |
+| B5 | 2d；增加 PB，无 RAST |
+| B7 | full；有 RAST/RAST_TEX，无 PB |
 
-菜单 CRC 随档位不同（B7 `24eeb9cf`、B3 `0ae7ecb9`/`cd59c789`）= 菜单按 CAPS 自适应
-显示入口的正确表现。各档验证 run 见各 manifest 的 `bin_verified_by`。
+菜单 CRC 与内容集合/选择有关，不能把旧菜单 CRC 当新布局的判据。旧单 BIN 的
+2026-10-29 验证保留在历史记录；当前软件以目录、真实出帧和绑定的位流/BIN身份验证。
+PB 与 RAST 互斥，不能按 B0/B3/B5/B7 编号高低推断兼容性。
 
 ## 替换门槛
+
+本节三项用于替换位流。仅更新软件时保留原 bit 摘要，按
+[`../../doc/验证流程.md`](../../doc/验证流程.md) 完成所选软件构建与对应档的实板检查，
+分别更新软件身份；不因换 BIN 重做无改动的综合。
 
 快照跟随源码批次更新（如 PPA 优化批），任一档的编译输入变化后：
 

@@ -2,6 +2,7 @@
 #include "renderer.h"
 #include "console_content.h"
 #include "console_views.h"
+#include "console_present.h"
 #include "stg_modes.h"
 #include "game/sw6_scene_b.h"
 int console_view_prepare(appfw_ctx *c,int family,int hw)
@@ -15,13 +16,19 @@ int console_view_begin(appfw_ctx *c,gfx_list *l,int *dst)
     stg_runtime *r=content_runtime(c);uint32_t i=content(c)->seq&1u;
     *dst=(int)i;
     if(*dst==content(c)->shown)return -1;
+    if(console_present_begin(&r->tab,*dst,NULL)<0)return appfw_error("view layout",-1);
     gfx_list_begin(l,r->cmds[i],r->cap[i],&r->tab);return 0;
 }
+unsigned console_view_width(appfw_ctx *c,int dst)
+{return gfx_surf_width(&content_runtime(c)->tab.s[dst]);}
 int console_view_submit(appfw_ctx *c,const gfx_list *l,int dst,int hw)
 {
     stg_runtime *r=content_runtime(c);exec_sw_stats stats;uint32_t cycles,ticket;
-    if(renderer_run(hw,&r->tab,&r->mem,&r->es,&r->err,l,&stats,&cycles)!=0)return appfw_error("view render",-1);
-    if(board_present_request(dst,&ticket)!=0 || board_present_wait(ticket)!=0)return appfw_error("view present",-1);
+    unsigned width=console_view_width(c,dst);
+    int rc=width>640u?renderer_run_view(&r->tab,&r->mem,&r->es,&r->err,l,&stats,&cycles,width):
+        renderer_run(hw,&r->tab,&r->mem,&r->es,&r->err,l,&stats,&cycles);
+    if(rc!=0)return appfw_error("view render",-1);
+    if(console_present_request(dst,&ticket)!=0 || board_present_wait(ticket)!=0)return appfw_error("view present",-1);
     content(c)->shown=dst;++content(c)->seq;return 0;
 }
 int console_view_flush(appfw_ctx *c)

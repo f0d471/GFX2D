@@ -121,7 +121,8 @@ class Session:
                      'SW6_QUICK', 'SW7_SKIP_SEARCH', 'SW8_SKIP_LONG', 'EXTRA_CFLAGS',
                      'INJECT', 'VEC', 'GOLDEN', 'SAN32', 'TEST_ARGS', 'MAKEFLAGS', 'ASSETS_PAK',
                      'ASSETS_BUILD', 'GFX2D_ASSETS_PAK', 'GFX2D_TX_BUDGET',
-                     'GFX2D_ASPECT', 'GFX2D_FULLSCREEN', 'GFX2D_SCALE_FILTER')}
+                     'GFX2D_ASPECT', 'GFX2D_FULLSCREEN', 'GFX2D_SCALE_FILTER',
+                     'APP_PROFILE','APPS','APP_CATALOG')}
         if self.manifest.exists():
             old = self.read()
             self.patterns=input_patterns or old.get('input_patterns',['Main/**'])

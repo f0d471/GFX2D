@@ -11,6 +11,7 @@ enum { CONSOLE_WIDTH=640,CONSOLE_HEIGHT=480,CONSOLE_VIEW_STG=0,CONSOLE_VIEW_DEMO
 struct sw6_scene_b;
 int console_view_prepare(appfw_ctx *ctx,int family,int hardware);
 int console_view_begin(appfw_ctx *ctx,gfx_list *list,int *destination);
+unsigned console_view_width(appfw_ctx *ctx,int destination);
 int console_view_submit(appfw_ctx *ctx,const gfx_list *list,int destination,int hardware);
 int console_view_flush(appfw_ctx *ctx);
 int console_view_backend(appfw_ctx *ctx);

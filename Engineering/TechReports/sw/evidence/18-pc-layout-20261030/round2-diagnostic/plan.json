@@ -1,0 +1,64 @@
+{
+  "profile": "quick",
+  "checks": [
+    "pack",
+    "console",
+    "lib",
+    "app",
+    "demo",
+    "workflow"
+  ],
+  "changed": null,
+  "commands": {
+    "pack": [
+      "/usr/bin/python3",
+      "Main/tools/assets/pack_assets.py"
+    ],
+    "console": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_console.py"
+    ],
+    "lib": [
+      "bash",
+      "Main/tools/check/check_host.sh",
+      "lib"
+    ],
+    "app": [
+      "bash",
+      "Main/tools/check/check_host.sh",
+      "app"
+    ],
+    "demo": [
+      "bash",
+      "Main/tools/check/check_sw6_demo.sh"
+    ],
+    "workflow": [
+      "/usr/bin/python3",
+      "Main/tools/check/test_validation.py"
+    ]
+  },
+  "timeouts": {
+    "pack": 1800,
+    "console": 1800,
+    "lib": 1800,
+    "app": 1800,
+    "demo": 1800,
+    "workflow": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log",
+    "Main/doc/三维数值契约.md",
+    "Main/sim/engine/r4/**",
+    "Main/rtl/**",
+    "Main/sw/lib/test/golden.txt"
+  ]
+}

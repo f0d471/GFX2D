@@ -78,3 +78,27 @@ with tempfile.TemporaryDirectory() as directory:
     assert json.loads(Path(view.args.status_file).read_text(encoding='utf-8'))['keys']==0x380
     assert '三维 [4]' in view.input_label.configure.call_args.kwargs['text']
 print('Control panel: cross-app pending commands cancelled; displayed keys preserve raw telemetry')
+
+# A menu-selected sparse-ID application can restart through observed menu
+# navigation, without allocating another launch bit or assuming four games.
+state=BoardState()
+state.consume('console catalog begin v 1 profile custom hash '+'a'*64+' count 2')
+state.consume('console catalog app id 42 key extra kind game graphics 3d shortcut 0 available 1 title 4558545241')
+state.consume('console catalog app id 5 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d')
+state.consume('console catalog end')
+state.consume('console enter extra')
+assert state.app_id==42 and state.label()=='EXTRA'
+panel.state=state;panel.restart_pending=False
+sent=[];panel.send_action=lambda keys:sent.append(keys) or True
+panel.restart_game();assert sent==[2048] and panel.restart_target==42
+panel.process_line('console enter menu')
+panel.process_line('console menu index 1 id 5 count 2')
+assert sent==[2048,2] and panel.restart_pending
+panel.process_line('console menu index 0 id 42 count 2')
+assert sent==[2048,2,1024] and not panel.restart_pending
+broken=BoardState()
+broken.consume('console catalog begin v 1 profile bad hash '+'b'*64+' count 2')
+broken.consume('console catalog app id 42 key extra kind game graphics 3d shortcut 0 available 1 title 4558545241')
+broken.consume('console catalog end')
+assert not broken.catalog
+print('Control panel: versioned directory, sparse-ID labels and generic restart PASS')

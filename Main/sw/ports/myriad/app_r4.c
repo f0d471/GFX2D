@@ -10,6 +10,15 @@
 
 static uint32_t s_prev,s_hw,s_ladder=2,s_scene,s_fail_base;
 static int s_restart,s_started,s_initialized;
+void console_r4_boot(appfw_ctx *ctx)
+{
+    r4_set_log(ctx->log);stg_runtime_r4_install_hooks();r4_set_key_source(appfw_input_held);
+}
+void console_r4_describe(appfw_ctx *ctx,appfw_detail *detail)
+{
+    (void)ctx;detail->backend=r4_backend_hardware()?"hw":"sw";
+    detail->scene=r4_current_scene();detail->ladder=r4_current_ladder();
+}
 
 static int enter(appfw_ctx *c)
 {
@@ -76,4 +85,4 @@ static int frame(appfw_ctx *c,uint32_t keys,uint32_t n)
         return appfw_error("r4 frame",-1);
     content(c)->shown=dst;++content(c)->seq;return APPFW_FRAME_OK;
 }
-const appfw_app g_app_r4={APPFW_R4,"r4","3D CORRIDOR / CUP",enter,leave,frame};
+const appfw_app g_app_r4={APPFW_R4,CONSOLE_KEY_APPFW_R4,CONSOLE_TITLE_APPFW_R4,enter,leave,frame};

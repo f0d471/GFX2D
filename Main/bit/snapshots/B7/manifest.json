@@ -17,7 +17,27 @@
   "date": "2026-10-29T05:34:04+08:00",
   "note": "RA1/RA2 后首个B7;板测r4-board三场景CRC PASS(run ppa-board)",
   "bin": "console-O2-perf.bin",
-  "bin_sha256": "b0ed13c4f1cb64ba7caa954694204c33109f55e6ef3655f2b0632cbbf0ad8bcd",
-  "bin_bytes": 236982,
-  "bin_verified_by": "check-runs/snap-b7 (console-board PASS: 菜单CRC 24eeb9cf, backend hw 60fps, errors 0, faults 0)"
+  "bin_sha256": "507e2c1551a6491898ee2b75fa16a707c29424415fdc1fa4a5e2989a5ec94a7f",
+  "bin_bytes": 253806,
+  "bin_verified_by": "verification.json; acceptance 20261030-014306-a1081dbe console-profiles-board B7 PASS; JTAG only",
+  "content": {
+    "file": "content.json",
+    "sha256": "274552b8520dfa040d8b6e57b39f53a2b9d8ee92acd925485d044ad6ffc5f416",
+    "profile": "full",
+    "catalog_sha256": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+    "content_ids": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "firmware": {
+    "file": "firmware.json",
+    "sha256": "da8b5aaac5277391e63116b0b5e2d12aa27a5b8d38d4e87981988b536432e1d1"
+  },
+  "verification": {
+    "file": "verification.json",
+    "sha256": "8410d92e3c852ab0d06378bc560ac16f8d9baf0e744999d5e038042b25b31bb5"
+  }
 }

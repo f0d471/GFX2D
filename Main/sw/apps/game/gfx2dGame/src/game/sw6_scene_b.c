@@ -43,37 +43,43 @@ static void note(sw6_build_stat *fs, int rc, uint32_t eq_idx)
 }
 
 /* OFF0 渐变：整屏 BG_GRAD + 4 个图集 ALPHA 格子 + 2 个色键方块。共 7 条。 */
-static void comp_off0(gfx_list *l, int dst, sw6_build_stat *fs)
+static int view_x(int x,unsigned item_width,unsigned width)
+{return (int)((int64_t)x*(width-item_width)/(SW6_CANVAS_WIDTH-item_width));}
+
+static void comp_off0(gfx_list *l,int dst,sw6_build_stat *fs,unsigned width)
 {
     uint32_t i;
 
-    note(fs, gfx_blit(l, SW6_SLOT_BG_GRAD, 0, 0, dst, 0, 0,
-                         (int)SW6_CANVAS_WIDTH, (int)SW6_CANVAS_HEIGHT, GFX_EQ_COPY, 0u, 0, 0u), 0u);
+    for(unsigned x=0;x<width;x+=SW6_CANVAS_WIDTH) {
+        unsigned w=width-x;if(w>SW6_CANVAS_WIDTH)w=SW6_CANVAS_WIDTH;
+        note(fs,gfx_blit(l,SW6_SLOT_BG_GRAD,0,0,dst,(int)x,0,(int)w,
+                        SW6_CANVAS_HEIGHT,GFX_EQ_COPY,0,0,0),0);
+    }
 
     for (i = 0u; i < 4u; i++) {
         const uint32_t cell = 9u + i * 5u;
 
         note(fs, gfx_blit(l, SW6_SLOT_ATLAS,
                              (int)(cell % 8u) * 16, (int)(cell / 8u) * 16, dst,
-                             (int)(40u + i * 40u), 200, 16, 16,
+                             view_x((int)(40u+i*40u),16,width), 200, 16, 16,
                              GFX_EQ_ALPHA, 0u, 0, 0u), 1u);
     }
 
     for (i = 0u; i < 2u; i++)
         note(fs, gfx_blit(l, SW6_SLOT_KEY_DEMO, 0, 0, dst,
-                             (int)(200u + i * 40u), 420, 32, 32,
+                             view_x((int)(200u+i*40u),32,width), 420, 32, 32,
                              GFX_EQ_COPY, 0u, 1, ASSET_KEY_DEMO_KEY), 0u);
 }
 
 /* OFF1 棋盘：CHECKER_TILE 5 列 × 4 行平铺。x 方向 5×128 = 640 正好；
    y 的第 4 行 384+128 = 512 > 480，末行由游戏区裁掉（离屏图也是目的表面，
    四者求交里的游戏区一项同样生效）。共 20 条。 */
-static void comp_off1(gfx_list *l, int dst, sw6_build_stat *fs)
+static void comp_off1(gfx_list *l,int dst,sw6_build_stat *fs,unsigned width)
 {
     uint32_t col, row;
 
     for (row = 0u; row < 4u; row++) {
-        for (col = 0u; col < 5u; col++) {
+        for (col = 0u; col < (width+127u)/128u; col++) {
             note(fs, gfx_blit(l, SW6_SLOT_CHECKER, 0, 0, dst,
                                  (int)(col * 128u), (int)(row * 128u), 128, 128,
                                  GFX_EQ_COPY, 0u, 0, 0u), 0u);
@@ -95,7 +101,7 @@ static uint32_t band_color(uint32_t i)
    （预乘 ALPHA 两个、直通 ALPHA_STRAIGHT 两个）。共 46 条。
    用到 ALPHA／ALPHA_STRAIGHT 的元素都放在 HUD 矩形（x=400..639, y=0..159）以外，
    否则上屏后被 HUD 盖住，逐方程注错就看不出来（spec 2.2、R34）。 */
-static void comp_off2(gfx_list *l, int dst, sw6_build_stat *fs)
+static void comp_off2(gfx_list *l,int dst,sw6_build_stat *fs,unsigned width)
 {
     uint32_t i;
 
@@ -104,7 +110,7 @@ static void comp_off2(gfx_list *l, int dst, sw6_build_stat *fs)
 
         r.x0 = 0;
         r.y0 = (int32_t)(i * 16u);
-        r.x1 = (int32_t)SW6_CANVAS_WIDTH - 1;
+        r.x1 = (int32_t)width - 1;
         r.y1 = (int32_t)(i * 16u + 15u);
         note(fs, gfx_fill(l, dst, r, band_color(i), GFX_EQ_COPY, 0u), 0u);
     }
@@ -114,17 +120,17 @@ static void comp_off2(gfx_list *l, int dst, sw6_build_stat *fs)
 
         note(fs, gfx_blit(l, SW6_SLOT_ATLAS,
                              (int)(cell % 8u) * 16, (int)(cell / 8u) * 16, dst,
-                             24 + (int)i * 20, 200 + (int)(i / 6u) * 24, 16, 16,
+                             view_x(24+(int)i*20,16,width), 200 + (int)(i / 6u) * 24, 16, 16,
                              GFX_EQ_ALPHA, 0u, 0, 0u), 1u);
     }
 
-    note(fs, gfx_blit(l, SW6_SLOT_BULLET_PM, 0, 0, dst, 300, 420, 32, 32,
+    note(fs, gfx_blit(l, SW6_SLOT_BULLET_PM, 0, 0, dst, view_x(300,32,width), 420, 32, 32,
                          GFX_EQ_ALPHA, 0u, 0, 0u), 1u);
-    note(fs, gfx_blit(l, SW6_SLOT_BULLET_PM, 0, 0, dst, 340, 420, 32, 32,
+    note(fs, gfx_blit(l, SW6_SLOT_BULLET_PM, 0, 0, dst, view_x(340,32,width), 420, 32, 32,
                          GFX_EQ_ALPHA, 0u, 0, 0u), 1u);
-    note(fs, gfx_blit(l, SW6_SLOT_BULLET_ST, 0, 0, dst, 60, 240, 32, 32,
+    note(fs, gfx_blit(l, SW6_SLOT_BULLET_ST, 0, 0, dst, view_x(60,32,width), 240, 32, 32,
                          GFX_EQ_ALPHA_STRAIGHT, 0u, 0, 0u), 3u);
-    note(fs, gfx_blit(l, SW6_SLOT_BULLET_ST, 0, 0, dst, 100, 240, 32, 32,
+    note(fs, gfx_blit(l, SW6_SLOT_BULLET_ST, 0, 0, dst, view_x(100,32,width), 240, 32, 32,
                          GFX_EQ_ALPHA_STRAIGHT, 0u, 0, 0u), 3u);
 }
 
@@ -137,6 +143,13 @@ void sw6_b_begin(sw6_scene_b *b, uint32_t k0)
     b->k     = (k0 < SW6_K_MIN) ? SW6_K_MIN : ((k0 > SW6_K_MAX) ? SW6_K_MAX : k0);
     for (i = 0u; i < SW6_SCENES; i++)
         b->ref[i] = 0u;
+}
+
+void sw6_b_build_view(unsigned scene,gfx_list *list,int dst,unsigned width,sw6_build_stat *stats)
+{
+    if(scene==0)comp_off0(list,dst,stats,width);
+    else if(scene==1)comp_off1(list,dst,stats,width);
+    else comp_off2(list,dst,stats,width);
 }
 
 int sw6_b_precompose(sw6_scene_b *b, const sw6_b_ctx *ctx,
@@ -164,11 +177,11 @@ int sw6_b_precompose(sw6_scene_b *b, const sw6_b_ctx *ctx,
         note(&fs, gfx_fill(&l, dst, all, SW6_BG_COLOR, GFX_EQ_COPY, 0u), SW6_EQ_NONE);
 
         if (i == 0u)
-            comp_off0(&l, dst, &fs);
+            comp_off0(&l, dst, &fs,SW6_CANVAS_WIDTH);
         else if (i == 1u)
-            comp_off1(&l, dst, &fs);
+            comp_off1(&l, dst, &fs,SW6_CANVAS_WIDTH);
         else
-            comp_off2(&l, dst, &fs);
+            comp_off2(&l, dst, &fs,SW6_CANVAS_WIDTH);
 
         if (gfx_list_end(&l) != 0)
             fs.bad++;

@@ -1,0 +1,45 @@
+{
+  "protected_static_files": "byte-identical",
+  "flash_written": false,
+  "removed_bytes": 97957696,
+  "status": "PASS",
+  "stopped_old_processes": [],
+  "retained": [
+    "snapshots",
+    "official",
+    "flash_backup",
+    "board_release_console_2d_20261030",
+    "board_release_console_full_20261030"
+  ],
+  "scope": "only seven approved old release directories",
+  "removed": [
+    {
+      "name": "board_release_20261015",
+      "bytes": 6797702
+    },
+    {
+      "name": "board_release_console_20261028",
+      "bytes": 24896687
+    },
+    {
+      "name": "board_release_game_current_20261024",
+      "bytes": 16604029
+    },
+    {
+      "name": "board_release_game_next_20261024",
+      "bytes": 22389954
+    },
+    {
+      "name": "board_release_game_wide_20261025",
+      "bytes": 21289512
+    },
+    {
+      "name": "board_release_r3_20261023",
+      "bytes": 2988326
+    },
+    {
+      "name": "board_release_r4_visual_20261024",
+      "bytes": 2991486
+    }
+  ]
+}

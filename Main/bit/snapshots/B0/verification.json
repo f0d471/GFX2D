@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "status": "PASS",
+  "software": {
+    "status": "PASS",
+    "profile": "acceptance",
+    "checks": [
+      "pack",
+      "console",
+      "console-profiles",
+      "platform-sdk",
+      "layers",
+      "r4",
+      "workflow",
+      "app"
+    ],
+    "run_id": "20261030-014120-259b9a00"
+  },
+  "board": {
+    "status": "PASS",
+    "run": "20261030-014306-a1081dbe",
+    "preset": "B0",
+    "caps": "0x0000040F",
+    "serial_sha256": "f7a351fb71776ba501ca9ad17e7764916304a5ec8ccfd0aed8864e634cd45fb4",
+    "bit_sha256": "86138e9b1b5d82ecfb1f86ad555b31ef5e172aee27eaf56f3229d4a4ea337330",
+    "bin_sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744",
+    "status_samples": 66,
+    "apps": [
+      "about",
+      "demo",
+      "menu",
+      "press",
+      "stg"
+    ]
+  },
+  "pc": {
+    "status": "PASS",
+    "profile": "2d",
+    "exit_code": 0,
+    "content_hash": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+    "exe_sha256": "b3fb967738b34f8c77950d2fd1ea474c598ef0e5ab3897a971a9b5a1f2889e08"
+  },
+  "flash_written": false,
+  "rtl_synthesis": "NOT_APPLICABLE: reused unchanged snapshot bitstream",
+  "manual_hdmi": "NOT_OBSERVED",
+  "user_acceptance": "PENDING"
+}

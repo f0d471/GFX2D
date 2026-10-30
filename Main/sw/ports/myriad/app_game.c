@@ -8,6 +8,7 @@
 #include "stg_slots.h"
 #include "console_content.h"
 #include "app_port.h"
+#include "console_present.h"
 
 static uint32_t s_mode,s_prev;
 static uint32_t s_fps[4],s_valid[4];
@@ -29,6 +30,8 @@ static int enter_mode(appfw_ctx *c,uint32_t mode)
     }
     if(renderer_prepare(content_runtime(c)->backend,&content_runtime(c)->tab)!=0)return -1;
     s_mode=mode;s_prev=0;
+    stg_modes_set_presenter(console_present_request);
+    stg_modes_set_frame_begin(console_present_begin);
     if(mode==APPFW_PRESS)stg_mode_press_enter();else stg_mode_game_enter();
     return 0;
 }
@@ -40,7 +43,7 @@ static int leave(appfw_ctx *c)
     if(renderer_pipeline_flush(&shown)!=0)return appfw_error("stg flush",-1);
     if(shown>=0)content(c)->shown=shown;
     if(frontend_game_reset()!=0)return appfw_error("stg lease",-1);
-    stg_modes_reset();return 0;
+    stg_modes_reset();stg_modes_set_presenter(NULL);stg_modes_set_frame_begin(NULL);return 0;
 }
 static int switch_backend(appfw_ctx *c)
 {
@@ -89,5 +92,5 @@ static int frame(appfw_ctx *c,uint32_t keys,uint32_t n)
     if(out.presented_dst>=0)content(c)->shown=out.presented_dst;
     ++content(c)->seq;return APPFW_FRAME_OK;
 }
-const appfw_app g_app_stg={APPFW_GAME,"stg","DANMAKU GAME",game_enter,leave,frame};
-const appfw_app g_app_press={APPFW_PRESS,"press","STRESS TEST",press_enter,leave,frame};
+const appfw_app g_app_stg={APPFW_GAME,CONSOLE_KEY_APPFW_GAME,CONSOLE_TITLE_APPFW_GAME,game_enter,leave,frame};
+const appfw_app g_app_press={APPFW_PRESS,CONSOLE_KEY_APPFW_PRESS,CONSOLE_TITLE_APPFW_PRESS,press_enter,leave,frame};

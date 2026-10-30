@@ -22,8 +22,13 @@
 
 #include "gfx_engine.h"
 
+#ifndef GFX_CONTENT_R4
+#define GFX_CONTENT_R4 1 /* Legacy/judge builds retain their historical content. */
+#endif
+#if GFX_CONTENT_R4
 #include "r4.h"
 #include "r4_atlas.h"
+#endif
 
 #include "stg_runtime.h"
 #include "resource_pool.h"
@@ -184,6 +189,7 @@ int stg_runtime_surfaces_stg(stg_runtime *rt)
     return surface_fb_pair(rt, STG_SLOT_FB0, STG_SLOT_FB1);
 }
 
+#if GFX_CONTENT_R4
 int stg_runtime_surfaces_r4(stg_runtime *rt)
 {
     static const struct {
@@ -216,6 +222,7 @@ int stg_runtime_surfaces_r4(stg_runtime *rt)
     return gfx_surface_set(&rt->tab, R4_SLOT_BG, &s);
 }
 
+#endif
 /* --- TEX 热集与后端覆盖层 ------------------------------------------------ */
 
 /* 热集 = 标准圆弹/小圆弹/火花（游戏口径），按现行 manifest 顺序紧凑摆进
@@ -339,6 +346,7 @@ int stg_runtime_backend_apply(stg_runtime *rt,uint32_t backend,uint32_t mode)
 
 /* --- r4 钩子（经 r4_set_hooks 装上，钩子无上下文参数 -> 用当前实例） ------- */
 
+#if GFX_CONTENT_R4
 static int hook_r4_load_atlas(void)
 {
     memcpy((void *)r4_atlas_shadow(), r4_atlas_words, (uint32_t)sizeof r4_atlas_words);
@@ -391,6 +399,7 @@ void stg_runtime_r4_install_hooks(void)
 {
     r4_set_hooks(hook_r4_load_atlas, hook_r4_tex_dirty, hook_r4_tex_restore);
 }
+#endif
 
 
 int stg_runtime_surfaces_demo(stg_runtime *rt)

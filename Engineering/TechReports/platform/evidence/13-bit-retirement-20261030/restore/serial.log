@@ -1,0 +1,19 @@
+# COM11 @ 115200 8N1, opened 15:40:25
+gfx2dGame MODES
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+console catalog begin v 1 profile full hash 6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175 count 5
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52202f20435550
+console catalog app id 5 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+console enter menu
+menu crc 0d539697 sel 0
+console menu index 0 id 1 count 5
+console status v 2 app menu id 0 backend hw fps_milli 43564 frames 44 presents 44 errors 0 scene 0 ladder 0 dropped 0 tick_ms 7771 irqA 467 heap 57824 faults 0 tasks 4 idle 1345163 monitor 1 health 0 stack_free 64716 catalog 6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175 caps 0000d46f
+
+# closed 15:40:49, 1199 bytes

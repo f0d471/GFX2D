@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "invalid_catalogs": 12,
+  "extra_apps": 20,
+  "checks": [
+    "2d/full builds",
+    "symbol pruning",
+    "A/B/A",
+    "menu 0/1/3/multipage",
+    "capability alternatives",
+    "sparse IDs",
+    "catalog negatives"
+  ]
+}

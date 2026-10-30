@@ -1,0 +1,191 @@
+{
+  "status": "PASS",
+  "scope": "selected render/window/layer acceptance plus exact native CRC; package entry proof in runtime/",
+  "runs": {
+    "software": {
+      "status": "PASS",
+      "profile": "acceptance",
+      "checks": [
+        "pack",
+        "r4",
+        "lib",
+        "rast",
+        "app",
+        "pc",
+        "demo",
+        "game",
+        "stats",
+        "workflow",
+        "regs"
+      ],
+      "run_id": "20261024-173917-188abb7f"
+    },
+    "window": {
+      "status": "PASS",
+      "profile": "acceptance",
+      "checks": [
+        "pc-window"
+      ],
+      "run_id": "20261024-170736-690e3edf"
+    },
+    "board": {
+      "status": "PASS",
+      "profile": "acceptance",
+      "checks": [
+        "r4-board"
+      ],
+      "run_id": "20261024-192236-f8d2026c"
+    },
+    "layers": {
+      "status": "PASS",
+      "profile": "acceptance",
+      "checks": [
+        "layers"
+      ],
+      "run_id": "20261024-194329-2f170490"
+    }
+  },
+  "source_scope_bridge": [
+    {
+      "run": "20261024-173917-188abb7f",
+      "path": "Main/tools/board/package_game.py",
+      "scope": "packaging-only late PS5.1 launcher fix",
+      "accepted_sha256": "5f521e965316ff34a9d31d5df5e436d942bfcd93555e89ffd9c69b226f47c2a2",
+      "release_sha256": "2008c6f6ba208fd3c7c28a41e5cbd6d1ab8dc39482fe1e6c67e2638538bfaeb8"
+    },
+    {
+      "run": "20261024-192236-f8d2026c",
+      "path": "Main/tools/board/package_game.py",
+      "scope": "packaging-only late PS5.1 launcher fix",
+      "accepted_sha256": "5f521e965316ff34a9d31d5df5e436d942bfcd93555e89ffd9c69b226f47c2a2",
+      "release_sha256": "2008c6f6ba208fd3c7c28a41e5cbd6d1ab8dc39482fe1e6c67e2638538bfaeb8"
+    }
+  ],
+  "render_and_rtl_inputs_unchanged": true,
+  "rtl_difference_count": 0,
+  "board_results": [
+    {
+      "case": "l1",
+      "status": "PASS",
+      "frames": 60,
+      "mismatched": []
+    },
+    {
+      "case": "software-l1",
+      "status": "PASS",
+      "frames": 2,
+      "mismatched": []
+    },
+    {
+      "case": "l2",
+      "status": "PASS",
+      "frames": 240,
+      "mismatched": []
+    },
+    {
+      "case": "software-l2",
+      "status": "PASS",
+      "frames": 2,
+      "mismatched": []
+    },
+    {
+      "case": "cup",
+      "status": "PASS",
+      "frames": 60,
+      "mismatched": []
+    },
+    {
+      "case": "software-cup",
+      "status": "PASS",
+      "frames": 2,
+      "mismatched": []
+    },
+    {
+      "case": "pixel-injection",
+      "status": "EXPECTED_RED",
+      "frames": 1,
+      "mismatched": [
+        0
+      ]
+    },
+    {
+      "case": "performance",
+      "status": "PASS",
+      "samples": 1800,
+      "p50": 2596261,
+      "p99": 3014533,
+      "maximum": 3095632,
+      "late": 0,
+      "fields": 3600,
+      "swaps": 1800
+    },
+    {
+      "case": "performance-input",
+      "status": "PASS",
+      "samples": 1800,
+      "p50": 2725831,
+      "p99": 3130349,
+      "maximum": 3234376,
+      "late": 0,
+      "fields": 3600,
+      "swaps": 1800
+    },
+    {
+      "case": "switches",
+      "status": "PASS"
+    },
+    {
+      "case": "recording",
+      "status": "PASS",
+      "ticks": 8
+    },
+    {
+      "case": "legacy-game",
+      "status": "PASS",
+      "frames": 240,
+      "backend": "hw-tex"
+    },
+    {
+      "case": "r3-physical-fault-recovery",
+      "status": "PASS"
+    }
+  ],
+  "native_pixels": {
+    "status": "PASS",
+    "results": [
+      {
+        "scene": "l1",
+        "status": "PASS",
+        "frames": 60,
+        "mismatched": []
+      },
+      {
+        "scene": "l2",
+        "status": "PASS",
+        "frames": 240,
+        "mismatched": []
+      },
+      {
+        "scene": "cup",
+        "status": "PASS",
+        "frames": 60,
+        "mismatched": []
+      }
+    ],
+    "reference_run": "20261024-173917-188abb7f",
+    "scope": "native Windows and accepted WSL exact frame/record CRC; 3 scenes"
+  },
+  "launcher_tamper": [
+    {
+      "shell": "ps51",
+      "status": "EXPECTED_RED",
+      "reason": "changed executable rejected before launch"
+    },
+    {
+      "shell": "ps7",
+      "status": "EXPECTED_RED",
+      "reason": "changed executable rejected before launch"
+    }
+  ],
+  "note": "Broad original run inputs included the package generator. Only its post-acceptance PS5.1 hash implementation changed; C/H/atlas/bit/build inputs are identical. Original run boundaries retained."
+}

@@ -1,0 +1,30 @@
+board: GFX2D_UNPACED=1，呈现不等场
+console boot
+console protocol 2 tick_hz 1000
+pak 4085504 87500897
+console catalog begin v 1 profile custom hash ca3caaa7ff7c0389f55eb29edcb6eb8b3f677f1bd5cafdecabf5bd63dce70c8d count 21
+console catalog app id 42 key extra0 kind game graphics 2d shortcut 0 available 1 title 45585452412030
+console catalog app id 49 key extra1 kind game graphics 3d shortcut 0 available 1 title 45585452412031
+console catalog app id 56 key extra2 kind game graphics 2d shortcut 0 available 1 title 45585452412032
+console catalog app id 63 key extra3 kind game graphics 3d shortcut 0 available 1 title 45585452412033
+console catalog app id 70 key extra4 kind game graphics 2d shortcut 0 available 1 title 45585452412034
+console catalog app id 77 key extra5 kind game graphics 3d shortcut 0 available 1 title 45585452412035
+console catalog app id 84 key extra6 kind game graphics 2d shortcut 0 available 1 title 45585452412036
+console catalog app id 91 key extra7 kind game graphics 3d shortcut 0 available 1 title 45585452412037
+console catalog app id 98 key extra8 kind game graphics 2d shortcut 0 available 1 title 45585452412038
+console catalog app id 105 key extra9 kind game graphics 3d shortcut 0 available 1 title 45585452412039
+console catalog app id 112 key extra10 kind game graphics 2d shortcut 0 available 1 title 4558545241203130
+console catalog app id 119 key extra11 kind game graphics 3d shortcut 0 available 1 title 4558545241203131
+console catalog app id 126 key extra12 kind game graphics 2d shortcut 0 available 1 title 4558545241203132
+console catalog app id 133 key extra13 kind game graphics 3d shortcut 0 available 1 title 4558545241203133
+console catalog app id 140 key extra14 kind game graphics 2d shortcut 0 available 1 title 4558545241203134
+console catalog app id 147 key extra15 kind game graphics 3d shortcut 0 available 1 title 4558545241203135
+console catalog app id 154 key extra16 kind game graphics 2d shortcut 0 available 1 title 4558545241203136
+console catalog app id 161 key extra17 kind game graphics 3d shortcut 0 available 1 title 4558545241203137
+console catalog app id 168 key extra18 kind game graphics 2d shortcut 0 available 1 title 4558545241203138
+console catalog app id 175 key extra19 kind game graphics 3d shortcut 0 available 1 title 4558545241203139
+console catalog app id 5 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+console enter extra0
+console complete app extra0 id 42 frames 4 presents 4 errors 0
+console leave extra0

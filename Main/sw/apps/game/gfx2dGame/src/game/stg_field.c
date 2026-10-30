@@ -148,8 +148,8 @@ void stg_rect_screen(gfx_rect *r)
     r->y1 = 480 - 1;
 }
 
-uint32_t stg_draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cfg,
-                       const gfx_rect *clip, uint32_t *by_eq)
+uint32_t stg_draw_pool_offset(const stg_pool *p,gfx_list *l,const stg_compose_cfg *cfg,
+                            const gfx_rect *clip,uint32_t *by_eq,int offset_x)
 {
     gfx_blit_pos pos[STG_DRAW_CHUNK];
     uint32_t     kind, done = 0u;
@@ -180,6 +180,7 @@ uint32_t stg_draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cf
 
             if (k != 0u) {
                 uint32_t ok;
+                if(offset_x)for(uint32_t i=0;i<k;++i)pos[i].dx+=offset_x;
                 if(l->instances) {
                     gfx_instance_desc desc={.shared=t,.layout=GFX_INSTANCE_XY4,
                         .fixed_sx=pos[0].sx,.fixed_sy=pos[0].sy};
@@ -198,6 +199,10 @@ uint32_t stg_draw_pool(const stg_pool *p, gfx_list *l, const stg_compose_cfg *cf
     }
     return done;
 }
+
+uint32_t stg_draw_pool(const stg_pool *p,gfx_list *l,const stg_compose_cfg *cfg,
+                       const gfx_rect *clip,uint32_t *by_eq)
+{return stg_draw_pool_offset(p,l,cfg,clip,by_eq,0);}
 
 int stg_field_compose(const stg_field *f, gfx_list *l, const stg_compose_cfg *cfg,
                       stg_active *act)

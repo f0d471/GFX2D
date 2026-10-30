@@ -1,0 +1,67 @@
+{
+  "logs/console-profiles-board/2d.build.log": {
+    "size": 2873,
+    "mtime_ns": 1793295836945920500,
+    "sha256": "e8f4c37b2f97d65508424a4dcc0505dbc711ca5cf1c6d7d340369058f5911f09"
+  },
+  "logs/console-profiles-board/B0.deploy.log": {
+    "size": 23744,
+    "mtime_ns": 1793295975358245800,
+    "sha256": "2b97d898171f980744845432d074773e8d6b0d49c9a74bc6579672c3e71a8dfc"
+  },
+  "logs/console-profiles-board/B0.serial.log": {
+    "size": 22520,
+    "mtime_ns": 1793295975239258100,
+    "sha256": "f7a351fb71776ba501ca9ad17e7764916304a5ec8ccfd0aed8864e634cd45fb4"
+  },
+  "logs/console-profiles-board/B3.deploy.log": {
+    "size": 23395,
+    "mtime_ns": 1793296070754622500,
+    "sha256": "f197979310a798ec417d287c258254145171d9675711afc3db9bc1ab245fef47"
+  },
+  "logs/console-profiles-board/B3.serial.log": {
+    "size": 22171,
+    "mtime_ns": 1793296070621358300,
+    "sha256": "d0387da0e11549a2d0653a781dbbacf6384936c056a1c4510dc1697d5c342b24"
+  },
+  "logs/console-profiles-board/B5.deploy.log": {
+    "size": 23398,
+    "mtime_ns": 1793296166145748500,
+    "sha256": "c0a2c185467ad4a5504bd68c8979e718c0edd636888aa4ad75298c44a57a43ed"
+  },
+  "logs/console-profiles-board/B5.serial.log": {
+    "size": 22174,
+    "mtime_ns": 1793296166012485700,
+    "sha256": "b7fa0e898a19d1103fc0db921412d4f0fd92ce7e78029c4a25219bcbfa696448"
+  },
+  "logs/console-profiles-board/B7.deploy.log": {
+    "size": 32420,
+    "mtime_ns": 1793296291538954800,
+    "sha256": "961dba6882eb48e87c464d04b38e8a347fc053796a7ec4bebe4abaf16b0b8401"
+  },
+  "logs/console-profiles-board/B7.serial.log": {
+    "size": 31194,
+    "mtime_ns": 1793296291421452800,
+    "sha256": "351b9875364caeab21b57ebc341fed94ae05b3bbdb5570d04b10847d29ea1593"
+  },
+  "logs/console-profiles-board/deployments.json": {
+    "size": 4852,
+    "mtime_ns": 1793296291987691000,
+    "sha256": "4e59bba9ce5968cdc9770dfc9fb2ff95afcad56f1b5034aad6220cfa4748ecfb"
+  },
+  "logs/console-profiles-board/full.build.log": {
+    "size": 3123,
+    "mtime_ns": 1793295879968265200,
+    "sha256": "182adb6d16e41d1d292b31ef5b972c5ea727c677d6a0b673f195033b4488275c"
+  },
+  "logs/console-profiles-board/result.json": {
+    "size": 5152,
+    "mtime_ns": 1793296292220499600,
+    "sha256": "4b857f50d9a9323b891b4872be8a7e9a29041d29f7e5ed0936354e3316ffa31f"
+  },
+  "logs/runner/console-profiles-board.log": {
+    "size": 233,
+    "mtime_ns": 1793296292221501800,
+    "sha256": "7531b01e77f73bcd9b79ce219706582933d0bef83405640a3e383ec413f49fbe"
+  }
+}

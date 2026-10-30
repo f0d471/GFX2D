@@ -1,0 +1,111 @@
+{
+  "status": "PASS",
+  "bit_sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9",
+  "host": {
+    "status": "PASS",
+    "run": "20261030-030038-d6a97183",
+    "profile": "quick",
+    "checks": [
+      "frozen-baseline",
+      "workflow"
+    ],
+    "unit_cases": 14
+  },
+  "board": {
+    "status": "PASS",
+    "run": "20261030-030035-e3284c97",
+    "profile": "quick",
+    "tree": "Main/sim/build/check-runs/ppa-after4/build/feature-presets/B7",
+    "results": [
+      {
+        "case": "l1",
+        "status": "PASS",
+        "frames": 12,
+        "mismatched": []
+      },
+      {
+        "case": "software-l1",
+        "status": "PASS",
+        "frames": 2,
+        "mismatched": []
+      },
+      {
+        "case": "l2",
+        "status": "PASS",
+        "frames": 12,
+        "mismatched": []
+      },
+      {
+        "case": "software-l2",
+        "status": "PASS",
+        "frames": 2,
+        "mismatched": []
+      },
+      {
+        "case": "cup",
+        "status": "PASS",
+        "frames": 12,
+        "mismatched": []
+      },
+      {
+        "case": "software-cup",
+        "status": "PASS",
+        "frames": 2,
+        "mismatched": []
+      },
+      {
+        "case": "pixel-injection",
+        "status": "EXPECTED_RED",
+        "frames": 1,
+        "mismatched": [
+          0
+        ]
+      },
+      {
+        "case": "performance",
+        "status": "PASS",
+        "samples": 120,
+        "p50": 2756821,
+        "p99": 3045581,
+        "maximum": 3086391,
+        "late": 0,
+        "fields": 240,
+        "swaps": 120
+      },
+      {
+        "case": "performance-input",
+        "status": "PASS",
+        "samples": 120,
+        "p50": 2735524,
+        "p99": 3105130,
+        "maximum": 3142400,
+        "late": 0,
+        "fields": 240,
+        "swaps": 120
+      },
+      {
+        "case": "switches",
+        "status": "PASS"
+      },
+      {
+        "case": "recording",
+        "status": "PASS",
+        "ticks": 8
+      },
+      {
+        "case": "legacy-game",
+        "status": "PASS",
+        "frames": 240,
+        "backend": "hw-tex"
+      },
+      {
+        "case": "current-RTL-r3-acceptance",
+        "status": "NOT_APPLICABLE",
+        "reason": "software-only work point uses unchanged, manifest-bound B7; current RTL is not rebuilt"
+      }
+    ],
+    "scope": "frozen B7 / current software; no Flash or human HDMI observation"
+  },
+  "flash_written": false,
+  "current_rtl_acceptance": false
+}

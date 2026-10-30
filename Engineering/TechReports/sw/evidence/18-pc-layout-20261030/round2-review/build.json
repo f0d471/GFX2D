@@ -1,0 +1,23 @@
+{
+  "compiler": "x86_64-w64-mingw32-gcc",
+  "sdl": "2.32.10",
+  "flags": "",
+  "window_test": false,
+  "frontend": "console",
+  "command": [
+    "make",
+    "-C",
+    "/mnt/e/Workspace/FPGA/Efinix/Main/sw/apps/console",
+    "-j6",
+    "PLATFORM=host",
+    "OBJDIR=../../../sim/build/pc-interactive-20261030-r2",
+    "NAME=gfx2dGame.exe",
+    "HOST_CC=x86_64-w64-mingw32-gcc",
+    "PERF=1",
+    "EXTRA_CFLAGS=",
+    "ASSETS_PAK=assets.pak",
+    "SDL_CFLAGS=-isystem /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/windows/SDL2-2.32.10/x86_64-w64-mingw32/include/SDL2",
+    "SDL_LIBS=/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/windows/SDL2-2.32.10/x86_64-w64-mingw32/lib/libSDL2.dll.a -static-libgcc -mwindows",
+    "APP_PROFILE=full"
+  ]
+}

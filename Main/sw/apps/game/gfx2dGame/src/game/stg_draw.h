@@ -112,6 +112,12 @@ typedef struct {
     uint32_t   rejected;        /* 被构造层拒绝的追加（应为 0） */
 } stg_frame_stats;
 
+/* Render coordinates only. The simulation remains in its original 400x480
+ * coordinate system; scenery fills [0,hud_x), entities translate by field_x. */
+typedef struct { unsigned width;int field_x,hud_x; } stg_draw_view;
+int stg_game_compose_view(const stg_game *g,gfx_list *list,const stg_draw_cfg *cfg,
+                         const stg_hud_live *live,stg_frame_stats *stats,const stg_draw_view *view);
+
 /* 画一帧（含两条 SET_CLIP 与 END）。l 已经 END 或没绑表面表时返回 -1，st 清零；否则返回 0。 */
 int  stg_game_compose(const stg_game *g, gfx_list *l, const stg_draw_cfg *cfg,
                       const stg_hud_live *live, stg_frame_stats *st);

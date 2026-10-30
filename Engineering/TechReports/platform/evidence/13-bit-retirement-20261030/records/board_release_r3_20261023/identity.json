@@ -1,0 +1,22 @@
+{
+  "objects": [
+    {
+      "bytes": 93642,
+      "name": "featureTest.bin",
+      "sha256": "c6ba2f506b68f1853d479870c59e5e20b04d009cd9fda9d4bf5897a2d5406efa"
+    },
+    {
+      "bytes": 95058,
+      "name": "rastTest.bin",
+      "sha256": "71f7eae9b77fde6ffd017260f644c2f35ae78f0a838360181a7cd46e7c3220c8"
+    },
+    {
+      "bytes": 2798274,
+      "name": "B7.bit",
+      "sha256": "87e5c80a4bb6ec642d6059dee509987f9cf5aa923bc8434caa12fc7edb54f904"
+    }
+  ],
+  "caps": "0000D46F",
+  "scope": "B7 JTAG board bundle; no Flash image",
+  "source_run": "20261023-193434-5007f558"
+}

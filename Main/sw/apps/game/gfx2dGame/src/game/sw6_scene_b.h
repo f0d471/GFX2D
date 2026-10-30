@@ -52,5 +52,8 @@ void sw6_b_adjust(sw6_scene_b *b, int up, int down);
 
 /* 本帧该搬哪一张，同时推进显示计数。 */
 uint32_t sw6_b_step(sw6_scene_b *b);
+/* Interactive PC composition at the actual viewport; fixed precompositions
+ * and their benchmark/CRC contract keep their original entry. */
+void sw6_b_build_view(unsigned scene,gfx_list *list,int dst,unsigned width,sw6_build_stat *stats);
 
 #endif /* SW6_SCENE_B_H */

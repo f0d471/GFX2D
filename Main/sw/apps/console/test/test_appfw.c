@@ -143,6 +143,8 @@ int main(void)
 
     reset();hardware=1;caps=0;step(896);step(0);
     CHECK(appfw_active_id()==0 && framed[4]==0 && appfw_errors()==0,"unsupported-app-is-denied");
+    CHECK(appfw_visible_count()==4 && appfw_visible_at(3)->id==5 && appfw_visible_at(4)==NULL,
+          "filtered-index-does-not-use-application-id");
     reset();appfw_request(&g_app_stg);appfw_request(NULL);step(0);
     CHECK(appfw_active_id()==0,"pending-launch-can-be-cancelled");
     reset();step(128);step(0);leave_fail=1;leave_left=1;
@@ -162,6 +164,13 @@ int main(void)
         CHECK(appfw_shutdown()==0,"independent-framework-shutdown");
         const appfw_app *duplicates[]={&independent,&independent};cfg.apps=duplicates;cfg.count=2;
         CHECK(appfw_init(&cfg,0)!=0,"duplicate-ids-rejected");
+        appfw_app other=independent;other.id=97;
+        const appfw_app *same_name[]={&independent,&other};cfg.apps=same_name;
+        CHECK(appfw_init(&cfg,0)!=0,"duplicate-names-rejected");
+        cfg.apps=NULL;cfg.count=0;
+        CHECK(appfw_init(&cfg,0)==0,"empty-catalog-still-has-system-menu");
+        CHECK(appfw_visible_count()==0 && appfw_visible_at(0)==NULL,"empty-view-is-safe");
+        CHECK(appfw_shutdown()==0,"empty-catalog-shutdown");
     }
     printf("fail %u\n",failures);return failures?1:0;
 }
