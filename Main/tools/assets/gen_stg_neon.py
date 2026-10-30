@@ -390,6 +390,21 @@ def font_cyan(rows):
     return im
 
 
+def font_amber(rows):
+    """琥珀字库：与青色字库同一网格，字形像素为 #FFB23E，其余是色键。
+    R4 HUD 的分数/纪录数值用琥珀，与青色标签拉开层级。"""
+    im = Image.new("RGBA", (128, 96), (0, 0, 0, 0))
+    px = im.load()
+    for g in range(95):
+        gx, gy = (g % 16) * 8, (g // 16) * 16
+        for r in range(16):
+            line = rows[g * 16 + r]
+            for c in range(8):
+                if line[c] == "#":
+                    px[gx + c, gy + r] = AMBER + (255,)
+    return im
+
+
 def digits(rows):
     """大号数字：'0'~'9' 与 '-' 各一格 16x32，字库的每个像素放大成 2x2，白色；其余格与底是色键。"""
     im = Image.new("RGBA", (256, 32), (0, 0, 0, 0))
@@ -538,6 +553,7 @@ def build():
         ("digits.png", digits(rows)),
         ("icons.png", icons()),
         ("font_cyan.png", font_cyan(rows)),
+        ("font_amber.png", font_amber(rows)),
         ("bg_layers.png", bg_layers()),
     ]
 

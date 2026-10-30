@@ -218,11 +218,13 @@ static uint32_t facing(int32_t x,int32_t y,int32_t z,int32_t hw,int32_t hh,
 
 static uint32_t wall_color(int32_t z,unsigned face)
 {
+    /* 银翼杀手式大气:远处淡入青雾(乘法雾),不再淡入黑。
+       乘数平台抬高到 170,红通道压到 130/255 使远墙统一偏青。 */
     uint32_t distance=(uint32_t)(-z);
-    unsigned shade=30u+(uint32_t)(202u*9u*R4_ONE)/(9u*R4_ONE+distance);
+    unsigned shade=170u+(uint32_t)(85u*9u*R4_ONE)/(9u*R4_ONE+distance);
     const unsigned light[8]={200,255,154,175,142,212,182,158};
     shade=shade*light[face]/255u;
-    unsigned r=shade*190u/255u,g=shade*223u/255u,b=shade;
+    unsigned r=shade*130u/255u,g=shade*205u/255u,b=shade;
     return 0xff000000u|(r<<16)|(g<<8)|b;
 }
 
@@ -304,12 +306,23 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         int32_t z=(int32_t)w->d-(int32_t)g->dist;
         int32_t o=R4_GATE_OPEN,t=R4_GATE_THICK,x=(int32_t)g->x;
         int32_t h=R4_HALF_H*4/5;
-        uint32_t c=((g->dist/R4_GATE_SPACING)%3u==0)?0xffff6088u:0xff60ffb8u;
+        /* 青色=引导门,品红=危险门(每三道);与 2D 身份色一致。 */
+        uint32_t danger=(g->dist/R4_GATE_SPACING)%3u==0;
+        uint32_t c=danger?0xffff4fd8u:0xff35f2ffu;
+        uint32_t dim=danger?0xff7c2f68u:0xff1d8ca8u;
         if(!g->dist || z> -R4_SHIP_Z-R4_ONE/3 || z< -DRAW_FAR)continue;
         n+=facing(x-o,0,z,t,h,c,512,0,walls,vp,projection,out+n,cap-n,&st);
         n+=facing(x+o,0,z,t,h,c,512,0,walls,vp,projection,out+n,cap-n,&st);
         n+=facing(x,h,z,o,t,c,512,0,walls,vp,projection,out+n,cap-n,&st);
         n+=facing(x,-h,z,o,t,c,512,0,walls,vp,projection,out+n,cap-n,&st);
+        /* 内环回声:细一圈暗色平涂,读作能量场的第二层。 */
+        {
+            const int32_t o2=o*3/5,t2=t/3+R4_ONE/48,h2=h*3/5;
+            n+=facing(x-o2,0,z,t2,h2,dim,0,0,flat,vp,projection,out+n,cap-n,&st);
+            n+=facing(x+o2,0,z,t2,h2,dim,0,0,flat,vp,projection,out+n,cap-n,&st);
+            n+=facing(x,h2,z,o2,t2,dim,0,0,flat,vp,projection,out+n,cap-n,&st);
+            n+=facing(x,-h2,z,o2,t2,dim,0,0,flat,vp,projection,out+n,cap-n,&st);
+        }
         if(i==nearest && z>-11*R4_ONE) {
             const int32_t edge[3]={x-o+t,x+o-t,h-t};
             for(unsigned side=0;side<3;++side) {
@@ -329,6 +342,42 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
                 if(side==1){rast_view_vertex tmp=v[1];v[1]=v[3];v[3]=tmp;}
                 n+=polygon(v,4,vp,walls,projection,out+n,cap-n,&st);
             }
+        }
+    }
+    /* 速度线:贴两侧墙的细亮条,世界系固定距离,随前进自然扑面。
+       距离相位取 (d+off) 对 12m 窗取模,确定式,无随机数。 */
+    {
+        const int32_t offs[6]={0,7*R4_ONE/2,5*R4_ONE,17*R4_ONE/2,10*R4_ONE,27*R4_ONE/2};
+        for(unsigned i=0;i<6;++i) {
+            uint32_t ahead=((w->d+(uint32_t)offs[i])%(12u*R4_ONE))+2u*R4_ONE;
+            int32_t z=(int32_t)w->d-(int32_t)ahead;
+            if(z>=-(R4_SHIP_Z+2*R4_ONE) || z< -DRAW_FAR)continue;
+            int32_t z1=z-5*R4_ONE/2;
+            int32_t sx=((i&1u)?1:-1)*(R4_HALF_W-R4_ONE/4);
+            int32_t y0=-R4_HALF_H+ (int32_t)(i+1u)*(R4_HALF_H/4);
+            int32_t y1=y0+R4_HALF_H/5;
+            uint32_t c=(i&1u)?0xffd8f4ffu:0xff9adfffu;
+            rast_view_vertex v[4];
+            vertex(v,sx,y0,z,0,0,c);vertex(v+1,sx,y0,z1,0,0,c);
+            vertex(v+2,sx,y1,z1,0,0,c);vertex(v+3,sx,y1,z,0,0,c);
+            n+=polygon(v,4,vp,flat,projection,out+n,cap-n,&st);
+        }
+    }
+    /* 顶灯光带:走廊轴向每 4m 一条,亮度按帧脉动(青白),读作环境在发光。 */
+    {
+        uint32_t seg=w->d/(4u*R4_ONE);
+        for(unsigned j=0;j<4;++j) {
+            uint32_t W=(seg+j)*4u*R4_ONE+3u*R4_ONE/2;
+            int32_t z=(int32_t)w->d-(int32_t)W;
+            if(z>=-(R4_SHIP_Z+R4_ONE) || z< -DRAW_FAR)continue;
+            int32_t pl=160*R4_ONE/256+(80*R4_ONE/256)*fx_sin((uint16_t)(w->ticks*1093u+j*8192u))/16384;
+            uint32_t c=0xff000000u|((uint32_t)(pl*190u/256)<<16)|((uint32_t)(pl*235u/256)<<8)|(uint32_t)pl;
+            rast_view_vertex v[4];
+            vertex(v,-2*R4_ONE,R4_HALF_H-R4_ONE/64,z,0,0,c);
+            vertex(v+1,2*R4_ONE,R4_HALF_H-R4_ONE/64,z,0,0,c);
+            vertex(v+2,2*R4_ONE,R4_HALF_H-R4_ONE/64,z-R4_ONE/3,0,0,c);
+            vertex(v+3,-2*R4_ONE,R4_HALF_H-R4_ONE/64,z-R4_ONE/3,0,0,c);
+            n+=polygon(v,4,vp,flat,projection,out+n,cap-n,&st);
         }
     }
     if(ladder>=2 && w->enemy.alive) {

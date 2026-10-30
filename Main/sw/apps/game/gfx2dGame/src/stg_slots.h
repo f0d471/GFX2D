@@ -25,6 +25,7 @@
 #define STG_SLOT_ICONS      13      /* icons.png   图标 */
 #define STG_SLOT_FONT_CYAN  14      /* font_cyan.png 青色字库 */
 #define STG_SLOT_BGLAYERS   15      /* bg_layers.png 背景合图：天空 400x480 + 远景 512x56 + 城市 512x72 */
+#define STG_SLOT_FONT_AMBER 15      /* font_amber.png 琥珀字库（仅 R4 表注册；2D 表的 15 是 BGLAYERS，两表互不相干） */
 #define STG_SLOT_N_ASSETS   14      /* 登记的素材张数（2~15） */
 
 #endif /* STG_SLOTS_H */

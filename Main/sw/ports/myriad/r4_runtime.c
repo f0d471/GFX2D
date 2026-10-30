@@ -195,6 +195,8 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
         ASSET_FONT8X16_COLS,0x20u,ASSET_FONT8X16_CELLS,0};
     const stg_font cyan={STG_SLOT_FONT_CYAN,ASSET_FONT8X16_CELL_W,ASSET_FONT8X16_CELL_H,
         ASSET_FONT_CYAN_COLS,0x20u,ASSET_FONT_CYAN_CELLS,ASSET_FONT_CYAN_KEY};
+    const stg_font amber={STG_SLOT_FONT_AMBER,ASSET_FONT8X16_CELL_W,ASSET_FONT8X16_CELL_H,
+        ASSET_FONT_AMBER_COLS,0x20u,ASSET_FONT_AMBER_CELLS,ASSET_FONT_AMBER_KEY};
     static char rows[R4_HUD_ROWS][32],values[R4_HUD_ROWS][24];
     static char previous_rows[2][R4_HUD_ROWS][32],previous_values[2][R4_HUD_ROWS][24];
     static char previous_active[2][12];
@@ -280,6 +282,21 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
             gfx_rect line={492,0,627,1};
             bad+=gfx_fill(&l,dst,line,0x00224a5cu,GFX_EQ_COPY,0)!=0;
         }
+        if(GFX_PRODUCT_HUD && (s==5 || s==11)) {
+            /* 标题下与分数块下的青色分隔线 */
+            gfx_rect line={492,0,627,1};
+            bad+=gfx_fill(&l,dst,line,0x0035f2ff,GFX_EQ_COPY,0)!=0;
+        }
+        if(GFX_PRODUCT_HUD && (s==0 || s==29)) {
+            /* HUD 顶/底横向描边 */
+            gfx_rect edge={482,(s==0)?0u:14u,627,(s==0)?1u:15u};
+            bad+=gfx_fill(&l,dst,edge,0x0035f2ff,GFX_EQ_COPY,0)!=0;
+        }
+        if(GFX_PRODUCT_HUD && (s<=2 || s>=27)) {
+            /* 右缘竖向括号:上三行与下三行各一段 */
+            gfx_rect tick={626,0,627,15};
+            bad+=gfx_fill(&l,dst,tick,0x0035f2ff,GFX_EQ_COPY,0)!=0;
+        }
         if(s==12 || s==14)for(unsigned i=0;i<3;++i) {
             uint32_t count=s==12?s_world.shield:s_world.bombs;
             gfx_rect icon={564+(int)i*22,3,577+(int)i*22,14};
@@ -290,9 +307,10 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
         uint32_t drawn=0;
 #if GFX_PRODUCT_HUD
         char fit[18];myriad_hud_fit(fit,rows[s],values[s][0]?7u:17u);
-        if(fit[0])bad+=stg_text_draw(&l,(s==7 || s==10 || s==21)?&white:&cyan,
+        if(fit[0])bad+=stg_text_draw(&l,(s==21)?&white:&cyan,
             dst,MYRIAD_HUD_TEXT_X,0,fit,&drawn);
-        if(values[s][0])bad+=stg_text_draw(&l,&white,dst,myriad_hud_value_x(values[s]),0,values[s],&drawn);
+        if(values[s][0])bad+=stg_text_draw(&l,(s==7 || s==10)?&amber:&white,
+            dst,myriad_hud_value_x(values[s]),0,values[s],&drawn);
 #else
         if(rows[s][0])bad+=stg_text_draw(&l,(s==7 || s==10 || s==18 || s==19)?&white:&cyan,
             dst,492,0,rows[s],&drawn);

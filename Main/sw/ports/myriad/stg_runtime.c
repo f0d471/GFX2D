@@ -195,11 +195,12 @@ int stg_runtime_surfaces_r4(stg_runtime *rt)
     static const struct {
         uint32_t entry;
         int      slot;
-    } pick[4] = {
+    } pick[5] = {
         { ASSET_FONT8X16_ENTRY,  STG_SLOT_FONT },
         { ASSET_DIGITS_ENTRY,    STG_SLOT_DIGITS },
         { ASSET_FONT_CYAN_ENTRY, STG_SLOT_FONT_CYAN },
         { ASSET_TITLE_ENTRY,     STG_SLOT_TITLE },
+        { ASSET_FONT_AMBER_ENTRY, STG_SLOT_FONT_AMBER },
     };
     gfx_surface s;
     uint32_t    i;
@@ -207,7 +208,7 @@ int stg_runtime_surfaces_r4(stg_runtime *rt)
     gfx_surface_reset(&rt->tab);
     rt->tex_on = 0;
 
-    for (i = 0u; i < 4u; i++)
+    for (i = 0u; i < 5u; i++)
         if (surface_from_entry(rt, pick[i].entry, pick[i].slot) != 0)
             return -1;
     if (surface_fb_pair(rt, STG_SLOT_FB0, STG_SLOT_FB1) != 0)

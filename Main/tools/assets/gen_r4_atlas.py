@@ -34,62 +34,81 @@ from PIL import Image
 
 W = 64
 TEXELS = W * W
-VERSION = 3
+VERSION = 4
 
 TRANS = (0, 0, 0, 0)
 OPAQUE = 255
 
 
 def px_region0(x, y):
-    """低频金属面板、凹缝、倒角亮边和少量导向灯；不使用大块棋盘格。"""
-    edge=min(x,31-x,y,31-y)
-    if edge==0:return (12,22,33,OPAQUE)
-    if edge==1:return (94,126,148,OPAQUE)
-    if edge==2:return (54,75,96,OPAQUE)
-    lift=(15-abs(x-15))//3
-    r,g,b=62+lift,83+lift,106+lift
-    if y in (15,16):r,g,b=30,46,64
-    if x in (5,26) and 5<=y<=10:r,g,b=112,190,208
-    if 8<=x<=13 and y in (25,26):r,g,b=176,153,81
-    return (r, g, b, OPAQUE)
+    """走廊墙(银翼杀手向):深蓝黑基底+顶亮烤入渐变,内嵌倒角面板,
+    一道青色发光凹槽横贯(+短竖叉),角部铆钉;低幅确定性锈蚀。"""
+    edge = min(x, 31 - x, y, 31 - y)
+    if edge == 0: return (8, 14, 22, OPAQUE)
+    if edge == 1: return (96, 132, 158, OPAQUE)      # 倒角亮边(受光)
+    if edge == 2: return (40, 58, 78, OPAQUE)
+    # 顶部烤入渐变:越靠上越亮(伪顶光)
+    grad = (31 - y) * 22 // 31
+    r, g, b = 34 + grad, 50 + grad * 15 // 10, 66 + grad * 18 // 10
+    # 内嵌面板:6..25 内再凹一层
+    if 6 <= x <= 25 and 6 <= y <= 25:
+        pe = min(x - 6, 25 - x, y - 6, 25 - y)
+        if pe == 0: r, g, b = 16, 26, 40
+        elif pe == 1: r, g, b = 88, 120, 146
+        else:
+            r, g, b = 44 + grad // 2, 62 + grad * 3 // 5, 84 + grad * 7 // 10
+    # 青色发光凹槽:y=20 横贯 + x=20 短竖叉(能量导管)
+    if y == 20 and 3 <= x <= 28: r, g, b = (70, 225, 255) if x & 3 else (150, 245, 255)
+    if 18 <= x <= 22 and 20 <= y <= 26 and (x + y) & 1: r, g, b = (56, 190, 224)
+    # 铆钉
+    if (x, y) in ((4, 4), (27, 4), (4, 27), (27, 27)): r, g, b = 150, 178, 198
+    # 锈蚀(确定性低幅)
+    if ((x * 7 + y * 13) % 31) == 0: r, g, b = r - 8, g - 4, b - 2
+    return (max(0, r), max(0, g), max(0, b), OPAQUE)
 
 
 def px_region1(x, y):
-    """白色亮边让顶点色指定青绿/品红门框；无半透明混合。"""
+    """门框能量段:深蓝基底+青芯能量横带(白芯+青体+暗距),带间琥珀刻度。
+    u 向跨 32..63 贴在门框厚度上,t 向跨 0..31 沿门框高度拉伸成横档。"""
     lx = x % 32
     ly = y % 32
-    edge=min(lx,31-lx,ly,31-ly)
-    if edge==0:return (54,75,88,OPAQUE)
-    if edge<=2:return (215,242,248,OPAQUE)
-    if 13<=lx<=18:return (250,255,255,OPAQUE)
-    if 6<=ly<=9 or 23<=ly<=25:return (110,143,157,OPAQUE)
-    return (156,179,191,OPAQUE)
+    edge = min(lx, 31 - lx, ly, 31 - ly)
+    if edge == 0: return (6, 12, 20, OPAQUE)
+    grad = (31 - ly) * 14 // 31
+    r, g, b = 22 + grad, 34 + grad, 48 + grad
+    if ly in (8, 9): r, g, b = 210, 250, 255          # 能量带白芯
+    elif ly in (7, 10): r, g, b = 40, 190, 230        # 青体
+    elif ly in (6, 11): r, g, b = 16, 70, 92          # 暗距
+    elif ly in (17, 18): r, g, b = 30, 130, 165       # 回声带(暗一档)
+    elif ly in (24, 25) and lx % 8 < 3: r, g, b = 196, 150, 60   # 琥珀刻度
+    if edge <= 1 and ly not in (7, 8, 9, 10): r, g, b = 70, 100, 118
+    return (r, g, b, OPAQUE)
 
 
 def px_region2(x, y):
-    """敌机：圆心 (16,16)，半径 12 机身 #ff7030，座舱 r5 #ffd080，圈外透明。"""
+    """敌机 billboard:暗壳品红座舱,琥珀引擎口,圈外二值透明。"""
     dx,dy=x-16,y-16
     body=abs(dx)+2*abs(dy)<=14
     wing=4<=x<=28 and 12<=y<=23 and abs(dy-2)<=5-abs(dx)//4
     if not (body or wing):return TRANS
-    if dx*dx+(dy+2)*(dy+2)<=16:return (255,234,170,OPAQUE)
-    if abs(dx)<=2 and y>=20:return (255,135,210,OPAQUE)
-    if abs(dx)>=9:return (155,80,86,OPAQUE)
-    if abs(dx)*2+abs(dy)>=12:return (234,167,115,OPAQUE)
-    return (118+max(0,8-dy),62,69,OPAQUE)
+    if dx*dx+(dy+2)*(dy+2)<=16:return (255,196,110,OPAQUE)
+    if abs(dx)<=2 and y>=20:return (255,110,220,OPAQUE)
+    if abs(dx)>=9:return (96,52,84,OPAQUE)
+    if abs(dx)*2+abs(dy)>=12:return (208,138,96,OPAQUE)
+    return (104+max(0,8-dy),56,66,OPAQUE)
 
 
 def px_region3(x, y):
-    """敌弹：圆心 (16,16)，光球 r12：核心 r5 亮、体 #ff5050、缘 #a02020。"""
+    """敌弹:品红光球,白芯更收紧,外缘加一圈暗紫衬托(可读性)。"""
     dx, dy = x - 16, y - 16
     d2 = dx * dx + dy * dy
     if d2 > 12 * 12:
         return TRANS
-    if d2 <= 4 * 4:
-        return (0xFF, 0xE0, 0xFA, OPAQUE)
-    if d2<=64:return (255,112,206,OPAQUE)
-    if d2<=100:return (190,51,128,OPAQUE)
-    return (92,31,75,OPAQUE)
+    if d2 <= 9:
+        return (0xFF, 0xF6, 0xFE, OPAQUE)
+    if d2<=58:return (255,130,220,OPAQUE)
+    if d2<=100:return (198,52,150,OPAQUE)
+    return (86,26,74,OPAQUE)
 
 
 REGIONS = ((0, 0, px_region0), (32, 0, px_region1),

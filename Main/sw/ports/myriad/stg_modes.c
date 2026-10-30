@@ -26,6 +26,7 @@
 #include "stg_slots.h"
 #include "renderer.h"
 #include "frontend_game.h"
+#include "game/myriad_hud.h"
 
 /* --- 状态 ---------------------------------------------------------------- */
 
@@ -194,7 +195,13 @@ static void draw_frame(const stg_main_ctx *ctx, int dst, const stg_hud_live *liv
     const int adaptive=s_frame_begin?s_frame_begin(&view_tab,dst,&view):1;
     if(adaptive==0) {view_ctx.tab=&view_tab;ctx=&view_ctx;}
 #else
-    const int adaptive=1;
+    /* 板上固定 640 画布与 PC 宽画布共用 SW18 视口排布:场景真实铺满
+       [0,480),战场 400 居中,HUD 480..640。旧无视口路径场景止于 400,
+       400..480 无人绘制,在板上表现为战场与 HUD 之间的黑带。 */
+    view.width=(unsigned)(MYRIAD_HUD_X+MYRIAD_HUD_WIDTH);
+    view.hud_x=MYRIAD_HUD_X;
+    view.field_x=(MYRIAD_HUD_X-(int)STG_FIELD_W)/2;
+    const int adaptive=0;
 #endif
 
     if(adaptive<0) {say_err("frame layout",0);return;}

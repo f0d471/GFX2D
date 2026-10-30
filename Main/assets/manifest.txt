@@ -34,3 +34,4 @@ atlas	18	DIGITS	xrgb	neon/digits.png	256x32	16x32	0x00000000	hud
 atlas	19	ICONS	xrgb	neon/icons.png	64x16	16x16	0x00000000	hud
 atlas	20	FONT_CYAN	xrgb	neon/font_cyan.png	128x96	8x16	0x00000000	hud
 surf	21	BG_LAYERS	xrgb	neon/bg_layers.png	512x608	-	0x00000000	bg
+atlas	22	FONT_AMBER	xrgb	neon/font_amber.png	128x96	8x16	0x00000000	hud
