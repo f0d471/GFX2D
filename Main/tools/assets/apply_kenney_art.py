@@ -169,7 +169,8 @@ def do_boss(src):
     sheet = Image.new("RGBA", (192, 288), (0, 0, 0, 0))
     for k in range(6):
         f = rot(boss, k * 60) if k else boss.copy()
-        sheet.paste(f, (96 * k + (96 - f.width) // 2, (288 // 2 - f.height) // 2), f)
+        ox, oy = (k % 2) * 96, (k // 2) * 96          # 2 列 x 3 行,与 gen_stg_neon 和 stg_draw 的取帧一致
+        sheet.paste(f, (ox + (96 - f.width) // 2, oy + (96 - f.height) // 2), f)
     sheet.save(os.path.join(NEON, "boss.png"))
     print("boss.png   192x288 ok")
 
