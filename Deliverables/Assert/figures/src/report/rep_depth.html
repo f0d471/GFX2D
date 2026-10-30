@@ -1,34 +1,43 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<meta name="fig-size" content="900x330">
+<meta name="fig-size" content="900x262">
 <link rel="stylesheet" href="_rep.css">
 <style>
-.cell { position: absolute; width: 380px; height: 240px; box-sizing: border-box;
+.cell { position: absolute; width: 280px; height: 177px; box-sizing: border-box;
         border: 1px solid #B9C0C8; overflow: hidden; background: #FFFFFF; }
-.cell img { width: 380px; height: 240px; display: block; }
-.cap { position: absolute; width: 420px; text-align: center; font-size: 16px; color: #1D2733; }
-.badge { position: absolute; width: 30px; height: 30px; border-radius: 15px; background: #FFFFFF;
-         color: #1D2733; font-size: 21px; font-weight: 700; line-height: 30px; text-align: center; }
-.legend { position: absolute; width: 900px; text-align: center; font-size: 15.5px; color: #4A5568; }
+.cell img { width: 278px; height: 175px; display: block; }
+.cap { position: absolute; width: 280px; text-align: center; font-size: 16px; color: #1D2733; }
+.badge { position: absolute; width: 28px; height: 28px; border-radius: 14px; background: #FFFFFF;
+         color: #1D2733; font-size: 19px; font-weight: 700; line-height: 28px; text-align: center;
+         opacity: .94; }
+.bar { position: absolute; height: 11px; border: 1px solid #B9C0C8;
+       background: linear-gradient(to right, #D6524A 0%, #E8B04A 50%, #4A74B2 100%); }
+.side { position: absolute; font-size: 14px; color: #4A5568; }
 </style></head>
-<body><div id="fig" style="width:900px;height:330px">
+<body><div id="fig" style="width:900px;height:262px">
 
-<div class="cell" style="left:20px;top:10px">
-  <img src="depth_scene_off.png">
-  <div class="badge" style="left:70px;top:196px">①</div>
-  <div class="badge" style="left:126px;top:16px">②</div>
+<div class="cell" style="left:10px;top:12px">
+  <img src="solid_off.png">
+  <div class="badge" style="left:14px;top:126px">①</div>
+  <div class="badge" style="left:232px;top:74px">②</div>
 </div>
-<div class="cap" style="left:0px;top:258px">关闭深度判断：后画的卡片整片覆盖</div>
+<div class="cap" style="left:10px;top:198px">关闭深度判断：后画的环整片覆盖</div>
 
-<div class="cell" style="left:500px;top:10px">
-  <img src="depth_scene_on.png">
-  <div class="badge" style="left:70px;top:196px">①</div>
-  <div class="badge" style="left:126px;top:16px">②</div>
+<div class="cell" style="left:310px;top:12px">
+  <img src="solid_on.png">
+  <div class="badge" style="left:14px;top:126px">①</div>
+  <div class="badge" style="left:232px;top:74px">②</div>
 </div>
-<div class="cap" style="left:480px;top:258px">开启深度判断：交线两侧各留更近的像素</div>
+<div class="cap" style="left:310px;top:198px">开启深度判断：两环正确互锁</div>
 
-<div class="lbl" style="left:432px;top:112px;font-size:26px">→</div>
+<div class="cell" style="left:610px;top:12px">
+  <img src="solid_depth.png">
+</div>
+<div class="cap" style="left:610px;top:198px">同一帧的深度缓冲</div>
 
-<div class="legend" style="left:0px;top:296px">① 先绘制的卡片　② 后绘制的卡片</div>
+<div class="bar" style="left:614px;top:232px;width:150px"></div>
+<div class="side" style="left:770px;top:229px">远</div>
+<div class="side" style="left:588px;top:229px">近</div>
+<div class="side" style="left:10px;top:232px;width:280px">① 先绘制　② 后绘制</div>
 
 </div></body></html>
