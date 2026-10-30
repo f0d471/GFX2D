@@ -6,39 +6,40 @@
 .layer { position: absolute; left: 40px; width: 660px; height: 78px; display: flex; gap: 12px; padding: 0; box-sizing: border-box; }
 .cell { flex: 1; border: 2px solid #87929E; border-radius: 5px; background: #F4F5F7; box-sizing: border-box;
         display: flex; flex-direction: column; justify-content: center; text-align: center;
-        font-size: 19px; line-height: 1.25; padding: 4px; }
+        padding: 4px; }
 .cell.ctl { background: #FBEEF0; border-color: #E8546B; }
 .cell.cmp { background: #EEF7E9; border-color: #67BA4A; }
 .cell.dat { background: #EDF3FB; border-color: #4A7FD0; }
 .cell.ext { background: #F4F5F7; border-color: #87929E; }
-.cell .t { font-weight: 700; }
-.cell .s { font-size: 15.5px; color: #4A5568; margin-top: 2px; }
+.cell .t { font-size: 21px; font-weight: 700; line-height: 1.25; }
+.cell .s { font-size: 14.5px; color: #5B6572; margin-top: 2px; }
 </style></head>
 <body><div id="fig" style="width:720px;height:460px">
 
 <div class="lbl b" style="left:40px;top:8px;font-size:18px">应用层（sw/apps）</div>
 <div class="layer" style="top:34px">
-  <div class="cell ctl" style="flex:1.4"><div class="t">apps/console</div><div class="s">游戏机前端 · 四个应用</div></div>
-  <div class="cell ctl"><div class="t">test/probe</div><div class="s">判据程序 · 测量探针</div></div>
+  <div class="cell ctl" style="flex:1.4"><div class="t">应用前端</div><div class="s">apps/console</div></div>
+  <div class="cell ctl"><div class="t">自检程序</div><div class="s">apps/test</div></div>
+  <div class="cell ctl"><div class="t">测量探针</div><div class="s">apps/probe</div></div>
 </div>
 
 <div class="lbl b" style="left:40px;top:118px;font-size:18px">算法层（sw/lib）</div>
 <div class="layer" style="top:144px">
-  <div class="cell cmp" style="flex:1.2"><div class="t">lib/gfx</div><div class="s">命令构造 · 软件执行器</div></div>
-  <div class="cell cmp" style="flex:1.2"><div class="t">lib/core</div><div class="s">定点 · CRC · 正弦表 · 统计</div></div>
-  <div class="cell cmp"><div class="t">lib/test</div><div class="s">主机侧金标准</div></div>
+  <div class="cell cmp" style="flex:1.2"><div class="t">命令构造</div><div class="s">lib/gfx</div></div>
+  <div class="cell cmp" style="flex:1.2"><div class="t">基础支撑</div><div class="s">lib/core</div></div>
+  <div class="cell cmp"><div class="t">判据</div><div class="s">lib/test</div></div>
 </div>
 
 <div class="lbl b" style="left:40px;top:228px;font-size:18px">板级支持层（sw/bsp）</div>
 <div class="layer" style="top:254px">
-  <div class="cell dat"><div class="t">bsp/include</div><div class="s">board.h · memmap.h</div></div>
-  <div class="cell dat"><div class="t">bsp/ti60</div><div class="s">板上实现 · 链接脚本</div></div>
-  <div class="cell dat"><div class="t">bsp/host</div><div class="s">SDL2 模拟板</div></div>
+  <div class="cell dat"><div class="t">接口定义</div><div class="s">bsp/include</div></div>
+  <div class="cell dat"><div class="t">板上实现</div><div class="s">bsp/ti60</div></div>
+  <div class="cell dat"><div class="t">PC 模拟板</div><div class="s">bsp/host</div></div>
 </div>
 
 <div class="lbl b" style="left:40px;top:338px;font-size:18px">厂商层（sdk/）</div>
 <div class="layer" style="top:364px">
-  <div class="cell ext"><div class="t">EfxSapphireSoc BSP 与驱动</div></div>
+  <div class="cell ext"><div class="t">处理器支持包</div><div class="s">sdk/</div></div>
 </div>
 
 <svg class="links" viewBox="0 0 720 460">
