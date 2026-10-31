@@ -191,26 +191,7 @@ void r4_world_tick(r4_world *w,uint32_t keys,uint32_t *fail)
         }
         w->pcooldown=3;
     }
-    for(unsigned i=0;i<R4_GATE_SLOTS;++i) {
-        r4_gate *g=w->gate+i;
-        if(!g->dist)continue;
-        if(!g->fired && g->dist>w->d+5u*R4_ONE && g->dist<w->d+15u*R4_ONE) {
-            g->fired=1;
-            enemy_fire(w,(int32_t)g->x,R4_ONE/2,-(int32_t)g->dist,1);
-        }
-        /* The ship crosses the gate before the camera does. */
-        if(!g->passed && w->d+R4_SHIP_Z>=g->dist) {
-            int32_t dx=w->cam_x-(int32_t)g->x;
-            g->passed=1;
-            if(dx>R4_GATE_OPEN-R4_SHIP_HALF || dx< -R4_GATE_OPEN+R4_SHIP_HALF ||
-               w->ship_y< -R4_HALF_H+R4_SHIP_HALF)hurt(w);
-            else w->score+=50;
-        }
-        if(g->dist<w->d) {
-            g->dist=R4_GATE_FIRST+w->gate_seq*R4_GATE_SPACING;
-            g->x=r4_gate_x_of(w->gate_seq++,w->rng);g->passed=0;g->fired=0;
-        }
-    }
+    /* 门环整体删除(用户定案:视觉与判定一起走,不留隐形墙;火力走敌机自身循环)。 */
     if(w->ladder<2)w->enemy.alive=0;
     else if(w->enemy.alive) {
         w->enemy.x=fx_sin((uint16_t)(w->ticks*370u))*2;
@@ -266,22 +247,6 @@ static uint32_t r4_fill_color(const int16_t normal[3],const int16_t light[3],
     if(g<fg)g=fg;
     if(b<fb)b=fb;
     return 0xff000000u|(r<<16)|(g<<8)|b;
-}
-/* 门框淡出系数:过机位后 2m 内线性压黑,0.33m(跳过线)处恰为 0。
-   不淡出=门框在占大半屏时整体硬消失(mockup 定案"巨大框糊在镜头上不真实",
-   用户实测=「隔几秒猛一下」的主体)。f=0..255。 */
-static uint32_t gate_fade(int32_t z)
-{
-    int32_t past= -z - R4_SHIP_Z;                    /* 已过机位的距离 */
-    int32_t t;
-    if(past <= R4_ONE/3)return 0u;
-    t=(int32_t)(((int64_t)(past - R4_ONE/3) * 255) / (2 * R4_ONE));
-    return t>255?255u:(uint32_t)t;
-}
-static uint32_t fade_mul(uint32_t c,uint32_t f)
-{
-    return (c & 0xff000000u) | ((((c >> 16 & 255u) * f) >> 8) << 16) |
-           ((((c >> 8 & 255u) * f) >> 8) << 8) | (((c & 255u) * f) >> 8);
 }
 static int emit_failed;
 typedef struct {
@@ -908,48 +873,10 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         vertex(v+3,-R4_HALF_W,-R4_HALF_H,-33*R4_ONE,0,0,cbot);
         n+=polygon(v,4,vp,flat,projection,out+n,cap-n,&st);
     }
-    /* 内壁不再只给"11m 内的最近门"——那是一次三面齐现的结构突变,
-       用户看到的是"每隔一段时间卡一下"的一种。视距内每道门都带内壁
-       (门间距 31m,视距 36m,最多两道=+6 面),从远处起就是同一副结构。 */
-    /* All visible gates participate in z, including gates behind enemies/bullets. */
-    for(unsigned i=0;i<R4_GATE_SLOTS;++i) {
-        const r4_gate *g=w->gate+i;
-        int32_t z=(int32_t)w->d-(int32_t)g->dist;
-        int32_t o=R4_GATE_OPEN,t=R4_GATE_THICK,x=(int32_t)g->x;
-        int32_t h=R4_HALF_H*4/5;
-        /* 青色=引导门,品红=危险门(每三道);与 2D 身份色一致。 */
-        uint32_t danger=(g->dist/R4_GATE_SPACING)%3u==0;
-        uint32_t c=fade_mul(danger?0xffff4fd8u:0xff35f2ffu,gate_fade(z));
-        if(!g->dist || z> -R4_SHIP_Z-R4_ONE/3 || z< -DRAW_FAR)continue;
-        n+=facing(x-o,0,z,t,h,c,512,0,walls,vp,projection,out+n,cap-n,&st);
-        n+=facing(x+o,0,z,t,h,c,512,0,walls,vp,projection,out+n,cap-n,&st);
-        n+=facing(x,h,z,o,t,c,512,0,walls,vp,projection,out+n,cap-n,&st);
-        n+=facing(x,-h,z,o,t,c,512,0,walls,vp,projection,out+n,cap-n,&st);
-        /* 内壁无条件跟框:视距内每道门同一副结构,不再有 11m 线上的三面齐现。 */
-        {
-            const int32_t edge[3]={x-o+t,x+o-t,h-t};
-            const uint32_t gf=gate_fade(z);
-            for(unsigned side=0;side<3;++side) {
-                rast_view_vertex v[4];int32_t back=z-2*R4_ONE/5;
-                uint32_t shade=fade_mul(side==0?0xff518d9e:side==1?0xff31596e:0xff224359,gf);
-                if(side<2) {
-                    vertex(v,edge[side],h,z,512,0,shade);
-                    vertex(v+1,edge[side],h,back,1008,0,shade);
-                    vertex(v+2,edge[side],-h,back,1008,496,shade);
-                    vertex(v+3,edge[side],-h,z,512,496,shade);
-                } else {
-                    vertex(v,x-o,edge[side],z,512,0,shade);
-                    vertex(v+1,x+o,edge[side],z,1008,0,shade);
-                    vertex(v+2,x+o,edge[side],back,1008,496,shade);
-                    vertex(v+3,x-o,edge[side],back,512,496,shade);
-                }
-                if(side==1){rast_view_vertex tmp=v[1];v[1]=v[3];v[3]=tmp;}
-                n+=polygon(v,4,vp,walls,projection,out+n,cap-n,&st);
-            }
-        }
-    }
-    /* 顶灯光带:走廊轴向每 4m 一条,恒亮青白——发光只留灯带与门框两种,
-       速度感交给灯带节律与门框扑面,不再撒细亮条。 */
+    /* 门环绘制整体删除(用户定案"本来就没啥用"):视觉与判定一起走。
+       速度感交给灯带节律与敌机,走廊=哑面墙+灯带+雾幕光三件套。 */
+    /* 顶灯光带:走廊轴向每 4m 一条,恒亮青白——发光只留灯带一种,
+       不再撒细亮条。 */
     {
         uint32_t seg=w->d/(4u*R4_ONE);
         const unsigned pl=205u;
