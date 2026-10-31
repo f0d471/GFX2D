@@ -198,8 +198,8 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
         ASSET_FONT_CYAN_COLS,0x20u,ASSET_FONT_CYAN_CELLS,ASSET_FONT_CYAN_KEY};
     const stg_font amber={STG_SLOT_FONT_AMBER,ASSET_FONT8X16_CELL_W,ASSET_FONT8X16_CELL_H,
         ASSET_FONT_AMBER_COLS,0x20u,ASSET_FONT_AMBER_CELLS,ASSET_FONT_AMBER_KEY};
-    static char rows[R4_HUD_ROWS][32],values[R4_HUD_ROWS][24];
-    static char previous_rows[2][R4_HUD_ROWS][32],previous_values[2][R4_HUD_ROWS][24];
+    static char rows[R4_HUD_ROWS][32],values[R4_HUD_ROWS][48];  /* 48：场景2 的 tagline 38 字符 */
+    static char previous_rows[2][R4_HUD_ROWS][32],previous_values[2][R4_HUD_ROWS][48];
     static char previous_active[2][12];
     static uint32_t previous_icons[2][2];
     unsigned fb=(unsigned)(dst-STG_SLOT_FB0);
@@ -262,8 +262,9 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
     }
     strcpy(rows[29],"ESC MENU  C SCENE");
     if (s_scene == 2u) {
-        /* 山脊飞行版右栏：COMBO/SPEED/ZONE/RINGS 换掉走廊的 CONTACTS 行，
-           保留 SCORE/HI/PLAYER/TFPS 诊断，29 行提示不动。 */
+        /* 山脊飞行版右栏：COMBO/SPEED/RINGS 换掉走廊的 CONTACTS 行。
+           排版三层：左上 zone 名（0 行）、右上 RINGS n/6（同 0 行）、
+           左下 tagline（29 行，与右栏操作提示并存）——参考版式。 */
         unsigned i2;
         unsigned speed = 4u + ((s_world.combo >> 1) > 3u ? 3u : (s_world.combo >> 1));
         for (i2 = 15u; i2 < 27u; ++i2) { rows[i2][0] = '\0'; values[i2][0] = '\0'; }
@@ -271,9 +272,12 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
         values[14][0] = 'x'; hud_number(values[14] + 1, s_world.combo > 99u ? 99u : s_world.combo, 0);
         strcpy(rows[16], "GRAZE"); hud_number(values[16], s_world.graze, 0);
         strcpy(rows[18], "SPEED"); hud_number(values[18], speed, 0);
-        strcpy(rows[20], "ZONE"); hud_number(values[20], s_world.gate_seq / 8u + 1u, 0);
         strcpy(rows[24], "RINGS"); hud_number(values[24], s_world.rings_passed, 0);
         strcpy(rows[25], "TRIS"); hud_number(values[25], s_records, 0);
+        strcpy(rows[0], ridge_zone_names[r4_scene2_zone(&s_world)]);
+        hud_number(values[0], s_world.rings_passed % 6u, 0);
+        strcat(values[0], "/6");
+        strcpy(values[29], ridge_zone_tags[r4_scene2_zone(&s_world)]);
     }
 #else
     {
@@ -333,11 +337,28 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
 #if R4_HUD_TEXT
         uint32_t drawn=0;
 #if GFX_PRODUCT_HUD
+        int hud_world=(s_scene==2u && (s==0u || s==29u));
         char fit[18];myriad_hud_fit(fit,rows[s],values[s][0]?7u:17u);
-        if(fit[0])bad+=stg_text_draw(&l,(s==21)?&white:&cyan,
+        if(fit[0] && !hud_world)bad+=stg_text_draw(&l,(s==21)?&white:&cyan,
             dst,MYRIAD_HUD_TEXT_X,0,fit,&drawn);
-        if(values[s][0])bad+=stg_text_draw(&l,(s==7 || s==10)?&amber:&white,
+        if(values[s][0] && !hud_world)bad+=stg_text_draw(&l,(s==7 || s==10)?&amber:&white,
             dst,myriad_hud_value_x(values[s]),0,values[s],&drawn);
+        if(hud_world) {
+            /* 参考版式：世界区左上 zone 名+细线、右上 RINGS n/6、左下 tagline。 */
+            if(s==0u) {
+                bad+=stg_text_draw(&l,&white,dst,10,0,rows[0],&drawn);
+                {
+                    gfx_rect rule={10,14,(int)(10+(int)drawn*8),14};
+                    bad+=gfx_fill(&l,dst,rule,0x0090b8d0,GFX_EQ_COPY,0)!=0;
+                }
+                if(values[0][0]) {
+                    uint32_t len=0;while(values[0][len])++len;
+                    bad+=stg_text_draw(&l,&white,dst,(int)(R4_WORLD_WIDTH-10-(int)len*8),0,values[0],&drawn);
+                }
+            } else {
+                bad+=stg_text_draw(&l,&white,dst,10,0,values[29],&drawn);
+            }
+        }
 #else
         if(rows[s][0])bad+=stg_text_draw(&l,(s==7 || s==10 || s==18 || s==19)?&white:&cyan,
             dst,492,0,rows[s],&drawn);
@@ -370,78 +391,99 @@ static uint32_t bg_mix(uint32_t a, uint32_t b, uint32_t t)
     return (r << 16) | (g << 8) | bl;
 }
 
-static void bg_disc(uint32_t *bg, int cx, int cy, int radius, uint32_t color)
+/* --- 场景 2 的天空美术包：渐变/剪影/中央远峰/霾带，随 zone 擦除式换装 --------
+   换装不一次重烘整屏（那是一帧 20ms 级的卡顿），而是每帧 32 行自上而下推进
+   ——0.25s 的"天色刷下来"转场，机器零停顿。 */
+
+static const uint32_t bg_sky_stops[4][4] = {
+    {0x4f9bcd, 0x9cc8ec, 0xffe2bc, 0xffdca8},   /* 晨光 */
+    {0x5498c8, 0xa8cce0, 0xf6e0b4, 0xf2d8a4},   /* 金原 */
+    {0x5a90b8, 0xa4c2d4, 0xf0d4ac, 0xeccaa0},   /* 红岩 */
+    {0x8fb4d4, 0xc8dce8, 0xe8f0f4, 0xeef4f6},   /* 雪线 */
+};
+static const uint32_t bg_sils[4][3] = {
+    {0xc4b2ac, 0x9e94a4, 0x74808c},
+    {0xd8c0a0, 0xb09878, 0x8a7a60},
+    {0xd8a880, 0xb08060, 0x88604a},
+    {0xe4ecf2, 0xc4d2de, 0xa4b8c8},
+};
+static const uint32_t bg_peaks[4][2] = {
+    {0x9c90ac, 0x84789c},
+    {0xa89484, 0x907c6c},
+    {0xb08868, 0x987050},
+    {0xdce6ee, 0xc2d2e0},
+};
+static uint32_t s_bg_zone = 0u, s_bg_zone_pend = 0u, s_bg_row = FB_HEIGHT;
+
+/* 单行剪影：沿用 bg_ridge_line 的脊线公式，只填 y 这一行。 */
+static void bg_sil_row(uint32_t *bg, uint32_t y, int base_y, int amp,
+                       uint32_t color, int phase)
 {
-    int y, x;
-    for (y = cy - radius; y <= cy + radius; ++y) {
-        int dy = y - cy;
-        if (y < 0 || y >= (int)FB_HEIGHT) continue;
-        for (x = cx - radius; x <= cx + radius; ++x) {
-            int dx = x - cx;
-            if (x < 0 || x >= (int)R4_WORLD_WIDTH) continue;
-            if (dx * dx + dy * dy <= radius * radius)
-                bg[(size_t)y * FB_ROW_PIXELS + (uint32_t)x] = color;
-        }
+    uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
+    for (uint32_t x = 0u; x < R4_WORLD_WIDTH; ++x) {
+        int a = (int)(x * 68u + (uint32_t)phase) & 0xFFFF;
+        int b = (int)(x * 26u + (uint32_t)phase * 2u) & 0xFFFF;
+        int s = fx_sin((uint16_t)a) / 2 + fx_sin((uint16_t)b) / 4;
+        int y0 = base_y - (amp * s) / 32768;
+        if ((int32_t)y >= y0) row[x] = color;
     }
 }
 
-/* 远山：一条正弦脊线，从脊线向下填到地平线以下。 */
-static void bg_ridge_line(uint32_t *bg, int base_y, int amp, uint32_t color, int phase)
+static void bg_bake_rows(uint32_t zone, uint32_t y0, uint32_t y1)
 {
-    int x;
-    for (x = 0; x < (int)R4_WORLD_WIDTH; ++x) {
-        int a = (x * 68 + phase) & 0xFFFF;
-        int b = (x * 26 + phase * 2) & 0xFFFF;
-        int s = fx_sin((uint16_t)a) / 2 + fx_sin((uint16_t)b) / 4;
-        int y0 = base_y - (amp * s) / 32768;
-        int y;
-        for (y = y0; y < (int)FB_HEIGHT; ++y) {
-            if (y < 0) continue;
-            bg[(size_t)y * FB_ROW_PIXELS + (uint32_t)x] = color;
+    static const uint8_t bayer[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
+    static const uint32_t bounds[3] = {400u, 520u, 1000u};
+    uint32_t *bg = (uint32_t *)((uint8_t *)board_region(REGION_OFFSCREEN).ptr+R4_BG_OFFSET);
+    if (zone > 3u) zone = 0u;
+    for (uint32_t y = y0; y < y1 && y < FB_HEIGHT; ++y) {
+        uint32_t ty = y * 1000u / FB_HEIGHT;
+        uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
+        unsigned seg = 0u;
+        while (ty >= bounds[seg]) ++seg;
+        {
+            uint32_t a = bg_sky_stops[zone][seg], b = bg_sky_stops[zone][seg + 1u];
+            uint32_t base = seg ? bounds[seg - 1u] : 0u;
+            uint32_t span = bounds[seg] - base;
+            for (uint32_t x = 0u; x < FB_WIDTH; x++) {
+                int32_t u = (int32_t)(((ty - base) * 256u) / span) +
+                    (int32_t)bayer[(y & 3u) * 4u + (x & 3u)] - 8;
+                uint32_t c;
+                if (u < 0) u = 0;
+                if (u > 256) u = 256;
+                c = bg_mix(a, b, (uint32_t)u);
+                row[x] = x < R4_WORLD_WIDTH ? c : R4_HUD_BG;
+            }
+            row[R4_WORLD_WIDTH] = R4_HUD_LINE;
         }
+        /* 中央远峰：顶点 (240,150)，两张立面（向阳/背阳），底边融进剪影。 */
+        if (y >= 150u && y < 285u) {
+            int32_t hw = (int32_t)y - 150;
+            if (hw > 135) hw = 135;
+            for (int32_t x = 240 - hw; x < 240; ++x) row[x] = bg_peaks[zone][0];
+            for (int32_t x = 240; x < 240 + hw; ++x) row[x] = bg_peaks[zone][1];
+        }
+        bg_sil_row(bg, y, 252, 52, bg_sils[zone][0], 0);
+        bg_sil_row(bg, y, 262, 38, bg_sils[zone][1], 8000);
+        bg_sil_row(bg, y, 272, 24, bg_sils[zone][2], 21000);
+        /* 高空霾带：三条 2px 浅色横带（参考图的空气感）。 */
+        if (y == 96u || y == 97u || y == 112u || y == 113u || y == 128u || y == 129u)
+            for (uint32_t x = 0u; x < R4_WORLD_WIDTH; ++x)
+                row[x] = bg_mix(row[x], 0xffffffu, 40u);
     }
 }
 
 static int build_background(const gfx_surface_table *tab,const gfx_mem *mem)
 {
-    uint32_t *bg = (uint32_t *)((uint8_t *)board_region(REGION_OFFSCREEN).ptr+R4_BG_OFFSET);
-    uint32_t  x, y;
-
     if (s_scene == 2u) {
-        /* 天空：三段色带 + 4×4 Bayer 抖动过渡（PS1 风格的低色深质感），进场景烘一次。 */
-        static const uint32_t stops[4] = {0x3f7fc4, 0x9cc8ec, 0xffe2bc, 0xffdca8};
-        static const uint8_t bayer[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
-        static const uint32_t bounds[3] = {400u, 520u, 1000u};   /* 千分位段界（地平线≈46%） */
-        for (y = 0u; y < FB_HEIGHT; y++) {
-            uint32_t ty = y * 1000u / FB_HEIGHT;
-            uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
-            unsigned seg = 0u;
-            while (ty >= bounds[seg]) ++seg;
-            {
-                uint32_t a = stops[seg], b = stops[seg + 1u];
-                uint32_t base = seg ? bounds[seg - 1u] : 0u;
-                uint32_t span = bounds[seg] - base;
-                for (x = 0u; x < FB_WIDTH; x++) {
-                    int32_t u = (int32_t)(((ty - base) * 256u) / span) +
-                        (int32_t)bayer[(y & 3u) * 4u + (x & 3u)] - 8;
-                    uint32_t c;
-                    if (u < 0) u = 0;
-                    if (u > 256) u = 256;
-                    c = bg_mix(a, b, (uint32_t)u);
-                    row[x] = x < R4_WORLD_WIDTH ? c : R4_HUD_BG;
-                }
-            }
-            if (R4_WORLD_WIDTH < FB_WIDTH) row[R4_WORLD_WIDTH] = R4_HUD_LINE;
-        }
-        /* 太阳：两级光晕 + 亮核（坐标与基线一致，天顶蓝区里的一团暖光）。 */
-        bg_disc(bg, 118, 116, 52, bg_mix(0x9cc8ec, 0xfff4dc, 70u));
-        bg_disc(bg, 118, 116, 38, bg_mix(0x9cc8ec, 0xfff4dc, 150u));
-        bg_disc(bg, 118, 116, 30, 0xfff4dc);
-        bg_ridge_line(bg, 252, 52, 0xc4b2ac, 0);
-        bg_ridge_line(bg, 262, 38, 0x9e94a4, 8000);
-        bg_ridge_line(bg, 272, 24, 0x74808c, 21000);
+        s_bg_zone = s_bg_zone_pend = 0u;
+        s_bg_row = FB_HEIGHT;
+        bg_bake_rows(0u, 0u, FB_HEIGHT);
         return 0;
     }
+    {
+        uint32_t *bg = (uint32_t *)((uint8_t *)board_region(REGION_OFFSCREEN).ptr+R4_BG_OFFSET);
+        uint32_t  x, y;
+
 
     for (y = 0u; y < FB_HEIGHT; y++) {
         uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
@@ -473,6 +515,7 @@ static int build_background(const gfx_surface_table *tab,const gfx_mem *mem)
         bg[(y+8u)*FB_ROW_PIXELS+R4_WORLD_WIDTH+8u+x]=result;
     }
     return 0;
+    }
 }
 
 uint32_t r4_frame_crc(const uint32_t *fb)
@@ -838,6 +881,17 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     t_seg = board_cycles();
     if(s_replay_on && replay_r4_key_at(&s_replay,s_out.frames,&keys)) {++s_fail;return -1;}
     r4_world_tick(&s_world, keys, &s_fail);
+    if(s_scene==2u) {
+        /* zone 换装：自上而下每帧 32 行重烘背景（转场 0.25s，零停顿）。 */
+        uint32_t zone=r4_scene2_zone(&s_world);
+        if(zone!=s_bg_zone_pend){s_bg_zone_pend=zone;s_bg_row=0u;}
+        if(s_bg_zone!=s_bg_zone_pend) {
+            uint32_t y1=s_bg_row+32u;if(y1>FB_HEIGHT)y1=FB_HEIGHT;
+            bg_bake_rows(s_bg_zone_pend,s_bg_row,y1);
+            s_bg_row=y1;
+            if(s_bg_row>=FB_HEIGHT)s_bg_zone=s_bg_zone_pend;
+        }
+    }
     s_out.score=s_world.score;s_out.shield=s_world.shield;s_out.ticks=s_world.ticks;
     s_out.fail=s_fail;
     s_out.cyc_logic = board_cycles() - t_seg;

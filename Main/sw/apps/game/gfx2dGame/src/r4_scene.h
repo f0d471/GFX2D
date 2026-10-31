@@ -64,6 +64,13 @@ uint32_t r4_gate_x_of(uint32_t seq, uint32_t rng0);
    调用它把初始四个门环挪到山脊序列（后续 recycle 在 tick 内自持）。 */
 void r4_scene2_fix_gates(r4_world *w);
 
+/* 场景 2 当前地貌分区（0..3，随门环编排推进）；运行时背景换装和 HUD 用。 */
+uint32_t r4_scene2_zone(const r4_world *w);
+
+/* 分区名与提示语（HUD 左上/左下排版用，与 r4_scene.c 色板同序）。 */
+extern const char *const ridge_zone_names[4];
+extern const char *const ridge_zone_tags[4];
+
 /* 把当前世界发射成 setup 记录（vp = 子视口，走廊 480x480）。
    ladder: 1=L1 平涂 2=L2 TEX。返回记录数；容量不足返回 UINT32_MAX，不呈现截断物体。
    counts 累计 setup 统计（可为 NULL）。 */
