@@ -510,6 +510,10 @@ static void bg_bake_rows(uint32_t zone, uint32_t y0, uint32_t y1)
     bg_sil_cache(zone);
     for (uint32_t y = y0; y < y1 && y < FB_HEIGHT; ++y) {
         uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
+        if (s_scene == 2u) {
+            bg_paint_row(row, FB_WIDTH, zone, y);   /* 无 HUD：世界吃满 640 */
+            continue;
+        }
         bg_paint_row(row, R4_WORLD_WIDTH, zone, y);
         row[R4_WORLD_WIDTH] = R4_HUD_LINE;
         for (uint32_t x = R4_WORLD_WIDTH + 1u; x < FB_WIDTH; x++) row[x] = R4_HUD_BG;
@@ -591,7 +595,12 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     s_out.ladder = s_ladder;
     s_out.hw = s_hw;
     s_out.scene = s_scene;
-    s_vp=(rast_viewport){R4_VP_CORRIDOR};
+    if (s_scene == 2u) {
+        /* 山脊滑翔无 HUD（用户定案）：世界吃满整幅 640x480，投影切 4:3。 */
+        s_vp=(rast_viewport){0,0,FB_WIDTH,FB_HEIGHT};
+    } else {
+        s_vp=(rast_viewport){R4_VP_CORRIDOR};
+    }
     s_raster_frame=(rast_frame){RAST_WIDTH,RAST_HEIGHT};
     {
         static uint32_t last_scene=UINT32_MAX,last_ladder=UINT32_MAX;
@@ -600,11 +609,13 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     }
     s_time_count=0u;s_window_late=0u;s_window_exact=0u;s_window_over=0u;
     s_render_sum=0;s_render_n=0;
-    if (fx16_perspective(&s_proj, R4_FOV_BAM, R4_ASPECT, R4_NEAR_Z, R4_FAR_Z) != 0) {
+    if (fx16_perspective(&s_proj, R4_FOV_BAM,
+                         s_scene==2u?fx16_div(4*FX16_ONE,3*FX16_ONE):R4_ASPECT,
+                         R4_NEAR_Z, R4_FAR_Z) != 0) {
         s_fail++;
         return -1;
     }
-    s_proj.v[6] = -R4_ONE/8; /* 480x480 world: vanishing point (240,210). */
+    s_proj.v[6] = -R4_ONE/8; /* 480 高的世界：灭点 (中心,210)。 */
     if(s_replay_on && (s_replay.scene_id!=R4_SCENE_ID+s_scene ||
         s_replay.ladder!=s_ladder || s_replay.asset_version!=R4_ASSET_VERSION)) {
         ++s_fail;return -1;
@@ -812,7 +823,8 @@ static int frame_layout(int index)
     }
     if(s_raster_frame.width!=s_frame.width) {
         s_raster_frame.width=s_frame.width;
-        s_vp.w=(uint16_t)(s_frame.width-160u);
+        /* 山脊滑翔无 HUD：世界吃满整幅宽；走廊仍留右侧 160 HUD 带。 */
+        s_vp.w=(uint16_t)(s_scene==2u?s_frame.width:s_frame.width-160u);
         fx16_t aspect=fx16_div((fx16_t)s_vp.w*FX16_ONE,(fx16_t)s_vp.h*FX16_ONE);
         if(fx16_perspective(&s_proj,R4_FOV_BAM,aspect,R4_NEAR_Z,R4_FAR_Z))return -1;
         s_proj.v[6]=-R4_ONE/8;
@@ -851,11 +863,9 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         uint32_t c=R4_COLOR_BG+((y*24u)/FB_HEIGHT)*0x00010102u;
         uint32_t *row=s_frame.pixels+(size_t)y*s_frame.stride;
         if(s_scene==2u) {
-            /* 宽屏不再刷平渐变（那会把烘好的太阳/远峰/剪影抹掉）：
-               同一行画函数直接画进宽帧，跟随换装锋面。 */
-            uint32_t w=s_frame.width>160u?s_frame.width-160u:0u;
+            /* 无 HUD：世界吃满整幅宽，同一行画函数直接画进宽帧（跟随换装锋面）。 */
             bg_sil_cache(s_bg_zone);
-            bg_paint_row(row,w,(y<s_bg_row)?s_bg_zone_pend:s_bg_zone,y);
+            bg_paint_row(row,s_frame.width,(y<s_bg_row)?s_bg_zone_pend:s_bg_zone,y);
         } else {
             for(unsigned x=0;x<s_frame.width;++x)row[x]=c;
         }
@@ -885,9 +895,10 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         if (rast_ref_run_frame(s_rec, count, &t,&s_raster_frame) != 0)
             return -1;
     }
-    for (s = 0u; s < 30u; s++) {
+    if(s_scene!=2u)for (s = 0u; s < 30u; s++) {
         /* HUD 命令是条带局部 y：软件路径把目的表面基址平移到本条带首行，
-           引擎的 BAND 相位则由硬件把局部 y 落进对应条带——两路同语义。 */
+           引擎的 BAND 相位则由硬件把局部 y 落进对应条带——两路同语义。
+           山脊滑翔无 HUD（用户定案），整段跳过。 */
         gfx_surface_table t2 = *tab;
         uint32_t *hdr = s_hud_list;
         gfx_cmd  *cmds = (gfx_cmd *)(void *)((uint8_t *)hdr + (s + 1u) * 32768u);
@@ -897,19 +908,9 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         if (exec_sw_run(&s_es, &t2, mem, cmds, hdr[s], hdr[s], &st, &err) != GFX_OK)
             return -1;
     }
-    if(wide)for(unsigned y=0;y<FB_HEIGHT;++y)
+    if(wide && s_scene!=2u)for(unsigned y=0;y<FB_HEIGHT;++y)
         memcpy(s_frame.pixels+(size_t)y*s_frame.stride+s_frame.width-160u,
                fb+(size_t)y*FB_ROW_PIXELS+R4_WORLD_WIDTH,160u*sizeof(uint32_t));
-    if(wide && s_scene==2u) {
-        /* 世界区文字（zone 名/RINGS/tagline）画在 640 FB 的 0/29 条带里，
-           宽屏把这两条整行搬过去——行内容与宽屏自绘同源同色，无缝。 */
-        for(unsigned y=0;y<16u;++y)
-            memcpy(s_frame.pixels+(size_t)y*s_frame.stride,
-                   fb+(size_t)y*FB_ROW_PIXELS,R4_WORLD_WIDTH*sizeof(uint32_t));
-        for(unsigned y=FB_HEIGHT-16u;y<FB_HEIGHT;++y)
-            memcpy(s_frame.pixels+(size_t)y*s_frame.stride,
-                   fb+(size_t)y*FB_ROW_PIXELS,R4_WORLD_WIDTH*sizeof(uint32_t));
-    }
     *crc_out = 0u;
     return 0;
 }
@@ -985,7 +986,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
 #if R4_HUD_NONE
     hud_bad = 0u;
 #else
-    hud_bad = hud_build_strips(tab, dst_slot, list);
+    hud_bad = (s_scene==2u)?0u:hud_build_strips(tab, dst_slot, list);   /* 山脊滑翔无 HUD */
 #endif
     s_out.cyc_hud = board_cycles() - t_seg;
     s_fail += hud_bad;
