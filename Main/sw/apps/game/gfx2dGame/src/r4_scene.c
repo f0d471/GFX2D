@@ -939,7 +939,7 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         int16_t light[3]={(int16_t)((fx16_mul(-32000,cosine)+fx16_mul(44000,roll))/4),
             (int16_t)((fx16_mul(44000,cosine)-fx16_mul(-32000,roll))/4),10000};
         int16_t half[3]={-4000,6500,14000};
-        const uint32_t material[4]={0x006e8eae,0x00364858,0x00bfe8ff,0x00ff4fd8};
+        const uint32_t material[4]={0x00b9f0f4,0x0040707e,0x00ffffff,0x00ff55dc};
         for(unsigned i=0;i<R4_SHIP_VERTICES;++i) {
             const int16_t *local=r4_ship_vertices[i];
             int32_t x=fx16_mul(local[0],cosine)-fx16_mul(local[1],roll);
