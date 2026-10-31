@@ -902,6 +902,16 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     if(wide)for(unsigned y=0;y<FB_HEIGHT;++y)
         memcpy(s_frame.pixels+(size_t)y*s_frame.stride+s_frame.width-160u,
                fb+(size_t)y*FB_ROW_PIXELS+R4_WORLD_WIDTH,160u*sizeof(uint32_t));
+    if(wide && s_scene==2u) {
+        /* 世界区文字（zone 名/RINGS/tagline）画在 640 FB 的 0/29 条带里，
+           宽屏把这两条整行搬过去——行内容与宽屏自绘同源同色，无缝。 */
+        for(unsigned y=0;y<16u;++y)
+            memcpy(s_frame.pixels+(size_t)y*s_frame.stride,
+                   fb+(size_t)y*FB_ROW_PIXELS,R4_WORLD_WIDTH*sizeof(uint32_t));
+        for(unsigned y=FB_HEIGHT-16u;y<FB_HEIGHT;++y)
+            memcpy(s_frame.pixels+(size_t)y*s_frame.stride,
+                   fb+(size_t)y*FB_ROW_PIXELS,R4_WORLD_WIDTH*sizeof(uint32_t));
+    }
     *crc_out = 0u;
     return 0;
 }
