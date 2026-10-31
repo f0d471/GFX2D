@@ -975,10 +975,17 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
     for(unsigned i=0;i<R4_PBULLET_MAX;++i) {
         const r4_bullet *b=w->pbul+i;
         if(!b->alive)continue;
-        /* 自机弹=X 形光弹 billboard(用户挑 SSR laserBlue11/atlas Q2),
-           白色顶点色不吃乘色,贴图自带青体白芯。 */
-        int32_t z=(int32_t)w->d+b->z;
-        n+=facing(b->x,b->y,z,R4_ONE/3,R4_ONE/3,0xffffffffu,0,0,keyed,vp,projection,out+n,cap-n,&st);
+        /* 自机弹=青色光矢:十字双片沿 z 拉长,任意视角可见。 */
+        int32_t z=(int32_t)w->d+b->z,z1=z-4*R4_ONE/5;
+        for(unsigned axis=0;axis<2;++axis) {
+            rast_view_vertex v[4];
+            int32_t dx=axis?0:R4_ONE/48,dy=axis?R4_ONE/48:0;
+            vertex(v,b->x-dx,b->y-dy,z,0,0,0xffbdf6ff);
+            vertex(v+1,b->x+dx,b->y+dy,z,0,0,0xff35f2ff);
+            vertex(v+2,b->x+dx,b->y+dy,z1,0,0,0xff35f2ff);
+            vertex(v+3,b->x-dx,b->y-dy,z1,0,0,0xffbdf6ff);
+            n+=polygon(v,4,vp,flat,projection,out+n,cap-n,&st);
+        }
     }
     for(unsigned i=0;i<R4_EBULLET_MAX;++i) {
         const r4_bullet *b=w->ebul+i;
