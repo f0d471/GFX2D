@@ -892,14 +892,9 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         vertex(v+3,-R4_HALF_W,-R4_HALF_H,-33*R4_ONE,0,0,cbot);
         n+=polygon(v,4,vp,flat,projection,out+n,cap-n,&st);
     }
-    unsigned nearest=R4_GATE_SLOTS;
-    int32_t nearest_z=-DRAW_FAR;
-    for(unsigned i=0;i<R4_GATE_SLOTS;++i) {
-        int32_t z=(int32_t)w->d-(int32_t)w->gate[i].dist;
-        if(w->gate[i].dist && z<=-R4_SHIP_Z-R4_ONE/3 && z>nearest_z) {
-            nearest=i;nearest_z=z;
-        }
-    }
+    /* 内壁不再只给"11m 内的最近门"——那是一次三面齐现的结构突变,
+       用户看到的是"每隔一段时间卡一下"的一种。视距内每道门都带内壁
+       (门间距 31m,视距 36m,最多两道=+6 面),从远处起就是同一副结构。 */
     /* All visible gates participate in z, including gates behind enemies/bullets. */
     for(unsigned i=0;i<R4_GATE_SLOTS;++i) {
         const r4_gate *g=w->gate+i;
@@ -914,7 +909,8 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         n+=facing(x+o,0,z,t,h,c,512,0,walls,vp,projection,out+n,cap-n,&st);
         n+=facing(x,h,z,o,t,c,512,0,walls,vp,projection,out+n,cap-n,&st);
         n+=facing(x,-h,z,o,t,c,512,0,walls,vp,projection,out+n,cap-n,&st);
-        if(i==nearest && z>-11*R4_ONE) {
+        /* 内壁无条件跟框:视距内每道门同一副结构,不再有 11m 线上的三面齐现。 */
+        {
             const int32_t edge[3]={x-o+t,x+o-t,h-t};
             for(unsigned side=0;side<3;++side) {
                 rast_view_vertex v[4];int32_t back=z-2*R4_ONE/5;
@@ -954,12 +950,11 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         }
     }
     if(ladder>=2 && w->enemy.alive) {
-        uint32_t c=w->enemy_hit?0xffffffffu:0xffffd890u;
         int32_t z=(int32_t)w->d+w->enemy.z;
-        if(z< -8*R4_ONE) n+=facing(w->enemy.x,w->enemy.y,z,
-                R4_ONE/2,R4_ONE/2,c,0,512,keyed,vp,projection,out+n,cap-n,&st);
-        else {
-            /* Kenney spaceCraft1(CC0)减面版:36 顶点 76 面,横滚绕前进轴。 */
+        {
+            /* Omen(CC0)减面版:48 顶点 111 面,横滚绕前进轴。
+               全程同一模型——远景不再切 billboard,远近切换突变由此消失;
+               掠过相机时被近平面自然裁掉,也没有"到 8m 换材质"的跳变。 */
             const int16_t bank=fx_cos((uint16_t)(w->ticks*370u))*4/5;
             const int32_t cosine=FX16_ONE-fx16_mul(bank,bank)/2;
             const int16_t elight[3]={-6000,12000,11000};
@@ -1000,7 +995,7 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         int16_t light[3]={(int16_t)((fx16_mul(-32000,cosine)+fx16_mul(44000,roll))/4),
             (int16_t)((fx16_mul(44000,cosine)-fx16_mul(-32000,roll))/4),10000};
         int16_t half[3]={-4000,6500,14000};
-        const uint32_t material[4]={0x00b9d7e5,0x004a5e74,0x00cfeeff,0x00ff4fd8};
+        const uint32_t material[4]={0x006e8eae,0x00364858,0x00bfe8ff,0x00ff4fd8};
         for(unsigned i=0;i<R4_SHIP_VERTICES;++i) {
             const int16_t *local=r4_ship_vertices[i];
             int32_t x=fx16_mul(local[0],cosine)-fx16_mul(local[1],roll);
