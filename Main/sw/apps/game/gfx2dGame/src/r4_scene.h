@@ -67,6 +67,16 @@ void r4_scene2_fix_gates(r4_world *w);
 /* 场景 2 当前地貌分区（0..3，随门环编排推进）；运行时背景换装和 HUD 用。 */
 uint32_t r4_scene2_zone(const r4_world *w);
 
+/* Flight-only, fixed-size geometry acceleration. The reference record stream
+ * remains authoritative; cache misses/unsupported capacities use that path. */
+typedef struct {uint32_t cold,late,columns,hits,fallback;} r4_flight_cache_stats;
+void r4_flight_cache_reset(void);
+int r4_flight_prewarm(const r4_world *world,const fx16_mat4 *projection,const rast_viewport *vp);
+r4_flight_cache_stats r4_flight_cache_status(void);
+#ifdef R4_FLIGHT_TEST
+uint32_t r4_flight_reference(const r4_world *,const fx16_mat4 *,const rast_viewport *,rast_record *,uint32_t);
+#endif
+
 /* 分区名与提示语（HUD 左上/左下排版用，与 r4_scene.c 色板同序）。 */
 extern const char *const ridge_zone_names[4];
 extern const char *const ridge_zone_tags[4];

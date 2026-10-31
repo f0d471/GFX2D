@@ -86,6 +86,14 @@ ALLOW = {
     "Engineering/TechReports/sw/evidence/11-pc-wide-20261025/delivery/sampling-scripts/check_entry_tamper.py",
 }
 
+# This exact line supplies invalid path inputs to a confinement test. It is
+# neither a machine binding nor permission to ignore other paths in that file.
+NEGATIVE_FIXTURE_LINES = {
+    "Main/tools/check/check_frozen_baseline.py": {
+        "for path in ('../outside.bit','/tmp/outside.bit','C:/outside.bit'):",
+    },
+}
+
 # 厂商代码与 IP 生成物不在检查范围内，它们带的是生成时那台机器的工具安装位置。
 # 其中需要跟着仓库位置走的几个文件在 TARGETS 里逐个检查。
 # Efinix/ 是不入库的厂商资料包。
@@ -170,6 +178,8 @@ def check(tracked_only=False):
             continue
         for num, line in enumerate(text.splitlines(), 1):
             if SUSPECT.search(line):
+                if line.strip() in NEGATIVE_FIXTURE_LINES.get(rel, ()):
+                    continue
                 hits.append((rel, num, line.strip()[:120]))
     if hits:
         print("发现 %d 处机器专属路径：" % len(hits))

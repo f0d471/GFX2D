@@ -26,8 +26,10 @@ def build(current,name,flags,target=False,perf=True,replay_keys=None):
               (1 if i%60<8 else 2 if i%60<16 else 0) for i in range(count)]
         if len(keys)!=count or any(k<0 or k>1023 for k in keys):
             raise ValueError('R4 replay key count/range')
+        scene=value('GFX2D_R4_SCENE',0)
+        scene_id=contract('R4_FLIGHT_SCENE_ID') if scene==2 else SCENE_ID+scene
         tape=struct.pack('<4sHH6I',b'R4RP',1,0,30,SEED,
-            SCENE_ID+value('GFX2D_R4_SCENE',0),value('GFX2D_R4_LADDER',2),ASSET_VERSION,count)
+            scene_id,value('GFX2D_R4_LADDER',2),ASSET_VERSION,count)
         tape+=b''.join(struct.pack('<I',k) for k in keys)
         # Immutable test input is outside OBJDIR: a compile-option change may
         # legitimately remove every object and derived replay under OBJDIR.

@@ -47,3 +47,17 @@ BSD-2-Clause 对二进制分发的要求：素材包与 Flash 镜像里带着由
 
 正式素材（霓虹几何，`neon/` 下 12 张 PNG）全部由 `Main/tools/assets/gen_stg_neon.py` 按坐标生成，
 不引入第三方素材；青色字库与大号数字照 `font/ascii8x16.txt` 渲染，许可随 Spleen。它们在上表逐个登记，不走「生成文件不登记」那一条。
+
+## 第三方 CC0 素材的派生（2026-10-31 起补记）
+
+- **Kenney Space Shooter Redux**（2D，CC0，opengameart.org/content/space-shooter-redux）：
+  `neon/` 下角色/弹幕 PNG 已由 `Main/tools/assets/apply_kenney_art.py` 用其矢量重绘，
+  上表「脚本生成/项目自有」条目的像素实际派生自该包（此条为欠账补记）。
+- **Quaternius Ultimate Spaceships**（3D，CC0，opengameart.org/content/lowpoly-spaceships-pack）：
+  三维模式的 `r4_models.h`（自机 Challenger、敌机 Omen，经聚类减面）由
+  `Main/tools/assets/gen_r4_models_obj.py` 从其 OBJ 派生；
+  `assets/r4/atlas.png` 的敌机 billboard（Q2 区块）按同一模型剪影重画。
+- **Kenney Space Kit 3D**（CC0，opengameart.org/content/space-kit）：
+  `r4_models.h` 曾用其 spaceCraft 系模型（2026-10-31 起换 Quaternius，留档备查）。
+
+CC0 无署名义务，本节登记只作溯源。

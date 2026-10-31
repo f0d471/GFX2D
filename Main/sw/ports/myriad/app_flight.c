@@ -84,6 +84,14 @@ static int frame(appfw_ctx *c, uint32_t keys, uint32_t n)
 {
     r4_out out;
     int dst;
+#ifdef GFX2D_FLIGHT_LIMIT
+    if(n>=GFX2D_FLIGHT_LIMIT) {
+        appfw_request(appfw_app_id(APPFW_MENU));return APPFW_FRAME_IDLE;
+    }
+#endif
+#ifdef GFX2D_FLIGHT_INPUT_TEST
+    keys=(n%120u<30u?4u:n%120u<60u?8u:0u)|(n%160u<40u?1u:n%160u<80u?2u:0u);
+#endif
     (void)n;
     s_prev = keys;
     dst = (int)(content(c)->seq & 1u);

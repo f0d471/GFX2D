@@ -196,8 +196,10 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
         ASSET_FONT8X16_COLS,0x20u,ASSET_FONT8X16_CELLS,0};
     const stg_font cyan={STG_SLOT_FONT_CYAN,ASSET_FONT8X16_CELL_W,ASSET_FONT8X16_CELL_H,
         ASSET_FONT_CYAN_COLS,0x20u,ASSET_FONT_CYAN_CELLS,ASSET_FONT_CYAN_KEY};
+#if GFX_PRODUCT_HUD
     const stg_font amber={STG_SLOT_FONT_AMBER,ASSET_FONT8X16_CELL_W,ASSET_FONT8X16_CELL_H,
         ASSET_FONT_AMBER_COLS,0x20u,ASSET_FONT_AMBER_CELLS,ASSET_FONT_AMBER_KEY};
+#endif
     static char rows[R4_HUD_ROWS][32],values[R4_HUD_ROWS][48];  /* 48：场景2 的 tagline 38 字符 */
     static char previous_rows[2][R4_HUD_ROWS][32],previous_values[2][R4_HUD_ROWS][48];
     static char previous_active[2][12];
@@ -427,6 +429,27 @@ static const uint32_t bg_peaks[4][2] = {
     {0xdce6ee, 0xc2d2e0},
 };
 static uint32_t s_bg_zone = 0u, s_bg_zone_pend = 0u, s_bg_row = FB_HEIGHT;
+static uint32_t s_sky_rows[4][FB_HEIGHT][4];
+static int s_sky_rows_ready;
+
+static void bg_sky_cache(void)
+{
+    if(s_sky_rows_ready)return;
+    static const uint8_t bayer[16]={0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5};
+    static const uint32_t bounds[3]={400u,520u,1000u};
+    for(unsigned zone=0;zone<4;++zone)for(unsigned y=0;y<FB_HEIGHT;++y) {
+        unsigned ty=y*1000u/FB_HEIGHT,seg=0;
+        while(ty>=bounds[seg])++seg;
+        unsigned base=seg?bounds[seg-1u]:0u,span=bounds[seg]-base;
+        for(unsigned x=0;x<4;++x) {
+            int u=(int)((ty-base)*256u/span)+(int)bayer[(y&3u)*4u+x]-8;
+            if(u<0)u=0;
+            if(u>256)u=256;
+            s_sky_rows[zone][y][x]=bg_mix(bg_sky_stops[zone][seg],bg_sky_stops[zone][seg+1u],(unsigned)u);
+        }
+    }
+    s_sky_rows_ready=1;
+}
 
 /* 三层剪影的逐列脊线（视图无关）：zone 变才重算一次，宽屏/离屏两路共用。 */
 static int16_t s_sil_y0[3][1792];
@@ -434,7 +457,9 @@ static uint32_t s_sil_zone = UINT32_MAX;
 
 static void bg_sil_cache(uint32_t zone)
 {
-    if (s_sil_zone == zone) return;
+    /* Current silhouette geometry is identical across palettes. Colours are
+       applied by the row painter; re-evaluating its sines at each zone is waste. */
+    if (s_sil_zone != UINT32_MAX) return;
     for (uint32_t x = 0u; x < 1792u; ++x) {
         static const int base_y[3] = {252, 262, 272};
         static const int amp[3] = {52, 38, 24};
@@ -449,8 +474,10 @@ static void bg_sil_cache(uint32_t zone)
     s_sil_zone = zone;
 }
 
-static void bg_paint_row(uint32_t *row, uint32_t w, uint32_t zone, uint32_t y)
+static void bg_paint_row_mode(uint32_t *row,uint32_t w,uint32_t zone,uint32_t y,int reference)
 {
+#ifdef R4_FLIGHT_TEST
+    if(reference) {
     static const uint8_t bayer[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
     static const uint32_t bounds[3] = {400u, 520u, 1000u};
     uint32_t ty = y * 1000u / FB_HEIGHT;
@@ -467,6 +494,14 @@ static void bg_paint_row(uint32_t *row, uint32_t w, uint32_t zone, uint32_t y)
             if (u > 256) u = 256;
             row[x] = bg_mix(a, b, (uint32_t)u);
         }
+    }
+    } else
+#else
+    (void)reference;
+#endif
+    {
+        bg_sky_cache();
+        for(unsigned x=0;x<w;++x)row[x]=s_sky_rows[zone][y][x&3u];
     }
     /* 太阳：左上天域的两级光晕+亮核。 */
     {
@@ -502,6 +537,14 @@ static void bg_paint_row(uint32_t *row, uint32_t w, uint32_t zone, uint32_t y)
         for (uint32_t x = 0u; x < w; ++x)
             row[x] = bg_mix(row[x], 0xffffffu, 40u);
 }
+
+static void bg_paint_row(uint32_t *row,uint32_t w,uint32_t zone,uint32_t y)
+{bg_paint_row_mode(row,w,zone,y,0);}
+
+#ifdef R4_FLIGHT_TEST
+void r4_flight_bg_test(uint32_t *row,unsigned width,unsigned zone,unsigned y,int reference)
+{bg_sil_cache(zone);bg_paint_row_mode(row,width,zone,y,reference);}
+#endif
 
 static void bg_bake_rows(uint32_t zone, uint32_t y0, uint32_t y1)
 {
@@ -616,7 +659,7 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
         return -1;
     }
     s_proj.v[6] = -R4_ONE/8; /* 480 高的世界：灭点 (中心,210)。 */
-    if(s_replay_on && (s_replay.scene_id!=R4_SCENE_ID+s_scene ||
+    if(s_replay_on && (s_replay.scene_id!=r4_scene_identity(s_scene) ||
         s_replay.ladder!=s_ladder || s_replay.asset_version!=R4_ASSET_VERSION)) {
         ++s_fail;return -1;
     }
@@ -632,6 +675,7 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     if(s_scene==0u && r4_world_prewarm(&s_proj,&s_vp,s_ladder,s_rec,R4_REC_MAX)) {
         ++s_fail;return -1;
     }
+    if(s_scene==2u && r4_flight_prewarm(&s_world,&s_proj,&s_vp)) {++s_fail;return -1;}
 
     if(build_background(tab,mem)){++s_fail;return -1;}
     memset(s_atlas, 0, sizeof s_atlas);
@@ -662,7 +706,7 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     s_rast_cyc = 0u;
 #if GFX2D_R4_RECORD
     replay_r4_rec_begin(&s_tape, s_tape_buf, (uint32_t)sizeof s_tape_buf,
-                        s_replay_on?s_replay.seed:R4_SEED, R4_SCENE_ID+s_scene, s_ladder, R4_ASSET_VERSION);
+                        s_replay_on?s_replay.seed:R4_SEED, r4_scene_identity(s_scene), s_ladder, R4_ASSET_VERSION);
 #endif
     say_u32("r4 enter ladder/hw ", s_ladder, s_hw);
     return (s_fail == fail_before) ? 0 : -1;
@@ -676,6 +720,7 @@ void r4_timing_start(void)
 
 void r4_mode_leave(void)
 {
+    if(s_scene==2u)r4_flight_cache_reset();
 #ifndef __riscv
     free(s_canvas_depth);
 #endif
@@ -939,7 +984,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     if(s_replay_on && replay_r4_key_at(&s_replay,s_out.frames,&keys)) {++s_fail;return -1;}
     r4_world_tick(&s_world, keys, &s_fail);
     if(s_scene==2u) {
-        /* zone 换装：自上而下每帧 32 行重烘背景（转场 0.25s，零停顿）。 */
+        /* User-selected 32 rows per 30Hz frame: approximately 0.5s wipe. */
         uint32_t zone=r4_scene2_zone(&s_world);
         if(zone!=s_bg_zone_pend){s_bg_zone_pend=zone;s_bg_row=0u;}
         if(s_bg_zone!=s_bg_zone_pend) {
@@ -1039,7 +1084,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
 
     /* 5) 两场节拍呈现：目标场 = F0 + 2*(f+1)，目标前一场发请求。 */
     due = s_anchor + 2u * (s_out.frames + 1u);
-    while (!GFX2D_R4_JUDGE && !s_scene &&
+    while (!GFX2D_R4_JUDGE && (s_scene==0u || s_scene==2u) &&
            (int32_t)(board_frame_count() - (due - 1u)) < 0) {
         if (board_should_quit())
             break;
@@ -1110,6 +1155,13 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
             uint32_t values[]={s_fps,s_render_fps[s_hw],produced,s_ladder,s_hw,s_scene};
             for(unsigned i=0;i<6;++i){core_out_ch(&o,' ');core_out_u32(&o,values[i]);}
             core_out_str(&o,"\r\n");say(line);
+            if(s_scene==2u) {
+                r4_flight_cache_stats cache=r4_flight_cache_status();
+                core_out_init(&o,line,sizeof line);core_out_str(&o,"R4FCACHE ");
+                const uint32_t values[]={cache.cold,cache.late,cache.columns,cache.hits,cache.fallback};
+                for(unsigned i=0;i<5;++i) {core_out_u32(&o,values[i]);core_out_ch(&o,i==4?'\r':' ');}
+                core_out_ch(&o,'\n');say(line);
+            }
             core_out_init(&o,line,sizeof line);core_out_str(&o,"R4TIME");
             uint32_t times[]={s_out.cyc_logic,s_out.cyc_geom,s_out.cyc_bin,
                 s_out.cyc_hud,s_out.cyc_submit,s_out.rast_cycles,s_out.bbox_points,s_out.refs};

@@ -4,8 +4,8 @@
 
 四个 32x32 区块（模式 4 的 TEX 窗口 16KiB，TEXCFG=0，64 词行距交错装载）：
 
-    区块 0 (0,0)    走廊墙：蓝灰面板 + 每 8 px 凹槽 + 角部铆钉，不透明
-    区块 1 (32,0)   门框：琥珀横纹 + 亮边，不透明
+    区块 0 (0,0)    走廊墙：哑灰蓝整面 + 顶缘亮边 + 水平接缝，不透明
+    区块 1 (32,0)   门框：青芯能量横带，不透明
     区块 2 (0,32)   敌机 billboard：橙色圆形机身 + 座舱，圈外二值透明
     区块 3 (32,32)  敌弹 billboard：红色光球，圈外二值透明
 
@@ -26,6 +26,7 @@ RAST 忽略 alpha 合成，不写半透明。图案全部按坐标算：没有�
 """
 
 import argparse
+import math
 import os
 import sys
 import zlib
@@ -34,37 +35,22 @@ from PIL import Image
 
 W = 64
 TEXELS = W * W
-VERSION = 6
+VERSION = 8
 
 TRANS = (0, 0, 0, 0)
 OPAQUE = 255
 
 
 def px_region0(x, y):
-    """走廊墙(银翼杀手向):深蓝黑基底+顶亮烤入渐变,内嵌倒角面板,
-    一道青色发光凹槽横贯(+短竖叉),角部铆钉;低幅确定性锈蚀。"""
-    edge = min(x, 31 - x, y, 31 - y)
-    if edge == 0: return (8, 14, 22, OPAQUE)
-    if edge == 1: return (96, 132, 158, OPAQUE)      # 倒角亮边(受光)
-    if edge == 2: return (40, 58, 78, OPAQUE)
-    # 顶部烤入渐变:越靠上越亮(伪顶光)
-    grad = (31 - y) * 30 // 31
-    r, g, b = 58 + grad, 82 + grad * 15 // 10, 108 + grad * 18 // 10
-    # 内嵌面板:6..25 内再凹一层
-    if 6 <= x <= 25 and 6 <= y <= 25:
-        pe = min(x - 6, 25 - x, y - 6, 25 - y)
-        if pe == 0: r, g, b = 30, 44, 62
-        elif pe == 1: r, g, b = 118, 156, 184
-        else:
-            r, g, b = 72 + grad // 2, 100 + grad * 3 // 5, 130 + grad * 7 // 10
-    # 青色发光凹槽:y=20 横贯 + x=20 短竖叉(能量导管)
-    if y == 20 and 3 <= x <= 28: r, g, b = (70, 225, 255) if x & 3 else (150, 245, 255)
-    if 18 <= x <= 22 and 20 <= y <= 26 and (x + y) & 1: r, g, b = (56, 190, 224)
-    # 铆钉
-    if (x, y) in ((4, 4), (27, 4), (4, 27), (27, 27)): r, g, b = 150, 178, 198
-    # 锈蚀(确定性低幅)
-    if ((x * 7 + y * 13) % 31) == 0: r, g, b = r - 8, g - 4, b - 2
-    return (max(0, r), max(0, g), max(0, b), OPAQUE)
+    """走廊墙(简约哑面):整块哑灰蓝+顶部烤入微渐变+一条水平接缝+顶缘 1px 亮边。
+    没有嵌套框/发光槽/铆钉/棋盘格——墙面退成背景,发光只属于灯带与门框;
+    明暗与色相由 wall_color 乘色给出,纹理本身保持近中性灰。"""
+    if y == 0: return (176, 188, 200, OPAQUE)        # 顶缘受光亮边(与天花板交接)
+    grad = (31 - y) * 14 // 31                        # 轻微顶光烤入
+    r, g, b = 132 + grad, 144 + grad, 158 + grad
+    if y == 15 or y == 16:                            # 水平接缝:暗一线,非黑
+        r, g, b = 92, 102, 116
+    return (r, g, b, OPAQUE)
 
 
 def px_region1(x, y):
@@ -85,16 +71,35 @@ def px_region1(x, y):
 
 
 def px_region2(x, y):
-    """敌机 billboard:暗壳品红座舱,琥珀引擎口,圈外二值透明。"""
-    dx,dy=x-16,y-16
-    body=abs(dx)+2*abs(dy)<=14
-    wing=4<=x<=28 and 12<=y<=23 and abs(dy-2)<=5-abs(dx)//4
-    if not (body or wing):return TRANS
-    if dx*dx+(dy+2)*(dy+2)<=16:return (255,196,110,OPAQUE)
-    if abs(dx)<=2 and y>=20:return (255,110,220,OPAQUE)
-    if abs(dx)>=9:return (96,52,84,OPAQUE)
-    if abs(dx)*2+abs(dy)>=12:return (208,138,96,OPAQUE)
-    return (104+max(0,8-dy),56,66,OPAQUE)
+    """敌机 billboard:Omen 三角翼剪影(与近景 3D 模型同形同色)。
+    琥珀壳+前缘亮+后缘暗带+板岩座舱+赤红双引擎口,圈外二值透明。"""
+    # 俯视六边形:鼻(16,3) 右翼尖(30,26) 右后凹(19,19) 尾中(16,22)
+    #            左后凹(13,19) 左翼尖(2,26) —— 后缘内凹出燕尾
+    poly = ((16, 3), (30, 26), (19, 19), (16, 22), (13, 19), (2, 26))
+    inside = False
+    n = len(poly)
+    for i in range(n):
+        x0, y0 = poly[i]
+        x1, y1 = poly[(i + 1) % n]
+        if (y0 > y) != (y1 > y):
+            xi = x0 + (y - y0) * (x1 - x0) / (y1 - y0)
+            if x < xi:
+                inside = not inside
+    if not inside:
+        return TRANS
+    # 前缘亮线:距鼻-翼尖两条连线 1px 内
+    def edge_dist(px0, py0, px1, py1):
+        num = abs((py1 - py0) * x - (px1 - px0) * y + px1 * py0 - py1 * px0)
+        return num / math.hypot(px1 - px0, py1 - py0)
+    if min(edge_dist(16, 3, 2, 26), edge_dist(16, 3, 30, 26)) < 1.2:
+        return (240, 192, 120, OPAQUE)
+    if y >= 19:                                   # 后缘暗带
+        return (138, 90, 52, OPAQUE)
+    if abs(x - 16) <= 1 and 6 <= y <= 12:         # 板岩座舱条
+        return (74, 94, 116, OPAQUE)
+    if (x, y) in ((12, 20), (20, 20), (12, 21), (20, 21)):
+        return (200, 90, 64, OPAQUE)              # 赤红双引擎口
+    return (216, 160, 88, OPAQUE)
 
 
 def px_region3(x, y):

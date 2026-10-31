@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """R4 scene/cup 64/32/sanitizer, deterministic full-frame host references and collectors."""
-import json,os,sys
+import argparse,hashlib,json,os,sys
 from check_run import ROOT,session,command,write_json
 from r4_checks import build,flags,frames,compare
 
-def main():
+def main(reuse_flight_models=False):
     current=session();logs=current.logs('r4');out=current.build('r4-models')
     if os.name=='nt':raise RuntimeError('r4 host check uses WSL')
     sources=['Main/sim/engine/r4/test_scene.c',
@@ -71,7 +71,18 @@ def main():
     for name,rows in results.items():
         if len({r['records'] for r in rows})<len(rows)//2:raise RuntimeError('frozen geometry '+name)
     command([sys.executable,'Main/tools/assets/gen_r4_atlas.py','--check'],logs/'atlas.log')
-    command([sys.executable,'Main/tools/assets/gen_r4_models.py','--check'],logs/'models.log')
+    if reuse_flight_models:
+        # SW19 does not adopt another mesh. The production mesh is OBJ-based;
+        # its frozen identity replaces the obsolete procedural generator here.
+        baseline=json.loads((ROOT/'Main/sim/engine/flight/baseline.json').read_text(encoding='utf-8-sig'))
+        model=ROOT/'Main/sw/apps/game/gfx2dGame/src/r4_models.h'
+        actual=hashlib.sha256(model.read_bytes()).hexdigest()
+        if actual!=baseline['consumer_model_sha256']:raise RuntimeError('frozen consumer model changed')
+        current.artifact(model)
+        write_json(logs/'models.json',dict(status='PASS',sha256=actual,scope='unchanged frozen consumer model',
+            regeneration='NOT_APPLICABLE: model/generator adoption is outside SW19'))
+    else:
+        command([sys.executable,'Main/tools/assets/gen_r4_models.py','--check'],logs/'models.log')
     import subprocess
     p=subprocess.run([sys.executable,'Main/tools/assets/gen_r4_atlas.py','--check','--inject'],
                      capture_output=True,text=True,cwd=ROOT)
@@ -90,7 +101,12 @@ def main():
     recording(body,8)
     write_json(logs/'result.json',dict(status='PASS',profile=current.profile,
         frames_per_scene={k:len(v) for k,v in results.items()},scenes=list(results),unit=bodies[0].strip(),
-        scope='host and shared scene semantics; physical board uses r4-board'))
+        scope='host and shared scene semantics; physical board uses r4-board',
+        model_scope='frozen SW19 identity, no asset regeneration' if reuse_flight_models else 'generator check'))
     print('R4 HOST PASS scenes=3 frames='+str(count),flush=True)
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--reuse-flight-models',action='store_true')
+    args,_=parser.parse_known_args()
+    main(args.reuse_flight_models)

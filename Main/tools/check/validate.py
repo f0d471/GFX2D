@@ -31,6 +31,12 @@ add('rast', [sys.executable, P+'check_rast.py'],
     'R1 定点/128B setup/两参考器/独立有理数模型/10万光栅与1万几何/变异/双目标', ['lib'])
 add('r4',[sys.executable,P+'check_r4.py'],
     'R4 三场景60帧参考、64/32与sanitizer、录像/图集/采集器反例',['pack'],timeout=3600)
+add('flight',[sys.executable,P+'check_flight.py'],
+    '滑翔整米预热/冻结记录与像素/四区/宽屏/背景/64与32位/变异',['pack'],timeout=1800)
+add('flight-board',[sys.executable,P+'check_flight_board.py'],
+    '滑翔B7像素对照/实际RTOS双1800帧30Hz节拍/输入/预热（Windows）',timeout=2400)
+add('flight-consumers',[sys.executable,P+'check_r4.py','--reuse-flight-models'],
+    'SW19冻结模型的R4三场景消费者/记录与像素/32与64位；不验收模型重生成',['pack'],timeout=3600)
 add('r4-board',[sys.executable,P+'check_r4_board.py'],
     'R4 B7 三场景CRC、板上SW/HW、注错、模式往返与60秒两场节拍',timeout=3600)
 add('r4-frozen-board',[sys.executable,P+'check_r4_board.py','--frozen-release',
@@ -148,6 +154,8 @@ for name,item in CHECKS.items():
                 'Main/sim/engine/r3/**','Main/sim/axi_probe/axi_ram_model.v',
                 P+'check_r3.py',P+'r3_vectors.py',P+'check_rast.py',P+'rast_model.py',
                 P+'feature_build.py',P+'feature_config.py',P+'regs_gen.py']
+    elif name in ('flight','flight-consumers'):inputs=SOFTWARE+['Main/sim/engine/flight/**','Main/sim/engine/r4/**']
+    elif name=='flight-board':inputs=SOFTWARE+['Main/sim/engine/flight/**','Main/bit/snapshots/B7/**']
     elif name=='ddr-log':inputs=[P+'check_f5_bin.py','Main/sw/bsp/include/board_ddr_log.h','Main/sim/engine/frontend/test_ddr_log.c']
     elif name.startswith('feature-'):
         # 特性构型的判据同时依赖 RTL、配置真源、构建入口与仿真侧脚本。

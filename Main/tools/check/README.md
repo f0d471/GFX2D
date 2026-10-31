@@ -1,5 +1,9 @@
 # check：提交前检查与规格校验
 
+滑翔性能使用`flight`（独立冻结记录/像素、整米预热、背景、失效与32/64位）和Windows的
+`flight-board`（场景2实际像素对照、FreeRTOS正常/输入双30Hz节拍）。acceptance每组1800个
+稳定样本；旧R4身份不变，flight使用独立回放身份。机制见[滑翔性能与节拍](../../doc/滑翔性能与节拍.md)。
+
 可选应用集合使用 `console-profiles`：2d/full 的真实编译与符号裁剪、A/B/A 输出隔离、
 稀疏 ID、二十个额外应用的真实滚动菜单、多个三维分类的能力要求，以及目录/配置反例。
 `console-profiles-board` 在 Windows 上构建两套固件，逐档验证 B0/B3/B5=2d、B7=full；

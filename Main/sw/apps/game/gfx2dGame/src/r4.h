@@ -96,6 +96,12 @@
 #define R4_ASSET_VERSION    3u
 /* 场景身份：进录像头，回放判据拒绝身份不符的录像。 */
 #define R4_SCENE_ID         0x52344334u     /* 视觉升级；与 cup 的 +1 身份不冲突 */
+#define R4_FLIGHT_SCENE_ID  0x52464c32u     /* Flight fixed-30Hz timing contract. */
+static inline uint32_t r4_scene_identity(uint32_t scene)
+{return scene==2u?R4_FLIGHT_SCENE_ID:R4_SCENE_ID+scene;}
+#ifdef R4_FLIGHT_TEST
+void r4_flight_bg_test(uint32_t *row,unsigned width,unsigned zone,unsigned y,int reference);
+#endif
 
 /* 颜色（L1 平涂；ARGB，高字节不写）。 */
 #define R4_COLOR_BG         0x00040810u

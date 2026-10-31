@@ -69,6 +69,16 @@ static uint64_t      s_perf_base;   /* 场 0 的性能计数器读数 */
 static uint64_t      s_perf_freq;
 static uint64_t      s_perf_ms;     /* 1 毫秒等于多少个计数器单位 */
 static uint64_t      s_step;        /* 一场等于多少个计数器单位 */
+
+/* PC 帧节拍探针(GFX2D_FRAME_STATS=1 才开):每 300 次 swap 向 stderr 打一行
+   窗口内 swap 间隔 max/avg、present 工作段(进 request 到 RenderPresent 完)max、
+   超 22ms 的间隔数——定位「每隔一段时间卡一下」用,板上与判据不受影响。 */
+static int           s_frame_stats;
+static uint32_t      s_fs_count;
+static uint64_t      s_fs_last;
+static uint64_t      s_fs_gap_max, s_fs_gap_sum, s_fs_work_max, s_fs_late;
+static uint64_t      s_fs_t_work;
+static void win_timer_resolution(void);
 static uint32_t      s_swaps;       /* 成功 present 过的次数 */
 static int           s_scale;
 static int           s_quit;
@@ -359,6 +369,7 @@ void board_init(void)
 #endif
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
         die("SDL_Init");
+    win_timer_resolution();
 
     s_win = SDL_CreateWindow("MYRIAD | F11 fullscreen | F4 smooth/pixel",
                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -411,6 +422,9 @@ void board_init(void)
         if (s_unpaced)
             fprintf(stderr, "board: GFX2D_UNPACED=1，呈现不等场\n");
     }
+    s_frame_stats = getenv("GFX2D_FRAME_STATS") != NULL;
+    if (s_frame_stats)
+        fprintf(stderr, "board: GFX2D_FRAME_STATS=1，每 300 swap 打一行节拍\n");
     {
         const char *start_fullscreen=getenv("GFX2D_FULLSCREEN");
         if(start_fullscreen && strcmp(start_fullscreen,"1")==0)fullscreen(1);
@@ -608,6 +622,27 @@ static void wait_next_field(uint32_t f0)
     }
 }
 
+#ifdef _WIN32
+/* Windows:把系统定时器精度提到 1ms(动态加载 winmm,不加链接依赖)。
+   SDL_Delay 走 Sleep,默认 15.6ms 量子会给 33ms 的两场节拍叠上随机抖动。 */
+static void win_timer_resolution(void)
+{
+    typedef unsigned long (__stdcall *time_begin_period_t)(unsigned long);
+    HMODULE winmm = LoadLibraryA("winmm.dll");
+    time_begin_period_t begin;
+
+    if (winmm == NULL)
+        return;
+    begin = (time_begin_period_t)(void *)GetProcAddress(winmm, "timeBeginPeriod");
+    if (begin != NULL)
+        (void)begin(1u);
+}
+#else
+static void win_timer_resolution(void)
+{
+}
+#endif
+
 static int s_present_pending;
 static uint32_t s_present_ticket, s_present_field;
 
@@ -660,6 +695,8 @@ int board_present_frame_request(int index, const board_frame *frame, uint32_t *t
     *ticket = s_swaps;
     if (s_quit)
         return 0;
+    if (s_frame_stats)
+        s_fs_t_work = (uint64_t)SDL_GetPerformanceCounter();
 
     fb = frame->pixels;
     if(s_texture_w!=frame->width || s_texture_h!=frame->height) {
@@ -696,6 +733,10 @@ int board_present_frame_request(int index, const board_frame *frame, uint32_t *t
         SDL_RenderCopy(s_ren, s_tex, NULL, NULL);
         SDL_RenderPresent(s_ren);
     }
+    if (s_frame_stats) {
+        uint64_t work=(uint64_t)SDL_GetPerformanceCounter()-s_fs_t_work;
+        if(work>s_fs_work_max)s_fs_work_max=work;
+    }
 
     /* 关窗按钮可能在这一次等待里被按下，泵一次再看：看到了就立即返回，
        这一帧的场数增量是 0，应用据此知道「不是掉帧，是退出」。 */
@@ -717,6 +758,25 @@ int board_present_finished(uint32_t ticket)
         (s_unpaced || field_index() != s_present_field)) {
         s_swaps++;
         s_present_pending = 0;
+        if (s_frame_stats) {
+            uint64_t now=(uint64_t)SDL_GetPerformanceCounter();
+            if (s_fs_last) {
+                uint64_t gap=now-s_fs_last;
+                if(gap>s_fs_gap_max)s_fs_gap_max=gap;
+                if(gap>s_step+s_step/3)s_fs_late++;
+                s_fs_gap_sum+=gap;
+            }
+            s_fs_last=now;
+            if(++s_fs_count>=300u) {
+                fprintf(stderr,"framestats swaps=%u gap_max=%u.%ums gap_avg=%u.%ums work_max=%u.%ums late22=%u\n",
+                    (unsigned)s_swaps,
+                    (unsigned)(s_fs_gap_max*1000/s_perf_ms/1000),(unsigned)(s_fs_gap_max*1000/s_perf_ms%1000),
+                    (unsigned)(s_fs_gap_sum/s_fs_count*1000/s_perf_ms/1000),(unsigned)(s_fs_gap_sum/s_fs_count*1000/s_perf_ms%1000),
+                    (unsigned)(s_fs_work_max*1000/s_perf_ms/1000),(unsigned)(s_fs_work_max*1000/s_perf_ms%1000),
+                    (unsigned)s_fs_late);
+                s_fs_count=0;s_fs_gap_max=0;s_fs_gap_sum=0;s_fs_work_max=0;s_fs_late=0;
+            }
+        }
     }
     return s_swaps != ticket;
 }

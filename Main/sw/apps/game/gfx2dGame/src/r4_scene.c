@@ -21,6 +21,9 @@
 #ifndef R4_DISABLE_WALL_CACHE
 #define R4_DISABLE_WALL_CACHE 0
 #endif
+#ifndef R4_DISABLE_FLIGHT_CACHE
+#define R4_DISABLE_FLIGHT_CACHE 0
+#endif
 
 uint32_t r4_gate_x_of(uint32_t seq, uint32_t rng0)
 {
@@ -250,6 +253,20 @@ void r4_world_tick(r4_world *w,uint32_t keys,uint32_t *fail)
     if(w->score>w->hiscore)w->hiscore=w->score;
 }
 
+/* 补光下限:方向光照不到的半球按 base×44% 兜底(逐通道 max)。
+   相机固定在后下方,船腹/敌机腹全在暗半球,没有兜底就是黑剪影。
+   纯 normal 的函数,hw/sw 同几何同像素,契约不受影响。 */
+static uint32_t r4_fill_color(const int16_t normal[3],const int16_t light[3],
+                              const int16_t halfv[3],uint32_t base)
+{
+    uint32_t c=r4_light_color(normal,light,halfv,base);
+    uint32_t fr=((base>>16)&255u)*112u/255u,fg=((base>>8)&255u)*112u/255u,fb=(base&255u)*112u/255u;
+    uint32_t r=(c>>16)&255u,g=(c>>8)&255u,b=c&255u;
+    if(r<fr)r=fr;
+    if(g<fg)g=fg;
+    if(b<fb)b=fb;
+    return 0xff000000u|(r<<16)|(g<<8)|b;
+}
 static int emit_failed;
 typedef struct {
     rast_record records[144];
@@ -297,15 +314,15 @@ static uint32_t facing(int32_t x,int32_t y,int32_t z,int32_t hw,int32_t hh,
 
 static uint32_t wall_color(int32_t z,unsigned face)
 {
-    /* 亮蓝+亮紫双色墙面:侧墙(1,2,5,6)偏紫,顶底(0,3,4,7)偏蓝;
-       乘数平台 200,整幅提亮;远端淡入雾幕(雾幕封底见 r4_world_emit)。 */
+    /* 深灰蓝哑面:纹理退成背景,色相收敛,青只属于发光物(灯带/门框/雾幕)。
+       近处最暗、向远端渐亮——给"隧道尽头的光"让路(雾幕封底见 r4_world_emit)。 */
     uint32_t distance=(uint32_t)(-z);
-    unsigned shade=200u+(uint32_t)(55u*9u*R4_ONE)/(9u*R4_ONE+distance);
+    unsigned shade=150u+(uint32_t)(60u*distance)/(9u*R4_ONE+distance);
     const unsigned light[8]={210,255,196,182,188,240,200,196};
     shade=shade*light[face]/255u;
     unsigned r,g,b;
-    if(face==1||face==2||face==5||face==6){ r=shade*172u/255u; g=shade*142u/255u; b=shade; }
-    else { r=shade*148u/255u; g=shade*198u/255u; b=shade; }
+    if(face==1||face==2||face==5||face==6){ r=shade*112u/255u; g=shade*126u/255u; b=shade*150u/255u; }
+    else { r=shade*100u/255u; g=shade*114u/255u; b=shade*152u/255u; }
     return 0xff000000u|(r<<16)|(g<<8)|b;
 }
 
@@ -425,9 +442,9 @@ static uint32_t ridge_poly(const rast_view_vertex *v, unsigned n,
     }
     return got;
 }
-static uint32_t ridge_terrain_emit(const r4_world *w, const fx16_mat4 *projection,
+static uint32_t ridge_terrain_span(const r4_world *w, const fx16_mat4 *projection,
                                    const rast_viewport *vp, rast_record *out,
-                                   uint32_t cap, rast_setup_stats *st)
+                                   uint32_t cap, rast_setup_stats *st,unsigned first,unsigned last)
 {
     uint32_t n = 0u;
     const uint32_t *pal = ridge_palettes[ridge_zone(w)];
@@ -435,9 +452,9 @@ static uint32_t ridge_terrain_emit(const r4_world *w, const fx16_mat4 *projectio
     int32_t dz = ((RIDGE_Z1 - RIDGE_Z0) * R4_ONE) / (int32_t)RIDGE_NZ;
     int32_t hl[RIDGE_NZ + 1u];
     for (uint32_t j = 0; j <= RIDGE_NZ; ++j)
-        hl[j] = ridge_ground(-RIDGE_HALF_X * R4_ONE, w->d,
+        hl[j] = ridge_ground(-RIDGE_HALF_X * R4_ONE+(int32_t)first*dx, w->d,
                              RIDGE_Z0 + (int32_t)j * (dz / R4_ONE));
-    for (uint32_t i = 0; i < RIDGE_NX; ++i) {
+    for (uint32_t i = first; i < last; ++i) {
         int32_t x0 = -RIDGE_HALF_X * R4_ONE + (int32_t)i * dx;
         int32_t x1 = x0 + dx;
         int32_t hr[RIDGE_NZ + 1u];
@@ -475,6 +492,11 @@ static uint32_t ridge_terrain_emit(const r4_world *w, const fx16_mat4 *projectio
     }
     return n;
 }
+
+static uint32_t ridge_terrain_emit(const r4_world *w,const fx16_mat4 *projection,
+                                  const rast_viewport *vp,rast_record *out,
+                                  uint32_t cap,rast_setup_stats *st)
+{return ridge_terrain_span(w,projection,vp,out,cap,st,0,RIDGE_NX);}
 
 /* 云：水平云板（贴着 x-z 平面的扁平板），从下往上看读作云层而不是纸片；
    双板错位叠出厚度。世界锚定 96m 窗循环，回卷点在雾里不可见。 */
@@ -676,6 +698,137 @@ static uint32_t ridge_emit(const r4_world *w, const fx16_mat4 *projection,
     return n;
 }
 
+/* Environment depends on integer distance, projection and viewport only.
+ * Two fixed pages hold current/next metre; shadow and plane stay dynamic.
+ * Future emitters that depend on tick/input must extend this key or opt out. */
+typedef struct {
+    rast_record terrain[320],props[128],clouds[64];
+    uint32_t metre,nt,np,nc;
+    unsigned column;
+    int usable,ready;
+} flight_page;
+static flight_page flight_pages[2];
+static rast_record flight_scratch[R4_RECORD_CAP];
+static fx16_mat4 flight_projection;
+static rast_viewport flight_viewport;
+static unsigned flight_current;
+static int flight_key_valid;
+static r4_flight_cache_stats flight_stats;
+
+void r4_flight_cache_reset(void)
+{
+    flight_key_valid=0;
+    memset(&flight_stats,0,sizeof flight_stats);
+}
+
+r4_flight_cache_stats r4_flight_cache_status(void) {return flight_stats;}
+
+static void flight_page_begin(flight_page *page,uint32_t metre)
+{
+    page->metre=metre;page->nt=page->np=page->nc=0;
+    page->column=0;page->usable=1;page->ready=0;
+}
+
+static void flight_page_step(flight_page *page,const r4_world *world,
+                             const fx16_mat4 *projection,const rast_viewport *vp)
+{
+    if(page->ready)return;
+    r4_world sample=*world;sample.d=page->metre<<16;
+    rast_setup_stats st={0};unsigned column=page->column;
+    uint32_t n=ridge_terrain_span(&sample,projection,vp,flight_scratch,
+                                 R4_RECORD_CAP,&st,column,column+1u);
+    if(n>320u-page->nt)page->usable=0;
+    else if(page->usable) {
+        memcpy(page->terrain+page->nt,flight_scratch,n*sizeof *flight_scratch);page->nt+=n;
+    }
+    if(column==0u) {
+        n=ridge_props_emit(&sample,projection,vp,flight_scratch,R4_RECORD_CAP,&st);
+        if(n>128u)page->usable=0;
+        else {memcpy(page->props,flight_scratch,n*sizeof *flight_scratch);page->np=n;}
+    }
+    if(column==1u) {
+        n=ridge_clouds_emit(&sample,projection,vp,flight_scratch,R4_RECORD_CAP,&st);
+        if(n>64u)page->usable=0;
+        else {memcpy(page->clouds,flight_scratch,n*sizeof *flight_scratch);page->nc=n;}
+    }
+    ++page->column;++flight_stats.columns;
+    page->ready=page->column==RIDGE_NX;
+}
+
+static flight_page *flight_select(const r4_world *world,const fx16_mat4 *projection,
+                                  const rast_viewport *vp)
+{
+    uint32_t metre=world->d>>16;
+#ifdef R4_INJECT_FLIGHT_STALE_VIEW
+    int same=flight_key_valid;
+#else
+    int same=flight_key_valid && !memcmp(projection,&flight_projection,sizeof *projection) &&
+             !memcmp(vp,&flight_viewport,sizeof *vp);
+#endif
+    if(!same || (flight_pages[flight_current].metre!=metre &&
+                 flight_pages[flight_current^1u].metre!=metre)) {
+        flight_projection=*projection;flight_viewport=*vp;flight_current=0;flight_key_valid=1;
+        flight_page_begin(&flight_pages[0],metre);
+        flight_page_begin(&flight_pages[1],(metre+1u)&65535u);
+        for(unsigned p=0;p<2u;++p)while(!flight_pages[p].ready)
+            flight_page_step(&flight_pages[p],world,projection,vp);
+        ++flight_stats.cold;
+    }
+    if(flight_pages[flight_current].metre!=metre) {
+        flight_current^=1u;
+        flight_page *current=&flight_pages[flight_current];
+        if(!current->ready) {
+            ++flight_stats.late;
+            while(!current->ready)flight_page_step(current,world,projection,vp);
+        }
+        flight_page_begin(&flight_pages[flight_current^1u],(metre+1u)&65535u);
+    }
+    return &flight_pages[flight_current];
+}
+
+int r4_flight_prewarm(const r4_world *world,const fx16_mat4 *projection,const rast_viewport *vp)
+{
+    r4_flight_cache_reset();
+    if(!R4_DISABLE_FLIGHT_CACHE)(void)flight_select(world,projection,vp);
+    return 0;
+}
+
+static uint32_t ridge_emit_cached(const r4_world *world,const fx16_mat4 *projection,
+                                  const rast_viewport *vp,rast_record *out,uint32_t cap,
+                                  rast_setup_stats *stats)
+{
+    if(R4_DISABLE_FLIGHT_CACHE || cap!=R4_RECORD_CAP)
+        return ridge_emit(world,projection,vp,out,cap,stats);
+    flight_page *page=flight_select(world,projection,vp);
+    /* Seven columns fit within the seven/eight 30Hz ticks per metre. Props
+     * and clouds are spread over the first two jobs; no boundary-only rebuild. */
+    flight_page_step(&flight_pages[flight_current^1u],world,projection,vp);
+    if(!page->usable) {
+        ++flight_stats.fallback;return ridge_emit(world,projection,vp,out,cap,stats);
+    }
+    uint32_t n=page->nt;
+    memcpy(out,page->terrain,n*sizeof *out);
+    n+=ridge_shadow_emit(world,projection,vp,out+n,cap-n,stats);
+    n+=ridge_plane_emit(world,projection,vp,out+n,cap-n,stats);
+    if(cap-n>=24u) {
+        if(cap-n>=page->np+20u) {memcpy(out+n,page->props,page->np*sizeof *out);n+=page->np;}
+        else n+=ridge_props_emit(world,projection,vp,out+n,cap-n,stats);
+    }
+    if(cap-n>=16u) {
+        if(cap-n>=page->nc+10u) {memcpy(out+n,page->clouds,page->nc*sizeof *out);n+=page->nc;}
+        else n+=ridge_clouds_emit(world,projection,vp,out+n,cap-n,stats);
+    }
+    ++flight_stats.hits;return n;
+}
+
+#ifdef R4_FLIGHT_TEST
+uint32_t r4_flight_reference(const r4_world *world,const fx16_mat4 *projection,
+                            const rast_viewport *vp,rast_record *out,uint32_t cap)
+{
+    rast_setup_stats stats={0};return ridge_emit(world,projection,vp,out,cap,&stats);
+}
+#endif
+
 uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
                        const rast_viewport *vp,uint32_t ladder,
                        rast_record *out,uint32_t cap,rast_setup_stats *counts)
@@ -685,7 +838,7 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
     uint32_t walls=flat|(ladder>=2?RAST_TEX_EN:0);
     uint32_t keyed=ladder>=2?(RAST_TEX_EN|RAST_KEY_EN|RAST_VCOLOR_EN):flat;
     if (w->scene == 2u)
-        return ridge_emit(w, projection, vp, out, cap, &st);
+        return ridge_emit_cached(w, projection, vp, out, cap, &st);
     fx16_mat4 camera_projection=*projection;
     uint16_t camera_angle=(uint16_t)((w->ticks%WALL_PHASES)*65536u/WALL_PHASES);
     /* Trigonometric outputs are Q1.14; convert to Q16.16 before metre offsets. */
@@ -723,9 +876,22 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
     }
     /* A nearest gate receives real inner walls; distant gates retain the cheap
        front rim. All parts share the world depth test. */
-    /* 雾幕封底:走廊尽头的发光霾墙(亮蓝紫),盖住 33m 外的一切——
-       远端分段回绕的接缝由此不可见,"到头重播"感消失。 */
-    n+=facing(0,0,-33*R4_ONE,R4_HALF_W,R4_HALF_H,0xff5a64ff,0,0,flat,vp,projection,out+n,cap-n,&st);
+    /* 雾幕封底:隧道尽头的光——机高最亮,向顶/底渐暗(两段 Gouraud 拼出中央亮带),
+       盖住 33m 外的一切,远端分段回绕的接缝由此不可见。 */
+    {
+        const uint32_t ctop=0xff101a30u,cbright=0xff9fd4f0u,cbot=0xff0a1020u;
+        rast_view_vertex v[4];
+        vertex(v,-R4_HALF_W,R4_HALF_H,-33*R4_ONE,0,0,ctop);
+        vertex(v+1,R4_HALF_W,R4_HALF_H,-33*R4_ONE,0,0,ctop);
+        vertex(v+2,R4_HALF_W,0,-33*R4_ONE,0,0,cbright);
+        vertex(v+3,-R4_HALF_W,0,-33*R4_ONE,0,0,cbright);
+        n+=polygon(v,4,vp,flat,projection,out+n,cap-n,&st);
+        vertex(v,-R4_HALF_W,0,-33*R4_ONE,0,0,cbright);
+        vertex(v+1,R4_HALF_W,0,-33*R4_ONE,0,0,cbright);
+        vertex(v+2,R4_HALF_W,-R4_HALF_H,-33*R4_ONE,0,0,cbot);
+        vertex(v+3,-R4_HALF_W,-R4_HALF_H,-33*R4_ONE,0,0,cbot);
+        n+=polygon(v,4,vp,flat,projection,out+n,cap-n,&st);
+    }
     unsigned nearest=R4_GATE_SLOTS;
     int32_t nearest_z=-DRAW_FAR;
     for(unsigned i=0;i<R4_GATE_SLOTS;++i) {
@@ -769,33 +935,15 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
             }
         }
     }
-    /* 速度线:贴两侧墙的细亮条,世界系固定距离,随前进自然扑面。
-       距离相位取 (d+off) 对 12m 窗取模,确定式,无随机数。 */
-    {
-        const int32_t offs[6]={0,7*R4_ONE/2,5*R4_ONE,17*R4_ONE/2,10*R4_ONE,27*R4_ONE/2};
-        for(unsigned i=0;i<6;++i) {
-            uint32_t ahead=((w->d+(uint32_t)offs[i])%(12u*R4_ONE))+2u*R4_ONE;
-            int32_t z=(int32_t)w->d-(int32_t)ahead;
-            if(z>=-(R4_SHIP_Z+2*R4_ONE) || z< -DRAW_FAR)continue;
-            int32_t z1=z-5*R4_ONE/2;
-            int32_t sx=((i&1u)?1:-1)*(R4_HALF_W-R4_ONE/4);
-            int32_t y0=-R4_HALF_H+ (int32_t)(i+1u)*(R4_HALF_H/4);
-            int32_t y1=y0+R4_HALF_H/5;
-            uint32_t c=(i&1u)?0xffd8f4ffu:0xff9adfffu;
-            rast_view_vertex v[4];
-            vertex(v,sx,y0,z,0,0,c);vertex(v+1,sx,y0,z1,0,0,c);
-            vertex(v+2,sx,y1,z1,0,0,c);vertex(v+3,sx,y1,z,0,0,c);
-            n+=polygon(v,4,vp,flat,projection,out+n,cap-n,&st);
-        }
-    }
-    /* 顶灯光带:走廊轴向每 4m 一条,亮度按帧脉动(青白),读作环境在发光。 */
+    /* 顶灯光带:走廊轴向每 4m 一条,恒亮青白——发光只留灯带与门框两种,
+       速度感交给灯带节律与门框扑面,不再撒细亮条。 */
     {
         uint32_t seg=w->d/(4u*R4_ONE);
+        const unsigned pl=205u;
         for(unsigned j=0;j<4;++j) {
             uint32_t W=(seg+j)*4u*R4_ONE+3u*R4_ONE/2;
             int32_t z=(int32_t)w->d-(int32_t)W;
             if(z>=-(R4_SHIP_Z+R4_ONE) || z< -DRAW_FAR)continue;
-            unsigned pl=170u+85u*fx_sin((uint16_t)(w->ticks*1093u+j*8192u))/16384;
             uint32_t c=0xff000000u|((pl*190u/255)<<16)|((pl*235u/255)<<8)|pl;
             rast_view_vertex v[4];
             vertex(v,-2*R4_ONE,R4_HALF_H-R4_ONE/64,z,0,0,c);
@@ -814,8 +962,10 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
             /* Kenney spaceCraft1(CC0)减面版:36 顶点 76 面,横滚绕前进轴。 */
             const int16_t bank=fx_cos((uint16_t)(w->ticks*370u))*4/5;
             const int32_t cosine=FX16_ONE-fx16_mul(bank,bank)/2;
-            const int16_t elight[3]={-9000,14000,-8500};
-            const int16_t ehalf[3]={-4000,6500,-14500};
+            const int16_t elight[3]={-6000,12000,11000};
+            const int16_t ehalf[3]={-4000,6500,12000};
+            /* 材质索引 → 实色:琥珀机身/板岩暗件/赤红饰条(与 2D 身份色同族)。 */
+            const uint32_t ematerial[3]={0x00d8a058,0x004a5e74,0x00c85a40};
             rast_view_vertex v[R4_ENEMY_VERTICES];rast_vertex screen[R4_ENEMY_VERTICES];
             for(unsigned j=0;j<R4_ENEMY_VERTICES;++j) {
                 const int16_t *local=r4_enemy_vertices[j];
@@ -832,7 +982,7 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
                     unsigned idx=r4_enemy_faces[j][k];
                     tri[k]=v[idx];
                     tri[k].color=w->enemy_hit?0xffffffffu:
-                        r4_light_color(r4_enemy_normals[idx],elight,ehalf,mat);
+                        r4_fill_color(r4_enemy_normals[idx],elight,ehalf,ematerial[mat]);
                     if(cached){projected[k]=screen[idx];projected[k].color=tri[k].color;}
                 }
                 int emitted=cached?gfx_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st):
@@ -848,15 +998,15 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         int32_t roll=w->bank;
         int32_t cosine=FX16_ONE-fx16_mul(roll,roll)/2;
         int16_t light[3]={(int16_t)((fx16_mul(-32000,cosine)+fx16_mul(44000,roll))/4),
-            (int16_t)((fx16_mul(44000,cosine)-fx16_mul(-32000,roll))/4),-8500};
-        int16_t half[3]={-4000,6500,-14500};
-        const uint32_t material[4]={0x00b9d7e5,0x002a3d55,0x00367fc5,0x00ff4fd8};
+            (int16_t)((fx16_mul(44000,cosine)-fx16_mul(-32000,roll))/4),10000};
+        int16_t half[3]={-4000,6500,14000};
+        const uint32_t material[4]={0x00b9d7e5,0x004a5e74,0x00cfeeff,0x00ff4fd8};
         for(unsigned i=0;i<R4_SHIP_VERTICES;++i) {
             const int16_t *local=r4_ship_vertices[i];
             int32_t x=fx16_mul(local[0],cosine)-fx16_mul(local[1],roll);
             int32_t y=fx16_mul(local[0],roll)+fx16_mul(local[1],cosine);
             int32_t z=local[2]+w->pitch*local[1]/5+w->strafe*local[0]/6;
-            for(unsigned m=0;m<4;++m)colors[m][i]=r4_light_color(r4_ship_normals[i],light,half,material[m]);
+            for(unsigned m=0;m<4;++m)colors[m][i]=r4_fill_color(r4_ship_normals[i],light,half,material[m]);
             vertex(v+i,x+w->cam_x,y+w->ship_y,z-R4_SHIP_Z,0,0,colors[0][i]);
         }
         int cached=!R4_DISABLE_VERTEX_CACHE && !r4_project_inside(v,R4_SHIP_VERTICES,projection,
