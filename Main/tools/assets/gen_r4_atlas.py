@@ -35,7 +35,7 @@ from PIL import Image
 
 W = 64
 TEXELS = W * W
-VERSION = 11
+VERSION = 12
 
 TRANS = (0, 0, 0, 0)
 OPAQUE = 255
@@ -69,48 +69,35 @@ def px_region1(x, y):
 
 
 def px_region2(x, y):
-    """敌机 billboard:Omen 三角翼剪影(与近景 3D 模型同形同色)。
-    琥珀壳+前缘亮+后缘暗带+板岩座舱+赤红双引擎口,圈外二值透明。"""
-    # 俯视六边形:鼻(16,3) 右翼尖(30,26) 右后凹(19,19) 尾中(16,22)
-    #            左后凹(13,19) 左翼尖(2,26) —— 后缘内凹出燕尾
-    poly = ((16, 3), (30, 26), (19, 19), (16, 22), (13, 19), (2, 26))
-    inside = False
-    n = len(poly)
-    for i in range(n):
-        x0, y0 = poly[i]
-        x1, y1 = poly[(i + 1) % n]
-        if (y0 > y) != (y1 > y):
-            xi = x0 + (y - y0) * (x1 - x0) / (y1 - y0)
-            if x < xi:
-                inside = not inside
-    if not inside:
+    """自机弹 billboard(用户挑 SSR laserBlue11=X 形):青体白芯双斜杠,
+    外缘菱形收边,圈外二值透明。白色顶点色,不吃墙乘色。"""
+    if abs(x - 16) + abs(y - 16) > 15:
         return TRANS
-    # 前缘亮线:距鼻-翼尖两条连线 1px 内
-    def edge_dist(px0, py0, px1, py1):
-        num = abs((py1 - py0) * x - (px1 - px0) * y + px1 * py0 - py1 * px0)
-        return num / math.hypot(px1 - px0, py1 - py0)
-    if min(edge_dist(16, 3, 2, 26), edge_dist(16, 3, 30, 26)) < 1.2:
-        return (240, 192, 120, OPAQUE)
-    if y >= 19:                                   # 后缘暗带
-        return (138, 90, 52, OPAQUE)
-    if abs(x - 16) <= 1 and 6 <= y <= 12:         # 板岩座舱条
-        return (74, 94, 116, OPAQUE)
-    if (x, y) in ((12, 20), (20, 20), (12, 21), (20, 21)):
-        return (200, 90, 64, OPAQUE)              # 赤红双引擎口
-    return (216, 160, 88, OPAQUE)
+    d1 = abs(x - y)
+    d2 = abs(x + y - 31)
+    if min(d1, d2) <= 1.5:
+        return (235, 250, 255, OPAQUE)            # 白芯
+    if min(d1, d2) <= 5:
+        return (90, 190, 255, OPAQUE)             # 青体
+    return TRANS
 
 
 def px_region3(x, y):
-    """敌弹:品红光球,白芯更收紧,外缘加一圈暗紫衬托(可读性)。"""
+    """敌弹 billboard(用户挑 SSR laserBlue09=四芒星盘):白芯圆核+青蓝
+    十字四芒+暗青外缘,圈外二值透明。"""
     dx, dy = x - 16, y - 16
-    d2 = dx * dx + dy * dy
-    if d2 > 12 * 12:
+    d = math.hypot(dx, dy)
+    if d > 15:
         return TRANS
-    if d2 <= 9:
-        return (0xFF, 0xF6, 0xFE, OPAQUE)
-    if d2<=58:return (255,130,220,OPAQUE)
-    if d2<=100:return (198,52,150,OPAQUE)
-    return (86,26,74,OPAQUE)
+    if (abs(dx) <= 3 or abs(dy) <= 3) and d <= 14:
+        return (120, 205, 255, OPAQUE)            # 四芒臂
+    if d <= 6.5:
+        return (240, 250, 255, OPAQUE)            # 白核
+    if d <= 11:
+        return (80, 175, 245, OPAQUE)             # 亮青环
+    if d <= 14:
+        return (36, 110, 175, OPAQUE)             # 暗青外缘
+    return TRANS
 
 
 REGIONS = ((0, 0, px_region0), (32, 0, px_region1),
