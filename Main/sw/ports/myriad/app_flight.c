@@ -41,8 +41,9 @@ static int enter(appfw_ctx *c)
         renderer_prepare(1, &content_runtime(c)->tab) != 0)
         return -1;
     s_started = 1;
+    /* 山脊场景零纹理：L1 进入，跳过 cup atlas 装载（装载失败降级路径随之消失）。 */
     if (r4_mode_enter(&content_runtime(c)->tab, &content_runtime(c)->mem,
-                      (int)s_hw, 2u) != 0)
+                      (int)s_hw, 1u) != 0)
         return -1;
     s_fail_base = r4_fail_count();
     blank = content(c)->shown == STG_SLOT_FB0 ? STG_SLOT_FB1 : STG_SLOT_FB0;
@@ -85,8 +86,6 @@ static int frame(appfw_ctx *c, uint32_t keys, uint32_t n)
     int dst;
     (void)n;
     s_prev = keys;
-    if (keys & BOARD_KEY_CONFIRM) keys |= BOARD_KEY_BOMB;
-    keys &= ~BOARD_KEY_CONFIRM;
     dst = (int)(content(c)->seq & 1u);
     if (r4_mode_frame(&content_runtime(c)->tab, &content_runtime(c)->mem, dst,
                       keys | r4_pending_keys(), &out) != 0 ||

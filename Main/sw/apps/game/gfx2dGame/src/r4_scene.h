@@ -36,6 +36,9 @@ typedef struct {
     uint32_t ticks;
     uint32_t score, shield;
     uint32_t hiscore, graze, bombs, invulnerable, respawn;
+    uint32_t rings_passed;          /* 场景2：干净穿环数（进洞判定） */
+    uint32_t combo;                 /* 场景2：连续穿环连击（决定 boost 档位） */
+    uint32_t crash_ticks;           /* 场景2：撞环/撞山后的抖屏+红闪倒计时 */
     uint32_t manual, last_keys, enemy_hp, enemy_hit;
     uint32_t ladder;
     uint32_t scene;                 /* 0=走廊 1=茶杯 2=山脊飞行 */
@@ -56,6 +59,10 @@ void r4_world_tick(r4_world *w, uint32_t keys, uint32_t *fail);
 
 /* 门框横向位置序列（-1m/0/+1m 循环，种子决定起始），发射与逻辑共用。 */
 uint32_t r4_gate_x_of(uint32_t seq, uint32_t rng0);
+
+/* 场景 2 的门环序列是 ±1.4m/0（与走廊不同）；mode_enter 在 world_init 之后
+   调用它把初始四个门环挪到山脊序列（后续 recycle 在 tick 内自持）。 */
+void r4_scene2_fix_gates(r4_world *w);
 
 /* 把当前世界发射成 setup 记录（vp = 子视口，走廊 480x480）。
    ladder: 1=L1 平涂 2=L2 TEX。返回记录数；容量不足返回 UINT32_MAX，不呈现截断物体。
