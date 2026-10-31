@@ -218,13 +218,15 @@ static uint32_t facing(int32_t x,int32_t y,int32_t z,int32_t hw,int32_t hh,
 
 static uint32_t wall_color(int32_t z,unsigned face)
 {
-    /* 银翼杀手式大气:远处淡入青雾(乘法雾),不再淡入黑。
-       乘数平台抬高到 170,红通道压到 130/255 使远墙统一偏青。 */
+    /* 亮蓝+亮紫双色墙面:侧墙(1,2,5,6)偏紫,顶底(0,3,4,7)偏蓝;
+       乘数平台 200,整幅提亮;远端淡入雾幕(雾幕封底见 r4_world_emit)。 */
     uint32_t distance=(uint32_t)(-z);
-    unsigned shade=170u+(uint32_t)(85u*9u*R4_ONE)/(9u*R4_ONE+distance);
-    const unsigned light[8]={200,255,154,175,142,212,182,158};
+    unsigned shade=200u+(uint32_t)(55u*9u*R4_ONE)/(9u*R4_ONE+distance);
+    const unsigned light[8]={210,255,196,182,188,240,200,196};
     shade=shade*light[face]/255u;
-    unsigned r=shade*130u/255u,g=shade*205u/255u,b=shade;
+    unsigned r,g,b;
+    if(face==1||face==2||face==5||face==6){ r=shade*172u/255u; g=shade*142u/255u; b=shade; }
+    else { r=shade*148u/255u; g=shade*198u/255u; b=shade; }
     return 0xff000000u|(r<<16)|(g<<8)|b;
 }
 
@@ -292,6 +294,9 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
     }
     /* A nearest gate receives real inner walls; distant gates retain the cheap
        front rim. All parts share the world depth test. */
+    /* 雾幕封底:走廊尽头的发光霾墙(亮蓝紫),盖住 33m 外的一切——
+       远端分段回绕的接缝由此不可见,"到头重播"感消失。 */
+    n+=facing(0,0,-33*R4_ONE,R4_HALF_W,R4_HALF_H,0xff5a64ff,0,0,flat,vp,projection,out+n,cap-n,&st);
     unsigned nearest=R4_GATE_SLOTS;
     int32_t nearest_z=-DRAW_FAR;
     for(unsigned i=0;i<R4_GATE_SLOTS;++i) {
@@ -309,20 +314,11 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         /* 青色=引导门,品红=危险门(每三道);与 2D 身份色一致。 */
         uint32_t danger=(g->dist/R4_GATE_SPACING)%3u==0;
         uint32_t c=danger?0xffff4fd8u:0xff35f2ffu;
-        uint32_t dim=danger?0xff7c2f68u:0xff1d8ca8u;
         if(!g->dist || z> -R4_SHIP_Z-R4_ONE/3 || z< -DRAW_FAR)continue;
         n+=facing(x-o,0,z,t,h,c,512,0,walls,vp,projection,out+n,cap-n,&st);
         n+=facing(x+o,0,z,t,h,c,512,0,walls,vp,projection,out+n,cap-n,&st);
         n+=facing(x,h,z,o,t,c,512,0,walls,vp,projection,out+n,cap-n,&st);
         n+=facing(x,-h,z,o,t,c,512,0,walls,vp,projection,out+n,cap-n,&st);
-        /* 内环回声:细一圈暗色平涂,读作能量场的第二层。 */
-        {
-            const int32_t o2=o*3/5,t2=t/3+R4_ONE/48,h2=h*3/5;
-            n+=facing(x-o2,0,z,t2,h2,dim,0,0,flat,vp,projection,out+n,cap-n,&st);
-            n+=facing(x+o2,0,z,t2,h2,dim,0,0,flat,vp,projection,out+n,cap-n,&st);
-            n+=facing(x,h2,z,o2,t2,dim,0,0,flat,vp,projection,out+n,cap-n,&st);
-            n+=facing(x,-h2,z,o2,t2,dim,0,0,flat,vp,projection,out+n,cap-n,&st);
-        }
         if(i==nearest && z>-11*R4_ONE) {
             const int32_t edge[3]={x-o+t,x+o-t,h-t};
             for(unsigned side=0;side<3;++side) {
@@ -370,8 +366,8 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
             uint32_t W=(seg+j)*4u*R4_ONE+3u*R4_ONE/2;
             int32_t z=(int32_t)w->d-(int32_t)W;
             if(z>=-(R4_SHIP_Z+R4_ONE) || z< -DRAW_FAR)continue;
-            int32_t pl=160*R4_ONE/256+(80*R4_ONE/256)*fx_sin((uint16_t)(w->ticks*1093u+j*8192u))/16384;
-            uint32_t c=0xff000000u|((uint32_t)(pl*190u/256)<<16)|((uint32_t)(pl*235u/256)<<8)|(uint32_t)pl;
+            unsigned pl=170u+85u*fx_sin((uint16_t)(w->ticks*1093u+j*8192u))/16384;
+            uint32_t c=0xff000000u|((pl*190u/255)<<16)|((pl*235u/255)<<8)|pl;
             rast_view_vertex v[4];
             vertex(v,-2*R4_ONE,R4_HALF_H-R4_ONE/64,z,0,0,c);
             vertex(v+1,2*R4_ONE,R4_HALF_H-R4_ONE/64,z,0,0,c);
@@ -386,53 +382,52 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
         if(z< -8*R4_ONE) n+=facing(w->enemy.x,w->enemy.y,z,
                 R4_ONE/2,R4_ONE/2,c,0,512,keyed,vp,projection,out+n,cap-n,&st);
         else {
-            const int32_t model[6][3]={{0,0,12000},{-31000,-1800,-4000},
-                {31000,-1800,-4000},{0,17000,-8000},{0,-13500,-8000},{0,0,-21000}};
-            const unsigned faces[8][3]={{0,1,3},{0,3,2},{0,4,1},{0,2,4},
-                                      {5,3,1},{5,2,3},{5,1,4},{5,4,2}};
-            const uint32_t colors[6]={0xffffdfaa,0xff713542,0xffb75e5a,
-                                      0xffe6a17b,0xff4a344a,0xffa44c65};
-            rast_view_vertex v[6];rast_vertex screen[6];
-            int32_t bank=fx_cos((uint16_t)(w->ticks*370u))*4/5;
-            int32_t cosine=FX16_ONE-fx16_mul(bank,bank)/2;
-            for(unsigned j=0;j<6;++j) {
-                int32_t x=fx16_mul(model[j][0],cosine)-fx16_mul(model[j][1],bank);
-                int32_t y=fx16_mul(model[j][0],bank)+fx16_mul(model[j][1],cosine);
-                vertex(v+j,w->enemy.x+x,w->enemy.y+y,z+model[j][2],0,0,
-                    w->enemy_hit?0xffffffff:colors[j]);
+            /* Kenney spaceCraft1(CC0)减面版:36 顶点 76 面,横滚绕前进轴。 */
+            const int16_t bank=fx_cos((uint16_t)(w->ticks*370u))*4/5;
+            const int32_t cosine=FX16_ONE-fx16_mul(bank,bank)/2;
+            const int16_t elight[3]={-9000,14000,-8500};
+            const int16_t ehalf[3]={-4000,6500,-14500};
+            rast_view_vertex v[R4_ENEMY_VERTICES];rast_vertex screen[R4_ENEMY_VERTICES];
+            for(unsigned j=0;j<R4_ENEMY_VERTICES;++j) {
+                const int16_t *local=r4_enemy_vertices[j];
+                int32_t x=fx16_mul(local[0],cosine)-fx16_mul(local[1],bank);
+                int32_t y=fx16_mul(local[0],bank)+fx16_mul(local[1],cosine);
+                vertex(v+j,w->enemy.x+x,w->enemy.y+y,z+local[2],0,0,0);
             }
-            int cached=!R4_DISABLE_VERTEX_CACHE && !r4_project_inside(v,6,projection,
+            int cached=!R4_DISABLE_VERTEX_CACHE && !r4_project_inside(v,R4_ENEMY_VERTICES,projection,
                 R4_NEAR_Z,R4_FAR_Z,vp,screen);
-            for(unsigned j=0;j<8;++j) {
+            for(unsigned j=0;j<R4_ENEMY_FACES;++j) {
                 rast_view_vertex tri[3];rast_vertex projected[3];
-                for(unsigned k=0;k<3;++k){tri[k]=v[faces[j][k]];if(cached)projected[k]=screen[faces[j][k]];}
+                uint32_t mat=r4_enemy_material[j];
+                for(unsigned k=0;k<3;++k){
+                    unsigned idx=r4_enemy_faces[j][k];
+                    tri[k]=v[idx];
+                    tri[k].color=w->enemy_hit?0xffffffffu:
+                        r4_light_color(r4_enemy_normals[idx],elight,ehalf,mat);
+                    if(cached){projected[k]=screen[idx];projected[k].color=tri[k].color;}
+                }
                 int emitted=cached?gfx_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st):
                     gfx_setup_view(tri,3,projection,R4_NEAR_Z,R4_FAR_Z,vp,&frame,flat,out+n,cap-n,&st);
                 if(emitted<0)emit_failed=1;else n+=(uint32_t)emitted;
             }
-            rast_view_vertex eye[3];
-            vertex(eye,w->enemy.x-R4_ONE/13,w->enemy.y+R4_ONE/16,z+14000,0,0,0xffffe2a0);
-            vertex(eye+1,w->enemy.x+R4_ONE/13,w->enemy.y+R4_ONE/16,z+14000,0,0,0xffffe2a0);
-            vertex(eye+2,w->enemy.x,w->enemy.y-R4_ONE/16,z+14000,0,0,0xffffe2a0);
-            n+=polygon(eye,3,vp,flat,projection,out+n,cap-n,&st);
         }
     }
     /* Shared projection, smooth fuselage, hard metal wings and glass cockpit. */
     if(w->shield) {
         rast_view_vertex v[R4_SHIP_VERTICES];rast_vertex screen[R4_SHIP_VERTICES];
-        uint32_t colors[3][R4_SHIP_VERTICES];
+        uint32_t colors[4][R4_SHIP_VERTICES];
         int32_t roll=w->bank;
         int32_t cosine=FX16_ONE-fx16_mul(roll,roll)/2;
         int16_t light[3]={(int16_t)((fx16_mul(-32000,cosine)+fx16_mul(44000,roll))/4),
             (int16_t)((fx16_mul(44000,cosine)-fx16_mul(-32000,roll))/4),-8500};
         int16_t half[3]={-4000,6500,-14500};
-        const uint32_t material[3]={0x00b9d7e5,0x00dae2df,0x00367fc5};
+        const uint32_t material[4]={0x00b9d7e5,0x002a3d55,0x00367fc5,0x00ff4fd8};
         for(unsigned i=0;i<R4_SHIP_VERTICES;++i) {
             const int16_t *local=r4_ship_vertices[i];
             int32_t x=fx16_mul(local[0],cosine)-fx16_mul(local[1],roll);
             int32_t y=fx16_mul(local[0],roll)+fx16_mul(local[1],cosine);
             int32_t z=local[2]+w->pitch*local[1]/5+w->strafe*local[0]/6;
-            for(unsigned m=0;m<3;++m)colors[m][i]=r4_light_color(r4_ship_normals[i],light,half,material[m]);
+            for(unsigned m=0;m<4;++m)colors[m][i]=r4_light_color(r4_ship_normals[i],light,half,material[m]);
             vertex(v+i,x+w->cam_x,y+w->ship_y,z-R4_SHIP_Z,0,0,colors[0][i]);
         }
         int cached=!R4_DISABLE_VERTEX_CACHE && !r4_project_inside(v,R4_SHIP_VERTICES,projection,
@@ -448,16 +443,6 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
             int emitted=cached?gfx_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st):
                 gfx_setup_view(tri,3,projection,R4_NEAR_Z,R4_FAR_Z,vp,&frame,flat,out+n,cap-n,&st);
             if(emitted<0)emit_failed=1;else n+=(uint32_t)emitted;
-            if(emitted==0 && r4_ship_material[i]==1) {
-                if(cached) {
-                    rast_vertex tmp=projected[1];projected[1]=projected[2];projected[2]=tmp;
-                    emitted=gfx_setup_polygon(projected,3,vp,&frame,flat,out+n,cap-n,&st);
-                    if(emitted<0)emit_failed=1;else n+=(uint32_t)emitted;
-                } else {
-                    rast_view_vertex tmp=tri[1];tri[1]=tri[2];tri[2]=tmp;
-                    n+=polygon(tri,3,vp,flat,projection,out+n,cap-n,&st);
-                }
-            }
         }
         for(unsigned engine=0;engine<2;++engine) {
             const rast_view_vertex *origin=v+(engine?8:7);
@@ -472,8 +457,17 @@ uint32_t r4_world_emit(const r4_world *w,const fx16_mat4 *projection,
     for(unsigned i=0;i<R4_PBULLET_MAX;++i) {
         const r4_bullet *b=w->pbul+i;
         if(!b->alive)continue;
-        n+=facing(b->x,b->y,(int32_t)w->d+b->z,R4_ONE/40,R4_ONE/9,
-            0xffa0ffe0,0,0,flat,vp,projection,out+n,cap-n,&st);
+        /* 自机弹=青色光矢:十字双片沿 z 拉长,任意视角可见。 */
+        int32_t z=(int32_t)w->d+b->z,z1=z-4*R4_ONE/5;
+        for(unsigned axis=0;axis<2;++axis) {
+            rast_view_vertex v[4];
+            int32_t dx=axis?0:R4_ONE/48,dy=axis?R4_ONE/48:0;
+            vertex(v,b->x-dx,b->y-dy,z,0,0,0xffbdf6ff);
+            vertex(v+1,b->x+dx,b->y+dy,z,0,0,0xff35f2ff);
+            vertex(v+2,b->x+dx,b->y+dy,z1,0,0,0xff35f2ff);
+            vertex(v+3,b->x-dx,b->y-dy,z1,0,0,0xffbdf6ff);
+            n+=polygon(v,4,vp,flat,projection,out+n,cap-n,&st);
+        }
     }
     for(unsigned i=0;i<R4_EBULLET_MAX;++i) {
         const r4_bullet *b=w->ebul+i;

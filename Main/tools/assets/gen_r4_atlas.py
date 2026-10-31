@@ -34,7 +34,7 @@ from PIL import Image
 
 W = 64
 TEXELS = W * W
-VERSION = 4
+VERSION = 6
 
 TRANS = (0, 0, 0, 0)
 OPAQUE = 255
@@ -48,15 +48,15 @@ def px_region0(x, y):
     if edge == 1: return (96, 132, 158, OPAQUE)      # 倒角亮边(受光)
     if edge == 2: return (40, 58, 78, OPAQUE)
     # 顶部烤入渐变:越靠上越亮(伪顶光)
-    grad = (31 - y) * 22 // 31
-    r, g, b = 34 + grad, 50 + grad * 15 // 10, 66 + grad * 18 // 10
+    grad = (31 - y) * 30 // 31
+    r, g, b = 58 + grad, 82 + grad * 15 // 10, 108 + grad * 18 // 10
     # 内嵌面板:6..25 内再凹一层
     if 6 <= x <= 25 and 6 <= y <= 25:
         pe = min(x - 6, 25 - x, y - 6, 25 - y)
-        if pe == 0: r, g, b = 16, 26, 40
-        elif pe == 1: r, g, b = 88, 120, 146
+        if pe == 0: r, g, b = 30, 44, 62
+        elif pe == 1: r, g, b = 118, 156, 184
         else:
-            r, g, b = 44 + grad // 2, 62 + grad * 3 // 5, 84 + grad * 7 // 10
+            r, g, b = 72 + grad // 2, 100 + grad * 3 // 5, 130 + grad * 7 // 10
     # 青色发光凹槽:y=20 横贯 + x=20 短竖叉(能量导管)
     if y == 20 and 3 <= x <= 28: r, g, b = (70, 225, 255) if x & 3 else (150, 245, 255)
     if 18 <= x <= 22 and 20 <= y <= 26 and (x + y) & 1: r, g, b = (56, 190, 224)
@@ -74,14 +74,13 @@ def px_region1(x, y):
     ly = y % 32
     edge = min(lx, 31 - lx, ly, 31 - ly)
     if edge == 0: return (6, 12, 20, OPAQUE)
-    grad = (31 - ly) * 14 // 31
-    r, g, b = 22 + grad, 34 + grad, 48 + grad
-    if ly in (8, 9): r, g, b = 210, 250, 255          # 能量带白芯
-    elif ly in (7, 10): r, g, b = 40, 190, 230        # 青体
-    elif ly in (6, 11): r, g, b = 16, 70, 92          # 暗距
-    elif ly in (17, 18): r, g, b = 30, 130, 165       # 回声带(暗一档)
-    elif ly in (24, 25) and lx % 8 < 3: r, g, b = 196, 150, 60   # 琥珀刻度
-    if edge <= 1 and ly not in (7, 8, 9, 10): r, g, b = 70, 100, 118
+    if edge <= 1: return (40, 58, 74, OPAQUE)
+    grad = (31 - ly) * 22 // 31
+    r, g, b = 46 + grad, 64 + grad, 88 + grad
+    if ly in (13, 14): r, g, b = 235, 252, 255        # 能量带白芯
+    elif ly in (11, 12) or ly in (15, 16): r, g, b = 60, 205, 245   # 青体
+    elif ly in (9, 10) or ly in (17, 18): r, g, b = 20, 84, 110    # 暗距
+    elif ly in (21, 22): r, g, b = 34, 140, 175       # 回声带(暗一档)
     return (r, g, b, OPAQUE)
 
 
