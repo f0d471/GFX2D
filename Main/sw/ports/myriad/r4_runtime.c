@@ -22,6 +22,7 @@
 
 #include "core/crc32.h"
 #include "core/format.h"
+#include <math.h>
 #include "core/logq.h"
 #include "core/replay_r4.h"
 
@@ -116,7 +117,7 @@ int r4_set_replay(const uint8_t *data,uint32_t bytes)
     s_replay_on=1;return 0;
 }
 
-void r4_scene_select(uint32_t scene) {s_scene=scene?1u:0u;}
+void r4_scene_select(uint32_t scene) {s_scene = scene > 1u ? 2u : (scene ? 1u : 0u);}
 #if GFX2D_R4_RECORD
 static replay_r4_rec s_tape;
 static uint8_t      s_tape_buf[R4_REC_BUF_BYTES];
@@ -207,7 +208,7 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
     for(unsigned i=0;i<R4_EBULLET_MAX;++i)bullets+=s_world.ebul[i].alive!=0;
     objects+=bullets+(s_ladder>=2 && s_world.enemy.alive);
     for(unsigned i=0;i<R4_PBULLET_MAX;++i)objects+=s_world.pbul[i].alive!=0;
-    strcpy(rows[5],s_scene?"CUP / 396 FACES":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
+    strcpy(rows[5],s_scene==2u?"RIDGE FLIGHT":s_scene?"CUP / 396 FACES":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
     strcpy(rows[6],"SCORE");hud_number(rows[7],s_world.score,9);
     strcpy(rows[9],"HI-SCORE");hud_number(rows[10],s_world.hiscore,9);
     strcpy(rows[12],"PLAYER");strcpy(rows[14],"BOMB");
@@ -215,7 +216,12 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
     strcpy(rows[18],s_scene?(s_frame.width==FB_WIDTH?"SAME 320x240":"ADAPTIVE VIEW"):
         GFX2D_R4_JUDGE?"FIXED INPUT":s_hw?"FPGA RASTER":"CPU RASTER");
     strcpy(rows[19],s_ladder>=2?"L2 MATERIALS":"L1 SOLID");
-    strcpy(rows[20],s_scene?"FACES":"CONTACTS");hud_number(active,s_scene?396u:objects,2);
+    if (s_scene == 2u) {
+        unsigned i;
+        strcpy(rows[8], "RINGS"); hud_number(values[8], objects, 0);
+        for (i = 11u; i < R4_HUD_ROWS; ++i) { rows[i][0] = '\0'; values[i][0] = '\0'; }
+    }
+    strcpy(rows[20],s_scene==2u?"RINGS":s_scene?"FACES":"CONTACTS");hud_number(active,s_scene==2u?objects:(s_scene?396u:objects),2);
     strcpy(rows[24],"SHOTS");hud_number(values[24],bullets,0);
     strcpy(rows[25],"TRIS");hud_number(values[25],s_records,0);
     strcpy(rows[27],"SW FPS");strcpy(rows[28],"HW FPS");
@@ -230,14 +236,14 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
     /* Same rows, glyph sizes and right edge as the product's danmaku HUD. */
     memset(rows,0,sizeof rows);memset(values,0,sizeof values);
     strcpy(rows[1],"MYRIAD");
-    strcpy(rows[4],s_scene?"3D CUP":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
+    strcpy(rows[4],s_scene==2u?"RIDGE FLIGHT":s_scene?"3D CUP":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
     strcpy(rows[6],"SCORE");hud_number(rows[7],s_world.score,9);
     strcpy(rows[9],"HI-SCORE");hud_number(rows[10],s_world.hiscore,9);
     strcpy(rows[12],"PLAYER");strcpy(rows[14],"BOMB");
     strcpy(rows[16],"GRAZE");hud_number(values[16],s_world.graze,0);
     strcpy(rows[20],s_ladder>=2?"L2 MATERIALS":"L1 SOLID");
     strcpy(rows[21],s_scene?"ADAPTIVE VIEW":s_hw?"FPGA RASTER":"CPU RASTER");
-    strcpy(rows[24],s_scene?"FACES":"OBJECTS");hud_number(values[24],s_scene?396u:objects,0);
+    strcpy(rows[24],s_scene==2u?"RINGS":s_scene?"FACES":"OBJECTS");hud_number(values[24],s_scene==2u?objects:(s_scene?396u:objects),0);
     strcpy(rows[25],"TRIS");hud_number(values[25],s_records,0);
     strcpy(rows[27],"SW FPS");strcpy(rows[28],"HW FPS");
     for(unsigned i=0;i<2;++i) {
@@ -248,6 +254,10 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
         } else core_out_str(&o,"--");
     }
     strcpy(rows[29],"ESC MENU  C SCENE");
+    if (s_scene == 2u) {
+        unsigned i2;
+        for (i2 = 16u; i2 < 28u; ++i2) { rows[i2][0] = '\0'; values[i2][0] = '\0'; }
+    }
 #else
     {
         core_out o;core_out_init(&o,rows[29],sizeof rows[0]);
@@ -332,11 +342,69 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
 
 /* --- 背景与帧 CRC ----------------------------------------------------------- */
 
-/* 离屏底色：深蓝纵向渐变（LOAD 每帧整屏读它）。 */
+/* 离屏底色：深蓝纵向渐变（LOAD 每帧整屏读它）。场景 2 换成清晨天空。 */
+static uint32_t bg_mix(uint32_t a, uint32_t b, uint32_t t)
+{
+    uint32_t r, g, bl;
+    if (t > 256u) t = 256u;
+    r = ((((a >> 16) & 255u) * (256u - t)) + (((b >> 16) & 255u) * t)) >> 8;
+    g = ((((a >> 8) & 255u) * (256u - t)) + (((b >> 8) & 255u) * t)) >> 8;
+    bl = (((a & 255u) * (256u - t)) + ((b & 255u) * t)) >> 8;
+    return (r << 16) | (g << 8) | bl;
+}
+
+static void bg_disc(uint32_t *bg, int cx, int cy, int radius, uint32_t color)
+{
+    int y, x;
+    for (y = cy - radius; y <= cy + radius; ++y) {
+        int dy = y - cy;
+        if (y < 0 || y >= (int)FB_HEIGHT) continue;
+        for (x = cx - radius; x <= cx + radius; ++x) {
+            int dx = x - cx;
+            if (x < 0 || x >= (int)R4_WORLD_WIDTH) continue;
+            if (dx * dx + dy * dy <= radius * radius)
+                bg[(size_t)y * FB_ROW_PIXELS + (uint32_t)x] = color;
+        }
+    }
+}
+
+/* 远山：一条正弦脊线，从脊线向下填到地平线以下。 */
+static void bg_ridge_line(uint32_t *bg, int base_y, int amp, uint32_t color, int phase)
+{
+    int x;
+    for (x = 0; x < (int)R4_WORLD_WIDTH; ++x) {
+        int a = (x * 68 + phase) & 0xFFFF;
+        int b = (x * 26 + phase * 2) & 0xFFFF;
+        int s = fx_sin((uint16_t)a) / 2 + fx_sin((uint16_t)b) / 4;
+        int y0 = base_y - (amp * s) / 32768;
+        int y;
+        for (y = y0; y < (int)FB_HEIGHT; ++y) {
+            if (y < 0) continue;
+            bg[(size_t)y * FB_ROW_PIXELS + (uint32_t)x] = color;
+        }
+    }
+}
+
 static int build_background(const gfx_surface_table *tab,const gfx_mem *mem)
 {
     uint32_t *bg = (uint32_t *)((uint8_t *)board_region(REGION_OFFSCREEN).ptr+R4_BG_OFFSET);
     uint32_t  x, y;
+
+    if (s_scene == 2u) {
+        for (y = 0u; y < FB_HEIGHT; y++) {
+            uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
+            uint32_t c = bg_mix(0x4f9bcd, 0xffe6c4, (y * 256u) / FB_HEIGHT);
+            for (x = 0u; x < FB_WIDTH; x++)
+                row[x] = x < R4_WORLD_WIDTH ? c : R4_HUD_BG;
+            if (R4_WORLD_WIDTH < FB_WIDTH) row[R4_WORLD_WIDTH] = R4_HUD_LINE;
+        }
+        bg_disc(bg, 118, 116, 34, bg_mix(0xfff4dc, 0xffe6c4, 120u));
+        bg_disc(bg, 118, 116, 24, 0xfff4dc);
+        bg_ridge_line(bg, 252, 52, 0xbcaabe, 0);
+        bg_ridge_line(bg, 262, 38, 0x9694aa, 8000);
+        bg_ridge_line(bg, 272, 24, 0x6c7c8c, 21000);
+        return 0;
+    }
 
     for (y = 0u; y < FB_HEIGHT; y++) {
         uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
@@ -421,10 +489,11 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     if(board_region(REGION_OFFSCREEN).size<R4_BG_OFFSET+FB_BYTES) {++s_fail;return -1;}
     r4_world_init(&s_world, s_replay_on?s_replay.seed:R4_SEED);
     s_world.ladder=s_ladder;
+    s_world.scene=s_scene;
     s_rec = (rast_record *)(void *)((uint8_t *)board_region(REGION_SHARED).ptr + R4_REC_OFF);
     s_sub = (uint8_t *)board_region(REGION_SHARED).ptr + R4_SUB_OFF;
     s_depth = (uint16_t *)(void *)((uint8_t *)board_region(REGION_SHARED).ptr + R4_DEPTH_OFF);
-    if(!s_scene && r4_world_prewarm(&s_proj,&s_vp,s_ladder,s_rec,R4_REC_MAX)) {
+    if(s_scene==0u && r4_world_prewarm(&s_proj,&s_vp,s_ladder,s_rec,R4_REC_MAX)) {
         ++s_fail;return -1;
     }
 
@@ -627,6 +696,91 @@ static int frame_layout(int index)
     return 0;
 }
 
+/* --- 场景 2 的门环：逐像素叠加 ---------------------------------------------
+   3D 光栅每个面一个颜色，环再密也有明暗台阶；这里直接在帧缓冲上按管面法线
+   逐像素着色，得到和样板一致的光滑甜甜圈，并且不占 rast 记录（纸飞机才留得下）。 */
+static void ridge_gate_overlay(void)
+{
+    unsigned w = s_frame.width > 160u ? s_frame.width - 160u : s_frame.width;
+    unsigned h = s_frame.height;
+    double f = (double)w * 0.5 / 0.704;          /* fov 70.3125° */
+    int order[R4_GATE_SLOTS];
+    unsigned k = 0u, i, a, b;
+    const double tq = 0.30 / 2.8;               /* 管径 / 环半径 */
+    const double Lx = -0.45, Ly = 0.55, Lz = 0.70;
+
+    for (i = 0u; i < R4_GATE_SLOTS; ++i) {
+        int32_t z = (int32_t)s_world.d - (int32_t)s_world.gate[i].dist;
+        if (!s_world.gate[i].dist) continue;
+        if (z > -5 * (int32_t)R4_ONE || z < -40 * (int32_t)R4_ONE) continue;
+        order[k++] = (int)i;
+    }
+    for (a = 0u; a < k; ++a)
+        for (b = a + 1u; b < k; ++b) {
+            int32_t za = (int32_t)s_world.d - (int32_t)s_world.gate[order[a]].dist;
+            int32_t zb = (int32_t)s_world.d - (int32_t)s_world.gate[order[b]].dist;
+            if (za < zb) { int t = order[a]; order[a] = order[b]; order[b] = t; }
+        }
+    for (a = 0u; a < k; ++a) {
+        const r4_gate *g = &s_world.gate[order[a]];
+        int32_t z = (int32_t)s_world.d - (int32_t)g->dist;
+        int32_t depth = -z;
+        int32_t cxp = (int32_t)w / 2 + (int32_t)((int64_t)g->x * (int64_t)f / depth);
+        int32_t cyp = (int32_t)h / 2 - (int32_t)(((int64_t)R4_ONE * (int64_t)f) / depth);
+        int32_t rpx = (int32_t)((int64_t)(28 * R4_ONE / 10) * (int64_t)f / depth);
+        int32_t thick = (int32_t)(rpx * tq);
+        int32_t x0, x1, y0, y1, px, py;
+        if (rpx < 3) continue;
+        if (rpx > 320) { thick = (int32_t)(320 * tq); rpx = 320; }
+        x0 = cxp - rpx - 2; x1 = cxp + rpx + 2;
+        y0 = cyp - rpx - 2; y1 = cyp + rpx + 2;
+        if (x0 < 0) x0 = 0;
+        if (y0 < 0) y0 = 0;
+        if (x1 > (int32_t)w - 1) x1 = (int32_t)w - 1;
+        if (y1 > (int32_t)h - 1) y1 = (int32_t)h - 1;
+        for (py = y0; py <= y1; ++py) {
+            uint32_t *row = s_frame.pixels + (size_t)py * s_frame.stride;
+            for (px = x0; px <= x1; ++px) {
+                double dx = px - cxp, dy = py - cyp;
+                double rr = sqrt(dx * dx + dy * dy);
+                double uu, nz2, nz, nx, ny, dif, spec, cov;
+                int cr, cg, cb, R0, G0, B0;
+                if (rr < 0.5) continue;
+                uu = (rr - rpx) / (double)thick;
+                if (uu < -1.0) uu = -1.0;
+                if (uu > 1.0) uu = 1.0;
+                cov = (1.0 - fabs(uu)) * thick;
+                if (cov <= 0.0) continue;
+                if (cov > 1.0) cov = 1.0;
+                nz2 = 1.0 - uu * uu;
+                nz = sqrt(nz2 > 0.0 ? nz2 : 0.0);
+                nx = uu * dx / rr;
+                ny = uu * dy / rr;
+                dif = nx * Lx + ny * Ly + nz * Lz;
+                if (dif < 0.0) dif = 0.0;
+                spec = nz * nz; spec = spec * spec * spec;
+                {
+                    double dif2 = 0.45 + 0.62 * dif;
+                    R0 = (int)(255.0 * dif2 + 70.0 * spec);
+                    G0 = (int)(168.0 * dif2 + 70.0 * spec);
+                    B0 = (int)(96.0 * dif2 + 55.0 * spec);
+                }
+                if (R0 > 255) R0 = 255;
+                if (G0 > 255) G0 = 255;
+                if (B0 > 255) B0 = 255;
+                if (cov < 1.0) {
+                    uint32_t d = row[px];
+                    R0 = (int)(R0 * cov + (double)((d >> 16) & 255u) * (1.0 - cov));
+                    G0 = (int)(G0 * cov + (double)((d >> 8) & 255u) * (1.0 - cov));
+                    B0 = (int)(B0 * cov + (double)(d & 255u) * (1.0 - cov));
+                }
+                cr = R0; cg = G0; cb = B0;
+                row[px] = ((uint32_t)cr << 16) | ((uint32_t)cg << 8) | (uint32_t)cb;
+            }
+        }
+    }
+}
+
 static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
                      int fb_index, uint32_t count, uint32_t *crc_out)
 {
@@ -651,7 +805,14 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     }
     if(wide)for(unsigned y=0;y<s_frame.height;++y) {
         uint32_t c=R4_COLOR_BG+((y*24u)/FB_HEIGHT)*0x00010102u;
-        for(unsigned x=0;x<s_frame.width;++x)s_frame.pixels[(size_t)y*s_frame.stride+x]=c;
+        uint32_t *row=s_frame.pixels+(size_t)y*s_frame.stride;
+        if(s_scene==2u) {
+            uint32_t sky=bg_mix(0x4f9bcd,0xffe6c4,(uint32_t)((y*256u)/s_frame.height));
+            uint32_t w=s_frame.width>160u?s_frame.width-160u:0u;
+            for(unsigned x=0;x<w;++x)row[x]=sky;
+        } else {
+            for(unsigned x=0;x<s_frame.width;++x)row[x]=c;
+        }
     }
     for (s = 0u; s < 30u; s++) {
         rast_target t;
@@ -678,6 +839,7 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         if (rast_ref_run_frame(s_rec, count, &t,&s_raster_frame) != 0)
             return -1;
     }
+    if (s_scene == 2u) ridge_gate_overlay();
     for (s = 0u; s < 30u; s++) {
         /* HUD 命令是条带局部 y：软件路径把目的表面基址平移到本条带首行，
            引擎的 BAND 相位则由硬件把局部 y 落进对应条带——两路同语义。 */
@@ -729,7 +891,8 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
 
     /* 2) 几何（发射 + setup）与分桶。 */
     t_seg = board_cycles();
-    if(s_scene) {
+    if(s_scene==2u) produced = r4_world_emit(&s_world, &s_proj, &s_vp, s_ladder, s_rec, R4_REC_MAX, NULL);
+    else if(s_scene) {
         int n=s_frame.width==FB_WIDTH?r4_cup_emit(s_world.ticks,s_rec,R4_REC_MAX):
             r4_cup_emit_view(s_world.ticks,&s_vp,s_rec,R4_REC_MAX);
         produced=n<0?UINT32_MAX:(uint32_t)n;

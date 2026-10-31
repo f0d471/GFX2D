@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "profiles": {"2d": ["demo", "stg", "press"], "full": ["demo", "stg", "press", "r4"]},
+  "profiles": {"2d": ["demo", "stg", "press"], "full": ["demo", "stg", "press", "r4", "flight"]},
   "system": ["about"],
   "base_modules": ["myriad2d"],
   "modules": {
@@ -9,7 +9,7 @@
       "libraries": [], "defines": []
     },
     "r4": {
-      "sources": ["../../ports/myriad/app_r4.c", "../game/gfx2dGame/src/r4_cup.c", "../game/gfx2dGame/src/r4_geometry.c", "../../ports/myriad/r4_runtime.c", "../game/gfx2dGame/src/r4_scene.c"],
+      "sources": ["../../ports/myriad/app_r4.c", "../../ports/myriad/app_flight.c", "../game/gfx2dGame/src/r4_cup.c", "../game/gfx2dGame/src/r4_geometry.c", "../../ports/myriad/r4_runtime.c", "../game/gfx2dGame/src/r4_scene.c"],
       "libraries": ["core/replay_r4.c", "gfx/rast_setup.c", "gfx/rast_ref.c"],
       "defines": ["GFX_CONTENT_R4"], "boot": "console_r4_boot"
     }
@@ -19,6 +19,7 @@
     {"key":"stg", "id":2, "enum":"APPFW_GAME", "symbol":"g_app_stg", "title":"DANMAKU GAME", "kind":"game", "graphics":"2d", "modules":["myriad2d"], "target_requires":["KEY","ALPHA_PM","ALPHA_ST","EQ_EXT"], "host":true, "shortcut":2},
     {"key":"press", "id":3, "enum":"APPFW_PRESS", "symbol":"g_app_press", "title":"STRESS TEST", "kind":"benchmark", "graphics":"2d", "modules":["myriad2d"], "target_requires":["KEY","ALPHA_PM","ALPHA_ST","EQ_EXT"], "host":true, "shortcut":3},
     {"key":"r4", "id":4, "enum":"APPFW_R4", "symbol":"g_app_r4", "title":"3D CORRIDOR / CUP", "kind":"game", "graphics":"3d", "modules":["r4"], "target_requires":["RAST","RAST_TEX","TEX"], "host":true, "shortcut":4, "describe":"console_r4_describe"},
-    {"key":"about", "id":5, "enum":"APPFW_ABOUT", "symbol":"g_app_about", "title":"SYSTEM INFORMATION", "kind":"system", "graphics":"2d", "modules":["myriad2d"], "target_requires":[], "host":true, "shortcut":0}
+    {"key":"flight", "id":5, "enum":"APPFW_FLIGHT", "symbol":"g_app_flight", "title":"RIDGE FLIGHT", "kind":"game", "graphics":"3d", "modules":["r4"], "target_requires":["RAST"], "host":true, "shortcut":0, "describe":"console_flight_describe"},
+    {"key":"about", "id":6, "enum":"APPFW_ABOUT", "symbol":"g_app_about", "title":"SYSTEM INFORMATION", "kind":"system", "graphics":"2d", "modules":["myriad2d"], "target_requires":[], "host":true, "shortcut":0}
   ]
 }

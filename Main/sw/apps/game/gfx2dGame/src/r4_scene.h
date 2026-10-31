@@ -38,6 +38,7 @@ typedef struct {
     uint32_t hiscore, graze, bombs, invulnerable, respawn;
     uint32_t manual, last_keys, enemy_hp, enemy_hit;
     uint32_t ladder;
+    uint32_t scene;                 /* 0=走廊 1=茶杯 2=山脊飞行 */
     r4_bullet blast;
     uint32_t blast_ticks;
     uint32_t pcooldown;             /* 自机弹冷却（tick） */
