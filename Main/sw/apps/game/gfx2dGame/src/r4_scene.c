@@ -533,55 +533,73 @@ static uint32_t ridge_gate_emit(const r4_world *w, const fx16_mat4 *projection,
                                 uint32_t cap, rast_setup_stats *st)
 {
     uint32_t n = 0u;
-    const uint32_t M = 12u, N = 4u;              /* 12 段 × 4 排：Gouraud 下已够滑，省 1/4 记录 */
     const uint32_t body = 0xffa45c, rim = 0xfff0d8;
+    static uint32_t vcol[25 * 7];                /* (M+1)×(N+1) 顶点色，相邻面共享 */
     for (uint32_t g = 0u; g < R4_GATE_SLOTS; ++g) {
         const r4_gate *gate = &w->gate[g];
         int32_t z = (int32_t)w->d - (int32_t)gate->dist;
         int32_t cx, cy;
-        uint32_t fog;
+        uint32_t fog, M, N;
+        int32_t ca[25], sa[25], rads[7], cz[7];
         if (!gate->dist) continue;
-        if (z > -2 * R4_ONE || z < -30 * R4_ONE) continue;   /* 30m 窗最多 3 道环，控制记录预算 */
+        if (z > -2 * R4_ONE || z < -30 * R4_ONE) continue;   /* 30m 窗，控制记录预算 */
         cx = (int32_t)gate->x;
         cy = RIDGE_GATE_CY;
-        fog = ridge_palettes[ridge_zone(w)][4];
-        for (uint32_t i = 0; i < M; ++i) {
-            uint16_t a0 = (uint16_t)((int64_t)i * 65536 / M);
-            uint16_t a1 = (uint16_t)((int64_t)(i + 1u) * 65536 / M);
-            int32_t ca0 = fx_cos(a0), sa0 = fx_sin(a0);
-            int32_t ca1 = fx_cos(a1), sa1 = fx_sin(a1);
-            for (uint32_t j = 0; j < N; ++j) {
-                uint16_t b0 = (uint16_t)((int64_t)j * 65536 / N);
-                uint16_t b1 = (uint16_t)((int64_t)(j + 1u) * 65536 / N);
-                int32_t cb0 = fx_cos(b0), sb0 = fx_sin(b0);
-                int32_t cb1 = fx_cos(b1), sb1 = fx_sin(b1);
-                int32_t r0 = RIDGE_GATE_R + fx16_mul(cb0, RIDGE_GATE_T);
-                int32_t r1 = RIDGE_GATE_R + fx16_mul(cb1, RIDGE_GATE_T);
-                int32_t z0 = z + fx16_mul(sb0, RIDGE_GATE_T);
-                int32_t z1 = z + fx16_mul(sb1, RIDGE_GATE_T);
-                rast_view_vertex v[4];
-                uint32_t col0, col1;
-
-                /* 管身按截面角给光：上沿亮、下沿暗；四角各算一份，面内 Gouraud 过渡
-                   ——16 段就有接近逐像素光滑的环，记录数只有逐像素方案的零头。 */
-                {
-                    int32_t sv0 = fx_sin((uint16_t)(b0 - 15000u));
-                    int32_t sv1 = fx_sin((uint16_t)(b1 - 15000u));
-                    uint32_t sh0 = (uint32_t)(168 + sv0 * 96 / 16384);
-                    uint32_t sh1 = (uint32_t)(168 + sv1 * 96 / 16384);
-                    col0 = ridge_apply(body, sh0);
-                    col1 = ridge_apply(body, sh1);
-                    if (sv0 > 0) col0 = ridge_mix(col0, rim, (uint32_t)(30 + sv0 * 45 / 16384));
-                    if (sv1 > 0) col1 = ridge_mix(col1, rim, (uint32_t)(30 + sv1 * 45 / 16384));
-                    col0 = ridge_fog(col0, -z, fog);
-                    col1 = ridge_fog(col1, -z, fog);
+        fog = ridge_palettes[ridge_zone(w)][5];
+        /* LOD（按参考表的远近分档，适配 512 记录上限）：
+           近(<8m) 24×6 穿环瞬间占屏；中(8-20m) 16×4；远(>20m) 12×3。
+           容量吃紧自动降 12×3，再不行跳过该环。 */
+        M = 12u; N = 3u;
+        if (z > -20 * R4_ONE) { M = 16u; N = 4u; }
+        if (z > -8 * R4_ONE)  { M = 24u; N = 6u; }
+        /* 预算按 1.5 倍拆分系数估（近环贴裁剪面会拆多块），留 48 给点缀物：
+           近环只在容量真够时升级，否则优雅降档，绝不把单帧顶爆。 */
+        if (M * N * 3u / 2u > cap - n - 48u) { M = 12u; N = 3u; }
+        if (M * N * 2u > cap - n - 8u) continue;
+        {
+            /* 逐顶点法线光照：n(a,b)=(cosb·cosa, cosb·sina, sinb)（Q1.14）。
+               顶点色在相邻面之间共享 → 明暗跨面连续，逐像素平滑无色带；
+               面颜色仍保留：body 作整体暖色调，与光照相乘。 */
+            for (uint32_t i = 0u; i <= M; ++i) {
+                uint16_t a = (uint16_t)((uint64_t)i * 65536u / M);
+                ca[i] = fx_cos(a); sa[i] = fx_sin(a);
+            }
+            for (uint32_t j = 0u; j <= N; ++j) {
+                uint16_t b = (uint16_t)((uint64_t)j * 65536u / N);
+                int32_t cb = fx_cos(b), sb = fx_sin(b);
+                uint32_t shade, col;
+                rads[j] = RIDGE_GATE_R + fx16_mul(cb, RIDGE_GATE_T);
+                cz[j] = z + fx16_mul(sb, RIDGE_GATE_T);
+                shade = ridge_shade_i(fx16_mul(cb, ca[0]), fx16_mul(cb, sa[0]), sb);
+                col = ridge_apply(body, shade);
+                if (sb > 0) col = ridge_mix(col, rim, (uint32_t)(30 + sb * 45 / 16384));
+                vcol[j] = ridge_fog(col, -z, fog);
+            }
+            for (uint32_t i = 0u; i < M; ++i) {
+                for (uint32_t j = 0u; j <= N; ++j) {
+                    uint16_t b = (uint16_t)((uint64_t)j * 65536u / N);
+                    int32_t cb = fx_cos(b), sb = fx_sin(b);
+                    uint32_t shade, col;
+                    shade = ridge_shade_i(fx16_mul(cb, ca[i + 1u]), fx16_mul(cb, sa[i + 1u]), sb);
+                    col = ridge_apply(body, shade);
+                    if (sb > 0) col = ridge_mix(col, rim, (uint32_t)(30 + sb * 45 / 16384));
+                    vcol[(i + 1u) * (N + 1u) + j] = ridge_fog(col, -z, fog);
                 }
-                vertex(v, cx + fx16_mul(r0, ca0), cy + fx16_mul(r0, sa0), z0, 0, 0, col0);
-                vertex(v + 1, cx + fx16_mul(r0, ca1), cy + fx16_mul(r0, sa1), z0, 0, 0, col0);
-                vertex(v + 2, cx + fx16_mul(r1, ca1), cy + fx16_mul(r1, sa1), z1, 0, 0, col1);
-                vertex(v + 3, cx + fx16_mul(r1, ca0), cy + fx16_mul(r1, sa0), z1, 0, 0, col1);
-                { rast_view_vertex tmp = v[1]; v[1] = v[3]; v[3] = tmp; }
-                n += ridge_poly(v, 4, vp, projection, out + n, cap - n, st);
+                for (uint32_t j = 0u; j < N; ++j) {
+                    rast_view_vertex v[4];
+                    vertex(v, cx + fx16_mul(rads[j], ca[i]),
+                           cy + fx16_mul(rads[j], sa[i]), cz[j], 0, 0, vcol[i * (N + 1u) + j]);
+                    vertex(v + 1, cx + fx16_mul(rads[j], ca[i + 1u]),
+                           cy + fx16_mul(rads[j], sa[i + 1u]), cz[j], 0, 0, vcol[(i + 1u) * (N + 1u) + j]);
+                    vertex(v + 2, cx + fx16_mul(rads[j + 1u], ca[i + 1u]),
+                           cy + fx16_mul(rads[j + 1u], sa[i + 1u]), cz[j + 1u], 0, 0,
+                           vcol[(i + 1u) * (N + 1u) + j + 1u]);
+                    vertex(v + 3, cx + fx16_mul(rads[j + 1u], ca[i]),
+                           cy + fx16_mul(rads[j + 1u], sa[i]), cz[j + 1u], 0, 0,
+                           vcol[i * (N + 1u) + j + 1u]);
+                    { rast_view_vertex tmp = v[1]; v[1] = v[3]; v[3] = tmp; }
+                    n += ridge_poly(v, 4, vp, projection, out + n, cap - n, st);
+                }
             }
         }
     }
@@ -669,6 +687,7 @@ static uint32_t ridge_clouds_emit(const r4_world *w, const fx16_mat4 *projection
     const uint32_t fog = ridge_palettes[ridge_zone(w)][5];
     const int32_t m = (int32_t)(w->d >> 16);
     for (uint32_t i = 0u; i < 4u; ++i) {
+        if (cap - n < 10u) break;                  /* 容量边缘断点 */
         int32_t ahead = ((m + offs[i]) % 96) + 6;
         int32_t z = -ahead * R4_ONE;
         uint32_t col = ridge_fog(0xf8fbff, (int32_t)ahead * R4_ONE, fog);
@@ -704,6 +723,7 @@ static uint32_t ridge_streaks_emit(const r4_world *w, const fx16_mat4 *projectio
     if (boost > 3u) boost = 3u;
     if (!boost) return 0u;
     for (uint32_t i = 0u; i < 6u; ++i) {
+        if (cap - n < 8u) break;                   /* 容量边缘断点 */
         int32_t ahead = ((m + offs[i]) % 14) + 2;
         int32_t z = -ahead * R4_ONE;
         int32_t sx = ((i & 1u) ? 1 : -1) * (2 * R4_ONE + (int32_t)(i % 3u) * R4_ONE / 2);
@@ -738,6 +758,7 @@ static uint32_t ridge_props_emit(const r4_world *w, const fx16_mat4 *projection,
         int32_t z = -ahead * R4_ONE;
         int32_t x = txs[i] * R4_ONE;
         int32_t g = ridge_ground(x, w->d, ahead);
+        if (cap - n < 20u) break;                 /* 容量边缘断点：绝不把帧顶爆 */
         uint32_t fog = pal[5];
         uint32_t lit, dark;
         int32_t r, top, base2;
@@ -794,6 +815,7 @@ static uint32_t ridge_birds_emit(const r4_world *w, const fx16_mat4 *projection,
     const int32_t m = (int32_t)(w->d >> 16);
     const uint32_t col = ridge_fog(0x5a6a74, 20 * R4_ONE, fog);
     for (uint32_t i = 0u; i < 3u; ++i) {
+        if (cap - n < 8u) break;                   /* 容量边缘断点 */
         int32_t ahead = ((m * 2u + offs[i]) % 70) + 8;
         int32_t z = -ahead * R4_ONE;
         int32_t x = fx16_mul(fx_sin((uint16_t)(w->ticks * 97u + i * 21845u)), 4 * R4_ONE);
@@ -828,6 +850,7 @@ static uint32_t ridge_dots_emit(const r4_world *w, const fx16_mat4 *projection,
                                    8 * R4_ONE, fog);
     const int32_t s = R4_ONE / 40;
     for (uint32_t i = 0u; i < 8u; ++i) {
+        if (cap - n < 8u) break;                  /* 容量边缘断点 */
         int32_t ahead = ((m + (int32_t)(i * 7919u % 26u)) % 26) + 2;
         int32_t z = -ahead * R4_ONE;
         int32_t x = (int32_t)(i * 3571u % 53u) * R4_ONE / 10 - 26 * R4_ONE / 10;
@@ -849,18 +872,7 @@ static uint32_t ridge_emit(const r4_world *w, const fx16_mat4 *projection,
                            uint32_t cap, rast_setup_stats *st)
 {
     uint32_t n = 0u;
-    fx16_mat4 shaker;
-    if (cap < 420u) return UINT32_MAX;
-    /* 撞山/撞环抖屏：平移投影矩阵（HUD/背景不动），幅度随 crash_ticks 衰减。 */
-    if (w->crash_ticks) {
-        int32_t amp = (int32_t)(w->crash_ticks * 120u);
-        shaker = *projection;
-        shaker.v[3] = fx16_sat((int64_t)shaker.v[3] +
-            (int64_t)fx_sin((uint16_t)(w->ticks * 5500u)) * amp / 16384);
-        shaker.v[7] = fx16_sat((int64_t)shaker.v[7] +
-            (int64_t)fx_sin((uint16_t)(w->ticks * 4300u)) * amp / 24576);
-        projection = &shaker;
-    }
+    if (cap < 300u) return UINT32_MAX;
     n += ridge_terrain_emit(w, projection, vp, out + n, cap - n, st);
     n += ridge_shadow_emit(w, projection, vp, out + n, cap - n, st);
     n += ridge_gate_emit(w, projection, vp, out + n, cap - n, st);
@@ -875,19 +887,6 @@ static uint32_t ridge_emit(const r4_world *w, const fx16_mat4 *projection,
     }
     if (cap - n >= 16u)
         n += ridge_streaks_emit(w, projection, vp, out + n, cap - n, st);
-    /* 撞击红闪：近裁剪面外一块满视口板，只亮 2 tick（≈66ms）暗红一拍即收，
-       不遮 HUD；日常擦撞主要靠抖屏+机身高亮，红闪留给真正的重撞。 */
-    if (w->crash_ticks > 10u) {
-        const int32_t z = -(int32_t)R4_NEAR_Z - R4_ONE / 100;
-        uint32_t col = (w->crash_ticks & 2u) ? 0x701c14u : 0x8c2418u;
-        rast_view_vertex v[4];
-        vertex(v, -21 * R4_ONE / 100, 21 * R4_ONE / 100, z, 0, 0, col);
-        vertex(v + 1, 21 * R4_ONE / 100, 21 * R4_ONE / 100, z, 0, 0, col);
-        vertex(v + 2, 21 * R4_ONE / 100, -21 * R4_ONE / 100, z, 0, 0, col);
-        vertex(v + 3, -21 * R4_ONE / 100, -21 * R4_ONE / 100, z, 0, 0, col);
-        { rast_view_vertex tmp = v[1]; v[1] = v[3]; v[3] = tmp; }
-        n += ridge_poly(v, 4, vp, projection, out + n, cap - n, st);
-    }
     return n;
 }
 

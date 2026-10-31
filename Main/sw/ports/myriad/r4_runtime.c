@@ -430,77 +430,91 @@ static const uint32_t bg_peaks[4][2] = {
 };
 static uint32_t s_bg_zone = 0u, s_bg_zone_pend = 0u, s_bg_row = FB_HEIGHT;
 
-/* 单行剪影：沿用 bg_ridge_line 的脊线公式，只填 y 这一行。 */
-static void bg_sil_row(uint32_t *bg, uint32_t y, int base_y, int amp,
-                       uint32_t color, int phase)
+/* 三层剪影的逐列脊线（视图无关）：zone 变才重算一次，宽屏/离屏两路共用。 */
+static int16_t s_sil_y0[3][1792];
+static uint32_t s_sil_zone = UINT32_MAX;
+
+static void bg_sil_cache(uint32_t zone)
 {
-    uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
-    for (uint32_t x = 0u; x < R4_WORLD_WIDTH; ++x) {
-        int a = (int)(x * 68u + (uint32_t)phase) & 0xFFFF;
-        int b = (int)(x * 26u + (uint32_t)phase * 2u) & 0xFFFF;
-        int s = fx_sin((uint16_t)a) / 2 + fx_sin((uint16_t)b) / 4;
-        int y0 = base_y - (amp * s) / 32768;
-        if ((int32_t)y >= y0) row[x] = color;
+    if (s_sil_zone == zone) return;
+    for (uint32_t x = 0u; x < 1792u; ++x) {
+        static const int base_y[3] = {252, 262, 272};
+        static const int amp[3] = {52, 38, 24};
+        static const int phase[3] = {0, 8000, 21000};
+        for (unsigned k = 0u; k < 3u; ++k) {
+            int a = (int)(x * 68u + (uint32_t)phase[k]) & 0xFFFF;
+            int b = (int)(x * 26u + (uint32_t)phase[k] * 2u) & 0xFFFF;
+            int s = fx_sin((uint16_t)a) / 2 + fx_sin((uint16_t)b) / 4;
+            s_sil_y0[k][x] = (int16_t)(base_y[k] - (amp[k] * s) / 32768);
+        }
     }
+    s_sil_zone = zone;
 }
 
-/* 圆盘（太阳/光晕用）：列内按行距写。 */
-static void bg_disc_rows(uint32_t *bg, uint32_t y, int cx, int cy, int radius, uint32_t color)
+static void bg_paint_row(uint32_t *row, uint32_t w, uint32_t zone, uint32_t y)
 {
-    int dy = (int)y - cy;
-    uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
-    if (dy < -radius || dy > radius) return;
-    for (int x = cx - radius; x <= cx + radius; ++x) {
-        int dx = x - cx;
-        if (x < 0 || x >= (int)R4_WORLD_WIDTH) continue;
-        if (dx * dx + dy * dy <= radius * radius) row[x] = color;
+    static const uint8_t bayer[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
+    static const uint32_t bounds[3] = {400u, 520u, 1000u};
+    uint32_t ty = y * 1000u / FB_HEIGHT;
+    unsigned seg = 0u;
+    while (ty >= bounds[seg]) ++seg;
+    {
+        uint32_t a = bg_sky_stops[zone][seg], b = bg_sky_stops[zone][seg + 1u];
+        uint32_t base = seg ? bounds[seg - 1u] : 0u;
+        uint32_t span = bounds[seg] - base;
+        for (uint32_t x = 0u; x < w; x++) {
+            int32_t u = (int32_t)(((ty - base) * 256u) / span) +
+                (int32_t)bayer[(y & 3u) * 4u + (x & 3u)] - 8;
+            if (u < 0) u = 0;
+            if (u > 256) u = 256;
+            row[x] = bg_mix(a, b, (uint32_t)u);
+        }
     }
+    /* 太阳：左上天域的两级光晕+亮核。 */
+    {
+        int dy = (int)y - 96;
+        if (dy >= -46 && dy <= 46) {
+            for (int x = 118 - 46; x <= 118 + 46 && x < (int)w; ++x) {
+                if (x < 0) continue;
+                {
+                    int dx = x - 118;
+                    int d2 = dx * dx + dy * dy;
+                    if (d2 <= 22 * 22) row[x] = 0xfff6e2;
+                    else if (d2 <= 32 * 32) row[x] = bg_mix(bg_sky_stops[zone][1], 0xfff4dc, 140u);
+                    else if (d2 <= 46 * 46) row[x] = bg_mix(bg_sky_stops[zone][1], 0xfff4dc, 60u);
+                }
+            }
+        }
+    }
+    /* 中央远峰：顶点 (240,150)，两张立面（向阳/背阳），底边融进剪影。 */
+    if (y >= 150u && y < 285u) {
+        int32_t hw = (int32_t)y - 150;
+        if (hw > 135) hw = 135;
+        for (int32_t x = 240 - hw; x < 240; ++x) row[x] = bg_peaks[zone][0];
+        for (int32_t x = 240; x < 240 + hw && x < (int)w; ++x) row[x] = bg_peaks[zone][1];
+    }
+    /* 三层剪影（查表）。 */
+    for (uint32_t x = 0u; x < w; ++x) {
+        if ((int32_t)y >= s_sil_y0[0][x]) row[x] = bg_sils[zone][0];
+        if ((int32_t)y >= s_sil_y0[1][x]) row[x] = bg_sils[zone][1];
+        if ((int32_t)y >= s_sil_y0[2][x]) row[x] = bg_sils[zone][2];
+    }
+    /* 高空霾带：三条 2px 浅色横带（参考图的空气感）。 */
+    if (y == 96u || y == 97u || y == 112u || y == 113u || y == 128u || y == 129u)
+        for (uint32_t x = 0u; x < w; ++x)
+            row[x] = bg_mix(row[x], 0xffffffu, 40u);
 }
 
 static void bg_bake_rows(uint32_t zone, uint32_t y0, uint32_t y1)
 {
-    static const uint8_t bayer[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
-    static const uint32_t bounds[3] = {400u, 520u, 1000u};
     uint32_t *bg = (uint32_t *)((uint8_t *)board_region(REGION_OFFSCREEN).ptr+R4_BG_OFFSET);
     if (zone > 3u) zone = 0u;
+    bg_sil_cache(zone);
     for (uint32_t y = y0; y < y1 && y < FB_HEIGHT; ++y) {
-        uint32_t ty = y * 1000u / FB_HEIGHT;
         uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
-        unsigned seg = 0u;
-        while (ty >= bounds[seg]) ++seg;
-        {
-            uint32_t a = bg_sky_stops[zone][seg], b = bg_sky_stops[zone][seg + 1u];
-            uint32_t base = seg ? bounds[seg - 1u] : 0u;
-            uint32_t span = bounds[seg] - base;
-            for (uint32_t x = 0u; x < FB_WIDTH; x++) {
-                int32_t u = (int32_t)(((ty - base) * 256u) / span) +
-                    (int32_t)bayer[(y & 3u) * 4u + (x & 3u)] - 8;
-                uint32_t c;
-                if (u < 0) u = 0;
-                if (u > 256) u = 256;
-                c = bg_mix(a, b, (uint32_t)u);
-                row[x] = x < R4_WORLD_WIDTH ? c : R4_HUD_BG;
-            }
-            row[R4_WORLD_WIDTH] = R4_HUD_LINE;
-        }
-        /* 中央远峰：顶点 (240,150)，两张立面（向阳/背阳），底边融进剪影。 */
-        if (y >= 150u && y < 285u) {
-            int32_t hw = (int32_t)y - 150;
-            if (hw > 135) hw = 135;
-            for (int32_t x = 240 - hw; x < 240; ++x) row[x] = bg_peaks[zone][0];
-            for (int32_t x = 240; x < 240 + hw; ++x) row[x] = bg_peaks[zone][1];
-        }
-        /* 太阳：左上天域的两级光晕+亮核（在剪影/远峰之前，别压住地貌）。 */
-        bg_disc_rows(bg, y, 118, 96, 46, bg_mix(bg_sky_stops[zone][1], 0xfff4dc, 60u));
-        bg_disc_rows(bg, y, 118, 96, 32, bg_mix(bg_sky_stops[zone][1], 0xfff4dc, 140u));
-        bg_disc_rows(bg, y, 118, 96, 22, 0xfff6e2);
-        bg_sil_row(bg, y, 252, 52, bg_sils[zone][0], 0);
-        bg_sil_row(bg, y, 262, 38, bg_sils[zone][1], 8000);
-        bg_sil_row(bg, y, 272, 24, bg_sils[zone][2], 21000);
-        /* 高空霾带：三条 2px 浅色横带（参考图的空气感）。 */
-        if (y == 96u || y == 97u || y == 112u || y == 113u || y == 128u || y == 129u)
-            for (uint32_t x = 0u; x < R4_WORLD_WIDTH; ++x)
-                row[x] = bg_mix(row[x], 0xffffffu, 40u);
+        bg_paint_row(row, R4_WORLD_WIDTH, zone, y);
+        row[R4_WORLD_WIDTH] = R4_HUD_LINE;
+        for (uint32_t x = R4_WORLD_WIDTH + 1u; x < FB_WIDTH; x++) row[x] = R4_HUD_BG;
     }
 }
 
@@ -839,9 +853,11 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         uint32_t c=R4_COLOR_BG+((y*24u)/FB_HEIGHT)*0x00010102u;
         uint32_t *row=s_frame.pixels+(size_t)y*s_frame.stride;
         if(s_scene==2u) {
-            uint32_t sky=bg_mix(0x3f7fc4,0xffe2bc,(uint32_t)((y*256u)/s_frame.height));
+            /* 宽屏不再刷平渐变（那会把烘好的太阳/远峰/剪影抹掉）：
+               同一行画函数直接画进宽帧，跟随换装锋面。 */
             uint32_t w=s_frame.width>160u?s_frame.width-160u:0u;
-            for(unsigned x=0;x<w;++x)row[x]=sky;
+            bg_sil_cache(s_bg_zone);
+            bg_paint_row(row,w,(y<s_bg_row)?s_bg_zone_pend:s_bg_zone,y);
         } else {
             for(unsigned x=0;x<s_frame.width;++x)row[x]=c;
         }
