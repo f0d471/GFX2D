@@ -295,15 +295,16 @@ static uint32_t facing(int32_t x,int32_t y,int32_t z,int32_t hw,int32_t hh,
 
 static uint32_t wall_color(int32_t z,unsigned face)
 {
-    /* 深灰蓝哑面:纹理退成背景,色相收敛,青只属于发光物(灯带/门框/雾幕)。
-       近处最暗、向远端渐亮——给"隧道尽头的光"让路(雾幕封底见 r4_world_emit)。 */
+    /* 亮蓝哑面(用户定案):纹理近白,色相/亮度由本乘色主导。
+       侧墙(1,2,5,6)鲜蓝,顶底(0,3,4,7)深一档蓝出面片读法;
+       近处稍暗、向远端渐亮,接住尽头的雾幕光。 */
     uint32_t distance=(uint32_t)(-z);
-    unsigned shade=150u+(uint32_t)(60u*distance)/(9u*R4_ONE+distance);
+    unsigned shade=190u+(uint32_t)(60u*distance)/(9u*R4_ONE+distance);
     const unsigned light[8]={210,255,196,182,188,240,200,196};
     shade=shade*light[face]/255u;
     unsigned r,g,b;
-    if(face==1||face==2||face==5||face==6){ r=shade*112u/255u; g=shade*126u/255u; b=shade*150u/255u; }
-    else { r=shade*100u/255u; g=shade*114u/255u; b=shade*152u/255u; }
+    if(face==1||face==2||face==5||face==6){ r=shade*118u/255u; g=shade*158u/255u; b=shade*232u/255u; }
+    else { r=shade*104u/255u; g=shade*146u/255u; b=shade*225u/255u; }
     return 0xff000000u|(r<<16)|(g<<8)|b;
 }
 
