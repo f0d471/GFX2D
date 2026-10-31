@@ -64,24 +64,16 @@ static void hurt(r4_world *w)
 }
 
 /* --- 场景 2 专用逻辑 --------------------------------------------------------
-   山脊飞行：环=可选目标（穿洞 combo/boost，撞管 hurt），山体=实体（撞山 hurt）。
-   速度由 combo 决定（4+boost 米/秒），d 仍是逐 tick 累加的确定量，回放契约不变。 */
+   山脊滑翔：无门环（用户定案），山体=实体（撞山 hurt 掉盾重生）。
+   定速 4m/s，d 仍是逐 tick 累加的确定量，回放契约不变。 */
 
 #define RIDGE_NX 7u
 #define RIDGE_NZ 10u                                 /* 大格子=大切面：低多边形读法的关键 */
 #define RIDGE_HALF_X 20
 #define RIDGE_Z0 1                            /* 近边贴到 1m：z=4m 时屏幕底部没有几何可画（基线的"平地"即此） */
 #define RIDGE_Z1 90
-#define RIDGE_GATE_R (14 * R4_ONE / 10)      /* 环半径 1.4m：洞比机身大得多，但环外绕得开 */
-#define RIDGE_GATE_T (13 * R4_ONE / 64)      /* 管半厚 0.20m */
-#define RIDGE_GATE_CY (R4_ONE / 2)            /* 环心抬到 0.5m：环底不再插进草甸波峰 */
-/* 穿环三带半径（平方，Q16.16²）：洞内干净穿 / 擦沿奖励 / 撞管受击，环外=错过。
-   内带放宽到管沿（1.2m），擦沿带到 1.45m——轻微偏航不该吃红闪。 */
-#define RIDGE_PASS_R2   ((int64_t)(120 * R4_ONE / 100) * (120 * R4_ONE / 100))
-#define RIDGE_GRAZE_R2  ((int64_t)(145 * R4_ONE / 100) * (145 * R4_ONE / 100))
-#define RIDGE_OUTER_R2  ((int64_t)(177 * R4_ONE / 100) * (177 * R4_ONE / 100))
 
-/* zone 美术包：每 6 环（两串三连环）换一套完整地貌。哑色调、大切面平涂，
+/* zone 美术包：每 240m 行程换一套完整地貌。哑色调、大切面平涂，
    色板六槽 = {山体暗面, 山体亮面, 草甸, 草甸暖斑, 树木, 雾色}。 */
 static const uint32_t ridge_palettes[4][6] = {
     {0xb0a184, 0xcab896, 0x7e9678, 0x8aa082, 0x41604e, 0xece4d4},   /* 晨光山脊 */
@@ -92,53 +84,34 @@ static const uint32_t ridge_palettes[4][6] = {
 const char *const ridge_zone_names[4] = {
     "MORNING RIDGE", "GOLDEN STEPPE", "RED CANYON", "SNOWLINE"};
 const char *const ridge_zone_tags[4] = {
-    "THREAD THE RINGS / SPEED IS THE SCORE",
-    "HOLD THE LINE / RIDE THE BOOST",
-    "THREAD THE RINGS / MIND THE CLIFFS",
-    "KEEP THE LINE / THREAD THE RINGS"};
-static uint32_t ridge_zone(const r4_world *w) { return (w->gate_seq / 6u) & 3u; }
+    "GLIDE THE VALLEY / MIND THE RIDGE",
+    "HOLD THE LINE / RIDE THE WIND",
+    "LOW IS FAST / HIGH IS SAFE",
+    "QUIET SKIES / CLEAN LINES"};
+static uint32_t ridge_zone(const r4_world *w) { return (uint32_t)(w->d >> 16) / 240u & 3u; }
 uint32_t r4_scene2_zone(const r4_world *w) { return ridge_zone(w); }
 
 /* 山脊高度函数在文件后部定义（地形发射与碰撞共用一份，改一处两边都生效）。 */
 static int32_t ridge_ground(int32_t x, uint32_t d, int32_t zahead);
 
-/* 场景 2 的门环编排：三连环成组（组内 0/3.5/6.5m，组间 31m），同组同一巷道——
-   "thread the line"；组巷道 ±1.4m/0 循环，种子定起始。 */
-static uint32_t ridge_gate_dist(uint32_t seq)
-{
-    static const uint32_t off[3] = {0, 7 * R4_ONE / 2, 13 * R4_ONE / 2};
-    return R4_GATE_FIRST + (seq / 3u) * (31u * R4_ONE) + off[seq % 3u];
-}
-
-static int32_t ridge_gate_x(uint32_t seq, uint32_t rng0)
-{
-    static const int32_t pos[3] = {-7 * R4_ONE / 5, 0, 7 * R4_ONE / 5};
-    return pos[(seq / 3u + rng0) % 3u];           /* 组内共享巷道 */
-}
-
-/* mode_enter 在 world_init 之后才知道场景；场景 2 用它把初始门环挪到山脊编排
-   （走廊 init 按 R4_GATE_SPACING 等距铺的，这里改成三连环距离+组巷道）。 */
+/* 纯滑翔版没有门环（用户定案）；走廊 init 之后这里无事可做，留空守 sym。 */
 void r4_scene2_fix_gates(r4_world *w)
 {
-    for(unsigned i=0;i<R4_GATE_SLOTS;++i) {
-        w->gate[i].dist=ridge_gate_dist(i);
-        w->gate[i].x=(uint32_t)ridge_gate_x(i,w->rng);
-    }
+    (void)w;
 }
 
 static void ridge_tick(r4_world *w, uint32_t keys)
 {
     int32_t dir=((keys&PLATFORM_KEY_RIGHT)!=0)-((keys&PLATFORM_KEY_LEFT)!=0);
     int32_t vertical=((keys&PLATFORM_KEY_UP)!=0)-((keys&PLATFORM_KEY_DOWN)!=0);
-    uint32_t boost=w->combo>>1;
     ++w->ticks;
     if(keys&(PLATFORM_KEY_UP|PLATFORM_KEY_DOWN|PLATFORM_KEY_LEFT|PLATFORM_KEY_RIGHT))w->manual=1;
     if(!w->manual) {
         int32_t x=fx_sin((uint16_t)(w->ticks*180u))*2;
         dir=x>w->cam_x?1:x<w->cam_x?-1:0;
         w->cam_x=x;
-        /* 自动巡航飞上半区（-0.5±0.17m）：谷地波峰 -0.7m，演示机不再自己往山上撞。 */
-        w->ship_y=-R4_ONE/2+fx_sin((uint16_t)(w->ticks*340u))/3;
+        /* 自动巡航飞上半区（-0.4±0.17m）：离谷地波峰的判定线留足余量。 */
+        w->ship_y=-2*R4_ONE/5+fx_sin((uint16_t)(w->ticks*340u))/3;
     } else {
         w->cam_x+=dir*MOVE_STEP;
         w->ship_y+=vertical*MOVE_STEP;
@@ -149,37 +122,12 @@ static void ridge_tick(r4_world *w, uint32_t keys)
     if(w->ship_y< -R4_ONE)w->ship_y= -R4_ONE;
     w->strafe=dir;w->pitch=vertical;
     w->bank+=(dir*20000-w->bank)/4;
-    /* boost 档位：combo 每 2 环提速 1m/s，最多 +3（4→7m/s）。 */
-    if(boost>3u)boost=3u;
-    w->d+=(uint32_t)(((4u+boost)*(uint32_t)R4_ONE)/R4_TICK_HZ);
+    w->d+=(uint32_t)((4u*(uint32_t)R4_ONE)/R4_TICK_HZ);   /* 定速 4m/s 滑翔 */
     if(w->invulnerable)--w->invulnerable;
     if(w->crash_ticks)--w->crash_ticks;
     if(w->respawn && !--w->respawn) {
         w->shield=R4_SHIELD_INIT;w->invulnerable=60;
         w->score=w->score>500?w->score-500:0;
-    }
-    for(unsigned i=0;i<R4_GATE_SLOTS;++i) {
-        r4_gate *g=w->gate+i;
-        if(!g->dist)continue;
-        /* 飞机先于相机穿环：径向三带判定（洞内/擦沿/撞管），环外=错过不罚。 */
-        if(!g->passed && w->d+R4_SHIP_Z>=g->dist) {
-            int32_t dx=w->cam_x-(int32_t)g->x;
-            int32_t dy=w->ship_y-RIDGE_GATE_CY;
-            int64_t d2=(int64_t)dx*dx+(int64_t)dy*dy;
-            g->passed=1;
-            if(d2<RIDGE_PASS_R2) {
-                ++w->rings_passed;++w->combo;w->score+=50;
-            } else if(d2<RIDGE_GRAZE_R2) {
-                ++w->graze;w->score+=15;
-            } else if(d2<RIDGE_OUTER_R2) {
-                hurt(w);w->crash_ticks=12;w->combo=0;
-            }
-        }
-        if(g->dist<w->d) {
-            uint32_t seq=w->gate_seq++;
-            g->dist=ridge_gate_dist(seq);
-            g->x=(uint32_t)ridge_gate_x(seq,w->rng);g->passed=0;g->fired=0;
-        }
     }
     /* 地形碰撞：机腹低于山面即 hurt 并托起（无敌窗盖过整段山峰，不会连扣）。 */
     {
@@ -528,152 +476,6 @@ static uint32_t ridge_terrain_emit(const r4_world *w, const fx16_mat4 *projectio
     return n;
 }
 
-static uint32_t ridge_gate_emit(const r4_world *w, const fx16_mat4 *projection,
-                                const rast_viewport *vp, rast_record *out,
-                                uint32_t cap, rast_setup_stats *st)
-{
-    uint32_t n = 0u;
-    const uint32_t body = 0xffa45c, rim = 0xfff0d8;
-    static uint32_t vcol[25 * 7];                /* (M+1)×(N+1) 顶点色，相邻面共享 */
-    for (uint32_t g = 0u; g < R4_GATE_SLOTS; ++g) {
-        const r4_gate *gate = &w->gate[g];
-        int32_t z = (int32_t)w->d - (int32_t)gate->dist;
-        int32_t cx, cy;
-        uint32_t fog, M, N;
-        int32_t ca[25], sa[25], rads[7], cz[7];
-        if (!gate->dist) continue;
-        if (z > -2 * R4_ONE || z < -30 * R4_ONE) continue;   /* 30m 窗，控制记录预算 */
-        cx = (int32_t)gate->x;
-        cy = RIDGE_GATE_CY;
-        fog = ridge_palettes[ridge_zone(w)][5];
-        /* LOD（按参考表的远近分档，适配 512 记录上限）：
-           近(<8m) 24×6 穿环瞬间占屏；中(8-20m) 16×4；远(>20m) 12×3。
-           容量吃紧自动降 12×3，再不行跳过该环。 */
-        M = 12u; N = 3u;
-        if (z > -20 * R4_ONE) { M = 16u; N = 4u; }
-        if (z > -8 * R4_ONE)  { M = 24u; N = 6u; }
-        /* 预算按 1.5 倍拆分系数估（近环贴裁剪面会拆多块），留 48 给点缀物：
-           近环只在容量真够时升级，否则优雅降档，绝不把单帧顶爆。 */
-        if (M * N * 3u / 2u > cap - n - 48u) { M = 12u; N = 3u; }
-        if (M * N * 2u > cap - n - 8u) continue;
-        {
-            /* 逐顶点法线光照：n(a,b)=(cosb·cosa, cosb·sina, sinb)（Q1.14）。
-               顶点色在相邻面之间共享 → 明暗跨面连续，逐像素平滑无色带；
-               面颜色仍保留：body 作整体暖色调，与光照相乘。 */
-            for (uint32_t i = 0u; i <= M; ++i) {
-                uint16_t a = (uint16_t)((uint64_t)i * 65536u / M);
-                ca[i] = fx_cos(a); sa[i] = fx_sin(a);
-            }
-            for (uint32_t j = 0u; j <= N; ++j) {
-                uint16_t b = (uint16_t)((uint64_t)j * 65536u / N);
-                int32_t cb = fx_cos(b), sb = fx_sin(b);
-                uint32_t shade, col;
-                rads[j] = RIDGE_GATE_R + fx16_mul(cb, RIDGE_GATE_T);
-                cz[j] = z + fx16_mul(sb, RIDGE_GATE_T);
-                shade = ridge_shade_i(fx16_mul(cb, ca[0]), fx16_mul(cb, sa[0]), sb);
-                col = ridge_apply(body, shade);
-                if (sb > 0) col = ridge_mix(col, rim, (uint32_t)(30 + sb * 45 / 16384));
-                vcol[j] = ridge_fog(col, -z, fog);
-            }
-            for (uint32_t i = 0u; i < M; ++i) {
-                for (uint32_t j = 0u; j <= N; ++j) {
-                    uint16_t b = (uint16_t)((uint64_t)j * 65536u / N);
-                    int32_t cb = fx_cos(b), sb = fx_sin(b);
-                    uint32_t shade, col;
-                    shade = ridge_shade_i(fx16_mul(cb, ca[i + 1u]), fx16_mul(cb, sa[i + 1u]), sb);
-                    col = ridge_apply(body, shade);
-                    if (sb > 0) col = ridge_mix(col, rim, (uint32_t)(30 + sb * 45 / 16384));
-                    vcol[(i + 1u) * (N + 1u) + j] = ridge_fog(col, -z, fog);
-                }
-                for (uint32_t j = 0u; j < N; ++j) {
-                    rast_view_vertex v[4];
-                    vertex(v, cx + fx16_mul(rads[j], ca[i]),
-                           cy + fx16_mul(rads[j], sa[i]), cz[j], 0, 0, vcol[i * (N + 1u) + j]);
-                    vertex(v + 1, cx + fx16_mul(rads[j], ca[i + 1u]),
-                           cy + fx16_mul(rads[j], sa[i + 1u]), cz[j], 0, 0, vcol[(i + 1u) * (N + 1u) + j]);
-                    vertex(v + 2, cx + fx16_mul(rads[j + 1u], ca[i + 1u]),
-                           cy + fx16_mul(rads[j + 1u], sa[i + 1u]), cz[j + 1u], 0, 0,
-                           vcol[(i + 1u) * (N + 1u) + j + 1u]);
-                    vertex(v + 3, cx + fx16_mul(rads[j + 1u], ca[i]),
-                           cy + fx16_mul(rads[j + 1u], sa[i]), cz[j + 1u], 0, 0,
-                           vcol[i * (N + 1u) + j + 1u]);
-                    { rast_view_vertex tmp = v[1]; v[1] = v[3]; v[3] = tmp; }
-                    n += ridge_poly(v, 4, vp, projection, out + n, cap - n, st);
-                }
-            }
-        }
-    }
-    return n;
-}
-
-static uint32_t ridge_plane_emit(const r4_world *w, const fx16_mat4 *projection,
-                                 const rast_viewport *vp, rast_record *out,
-                                 uint32_t cap, rast_setup_stats *st)
-{
-    uint32_t n = 0u;
-    const int32_t S = 42 * R4_ONE / 100;              /* 0.42m 半机长，比基线大一圈 */
-    int32_t cx = w->cam_x, cy = w->ship_y, cz = -(int32_t)R4_SHIP_Z;
-    const int32_t A[3] = {0, 10 * S / 100, 70 * S / 100};
-    const int32_t B[3] = {0, 16 * S / 100, -48 * S / 100};
-    const int32_t C[3] = {-40 * S / 100, 2 * S / 100, -40 * S / 100};
-    const int32_t D[3] = {40 * S / 100, 2 * S / 100, -40 * S / 100};
-    const int32_t E[3] = {-6 * S / 100, 3 * S / 100, -50 * S / 100};
-    const int32_t F[3] = {6 * S / 100, 3 * S / 100, -50 * S / 100};
-    const int32_t G[3] = {0, -14 * S / 100, -6 * S / 100};
-    const int32_t K[3] = {0, 34 * S / 100, -44 * S / 100};    /* 垂直尾翼顶点（红） */
-    const int32_t *faces[10][3] = {
-        {A, C, B}, {A, B, D}, {A, C, G}, {A, G, D},
-        {C, E, B}, {B, F, D}, {A, E, F}, {E, G, F},
-        {E, F, K}, {E, K, G}};
-    static const uint32_t cols[10] = {0xfaf6ec, 0xefe8d6, 0xdcd2bc, 0xdcd2bc,
-                                      0xe8ddc8, 0xe8ddc8, 0xe6dbc6, 0xbfb49e,
-                                      0xd05038, 0xb04028};
-    /* 与走廊自机同一套横滚/俯仰约定：bank 平滑于方向，pitch 只给轻微配平。 */
-    int32_t roll = w->bank;
-    int32_t cosine = FX16_ONE - fx16_mul(roll, roll) / 2;
-    uint32_t blink = (w->invulnerable && (w->ticks & 4u)) ? 0xffe8f8u : 0u;
-    for (uint32_t f = 0u; f < 10u; ++f) {
-        rast_view_vertex v[3];
-        for (uint32_t k = 0u; k < 3u; ++k) {
-            const int32_t *p = faces[f][k];
-            int32_t lx = fx16_mul(p[0], cosine) - fx16_mul(p[1], roll);
-            int32_t ly = fx16_mul(p[0], roll) + fx16_mul(p[1], cosine);
-            int32_t lz = p[2] + w->pitch * p[1] / 5 + w->strafe * p[0] / 6;
-            vertex(v + k, cx + lx, cy + ly, cz + lz, 0, 0, blink ? blink : cols[f]);
-        }
-        { rast_view_vertex tmp = v[1]; v[1] = v[2]; v[2] = tmp; }
-        n += ridge_poly(v, 3, vp, projection, out + n, cap - n, st);
-    }
-    return n;
-}
-
-/* 地面影子：贴着山面的一块暗斑（0.55m×0.7m），四角各自取 ridge_ground+0.08m，
-   随坡面起伏；颜色带一点透明感（和草色只差两档），不抢主体。 */
-static uint32_t ridge_shadow_emit(const r4_world *w, const fx16_mat4 *projection,
-                                  const rast_viewport *vp, rast_record *out,
-                                  uint32_t cap, rast_setup_stats *st)
-{
-    uint32_t n = 0u;
-    const int32_t zahead = (int32_t)(R4_SHIP_Z >> 16);
-    const int32_t cx = w->cam_x;
-    const int32_t hw = 28 * R4_ONE / 100, hl = 36 * R4_ONE / 100;
-    const uint32_t *pal = ridge_palettes[ridge_zone(w)];
-    const uint32_t fog = pal[4];
-    int32_t g0 = ridge_ground(cx - hw, w->d, zahead);
-    int32_t g1 = ridge_ground(cx + hw, w->d, zahead);
-    int32_t g2 = ridge_ground(cx + hw, w->d, zahead + 1);
-    int32_t g3 = ridge_ground(cx - hw, w->d, zahead + 1);
-    uint32_t col = ridge_fog(ridge_apply(pal[3], 130u), R4_SHIP_Z, fog);  /* 谷底色压暗一半，随地貌走 */
-    rast_view_vertex v[4];
-    vertex(v, cx - hw, g0 + R4_ONE / 12, -(int32_t)R4_SHIP_Z, 0, 0, col);
-    vertex(v + 1, cx + hw, g1 + R4_ONE / 12, -(int32_t)R4_SHIP_Z, 0, 0, col);
-    vertex(v + 2, cx + hw, g2 + R4_ONE / 12, -(int32_t)R4_SHIP_Z - hl, 0, 0, col);
-    vertex(v + 3, cx - hw, g3 + R4_ONE / 12, -(int32_t)R4_SHIP_Z - hl, 0, 0, col);
-    { rast_view_vertex tmp = v[1]; v[1] = v[3]; v[3] = tmp; }
-    n += ridge_poly(v, 4, vp, projection, out + n, cap - n, st);
-    return n;
-}
-
 /* 云：水平云板（贴着 x-z 平面的扁平板），从下往上看读作云层而不是纸片；
    双板错位叠出厚度。世界锚定 96m 窗循环，回卷点在雾里不可见。 */
 static uint32_t ridge_clouds_emit(const r4_world *w, const fx16_mat4 *projection,
@@ -712,31 +514,71 @@ static uint32_t ridge_clouds_emit(const r4_world *w, const fx16_mat4 *projection
     return n;
 }
 
-/* boost 速度线：机身两侧细亮条，世界系 14m 窗回卷，只在意 combo>0 时发射。 */
-static uint32_t ridge_streaks_emit(const r4_world *w, const fx16_mat4 *projection,
-                                   const rast_viewport *vp, rast_record *out,
-                                   uint32_t cap, rast_setup_stats *st)
+/* 地面影子：贴着山面的一块暗斑（0.56m×0.72m），四角各自取 ridge_ground+0.08m，
+   随坡面起伏；颜色取谷底色压暗一半，随地貌走。 */
+static uint32_t ridge_shadow_emit(const r4_world *w, const fx16_mat4 *projection,
+                                  const rast_viewport *vp, rast_record *out,
+                                  uint32_t cap, rast_setup_stats *st)
 {
-    static const int32_t offs[6] = {0, 2, 5, 7, 9, 12};
-    uint32_t n = 0u, boost = w->combo >> 1;
-    const int32_t m = (int32_t)(w->d >> 16);
-    if (boost > 3u) boost = 3u;
-    if (!boost) return 0u;
-    for (uint32_t i = 0u; i < 6u; ++i) {
-        if (cap - n < 8u) break;                   /* 容量边缘断点 */
-        int32_t ahead = ((m + offs[i]) % 14) + 2;
-        int32_t z = -ahead * R4_ONE;
-        int32_t sx = ((i & 1u) ? 1 : -1) * (2 * R4_ONE + (int32_t)(i % 3u) * R4_ONE / 2);
-        int32_t y0 = -R4_ONE / 2 + (int32_t)(i % 4u) * R4_ONE / 3;
-        uint32_t col = (i & 1u) ? 0xdff4ffu : 0xbfe4ffu;
-        rast_view_vertex v[4];
-        if (z >= -(int32_t)(R4_SHIP_Z + R4_ONE)) continue;
-        vertex(v, sx, y0, z, 0, 0, col);
-        vertex(v + 1, sx, y0, z - 11 * R4_ONE / 5, 0, 0, col);
-        vertex(v + 2, sx, y0 + R4_ONE / 8, z - 11 * R4_ONE / 5, 0, 0, col);
-        vertex(v + 3, sx, y0 + R4_ONE / 8, z, 0, 0, col);
-        { rast_view_vertex tmp = v[1]; v[1] = v[3]; v[3] = tmp; }
-        n += ridge_poly(v, 4, vp, projection, out + n, cap - n, st);
+    uint32_t n = 0u;
+    const int32_t zahead = (int32_t)(R4_SHIP_Z >> 16);
+    const int32_t cx = w->cam_x;
+    const int32_t hw = 28 * R4_ONE / 100, hl = 36 * R4_ONE / 100;
+    const uint32_t *pal = ridge_palettes[ridge_zone(w)];
+    const uint32_t fog = pal[5];
+    int32_t g0 = ridge_ground(cx - hw, w->d, zahead);
+    int32_t g1 = ridge_ground(cx + hw, w->d, zahead);
+    int32_t g2 = ridge_ground(cx + hw, w->d, zahead + 1);
+    int32_t g3 = ridge_ground(cx - hw, w->d, zahead + 1);
+    uint32_t col = ridge_fog(ridge_apply(pal[3], 130u), R4_SHIP_Z, fog);
+    rast_view_vertex v[4];
+    vertex(v, cx - hw, g0 + R4_ONE / 12, -(int32_t)R4_SHIP_Z, 0, 0, col);
+    vertex(v + 1, cx + hw, g1 + R4_ONE / 12, -(int32_t)R4_SHIP_Z, 0, 0, col);
+    vertex(v + 2, cx + hw, g2 + R4_ONE / 12, -(int32_t)R4_SHIP_Z - hl, 0, 0, col);
+    vertex(v + 3, cx - hw, g3 + R4_ONE / 12, -(int32_t)R4_SHIP_Z - hl, 0, 0, col);
+    { rast_view_vertex tmp = v[1]; v[1] = v[3]; v[3] = tmp; }
+    n += ridge_poly(v, 4, vp, projection, out + n, cap - n, st);
+    return n;
+}
+
+/* 纸飞机：0.42m 半机长，横滚/俯仰与走廊自机同一套约定；
+   米白纸色+暖折痕+红尾翼，受击无敌窗闪白。 */
+static uint32_t ridge_plane_emit(const r4_world *w, const fx16_mat4 *projection,
+                                 const rast_viewport *vp, rast_record *out,
+                                 uint32_t cap, rast_setup_stats *st)
+{
+    uint32_t n = 0u;
+    const int32_t S = 42 * R4_ONE / 100;
+    int32_t cx = w->cam_x, cy = w->ship_y, cz = -(int32_t)R4_SHIP_Z;
+    const int32_t A[3] = {0, 10 * S / 100, 70 * S / 100};
+    const int32_t B[3] = {0, 16 * S / 100, -48 * S / 100};
+    const int32_t C[3] = {-40 * S / 100, 2 * S / 100, -40 * S / 100};
+    const int32_t D[3] = {40 * S / 100, 2 * S / 100, -40 * S / 100};
+    const int32_t E[3] = {-6 * S / 100, 3 * S / 100, -50 * S / 100};
+    const int32_t F[3] = {6 * S / 100, 3 * S / 100, -50 * S / 100};
+    const int32_t G[3] = {0, -14 * S / 100, -6 * S / 100};
+    const int32_t K[3] = {0, 34 * S / 100, -44 * S / 100};    /* 垂直尾翼顶点（红） */
+    const int32_t *faces[10][3] = {
+        {A, C, B}, {A, B, D}, {A, C, G}, {A, G, D},
+        {C, E, B}, {B, F, D}, {A, E, F}, {E, G, F},
+        {E, F, K}, {E, K, G}};
+    static const uint32_t cols[10] = {0xfaf6ec, 0xefe8d6, 0xdcd2bc, 0xdcd2bc,
+                                      0xe8ddc8, 0xe8ddc8, 0xe6dbc6, 0xbfb49e,
+                                      0xd05038, 0xb04028};
+    int32_t roll = w->bank;
+    int32_t cosine = FX16_ONE - fx16_mul(roll, roll) / 2;
+    uint32_t blink = (w->invulnerable && (w->ticks & 4u)) ? 0xffe8f8u : 0u;
+    for (uint32_t f = 0u; f < 10u; ++f) {
+        rast_view_vertex v[3];
+        for (uint32_t k = 0u; k < 3u; ++k) {
+            const int32_t *p = faces[f][k];
+            int32_t lx = fx16_mul(p[0], cosine) - fx16_mul(p[1], roll);
+            int32_t ly = fx16_mul(p[0], roll) + fx16_mul(p[1], cosine);
+            int32_t lz = p[2] + w->pitch * p[1] / 5 + w->strafe * p[0] / 6;
+            vertex(v + k, cx + lx, cy + ly, cz + lz, 0, 0, blink ? blink : cols[f]);
+        }
+        { rast_view_vertex tmp = v[1]; v[1] = v[2]; v[2] = tmp; }
+        n += ridge_poly(v, 3, vp, projection, out + n, cap - n, st);
     }
     return n;
 }
@@ -804,69 +646,6 @@ static uint32_t ridge_props_emit(const r4_world *w, const fx16_mat4 *projection,
     return n;
 }
 
-/* 飞鸟：三只浅 V，高空慢漂（横向 fx_sin 摆动），世界锚定循环。 */
-static uint32_t ridge_birds_emit(const r4_world *w, const fx16_mat4 *projection,
-                                 const rast_viewport *vp, rast_record *out,
-                                 uint32_t cap, rast_setup_stats *st)
-{
-    static const int32_t offs[3] = {12, 37, 61};
-    uint32_t n = 0u;
-    const uint32_t fog = ridge_palettes[ridge_zone(w)][5];
-    const int32_t m = (int32_t)(w->d >> 16);
-    const uint32_t col = ridge_fog(0x5a6a74, 20 * R4_ONE, fog);
-    for (uint32_t i = 0u; i < 3u; ++i) {
-        if (cap - n < 8u) break;                   /* 容量边缘断点 */
-        int32_t ahead = ((m * 2u + offs[i]) % 70) + 8;
-        int32_t z = -ahead * R4_ONE;
-        int32_t x = fx16_mul(fx_sin((uint16_t)(w->ticks * 97u + i * 21845u)), 4 * R4_ONE);
-        int32_t y = (9 + (int32_t)i) * R4_ONE;
-        int32_t w2 = 24 * R4_ONE / 100;
-        uint32_t flap = (uint32_t)(6 + fx_sin((uint16_t)(w->ticks * 5461u + i * 10923u)) * 3 / 16384);
-        rast_view_vertex v[3];
-        vertex(v, x - w2, y, z, 0, 0, col);
-        vertex(v + 1, x, y + (int32_t)flap * R4_ONE / 100, z, 0, 0, col);
-        vertex(v + 2, x - w2 / 3, y + 5 * R4_ONE / 100, z, 0, 0, col);
-        { rast_view_vertex tmp = v[1]; v[1] = v[2]; v[2] = tmp; }
-        n += ridge_poly(v, 3, vp, projection, out + n, cap - n, st);
-        vertex(v, x + w2, y, z, 0, 0, col);
-        vertex(v + 1, x, y + (int32_t)flap * R4_ONE / 100, z, 0, 0, col);
-        vertex(v + 2, x + w2 / 3, y + 5 * R4_ONE / 100, z, 0, 0, col);
-        { rast_view_vertex tmp = v[1]; v[1] = v[2]; v[2] = tmp; }
-        n += ridge_poly(v, 3, vp, projection, out + n, cap - n, st);
-    }
-    return n;
-}
-
-/* 尘埃/雪：贴着航线的小方点，雪区下落、晴区漂浮，世界锚定 26m 窗循环。 */
-static uint32_t ridge_dots_emit(const r4_world *w, const fx16_mat4 *projection,
-                                const rast_viewport *vp, rast_record *out,
-                                uint32_t cap, rast_setup_stats *st)
-{
-    uint32_t n = 0u, zone = ridge_zone(w);
-    const uint32_t fog = ridge_palettes[zone][5];
-    const int32_t m = (int32_t)(w->d >> 16);
-    /* 调小调淡：融进天色的微尘，不再是一把方形纸屑。 */
-    const uint32_t col = ridge_fog(ridge_mix(zone == 3u ? 0xffffffu : 0xf7f2e2u, fog, 130u),
-                                   8 * R4_ONE, fog);
-    const int32_t s = R4_ONE / 40;
-    for (uint32_t i = 0u; i < 8u; ++i) {
-        if (cap - n < 8u) break;                  /* 容量边缘断点 */
-        int32_t ahead = ((m + (int32_t)(i * 7919u % 26u)) % 26) + 2;
-        int32_t z = -ahead * R4_ONE;
-        int32_t x = (int32_t)(i * 3571u % 53u) * R4_ONE / 10 - 26 * R4_ONE / 10;
-        int32_t y = (int32_t)(i * 104729u % 31u) * R4_ONE / 10 - 15 * R4_ONE / 10;
-        if (zone == 3u) y -= (int32_t)((m + (int32_t)i) % 9u) * R4_ONE / 5;   /* 雪花下落相位 */
-        rast_view_vertex v[4];
-        vertex(v, x - s, y + s, z, 0, 0, col);
-        vertex(v + 1, x + s, y + s, z, 0, 0, col);
-        vertex(v + 2, x + s, y - s, z, 0, 0, col);
-        vertex(v + 3, x - s, y - s, z, 0, 0, col);
-        { rast_view_vertex tmp = v[1]; v[1] = v[3]; v[3] = tmp; }
-        n += ridge_poly(v, 4, vp, projection, out + n, cap - n, st);
-    }
-    return n;
-}
-
 static uint32_t ridge_emit(const r4_world *w, const fx16_mat4 *projection,
                            const rast_viewport *vp, rast_record *out,
                            uint32_t cap, rast_setup_stats *st)
@@ -875,18 +654,12 @@ static uint32_t ridge_emit(const r4_world *w, const fx16_mat4 *projection,
     if (cap < 300u) return UINT32_MAX;
     n += ridge_terrain_emit(w, projection, vp, out + n, cap - n, st);
     n += ridge_shadow_emit(w, projection, vp, out + n, cap - n, st);
-    n += ridge_gate_emit(w, projection, vp, out + n, cap - n, st);
     n += ridge_plane_emit(w, projection, vp, out + n, cap - n, st);
     /* 点缀物是加分项：核心几何之外容量富余才画，预算永不顶死。 */
     if (cap - n >= 24u)
         n += ridge_props_emit(w, projection, vp, out + n, cap - n, st);
-    if (cap - n >= 16u) {
-        n += ridge_birds_emit(w, projection, vp, out + n, cap - n, st);
-        n += ridge_dots_emit(w, projection, vp, out + n, cap - n, st);
-        n += ridge_clouds_emit(w, projection, vp, out + n, cap - n, st);
-    }
     if (cap - n >= 16u)
-        n += ridge_streaks_emit(w, projection, vp, out + n, cap - n, st);
+        n += ridge_clouds_emit(w, projection, vp, out + n, cap - n, st);
     return n;
 }
 

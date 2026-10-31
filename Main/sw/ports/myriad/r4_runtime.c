@@ -262,21 +262,19 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
     }
     strcpy(rows[29],"ESC MENU  C SCENE");
     if (s_scene == 2u) {
-        /* 山脊飞行版右栏：COMBO/SPEED/RINGS 换掉走廊的 CONTACTS 行。
-           排版三层：左上 zone 名（0 行）、右上 RINGS n/6（同 0 行）、
-           左下 tagline（29 行，与右栏操作提示并存）——参考版式。 */
+        /* 山脊滑翔版右栏：SCORE/HI/COMBO/GRAZE/RINGS/BOMB 全随门环退场，
+           留 PLAYER（撞山掉盾）+ SPEED + TRIS + FPS。
+           排版三层：左上 zone 名（0 行）、右上行程（同 0 行）、
+           左下 tagline（29 行，与右栏操作提示并存）。 */
         unsigned i2;
-        unsigned speed = 4u + ((s_world.combo >> 1) > 3u ? 3u : (s_world.combo >> 1));
+        static const unsigned dead[6] = {6u, 7u, 9u, 10u, 14u, 16u};
+        for (i2 = 0u; i2 < 6u; ++i2) { rows[dead[i2]][0] = '\0'; values[dead[i2]][0] = '\0'; }
         for (i2 = 15u; i2 < 27u; ++i2) { rows[i2][0] = '\0'; values[i2][0] = '\0'; }
-        strcpy(rows[14], "COMBO");
-        values[14][0] = 'x'; hud_number(values[14] + 1, s_world.combo > 99u ? 99u : s_world.combo, 0);
-        strcpy(rows[16], "GRAZE"); hud_number(values[16], s_world.graze, 0);
-        strcpy(rows[18], "SPEED"); hud_number(values[18], speed, 0);
-        strcpy(rows[24], "RINGS"); hud_number(values[24], s_world.rings_passed, 0);
-        strcpy(rows[25], "TRIS"); hud_number(values[25], s_records, 0);
+        strcpy(rows[18], "SPEED"); hud_number(values[18], 4u, 0);
+        strcpy(rows[24], "TRIS"); hud_number(values[24], s_records, 0);
         strcpy(rows[0], ridge_zone_names[r4_scene2_zone(&s_world)]);
-        hud_number(values[0], s_world.rings_passed % 6u, 0);
-        strcat(values[0], "/6");
+        hud_number(values[0], s_world.d >> 16, 0);
+        strcat(values[0], "m");
         strcpy(values[29], ridge_zone_tags[r4_scene2_zone(&s_world)]);
     }
 #else
