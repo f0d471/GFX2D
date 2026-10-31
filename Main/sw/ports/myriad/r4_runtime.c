@@ -344,18 +344,33 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
         if(values[s][0] && !hud_world)bad+=stg_text_draw(&l,(s==7 || s==10)?&amber:&white,
             dst,myriad_hud_value_x(values[s]),0,values[s],&drawn);
         if(hud_world) {
-            /* 参考版式：世界区左上 zone 名+细线、右上 RINGS n/6、左下 tagline。 */
+            /* 参考版式：世界区左上 zone 名+细线、右上 RINGS n/6、左下 tagline。
+               各配一块小深板垫字：白云/亮雪地上白字也要可读。 */
             if(s==0u) {
+                uint32_t len=0;while(rows[0][len])++len;
+                {
+                    gfx_rect plate={6,0,(int)(10+(int)len*8),16};
+                    bad+=gfx_fill(&l,dst,plate,0x00182833,GFX_EQ_COPY,0)!=0;
+                }
                 bad+=stg_text_draw(&l,&white,dst,10,0,rows[0],&drawn);
                 {
                     gfx_rect rule={10,14,(int)(10+(int)drawn*8),14};
                     bad+=gfx_fill(&l,dst,rule,0x0090b8d0,GFX_EQ_COPY,0)!=0;
                 }
                 if(values[0][0]) {
-                    uint32_t len=0;while(values[0][len])++len;
-                    bad+=stg_text_draw(&l,&white,dst,(int)(R4_WORLD_WIDTH-10-(int)len*8),0,values[0],&drawn);
+                    uint32_t len2=0;while(values[0][len2])++len2;
+                    gfx_rect plate={0,0,0,0};
+                    (void)plate;
+                    bad+=gfx_fill(&l,dst,(gfx_rect){(int)(R4_WORLD_WIDTH-12-(int)len2*8),0,
+                        (int)(R4_WORLD_WIDTH-6),16},0x00182833,GFX_EQ_COPY,0)!=0;
+                    bad+=stg_text_draw(&l,&white,dst,(int)(R4_WORLD_WIDTH-10-(int)len2*8),0,values[0],&drawn);
                 }
             } else {
+                uint32_t len=0;while(values[29][len])++len;
+                {
+                    gfx_rect plate={6,0,(int)(10+(int)len*8),16};
+                    bad+=gfx_fill(&l,dst,plate,0x00182833,GFX_EQ_COPY,0)!=0;
+                }
                 bad+=stg_text_draw(&l,&white,dst,10,0,values[29],&drawn);
             }
         }
@@ -429,6 +444,19 @@ static void bg_sil_row(uint32_t *bg, uint32_t y, int base_y, int amp,
     }
 }
 
+/* 圆盘（太阳/光晕用）：列内按行距写。 */
+static void bg_disc_rows(uint32_t *bg, uint32_t y, int cx, int cy, int radius, uint32_t color)
+{
+    int dy = (int)y - cy;
+    uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
+    if (dy < -radius || dy > radius) return;
+    for (int x = cx - radius; x <= cx + radius; ++x) {
+        int dx = x - cx;
+        if (x < 0 || x >= (int)R4_WORLD_WIDTH) continue;
+        if (dx * dx + dy * dy <= radius * radius) row[x] = color;
+    }
+}
+
 static void bg_bake_rows(uint32_t zone, uint32_t y0, uint32_t y1)
 {
     static const uint8_t bayer[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
@@ -462,6 +490,10 @@ static void bg_bake_rows(uint32_t zone, uint32_t y0, uint32_t y1)
             for (int32_t x = 240 - hw; x < 240; ++x) row[x] = bg_peaks[zone][0];
             for (int32_t x = 240; x < 240 + hw; ++x) row[x] = bg_peaks[zone][1];
         }
+        /* 太阳：左上天域的两级光晕+亮核（在剪影/远峰之前，别压住地貌）。 */
+        bg_disc_rows(bg, y, 118, 96, 46, bg_mix(bg_sky_stops[zone][1], 0xfff4dc, 60u));
+        bg_disc_rows(bg, y, 118, 96, 32, bg_mix(bg_sky_stops[zone][1], 0xfff4dc, 140u));
+        bg_disc_rows(bg, y, 118, 96, 22, 0xfff6e2);
         bg_sil_row(bg, y, 252, 52, bg_sils[zone][0], 0);
         bg_sil_row(bg, y, 262, 38, bg_sils[zone][1], 8000);
         bg_sil_row(bg, y, 272, 24, bg_sils[zone][2], 21000);
