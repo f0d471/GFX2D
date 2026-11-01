@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "scope": "SW20 owned files and new document links, not global historical evidence",
+  "files": [
+    "Main/sw/apps/game/gfx2dGame/src/r4_scene.c",
+    "Main/sw/apps/game/gfx2dGame/src/r4_scene.h",
+    "Main/sw/apps/game/gfx2dGame/src/r4.h",
+    "Main/sw/ports/myriad/r4_runtime.c",
+    "Main/tools/check/check_flight.py",
+    "Main/tools/check/check_flight_board.py",
+    "Main/tools/check/validate.py",
+    "Main/doc/滑翔性能与节拍.md",
+    "Main/tools/check/README.md",
+    "Main/sim/engine/flight/baseline.json",
+    "Main/sim/engine/flight/records-acceptance.txt",
+    "Main/sim/engine/flight/records-quick.txt",
+    "Main/sim/engine/flight/test_flight.c",
+    "Main/doc/滑翔手感与世界坐标.md",
+    "Engineering/Todo/sw/SW20-滑翔手感与世界锚定.md",
+    "Engineering/TechReports/sw/20-滑翔手感与世界锚定.md",
+    "Engineering/TechReports/sw/README.md",
+    "Engineering/Todo/README.md",
+    "Main/sim/engine/flight/legacy-rfl2/baseline.json",
+    "Main/sim/engine/flight/legacy-rfl2/records-acceptance.txt",
+    "Main/sim/engine/flight/legacy-rfl2/records-quick.txt"
+  ]
+}
