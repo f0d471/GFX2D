@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""R4 scene/cup 64/32/sanitizer, deterministic full-frame host references and collectors."""
+"""R4 scene 64/32/sanitizer, deterministic full-frame host references and collectors (cup scene removed 2026-11-02)."""
 import argparse,hashlib,json,os,sys
 from check_run import ROOT,session,command,write_json
 from r4_checks import build,flags,frames,compare
@@ -8,7 +8,7 @@ def main(reuse_flight_models=False):
     current=session();logs=current.logs('r4');out=current.build('r4-models')
     if os.name=='nt':raise RuntimeError('r4 host check uses WSL')
     sources=['Main/sim/engine/r4/test_scene.c',
-        'Main/sw/apps/game/gfx2dGame/src/r4_scene.c','Main/sw/apps/game/gfx2dGame/src/r4_cup.c',
+        'Main/sw/apps/game/gfx2dGame/src/r4_scene.c',
         'Main/sw/apps/game/gfx2dGame/src/r4_geometry.c',
         'Main/sw/lib/gfx/rast_setup.c','Main/sw/lib/gfx/rast_ref.c','Main/sw/lib/core/fixmath.c',
         'Main/sw/lib/core/sin_tab.c','Main/sw/lib/core/crc32.c','Main/sw/lib/core/xorshift32.c']
@@ -55,7 +55,7 @@ def main(reuse_flight_models=False):
     forwarder.user32.held=False;assert forwarder.sample()==0
     count=12 if current.profile=='quick' else 60
     results={}
-    for name,ladder,scene in [('l1',1,0),('l2',2,0),('cup',1,1)]:
+    for name,ladder,scene in [('l1',1,0),('l2',2,0)]:
         scene_count=240 if name=='l2' and current.profile!='quick' else count
         binary=build(current,'host-'+name,flags(ladder,scene,frames=scene_count),perf=True)
         body=command([binary],logs/(name+'.log'),env={**os.environ,
@@ -103,7 +103,7 @@ def main(reuse_flight_models=False):
         frames_per_scene={k:len(v) for k,v in results.items()},scenes=list(results),unit=bodies[0].strip(),
         scope='host and shared scene semantics; physical board uses r4-board',
         model_scope='frozen SW19 identity, no asset regeneration' if reuse_flight_models else 'generator check'))
-    print('R4 HOST PASS scenes=3 frames='+str(count),flush=True)
+    print('R4 HOST PASS scenes=2 frames='+str(count),flush=True)
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()

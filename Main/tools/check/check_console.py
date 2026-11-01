@@ -90,11 +90,16 @@ def main():
     require('console enter demo' in body and 'console enter about' in body,'menu/default/system page unreachable')
     require(body.count('console enter menu')>=3,'system page confirm/back did not return')
     require('console error ' not in body,'menu/system page error')
+    # Held-key restart guard now uses Shift (L1/L2): the cup scene and its C toggle were removed 2026-11-02.
+    body=command([exe,'--app','4','--frames','40','--input-script','5:32,20:0'],
+                  logs/'held-ladder.log',env=env,timeout=180)
+    require(body.count('r4 enter ladder/hw ')==2,'held ladder key retriggered during setup')
+    require('console scene 0 ladder 1' in body,'ladder command was lost')
+    require('console error ' not in body,'ladder restart failed')
     body=command([exe,'--app','4','--frames','40','--input-script','5:4096,20:0'],
-                  logs/'held-scene.log',env=env,timeout=180)
-    require(body.count('r4 enter ladder/hw ')==2,'held scene key retriggered during setup')
-    require('console scene 1 ladder ' in body,'scene command was lost')
-    require('console error ' not in body,'scene restart failed')
+                  logs/'scene-key-inert.log',env=env,timeout=180)
+    require(body.count('r4 enter ladder/hw ')==1 and 'console scene 1' not in body,
+            'scene key must not switch the 3D corridor (cup removed)')
     body=command([exe,'--app','2','--frames','30','--input-script','5:64,6:0'],
                   logs/'host-capability.log',env=env,timeout=180)
     require('console capability cpu-only' in body and 'console error ' not in body,

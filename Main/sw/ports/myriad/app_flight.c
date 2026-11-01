@@ -1,6 +1,6 @@
 /* RIDGE FLIGHT：控制台第 5 个应用（场景 2）。
    世界几何见 r4_scene.c 的 ridge_*，天空见 r4_runtime.c 的 build_background。
-   与第 4 个应用（3D CORRIDOR / CUP）共用 R4 运行时，不改它的场景 0/1。 */
+   与第 4 个应用（3D CORRIDOR）共用 R4 运行时，不改它的场景 0（茶杯场景 1 已于 2026-11-02 删除）。 */
 #include <stdint.h>
 #include <string.h>
 #include "board.h"

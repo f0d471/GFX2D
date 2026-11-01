@@ -13,7 +13,6 @@ def main():
     logs, out = current.logs('pc-wide'), current.build('pc-wide')
     sources = ['Main/sim/host/test_wide.c',
         'Main/sw/apps/game/gfx2dGame/src/r4_scene.c',
-        'Main/sw/apps/game/gfx2dGame/src/r4_cup.c',
         'Main/sw/apps/game/gfx2dGame/src/r4_geometry.c',
         'Main/sw/lib/gfx/rast_setup.c', 'Main/sw/lib/gfx/rast_ref.c',
         'Main/sw/lib/core/fixmath.c', 'Main/sw/lib/core/sin_tab.c',
@@ -52,7 +51,7 @@ def main():
     write_json(logs / 'result.json', dict(status='PASS', widths=[640,768,854,1120,1707,1792],
         checks=['analytic clipped coverage and depth', 'independent bin order and count',
                 'stride canaries', 'atomic rejection', 'aspect-correct square projection',
-                'world state invariance', 'cup bounds', '64/32 parity and ASan/UBSan'],
+                'world state invariance', '64/32 parity and ASan/UBSan'],
         mutation='EXPECTED_RED: old 640-wide bbox clamp loses wide-region coverage',
         scope='software canvas only; legacy hardware ABI remains 640x480'))
     print('PC WIDE PASS', flush=True)

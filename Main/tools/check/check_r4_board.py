@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""R4 physical B7: 3 scene CRCs, CPU/HW equivalence, mutation, switches and 60-second cadence."""
+"""R4 physical B7: 2 scene CRCs (corridor L1/L2; cup removed 2026-11-02), CPU/HW equivalence, mutation, switches and 60-second cadence."""
 import argparse,hashlib,json,os,re,shlex,sys
 from pathlib import Path,PurePosixPath,PureWindowsPath
 from check_run import ROOT,session,command,write_json,IncompleteCheck
@@ -98,7 +98,7 @@ def main():
     # Generate the same current-source host references in WSL, without an external copied PASS.
     wsl_out='/mnt/'+expected_dir.drive[0].lower()+expected_dir.as_posix()[2:]
     results=[];expected={}
-    for name,ladder,scene in [('l1',1,0),('l2',2,0),('cup',1,1)]:
+    for name,ladder,scene in [('l1',1,0),('l2',2,0)]:
         scene_count=240 if name=='l2' and current.profile!='quick' else count
         host_dir=current.build('r4')/('reference-'+name)
         rel=os.path.relpath(host_dir,ROOT/'Main/sw/apps/game/gfx2dGame').replace('\\','/')

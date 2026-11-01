@@ -5,7 +5,6 @@
 #include "core/crc32.h"
 #include "r4.h"
 #include "r4_scene.h"
-#include "r4_cup.h"
 #include "r4_atlas.h"
 #include "r4_geometry.h"
 #include "gfx/rast_ref.h"
@@ -93,16 +92,6 @@ int main(void)
         unsigned n=r4_world_emit(&a,&projection,&vp,2,records,512,0);
         assert(n && n<=R4_RECORD_BUDGET);crc32_update(&crc,records,n*sizeof records[0]);
     }
-    for(unsigned tick=0;tick<768;tick+=64) {
-        int n=r4_cup_emit(tick,records,512);
-        assert(n>100 && n<=512);
-        for(int i=0;i<n;++i) {
-            assert(rast_record_valid(records+i));
-            assert(rast_get16(records+i,72)>=160 && rast_get16(records+i,74)<480);
-            assert(rast_get16(records+i,76)>=120 && rast_get16(records+i,78)<360);
-        }
-        crc32_update(&crc,records,(unsigned)n*sizeof records[0]);
-    }
     assert(!fail);
     /* Gameplay uses the ship's world depth, and projectiles really hit enemies. */
     {
@@ -116,7 +105,8 @@ int main(void)
         w.cam_x=R4_ONE;
         w.gate[0].dist=R4_SHIP_Z+R4_ONE/30;w.gate[0].x=r4_gate_x_of(0,0);
         r4_world_tick(&w,0,&fail);
-        assert(w.gate[0].passed && w.shield==R4_SHIELD_INIT-1);
+        /* Gates were removed with their collision (2026-11-01): no invisible wall remains. */
+        assert(!w.gate[0].passed && w.shield==R4_SHIELD_INIT);
         r4_world_init(&w,R4_SEED);w.manual=1;w.enemy_hp=1;
         w.pbul[0]=(r4_bullet){fx_sin(370)*2,R4_ONE/5+fx_sin(240)/2,
             -10*R4_ONE+R4_ONE/4,1};
@@ -133,23 +123,20 @@ int main(void)
         for(unsigned i=0;i<120;++i)r4_world_tick(&w,0,&fail);
         assert(!w.enemy.alive);
         for(unsigned i=0;i<R4_EBULLET_MAX;++i)assert(!w.ebul[i].alive);
-        puts("R4 GAMEPLAY PASS ship-plane hit/gate, enemy hit, bomb edge");
+        puts("R4 GAMEPLAY PASS ship-plane hit, no gate wall, enemy hit, bomb edge");
     }
-    /* Two explicit world occlusion instants: an enemy and a projectile behind
-       opposite gate posts. Removing the gate reveals each sprite at greater z. */
+    /* Gates are no longer drawn (2026-11-01): gate data must not change the
+       rendered world, so the enemy and projectile look the same with or without it. */
     {
-        r4_world w;uint32_t gated[3],open[3],absent[3];uint16_t gz[3],oz[3],az[3];
+        r4_world w;uint32_t gated[3],open[3];uint16_t gz[3],oz[3];
         r4_world_init(&w,R4_SEED);w.gate[0].dist=8*R4_ONE;w.gate[0].x=0;
         for(unsigned i=1;i<R4_GATE_SLOTS;++i)w.gate[i].dist=0;
         w.enemy=(r4_bullet){R4_GATE_OPEN*10/8,0,-10*R4_ONE,1};
         w.ebul[0]=(r4_bullet){-R4_GATE_OPEN*10/8,0,-10*R4_ONE,1};
         witness(&w,gated,gz);w.gate[0].dist=0;witness(&w,open,oz);
-        assert(gated[0]!=open[0] && gated[1]!=open[1]);
-        assert(gz[0]<oz[0] && gz[1]<oz[1]);
-        w.enemy.alive=0;witness(&w,absent,az);
-        assert(open[2]==absent[2] && oz[2]==az[2]);
-        puts("R4 OCCLUSION PASS enemy/projectile behind gate posts");
+        assert(!memcmp(gated,open,sizeof gated) && !memcmp(gz,oz,sizeof gz));
+        puts("R4 GATES REMOVED PASS gate data emits no geometry");
     }
-    printf("R4 SCENE PASS ticks=2000 peak=%u cup_input=396 crc=%08x\n",peak,crc32_end(&crc));
+    printf("R4 SCENE PASS ticks=2000 peak=%u crc=%08x\n",peak,crc32_end(&crc));
     return 0;
 }

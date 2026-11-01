@@ -22,7 +22,7 @@ def input_script():
     pulse(24000,256)      # global game
     pulse(40000,512)      # global pressure
     pulse(56000,896)      # global 3D, never HOME
-    pulse(76000,4096)     # C: private scene switch
+    pulse(76000,4096)     # C: must stay inert in 3D since the cup scene was removed (2026-11-02)
     pulse(88000,2048)     # Back -> menu
     pulse(92000,1)        # UP wraps to system information
     pulse(93000,1024)     # Enter

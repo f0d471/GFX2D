@@ -33,12 +33,17 @@ class _State(ctypes.Structure):
 
 
 class InputForwarder:
-    # board.h: up, down, left, right, bomb, slow, swap, mode1..3
-    _keys = ((0x26, 0), (ord("W"), 0), (0x28, 1), (ord("S"), 1),
-             (0x25, 2), (ord("A"), 2), (0x27, 3), (ord("D"), 3),
-             (0x20, 4), (0xA0, 5), (0x09, 6),
+    # board.h: up, down, left, right, bomb, slow; 1~3 = mode1..3, 4 = 0x380 chord, 5 = app5;
+    # Enter = confirm, Esc = back.  Only these keys are forwarded (2026-11-02): Tab/C/WASD/
+    # Backspace are gone and HW/SW is a panel button.
+    _keys = ((0x26, 0), (0x28, 1), (0x25, 2), (0x27, 3),
+             (0x20, 4), (0x10, 5),
              (ord("1"), 7), (ord("2"), 8), (ord("3"), 9), (ord("5"), 13),
-             (0x0d, 10), (0x1b, 11), (0x08, 11), (ord("C"), 12))
+             (0x0d, 10), (0x1b, 11))
+    # XInput uses the keyboard table: D-pad = arrows, A/Start = Enter, B/Back = Esc, X = Space,
+    # LT held = Shift.  LB/RB have no single bit: they step app_step for the panel (previous/next app).
+    _pad = ((0x0001, 0), (0x0002, 1), (0x0004, 2), (0x0008, 3),
+            (0x1000, 10), (0x0010, 10), (0x2000, 11), (0x0020, 11), (0x4000, 4))
 
     def __init__(self):
         self.user32 = ctypes.windll.user32
@@ -53,6 +58,8 @@ class InputForwarder:
                 pass
         self.last = None
         self.last_sent = 0.0
+        self.app_step = 0
+        self.pad_prev = 0
 
     def sample(self):
         bits = 0
@@ -68,12 +75,11 @@ class InputForwarder:
             state = _State()
             if self.xinput.XInputGetState(0, ctypes.byref(state)) == 0:
                 b = state.pad.buttons
-                for mask, index in ((0x0001, 0), (0x0002, 1), (0x0004, 2),
-                                    (0x0008, 3), (0x1000, 4), (0x0100, 5),
-                                    (0x0010, 10), (0x0020, 11), (0x0200, 12),
-                                    (0x2000, 6)):
+                for mask, index in self._pad:
                     if b & mask:
                         bits |= 1 << index
+                if state.pad.left_trigger > 64:
+                    bits |= 1 << 5
                 if state.pad.ly > 16000:
                     bits |= 1 << 0
                 if state.pad.ly < -16000:
@@ -82,6 +88,9 @@ class InputForwarder:
                     bits |= 1 << 2
                 if state.pad.lx > 16000:
                     bits |= 1 << 3
+                pressed = b & ~self.pad_prev
+                self.app_step += (1 if pressed & 0x0200 else 0) - (1 if pressed & 0x0100 else 0)
+                self.pad_prev = b
         return bits
 
     def send(self, port, now):

@@ -41,7 +41,7 @@ def catalog(body,expected=None,caps=None):
             d=fields(line,'console catalog app ')
             require(d.get('key') and d['key'] not in ('menu','fault'),'invalid catalog key')
             require(d.get('kind') in ('game','demo','benchmark','system') and d.get('graphics') in ('2d','3d'),'invalid catalog category')
-            require(0<integer(d,'id')<0xffffffff and integer(d,'available') in (0,1) and integer(d,'shortcut') in range(5),'invalid catalog value')
+            require(0<integer(d,'id')<0xffffffff and integer(d,'available') in (0,1) and integer(d,'shortcut') in range(6),'invalid catalog value')
             try:title=bytes.fromhex(d['title']).decode('ascii')
             except (KeyError,ValueError,UnicodeError):raise RuntimeError('invalid catalog title') from None
             require(0<len(title)<=80,'invalid title length')
@@ -135,10 +135,9 @@ def validate_board(body,full=True,expected=None,caps=None):
         if 'r4' in required:
             require(any(d['app']=='r4' and integer(d,'scene')==0 and integer(d,'fps_milli')>=28000 for d in status),
                     '3D corridor did not reach measured 30Hz cadence')
-            cup=[d for d in status if d['app']=='r4' and integer(d,'scene')==1]
-            require(len(cup)>=2 and integer(cup[-1],'frames')>integer(cup[0],'frames') and
-                    integer(cup[-1],'presents')>integer(cup[0],'presents'),
-                    'private scene command did not produce continuing cup frames')
+            # The cup scene was removed 2026-11-02; the session still presses C, which must stay inert.
+            require(not any(d['app']=='r4' and integer(d,'scene')==1 for d in status),
+                    'scene key must not switch the 3D corridor (cup removed)')
         require(status[-1]['app']=='menu','final state must be menu')
     return status
 

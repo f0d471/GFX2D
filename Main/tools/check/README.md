@@ -68,7 +68,7 @@ SHA256查找配套综合树、配置与完整报告；它不验收当前RTL。`r
 | `check_g3_stripctl.py` | 条带控制与命令接口的正式生产库对拍、错误三元组、完整 engine_top 与软件/RTL 变异；综合和板测采集 | 仓库根运行 `python3 Main/tools/check/check_g3_stripctl.py`；16/32 行同表，sanitizer/普通构建各 10000 张；`--collect-syn`/`--collect-board` 只采集；见 `Main/sim/engine/stripctl/README.md` |
 | `g3_research.py` | 条带控制前期研究：按游戏几何口径重放条带分桶（16/32 行对照、峰值桶、区容量溢出边界）与直通/条带取数批模型 | 从仓库根运行 `python3 Main/tools/check/g3_research.py`；`--json` 落摘要，判据与证据见 `Main/sim/engine/stripctl/README.md` |
 | `check_g1_logs.py` | TEX 装载窗口外部验收：22 个固定负载 CRC、性能/水位、真实 N_max、360 帧游戏同帧、后端切换和 CRC 失败回退 | 归档验收时；`--board-only` 只检查固定负载 |
-| `test_game_control.py` | 离线核对三个后端、CSV 弹数、确认后的连续切换和目标缺失时停止 | 控制协议改动后；不打开 GUI/串口 |
+| `test_game_control.py` | 离线核对后端确认切换、CSV 弹数、硬件/软件按钮、一行状态、shortcut 5 目录、手柄切应用与按键表 | 控制协议或面板改动后；不打开 GUI/串口 |
 | `check_sw_layers.sh` | 软件分层与构建的结构判据，七项，含三处注错 | 改了 `sw/` 的结构、构建文件或 `bsp/include` 时，提交前 |
 | `check_round255.c` | 逐像素规格（设计文档 3.5 节）的穷举校验：舍入、中间量位宽、舍入顺序、预乘量化误差 | 改像素规格时；v1 不实现 tint，后续 profile 启用时再加对应穷举 |
 | `check_subst.c` | 引擎单通道混合核的六方程**代入表**校验：`x = base×255 + m1×m2` 与 `src×Fs + dst×Fd` 的逐位等价、位宽与符号、16 位模截断注错，另有替代代入（两个乘数都压进 8 位）的等价性 | 改混合方程、代入方式或引擎的位宽时，提交前 |

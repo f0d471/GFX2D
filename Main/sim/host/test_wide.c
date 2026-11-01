@@ -8,7 +8,6 @@
 #include "r4.h"
 #include "r4_scene.h"
 #include "r4_geometry.h"
-#include "r4_cup.h"
 
 #define need(test, name) do { if(!(test)) { \
     fprintf(stderr,"WIDE CHECK FAIL %s line %d\n",name,__LINE__);exit(1); } } while(0)
@@ -111,10 +110,7 @@ static void scene(unsigned width)
         need(!memcmp(&world,&expected,sizeof world),"render preserves world/replay state");
         for(unsigned k=0;k<n;++k)need(rast_record_valid_frame(&records[k],&frame),"world record bounds");
     }
-    int n=r4_cup_emit_view(30,&vp,records,512);
-    need(n>0 && n<=512,"wide cup emission");
-    for(int k=0;k<n;++k)need(rast_record_valid_frame(&records[k],&frame),"cup bounds");
-    printf("WIDE SCENE PASS %u square projection/world invariance/cup\n",width);
+    printf("WIDE SCENE PASS %u square projection/world invariance\n",width);
 }
 
 int main(void)

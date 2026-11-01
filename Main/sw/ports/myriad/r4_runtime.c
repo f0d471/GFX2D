@@ -37,7 +37,6 @@
 
 #include "r4.h"
 #include "r4_scene.h"
-#include "r4_cup.h"
 
 #ifdef __riscv
 #include "gfx_engine.h"
@@ -117,7 +116,8 @@ int r4_set_replay(const uint8_t *data,uint32_t bytes)
     s_replay_on=1;return 0;
 }
 
-void r4_scene_select(uint32_t scene) {s_scene = scene > 1u ? 2u : (scene ? 1u : 0u);}
+/* 0=走廊、2=山脊；1 号茶杯场景 2026-11-02 删除，传 1 按走廊处理。 */
+void r4_scene_select(uint32_t scene) {s_scene = scene > 1u ? 2u : 0u;}
 #if GFX2D_R4_RECORD
 static replay_r4_rec s_tape;
 static uint8_t      s_tape_buf[R4_REC_BUF_BYTES];
@@ -210,12 +210,12 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
     for(unsigned i=0;i<R4_EBULLET_MAX;++i)bullets+=s_world.ebul[i].alive!=0;
     objects+=bullets+(s_ladder>=2 && s_world.enemy.alive);
     for(unsigned i=0;i<R4_PBULLET_MAX;++i)objects+=s_world.pbul[i].alive!=0;
-    strcpy(rows[5],s_scene==2u?"RIDGE FLIGHT":s_scene?"CUP / 396 FACES":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
+    strcpy(rows[5],s_scene==2u?"RIDGE FLIGHT":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
     strcpy(rows[6],"SCORE");hud_number(rows[7],s_world.score,9);
     strcpy(rows[9],"HI-SCORE");hud_number(rows[10],s_world.hiscore,9);
     strcpy(rows[12],"PLAYER");strcpy(rows[14],"BOMB");
     strcpy(rows[15],"GRAZE");hud_number(values[15],s_world.graze,0);
-    strcpy(rows[18],s_scene?(s_frame.width==FB_WIDTH?"SAME 320x240":"ADAPTIVE VIEW"):
+    strcpy(rows[18],s_scene==2u?(s_frame.width==FB_WIDTH?"SAME 320x240":"ADAPTIVE VIEW"):
         GFX2D_R4_JUDGE?"FIXED INPUT":s_hw?"FPGA RASTER":"CPU RASTER");
     strcpy(rows[19],s_ladder>=2?"L2 MATERIALS":"L1 SOLID");
     if (s_scene == 2u) {
@@ -229,7 +229,7 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
         strcpy(rows[18], "SPEED"); hud_number(values[18], speed, 0);
         strcpy(rows[20], "ZONE"); hud_number(values[20], s_world.gate_seq / 8u + 1u, 0);
     } else {
-        strcpy(rows[20],s_scene?"FACES":"CONTACTS");hud_number(active,s_scene?396u:objects,2);
+        strcpy(rows[20],"CONTACTS");hud_number(active,objects,2);
         strcpy(rows[24],"SHOTS");hud_number(values[24],bullets,0);
     }
     strcpy(rows[25],"TRIS");hud_number(values[25],s_records,0);
@@ -245,14 +245,14 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
     /* Same rows, glyph sizes and right edge as the product's danmaku HUD. */
     memset(rows,0,sizeof rows);memset(values,0,sizeof values);
     strcpy(rows[1],"MYRIAD");
-    strcpy(rows[4],s_scene==2u?"RIDGE FLIGHT":s_scene?"3D CUP":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
+    strcpy(rows[4],s_scene==2u?"RIDGE FLIGHT":s_ladder>=2?"3D FLIGHT / L2":"3D FLIGHT / L1");
     strcpy(rows[6],"SCORE");hud_number(rows[7],s_world.score,9);
     strcpy(rows[9],"HI-SCORE");hud_number(rows[10],s_world.hiscore,9);
     strcpy(rows[12],"PLAYER");strcpy(rows[14],"BOMB");
     strcpy(rows[16],"GRAZE");hud_number(values[16],s_world.graze,0);
     strcpy(rows[20],s_ladder>=2?"L2 MATERIALS":"L1 SOLID");
-    strcpy(rows[21],s_scene?"ADAPTIVE VIEW":s_hw?"FPGA RASTER":"CPU RASTER");
-    strcpy(rows[24],s_scene==2u?"RINGS":s_scene?"FACES":"OBJECTS");hud_number(values[24],s_scene==2u?objects:(s_scene?396u:objects),0);
+    strcpy(rows[21],s_scene==2u?"ADAPTIVE VIEW":s_hw?"FPGA RASTER":"CPU RASTER");
+    strcpy(rows[24],s_scene==2u?"RINGS":"OBJECTS");hud_number(values[24],objects,0);
     strcpy(rows[25],"TRIS");hud_number(values[25],s_records,0);
     strcpy(rows[27],"SW FPS");strcpy(rows[28],"HW FPS");
     for(unsigned i=0;i<2;++i) {
@@ -1023,12 +1023,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
 
     /* 2) 几何（发射 + setup）与分桶。 */
     t_seg = board_cycles();
-    if(s_scene==2u) produced = r4_world_emit(&s_world, &s_proj, &s_vp, s_ladder, s_rec, R4_REC_MAX, NULL);
-    else if(s_scene) {
-        int n=s_frame.width==FB_WIDTH?r4_cup_emit(s_world.ticks,s_rec,R4_REC_MAX):
-            r4_cup_emit_view(s_world.ticks,&s_vp,s_rec,R4_REC_MAX);
-        produced=n<0?UINT32_MAX:(uint32_t)n;
-    } else produced = r4_world_emit(&s_world, &s_proj, &s_vp, s_ladder, s_rec, R4_REC_MAX, NULL);
+    produced = r4_world_emit(&s_world, &s_proj, &s_vp, s_ladder, s_rec, R4_REC_MAX, NULL);
     s_out.cyc_geom = board_cycles() - t_seg;
     if (produced == 0u || produced > R4_RECORD_CAP) {
         s_fail++;

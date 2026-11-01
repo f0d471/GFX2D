@@ -52,7 +52,7 @@ def main():
         inputs['qa/manifest.json']=args.qa/'manifest.json'
         for path in args.qa.glob('*-compare-*.png'):inputs['qa/'+path.name]=path
         for version in ('current','next'):
-            for scene in ('l2','cup'):
+            for scene in ('l2',):   # cup scene removed 2026-11-02
                 source=args.qa/version/scene
                 for path in [*source.glob('frame-*.png'),source/'frames.log']:
                     inputs['qa/'+version+'/'+scene+'/'+path.name]=path

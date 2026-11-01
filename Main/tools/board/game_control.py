@@ -1,4 +1,4 @@
-"""连接正在运行的 gfx2d 游戏，显示操作说明与板上状态并转发按键。"""
+"""连接正在运行的 gfx2d 游戏：一行状态、应用编号、硬件/软件切换，并转发键盘与手柄。"""
 
 import argparse
 import codecs
@@ -15,10 +15,16 @@ import serial
 from input_forward import InputForwarder, packet
 
 
-MODE_NAMES = {"menu":"应用菜单", "about":"系统信息", "fault":"故障恢复", "flight":"山脊飞行",
-              "demo": "1 · 图形演示", "game": "2 · 弹幕游戏", "press": "3 · 压力测试", "r3d": "4 · 三维演示"}
+MODE_NAMES = {"menu":"应用菜单", "about":"系统信息", "fault":"故障恢复", "flight":"5 · 滑翔",
+              "demo": "1 · 演示", "game": "2 · 弹幕", "press": "3 · 压力测试", "r3d": "4 · 三维走廊"}
 MODE_IDS = {"1": "demo", "2": "game", "3": "press", "4": "r3d", "5": "flight"}
-KEY_NAMES = ("上", "下", "左", "右", "炸弹", "慢速", "切后端", "2D [1]", "弹幕 [2]", "压力 [3]", "确认", "返回", "场景")
+MODE_SHORTCUTS = {mode: int(key) for key, mode in MODE_IDS.items()}
+APP_NAMES = {"demo": "演示", "stg": "弹幕", "press": "压力测试", "r4": "三维走廊", "flight": "滑翔", "about": "系统信息"}
+SHORTCUT_BITS = {1: 1 << 7, 2: 1 << 8, 3: 1 << 9, 4: 0x380, 5: 1 << 13}
+BACKEND_NAMES = {"hw": "硬件", "hw-tex": "硬件", "hw-strip": "硬件", "sw": "软件"}
+APP_LINE_DEFAULT = "1 演示　2 弹幕　3 压力测试　4 三维走廊　5 滑翔"
+KEY_LINE = "Enter 确认　Esc 返回　方向键 移动/选择　空格 炸弹　Shift 慢速"
+BG, FONT = "#eef2f7", "Microsoft YaHei UI"
 
 
 class BoardState:
@@ -93,7 +99,7 @@ class BoardState:
             try:
                 entry=dict(id=int(data['id']),key=data['key'],kind=data['kind'],graphics=data['graphics'],
                            shortcut=int(data['shortcut']),available=bool(int(data['available'])),title=bytes.fromhex(data['title']).decode('ascii'))
-                if not (0<entry['id']<0xffffffff and entry['shortcut'] in range(5) and data['available'] in ('0','1')
+                if not (0<entry['id']<0xffffffff and entry['shortcut'] in range(6) and data['available'] in ('0','1')
                         and entry['kind'] in ('game','demo','benchmark','system') and entry['graphics'] in ('2d','3d')
                         and 0<len(entry['title'])<=80 and re.fullmatch(r'[A-Za-z_]\w{0,47}',entry['key'],re.ASCII)):
                     raise ValueError('invalid entry')
@@ -201,18 +207,15 @@ class ControlPanel:
         self.pending_backend = None
         self.pending_since = 0.0
         self.pending_steps = 0
-        self.restart_pending = False
-        self.restart_since = 0.0
-        self.restart_target = None
         self.closed = False
         self.last_status_write = 0.0
-        self.notice_text = "连接后从板上读取当前模式、后端和 FPS。"
+        self.notice_text = ""
+        self.notice_until = 0.0
         self.log = None
         if args.log:
             path = Path(args.log)
             path.parent.mkdir(parents=True, exist_ok=True)
             self.log = path.open("a", encoding="utf-8", buffering=1)
-        self.enabled = tk.BooleanVar(value=True)
         self._build()
         root.update()
         self.forwarder = InputForwarder()
@@ -222,128 +225,55 @@ class ControlPanel:
         self.forwarder.focus = user32.GetAncestor(root.winfo_id(), 2)
         root.protocol("WM_DELETE_WINDOW", self.close)
         root.bind("<Tab>", lambda event: "break")
-        root.bind("<F8>", self.toggle_input)
         root.after(100, self.connect)
         root.after(20, self.poll)
 
     def _build(self):
+        # 只留一行状态（出问题时多一行红字）、一行应用编号、一行按键说明和三个按钮（2026-11-02 精简）。
         root = self.root
-        root.title("gfx2d 游戏控制面板")
-        root.configure(bg="#eef2f7")
-        root.geometry("1060x960+50+20")
-        root.minsize(1000, 930)
+        root.title("gfx2d 控制")
+        root.configure(bg=BG)
+        root.geometry("660x240+50+20")
+        root.minsize(560, 220)
         style = ttk.Style(root)
         style.theme_use("clam")
-        style.configure("TFrame", background="#eef2f7")
-        style.configure("TLabel", background="#eef2f7", font=("Microsoft YaHei UI", 10))
-        style.configure("TLabelframe", background="#eef2f7")
-        style.configure("TLabelframe.Label", background="#eef2f7", font=("Microsoft YaHei UI", 11, "bold"))
-        style.configure("TButton", font=("Microsoft YaHei UI", 10), padding=(10, 6))
-        style.configure("TCheckbutton", background="#eef2f7", font=("Microsoft YaHei UI", 10))
-        outer = ttk.Frame(root, padding=18)
+        style.configure("TFrame", background=BG)
+        style.configure("TButton", font=(FONT, 11), padding=(16, 6))
+        outer = ttk.Frame(root, padding=16)
         outer.pack(fill="both", expand=True)
-        ttk.Label(outer, text="gfx2d · 游戏控制", font=("Microsoft YaHei UI", 22, "bold")).pack(anchor="w")
-        ttk.Label(outer, text="画面在板子的 HDMI 屏幕；保持此面板在前台，用键盘控制。", padding=(0, 4, 0, 10)).pack(anchor="w")
-        status = ttk.Frame(outer)
-        status.pack(fill="x")
-        self.mode_label = self._status_box(status, "当前模式", "等待板上反馈", 0)
-        self.backend_label = self._status_box(status, "当前绘图后端", "等待板上反馈", 1)
-        self.fps_label = self._status_box(status, "实际帧率 / 场景数量", "— FPS / —", 2)
-        self.notice = tk.Label(outer, text=self.notice_text, anchor="w", justify="left", wraplength=985,
-                               bg="#e0ecff", fg="#164582", padx=12, pady=10,
-                               font=("Microsoft YaHei UI", 11, "bold"))
-        self.notice.pack(fill="x", pady=(10, 8))
-        actions = ttk.Frame(outer)
-        actions.pack(fill="x", pady=(0, 8))
-        ttk.Button(actions, text="HW/DDR", command=lambda: self.set_backend("hw")).pack(side="left", padx=(0, 6))
-        ttk.Button(actions, text="HW/TEX（推荐）", command=lambda: self.set_backend("hw-tex")).pack(side="left", padx=(0, 6))
-        ttk.Button(actions, text="HW/STRIP 条带", command=lambda: self.set_backend("hw-strip")).pack(side="left", padx=(0, 6))
-        ttk.Button(actions, text="SW 软件对比", command=lambda: self.set_backend("sw")).pack(side="left", padx=(0, 6))
-        ttk.Button(actions, text="返回菜单 [Esc]", command=lambda:self.send_action(1<<11)).pack(side="left", padx=(0,6))
-        ttk.Button(actions, text="确认 [Enter]", command=lambda:self.send_action(1<<10)).pack(side="left", padx=(0,6))
-        ttk.Button(actions, text="重开当前应用", command=self.restart_game).pack(side="left", padx=(0, 6))
-        ttk.Button(actions, text="重新连接", command=self.connect).pack(side="right")
-        three_d=ttk.Frame(outer);three_d.pack(fill="x",pady=(0,8))
-        ttk.Button(three_d,text="菜单向上",command=lambda:self.send_action(1)).pack(side="left",padx=(0,6))
-        ttk.Button(three_d,text="菜单向下",command=lambda:self.send_action(2)).pack(side="left",padx=(0,6))
-        ttk.Button(three_d,text="场景 [C]",command=lambda:self.send_action((1<<12) if self.state.protocol>=2 else 0x380)).pack(side="left",padx=(0,6))
-        ttk.Button(three_d,text="山脊 [5]",command=lambda:self.send_action((1<<13) if self.state.protocol>=2 else 0)).pack(side="left",padx=(0,6))
-        ttk.Button(three_d,text="L1 / L2 [Shift]",command=lambda:self.send_action(1<<5)).pack(side="left",padx=(0,6))
-        ttk.Button(three_d,text="炸弹 [Space]",command=lambda:self.send_action(1<<4)).pack(side="left",padx=(0,6))
-        self.scene_label=ttk.Label(three_d,text="三维场景：等待板上反馈")
-        self.scene_label.pack(side="left",padx=12)
-        self.catalog_label=ttk.Label(outer,text='应用目录：等待固件目录；上下选择，Enter 确认',wraplength=980)
-        self.catalog_label.pack(fill='x',pady=(0,8))
-        self.connection = ttk.Label(outer, text="串口：等待连接", foreground="#53657e")
-        self.connection.pack(anchor="w")
-        self.input_label = ttk.Label(outer, text="按键：等待连接", foreground="#53657e")
-        self.input_label.pack(anchor="w", pady=(2, 8))
-        rules = ttk.Frame(outer)
-        rules.pack(fill="both", expand=True)
-        rules.columnconfigure(0, weight=1, uniform="rules")
-        rules.columnconfigure(1, weight=1, uniform="rules")
-        left = ttk.LabelFrame(rules, text="键盘操作", padding=10)
-        left.grid(row=0, column=0, sticky="nsew", padx=(0, 7))
-        right = ttk.LabelFrame(rules, text="手柄与板上按键", padding=10)
-        right.grid(row=0, column=1, sticky="nsew", padx=(7, 0))
-        self._rules(left, (
-            ("W A S D / 方向键", "移动飞船；斜向可以同时按两方向"),
-            ("左 Shift（按住）", "慢速移动，并显示判定点"),
-            ("空格（每次按下）", "使用一颗炸弹；三维也可清弹并获得短暂无敌"),
-            ("射击", "自动射击，无需按射击键"),
-            ("菜单上下 / Enter", "选择并进入本固件提供的应用；数字键为可选快捷入口"),
-            ("Enter / Esc / C", "确认 / 返回菜单 / 切三维场景"),
-            ("三维 Shift / Tab", "L1、L2阶梯 / 板上CPU、硬件光栅对照"),
-            ("Tab", "HW ↔ SW；SW 由板上 CPU 绘图，会很慢"),
-            ("重开游戏", "先返回菜单再进入游戏；或点重开按钮"),
-            ("F8", "启用 / 停止输入转发，板上游戏继续运行"),
-        ))
-        self._rules(right, (
-            ("手柄方向键 / 左摇杆", "移动飞船（第一个 XInput 手柄）"),
-            ("手柄 A / LB / Start", "炸弹 / 慢速 / 确认"),
-            ("手柄 Back / RB / B", "返回 / 场景 / 切后端"),
-            ("板上 SW0 / SW1", "左 / 下"),
-            ("板上 SW2 / SW3", "上 / 右"),
-            ("板上物理上 + 下", "返回菜单"),
-            ("板上物理左 + 右", "确认选择；游戏中为炸弹"),
-            ("键盘方向组合", "保持为方向输入，不再切应用或后端"),
-            ("模式 1 / 模式 3", "演示或压力测试，不是可操作的游戏"),
-        ))
-        warning = tk.Label(outer, text="产品前端：数字键始终启动同一个应用；Esc 返回菜单，C 切三维场景。\n"
-                           "菜单、系统页与应用状态都由板上反馈；软件参考后端较慢，可用 Tab 切回硬件。",
-                           bg="#fff0d8", fg="#854b00", anchor="w", justify="left", padx=12, pady=9,
-                           font=("Microsoft YaHei UI", 10, "bold"))
-        warning.pack(fill="x", pady=(10, 8))
-        play = ttk.LabelFrame(outer, text="游戏规则与输入状态", padding=10)
-        play.pack(fill="x")
-        self._rules(play, (
-            ("开局与结束", "标题显示 120 帧后自动开始；初始 3 残机、3 炸弹；残机用完回标题，通关后自动新一局。"),
-            ("受击与炸弹", "有炸弹时受击自动消耗一颗；没有炸弹时扣残机并补回 3 炸弹。"),
-            ("自动驾驶", "连续 600 帧无输入后接管（60 FPS 下约 10 秒）；任意游戏按键立即接管回来。"),
-            ("窗口与退出", "切到其它窗口时停止键盘输入，手柄仍可用；关闭面板会松开转发键，板上游戏继续。"),
-        ))
-        ttk.Checkbutton(outer, text="启用键盘与手柄转发（F8 切换；停止转发不会暂停游戏）",
-                        variable=self.enabled, command=self.release_keys).pack(anchor="w", pady=(8, 0))
-
-    @staticmethod
-    def _status_box(parent, title, value, column):
-        parent.columnconfigure(column, weight=1, uniform="status")
-        frame = tk.Frame(parent, bg="white", padx=12, pady=10)
-        frame.grid(row=0, column=column, sticky="nsew", padx=(0 if column == 0 else 8, 0))
-        tk.Label(frame, text=title, bg="white", fg="#64748b", font=("Microsoft YaHei UI", 10)).pack(anchor="w")
-        label = tk.Label(frame, text=value, bg="white", fg="#17243b", font=("Microsoft YaHei UI", 17, "bold"))
-        label.pack(anchor="w", pady=(4, 0))
-        return label
-
-    @staticmethod
-    def _rules(parent, rows):
-        for index, (key, action) in enumerate(rows):
-            ttk.Label(parent, text=key, font=("Microsoft YaHei UI", 9, "bold")).grid(row=index, column=0, sticky="nw", pady=4, padx=(0, 12))
-            ttk.Label(parent, text=action, font=("Microsoft YaHei UI", 9), wraplength=310 if len(rows) == 8 else 780).grid(row=index, column=1, sticky="nw", pady=4)
+        self.status = tk.Label(outer, text="等待连接", anchor="w", justify="left", wraplength=620,
+                               bg=BG, fg="#17243b", font=(FONT, 16, "bold"))
+        self.status.pack(fill="x")
+        self.apps_label = tk.Label(outer, text=APP_LINE_DEFAULT, anchor="w", bg=BG, fg="#17243b", font=(FONT, 12))
+        self.apps_label.pack(fill="x", pady=(10, 2))
+        tk.Label(outer, text=KEY_LINE, anchor="w", bg=BG, fg="#53657e", font=(FONT, 11)).pack(fill="x")
+        buttons = ttk.Frame(outer)
+        buttons.pack(fill="x", pady=(14, 0))
+        ttk.Button(buttons, text="硬件", command=lambda: self.choose_backend("hw")).pack(side="left", padx=(0, 6))
+        ttk.Button(buttons, text="软件", command=lambda: self.choose_backend("sw")).pack(side="left")
+        ttk.Button(buttons, text="重新连接", command=self.connect).pack(side="right")
 
     def notify(self, message):
         self.notice_text = message
-        self.notice.configure(text=message)
+        self.notice_until = time.monotonic() + 4.0
+
+    def app_name(self):
+        entry = self.state.catalog.get(self.state.app_id)
+        if entry:
+            return APP_NAMES.get(entry['key'], entry['title'])
+        return MODE_NAMES.get(self.state.mode, self.state.mode or "等待板上反馈")
+
+    def app_line(self):
+        entries = sorted((e for e in self.state.catalog.values()
+                          if e.get('shortcut') in SHORTCUT_BITS and e.get('available') is not False),
+                         key=lambda e: e['shortcut'])
+        if not entries:
+            return APP_LINE_DEFAULT
+        parts = []
+        for e in entries:
+            text = f"{e['shortcut']} {APP_NAMES.get(e['key'], e['title'])}"
+            parts.append(f"[{text}]" if e['id'] == self.state.app_id else text)
+        return "　".join(parts)
 
     def connect(self):
         if self.port is not None:
@@ -353,7 +283,6 @@ class ControlPanel:
             self.port = None
         self.state = BoardState()
         self.pending_backend = None
-        self.restart_pending = False
         self.buffer = ""
         self.decoder.reset()
         try:
@@ -361,18 +290,16 @@ class ControlPanel:
             self.port.reset_input_buffer()
             self.forwarder.last = None
             self.ensure_hw = self.args.ensure_hw
-            self.connection.configure(text=f"已连接 {self.args.port} · 等待板上反馈", foreground="#167144")
-            self.notify("已连接；保持面板在前台，开始控制。正在读取板上的模式与绘图后端。")
+            self.notify("已连接，等待板上反馈。")
             if self.log:
                 self.log.write(f"\n# control panel connected {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
         except serial.SerialException as error:
-            self.connection.configure(text=f"无法连接 {self.args.port}：{error}", foreground="#b42318")
-            self.notify("串口未连接。检查 USB 与串口占用，然后点击“重新连接”。")
+            self.notify(f"串口打不开：{error}")
         self.refresh()
 
     def send_action(self, mask):
         if self.port is None:
-            self.notify("串口未连接；先点击“重新连接”。")
+            self.notify("串口未连接；先点「重新连接」。")
             return False
         try:
             self.port.write(packet(mask))
@@ -384,52 +311,43 @@ class ControlPanel:
             return False
 
     def set_backend(self, target):
+        name = BACKEND_NAMES.get(target, target)
         if self.state.protocol>=2 and self.state.mode in (None,"menu","about","fault"):
-            self.notify("先进入应用，再切换绘图后端。")
+            self.notify("先进入应用，再切换硬件/软件。")
             return
         if self.state.mode == "r3d" and target.startswith("hw"):
             target = "hw"
         if self.pending_backend is not None:
-            self.notify("正在等待上一次后端切换的板上确认。")
+            self.notify("正在等板上确认上一次切换。")
         elif self.state.backend is None:
-            self.notify("尚未收到当前后端；等待板上反馈后再切换。")
+            self.notify("还没收到板上状态，稍等再切。")
         elif self.state.backend == target:
-            self.notify(f"板上当前已是 {target.upper()} 后端。")
+            self.notify(f"已是{name}。")
         elif self.send_action(1 << 6):
             self.pending_backend = target
             self.pending_steps = 1
             self.pending_since = time.monotonic()
-            self.notify(f"已请求切到 {target.upper()}，等待板上确认。")
+            self.notify(f"正在切到{name}……")
 
-    def restart_game(self):
-        if self.restart_pending:
+    def choose_backend(self, target):
+        # 面板只分硬件/软件：已在任一硬件后端时「硬件」不再按 Tab 轮换。
+        if target == "hw" and (self.state.backend or "").startswith("hw"):
+            self.notify("已是硬件。")
             return
-        if self.state.catalog:
-            entry=self.state.catalog.get(self.state.app_id)
-            if not entry or entry['kind']=='system':
-                self.notify('先进入要重开的应用。');return
-            self.restart_target=entry['id']
-            if self.send_action(1<<11):
-                self.restart_pending=True;self.restart_since=time.monotonic()
-                self.notify('返回菜单后按应用目录重开 '+entry['title'])
-            return
-        if self.state.mode is None:
-            self.notify("尚未收到当前模式；等待板上反馈后再重开。")
-            return
-        if self.state.protocol>=2:
-            if self.state.mode=="menu":
-                self.send_action(1<<8)
-            elif self.send_action(1<<11):
-                self.restart_pending=True
-                self.restart_since=time.monotonic()
-                self.notify("返回菜单后重开弹幕游戏。")
-        elif self.state.mode == "demo":
-            if self.send_action(1 << 8):
-                self.notify("已请求进入游戏模式，等待板上确认。")
-        elif self.send_action(1 << 7):
-            self.restart_pending = True
-            self.restart_since = time.monotonic()
-            self.notify("正在重开游戏：先切到演示，收到板上确认后再进入游戏。")
+        self.set_backend(target)
+
+    def switch_app(self, step):
+        """手柄 LB/RB：切到上一个/下一个应用，等价于按对应数字键。"""
+        shortcuts = sorted(e['shortcut'] for e in self.state.catalog.values()
+                           if e.get('shortcut') in SHORTCUT_BITS and e.get('available') is not False)
+        order = shortcuts or sorted(SHORTCUT_BITS)
+        entry = self.state.catalog.get(self.state.app_id)
+        current = entry.get('shortcut') if entry else MODE_SHORTCUTS.get(self.state.mode)
+        if current in order:
+            target = order[(order.index(current) + step) % len(order)]
+        else:
+            target = order[0] if step > 0 else order[-1]
+        self.send_action(SHORTCUT_BITS[target])
 
     def release_keys(self):
         if self.port is not None:
@@ -439,102 +357,61 @@ class ControlPanel:
             except serial.SerialException as error:
                 self.disconnect(error)
 
-    def toggle_input(self, event=None):
-        self.enabled.set(not self.enabled.get())
-        self.release_keys()
-        return "break"
-
     def disconnect(self, error):
         if self.port is not None:
             self.port.close()
         self.port = None
-        self.connection.configure(text=f"串口已断开：{error}", foreground="#b42318")
-        self.notify("USB / 串口连接已断开。上方保留的是最后一次反馈；重连后点击“重新连接”。")
+        self.notify(f"串口断开：{error}。插好 USB 后点「重新连接」。")
         if self.log:
             self.log.write(f"# serial lost: {error}\n")
 
     def process_line(self, line):
         before_backend = self.state.backend
-        changed = self.state.consume(line)
+        self.state.consume(line)
         if line.startswith("console enter "):
             # A backend confirmation belongs to one application. Never replay
             # its remaining Tab actions into the newly selected application.
             self.pending_backend=None
-            if self.restart_pending and self.state.mode!="menu":
-                self.restart_pending=False
-                self.notify("应用已切换，取消尚未完成的重开请求。")
         if line.startswith("console error ") or line.startswith("console fatal "):
-            self.pending_backend=None;self.restart_pending=False
-            self.notify("板端报告故障："+line)
+            self.pending_backend=None
+            self.notify("板上报错："+line)
             return
-        if changed:
-            mode = self.state.label()
-            backend = (self.state.backend or "未知").upper()
-            self.notify(f"{time.strftime('%H:%M:%S')} 板上反馈：{mode} · {backend} 后端。" +
-                        (" SW 软件绘图会很慢，正常游玩请回到 HW。" if self.state.backend == "sw" else ""))
         if self.pending_backend == self.state.backend:
             self.pending_backend = None
         elif self.pending_backend and before_backend != self.state.backend:
             if self.pending_steps >= 4:
                 self.pending_backend = None
-                self.notify("板上未进入请求的后端；当前程序可能不提供该后端，已停止切换。")
+                self.notify("当前应用没有这个模式，已停止切换。")
             elif self.send_action(1 << 6):
                 self.pending_steps += 1
                 self.pending_since = time.monotonic()
-        if self.restart_pending and self.state.mode == ("menu" if self.state.protocol>=2 else "demo"):
-            if self.state.catalog:
-                if line.startswith('console menu '):
-                    available=[i for i,e in self.state.catalog.items() if e.get('available') is not False]
-                    target=getattr(self,'restart_target',None)
-                    if target not in available:
-                        self.restart_pending=False;self.notify('当前固件无法启动该应用。')
-                    elif available.index(target)==self.state.menu_index:
-                        self.restart_pending=False;self.send_action(1<<10)
-                    else:self.send_action(2) # Wait for the next observed selection before moving again.
-            else:
-                self.restart_pending = False
-                self.send_action(1 << 8)
         if self.ensure_hw and self.state.backend is not None:
             self.ensure_hw = False
             if self.state.backend == "sw":
                 self.set_backend("hw")
 
     def refresh(self):
-        self.mode_label.configure(text=self.state.label())
-        if self.state.catalog:
-            names=[e['title'] for e in self.state.catalog.values() if e.get('available') is not False]
-            text=' / '.join(names[:6])+(' …' if len(names)>6 else '')
-            self.catalog_label.configure(text=f"应用目录 [{self.state.profile}]：{text}；上下选择，Enter 确认")
-        backend = self.state.backend
-        self.backend_label.configure(text={"hw": "HW/DDR · FPGA 加速", "hw-tex": "HW/TEX · 片上纹理", "hw-strip": "HW/STRIP · 条带渲染", "sw": "SW · CPU 绘图"}.get(backend, "等待板上反馈"),
-                                     fg="#167144" if backend in ("hw", "hw-tex", "hw-strip") else "#b42318" if backend == "sw" else "#17243b")
-        if self.state.mode=="r3d":
-            self.backend_label.configure(text="等待三维反馈" if backend is None else
-                                         "HW · 三维光栅" if backend=="hw" else "SW · CPU 参考")
-        fps = f"{self.state.fps:.1f}" if self.state.fps is not None else "—"
-        bullets = str(self.state.bullets) if self.state.bullets is not None else "—"
-        self.fps_label.configure(text=f"{fps} FPS / {bullets} 颗")
-        if self.state.mode=="r3d":self.fps_label.configure(text=f"{fps} FPS / {self.state.triangles or '—'} 三角形")
-        if self.state.mode=="r3d":
-            self.scene_label.configure(text=f"{'茶杯 396 面' if self.state.scene else '走廊 · 世界弹幕'} · L{self.state.ladder or '—'}")
-        else:self.scene_label.configure(text="场景操作由当前应用提供")
-        self.notice.configure(bg="#ffe4e0" if backend == "sw" or self.port is None else "#e0ecff",
-                              fg="#b42318" if backend == "sw" or self.port is None else "#164582")
         focus = self.forwarder.user32.GetForegroundWindow() == self.forwarder.focus
         keys = self.forwarder.last or 0
-        display_keys=keys
-        names=[]
-        if display_keys&0x380==0x380:
-            names.append("三维 [4]");display_keys&=~0x380
-        names.extend(name for index,name in enumerate(KEY_NAMES) if display_keys&(1<<index))
-        pressed="、".join(names) or "无"
-        self.input_label.configure(text=("输入转发已停止（游戏继续）" if not self.enabled.get() else
-                                  "键盘前台可用；手柄可用" if focus else "键盘已松开：点击面板可恢复；手柄可用") + f" · 当前按键：{pressed}")
-        if self.port is not None and self.state.last_csv:
-            age = time.monotonic() - self.state.last_csv
-            self.connection.configure(text=f"已连接 {self.args.port} · 最近 FPS 反馈 {age:.1f} 秒前" +
-                                      (" · 正在等待新统计" if age > 5 else ""))
-        self.root.title(f"gfx2d 控制 · {self.state.label()} · {(backend or '未知').upper()} · {fps} FPS")
+        backend = self.state.backend
+        fps = f"{self.state.fps:.0f} FPS" if self.state.fps is not None else "— FPS"
+        mode = BACKEND_NAMES.get(backend, "—")
+        name = self.app_name()
+        connected = self.port is not None
+        lines = [" · ".join((name, fps, mode, "已连接" if connected else "未连接 " + self.args.port))]
+        problems = []
+        if connected and self.state.errors:
+            problems.append(f"板上错误 {self.state.errors}")
+        if connected and not focus:
+            problems.append("键盘没对准面板：点一下面板")
+        if problems:
+            lines.append("；".join(problems))
+        if self.notice_text and time.monotonic() < self.notice_until:
+            lines.append(self.notice_text)
+        alert = not connected or bool(problems) or backend == "sw"
+        self.status.configure(text="\n".join(lines), fg="#b42318" if alert else "#167144")
+        self.apps_label.configure(text=self.app_line())
+        self.root.title(f"gfx2d 控制 · {name} · {mode} · {fps}")
         if self.args.status_file and time.monotonic() - self.last_status_write >= 1:
             path = Path(self.args.status_file)
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -543,7 +420,7 @@ class ControlPanel:
                             catalog=self.state.catalog,content_hash=self.state.catalog_hash,profile=self.state.profile,caps=self.state.capabilities,
                             triangles=self.state.triangles,ladder=self.state.ladder,scene=self.state.scene,
                             render_fps=self.state.render_fps,
-                            connected=self.port is not None, keyboard_focus=focus, keys=keys,
+                            connected=connected, keyboard_focus=focus, keys=keys,
                             notice=self.notice_text, updated=time.strftime("%Y-%m-%d %H:%M:%S"))
             temporary = path.with_suffix(path.suffix + ".tmp")
             temporary.write_text(json.dumps(snapshot, ensure_ascii=False), encoding="utf-8")
@@ -568,11 +445,11 @@ class ControlPanel:
     def _poll_body(self):
         if self.port is not None:
             try:
-                if self.enabled.get():
-                    self.forwarder.send(self.port, time.monotonic())
-                elif time.monotonic() - self.forwarder.last_sent >= 0.1:
-                    self.port.write(packet(0))
-                    self.forwarder.last, self.forwarder.last_sent = 0, time.monotonic()
+                self.forwarder.send(self.port, time.monotonic())
+                step = self.forwarder.app_step
+                if step:
+                    self.forwarder.app_step = 0
+                    self.switch_app(1 if step > 0 else -1)
                 count = self.port.in_waiting
                 if count:
                     chunk = self.decoder.decode(self.port.read(count))
@@ -587,10 +464,7 @@ class ControlPanel:
                 self.disconnect(error)
         if self.pending_backend and time.monotonic() - self.pending_since > 10:
             self.pending_backend = None
-            self.notify("10 秒内没有确认后端切换。查看当前状态，必要时重新请求切换。")
-        if self.restart_pending and time.monotonic() - self.restart_since > 10:
-            self.restart_pending = False
-            self.notify("10 秒内没有确认演示模式，重开未继续。查看模式状态后再操作。")
+            self.notify("10 秒没等到板上确认，没切成。")
         self.refresh()
 
     def close(self):

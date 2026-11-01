@@ -8,7 +8,7 @@
 #include "console_content.h"
 #include "app_port.h"
 
-static uint32_t s_prev,s_hw,s_ladder=2,s_scene,s_fail_base;
+static uint32_t s_prev,s_hw,s_ladder=2,s_fail_base;
 static int s_restart,s_started,s_initialized;
 void console_r4_boot(appfw_ctx *ctx)
 {
@@ -25,7 +25,7 @@ static int enter(appfw_ctx *c)
     uint32_t ticket;
     int blank;
     if(!s_initialized) { s_hw=(uint32_t)app_port_hardware();s_initialized=1; }
-    r4_scene_select(s_scene);
+    r4_scene_select(0u);    /* 只剩走廊；茶杯场景 2026-11-02 按用户定案删除 */
     if(stg_runtime_surfaces_r4(content_runtime(c))!=0 || renderer_prepare(1,&content_runtime(c)->tab)!=0)return -1;
 #ifdef INJECT_CONSOLE_ENTER
     return appfw_error("injected enter",-1);
@@ -44,7 +44,7 @@ static int enter(appfw_ctx *c)
     {
         char line[96];core_out out;
         core_out_init(&out,line,sizeof line);core_out_str(&out,"console scene ");
-        core_out_u32(&out,s_scene);core_out_str(&out," ladder ");core_out_u32(&out,s_ladder);
+        core_out_u32(&out,r4_current_scene());core_out_str(&out," ladder ");core_out_u32(&out,s_ladder);
         core_out_str(&out,"\r\n");appfw_log(line);
     }
     return 0;
@@ -70,7 +70,6 @@ static int frame(appfw_ctx *c,uint32_t keys,uint32_t n)
         s_prev=restart_keys;
         return APPFW_FRAME_IDLE;
     }
-    if(pressed&BOARD_KEY_SCENE) { s_scene^=1u;s_restart=1; }
     if(pressed&BOARD_KEY_SWAP) {
         if(app_port_hardware()) { s_hw^=1u;s_restart=1; }
         else appfw_log("console capability cpu-only\r\n");
