@@ -5,15 +5,18 @@
 | 文件 | 用途 |
 | --- | --- |
 | `gen_placeholder.py` | 生成占位 PNG（纯色、棋盘、渐变、圆形弹幕、色键图、图集）。图案全部按坐标算出来，没有随机数，同一个 Pillow 版本产出逐字节相同的 PNG |
-| `gen_stg_neon.py` | 生成游戏的霓虹几何素材：三种弹各四色、自机弹、火花、自机与两种敌机、Boss、星点、标题（含 EX 提示行）、大号数字、图标、青色字库、背景合图，共 13 张 PNG（含背景合图 bg_layers.png）。图案按坐标算出，不用随机数与字体文件；`--check` 重新生成并与入库的逐像素比，`--check --inject` 改一个像素必须见红 |
+| `gen_stg_neon.py` | 生成游戏的霓虹几何素材：三种弹各四色、自机弹、火花、自机与两种敌机、Boss、星点、标题（含 EX 提示行）、大号数字、图标、青色与琥珀字库、背景合图，共 14 张 PNG。图案按坐标算出，不用随机数与字体文件。其中 8 张入库的是 `apply_kenney_art.py` 的叠加版：写回入库目录时默认跳过、`--check` 不比，加 `--base` 才连它们一起写回基线；`--check` 重新生成并与入库的逐像素比，`--check --inject` 改一个像素必须见红 |
+| `apply_kenney_art.py` | 在霓虹基线上换掉 8 张：自机、两种敌机、Boss、自机弹、残机图标取 Kenney Space Shooter Redux（CC0）原图改色缩放，圆弹、米弹、背景楼群按坐标重画。`--src` 指向解包后的 Kenney PNG 目录（原图不入库） |
 | `gen_font_txt.py` | 把原样入库的上游点阵字体 `Main/assets/font/spleen-8x16.bdf`（Spleen 8x16，BSD-2-Clause）转换成打包工具读的字库文本 `font/ascii8x16.txt`，只取 ASCII 的 95 个字形；`--check` 重新生成并与入库的逐字节比，`--check --inject` 改一个像素必须见红 |
 | `pack_assets.py` | 读 `Main/assets/manifest.txt`，把每一项转成目标字节、打成 `assets.pak`，并生成 `assets.h` |
 
 ```
 wsl -e python3 Main/tools/assets/gen_placeholder.py            # 生成占位 PNG（产物入库）
 wsl -e python3 Main/tools/assets/gen_placeholder.py --check    # 只校验现有 PNG 与预期像素一致
-wsl -e python3 Main/tools/assets/gen_stg_neon.py               # 生成游戏素材到 Main/assets/neon/（产物入库）
+wsl -e python3 Main/tools/assets/gen_stg_neon.py               # 生成游戏素材到 Main/assets/neon/（产物入库；Kenney 叠加的 8 张跳过）
 wsl -e python3 Main/tools/assets/gen_stg_neon.py --check       # 重新生成，与入库的逐像素比
+wsl -e python3 Main/tools/assets/gen_stg_neon.py --base        # 8 张也写回基线，之后必须接着跑下一行
+wsl -e python3 Main/tools/assets/apply_kenney_art.py --src <Kenney PNG 目录>   # 在基线上叠 Kenney 层
 wsl -e python3 Main/tools/assets/gen_font_txt.py               # 由 spleen-8x16.bdf 生成字库文本（产物入库）
 wsl -e python3 Main/tools/assets/gen_font_txt.py --check       # 重新生成，与入库的逐字节比
 wsl -e python3 Main/tools/assets/pack_assets.py                # 打包到 Main/assets/build/
@@ -26,7 +29,7 @@ wsl -e python3 Main/tools/assets/pack_assets.py --max-pak 1048576    # 收紧素
 Main/assets/
   manifest.txt         素材清单（TSV），显式 ID + 名字 + PNG + alpha_mode + 色键 + 切片
   placeholder/*.png    由 gen_placeholder.py 生成，入库
-  neon/*.png           由 gen_stg_neon.py 生成，入库，并在 LICENSES.md 里逐个登记
+  neon/*.png           由 gen_stg_neon.py 生成（其中 8 张再由 apply_kenney_art.py 叠 Kenney 层），入库，并在 LICENSES.md 里逐个登记
   font/spleen-8x16.bdf 上游点阵字体 Spleen 8x16（原样入库，许可全文在 font/LICENSE-spleen.txt）
   font/ascii8x16.txt   由 gen_font_txt.py 从上面的 BDF 转换的 8×16 ASCII 字库（95 个字形），入库，打包工具渲染成图集
   LICENSES.md          每个非生成文件的来源与许可（判据脚本会按这条扫）

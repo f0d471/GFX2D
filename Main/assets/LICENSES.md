@@ -15,18 +15,20 @@
 | `font/spleen-8x16.bdf` | 上游原样：Spleen 2.2.0 的 `spleen-8x16.bdf`（https://github.com/fcambus/spleen），未修改 | BSD-2-Clause，Copyright (c) 2018-2026, Frederic Cambus，全文见 `font/LICENSE-spleen.txt` | 字库的像素来源；只取其中 ASCII 的 95 个字形 |
 | `font/LICENSE-spleen.txt` | 上游原样：Spleen 的 `LICENSE` | BSD-2-Clause 原文 | 分发字体与由它渲染的像素时必须附带的版权声明与许可全文 |
 | `LICENSES.md` | 本项目编写 | 项目自有 | 本表 |
-| `neon/bul16.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 16×16 圆弹，四色；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
-| `neon/bul8.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 8×8 小圆弹，四色；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
-| `neon/rice20.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 20×20 米弹，四色 × 16 个方向；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
-| `neon/pshot.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 6×24 自机弹光束；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
+| `neon/bul16.png` | 脚本生成：`gen_stg_neon.py` 基线上由 `Main/tools/assets/apply_kenney_art.py` 按坐标重画 | 项目自有，无第三方像素 | 16×16 圆弹，四色，白芯 + 亮环 + 外辉光；产物入库，`gen_stg_neon.py --check` 不比（叠加脚本要 Kenney 包才能重跑） |
+| `neon/bul8.png` | 脚本生成：`gen_stg_neon.py` 基线上由 `Main/tools/assets/apply_kenney_art.py` 按坐标重画 | 项目自有，无第三方像素 | 8×8 小圆弹，四色；产物入库，`gen_stg_neon.py --check` 不比 |
+| `neon/rice20.png` | 脚本生成：`gen_stg_neon.py` 基线上由 `Main/tools/assets/apply_kenney_art.py` 按坐标重画 | 项目自有，无第三方像素 | 20×20 米弹，四色 × 16 个方向，椭圆截面胶囊；产物入库，`gen_stg_neon.py --check` 不比 |
+| `neon/pshot.png` | 派生：Kenney Space Shooter Redux 的 `Lasers/laserBlue01.png`，经 `apply_kenney_art.py` 转青色、缩到 6×24 | CC0（Kenney.nl） | 自机弹光束；产物入库，`gen_stg_neon.py --check` 不比 |
 | `neon/spark.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 8×8 火花，4 帧 × 5 档亮度；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
-| `neon/ships.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 32×32 线框：自机、DART、CROSS；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
-| `neon/boss.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 96×96 Boss，6 帧；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
+| `neon/ships.png` | 派生：Kenney Space Shooter Redux 的 `playerShip1_blue`、`Enemies/enemyRed2`、`Enemies/enemyGreen2`，经 `apply_kenney_art.py` 改色、缩放、做摆动帧 | CC0（Kenney.nl） | 32×32：自机 1 帧、DART 4 帧、CROSS 4 帧；产物入库，`gen_stg_neon.py --check` 不比 |
+| `neon/boss.png` | 派生：Kenney Space Shooter Redux 的 `Enemies/enemyBlack3`，经 `apply_kenney_art.py` 暗部染暗品红、缩到 74px、转出 6 帧 | CC0（Kenney.nl） | 96×96 Boss，6 帧（2 列 × 3 行）；产物入库，`gen_stg_neon.py --check` 不比 |
 | `neon/stars.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 2×2 星点 4 种；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
 | `neon/title.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 240×90 标题 MYRIAD（笔画按线段画，不用字体文件；2026-09-27 定案去掉中文副标题）；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
 | `neon/digits.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | BSD-2-Clause，随 Spleen（字形来自 `font/ascii8x16.txt`） | 16×32 大号数字，由 `font/ascii8x16.txt` 放大一倍；产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
-| `neon/icons.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | 项目自有，无第三方来源 | 16×16 图标：自机、炸弹、判定点；图案按坐标算出，产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
+| `neon/icons.png` | 脚本生成（`gen_stg_neon.py`），第 0 格由 `apply_kenney_art.py` 换成 Kenney `playerShip1_blue` 缩图 | 第 0 格 CC0（Kenney.nl），其余项目自有 | 16×16 图标：自机、炸弹、判定点；产物入库，`gen_stg_neon.py --check` 不比 |
 | `neon/font_cyan.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | BSD-2-Clause，随 Spleen（字形来自 `font/ascii8x16.txt`） | 青色 8×16 字库，照 `font/ascii8x16.txt` 渲染；产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
+| `neon/font_amber.png` | 脚本生成（`Main/tools/assets/gen_stg_neon.py`） | BSD-2-Clause，随 Spleen（字形来自 `font/ascii8x16.txt`） | 琥珀 8×16 字库（R4 HUD 数值），照 `font/ascii8x16.txt` 渲染；产物入库，`check_sw7_game.sh` 重新生成并逐像素比对 |
+| `neon/bg_layers.png` | 脚本生成：天空区由 `gen_stg_neon.py` 生成，远景带与城市带由 `apply_kenney_art.py` 按坐标重画（32/64px 一栋） | 项目自有，无第三方像素 | 512×608 背景合图；产物入库，`gen_stg_neon.py --check` 不比 |
 
 ## 字库的来源
 
@@ -45,14 +47,14 @@ BSD-2-Clause 对二进制分发的要求：素材包与 Flash 镜像里带着由
 **没有登记许可的非生成素材不入库。** 正式角色、弹幕与背景的美术生产随游戏主题的选择另排，
 到时加进来的每一份非生成素材都要先在本表登记。
 
-正式素材（霓虹几何，`neon/` 下 12 张 PNG）全部由 `Main/tools/assets/gen_stg_neon.py` 按坐标生成，
-不引入第三方素材；青色字库与大号数字照 `font/ascii8x16.txt` 渲染，许可随 Spleen。它们在上表逐个登记，不走「生成文件不登记」那一条。
+正式素材（`neon/` 下 14 张 PNG）的基线由 `Main/tools/assets/gen_stg_neon.py` 按坐标生成，其中 8 张入库的是
+`apply_kenney_art.py` 叠过 Kenney 贴图或重画的版本（见下节）；青色、琥珀字库与大号数字照 `font/ascii8x16.txt` 渲染，许可随 Spleen。它们在上表逐个登记，不走「生成文件不登记」那一条。
 
 ## 第三方 CC0 素材的派生（2026-10-31 起补记）
 
 - **Kenney Space Shooter Redux**（2D，CC0，opengameart.org/content/space-shooter-redux）：
-  `neon/` 下角色/弹幕 PNG 已由 `Main/tools/assets/apply_kenney_art.py` 用其矢量重绘，
-  上表「脚本生成/项目自有」条目的像素实际派生自该包（此条为欠账补记）。
+  `neon/` 下 ships/boss/pshot/icons 四张取其原图，由 `Main/tools/assets/apply_kenney_art.py` 改色缩放派生；
+  上表已按实际来源逐个登记（2026-11-01 订正）。原图包不入库，下载地址即本条。
 - **Quaternius Ultimate Spaceships**（3D，CC0，opengameart.org/content/lowpoly-spaceships-pack）：
   三维模式的 `r4_models.h`（自机 Challenger、敌机 Omen，经聚类减面）由
   `Main/tools/assets/gen_r4_models_obj.py` 从其 OBJ 派生；

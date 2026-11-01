@@ -21,16 +21,23 @@
     digits.png     256x32  16x32 大号数字 0~9 与 '-'，由字库放大一倍    XRGB，色键 0
     icons.png      64x16   16x16：自机图标、炸弹菱形、判定点            XRGB，色键 0
     font_cyan.png  128x96  青色 8x16 字库                              XRGB，色键 0
+    font_amber.png 128x96  琥珀 8x16 字库（R4 HUD 数值）                XRGB，色键 0
     bg_layers.png  512x608 背景合图：天空 400x480 + 远景带 512x56 + 城市带 512x72   XRGB，色键 0
+
+其中 KENNEY_OWNED 的 8 张，入库的是 apply_kenney_art.py 在本脚本基线上叠过 Kenney 贴图的版本
+（2026-10-31 定案），Kenney 原图不入库，本脚本生成不出来。所以写回入库目录时默认跳过这 8 张，
+--check 也不比；要重做基线必须加 --base，随后马上重跑 apply_kenney_art.py。
+（e05fd33 为加 font_amber.png 全量重跑过一次，Kenney 层被静默打回基线，到 11-01 才发现。）
 
 预乘的图写直通 RGBA（打包工具按 manifest 的 premult 做预乘）；带色键的 XRGB 图写 RGBA，
 alpha 只有 0 与 255，alpha 为 0 的像素打包时换成色键 0x00000000。
 
 用法：
 
-    python3 Main/tools/assets/gen_stg_neon.py                   生成到 Main/assets/neon/（入库的那份）
-    python3 Main/tools/assets/gen_stg_neon.py --out <目录>      生成到别处（判据用：连跑两次比逐字节）
-    python3 Main/tools/assets/gen_stg_neon.py --check           重新生成，与入库的逐像素比（尺寸、模式、每个像素）
+    python3 Main/tools/assets/gen_stg_neon.py                   生成到 Main/assets/neon/（入库的那份；跳过 Kenney 叠加的 8 张）
+    python3 Main/tools/assets/gen_stg_neon.py --base            同上，但 8 张也写回基线（之后必须重跑 apply_kenney_art.py）
+    python3 Main/tools/assets/gen_stg_neon.py --out <目录>      全部 14 张生成到别处（判据用：连跑两次比逐字节）
+    python3 Main/tools/assets/gen_stg_neon.py --check           重新生成，与入库的逐像素比（尺寸、模式、每个像素；不比那 8 张）
     python3 Main/tools/assets/gen_stg_neon.py --check --inject  注错：改一个像素再比，必须见红（退出码 1）
 
 --check 比像素而不比 PNG 文件的字节：PNG 的压缩流随 Pillow 与 zlib 的版本变，像素不变；
@@ -48,6 +55,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MAIN = os.path.dirname(os.path.dirname(HERE))       # Main/
 OUT_DIR = os.path.join(MAIN, "assets", "neon")
 FONT_TXT = os.path.join(MAIN, "assets", "font", "ascii8x16.txt")
+
+# 入库的是 apply_kenney_art.py 叠加版的 8 张：写回入库目录默认跳过，--check 不比（见文件头）
+KENNEY_OWNED = frozenset((
+    "bul16.png", "bul8.png", "rice20.png", "pshot.png",
+    "ships.png", "boss.png", "icons.png", "bg_layers.png",
+))
 
 CYAN = (0x35, 0xF2, 0xFF)
 MAGENTA = (0xFF, 0x4F, 0xD8)
@@ -561,19 +574,23 @@ def build():
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default=OUT_DIR, help="输出目录（缺省 Main/assets/neon/）")
-    ap.add_argument("--check", action="store_true", help="重新生成，与 Main/assets/neon/ 里的逐像素比")
-    ap.add_argument("--inject", action="store_true", help="注错：第一张图改一个像素（与 --check 一起用）")
+    ap.add_argument("--base", action="store_true",
+                    help="写回入库目录时连 Kenney 叠加的 8 张也写成基线（之后必须重跑 apply_kenney_art.py）")
+    ap.add_argument("--check", action="store_true",
+                    help="重新生成，与 Main/assets/neon/ 里的逐像素比（不比 Kenney 叠加的 8 张）")
+    ap.add_argument("--inject", action="store_true", help="注错：第一张参与比对的图改一个像素（与 --check 一起用）")
     args = ap.parse_args()
 
     imgs = build()
+    mine = [(name, im) for name, im in imgs if name not in KENNEY_OWNED]
     if args.inject:
-        name, im = imgs[0]
+        name, im = mine[0]
         p = im.getpixel((8, 8))
         im.putpixel((8, 8), (p[0] ^ 1,) + tuple(p[1:]))
 
     if args.check:
         bad = 0
-        for name, im in imgs:
+        for name, im in mine:
             path = os.path.join(OUT_DIR, name)
             if not os.path.exists(path):
                 print("缺 %s" % name)
@@ -584,11 +601,16 @@ def main():
                 print("%s 与重新生成的不同（尺寸 %s/%s，模式 %s/%s）"
                       % (name, have.size, im.size, have.mode, im.mode))
                 bad += 1
-        print("check %d 张，不同 %d 张" % (len(imgs), bad))
+        print("check %d 张，不同 %d 张（另 %d 张是 Kenney 叠加版，不比）" % (len(mine), bad, len(imgs) - len(mine)))
         return 1 if bad else 0
 
+    same = os.path.normcase(os.path.realpath(args.out)) == os.path.normcase(os.path.realpath(OUT_DIR))
+    skip = KENNEY_OWNED if same and not args.base else frozenset()
     os.makedirs(args.out, exist_ok=True)
     for name, im in imgs:
+        if name in skip:
+            print("%-14s 跳过：入库的是 Kenney 叠加版（重做基线用 --base，再重跑 apply_kenney_art.py）" % name)
+            continue
         im.save(os.path.join(args.out, name), format="PNG")
         print("%-14s %4dx%-4d %s" % (name, im.size[0], im.size[1], im.mode))
     return 0

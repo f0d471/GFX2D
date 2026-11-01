@@ -42,8 +42,8 @@
 #                       压力形态、旋钮加倍、改档之后到达稳态不超过 SETTLE_MIN、游戏里的门控、背景）
 #   13i 关卡的注错     CARD_TIMEOUT_GT 让 S5 的各段开始帧见红，GATE_NO_ACC 让 S11 见红
 #   13x EX 关卡        app 测试的 L 组 12 行全 ok（EX 触发/表切换/确定性/表契约，doc/软件升级-玩法与审美.md §4）
-#   14 素材可重生成    gen_stg_neon.py 连跑两次，13 张 PNG 逐字节相同；--check 重新生成与入库的逐像素相同；
-#                       注错 --check --inject 改一个像素，比对必须见红
+#   14 素材可重生成    gen_stg_neon.py 连跑两次，14 张 PNG 逐字节相同；--check 重新生成与入库的逐像素相同
+#                       （Kenney 叠加版的 8 张入库为准，不比）；注错 --check --inject 改一个像素，比对必须见红
 #   14f 字库可重生成   gen_font_txt.py --check：由入库的 spleen-8x16.bdf 重新生成的字库文本与入库的
 #                       Main/assets/font/ascii8x16.txt 逐字节相同；注错 --check --inject 改一个像素必须见红
 #   15 游戏判据入口    实体池测试的输出里组帧与共用文字绘制 V 组 5 行全 ok；gfx2dGame 以 -DSTG_FIELD=4 编 PC 版，
@@ -513,10 +513,10 @@ NEON="$MAIN/tools/assets/gen_stg_neon.py"
 if python3 "$NEON" --out "$TMP/neon1" >"$TMP/neon1.log" 2>&1 &&
    python3 "$NEON" --out "$TMP/neon2" >"$TMP/neon2.log" 2>&1; then
     nn=$(ls "$TMP/neon1" | wc -l)
-    if [ "$nn" -eq 13 ] && diff -r "$TMP/neon1" "$TMP/neon2" >/dev/null 2>&1; then
+    if [ "$nn" -eq 14 ] && diff -r "$TMP/neon1" "$TMP/neon2" >/dev/null 2>&1; then
         ok "G14 连跑两次，$nn 张 PNG 逐字节相同"
     else
-        bad "G14 连跑两次的产物不同，或张数 $nn 不是 12"
+        bad "G14 连跑两次的产物不同，或张数 $nn 不是 14"
     fi
 else
     bad "G14 gen_stg_neon.py 跑不动"

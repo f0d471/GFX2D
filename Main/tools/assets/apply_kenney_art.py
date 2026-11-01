@@ -7,7 +7,7 @@
 
     ships.png    自机=playerShip1_blue（蓝→青），DART=enemyRed2（暖色→琥珀），
                  CROSS=enemyGreen2（绿→霓虹绿）；动画帧 = ±8° 摆动，4 帧循环
-    boss.png     enemyBlack4（暗部染暗品红）缩到 74px，6 帧各转 60°
+    boss.png     enemyBlack3 宽翼战列舰（暗部染暗品红，10-31 用户从六候选里选定）缩到 74px，6 帧各转 60°
     pshot.png    laserBlue01（蓝→青）缩到 6x24
     icons.png    第 0 格换自机缩图，其余格保留
     bul16/8.png  重绘圆弹：白芯 + 饱和亮环 + 外辉光（弹幕标准画法）
@@ -19,8 +19,10 @@
 署名可选；正式发布时按 LICENSES.md 记一行）。--src 指向解包后的 PNG 目录。
 
 用法：
+    python3 Main/tools/assets/gen_stg_neon.py --base            先把这 8 张写回基线（不加 --base 会跳过它们）
     python3 Main/tools/assets/apply_kenney_art.py --src <SSR-PNG 目录>
-之后跑 pack_assets.py 重打包。无随机数，同输入同像素。
+之后跑 pack_assets.py 重打包。无随机数，同输入同像素。只重画其它素材时单跑 gen_stg_neon.py 即可，
+它默认不碰这 8 张；不要用 --base 又不跑本脚本，那样 Kenney 层会被打回基线（e05fd33 出过一次）。
 """
 
 import argparse
@@ -342,7 +344,7 @@ def main():
     args = ap.parse_args()
     src = args.src
     for rel in ("playerShip1_blue.png", os.path.join("Enemies", "enemyRed2.png"),
-                os.path.join("Enemies", "enemyGreen2.png"), os.path.join("Enemies", "enemyBlack4.png"),
+                os.path.join("Enemies", "enemyGreen2.png"), os.path.join("Enemies", "enemyBlack3.png"),
                 os.path.join("Lasers", "laserBlue01.png")):
         if not os.path.exists(os.path.join(src, rel)):
             print("缺源文件:", rel, file=sys.stderr)
