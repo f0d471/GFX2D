@@ -1,0 +1,69 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "port": "COM11",
+  "bit": {
+    "size": 2765409,
+    "mtime_ns": 1793462321229805500,
+    "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+  },
+  "scope": "current flight software on frozen B7; hardware pixels and real console timing; no Flash",
+  "results": [
+    {
+      "case": "flight-hardware-pixels",
+      "status": "PASS",
+      "frames": 60,
+      "mismatched": []
+    },
+    {
+      "case": "flight-board-software",
+      "status": "PASS",
+      "frames": 2,
+      "mismatched": []
+    },
+    {
+      "case": "flight-pixel-injection",
+      "status": "EXPECTED_RED",
+      "frames": 1,
+      "mismatched": [
+        0
+      ]
+    },
+    {
+      "case": "console-30hz-normal",
+      "status": "PASS",
+      "samples": 1800,
+      "p50": 2045511,
+      "p99": 2374072,
+      "maximum": 2989064,
+      "fields": 3600,
+      "presents": 1800,
+      "late": 0,
+      "cache": [
+        "1",
+        "0",
+        "1715",
+        "1830",
+        "0"
+      ]
+    },
+    {
+      "case": "console-30hz-input",
+      "status": "PASS",
+      "samples": 1800,
+      "p50": 2093702,
+      "p99": 2440775,
+      "maximum": 3027822,
+      "fields": 3600,
+      "presents": 1800,
+      "late": 0,
+      "cache": [
+        "1",
+        "0",
+        "1715",
+        "1830",
+        "0"
+      ]
+    }
+  ]
+}

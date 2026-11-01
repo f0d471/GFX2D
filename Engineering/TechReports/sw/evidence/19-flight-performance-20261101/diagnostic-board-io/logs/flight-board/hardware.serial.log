@@ -1,0 +1,5 @@
+# COM11 @ 115200 8N1, opened 04:04:30
+console boot
+console protocol 2 tick_hz 1000
+
+# serial lost 04:04:40, 47 bytes: ClearCommError failed (PermissionError(13, '拒绝访问。', None, 5))

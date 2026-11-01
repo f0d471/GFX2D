@@ -1,0 +1,2 @@
+RUN Main/sim/build/check-runs/sw20-software-acceptance-01
+R4 HOST PASS scenes=3 frames=60

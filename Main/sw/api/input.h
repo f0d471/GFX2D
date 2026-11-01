@@ -15,6 +15,7 @@
 #define PLATFORM_KEY_CONFIRM  (1u<<10)
 #define PLATFORM_KEY_BACK     (1u<<11)
 #define PLATFORM_KEY_SCENE    (1u<<12)
+#define PLATFORM_KEY_APP5     (1u<<13)   /* 快捷键 5:进 RIDGE FLIGHT(14 位快照最高有效位) */
 #define PLATFORM_KEY_LAUNCH_MASK (PLATFORM_KEY_MODE1|PLATFORM_KEY_MODE2|PLATFORM_KEY_MODE3)
 typedef struct { uint32_t held,pressed,released; } platform_input;
 #endif

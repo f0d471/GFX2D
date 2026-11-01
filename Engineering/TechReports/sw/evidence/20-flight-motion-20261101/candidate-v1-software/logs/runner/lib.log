@@ -1,0 +1,13 @@
+EXECUTE shared libtest
+make: Entering directory '/mnt/e/Workspace/FPGA/.worktrees/Efinix-flight2/Main/sw'
+./lib/test/replay_fixture.g2dr -> /mnt/e/Workspace/FPGA/.worktrees/Efinix-flight2/Main/sim/build/check-runs/sw20-software-acceptance-01/shared/libtest/test/replay_fixture.h 数组 replay_fixture_bytes[1040] frames=256
+== lib/test 64-bit ==
+== lib/test 32-bit ==
+== 两份输出比对 ==
+libTest 64/32 identical ok
+fail 0
+done
+make: Leaving directory '/mnt/e/Workspace/FPGA/.worktrees/Efinix-flight2/Main/sw'
+fail 0
+done
+VALIDATION PASS scope=acceptance not_applicable=0

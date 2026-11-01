@@ -1,0 +1,97 @@
+{
+  "logs/flight-board/board-software.control.log": {
+    "size": 2132,
+    "mtime_ns": 1793542461529270000,
+    "sha256": "ac7ea10f5016412371cc0ed4c016f260530859bdef18940017097f70cd2d526a"
+  },
+  "logs/flight-board/board-software.serial.log": {
+    "size": 998,
+    "mtime_ns": 1793542461413631700,
+    "sha256": "c3b2694f8d382d9236a8d895a2ffe789e0f34a41908fd5030ebc093142e1fe02"
+  },
+  "logs/flight-board/hardware.control.log": {
+    "size": 5623,
+    "mtime_ns": 1793542402790009700,
+    "sha256": "b505fbc8dd193e29592bd8e057ffa8ce15291452487f02c379926ed04bd78d6c"
+  },
+  "logs/flight-board/hardware.serial.log": {
+    "size": 4398,
+    "mtime_ns": 1793542402660891100,
+    "sha256": "04d0d5dfced889f068cdbef99c239b4175572ae4c0d6f3bc90d852cc05b150c4"
+  },
+  "logs/flight-board/host.build.log": {
+    "size": 2615,
+    "mtime_ns": 1793542348642904600,
+    "sha256": "4c5b2cb4063d5720b9b5e92f2d828b70bd39f063ec669c16afcdf000a76c0c48"
+  },
+  "logs/flight-board/host.log": {
+    "size": 3717,
+    "mtime_ns": 1793542349266652400,
+    "sha256": "d5fa6d192f9e5a99c3d797c8f41969bd824116af5aa72226c4cb69f5d329bc89"
+  },
+  "logs/flight-board/input.build.log": {
+    "size": 3184,
+    "mtime_ns": 1793542742731609400,
+    "sha256": "f0a0b9828fead7ad5694456da8dbcff1c1aa0dbeeeef41d828a7504e8c1f0f28"
+  },
+  "logs/flight-board/normal.build.log": {
+    "size": 3185,
+    "mtime_ns": 1793542589438419200,
+    "sha256": "bf5c9baa0c08f04f84ad87acec6c7b175cadfed1ca45d8dbb4cc21d597cc9df2"
+  },
+  "logs/flight-board/performance-input.control.log": {
+    "size": 29775,
+    "mtime_ns": 1793542832832151500,
+    "sha256": "cd21094dff62d12db75eadfce1c5757ee8597fc790f40fe8e321cf64fcb2d1d4"
+  },
+  "logs/flight-board/performance-input.serial.log": {
+    "size": 28638,
+    "mtime_ns": 1793542832689640300,
+    "sha256": "ca6170e86f848fa679e6b661a2759b5b3e33074389b67cd868c693e8e8d94494"
+  },
+  "logs/flight-board/performance-normal.control.log": {
+    "size": 29405,
+    "mtime_ns": 1793542679493304100,
+    "sha256": "3fbd98a4819e46907c26fce20b0fc5c245a3ae32e3f5a2ca27798f8b9453db42"
+  },
+  "logs/flight-board/performance-normal.serial.log": {
+    "size": 28267,
+    "mtime_ns": 1793542679375608000,
+    "sha256": "a18e25e881e20a3e708b4b0e6ed2eed9e20a4f0e92f8e3f3d33c460fa3568a99"
+  },
+  "logs/flight-board/pixel-injection.control.log": {
+    "size": 2085,
+    "mtime_ns": 1793542524980432500,
+    "sha256": "198d7981371e8e405e0cdad10d328b32cb972ed703bdd1cacab63fad19e2ce53"
+  },
+  "logs/flight-board/pixel-injection.serial.log": {
+    "size": 950,
+    "mtime_ns": 1793542524839456100,
+    "sha256": "5fccaf5bf615a612438c9f2d136cf44ffc24ebdadbf9f824bde0e54d9c92e29a"
+  },
+  "logs/flight-board/result.json": {
+    "size": 1445,
+    "mtime_ns": 1793542833066557800,
+    "sha256": "2fb5250261b4c818371e9cc5e850d23d61a98e44cc7e0a88cf494dd0dd4da424"
+  },
+  "logs/r4-build/flight-functional.log": {
+    "size": 2857,
+    "mtime_ns": 1793542313309729800,
+    "sha256": "2e5016b1a8889334df85008c11d654bde8316d8cea482dde3aa6d1ba51678192"
+  },
+  "logs/r4-build/flight-pixel-injection.log": {
+    "size": 2877,
+    "mtime_ns": 1793542498644160200,
+    "sha256": "d9605650af107b27837392fd91781d3b058916f56960070b6ae04391f31112aa"
+  },
+  "logs/r4-build/flight-software.log": {
+    "size": 2849,
+    "mtime_ns": 1793542430143595000,
+    "sha256": "87261e302cc8f73319303e30af7a69ee69f8c57309396f00fbbfc390d4ff2eb3"
+  },
+  "logs/runner/flight-board.log": {
+    "size": 121,
+    "mtime_ns": 1793542833067576500,
+    "sha256": "23093147a74af25f92752568d3beefbcc5e0bb66cfd38aac84a05c381cc65ea1"
+  }
+}

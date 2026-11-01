@@ -1,0 +1,33 @@
+test_board_capture_requires_current_boundary_and_functional_completion (__main__.WorkflowTests.test_board_capture_requires_current_boundary_and_functional_completion) ... ok
+test_changed_input_rejects_reuse (__main__.WorkflowTests.test_changed_input_rejects_reuse) ... ok
+test_collectors_reject_quick_scope (__main__.WorkflowTests.test_collectors_reject_quick_scope) ... ok
+test_compiler_reuse_ignores_gui_state_but_rejects_changed_mode_or_rtl (__main__.WorkflowTests.test_compiler_reuse_ignores_gui_state_but_rejects_changed_mode_or_rtl) ... ok
+test_cross_clock_negative_slack_is_not_dropped (__main__.WorkflowTests.test_cross_clock_negative_slack_is_not_dropped) ... ok
+test_current_instance_collect_is_host_rtl_only (__main__.WorkflowTests.test_current_instance_collect_is_host_rtl_only) ... ok
+test_failed_shared_test_is_reexecuted (__main__.WorkflowTests.test_failed_shared_test_is_reexecuted) ... ok
+test_feature_board_cli_reexecutes_physical_check_and_keeps_synthesis_budget (__main__.WorkflowTests.test_feature_board_cli_reexecutes_physical_check_and_keeps_synthesis_budget) ... ok
+test_generated_integer_table_is_an_identity_input (__main__.WorkflowTests.test_generated_integer_table_is_an_identity_input) ... ok
+test_identity_cache_reuses_unchanged_file_and_fresh_detects_preserved_timestamp (__main__.WorkflowTests.test_identity_cache_reuses_unchanged_file_and_fresh_detects_preserved_timestamp) ... ok
+test_incomplete_cannot_be_collected (__main__.WorkflowTests.test_incomplete_cannot_be_collected) ... ok
+test_input_scope_excludes_unrelated_source (__main__.WorkflowTests.test_input_scope_excludes_unrelated_source) ... ok
+test_instance_legacy_and_explicit_v2_are_deduplicated (__main__.WorkflowTests.test_instance_legacy_and_explicit_v2_are_deduplicated) ... ok
+test_missing_output_is_incomplete_and_reexecuted (__main__.WorkflowTests.test_missing_output_is_incomplete_and_reexecuted) ... ok
+test_old_pass_log_without_manifest_result_is_rejected (__main__.WorkflowTests.test_old_pass_log_without_manifest_result_is_rejected) ... ok
+test_only_exact_negative_path_fixture_is_exempt (__main__.WorkflowTests.test_only_exact_negative_path_fixture_is_exempt) ... ok
+test_optimized_python_is_rejected_before_checks (__main__.WorkflowTests.test_optimized_python_is_rejected_before_checks) ... ok
+test_physical_checks_are_not_automatically_reused (__main__.WorkflowTests.test_physical_checks_are_not_automatically_reused) ... ok
+test_plan_deduplicates_dependencies (__main__.WorkflowTests.test_plan_deduplicates_dependencies) ... ok
+test_platform_and_explicit_hardware_are_deduplicated (__main__.WorkflowTests.test_platform_and_explicit_hardware_are_deduplicated) ... ok
+test_quick_instances_cover_equations_counts_layouts_and_spaces (__main__.WorkflowTests.test_quick_instances_cover_equations_counts_layouts_and_spaces) ... ok
+test_rast_scope_and_shared_library_dependency (__main__.WorkflowTests.test_rast_scope_and_shared_library_dependency) ... ok
+test_same_run_pass_executes_once (__main__.WorkflowTests.test_same_run_pass_executes_once) ... ok
+test_scope_cannot_change_inside_run (__main__.WorkflowTests.test_scope_cannot_change_inside_run) ... ok
+test_shared_normal_test_runs_once_but_mutations_are_separate (__main__.WorkflowTests.test_shared_normal_test_runs_once_but_mutations_are_separate) ... ok
+test_shell_status_contract (__main__.WorkflowTests.test_shell_status_contract) ... ok
+test_snapshot_keeps_incomplete_state_and_redacts_metadata_paths (__main__.WorkflowTests.test_snapshot_keeps_incomplete_state_and_redacts_metadata_paths) ... ok
+test_tracked_path_check_does_not_walk_ignored_directories (__main__.WorkflowTests.test_tracked_path_check_does_not_walk_ignored_directories) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 9.423s
+
+OK

@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "pack",
+    "flight",
+    "flight-consumers",
+    "console",
+    "lib",
+    "workflow",
+    "paths"
+  ],
+  "run_id": "sw20-software-acceptance-03"
+}

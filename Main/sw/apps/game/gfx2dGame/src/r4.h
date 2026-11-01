@@ -96,7 +96,7 @@
 #define R4_ASSET_VERSION    3u
 /* 场景身份：进录像头，回放判据拒绝身份不符的录像。 */
 #define R4_SCENE_ID         0x52344334u     /* 视觉升级；与 cup 的 +1 身份不冲突 */
-#define R4_FLIGHT_SCENE_ID  0x52464c32u     /* Flight fixed-30Hz timing contract. */
+#define R4_FLIGHT_SCENE_ID  0x52464c33u     /* RFL3: damped control and world-anchored mesh. */
 static inline uint32_t r4_scene_identity(uint32_t scene)
 {return scene==2u?R4_FLIGHT_SCENE_ID:R4_SCENE_ID+scene;}
 #ifdef R4_FLIGHT_TEST

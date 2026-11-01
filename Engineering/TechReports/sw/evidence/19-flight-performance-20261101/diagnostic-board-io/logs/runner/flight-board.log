@@ -1,0 +1,14 @@
+RUN Main/sim/build/check-runs/sw19-board-acceptance-04
+Traceback (most recent call last):
+  File "E:\Workspace\FPGA\.worktrees\Efinix-flight1\Main\tools\check\check_flight_board.py", line 91, in <module>
+    try:main()
+        ^^^^^^
+  File "E:\Workspace\FPGA\.worktrees\Efinix-flight1\Main\tools\check\check_flight_board.py", line 53, in main
+    text=capture(binary,'hardware',program=True);health(text)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Workspace\FPGA\.worktrees\Efinix-flight1\Main\tools\check\check_flight_board.py", line 44, in capture
+    deploy=command(args,logs/(name+'.control.log'),timeout=320)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Workspace\FPGA\.worktrees\Efinix-flight1\Main\tools\check\check_run.py", line 260, in command
+    raise subprocess.CalledProcessError(p.returncode, args)
+subprocess.CalledProcessError: Command '['C:\\Efinity\\2026.1\\python311\\bin\\python.exe', WindowsPath('E:/Workspace/FPGA/.worktrees/Efinix-flight1/Main/tools/board/board_run.py'), '--bin', WindowsPath('E:/Workspace/FPGA/.worktrees/Efinix-flight1/Main/sim/build/check-runs/sw19-board-acceptance-04/build/r4/flight-functional/gfx2dGame-O2-perf.bin'), '--port', 'COM11', '--precise-boundary', '--seconds', '140', '--log', WindowsPath('E:/Workspace/FPGA/.worktrees/Efinix-flight1/Main/sim/build/check-runs/sw19-board-acceptance-04/logs/flight-board/hardware.serial.log'), '--bit', WindowsPath('E:/Workspace/FPGA/.worktrees/Efinix-flight1/Main/bit/snapshots/B7/gfx2d_ti60.bit'), '--stop-line', 'done']' returned non-zero exit status 1.

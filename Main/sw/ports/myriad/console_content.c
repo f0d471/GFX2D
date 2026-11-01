@@ -64,6 +64,7 @@ static uint32_t navigate(uint32_t keys,uint32_t pressed,uint32_t previous)
         if(pressed&BOARD_KEY_MODE1)return console_shortcut(1);
         if(pressed&BOARD_KEY_MODE2)return console_shortcut(2);
         if(pressed&BOARD_KEY_MODE3)return console_shortcut(3);
+        if(pressed&BOARD_KEY_APP5)return console_shortcut(5);   /* 快捷键5:RIDGE FLIGHT */
     }
     return UINT32_MAX;
 }

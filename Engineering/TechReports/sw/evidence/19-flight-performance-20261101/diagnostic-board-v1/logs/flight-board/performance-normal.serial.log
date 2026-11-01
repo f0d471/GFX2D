@@ -1,0 +1,279 @@
+# COM11 @ 115200 8N1, opened 00:25:44
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4134720 df1a27bc
+console catalog begin v 1 profile full hash 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd count 6
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52202f20435550
+console catalog app id 5 key flight kind game graphics 3d shortcut 0 available 1 title 524944474520464c49474854
+console catalog app id 6 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+console enter menu
+menu crc 80586ea3 sel 0
+console menu index 0 id 1 count 6
+console status v 2 app menu id 0 backend hw fps_milli 43694 frames 44 presents 44 errors 0 scene 0 ladder 0 dropped 0 tick_ms 7877 irqA 473 heap 57824 faults 0 tasks 4 idle 1312991 monitor 1 health 0 stack_free 64708 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+console menu index 1 id 2 count 6
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 104 presents 104 errors 0 scene 0 ladder 0 dropped 0 tick_ms 8877 irqA 533 heap 57824 faults 0 tasks 4 idle 3123969 monitor 2 health 0 stack_free 64708 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+console menu index 2 id 3 count 6
+console menu index 3 id 4 count 6
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 164 presents 164 errors 0 scene 0 ladder 0 dropped 0 tick_ms 9877 irqA 593 heap 57824 faults 0 tasks 4 idle 4932985 monitor 3 health 0 stack_free 64708 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+console menu index 4 id 5 count 6
+console complete app menu id 0 frames 197 presents 197 errors 0
+console leave menu
+r4 enter ladder/hw 1 1
+console scene 2 ridge flight
+console enter flight
+R4STAT 30 55947 162 1 1 2
+R4FCACHE 1 0 35 30 0
+R4TIME 3182 185226 162736 727 908267 687603 677072 423
+console status v 2 app flight id 5 backend hw fps_milli 30000 frames 30 presents 30 errors 0 scene 2 ladder 1 dropped 0 tick_ms 11827 irqA 710 heap 57824 faults 0 tasks 4 idle 7832062 monitor 4 health 0 stack_free 56948 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+console status v 2 app flight id 5 backend hw fps_milli 28543 frames 59 presents 59 errors 0 scene 2 ladder 1 dropped 0 tick_ms 12843 irqA 771 heap 57824 faults 0 tasks 4 idle 9457112 monitor 5 health 0 stack_free 55636 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 48437 178 1 1 2
+R4FCACHE 1 0 63 60 0
+R4TIME 3340 221877 176636 730 937163 716858 705016 481
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 88 presents 88 errors 0 scene 2 ladder 1 dropped 0 tick_ms 13843 irqA 831 heap 57824 faults 0 tasks 4 idle 11034532 monitor 6 health 0 stack_free 55604 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 48379 175 1 1 2
+R4FCACHE 1 0 91 90 0
+R4TIME 3240 200049 172919 765 926429 706776 695407 466
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 117 presents 117 errors 0 scene 2 ladder 1 dropped 0 tick_ms 14843 irqA 891 heap 57824 faults 0 tasks 4 idle 12622235 monitor 7 health 0 stack_free 55604 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 48205 165 1 1 2
+R4FCACHE 1 0 119 120 0
+R4TIME 3326 198739 164006 760 943197 723154 712360 452
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 146 presents 146 errors 0 scene 2 ladder 1 dropped 0 tick_ms 15843 irqA 951 heap 57824 faults 0 tasks 4 idle 14241443 monitor 8 health 0 stack_free 55604 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49297 161 1 1 2
+R4FCACHE 1 0 147 150 0
+R4TIME 3249 196439 159145 872 937626 715912 705215 440
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 175 presents 175 errors 0 scene 2 ladder 1 dropped 0 tick_ms 16843 irqA 1011 heap 57824 faults 0 tasks 4 idle 15872561 monitor 9 health 0 stack_free 55604 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49961 158 1 1 2
+R4FCACHE 1 0 175 180 0
+R4TIME 3231 167009 164959 732 929322 709572 698254 419
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 204 presents 204 errors 0 scene 2 ladder 1 dropped 0 tick_ms 17843 irqA 1071 heap 57824 faults 0 tasks 4 idle 17506083 monitor 10 health 0 stack_free 55604 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50256 164 1 1 2
+R4FCACHE 1 0 203 210 0
+R4TIME 3271 155162 163434 744 929199 708551 698348 414
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 233 presents 233 errors 0 scene 2 ladder 1 dropped 0 tick_ms 18843 irqA 1131 heap 57824 faults 0 tasks 4 idle 19160460 monitor 11 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49184 166 1 1 2
+R4FCACHE 1 0 231 240 0
+R4TIME 3201 174817 166495 748 970308 750620 739186 450
+console status v 2 app flight id 5 backend hw fps_milli 29013 frames 263 presents 263 errors 0 scene 2 ladder 1 dropped 0 tick_ms 19877 irqA 1193 heap 57824 faults 0 tasks 4 idle 20849334 monitor 12 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49938 165 1 1 2
+R4FCACHE 1 0 259 270 0
+R4TIME 3149 175927 172104 727 908291 688132 677578 417
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 293 presents 293 errors 0 scene 2 ladder 1 dropped 0 tick_ms 20910 irqA 1255 heap 57824 faults 0 tasks 4 idle 22556242 monitor 14 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 51305 160 1 1 2
+R4FCACHE 1 0 287 300 0
+R4TIME 3186 199992 159531 729 937703 716699 705834 438
+console status v 2 app flight id 5 backend hw fps_milli 30481 frames 324 presents 324 errors 0 scene 2 ladder 1 dropped 0 tick_ms 21927 irqA 1316 heap 57824 faults 0 tasks 4 idle 24198240 monitor 15 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50948 148 1 1 2
+R4FCACHE 1 0 315 330 0
+R4TIME 3190 170838 150211 760 922905 702637 692134 424
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 353 presents 353 errors 0 scene 2 ladder 1 dropped 0 tick_ms 22927 irqA 1376 heap 57824 faults 0 tasks 4 idle 25857452 monitor 16 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 50664 165 1 1 2
+R4FCACHE 1 0 343 360 0
+R4TIME 3195 156794 172511 746 940168 719544 708724 455
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 383 presents 383 errors 0 scene 2 ladder 1 dropped 0 tick_ms 23960 irqA 1438 heap 57824 faults 0 tasks 4 idle 27576985 monitor 17 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50618 156 1 1 2
+R4FCACHE 1 0 371 390 0
+R4TIME 3190 164329 156363 893 923489 702941 692155 443
+console status v 2 app flight id 5 backend hw fps_milli 30481 frames 414 presents 414 errors 0 scene 2 ladder 1 dropped 0 tick_ms 24977 irqA 1499 heap 57824 faults 0 tasks 4 idle 29215888 monitor 18 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50327 155 1 1 2
+R4FCACHE 1 0 399 420 0
+R4TIME 3131 191764 156296 852 935249 715230 704606 423
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 443 presents 443 errors 0 scene 2 ladder 1 dropped 0 tick_ms 25977 irqA 1559 heap 57824 faults 0 tasks 4 idle 30862356 monitor 19 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 50111 157 1 1 2
+R4FCACHE 1 0 427 450 0
+R4TIME 3261 203805 155906 738 935354 713794 703366 427
+console status v 2 app flight id 5 backend hw fps_milli 30000 frames 473 presents 473 errors 0 scene 2 ladder 1 dropped 0 tick_ms 26977 irqA 1619 heap 57824 faults 0 tasks 4 idle 32499788 monitor 20 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50668 145 1 1 2
+R4FCACHE 1 0 455 480 0
+R4TIME 3201 183167 154694 727 951499 731563 721590 420
+console status v 2 app flight id 5 backend hw fps_milli 31000 frames 504 presents 504 errors 0 scene 2 ladder 1 dropped 0 tick_ms 27977 irqA 1679 heap 57824 faults 0 tasks 4 idle 34145657 monitor 21 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 52004 138 1 1 2
+R4FCACHE 1 0 483 510 0
+R4TIME 3251 176754 139525 903 926180 706237 696532 391
+console status v 2 app flight id 5 backend hw fps_milli 30511 frames 535 presents 535 errors 0 scene 2 ladder 1 dropped 0 tick_ms 28993 irqA 1740 heap 57824 faults 0 tasks 4 idle 35841550 monitor 22 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 31 52666 154 1 1 2
+R4FCACHE 1 0 511 540 0
+R4TIME 3175 185410 162828 882 906218 685962 675496 430
+console status v 2 app flight id 5 backend hw fps_milli 31000 frames 566 presents 566 errors 0 scene 2 ladder 1 dropped 0 tick_ms 29993 irqA 1800 heap 57824 faults 0 tasks 4 idle 37453843 monitor 23 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 51927 147 1 1 2
+R4FCACHE 1 0 539 570 0
+R4TIME 3208 148009 147429 757 903416 684741 674317 410
+console status v 2 app flight id 5 backend hw fps_milli 31000 frames 597 presents 597 errors 0 scene 2 ladder 1 dropped 0 tick_ms 30993 irqA 1860 heap 57824 faults 0 tasks 4 idle 39091779 monitor 24 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 31 51919 154 1 1 2
+R4FCACHE 1 0 567 600 0
+R4TIME 3204 152138 154222 864 927882 707451 696945 426
+console status v 2 app flight id 5 backend hw fps_milli 30000 frames 627 presents 627 errors 0 scene 2 ladder 1 dropped 0 tick_ms 31993 irqA 1920 heap 57824 faults 0 tasks 4 idle 40766726 monitor 25 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 31 51586 145 1 1 2
+R4FCACHE 1 0 595 630 0
+R4TIME 3225 149084 147339 838 941316 720969 710809 415
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 656 presents 656 errors 0 scene 2 ladder 1 dropped 0 tick_ms 32993 irqA 1980 heap 57824 faults 0 tasks 4 idle 42425972 monitor 26 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50453 162 1 1 2
+R4FCACHE 1 0 623 660 0
+R4TIME 3216 173430 162984 903 936098 716296 705613 433
+console status v 2 app flight id 5 backend hw fps_milli 30481 frames 687 presents 687 errors 0 scene 2 ladder 1 dropped 0 tick_ms 34010 irqA 2041 heap 57824 faults 0 tasks 4 idle 44080825 monitor 27 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 51205 154 1 1 2
+R4FCACHE 1 0 651 690 0
+R4TIME 3157 173905 162168 733 922625 700865 690697 418
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 716 presents 716 errors 0 scene 2 ladder 1 dropped 0 tick_ms 35010 irqA 2101 heap 57824 faults 0 tasks 4 idle 45707971 monitor 28 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 49760 174 1 1 2
+R4FCACHE 1 0 679 720 0
+R4TIME 3189 179291 174112 728 916166 695474 684229 451
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 745 presents 745 errors 0 scene 2 ladder 1 dropped 0 tick_ms 36010 irqA 2161 heap 57824 faults 0 tasks 4 idle 47289338 monitor 29 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 48702 177 1 1 2
+R4FCACHE 1 0 707 750 0
+R4TIME 3174 190052 175685 898 924887 703703 692061 469
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 774 presents 774 errors 0 scene 2 ladder 1 dropped 0 tick_ms 37010 irqA 2221 heap 57824 faults 0 tasks 4 idle 48874015 monitor 30 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 47639 173 1 1 2
+R4FCACHE 1 0 735 780 0
+R4TIME 3182 191914 179400 727 961070 741015 729403 482
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 803 presents 803 errors 0 scene 2 ladder 1 dropped 0 tick_ms 38010 irqA 2281 heap 57824 faults 0 tasks 4 idle 50501944 monitor 31 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49458 163 1 1 2
+R4FCACHE 1 0 763 810 0
+R4TIME 3191 198471 162274 760 938054 718677 707872 452
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 833 presents 833 errors 0 scene 2 ladder 1 dropped 0 tick_ms 39043 irqA 2343 heap 57824 faults 0 tasks 4 idle 52201480 monitor 32 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50210 163 1 1 2
+R4FCACHE 1 0 791 840 0
+R4TIME 3204 166074 163724 729 933026 712558 701198 445
+console status v 2 app flight id 5 backend hw fps_milli 29013 frames 863 presents 863 errors 0 scene 2 ladder 1 dropped 0 tick_ms 40077 irqA 2405 heap 57824 faults 0 tasks 4 idle 53898404 monitor 33 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50313 156 1 1 2
+R4FCACHE 1 0 819 870 0
+R4TIME 3263 165923 164206 762 925679 704875 693813 412
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 893 presents 893 errors 0 scene 2 ladder 1 dropped 0 tick_ms 41110 irqA 2467 heap 57824 faults 0 tasks 4 idle 55611125 monitor 34 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50491 161 1 1 2
+R4FCACHE 1 0 847 900 0
+R4TIME 3225 186837 160819 732 922826 702505 692202 421
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 923 presents 923 errors 0 scene 2 ladder 1 dropped 0 tick_ms 42143 irqA 2529 heap 57824 faults 0 tasks 4 idle 57311905 monitor 35 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50438 161 1 1 2
+R4FCACHE 1 0 875 930 0
+R4TIME 3165 171442 160208 862 925046 703986 693594 414
+console status v 2 app flight id 5 backend hw fps_milli 29013 frames 953 presents 953 errors 0 scene 2 ladder 1 dropped 0 tick_ms 43177 irqA 2591 heap 57824 faults 0 tasks 4 idle 59012978 monitor 36 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49494 162 1 1 2
+R4FCACHE 1 0 903 960 0
+R4TIME 3204 175957 169891 768 950761 729850 718529 440
+console status v 2 app flight id 5 backend hw fps_milli 30000 frames 983 presents 983 errors 0 scene 2 ladder 1 dropped 0 tick_ms 44177 irqA 2651 heap 57824 faults 0 tasks 4 idle 60640912 monitor 37 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 50639 152 1 1 2
+R4FCACHE 1 0 931 990 0
+R4TIME 3263 172933 159313 937 915980 696099 685200 424
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 1013 presents 1013 errors 0 scene 2 ladder 1 dropped 0 tick_ms 45210 irqA 2713 heap 57824 faults 0 tasks 4 idle 62340767 monitor 38 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 50403 161 1 1 2
+R4FCACHE 1 0 959 1020 0
+R4TIME 3262 183208 161067 727 919228 698859 688341 443
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 1043 presents 1043 errors 0 scene 2 ladder 1 dropped 0 tick_ms 46243 irqA 2775 heap 57824 faults 0 tasks 4 idle 64039060 monitor 39 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50761 162 1 1 2
+R4FCACHE 1 0 987 1050 0
+R4TIME 3216 181478 162045 760 905635 686002 675066 442
+console status v 2 app flight id 5 backend hw fps_milli 30481 frames 1074 presents 1074 errors 0 scene 2 ladder 1 dropped 0 tick_ms 47260 irqA 2836 heap 57824 faults 0 tasks 4 idle 65707237 monitor 40 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 51667 154 1 1 2
+R4FCACHE 1 0 1015 1080 0
+R4TIME 3242 153287 161658 733 946938 726765 716252 427
+console status v 2 app flight id 5 backend hw fps_milli 28515 frames 1103 presents 1103 errors 0 scene 2 ladder 1 dropped 0 tick_ms 48277 irqA 2897 heap 57824 faults 0 tasks 4 idle 67434375 monitor 41 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 50780 158 1 1 2
+R4FCACHE 1 0 1043 1110 0
+R4TIME 3247 154336 167486 733 952183 731761 720347 450
+console status v 2 app flight id 5 backend hw fps_milli 30000 frames 1133 presents 1133 errors 0 scene 2 ladder 1 dropped 0 tick_ms 49277 irqA 2957 heap 57824 faults 0 tasks 4 idle 69074854 monitor 42 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49946 148 1 1 2
+R4FCACHE 1 0 1071 1140 0
+R4TIME 3251 183986 156531 743 971722 752194 742532 409
+console status v 2 app flight id 5 backend hw fps_milli 30511 frames 1164 presents 1164 errors 0 scene 2 ladder 1 dropped 0 tick_ms 50293 irqA 3018 heap 57824 faults 0 tasks 4 idle 70752433 monitor 43 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 31 51479 148 1 1 2
+R4FCACHE 1 0 1099 1170 0
+R4TIME 3114 180195 149933 729 920694 699562 689887 407
+console status v 2 app flight id 5 backend hw fps_milli 31465 frames 1196 presents 1196 errors 0 scene 2 ladder 1 dropped 0 tick_ms 51310 irqA 3079 heap 57824 faults 0 tasks 4 idle 72422677 monitor 44 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 31 53027 155 1 1 2
+R4FCACHE 1 0 1127 1200 0
+R4TIME 3165 211972 154187 760 911981 691482 681027 438
+console status v 2 app flight id 5 backend hw fps_milli 31000 frames 1227 presents 1227 errors 0 scene 2 ladder 1 dropped 0 tick_ms 52310 irqA 3139 heap 57824 faults 0 tasks 4 idle 74024335 monitor 45 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 31 51714 152 1 1 2
+R4FCACHE 1 0 1155 1230 0
+R4TIME 3149 164436 159447 902 890357 670211 659974 422
+console status v 2 app flight id 5 backend hw fps_milli 31000 frames 1258 presents 1258 errors 0 scene 2 ladder 1 dropped 0 tick_ms 53310 irqA 3199 heap 57824 faults 0 tasks 4 idle 75657119 monitor 46 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 31 52751 149 1 1 2
+R4FCACHE 1 0 1183 1260 0
+R4TIME 3459 165114 150582 906 888505 666071 655848 426
+console status v 2 app flight id 5 backend hw fps_milli 30000 frames 1288 presents 1288 errors 0 scene 2 ladder 1 dropped 0 tick_ms 54310 irqA 3259 heap 57824 faults 0 tasks 4 idle 77297910 monitor 47 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 51554 155 1 1 2
+R4FCACHE 1 0 1211 1290 0
+R4TIME 3317 197329 153949 893 914394 694416 684185 418
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 1317 presents 1317 errors 0 scene 2 ladder 1 dropped 0 tick_ms 55310 irqA 3319 heap 57824 faults 0 tasks 4 idle 78930816 monitor 48 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49721 166 1 1 2
+R4FCACHE 1 0 1239 1320 0
+R4TIME 3126 185517 172378 762 951235 730292 719791 436
+console status v 2 app flight id 5 backend hw fps_milli 29498 frames 1347 presents 1347 errors 0 scene 2 ladder 1 dropped 0 tick_ms 56327 irqA 3380 heap 57824 faults 0 tasks 4 idle 80598751 monitor 49 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 49585 157 1 1 2
+R4FCACHE 1 0 1267 1350 0
+R4TIME 3600 183038 157469 727 945162 725049 714447 430
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 1376 presents 1376 errors 0 scene 2 ladder 1 dropped 0 tick_ms 57327 irqA 3440 heap 57824 faults 0 tasks 4 idle 82227906 monitor 50 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49328 167 1 1 2
+R4FCACHE 1 0 1295 1380 0
+R4TIME 3225 178111 174582 771 925284 705130 694127 442
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 1405 presents 1405 errors 0 scene 2 ladder 1 dropped 0 tick_ms 58327 irqA 3500 heap 57824 faults 0 tasks 4 idle 83826705 monitor 51 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49252 173 1 1 2
+R4FCACHE 1 0 1323 1410 0
+R4TIME 3157 176293 172930 862 896432 676194 664853 455
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 1434 presents 1434 errors 0 scene 2 ladder 1 dropped 0 tick_ms 59327 irqA 3560 heap 57824 faults 0 tasks 4 idle 85427391 monitor 52 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49171 165 1 1 2
+R4FCACHE 1 0 1351 1440 0
+R4TIME 3333 206313 164116 741 922112 700657 689336 452
+console status v 2 app flight id 5 backend hw fps_milli 29000 frames 1463 presents 1463 errors 0 scene 2 ladder 1 dropped 0 tick_ms 60327 irqA 3620 heap 57824 faults 0 tasks 4 idle 87048300 monitor 53 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49797 161 1 1 2
+R4FCACHE 1 0 1379 1470 0
+R4TIME 3124 155556 168894 727 929499 709397 698583 447
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 1493 presents 1493 errors 0 scene 2 ladder 1 dropped 0 tick_ms 61360 irqA 3682 heap 57824 faults 0 tasks 4 idle 88737068 monitor 54 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 48501 168 1 1 2
+R4FCACHE 1 0 1407 1500 0
+R4TIME 3247 168951 168625 736 968851 749108 737362 491
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 1523 presents 1523 errors 0 scene 2 ladder 1 dropped 0 tick_ms 62394 irqA 3744 heap 57824 faults 0 tasks 4 idle 90430197 monitor 55 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49669 153 1 1 2
+R4FCACHE 1 0 1435 1530 0
+R4TIME 3495 166375 154204 831 942742 722796 712584 425
+console status v 2 app flight id 5 backend hw fps_milli 29013 frames 1553 presents 1553 errors 0 scene 2 ladder 1 dropped 0 tick_ms 63427 irqA 3806 heap 57824 faults 0 tasks 4 idle 92130657 monitor 56 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49677 161 1 1 2
+R4FCACHE 1 0 1463 1560 0
+R4TIME 3214 188116 168433 763 932701 712666 701915 435
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 1583 presents 1583 errors 0 scene 2 ladder 1 dropped 0 tick_ms 64460 irqA 3868 heap 57824 faults 0 tasks 4 idle 93834735 monitor 57 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50653 155 1 1 2
+R4FCACHE 1 0 1491 1590 0
+R4TIME 3190 183756 155705 732 916845 696642 685986 416
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 1613 presents 1613 errors 0 scene 2 ladder 1 dropped 0 tick_ms 65494 irqA 3930 heap 57824 faults 0 tasks 4 idle 95530139 monitor 58 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49946 160 1 1 2
+R4FCACHE 1 0 1519 1620 0
+R4TIME 3355 188456 159576 736 925535 704908 694705 425
+console status v 2 app flight id 5 backend hw fps_milli 30000 frames 1643 presents 1643 errors 0 scene 2 ladder 1 dropped 0 tick_ms 66494 irqA 3990 heap 57824 faults 0 tasks 4 idle 97168290 monitor 59 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 50920 149 1 1 2
+R4FCACHE 1 0 1547 1650 0
+R4TIME 3394 185410 148753 875 919682 699745 689593 402
+console status v 2 app flight id 5 backend hw fps_milli 29013 frames 1673 presents 1673 errors 0 scene 2 ladder 1 dropped 0 tick_ms 67527 irqA 4052 heap 57824 faults 0 tasks 4 idle 98866508 monitor 60 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 49518 162 1 1 2
+R4FCACHE 1 0 1575 1680 0
+R4TIME 3165 176144 169415 891 936056 716236 705150 455
+console status v 2 app flight id 5 backend hw fps_milli 29041 frames 1703 presents 1703 errors 0 scene 2 ladder 1 dropped 0 tick_ms 68560 irqA 4114 heap 57824 faults 0 tasks 4 idle 100563113 monitor 61 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 29 50397 164 1 1 2
+R4FCACHE 1 0 1603 1710 0
+R4TIME 3263 155017 163991 925 918794 698669 686922 445
+console status v 2 app flight id 5 backend hw fps_milli 30481 frames 1734 presents 1734 errors 0 scene 2 ladder 1 dropped 0 tick_ms 69577 irqA 4175 heap 57824 faults 0 tasks 4 idle 102245149 monitor 62 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 52573 148 1 1 2
+R4FCACHE 1 0 1631 1740 0
+R4TIME 3409 152253 149528 729 905627 686201 675694 423
+console status v 2 app flight id 5 backend hw fps_milli 30000 frames 1764 presents 1764 errors 0 scene 2 ladder 1 dropped 0 tick_ms 70577 irqA 4235 heap 57824 faults 0 tasks 4 idle 103913671 monitor 63 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 52447 153 1 1 2
+R4FCACHE 1 0 1659 1770 0
+R4TIME 3330 153916 153978 727 923602 702917 692010 424
+console status v 2 app flight id 5 backend hw fps_milli 30000 frames 1794 presents 1794 errors 0 scene 2 ladder 1 dropped 0 tick_ms 71577 irqA 4295 heap 57824 faults 0 tasks 4 idle 105562857 monitor 64 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 30 50224 151 1 1 2
+R4FCACHE 1 0 1687 1800 0
+R4TIME 3392 173867 151569 896 983291 763389 752826 424
+console status v 2 app flight id 5 backend hw fps_milli 27531 frames 1822 presents 1822 errors 0 scene 2 ladder 1 dropped 0 tick_ms 72594 irqA 4356 heap 57824 faults 0 tasks 4 idle 106877168 monitor 65 health 0 stack_free 55572 catalog 82180052661d9ff3b858ea11ce2c2f34a30cd3a52bfa8d826d9d74264b170bcd caps 0000d46f
+R4STAT 28 38343 148 1 1 2
+R4FCACHE 1 0 1715 1830 0
+R4TIME 3139 169326 157369 744 954753 733999 723890 425
+R4PERF 1800 1793028 3766316 4253428 1800 0 149 3660 1800
+r4 leave frames/late 1831 1808
+R4HEALTH 16952 347 0 0 0
+console complete app flight id 5 frames 1831 presents 1831 errors 0
+console leave flight
+cons
+# closed 00:27:15, 28131 bytes

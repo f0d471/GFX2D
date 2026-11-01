@@ -24,6 +24,14 @@ typedef struct {
     uint8_t  alive;
 } r4_bullet;
 
+/* Scene2 reuses the inactive bullet-velocity storage; other scene layouts and
+ * replay state bytes remain unchanged. Camera poses advance on metre ticks. */
+typedef struct {
+    int32_t vx,vy;
+    int32_t camera_x,camera_y,next_camera_x,next_camera_y;
+} r4_flight_state;
+_Static_assert(sizeof(r4_flight_state)<=2u*R4_EBULLET_MAX*sizeof(int32_t),"flight state storage");
+
 typedef struct {
     uint32_t d;                     /* 相机行程（世界 z = -d） */
     int32_t  cam_x;                 /* 自机世界 x；相机小幅周期平移另由视图生成 */
@@ -32,7 +40,10 @@ typedef struct {
     int32_t  pitch;
     r4_bullet enemy;
     int32_t bank;
-    int32_t e_vx[R4_EBULLET_MAX], e_vy[R4_EBULLET_MAX];
+    union {
+        struct {int32_t e_vx[R4_EBULLET_MAX], e_vy[R4_EBULLET_MAX];};
+        r4_flight_state flight;
+    };
     uint32_t ticks;
     uint32_t score, shield;
     uint32_t hiscore, graze, bombs, invulnerable, respawn;
@@ -75,6 +86,10 @@ int r4_flight_prewarm(const r4_world *world,const fx16_mat4 *projection,const ra
 r4_flight_cache_stats r4_flight_cache_status(void);
 #ifdef R4_FLIGHT_TEST
 uint32_t r4_flight_reference(const r4_world *,const fx16_mat4 *,const rast_viewport *,rast_record *,uint32_t);
+int32_t r4_flight_ground_test(int32_t,uint32_t,int32_t);
+int32_t r4_flight_anchor_test(uint32_t,int32_t,int32_t,int32_t);
+int32_t r4_flight_grid_test(uint32_t,unsigned);
+uint32_t r4_flight_terrain_test(const r4_world *,const fx16_mat4 *,const rast_viewport *,rast_record *,uint32_t);
 #endif
 
 /* 分区名与提示语（HUD 左上/左下排版用，与 r4_scene.c 色板同序）。 */

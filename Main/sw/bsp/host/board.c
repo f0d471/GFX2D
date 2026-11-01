@@ -579,6 +579,7 @@ uint32_t board_input_raw(uint32_t *physical)
     if (k[SDL_SCANCODE_3])                              bits |= BOARD_KEY_MODE3;
     if (k[SDL_SCANCODE_4])                              bits |= BOARD_KEY_MODE1 | BOARD_KEY_MODE2 |
                                                             BOARD_KEY_MODE3;   /* 组合=模式4 */
+    if (k[SDL_SCANCODE_5])                              bits |= BOARD_KEY_APP5;   /* 快捷键5:RIDGE FLIGHT */
     return bits;
 }
 

@@ -1,0 +1,17 @@
+{
+  "source_commit": "1d8559077cd9a5d27344de2714c9cb9823dfadbb",
+  "source_sha256": "4e01dedc799b56fe40a409486bed2a4dffa306777715af6c5f18c702fc26a86e",
+  "scope": "Frozen pre-optimization record/state and geometry-only pixel CRCs; no runtime timing",
+  "fixtures": {
+    "quick": {
+      "frames_per_zone": 240,
+      "sha256": "a41b2f0868af4ab8d87a98d7b3f1edaf13abb7454b7769ea570fd7800b5baf90"
+    },
+    "acceptance": {
+      "frames_per_zone": 1801,
+      "sha256": "35e53b6d2a76ba74435e8c78d07b2573d3b63a05c18caf7edd7912d3cb9e50b7"
+    }
+  },
+  "consumer_model_sha256": "241e4bf3db92b5e178d89fc4cee305edd156d2a20e992e2373dc967edc38406e",
+  "consumer_scope": "Existing OBJ-generated model reused unchanged for SW19 consumer regression; asset regeneration is separate."
+}

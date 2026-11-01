@@ -1,0 +1,22 @@
+{
+  "mode": "flight",
+  "backend": "hw",
+  "fps": 30.0,
+  "bullets": null,
+  "protocol": 2,
+  "app_id": 5,
+  "errors": 0,
+  "catalog": {},
+  "content_hash": null,
+  "profile": null,
+  "caps": 54383,
+  "triangles": null,
+  "ladder": 1,
+  "scene": 2,
+  "render_fps": null,
+  "connected": true,
+  "keyboard_focus": true,
+  "keys": 0,
+  "notice": "04:33:10 板上反馈：flight · HW 后端。",
+  "updated": "2026-11-01 04:33:10"
+}

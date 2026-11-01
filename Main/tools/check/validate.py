@@ -32,7 +32,7 @@ add('rast', [sys.executable, P+'check_rast.py'],
 add('r4',[sys.executable,P+'check_r4.py'],
     'R4 三场景60帧参考、64/32与sanitizer、录像/图集/采集器反例',['pack'],timeout=3600)
 add('flight',[sys.executable,P+'check_flight.py'],
-    '滑翔整米预热/冻结记录与像素/四区/宽屏/背景/64与32位/变异',['pack'],timeout=1800)
+    '滑翔RFL3控制/世界锚定/网格/预热/冻结参考与像素/四区/宽屏/64与32位/变异',['pack'],timeout=1800)
 add('flight-board',[sys.executable,P+'check_flight_board.py'],
     '滑翔B7像素对照/实际RTOS双1800帧30Hz节拍/输入/预热（Windows）',timeout=2400)
 add('flight-consumers',[sys.executable,P+'check_r4.py','--reuse-flight-models'],

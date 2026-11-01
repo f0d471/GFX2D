@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "scope": "SW19 owned source/docs and new document links; global main paths failure remains recorded separately",
+  "files": [
+    "Main/sw/apps/game/gfx2dGame/src/r4_scene.c",
+    "Main/sw/apps/game/gfx2dGame/src/r4_scene.h",
+    "Main/sw/apps/game/gfx2dGame/src/r4.h",
+    "Main/sw/ports/myriad/r4_runtime.c",
+    "Main/sw/ports/myriad/app_flight.c",
+    "Main/tools/check/r4_checks.py",
+    "Main/tools/check/check_flight.py",
+    "Main/tools/check/check_flight_board.py",
+    "Main/tools/check/README.md",
+    "Main/sw/README.md",
+    "Main/doc/滑翔性能与节拍.md",
+    "Main/tools/check/check_r4.py",
+    "Main/tools/check/validate.py",
+    "Main/tools/check/localize_paths.py",
+    "Main/tools/check/test_validation.py",
+    "Main/sim/engine/flight/baseline.json",
+    "Main/sim/engine/flight/records-acceptance.txt",
+    "Main/sim/engine/flight/records-quick.txt",
+    "Main/sim/engine/flight/test_flight.c",
+    "Engineering/Todo/sw/SW19-滑翔性能与固定节拍.md",
+    "Engineering/Todo/README.md",
+    "Engineering/TechReports/sw/19-滑翔性能与固定节拍.md",
+    "Engineering/TechReports/sw/README.md"
+  ]
+}

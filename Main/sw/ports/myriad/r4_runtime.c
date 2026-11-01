@@ -408,7 +408,7 @@ static uint32_t bg_mix(uint32_t a, uint32_t b, uint32_t t)
 
 /* --- 场景 2 的天空美术包：渐变/剪影/中央远峰/霾带，随 zone 擦除式换装 --------
    换装不一次重烘整屏（那是一帧 20ms 级的卡顿），而是每帧 32 行自上而下推进
-   ——0.25s 的"天色刷下来"转场，机器零停顿。 */
+   ——30Hz 下约0.5s 的"天色刷下来"转场。 */
 
 static const uint32_t bg_sky_stops[4][4] = {
     {0x4f9bcd, 0x9cc8ec, 0xffe2bc, 0xffdca8},   /* 晨光 */
@@ -432,6 +432,9 @@ static uint32_t s_bg_zone = 0u, s_bg_zone_pend = 0u, s_bg_row = FB_HEIGHT;
 static uint32_t s_sky_rows[4][FB_HEIGHT][4];
 static int s_sky_rows_ready;
 
+static int bg_haze_row(unsigned y)
+{return y==96u || y==97u || y==112u || y==113u || y==128u || y==129u;}
+
 static void bg_sky_cache(void)
 {
     if(s_sky_rows_ready)return;
@@ -445,7 +448,8 @@ static void bg_sky_cache(void)
             int u=(int)((ty-base)*256u/span)+(int)bayer[(y&3u)*4u+x]-8;
             if(u<0)u=0;
             if(u>256)u=256;
-            s_sky_rows[zone][y][x]=bg_mix(bg_sky_stops[zone][seg],bg_sky_stops[zone][seg+1u],(unsigned)u);
+            uint32_t c=bg_mix(bg_sky_stops[zone][seg],bg_sky_stops[zone][seg+1u],(unsigned)u);
+            s_sky_rows[zone][y][x]=bg_haze_row(y)?bg_mix(c,0xffffffu,40u):c;
         }
     }
     s_sky_rows_ready=1;
@@ -454,6 +458,7 @@ static void bg_sky_cache(void)
 /* 三层剪影的逐列脊线（视图无关）：zone 变才重算一次，宽屏/离屏两路共用。 */
 static int16_t s_sil_y0[3][1792];
 static uint32_t s_sil_zone = UINT32_MAX;
+static int s_sil_top=FB_HEIGHT,s_sil_floor;
 
 static void bg_sil_cache(uint32_t zone)
 {
@@ -469,6 +474,8 @@ static void bg_sil_cache(uint32_t zone)
             int b = (int)(x * 26u + (uint32_t)phase[k] * 2u) & 0xFFFF;
             int s = fx_sin((uint16_t)a) / 2 + fx_sin((uint16_t)b) / 4;
             s_sil_y0[k][x] = (int16_t)(base_y[k] - (amp[k] * s) / 32768);
+            if(s_sil_y0[k][x]<s_sil_top)s_sil_top=s_sil_y0[k][x];
+            if(k==2u && s_sil_y0[k][x]>s_sil_floor)s_sil_floor=s_sil_y0[k][x];
         }
     }
     s_sil_zone = zone;
@@ -476,6 +483,14 @@ static void bg_sil_cache(uint32_t zone)
 
 static void bg_paint_row_mode(uint32_t *row,uint32_t w,uint32_t zone,uint32_t y,int reference)
 {
+    /* Below the nearest silhouette every previous layer is overwritten. Avoid
+       four complete DDR write passes during the lower part of a zone wipe. */
+    if(!reference && (int)y>=s_sil_floor) {
+        const uint32_t c=bg_sils[zone][2];unsigned x=0;
+        for(;x+4u<=w;x+=4u){row[x]=c;row[x+1u]=c;row[x+2u]=c;row[x+3u]=c;}
+        for(;x<w;++x)row[x]=c;
+        return;
+    }
 #ifdef R4_FLIGHT_TEST
     if(reference) {
     static const uint8_t bayer[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
@@ -501,20 +516,25 @@ static void bg_paint_row_mode(uint32_t *row,uint32_t w,uint32_t zone,uint32_t y,
 #endif
     {
         bg_sky_cache();
-        for(unsigned x=0;x<w;++x)row[x]=s_sky_rows[zone][y][x&3u];
+        const uint32_t *c=s_sky_rows[zone][y];unsigned x=0;
+        for(;x+4u<=w;x+=4u){row[x]=c[0];row[x+1u]=c[1];row[x+2u]=c[2];row[x+3u]=c[3];}
+        for(;x<w;++x)row[x]=c[x&3u];
     }
     /* 太阳：左上天域的两级光晕+亮核。 */
     {
         int dy = (int)y - 96;
         if (dy >= -46 && dy <= 46) {
+            uint32_t sun[3]={0xfff6e2,bg_mix(bg_sky_stops[zone][1],0xfff4dc,140u),
+                bg_mix(bg_sky_stops[zone][1],0xfff4dc,60u)};
+            if(!reference && bg_haze_row(y))for(unsigned i=0;i<3;++i)sun[i]=bg_mix(sun[i],0xffffffu,40u);
             for (int x = 118 - 46; x <= 118 + 46 && x < (int)w; ++x) {
                 if (x < 0) continue;
                 {
                     int dx = x - 118;
                     int d2 = dx * dx + dy * dy;
-                    if (d2 <= 22 * 22) row[x] = 0xfff6e2;
-                    else if (d2 <= 32 * 32) row[x] = bg_mix(bg_sky_stops[zone][1], 0xfff4dc, 140u);
-                    else if (d2 <= 46 * 46) row[x] = bg_mix(bg_sky_stops[zone][1], 0xfff4dc, 60u);
+                    if (d2 <= 22 * 22) row[x] = sun[0];
+                    else if (d2 <= 32 * 32) row[x] = sun[1];
+                    else if (d2 <= 46 * 46) row[x] = sun[2];
                 }
             }
         }
@@ -527,13 +547,13 @@ static void bg_paint_row_mode(uint32_t *row,uint32_t w,uint32_t zone,uint32_t y,
         for (int32_t x = 240; x < 240 + hw && x < (int)w; ++x) row[x] = bg_peaks[zone][1];
     }
     /* 三层剪影（查表）。 */
-    for (uint32_t x = 0u; x < w; ++x) {
+    if(reference || (int)y>=s_sil_top)for (uint32_t x = 0u; x < w; ++x) {
         if ((int32_t)y >= s_sil_y0[0][x]) row[x] = bg_sils[zone][0];
         if ((int32_t)y >= s_sil_y0[1][x]) row[x] = bg_sils[zone][1];
         if ((int32_t)y >= s_sil_y0[2][x]) row[x] = bg_sils[zone][2];
     }
     /* 高空霾带：三条 2px 浅色横带（参考图的空气感）。 */
-    if (y == 96u || y == 97u || y == 112u || y == 113u || y == 128u || y == 129u)
+    if (reference && (y == 96u || y == 97u || y == 112u || y == 113u || y == 128u || y == 129u))
         for (uint32_t x = 0u; x < w; ++x)
             row[x] = bg_mix(row[x], 0xffffffu, 40u);
 }
@@ -1066,6 +1086,14 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         s_out.bbox_points = bb;
     }
     s_out.render_cycles = board_cycles() - t0;
+    if(s_scene==2u && !GFX2D_R4_JUDGE && s_out.render_cycles>BOARD_HZ/30u) {
+        char line[160];core_out o;core_out_init(&o,line,sizeof line);core_out_str(&o,"R4SLOW");
+        r4_flight_cache_stats cache=r4_flight_cache_status();
+        const uint32_t values[]={s_out.frames,s_out.cyc_logic,s_out.cyc_geom,s_out.cyc_bin,
+            s_out.cyc_hud,s_out.cyc_submit,s_world.d>>16,cache.columns};
+        for(unsigned i=0;i<8;++i){core_out_ch(&o,' ');core_out_u32(&o,values[i]);}
+        core_out_str(&o,"\r\n");say(line);
+    }
 #if R4_BOARD_CRC
 #ifdef __riscv
     if(s_hw)board_dcache_invalidate_range(board_fb(fb_index),FB_BYTES);

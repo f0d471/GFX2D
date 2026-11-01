@@ -301,6 +301,21 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('REUSE shared libtest',result.stdout)
 
 
+    def test_only_exact_negative_path_fixture_is_exempt(self):
+        import localize_paths
+        rel='Main/tools/check/check_frozen_baseline.py'
+        fixture=next(iter(localize_paths.NEGATIVE_FIXTURE_LINES[rel]))
+        cases=[(rel,fixture,0),
+               (rel,'resource='+repr(chr(67)+':/machine-bound/file.bin'),1),
+               ('Main/tools/check/another_test.py',fixture,1)]
+        for name,text,wanted in cases:
+            with self.subTest(name=name,text=text), \
+                 patch.object(localize_paths,'candidates',return_value=[(name,str(self.fixture))]), \
+                 patch.object(localize_paths,'read',return_value=text), \
+                 contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(localize_paths.check(True),wanted)
+
+
 if __name__=='__main__':
     with contextlib.redirect_stdout(io.StringIO()):
         suite=unittest.defaultTestLoader.loadTestsFromTestCase(WorkflowTests)

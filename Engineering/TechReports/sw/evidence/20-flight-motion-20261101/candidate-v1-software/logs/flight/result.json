@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "frames_per_zone": 1801,
+  "widths": [
+    640,
+    854,
+    1792
+  ],
+  "checks": [
+    "damped controls and attitude signs",
+    "fixed speed and camera cadence",
+    "world anchors and mesh planarity",
+    "frozen uncached record and geometry-pixel CRC",
+    "cached/uncached byte equality",
+    "four zones",
+    "prewarm deadline",
+    "viewport/projection invalidation",
+    "capacity fallback",
+    "background all rows and padding",
+    "64/32 parity and sanitizer"
+  ],
+  "mutation": [
+    "EXPECTED_RED stale viewport records",
+    "EXPECTED_RED reverse world movement",
+    "EXPECTED_RED unsigned attitude divisor"
+  ]
+}

@@ -15,9 +15,9 @@ import serial
 from input_forward import InputForwarder, packet
 
 
-MODE_NAMES = {"menu":"应用菜单", "about":"系统信息", "fault":"故障恢复",
+MODE_NAMES = {"menu":"应用菜单", "about":"系统信息", "fault":"故障恢复", "flight":"山脊飞行",
               "demo": "1 · 图形演示", "game": "2 · 弹幕游戏", "press": "3 · 压力测试", "r3d": "4 · 三维演示"}
-MODE_IDS = {"1": "demo", "2": "game", "3": "press", "4": "r3d"}
+MODE_IDS = {"1": "demo", "2": "game", "3": "press", "4": "r3d", "5": "flight"}
 KEY_NAMES = ("上", "下", "左", "右", "炸弹", "慢速", "切后端", "2D [1]", "弹幕 [2]", "压力 [3]", "确认", "返回", "场景")
 
 
@@ -267,6 +267,7 @@ class ControlPanel:
         ttk.Button(three_d,text="菜单向上",command=lambda:self.send_action(1)).pack(side="left",padx=(0,6))
         ttk.Button(three_d,text="菜单向下",command=lambda:self.send_action(2)).pack(side="left",padx=(0,6))
         ttk.Button(three_d,text="场景 [C]",command=lambda:self.send_action((1<<12) if self.state.protocol>=2 else 0x380)).pack(side="left",padx=(0,6))
+        ttk.Button(three_d,text="山脊 [5]",command=lambda:self.send_action((1<<13) if self.state.protocol>=2 else 0)).pack(side="left",padx=(0,6))
         ttk.Button(three_d,text="L1 / L2 [Shift]",command=lambda:self.send_action(1<<5)).pack(side="left",padx=(0,6))
         ttk.Button(three_d,text="炸弹 [Space]",command=lambda:self.send_action(1<<4)).pack(side="left",padx=(0,6))
         self.scene_label=ttk.Label(three_d,text="三维场景：等待板上反馈")
