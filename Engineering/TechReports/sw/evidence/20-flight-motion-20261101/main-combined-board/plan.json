@@ -1,0 +1,30 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "flight-board"
+  ],
+  "changed": null,
+  "commands": {
+    "flight-board": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_flight_board.py"
+    ]
+  },
+  "timeouts": {
+    "flight-board": 2400
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log",
+    "Main/sim/engine/flight/**",
+    "Main/bit/snapshots/B7/**"
+  ]
+}

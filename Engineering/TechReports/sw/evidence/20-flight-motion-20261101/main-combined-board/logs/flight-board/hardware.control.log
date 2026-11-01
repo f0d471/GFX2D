@@ -1,0 +1,103 @@
+=== 烧写比特流 E:\Workspace\FPGA\Efinix\Main\bit\snapshots\B7\gfx2d_ti60.bit
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   252010 bytes written at address 0x00001000
+   downloaded 252010 bytes in 13.690193s (17.977 KiB/s)
+Open On-Chip Debugger 0.11.0+dev-04060-g967f8f6f0-dirty (2026-03-24-19:56)
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+E:/Workspace/FPGA/Efinix/Main/sdk
+Info : auto-selecting first available session transport "jtag". To override use 'transport select <transport>'.
+Info : set servers polling period to 50ms
+Info : clock speed 800 kHz
+Info : JTAG tap: fpga_spinal.bridge tap/device found: 0x10660a79 (mfg: 0x53c (Efinix Inc), part: 0x0660, ver: 0x1)
+[fpga_spinal.cpu0] Target successfully examined.
+Info : starting gdb server for fpga_spinal.cpu0 on 3333
+Info : Listening on port 3333 for gdb connections
+shutdown command invoked
+
+=== 等串口采集结束（上限 140 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\combined-flight-board-03\logs\flight-board\hardware.serial.log）---
+# COM11 @ 115200 8N1, opened 00:20:13
+console boot
+console protocol 2 tick_hz 1000
+# --- 程序已加载，以下才是它的输出 ---
+gfx2dGame MODES
+pak 4134720 a8624648
+scene 0 scrc d90fb7b2
+scene 1 scrc 70fd3e3d
+scene 2 scrc 0211c146
+eq P 53 18 0 2
+r4 enter ladder/hw 1 1
+csvh,t,mode,exec,fps,drop,n_active,n_bullet,overflow,cmd,pixel,key_skip,ft_max,cyc_logic,cyc_build,cyc_exec,cyc_auto,cmd_eq0,cmd_eq1,cmd_eq2,cmd_eq3,cmd_eq4,cmd_eq5,cmd_other,pix_eq0,pix_eq1,pix_eq2,pix_eq3,pix_eq4,pix_eq5,hw_cmd_cum,hw_pixel_cum,hw_key_cum,hw_rd_burst_cum,hw_wr_burst_cum,hw_rd_beat_cum,hw_wr_beat_cum,hw_wait_cum,hw_busy_cum,pace,bottleneck,cpu_avg_cyc,engine_busy_avg_cyc,window_fields,fps_milli
+R4CAD 0 1270950 1473 1492 2  683685 8a9df556 82e43534
+mode 4 enter frame 0 crc skip pool 0 0 0 0 clip 0 0 639 479
+R4CAD 1 1271184 1475 1513 3  683935 6215b65d ce2c1c95
+R4CAD 2 1270164 1477 1534 4  683628 ef2333a3 f26a225d
+R4CAD 3 1269624 1479 1555 5  684015 137b650a b880ad73
+R4CAD 4 1269944 1481 1576 6  683938 c341522e 29b3cd96
+R4CAD 5 1270383 1483 1597 7  683467 ca4cd974 fde3e763
+R4CAD 6 1269811 1485 1618 8  683784 d1f6c007 0b5999f1
+R4CAD 7 2097610 1487 1640 9  686914 b2ea1b13 3879c078
+R4CAD 8 2107172 1489 1662 10  686522 c50712c3 492d9722
+R4CAD 9 2030320 1491 1684 11  687031 653acbf7 adcdf02d
+R4CAD 10 2054965 1493 1706 12  687124 e301fd13 546eee30
+R4CAD 11 1827248 1495 1728 13  687624 ccd3284d d7123a1c
+R4CAD 12 1672178 1497 1749 14  687520 d0277ffd e33cf97b
+R4CAD 13 1658858 1499 1770 15  688401 1a8dd4f1 df6c3d3b
+R4CAD 14 1291726 1501 1791 16  688503 18ea80d3 1f61ffd5
+R4CAD 15 2053779 1503 1813 17  647596 f4311ff6 1cf0b383
+R4CAD 16 2073835 1505 1835 18  647975 f0b7a0ab 73f79af2
+R4CAD 17 1999771 1507 1857 19  648307 49e0de57 a83bc586
+R4CAD 18 2030375 1509 1879 20  648301 eae1b709 38a50164
+R4CAD 19 1778955 1511 1901 21  648564 89d373c5 d75bc275
+R4CAD 20 1637541 1513 1922 22  648901 09c6248f 261b496f
+R4CAD 21 1632191 1515 1943 23  648816 8c6c5b86 8d961412
+R4CAD 22 2092233 1517 1965 24  623391 832ff631 e9f573af
+R4CAD 23 2098251 1519 1987 25  623821 56ec982e 9248c097
+R4CAD 24 1983903 1521 2009 26  622799 f7ef02f0 22dec484
+R4CAD 25 2012932 1523 2031 27  623088 4a7053e6 536b5cfe
+R4CAD 26 1761131 1525 2053 28  622685 c5abb716 860c55ce
+R4CAD 27 1616325 1527 2074 29  622243 eaac82ca 26cd7874
+R4CAD 28 1609411 1529 2095 30  623157 9e952e94 52ec67aa
+R4CAD 29 1235039 1531 2116 31  622560 0c7b96ce 833accdc
+R4CAD 30 2040436 1533 2138 32  641189 1e10b4c1 d4c1246b
+R4CAD 31 2110814 1535 2160 33  641252 bdb96dc4 0de42287
+R4CAD 32 2005364 1537 2182 34  640709 386f032b 2db119b3
+R4CAD 33 2033816 1539 2204 35  640672 e2603d09 4329ae7b
+R4CAD 34 1789308 1541 2226 36  640774 3750c4cf a53c2c1b
+R4CAD 35 1644376 1543 2247 37  640679 ed9744ab 4f121320
+R4CAD 36 1637280 1545 2268 38  640600 7a99e1b6 2a23343b
+R4CAD 37 1837251 1547 2290 39  657817 f87a8cca af4829c0
+R4CAD 38 2126985 1549 2312 40  657896 26b69def c70b905d
+R4CAD 39 2013975 1551 2334 41  657584 e001af84 1b61a6d9
+R4CAD 40 2046109 1553 2356 42  657690 965a8b24 6645b75b
+R4CAD 41 1789600 1555 2378 43  657629 18ac9bac 6456f6d1
+R4CAD 42 1645749 1557 2399 44  658488 d4d6ea9e 66a8d91e
+R4CAD 43 1636801 1559 2420 45  658401 152d0f77 9a8b1a61
+R4CAD 44 1264271 1561 2441 46  657841 9e4c18b1 4c334b8b
+R4CAD 45 1921616 1563 2463 47  709740 064857c5 207fe9d0
+R4CAD 46 2171241 1565 2485 48  709898 fa0a2783 197d1391
+R4CAD 47 2012524 1567 2507 49  710035 42697060 67434f2a
+R4CAD 48 2116856 1569 2529 50  709720 e8395dc0 28f885c5
+R4CAD 49 1836291 1571 2551 51  710057 bb6dac19 3a206d10
+R4CAD 50 1697350 1573 2572 52  710098 8f7b01a4 e5d3fa58
+R4CAD 51 1683474 1575 2593 53  710289 a1260785 461090a6
+R4CAD 52 1921531 1577 2615 54  712738 ba00f7ee 003e95b1
+R4CAD 53 2172925 1579 2637 55  712912 16fc1ca4 e566cf4e
+R4CAD 54 2005279 1581 2659 56  712469 e1022940 ffe20d56
+R4CAD 55 2104559 1583 2681 57  712466 4ec6b242 ead75610
+R4CAD 56 2007780 1585 2703 58  712888 bf255bda 8113d50d
+R4CAD 57 1722259 1587 2724 59  712633 5df78962 0fa91f11
+R4CAD 58 1674640 1589 2745 60  712334 982a63b8 868dd2b5
+R4CAD 59 1309951 1591 2766 61  712800 982a63b8 868dd2b5
+R4PERF 29 1921531 2172925 2172925 29 0 0 628 29
+r4 leave frames/late 60 60
+R4HEALTH 2834 348 0 0 0
+diag fifo_min 347 samples 60 zero 0 under 0 irqA 1870 irqB 60 faults 0 swap_retry 0
+fail 0
+done
+
+# closed 00:21:00, 4276 bytes
