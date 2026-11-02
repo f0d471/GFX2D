@@ -16,14 +16,14 @@
   "bit_bytes": 2768349,
   "date": "2026-10-29T05:34:03+08:00",
   "bin": "console-O2-perf.bin",
-  "bin_sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744",
-  "bin_bytes": 174402,
-  "bin_verified_by": "verification.json; acceptance 20261030-014306-a1081dbe console-profiles-board B5 PASS; JTAG only",
+  "bin_sha256": "f034f6737cbd27afa5eef518cab00960b92c34f6031925af7791df165c14229c",
+  "bin_bytes": 177234,
+  "bin_verified_by": "verification.json; 2026-11-02 JTAG load + UART app checks PASS (demo/stg/press 60FPS errors 0, keys 4/5 inert) on B5; JTAG only, Flash keeps B7",
   "content": {
     "file": "content.json",
-    "sha256": "27fc78cd8fb85d6317816bfad1990cdc68847b0387838fff89a1756594efe189",
+    "sha256": "f443c3acf1d17575be030e7fe71e4e5c4f7b985b5a500667add0902d12fd21bb",
     "profile": "2d",
-    "catalog_sha256": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+    "catalog_sha256": "d2dd391fe9a6c4c8eb876e6ea55fb8f3935aa971328ba70c57eef862f2ad30a6",
     "content_ids": [
       1,
       2,
@@ -32,10 +32,16 @@
   },
   "firmware": {
     "file": "firmware.json",
-    "sha256": "fbac2f3297258ce13256beaf24c97cfcdf73d6f7dbaf93563918894c846d5c94"
+    "sha256": "94dfbdb4e0026a067e2b344f12db7dd49129ac43dac06a7687afbc94c5d556fd"
   },
   "verification": {
     "file": "verification.json",
-    "sha256": "602a50d269618c488267054d48ee289516f58eff68d089af006240825a3f3822"
+    "sha256": "40a9b6c87bc50cb5ad2131aad07afb0c5f2bbb76a448c1ee118653fee66381ae"
+  },
+  "assets": {
+    "file": "assets.pak",
+    "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52",
+    "bytes": 4134720,
+    "crc32": "a8624648"
   }
 }

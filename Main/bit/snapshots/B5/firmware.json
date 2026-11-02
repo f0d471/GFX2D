@@ -1,7 +1,7 @@
 {
   "version": 1,
   "profile": "2d",
-  "catalog_sha256": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+  "catalog_sha256": "d2dd391fe9a6c4c8eb876e6ea55fb8f3935aa971328ba70c57eef862f2ad30a6",
   "compiler": "riscv-none-elf-gcc (xPack GNU RISC-V Embedded GCC x86_64) 13.4.0",
   "command": [
     "make",
@@ -10,32 +10,32 @@
     "-j4",
     "PLATFORM=target",
     "APP_PROFILE=2d",
-    "OBJDIR=../../../sim/build/check-runs/20261030-014306-a1081dbe/build/console-profiles-board/2d",
+    "OBJDIR=../../../sim/build/b5-20261102/firmware",
     "RISCV_BIN=<RISCV_BIN>"
   ],
-  "source_commit": "4beeff7b386133fe7795258e73ed73fa6b8d3f11",
-  "source_dirty": true,
+  "source_commit": "0acde1a27f8891113cfcdf7d36aeb7f7a2635bad",
+  "source_dirty": false,
   "files": {
     "console-O2-perf.bin": {
-      "bytes": 174402,
-      "sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744"
+      "bytes": 177234,
+      "sha256": "f034f6737cbd27afa5eef518cab00960b92c34f6031925af7791df165c14229c"
     },
     "console-O2-perf.elf": {
-      "bytes": 1243740,
-      "sha256": "c4c4ac54da63ee74d8741eb61c29501e4e0f222d864c36b3689e9078c69a479c"
+      "bytes": 1260808,
+      "sha256": "5e7d50814c7e128d08cfd0c313897165906d309d0da02ccd1e8b62fb05e716cc"
     },
     "console-O2-perf.map": {
-      "bytes": 760321,
-      "sha256": "15e808f48cab9376df4afac1a16a68bdeb5a8ac22e4ad06bee7a91355a264940"
+      "bytes": 566624,
+      "sha256": "fdb7b6d4f78426828576842f3c3c45d0dcb90d7e718f68652aa2e73c2ddf0ff0"
     }
   },
   "assets": {
-    "bytes": 4085504,
-    "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+    "bytes": 4134720,
+    "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52"
   },
   "memory": {
-    "text": 158160,
-    "data": 16098,
+    "text": 160976,
+    "data": 16114,
     "bss": 931160,
     "limit": 4190208
   },
@@ -44,14 +44,12 @@
   "scope": "build and budget inspection; not board acceptance",
   "board_validation": {
     "status": "PASS",
-    "run": "20261030-014306-a1081dbe",
+    "run": "b5-20261102/review",
     "verification": "verification.json",
     "presets": [
-      "B0",
-      "B3",
       "B5"
     ],
     "flash_written": false,
-    "manual_hdmi": "NOT_OBSERVED"
+    "manual_hdmi": "PENDING_USER"
   }
 }

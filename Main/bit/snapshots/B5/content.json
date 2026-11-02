@@ -64,7 +64,7 @@
       "enum": "APPFW_ABOUT",
       "graphics": "2d",
       "host": true,
-      "id": 5,
+      "id": 6,
       "key": "about",
       "kind": "system",
       "modules": [
@@ -89,7 +89,7 @@
     "RAST_TEX": 15,
     "TEX": 6
   },
-  "catalog_sha256": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
+  "catalog_sha256": "d2dd391fe9a6c4c8eb876e6ea55fb8f3935aa971328ba70c57eef862f2ad30a6",
   "content_ids": [
     1,
     2,

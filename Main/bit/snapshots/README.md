@@ -24,10 +24,11 @@ B1/B2/B4/B6 是消融测量档，按需构建不留快照；快照集与 `check_
 硬件 `source_commit` 不代表新软件版本；软件编译器、参数、预算、程序/素材摘要与源码
 状态独立登记在 firmware.json，content.json 绑定实际编入的应用集合。
 
-B7 另附 `assets.pak`（manifest 的 `assets` 记摘要与 CRC32）：BIN 里写死了素材包 CRC，
+B7、B5 另附 `assets.pak`（manifest 的 `assets` 记摘要与 CRC32）：BIN 里写死了素材包 CRC，
 两者必须成对写进 Flash（程序 `0x380000`、素材 `0x400000`），位流分区不动。2026-11-02 起
-B7 的 BIN/素材为 `bce326d` 版（Kenney 2D 素材、删茶杯、滑翔 SW20），与当时板上 Flash 逐字节相同。
-B0/B3/B5 的 2D BIN 仍是 10-30 版，绑定当时的旧素材包（摘要见各自 firmware.json），
+B7 的 BIN/素材为 `bce326d` 版（Kenney 2D 素材、删茶杯、滑翔 SW20），与当时板上 Flash 逐字节相同；
+B5 同日换上同一份代码编出的 `2d` 版 BIN（演示/弹幕/压力测试/系统信息），经 JTAG 实板核对，
+Flash 仍是 B7。B0/B3 的 2D BIN 仍是 10-30 版，绑定当时的旧素材包（摘要见各自 firmware.json），
 与仓库现在的素材包 CRC 不同，要上板须先重编。
 
 | 档 | 配套内容及能力边界 |

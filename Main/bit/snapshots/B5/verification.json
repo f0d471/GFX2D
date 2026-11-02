@@ -1,47 +1,37 @@
 {
   "version": 1,
   "status": "PASS",
+  "scope": "2026-11-02 B5 2D software refresh on the unchanged B5 bitstream: JTAG load and UART app checks; Flash not written (production Flash stays B7); user HDMI review pending",
   "software": {
     "status": "PASS",
-    "profile": "acceptance",
-    "checks": [
-      "pack",
-      "console",
-      "console-profiles",
-      "platform-sdk",
-      "layers",
-      "r4",
-      "workflow",
-      "app"
-    ],
-    "run_id": "20261030-014120-259b9a00"
+    "profile": "quick",
+    "run_id": "sweep-20261102",
+    "note": "the 16-PASS quick sweep covers this source (bce326d line); B5 ships the 2d profile of the same tree"
   },
   "board": {
     "status": "PASS",
-    "run": "20261030-014306-a1081dbe",
+    "run": "b5-20261102/review",
     "preset": "B5",
     "caps": "0x0000346F",
-    "serial_sha256": "b7fa0e898a19d1103fc0db921412d4f0fd92ce7e78029c4a25219bcbfa696448",
     "bit_sha256": "c4f5a82118602d031ba652491cf63741b1ceb6e35f90f9706823b6ef1153c1cc",
-    "bin_sha256": "17824d185390347ed347a650a3333c878a73a136f6f421946c093a30f78ae744",
-    "status_samples": 65,
+    "bin_sha256": "f034f6737cbd27afa5eef518cab00960b92c34f6031925af7791df165c14229c",
+    "assets_sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52",
+    "serial_sha256": "f4fdb8c995107001ae475ea0a38aa046f8da98334b5a6a67157569bbfa454d33",
+    "status_samples": 1,
     "apps": [
-      "about",
-      "demo",
-      "menu",
-      "press",
-      "stg"
-    ]
+      "menu"
+    ],
+    "checks": "demo/stg/press 60 FPS errors 0, keys 4 and 5 inert (no 3D/flight content), back to menu"
+  },
+  "known_issues": {
+    "stale_expectation_reds": "paths/r4/flight-consumers/console-profiles/demo expectations predate 2026-10-31..11-01 feature changes; see B7 verification.json"
   },
   "pc": {
-    "status": "PASS",
-    "profile": "2d",
-    "exit_code": 0,
-    "content_hash": "b0fee621601f852c838298a343841032d219859bd1c488063034d89bbd8b1bf0",
-    "exe_sha256": "b3fb967738b34f8c77950d2fd1ea474c598ef0e5ab3897a971a9b5a1f2889e08"
+    "status": "NOT_RUN",
+    "note": "B5 is a board-only 2d profile refresh"
   },
   "flash_written": false,
   "rtl_synthesis": "NOT_APPLICABLE: reused unchanged snapshot bitstream",
-  "manual_hdmi": "NOT_OBSERVED",
+  "manual_hdmi": "PENDING_USER",
   "user_acceptance": "PENDING"
 }
