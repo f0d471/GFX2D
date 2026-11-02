@@ -16,7 +16,7 @@
 <body><div id="fig" style="width:1000px;height:540px">
 
 <div class="lbl b" style="left:40px;top:18px;font-size:22px">DDR3 SDRAM 256 MB（AXI 地址 28 位）</div>
-<div class="lbl" style="left:40px;top:50px;font-size:17px;color:#6B7684">帧缓冲行跨 4096 字节，不跨 4 KB 边界；分区示意，未按比例</div>
+<div class="lbl" style="left:40px;top:50px;font-size:17px;color:#6B7684">显存行跨 4096 字节，不跨 4 KB 边界；分区示意，未按比例</div>
 
 <div class="brace" style="left:494px;width:204px;top:84px"></div>
 <div class="lbl c" style="left:590px;top:58px;font-size:18px">双缓冲前后台</div>
@@ -26,8 +26,8 @@
 <div class="seg" style="left:182px;top:92px;width:102px;height:118px">命令表 A/B<br><span class="a">0x0400000~</span><br><span class="z">2×1 MB</span></div>
 <div class="seg" style="left:284px;top:92px;width:108px;height:118px">共享数据池<br><span class="a">0x0600000~</span><br><span class="z">10 MB</span></div>
 <div class="seg" style="left:392px;top:92px;width:102px;height:118px">素材<br><span class="a">0x1000000~</span><br><span class="z">16 MB</span></div>
-<div class="seg fb" style="left:494px;top:92px;width:102px;height:118px">帧缓冲 0<br><span class="a" style="font-weight:400">0x2000000~</span><br><span class="z">4 MB</span></div>
-<div class="seg fb" style="left:596px;top:92px;width:102px;height:118px">帧缓冲 1<br><span class="a" style="font-weight:400">0x2400000~</span><br><span class="z">4 MB</span></div>
+<div class="seg fb" style="left:494px;top:92px;width:102px;height:118px">显存 0<br><span class="a" style="font-weight:400">0x2000000~</span><br><span class="z">4 MB</span></div>
+<div class="seg fb" style="left:596px;top:92px;width:102px;height:118px">显存 1<br><span class="a" style="font-weight:400">0x2400000~</span><br><span class="z">4 MB</span></div>
 <div class="seg" style="left:698px;top:92px;width:104px;height:118px">离屏层<br><span class="a">0x2800000~</span><br><span class="z">8 MB</span></div>
 <div class="seg rs" style="left:802px;top:92px;width:158px;height:118px">预留<br><span class="z" style="color:#6B7684">208 MB</span></div>
 
@@ -46,6 +46,6 @@
 <div class="lg" style="left:40px;top:488px;font-size:18px;line-height:1.4">
 <span class="bx" style="border-color:#8A6410;background:#F9F2E1"></span>数据存储与固件
 <span class="bx" style="border-color:#87929E;background:#F4F5F7;margin-left:20px"></span>保留 / 空闲
-<span class="bx" style="border-color:#8A6410;background:#F3E3BC;margin-left:20px"></span>双缓冲帧缓冲对
+<span class="bx" style="border-color:#8A6410;background:#F3E3BC;margin-left:20px"></span>双缓冲显存对
 </div>
 </div></body></html>
