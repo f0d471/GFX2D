@@ -353,7 +353,7 @@ def build():
             if ncols == 3 and rows[0][0] == "资源":
                 widths = [4.8, 4.8, 4.8]
             elif ncols == 3 and rows[0][0] == "类别":
-                widths = [1.8, 7.4, 5.2]
+                widths = [2.1, 7.1, 5.2]
             else:
                 widths = [14.4 / ncols] * ncols
             add_table(doc, rows, widths, spread=spread_next, font=tab_font)
