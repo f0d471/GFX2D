@@ -126,7 +126,7 @@ def shade(cell, hexcolor):
     tcPr.append(el)
 
 
-def add_table(doc, rows, widths_cm, spread=None):
+def add_table(doc, rows, widths_cm, spread=None, font=10.5):
     """spread=(行距倍数, 单元格上下余量pt)：把表在纵向撑开，用于独占整页。"""
     tb = doc.add_table(rows=len(rows), cols=len(rows[0]))
     tb.style = "Table Grid"
@@ -152,7 +152,7 @@ def add_table(doc, rows, widths_cm, spread=None):
                 p.paragraph_format.line_spacing = ls
                 p.paragraph_format.space_before = Pt(pad)
                 p.paragraph_format.space_after = Pt(pad)
-            add_runs(p, text, 10.5, bold=(i == 0))
+            add_runs(p, text, font, bold=(i == 0))
             if i == 0:
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 shade(cell, "EDF0F3")
@@ -244,6 +244,7 @@ def build():
     tab_no = 0
     li_no = 0
     spread_next = None
+    tab_font = 10.5
     lines = []
     for f in sorted(PARTS.glob("*.md")):
         lines.extend(f.read_text(encoding="utf-8").splitlines())
@@ -314,13 +315,16 @@ def build():
         elif line.startswith("TC|"):
             tab_no += 1
             title = line[3:]
-            # TC|标题|FILL|行距|余量pt —— 让这张表纵向撑满一页
+            # TC|标题|FILL|行距|余量pt|字号 —— 让这张表纵向撑满一页
             seg_tc = title.split("|")
             spread_next = None
+            tab_font = 10.5
             if len(seg_tc) >= 2 and seg_tc[1].strip().upper() == "FILL":
                 ls = float(seg_tc[2]) if len(seg_tc) > 2 and seg_tc[2] else 1.45
                 pad = float(seg_tc[3]) if len(seg_tc) > 3 and seg_tc[3] else 2.5
                 spread_next = (ls, pad)
+                if len(seg_tc) > 4 and seg_tc[4].strip():
+                    tab_font = float(seg_tc[4])
                 title = seg_tc[0]
             p = para(doc, f"表{tab_no}　{title}", size=10.5, hei=True, bold=True,
                      align=WD_ALIGN_PARAGRAPH.CENTER, indent=False, before=8, after=4,
@@ -349,10 +353,10 @@ def build():
             if ncols == 3 and rows[0][0] == "资源":
                 widths = [4.8, 4.8, 4.8]
             elif ncols == 3 and rows[0][0] == "类别":
-                widths = [2.0, 5.3, 7.1]
+                widths = [1.8, 7.4, 5.2]
             else:
                 widths = [14.4 / ncols] * ncols
-            add_table(doc, rows, widths, spread=spread_next)
+            add_table(doc, rows, widths, spread=spread_next, font=tab_font)
             spread_next = None
             spacer = para(doc, "", size=6, indent=False, after=2)
             spacer.paragraph_format.line_spacing = Pt(4)
