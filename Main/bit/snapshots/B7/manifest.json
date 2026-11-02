@@ -17,27 +17,34 @@
   "date": "2026-10-29T05:34:04+08:00",
   "note": "RA1/RA2 后首个B7;板测r4-board三场景CRC PASS(run ppa-board)",
   "bin": "console-O2-perf.bin",
-  "bin_sha256": "507e2c1551a6491898ee2b75fa16a707c29424415fdc1fa4a5e2989a5ec94a7f",
-  "bin_bytes": 253806,
-  "bin_verified_by": "verification.json; acceptance 20261030-014306-a1081dbe console-profiles-board B7 PASS; JTAG only",
+  "bin_sha256": "2dbe8633e902040163c23673bcd646621a20251e95e9c81d368f42fad0d058e7",
+  "bin_bytes": 282614,
+  "bin_verified_by": "verification.json; 2026-11-02 Flash boot + UART app checks PASS on B7; quick software sweep 16 PASS (5 stale-expectation reds listed); r4 corridor cadence about 20 FPS is a known pre-existing issue",
   "content": {
     "file": "content.json",
-    "sha256": "274552b8520dfa040d8b6e57b39f53a2b9d8ee92acd925485d044ad6ffc5f416",
+    "sha256": "df871aceb7fadb286e71403401ec90fa7120a9197c702b91bdc2716872f04f86",
     "profile": "full",
-    "catalog_sha256": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+    "catalog_sha256": "160622d8a46b6b6ff3702467e2fc94ed9e54520369c419c4a4c1443685020130",
     "content_ids": [
       1,
       2,
       3,
-      4
+      4,
+      5
     ]
   },
   "firmware": {
     "file": "firmware.json",
-    "sha256": "da8b5aaac5277391e63116b0b5e2d12aa27a5b8d38d4e87981988b536432e1d1"
+    "sha256": "0140db618a03808a1d17bd142a5e9ea68334bb0ad2b4c9dd29f36cddf8af7b91"
   },
   "verification": {
     "file": "verification.json",
-    "sha256": "8410d92e3c852ab0d06378bc560ac16f8d9baf0e744999d5e038042b25b31bb5"
+    "sha256": "c312071847828d9a94b7de3760718f21e604f71539bdec580b18848eaed7d969"
+  },
+  "assets": {
+    "file": "assets.pak",
+    "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52",
+    "bytes": 4134720,
+    "crc32": "a8624648"
   }
 }

@@ -1,47 +1,68 @@
 {
   "version": 1,
   "status": "PASS",
+  "scope": "2026-11-02 software refresh on the unchanged B7 bitstream: Flash boot, UART app entry and quick software checks; known issues listed below are not hidden by this status",
   "software": {
     "status": "PASS",
-    "profile": "acceptance",
+    "profile": "quick",
     "checks": [
+      "regs",
+      "semantics",
+      "workflow",
       "pack",
+      "lib",
+      "app",
+      "rast",
+      "flight",
+      "pc-wide",
       "console",
-      "console-profiles",
       "platform-sdk",
       "layers",
-      "r4",
-      "workflow",
-      "app"
+      "pc",
+      "assets",
+      "game",
+      "stats"
     ],
-    "run_id": "20261030-014120-259b9a00"
+    "run_id": "sweep-20261102",
+    "stale_expectation_reds": {
+      "paths": "absolute paths inside evidence/18-pc-layout-20261030 (since 2026-10-31)",
+      "r4": "obsolete gen_r4_models.py --check; models come from gen_r4_models_obj.py since 2026-10-31",
+      "flight-consumers": "SW19 frozen consumer model 241e4bf3 differs from main r4_models.h 52ced451 (since 2026-11-01)",
+      "console-profiles": "expects full profile [1,2,3,4]; flight (id5) was added 2026-10-31",
+      "demo": "D3 expected log still records the 4085504-byte pack"
+    }
   },
   "board": {
-    "status": "PASS",
-    "run": "20261030-014306-a1081dbe",
+    "status": "FAIL",
+    "run": "cupless-20261102/review",
     "preset": "B7",
     "caps": "0x0000D46F",
-    "serial_sha256": "351b9875364caeab21b57ebc341fed94ae05b3bbdb5570d04b10847d29ea1593",
+    "boot": "Flash (program 0x380000 + assets 0x400000 written with read-back verify; bitstream 0x0 untouched)",
+    "serial_sha256": "ea8390d48a570b7bb903640a182910f2559fe64160bf4815c8bba66429c6c0c2",
     "bit_sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9",
-    "bin_sha256": "507e2c1551a6491898ee2b75fa16a707c29424415fdc1fa4a5e2989a5ec94a7f",
-    "status_samples": 86,
+    "bin_sha256": "2dbe8633e902040163c23673bcd646621a20251e95e9c81d368f42fad0d058e7",
+    "assets_sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52",
+    "status_samples": 21,
     "apps": [
-      "about",
-      "demo",
+      "flight",
       "menu",
       "press",
       "r4",
       "stg"
-    ]
+    ],
+    "checks": "id2/id3 60 FPS, id5 30 FPS by shortcut and by menu cursor, 3D C key inert, errors 0, back to menu"
+  },
+  "known_issues": {
+    "r4_corridor_cadence": "r4-board quick: L1/L2 board pixels PASS, but 43-48 ms per frame (budget 33 ms), about 20 FPS; the pre-removal combined firmware measured the same (A/B), introduced by the 2026-11-01 corridor art rounds",
+    "flight_input_cadence": "combined build flight-board: normal 1800 frames 0 late, continuous input 1 late of 1800 in two runs (not rerun on this exact BIN; flight code unchanged)"
   },
   "pc": {
     "status": "PASS",
     "profile": "full",
-    "exit_code": 0,
-    "content_hash": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
-    "exe_sha256": "f1f87e5b7595e930b487cb2772a077c990950f9337801b7f83cb151a99f34121"
+    "content_hash": "160622d8a46b6b6ff3702467e2fc94ed9e54520369c419c4a4c1443685020130",
+    "exe_sha256": "8a32708a11cd11b90f6c285ac71351bc6474386b7c48578f4684346f60b115cd"
   },
-  "flash_written": false,
+  "flash_written": true,
   "rtl_synthesis": "NOT_APPLICABLE: reused unchanged snapshot bitstream",
   "manual_hdmi": "NOT_OBSERVED",
   "user_acceptance": "PENDING"

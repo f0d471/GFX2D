@@ -1,7 +1,7 @@
 {
   "version": 1,
   "profile": "full",
-  "catalog_sha256": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+  "catalog_sha256": "160622d8a46b6b6ff3702467e2fc94ed9e54520369c419c4a4c1443685020130",
   "compiler": "riscv-none-elf-gcc (xPack GNU RISC-V Embedded GCC x86_64) 13.4.0",
   "command": [
     "make",
@@ -10,46 +10,46 @@
     "-j4",
     "PLATFORM=target",
     "APP_PROFILE=full",
-    "OBJDIR=../../../sim/build/check-runs/20261030-014306-a1081dbe/build/console-profiles-board/full",
+    "OBJDIR=../../../sim/build/verify-head/firmware",
     "RISCV_BIN=<RISCV_BIN>"
   ],
-  "source_commit": "4beeff7b386133fe7795258e73ed73fa6b8d3f11",
-  "source_dirty": true,
+  "source_commit": "bce326d50bb63cc85a692af2ed6ede2e7565c64a",
+  "source_dirty": false,
   "files": {
     "console-O2-perf.bin": {
-      "bytes": 253806,
-      "sha256": "507e2c1551a6491898ee2b75fa16a707c29424415fdc1fa4a5e2989a5ec94a7f"
+      "bytes": 282614,
+      "sha256": "2dbe8633e902040163c23673bcd646621a20251e95e9c81d368f42fad0d058e7"
     },
     "console-O2-perf.elf": {
-      "bytes": 1585436,
-      "sha256": "7f41e7d1f74ec088ff8db8d53ee05dd1b5cd4c4706dd3ccfbd92165afb2b5c8e"
+      "bytes": 1770216,
+      "sha256": "96aaa3335fcaf3a361db9b54d22bcf4183f0df0b24a1a57d8e2a234c4282fb49"
     },
     "console-O2-perf.map": {
-      "bytes": 860755,
-      "sha256": "fdf5c64d1db0dc33d9f3446f906d13d5a77fad7b6ebbfe10b337e6a867c503b7"
+      "bytes": 639898,
+      "sha256": "d897d209ed8f5a02deccd5fc172a93b2258d3150e575fdbd1d75eaf7138ce17d"
     }
   },
   "assets": {
-    "bytes": 4085504,
-    "sha256": "d7db2e0ac008760a30cc08088ab43c4bbfbafce5a9faba8e52025d9dc17f2119"
+    "bytes": 4134720,
+    "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52"
   },
   "memory": {
-    "text": 213712,
-    "data": 39950,
-    "bss": 3194012,
+    "text": 245712,
+    "data": 36758,
+    "bss": 3426112,
     "limit": 4190208
   },
   "image_limit_bytes": 524288,
-  "three_d_symbols": 58,
+  "three_d_symbols": 64,
   "scope": "build and budget inspection; not board acceptance",
   "board_validation": {
-    "status": "PASS",
-    "run": "20261030-014306-a1081dbe",
+    "status": "FAIL",
+    "run": "cupless-20261102/review",
     "verification": "verification.json",
     "presets": [
       "B7"
     ],
-    "flash_written": false,
+    "flash_written": true,
     "manual_hdmi": "NOT_OBSERVED"
   }
 }

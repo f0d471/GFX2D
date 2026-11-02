@@ -97,7 +97,7 @@ def main():
         old=json.loads(previous.read_text(encoding='utf-8'))
         # The hardware generator never silently deletes the separately bound
         # firmware identity. A changed bitstream invalidates its board evidence.
-        for key in ('bin','bin_sha256','bin_bytes','content','firmware'):
+        for key in ('bin','bin_sha256','bin_bytes','content','firmware','verification','assets'):
             if key in old:manifest[key]=old[key]
         if old.get('bit_sha256')==manifest['bit_sha256'] and old.get('caps')==manifest['caps']:
             if 'bin_verified_by' in old:manifest['bin_verified_by']=old['bin_verified_by']

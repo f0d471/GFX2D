@@ -78,13 +78,31 @@
         "RAST_TEX",
         "TEX"
       ],
-      "title": "3D CORRIDOR / CUP"
+      "title": "3D CORRIDOR"
+    },
+    {
+      "describe": "console_flight_describe",
+      "enum": "APPFW_FLIGHT",
+      "graphics": "3d",
+      "host": true,
+      "id": 5,
+      "key": "flight",
+      "kind": "game",
+      "modules": [
+        "r4"
+      ],
+      "shortcut": 5,
+      "symbol": "g_app_flight",
+      "target_requires": [
+        "RAST"
+      ],
+      "title": "RIDGE FLIGHT"
     },
     {
       "enum": "APPFW_ABOUT",
       "graphics": "2d",
       "host": true,
-      "id": 5,
+      "id": 6,
       "key": "about",
       "kind": "system",
       "modules": [
@@ -109,12 +127,13 @@
     "RAST_TEX": 15,
     "TEX": 6
   },
-  "catalog_sha256": "6343402609dd598f167d85096ae67d2a7c7d96245cece8e4ba8f1820cae77175",
+  "catalog_sha256": "160622d8a46b6b6ff3702467e2fc94ed9e54520369c419c4a4c1443685020130",
   "content_ids": [
     1,
     2,
     3,
-    4
+    4,
+    5
   ],
   "enable_3d": true,
   "image_limit_bytes": 524288,
@@ -144,7 +163,7 @@
       ],
       "sources": [
         "../../ports/myriad/app_r4.c",
-        "../game/gfx2dGame/src/r4_cup.c",
+        "../../ports/myriad/app_flight.c",
         "../game/gfx2dGame/src/r4_geometry.c",
         "../../ports/myriad/r4_runtime.c",
         "../game/gfx2dGame/src/r4_scene.c"
