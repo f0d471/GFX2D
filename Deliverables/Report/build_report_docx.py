@@ -17,6 +17,7 @@ md 语法（本目录约定）：
 """
 import re
 import sys
+import datetime
 from pathlib import Path
 
 from docx import Document
@@ -212,6 +213,17 @@ def add_placeholder(doc, title, note):
 
 def build():
     doc = Document()
+    # 文档属性不含作者、单位等无关信息
+    cp = doc.core_properties
+    cp.author = "GFX2D"
+    cp.last_modified_by = "GFX2D"
+    cp.title = "GFX2D：基于 RISC-V 与 FPGA 异构架构的 2D 图形渲染加速引擎"
+    cp.subject = ""
+    cp.keywords = ""
+    cp.comments = ""
+    cp.category = "参赛作品技术报告"
+    cp.created = datetime.datetime.now()
+    cp.modified = datetime.datetime.now()
     for name in ("Normal", "Heading 1", "Heading 2", "Heading 3", "Heading 4"):
         style = doc.styles[name]
         style.font.name = "Times New Roman"
