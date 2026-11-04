@@ -33,7 +33,7 @@ def load(path=DEFAULT):
         if a['enum']=='APPFW_MENU' or a['symbol']=='g_app_menu':raise ValueError('reserved menu symbol')
         if a['graphics'] not in ('2d','3d') or a['kind'] not in ('game','demo','benchmark','system'):raise ValueError('invalid category')
         if not a['title'] or len(a['title'])>80 or any(not 32<=ord(c)<=126 for c in a['title']):raise ValueError('invalid title')
-        if type(a['shortcut']) is not int or a['shortcut'] not in range(6):raise ValueError('invalid shortcut')
+        if type(a['shortcut']) is not int or a['shortcut'] not in range(7):raise ValueError('invalid shortcut')
         for k in seen:
             if k=='shortcut' and not a[k]:continue
             if a[k] in seen[k]:raise ValueError('duplicate application '+k)

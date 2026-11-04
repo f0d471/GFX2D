@@ -33,6 +33,8 @@ add('r4',[sys.executable,P+'check_r4.py'],
     'R4 三场景60帧参考、64/32与sanitizer、录像/图集/采集器反例',['pack'],timeout=3600)
 add('flight',[sys.executable,P+'check_flight.py'],
     '滑翔RFL3控制/世界锚定/网格/预热/冻结参考与像素/四区/宽屏/64与32位/变异',['pack'],timeout=1800)
+add('sh',[sys.executable,P+'check_sh.py'],
+    '凝时无限补员/无敌/装填/连续碰撞/连续人体网格/容量与分桶/确定性/64与32位/真实PC',['pack'],timeout=900)
 add('flight-board',[sys.executable,P+'check_flight_board.py'],
     '滑翔B7像素对照/实际RTOS双1800帧30Hz节拍/输入/预热（Windows）',timeout=2400)
 add('flight-consumers',[sys.executable,P+'check_r4.py','--reuse-flight-models'],
@@ -154,6 +156,7 @@ for name,item in CHECKS.items():
                 'Main/sim/engine/r3/**','Main/sim/axi_probe/axi_ram_model.v',
                 P+'check_r3.py',P+'r3_vectors.py',P+'check_rast.py',P+'rast_model.py',
                 P+'feature_build.py',P+'feature_config.py',P+'regs_gen.py']
+    elif name=='sh':inputs=SOFTWARE+['Main/sim/engine/sh/**']
     elif name in ('flight','flight-consumers'):inputs=SOFTWARE+['Main/sim/engine/flight/**','Main/sim/engine/r4/**']
     elif name=='flight-board':inputs=SOFTWARE+['Main/sim/engine/flight/**','Main/bit/snapshots/B7/**']
     elif name=='ddr-log':inputs=[P+'check_f5_bin.py','Main/sw/bsp/include/board_ddr_log.h','Main/sim/engine/frontend/test_ddr_log.c']

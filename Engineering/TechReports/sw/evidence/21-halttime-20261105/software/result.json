@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "pack",
+    "sh",
+    "console",
+    "workflow"
+  ],
+  "run_id": "20261105-054720-7eb00635"
+}

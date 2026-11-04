@@ -84,6 +84,8 @@ static int           s_scale;
 static int           s_quit;
 static int           s_fullscreen, s_smooth;
 static int           s_escape_exits_fullscreen=1;
+static int           s_pointer_enabled;
+static int32_t       s_pointer_dx,s_pointer_dy;
 static int           s_window_x, s_window_y, s_window_w, s_window_h;
 static unsigned      s_texture_w = FB_WIDTH, s_texture_h = FB_HEIGHT;
 static uint32_t     *s_canvas[BOARD_FB_COUNT];
@@ -172,6 +174,22 @@ static void pump_events(void)
     SDL_Event e;
 
     while (SDL_PollEvent(&e)) {
+        if(e.type==SDL_WINDOWEVENT && e.window.event==SDL_WINDOWEVENT_FOCUS_LOST) {
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+            s_pointer_dx=s_pointer_dy=0;
+        }
+        if(e.type==SDL_MOUSEBUTTONDOWN && s_pointer_enabled) {
+            SDL_SetRelativeMouseMode(e.button.button==SDL_BUTTON_RIGHT?SDL_FALSE:SDL_TRUE);
+            s_pointer_dx=s_pointer_dy=0;
+        }
+        if(e.type==SDL_MOUSEMOTION && s_pointer_enabled && SDL_GetRelativeMouseMode()) {
+            /* Bound accumulated motion after stalls before converting it to BAM. */
+            s_pointer_dx+=e.motion.xrel;s_pointer_dy+=e.motion.yrel;
+            if(s_pointer_dx>2000)s_pointer_dx=2000;
+            if(s_pointer_dx< -2000)s_pointer_dx= -2000;
+            if(s_pointer_dy>2000)s_pointer_dy=2000;
+            if(s_pointer_dy< -2000)s_pointer_dy= -2000;
+        }
         if(e.type==SDL_DISPLAYEVENT && e.display.event==SDL_DISPLAYEVENT_DISCONNECTED) {
             if(s_fullscreen)fullscreen(0);
             int x,y,w,h;SDL_GetWindowPosition(s_win,&x,&y);SDL_GetWindowSize(s_win,&w,&h);
@@ -376,6 +394,11 @@ void board_init(void)
                              (int)FB_WIDTH, (int)FB_HEIGHT, SDL_WINDOW_RESIZABLE);
     if (s_win == NULL)
         die("SDL_CreateWindow");
+    /* This window accepts actions, not editable text. SDL enables text input by
+       default on desktop; a Chinese IME can otherwise consume W/A/S/D before
+       they reach GetKeyboardState. Disable it for this window, without changing
+       the user's keyboard layout or other applications' input method. */
+    SDL_StopTextInput();
 
     /* 不带 SDL_RENDERER_PRESENTVSYNC：PC 的场节拍由下面的时间轴给，
        交给显示器的刷新率之后，高刷屏上量出来的帧率就不是 60 了。 */
@@ -539,6 +562,33 @@ void board_puts(const char *s)
    加进来就会进录像、改变回放的按键序列。 */
 void board_input_window_policy(int enabled) { s_escape_exits_fullscreen=enabled!=0; }
 
+void board_pointer_capture(int enabled)
+{
+    s_pointer_enabled=enabled!=0;s_pointer_dx=s_pointer_dy=0;
+    (void)SDL_SetRelativeMouseMode(enabled?SDL_TRUE:SDL_FALSE);
+    (void)SDL_GetRelativeMouseState(NULL,NULL);
+}
+
+void board_pointer_read(int32_t *dx,int32_t *dy)
+{
+    pump_events();*dx=s_pointer_dx;*dy=s_pointer_dy;
+    s_pointer_dx=s_pointer_dy=0;
+}
+
+static int host_key_down(const Uint8 *keys,SDL_Scancode scan,int virtual_key)
+{
+#ifdef _WIN32
+    /* Called only after our foreground-window check. IME composition can hide
+       KEYDOWN from SDL even while the physical key is held. Its native high bit
+       also gives an authoritative release, independent of text composition. */
+    (void)keys;(void)scan;
+    return (GetAsyncKeyState(virtual_key)&0x8000)!=0;
+#else
+    (void)virtual_key;
+    return keys[scan]!=0;
+#endif
+}
+
 uint32_t board_input_raw(uint32_t *physical)
 {
     if(physical)*physical=0;
@@ -563,23 +613,32 @@ uint32_t board_input_raw(uint32_t *physical)
     if (k == NULL)
         return 0u;
 
-    if (k[SDL_SCANCODE_UP] || k[SDL_SCANCODE_W])        bits |= BOARD_KEY_UP;
-    if (k[SDL_SCANCODE_DOWN] || k[SDL_SCANCODE_S])      bits |= BOARD_KEY_DOWN;
-    if (k[SDL_SCANCODE_LEFT] || k[SDL_SCANCODE_A])      bits |= BOARD_KEY_LEFT;
-    if (k[SDL_SCANCODE_RIGHT] || k[SDL_SCANCODE_D])     bits |= BOARD_KEY_RIGHT;
-    if (k[SDL_SCANCODE_SPACE])                          bits |= BOARD_KEY_BOMB;
-    if (k[SDL_SCANCODE_LSHIFT])                         bits |= BOARD_KEY_SLOW;
-    if (k[SDL_SCANCODE_TAB])                            bits |= BOARD_KEY_SWAP;
-    if ((k[SDL_SCANCODE_RETURN] || k[SDL_SCANCODE_KP_ENTER]) && !(SDL_GetModState()&KMOD_ALT))
+    if (host_key_down(k,SDL_SCANCODE_UP,0x26) || host_key_down(k,SDL_SCANCODE_W,'W'))        bits |= BOARD_KEY_UP;
+    if (host_key_down(k,SDL_SCANCODE_DOWN,0x28) || host_key_down(k,SDL_SCANCODE_S,'S'))      bits |= BOARD_KEY_DOWN;
+    if (host_key_down(k,SDL_SCANCODE_LEFT,0x25) || host_key_down(k,SDL_SCANCODE_A,'A'))      bits |= BOARD_KEY_LEFT;
+    if (host_key_down(k,SDL_SCANCODE_RIGHT,0x27) || host_key_down(k,SDL_SCANCODE_D,'D'))     bits |= BOARD_KEY_RIGHT;
+    if (host_key_down(k,SDL_SCANCODE_SPACE,0x20))                          bits |= BOARD_KEY_BOMB;
+    if (host_key_down(k,SDL_SCANCODE_LSHIFT,0xa0))                         bits |= BOARD_KEY_SLOW;
+    if (host_key_down(k,SDL_SCANCODE_TAB,0x09))                            bits |= BOARD_KEY_SWAP;
+    if ((host_key_down(k,SDL_SCANCODE_RETURN,0x0d) || host_key_down(k,SDL_SCANCODE_KP_ENTER,0x0d)) && !(SDL_GetModState()&KMOD_ALT))
         bits |= BOARD_KEY_CONFIRM;
-    if (k[SDL_SCANCODE_ESCAPE] || k[SDL_SCANCODE_BACKSPACE]) bits |= BOARD_KEY_BACK;
-    if (k[SDL_SCANCODE_C])                              bits |= BOARD_KEY_SCENE;
-    if (k[SDL_SCANCODE_1])                              bits |= BOARD_KEY_MODE1;
-    if (k[SDL_SCANCODE_2])                              bits |= BOARD_KEY_MODE2;
-    if (k[SDL_SCANCODE_3])                              bits |= BOARD_KEY_MODE3;
-    if (k[SDL_SCANCODE_4])                              bits |= BOARD_KEY_MODE1 | BOARD_KEY_MODE2 |
+    if (host_key_down(k,SDL_SCANCODE_ESCAPE,0x1b) || host_key_down(k,SDL_SCANCODE_BACKSPACE,0x08)) bits |= BOARD_KEY_BACK;
+    if (host_key_down(k,SDL_SCANCODE_C,'C'))                              bits |= BOARD_KEY_SCENE;
+    if (host_key_down(k,SDL_SCANCODE_1,'1'))                              bits |= BOARD_KEY_MODE1;
+    if (host_key_down(k,SDL_SCANCODE_2,'2'))                              bits |= BOARD_KEY_MODE2;
+    if (host_key_down(k,SDL_SCANCODE_3,'3'))                              bits |= BOARD_KEY_MODE3;
+    if (host_key_down(k,SDL_SCANCODE_4,'4'))                              bits |= BOARD_KEY_MODE1 | BOARD_KEY_MODE2 |
                                                             BOARD_KEY_MODE3;   /* 组合=模式4 */
-    if (k[SDL_SCANCODE_5])                              bits |= BOARD_KEY_APP5;   /* 快捷键5:RIDGE FLIGHT */
+    if (host_key_down(k,SDL_SCANCODE_5,'5'))                              bits |= BOARD_KEY_APP5;   /* 快捷键5:RIDGE FLIGHT */
+    if (host_key_down(k,SDL_SCANCODE_6,'6'))                              bits |= BOARD_KEY_APP6;   /* 快捷键6:HALTTIME */
+    if(s_pointer_enabled) {
+        if(host_key_down(k,SDL_SCANCODE_A,'A'))bits|=PLATFORM_KEY_STRAFE_L;
+        if(host_key_down(k,SDL_SCANCODE_D,'D'))bits|=PLATFORM_KEY_STRAFE_R;
+        if(host_key_down(k,SDL_SCANCODE_E,'E'))bits|=PLATFORM_KEY_PICKUP;
+        if(host_key_down(k,SDL_SCANCODE_R,'R'))bits|=PLATFORM_KEY_RESTART;
+        if(SDL_GetRelativeMouseMode() && (SDL_GetMouseState(NULL,NULL)&SDL_BUTTON_LMASK))
+            bits|=BOARD_KEY_BOMB;
+    }
     return bits;
 }
 

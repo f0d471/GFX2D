@@ -5,6 +5,7 @@
 #include <assert.h>
 #ifdef _WIN32
 #include <SDL_syswm.h>
+#include <imm.h>
 #endif
 #undef assert
 #define assert(expression) do { if(!(expression)) { \
@@ -99,6 +100,20 @@ static void adaptive_checks(void)
 int main(void)
 {
     board_init();
+    assert(!SDL_IsTextInputActive());
+    board_pointer_capture(1);assert(s_pointer_enabled);
+    (void)board_keys();s_pointer_dx=s_pointer_dy=0;
+    SDL_Event motion;memset(&motion,0,sizeof motion);motion.type=SDL_MOUSEMOTION;
+    motion.motion.xrel=17;motion.motion.yrel=-11;
+    assert(SDL_PushEvent(&motion)==1);
+    int32_t dx,dy;board_pointer_read(&dx,&dy);
+    assert(dx==17 && dy==-11);
+    board_pointer_read(&dx,&dy);assert(dx==0 && dy==0);
+    SDL_Event lost;memset(&lost,0,sizeof lost);lost.type=SDL_WINDOWEVENT;
+    lost.window.event=SDL_WINDOWEVENT_FOCUS_LOST;assert(SDL_PushEvent(&lost)==1);
+    board_pointer_read(&dx,&dy);assert(!SDL_GetRelativeMouseMode() && dx==0 && dy==0);
+    board_pointer_capture(0);assert(!s_pointer_enabled && !SDL_GetRelativeMouseMode());
+    puts("WINDOW POINTER PASS relative motion consumed once, focus-loss release, app-leave release");
 #ifdef _WIN32
     if(getenv("GFX2D_WINDOW_FOCUS_ONLY"))goto focus_check;
 #endif
@@ -155,6 +170,42 @@ focus_check:
         fputs("INCOMPLETE Windows did not grant the test window foreground; no key injected\n",stderr);
         return 3;
     }
+    board_pointer_capture(1);
+    /* Keep the IME actively composing. Merely checking SDL's text flag missed
+       the user's actual failure: physical W/S held, SDL bitmap still zero. */
+    HIMC ime=ImmGetContext(window);
+    BOOL ime_was_open=FALSE;DWORD ime_conversion=0,ime_sentence=0;
+    if(ime) {
+        ime_was_open=ImmGetOpenStatus(ime);
+        ImmGetConversionStatus(ime,&ime_conversion,&ime_sentence);
+        ImmSetOpenStatus(ime,TRUE);ImmSetConversionStatus(ime,IME_CMODE_NATIVE,0);
+    }
+    const WORD movement_vk[4]={'W','A','S','D'};
+    const uint32_t movement_bits[4]={BOARD_KEY_UP,BOARD_KEY_LEFT|PLATFORM_KEY_STRAFE_L,
+                                    BOARD_KEY_DOWN,BOARD_KEY_RIGHT|PLATFORM_KEY_STRAFE_R};
+    for(unsigned i=0;i<4;++i) {
+        if(GetForegroundWindow()!=window) {
+            fputs("INCOMPLETE foreground changed before native WASD test\n",stderr);return 3;
+        }
+        INPUT movement;memset(&movement,0,sizeof movement);movement.type=INPUT_KEYBOARD;
+        movement.ki.wScan=(WORD)MapVirtualKeyW(movement_vk[i],MAPVK_VK_TO_VSC);
+        movement.ki.dwFlags=KEYEVENTF_SCANCODE;assert(SendInput(1,&movement,sizeof movement)==1);
+        uint32_t held=0;
+        for(unsigned attempt=0;attempt<20 && (held&movement_bits[i])!=movement_bits[i];++attempt) {
+            SDL_Delay(10);held=board_keys();
+        }
+        /* Release even when the observation is wrong. */
+        movement.ki.dwFlags|=KEYEVENTF_KEYUP;assert(SendInput(1,&movement,sizeof movement)==1);
+        SDL_Delay(30);uint32_t release=board_keys();
+        printf("WINDOW WASD key=%c held=%u release=%u layout=%p text=%d\n",
+            movement_vk[i],held,release,(void*)GetKeyboardLayout(0),SDL_IsTextInputActive());
+        assert((held&movement_bits[i])==movement_bits[i]);assert(!(release&movement_bits[i]));
+    }
+    if(ime) {
+        ImmSetConversionStatus(ime,ime_conversion,ime_sentence);ImmSetOpenStatus(ime,ime_was_open);
+        ImmReleaseContext(window,ime);
+    }
+    puts("WINDOW WASD PASS physical W/A/S/D and release while IME is open");
     INPUT input;memset(&input,0,sizeof input);input.type=INPUT_KEYBOARD;
     input.ki.wScan=(WORD)MapVirtualKeyW('W',MAPVK_VK_TO_VSC);input.ki.dwFlags=KEYEVENTF_SCANCODE;
     assert(SendInput(1,&input,sizeof input)==1);

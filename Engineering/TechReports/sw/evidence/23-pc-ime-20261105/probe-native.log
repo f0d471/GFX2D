@@ -1,0 +1,5 @@
+layout=0000000008040804 text_active=0
+KEY W bits=1 native=-32768 position=0,137627
+KEY A bits=32772 native=-32768 position=-32766,170393
+KEY S bits=2 native=-32768 position=0,203159
+KEY D bits=65544 native=-32768 position=32766,170393

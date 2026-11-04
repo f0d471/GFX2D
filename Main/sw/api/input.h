@@ -16,6 +16,11 @@
 #define PLATFORM_KEY_BACK     (1u<<11)
 #define PLATFORM_KEY_SCENE    (1u<<12)
 #define PLATFORM_KEY_APP5     (1u<<13)   /* 快捷键 5:进 RIDGE FLIGHT(14 位快照最高有效位) */
+#define PLATFORM_KEY_APP6     (1u<<14)   /* 快捷键 6:进 HALTTIME(SW21) */
+#define PLATFORM_KEY_STRAFE_L (1u<<15)
+#define PLATFORM_KEY_STRAFE_R (1u<<16)
+#define PLATFORM_KEY_PICKUP   (1u<<17)
+#define PLATFORM_KEY_RESTART  (1u<<18)
 #define PLATFORM_KEY_LAUNCH_MASK (PLATFORM_KEY_MODE1|PLATFORM_KEY_MODE2|PLATFORM_KEY_MODE3)
 typedef struct { uint32_t held,pressed,released; } platform_input;
 #endif

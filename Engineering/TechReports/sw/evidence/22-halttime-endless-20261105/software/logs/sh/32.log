@@ -1,0 +1,4 @@
+SH ENDLESS PASS ticks=9000 spawned=336 kills=334 protected_hits=3008
+SH GAMEPLAY PASS spawn/time/strafe/aim/projectile/cover/swept-hit/invincible/reload/pickup/shards
+SH GEOMETRY PASS records_peak=1517 deterministic_crc=ce890810 width=640/854/1792 padding
+SH VIEWMODEL PASS gun remains visible against a near wall

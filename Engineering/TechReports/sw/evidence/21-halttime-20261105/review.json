@@ -1,0 +1,65 @@
+{
+  "scope": "native Windows PC SH review; no board acceptance",
+  "app": "sh",
+  "catalog_id": 7,
+  "shortcut": 6,
+  "scene": 3,
+  "profile": "full",
+  "arguments": [
+    "--app",
+    "sh"
+  ],
+  "software_run": "20261105-054720-7eb00635",
+  "window_run": "20261105-054332-74a5aa9d",
+  "user_acceptance": "pending",
+  "files": [
+    {
+      "path": "Main/sw/apps/console/build_windows_sh_review/gfx2dGame.exe",
+      "sha256": "b7d03de6577fdf2c9723f5a75f21f3b43d691028591b06e74e34f87d1b140f37"
+    },
+    {
+      "path": "Main/sw/apps/console/build_windows_sh_review/SDL2.dll",
+      "sha256": "53e8fa7e9ed43c30bd650c39396f0d9d2067d2fff0b926c9433b75202592e4aa"
+    },
+    {
+      "path": "Main/sw/apps/console/build_windows_sh_review/assets.pak",
+      "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52"
+    },
+    {
+      "path": "Main/sw/apps/console/catalog.json",
+      "sha256": "0e5131b3127af93220909e4843cac326a8aa9b64e9f275435e0e504283ff0de7"
+    },
+    {
+      "path": "Main/sw/apps/game/gfx2dGame/src/sh_scene.c",
+      "sha256": "503bc47f1fdebc6e0e5a39dcece0f1ccd3ecb3cb33e7a64be0f7cc792e27cac8"
+    },
+    {
+      "path": "Main/sw/apps/game/gfx2dGame/src/sh_scene.h",
+      "sha256": "e7217f48dbd536b7d4f0964ab86db3b16e62767fc6665ef1f6570c682d98542b"
+    },
+    {
+      "path": "Main/sw/ports/myriad/app_sh.c",
+      "sha256": "dd8f9920d3c32e3ff7c831bd5faf9fe785de78eba8b57f1c76d9be86eb900a00"
+    },
+    {
+      "path": "Main/sw/ports/myriad/app_r4.c",
+      "sha256": "666fc3c2638f396bc5c83a33cdc98371b1d47336f02b37ecb599829a6da72519"
+    },
+    {
+      "path": "Main/sw/ports/myriad/r4_runtime.c",
+      "sha256": "b910c7276fbc4802a62e8d52f91e2dcb9232e16d9366a89e4b82553778c0302c"
+    },
+    {
+      "path": "Main/sw/api/input.h",
+      "sha256": "7c1d21c0d96c2f75be29925c5d9d357dab861160d30de3d3078c1ab97f8da187"
+    },
+    {
+      "path": "Main/sw/bsp/include/board.h",
+      "sha256": "da2b25d2ea69661102baf72612407e44810f3617a0315e551bdd674f41c6d0a4"
+    },
+    {
+      "path": "Main/sw/bsp/host/board.c",
+      "sha256": "d7e099cd1519822673a70da6fa5a89ab7996407b3a4e7b122a21ab4ece6af5fb"
+    }
+  ]
+}

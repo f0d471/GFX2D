@@ -41,7 +41,7 @@ def catalog(body,expected=None,caps=None):
             d=fields(line,'console catalog app ')
             require(d.get('key') and d['key'] not in ('menu','fault'),'invalid catalog key')
             require(d.get('kind') in ('game','demo','benchmark','system') and d.get('graphics') in ('2d','3d'),'invalid catalog category')
-            require(0<integer(d,'id')<0xffffffff and integer(d,'available') in (0,1) and integer(d,'shortcut') in range(6),'invalid catalog value')
+            require(0<integer(d,'id')<0xffffffff and integer(d,'available') in (0,1) and integer(d,'shortcut') in range(7),'invalid catalog value')
             try:title=bytes.fromhex(d['title']).decode('ascii')
             except (KeyError,ValueError,UnicodeError):raise RuntimeError('invalid catalog title') from None
             require(0<len(title)<=80,'invalid title length')

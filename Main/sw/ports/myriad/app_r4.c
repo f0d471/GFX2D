@@ -25,7 +25,7 @@ static int enter(appfw_ctx *c)
     uint32_t ticket;
     int blank;
     if(!s_initialized) { s_hw=(uint32_t)app_port_hardware();s_initialized=1; }
-    r4_scene_select(0u);    /* 只剩走廊；茶杯场景 2026-11-02 按用户定案删除 */
+    r4_scene_select(0u);    /* 凝时使用独立应用，走廊每次进入都恢复自身场景。 */
     if(stg_runtime_surfaces_r4(content_runtime(c))!=0 || renderer_prepare(1,&content_runtime(c)->tab)!=0)return -1;
 #ifdef INJECT_CONSOLE_ENTER
     return appfw_error("injected enter",-1);

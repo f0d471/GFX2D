@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "pc-window"
+  ],
+  "run_id": "20261105-070300-b5a1c0bd"
+}

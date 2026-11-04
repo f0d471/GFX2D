@@ -12,7 +12,7 @@ def main():
         logs/'build.log',timeout=600)
     for name in ('window_test.exe','SDL2.dll','build.json'):current.artifact(out/name)
     body=command([out/'window_test.exe'],logs/'window.log',timeout=120)
-    required=['WINDOW FULLSCREEN PASS','WINDOW SCALE PASS','WINDOW FILTER PASS','WINDOW FOCUS PASS','WINDOW EXIT PASS',
+    required=['WINDOW WASD PASS','WINDOW POINTER PASS','WINDOW FULLSCREEN PASS','WINDOW SCALE PASS','WINDOW FILTER PASS','WINDOW FOCUS PASS','WINDOW EXIT PASS',
         'WINDOW ADAPTIVE POLICY PASS','WINDOW ADAPTIVE RESIZE PASS','WINDOW DISPLAY PASS',
         'WINDOW DISPLAY RECOVERY PASS']
     if any(marker not in body for marker in required):raise RuntimeError('incomplete native window checks')

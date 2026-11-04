@@ -15,7 +15,7 @@ APP_SRCS = $(wildcard src/*.c src/game/*.c) ../../../ports/myriad/stg_runtime.c 
 override APP_CPPFLAGS += -Isrc -I../../../ports/myriad
 LIBS     = core gfx
 GRAPHICS_RUNTIME := 1
-APP_O3_SRCS := src/r4_scene.c src/r4_geometry.c ../../../ports/myriad/r4_runtime.c
+APP_O3_SRCS := src/r4_scene.c src/r4_geometry.c src/sh_scene.c ../../../ports/myriad/r4_runtime.c
 LIB_O3_SRCS := core/fixmath.c gfx/rast_setup.c
 
 # 录像（源数据入库在 replay/）：SW6 的两段确定性录像（见 src/game/sw6_*），

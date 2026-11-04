@@ -1,0 +1,1 @@
+SH FAIL line 53: s_hits==1 && s_shield==1 && !s_bullet[0].alive

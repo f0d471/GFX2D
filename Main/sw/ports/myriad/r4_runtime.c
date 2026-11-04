@@ -37,6 +37,7 @@
 
 #include "r4.h"
 #include "r4_scene.h"
+#include "sh_scene.h"
 
 #ifdef __riscv
 #include "gfx_engine.h"
@@ -72,6 +73,11 @@ static rast_frame s_raster_frame = {RAST_WIDTH,RAST_HEIGHT};
 static board_frame s_frame;
 static uint16_t *s_canvas_depth;
 static unsigned s_canvas_depth_stride;
+#ifndef __riscv
+/* Detailed SH meshes are host-owned. Never overlap the target's fixed 64KiB list. */
+static rast_record s_sh_records[SH_PC_RECORD_CAP];
+#endif
+static uint32_t s_record_capacity=R4_REC_MAX;
 static rast_record *s_rec;
 static uint8_t     *s_sub;
 static uint16_t    *s_depth;
@@ -117,7 +123,7 @@ int r4_set_replay(const uint8_t *data,uint32_t bytes)
 }
 
 /* 0=走廊、2=山脊；1 号茶杯场景 2026-11-02 删除，传 1 按走廊处理。 */
-void r4_scene_select(uint32_t scene) {s_scene = scene > 1u ? 2u : 0u;}
+void r4_scene_select(uint32_t scene) {s_scene = scene == 3u ? 3u : (scene > 1u ? 2u : 0u);}
 #if GFX2D_R4_RECORD
 static replay_r4_rec s_tape;
 static uint8_t      s_tape_buf[R4_REC_BUF_BYTES];
@@ -591,6 +597,15 @@ static int build_background(const gfx_surface_table *tab,const gfx_mem *mem)
         bg_bake_rows(0u, 0u, FB_HEIGHT);
         return 0;
     }
+    if (s_scene == 3u) {                     /* 凝时:素色暗背景,画面全靠 rast 房间 */
+        uint32_t *bg = (uint32_t *)((uint8_t *)board_region(REGION_OFFSCREEN).ptr+R4_BG_OFFSET);
+        for (uint32_t y = 0u; y < FB_HEIGHT; y++) {
+            uint32_t *row = bg + (size_t)y * FB_ROW_PIXELS;
+            const uint32_t c = 0x002a2d33u + ((y * 6u) / FB_HEIGHT) * 0x00010101u;
+            for (uint32_t x = 0u; x < FB_WIDTH; x++) row[x] = c;
+        }
+        return 0;
+    }
     {
         uint32_t *bg = (uint32_t *)((uint8_t *)board_region(REGION_OFFSCREEN).ptr+R4_BG_OFFSET);
         uint32_t  x, y;
@@ -661,6 +676,8 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     if (s_scene == 2u) {
         /* 山脊滑翔无 HUD（用户定案）：世界吃满整幅 640x480，投影切 4:3。 */
         s_vp=(rast_viewport){0,0,FB_WIDTH,FB_HEIGHT};
+    } else if (s_scene == 3u) {
+        s_vp=(rast_viewport){0,0,FB_WIDTH,FB_HEIGHT};   /* 凝时:同样无 HUD 满幅 */
     } else {
         s_vp=(rast_viewport){R4_VP_CORRIDOR};
     }
@@ -673,12 +690,12 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     s_time_count=0u;s_window_late=0u;s_window_exact=0u;s_window_over=0u;
     s_render_sum=0;s_render_n=0;
     if (fx16_perspective(&s_proj, R4_FOV_BAM,
-                         s_scene==2u?fx16_div(4*FX16_ONE,3*FX16_ONE):R4_ASPECT,
+                         s_scene==0u?R4_ASPECT:fx16_div(4*FX16_ONE,3*FX16_ONE),
                          R4_NEAR_Z, R4_FAR_Z) != 0) {
         s_fail++;
         return -1;
     }
-    s_proj.v[6] = -R4_ONE/8; /* 480 高的世界：灭点 (中心,210)。 */
+    if(s_scene==0u)s_proj.v[6] = -R4_ONE/8; /* 480 高的世界：灭点 (中心,210)。 */
     if(s_replay_on && (s_replay.scene_id!=r4_scene_identity(s_scene) ||
         s_replay.ladder!=s_ladder || s_replay.asset_version!=R4_ASSET_VERSION)) {
         ++s_fail;return -1;
@@ -689,7 +706,12 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     s_world.ladder=s_ladder;
     s_world.scene=s_scene;
     if(s_scene==2u)r4_scene2_fix_gates(&s_world);
+    if(s_scene==3u)sh_world_init(s_replay_on?s_replay.seed:R4_SEED);
     s_rec = (rast_record *)(void *)((uint8_t *)board_region(REGION_SHARED).ptr + R4_REC_OFF);
+    s_record_capacity=R4_REC_MAX;
+#ifndef __riscv
+    if(s_scene==3u && !s_hw){s_rec=s_sh_records;s_record_capacity=SH_PC_RECORD_CAP;}
+#endif
     s_sub = (uint8_t *)board_region(REGION_SHARED).ptr + R4_SUB_OFF;
     s_depth = (uint16_t *)(void *)((uint8_t *)board_region(REGION_SHARED).ptr + R4_DEPTH_OFF);
     if(s_scene==0u && r4_world_prewarm(&s_proj,&s_vp,s_ladder,s_rec,R4_REC_MAX)) {
@@ -889,10 +911,10 @@ static int frame_layout(int index)
     if(s_raster_frame.width!=s_frame.width) {
         s_raster_frame.width=s_frame.width;
         /* 山脊滑翔无 HUD：世界吃满整幅宽；走廊仍留右侧 160 HUD 带。 */
-        s_vp.w=(uint16_t)(s_scene==2u?s_frame.width:s_frame.width-160u);
+        s_vp.w=(uint16_t)(s_scene==0u?s_frame.width-160u:s_frame.width);
         fx16_t aspect=fx16_div((fx16_t)s_vp.w*FX16_ONE,(fx16_t)s_vp.h*FX16_ONE);
         if(fx16_perspective(&s_proj,R4_FOV_BAM,aspect,R4_NEAR_Z,R4_FAR_Z))return -1;
-        s_proj.v[6]=-R4_ONE/8;
+        if(s_scene==0u)s_proj.v[6]=-R4_ONE/8;
         memset(s_render_valid,0,sizeof s_render_valid);s_render_sum=0;s_render_n=0;
     }
     return 0;
@@ -925,7 +947,9 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
             return -1;
     }
     if(wide)for(unsigned y=0;y<s_frame.height;++y) {
-        uint32_t c=R4_COLOR_BG+((y*24u)/FB_HEIGHT)*0x00010102u;
+        uint32_t c=(s_scene==3u)
+            ?0x002a2d33u+((y*6u)/FB_HEIGHT)*0x00010101u   /* 凝时:暗灰背景,房间自含 */
+            :R4_COLOR_BG+((y*24u)/FB_HEIGHT)*0x00010102u;
         uint32_t *row=s_frame.pixels+(size_t)y*s_frame.stride;
         if(s_scene==2u) {
             /* 无 HUD：世界吃满整幅宽，同一行画函数直接画进宽帧（跟随换装锋面）。 */
@@ -957,10 +981,18 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         t.tex_height = 64u;
         t.tex_stride = 64u;
         t.key = 0x00000000u;
-        if (rast_ref_run_frame(s_rec, count, &t,&s_raster_frame) != 0)
+        const uint32_t weapon=s_scene==3u?sh_world_weapon_start():count;
+        if(weapon>count)return -1;
+        if (rast_ref_run_frame(s_rec, weapon, &t,&s_raster_frame) != 0)
             return -1;
+        if(weapon<count) {
+            /* FPS viewmodel has its own depth range. Walls must not hide it. */
+            for(row=0;row<16u;++row)for(x=0;x<s_frame.stride;++x)
+                depth[row*s_frame.stride+x]=65535u;
+            if(rast_ref_run_frame(s_rec+weapon,count-weapon,&t,&s_raster_frame)!=0)return -1;
+        }
     }
-    if(s_scene!=2u)for (s = 0u; s < 30u; s++) {
+    if(s_scene==0u)for (s = 0u; s < 30u; s++) {
         /* HUD 命令是条带局部 y：软件路径把目的表面基址平移到本条带首行，
            引擎的 BAND 相位则由硬件把局部 y 落进对应条带——两路同语义。
            山脊滑翔无 HUD（用户定案），整段跳过。 */
@@ -973,9 +1005,10 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         if (exec_sw_run(&s_es, &t2, mem, cmds, hdr[s], hdr[s], &st, &err) != GFX_OK)
             return -1;
     }
-    if(wide && s_scene!=2u)for(unsigned y=0;y<FB_HEIGHT;++y)
+    if(wide && s_scene==0u)for(unsigned y=0;y<FB_HEIGHT;++y)
         memcpy(s_frame.pixels+(size_t)y*s_frame.stride+s_frame.width-160u,
                fb+(size_t)y*FB_ROW_PIXELS+R4_WORLD_WIDTH,160u*sizeof(uint32_t));
+    if(s_scene==3u)sh_world_overlay(s_frame.pixels,s_frame.width,FB_HEIGHT,s_frame.stride);
     *crc_out = 0u;
     return 0;
 }
@@ -1002,6 +1035,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     /* 1) 逻辑 tick（30Hz，确定性）。 */
     t_seg = board_cycles();
     if(s_replay_on && replay_r4_key_at(&s_replay,s_out.frames,&keys)) {++s_fail;return -1;}
+    if(s_scene==3u)sh_world_tick(keys,&s_fail);else
     r4_world_tick(&s_world, keys, &s_fail);
     if(s_scene==2u) {
         /* User-selected 32 rows per 30Hz frame: approximately 0.5s wipe. */
@@ -1014,7 +1048,8 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
             if(s_bg_row>=FB_HEIGHT)s_bg_zone=s_bg_zone_pend;
         }
     }
-    s_out.score=s_world.score;s_out.shield=s_world.shield;s_out.ticks=s_world.ticks;
+    if(s_scene==3u){s_out.score=sh_score();s_out.shield=sh_shield();s_out.ticks=sh_ticks();}
+    else{s_out.score=s_world.score;s_out.shield=s_world.shield;s_out.ticks=s_world.ticks;}
     s_out.fail=s_fail;
     s_out.cyc_logic = board_cycles() - t_seg;
 #if GFX2D_R4_RECORD
@@ -1023,15 +1058,18 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
 
     /* 2) 几何（发射 + setup）与分桶。 */
     t_seg = board_cycles();
-    produced = r4_world_emit(&s_world, &s_proj, &s_vp, s_ladder, s_rec, R4_REC_MAX, NULL);
+    produced = (s_scene==3u)
+        ? sh_world_emit(&s_proj, &s_vp, s_rec, s_record_capacity)
+        : r4_world_emit(&s_world, &s_proj, &s_vp, s_ladder, s_rec, R4_REC_MAX, NULL);
     s_out.cyc_geom = board_cycles() - t_seg;
-    if (produced == 0u || produced > R4_RECORD_CAP) {
+    if (produced == 0u || produced > s_record_capacity) {
         s_fail++;
         say_u32("r4 err records ", produced, 0u);
         return -1;
     }
     t_seg = board_cycles();
-    bytes = (uint32_t)rast_bin_frame(s_rec, produced, s_sub, R4_SUB_CAP,&s_raster_frame);
+    const int bin_bytes=rast_bin_frame(s_rec,produced,s_sub,R4_SUB_CAP,&s_raster_frame);
+    bytes=bin_bytes>0?(uint32_t)bin_bytes:0u;
     s_out.cyc_bin = board_cycles() - t_seg;
     if (bytes < 120u) {
         s_fail++;
@@ -1046,7 +1084,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
 #if R4_HUD_NONE
     hud_bad = 0u;
 #else
-    hud_bad = (s_scene==2u)?0u:hud_build_strips(tab, dst_slot, list);   /* 山脊滑翔无 HUD */
+    hud_bad = (s_scene==0u)?hud_build_strips(tab, dst_slot, list):0u;   /* 山脊/凝时无 HUD */
 #endif
     s_out.cyc_hud = board_cycles() - t_seg;
     s_fail += hud_bad;
@@ -1107,7 +1145,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
 
     /* 5) 两场节拍呈现：目标场 = F0 + 2*(f+1)，目标前一场发请求。 */
     due = s_anchor + 2u * (s_out.frames + 1u);
-    while (!GFX2D_R4_JUDGE && (s_scene==0u || s_scene==2u) &&
+    while (!GFX2D_R4_JUDGE && (s_scene==0u || s_scene==2u || s_scene==3u) &&
            (int32_t)(board_frame_count() - (due - 1u)) < 0) {
         if (board_should_quit())
             break;

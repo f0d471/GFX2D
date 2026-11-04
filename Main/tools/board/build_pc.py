@@ -56,7 +56,7 @@ def main():
             '-isystem',str(sdk/'include/SDL2'),'-I',str(ROOT/'Main/sw/bsp/include'),
             str(ROOT/'Main/sim/host/test_window.c'),str(ROOT/'Main/sw/bsp/memmap.c'),
             str(ROOT/'Main/sw/services/input/board_input.c'),
-            str(sdk/'lib/libSDL2.dll.a'),'-static-libgcc','-mwindows','-o',str(out/'window_test.exe')]
+            str(sdk/'lib/libSDL2.dll.a'),'-static-libgcc','-mwindows','-limm32','-o',str(out/'window_test.exe')]
     else:
         command=['make','-C',str(app),'-j6','PLATFORM=host','OBJDIR='+os.path.relpath(out,app),
             'NAME=gfx2dGame.exe','HOST_CC='+compiler,'PERF=1','EXTRA_CFLAGS='+args.flags,

@@ -1,0 +1,31 @@
+{
+  "scope": "native Windows focused physical keyboard under Chinese IME",
+  "run_id": "20261105-070300-b5a1c0bd",
+  "app": "sh",
+  "arguments": [
+    "--app",
+    "sh"
+  ],
+  "files": [
+    {
+      "path": "Main/sw/apps/console/build_windows_sh_endless/gfx2dGame.exe",
+      "sha256": "554f645801e5b3f0d366efe3d714c68a7bd7ab9e1b820dd5604d1906a7d6d0e4"
+    },
+    {
+      "path": "Main/sw/bsp/host/board.c",
+      "sha256": "5e12696aa7a3a5ef7f54d744f0b09ed16c38252a35e3e64380c277f635ee13c9"
+    },
+    {
+      "path": "Main/sim/host/test_window.c",
+      "sha256": "98876311ccb4882ba76465509a9ca0df64fe4e26df7bd8ee843cee563fc02a8f"
+    },
+    {
+      "path": "Main/tools/check/check_pc_window.py",
+      "sha256": "bdb1bf6811f3f6cea6f709361de84777709f7ec0c21102a867efd7b18d0aaff4"
+    },
+    {
+      "path": "Main/tools/board/build_pc.py",
+      "sha256": "91e815a60e4e121adf42cb19b1fbc43b7e8268ef3b0d976389490bc241f62d8a"
+    }
+  ]
+}
