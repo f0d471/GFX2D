@@ -383,7 +383,11 @@ static void sh_normalize(int32_t v[3])
 {
     int32_t len=sh_isqrt((int64_t)v[0]*v[0]+(int64_t)v[1]*v[1]+(int64_t)v[2]*v[2]);
     if(!len){v[0]=0;v[1]=SH_ONE;v[2]=0;return;}
-    for(unsigned k=0;k<3;++k)v[k]=(int32_t)((int64_t)v[k]*SH_ONE/len);
+    /* 一次倒数换掉三次变除数的 64 位除法:len<Q2^21 时 inv=(1<<42)/len 在
+       int32 内,顶点坐标 <2^20,v[k]*inv<2^42 不溢 int64;右移 26 回 Q16.16,
+       误差 <1/64 LSB。RV32 上变除数 64 位除法走 libgcc 软除法,是热路径。 */
+    const int32_t inv=(int32_t)(INT64_C(1)<<42/(int64_t)len);
+    for(unsigned k=0;k<3;++k)v[k]=(int32_t)(((int64_t)v[k]*inv)>>26);
 }
 static uint32_t sh_material(const int32_t p[3],const int32_t n[3],unsigned material)
 {

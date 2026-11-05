@@ -15,6 +15,14 @@ static uint8_t reference(uint32_t lo,uint32_t hi)
     for(bit=20;bit>=7;--bit)if(word&(1u<<(unsigned)bit))word^=0x89u<<(unsigned)(bit-7);
     return (uint8_t)(word&127u);
 }
+/* Fifteen-bit span: lo7 then hi8, one more data bit before the same CRC. */
+static uint8_t reference15(uint32_t lo,uint32_t hi)
+{
+    uint32_t word=((lo<<8)|hi)<<7;
+    int bit;
+    for(bit=21;bit>=7;--bit)if(word&(1u<<(unsigned)bit))word^=0x89u<<(unsigned)(bit-7);
+    return (uint8_t)(word&127u);
+}
 #define CHECK(c,n) do { if(!(c)) { ++fail;printf("FAIL %s\n",n); } } while(0)
 int main(void)
 {
@@ -43,6 +51,25 @@ int main(void)
             CHECK(!key_packet_feed(&d,check,&got),"single-payload-bit-error-rejected");
         }
     }
+    for(k=16384u;k<32768u;++k) {
+        const uint8_t lo=(uint8_t)(k&127u),hi=(uint8_t)(k>>7);  /* hi carries bit 7 */
+        const uint8_t check=reference15(lo,hi);
+        CHECK(!key_packet_feed(&d,255,&got),"fifteen-sync-a");
+        CHECK(!key_packet_feed(&d,126,&got),"fifteen-sync-b");
+        CHECK(!key_packet_feed(&d,lo,&got),"fifteen-lo");
+        CHECK(!key_packet_feed(&d,hi,&got),"fifteen-hi");
+        CHECK(key_packet_feed(&d,check,&got)&&got==k,"fifteen-roundtrip");
+        (void)key_packet_feed(&d,255,&got);(void)key_packet_feed(&d,126,&got);
+        (void)key_packet_feed(&d,lo,&got);(void)key_packet_feed(&d,hi,&got);
+        CHECK(!key_packet_feed(&d,(uint8_t)(check^1u),&got),"fifteen-bad-checksum-rejected");
+        for(unsigned bit=0;bit<15u;++bit) {
+            uint8_t badlo=lo,badhi=hi;
+            if(bit<7u)badlo^=(uint8_t)(1u<<bit);else badhi^=(uint8_t)(1u<<(bit-7u));
+            (void)key_packet_feed(&d,255,&got);(void)key_packet_feed(&d,126,&got);
+            (void)key_packet_feed(&d,badlo,&got);(void)key_packet_feed(&d,badhi,&got);
+            CHECK(!key_packet_feed(&d,check,&got),"fifteen-single-bit-error-rejected");
+        }
+    }
     memset(&d,0,sizeof d);(void)key_packet_feed(&d,255,&got);(void)key_packet_feed(&d,127,&got);
     (void)key_packet_feed(&d,12,&got);(void)key_packet_feed(&d,128,&got);
     CHECK(key_packet_feed(&d,0,&got)&&got==0,"truncated-frame-resyncs-to-release");
@@ -58,6 +85,6 @@ int main(void)
     CHECK(board_keys()==raw_remote,"host-direction-pair-is-not-physical-chord");
     board_product_keys(0);
     CHECK(window_escape && board_keys()==raw_remote,"legacy-window-policy-retained");
-    printf("input exhaustive legacy=1024 extended=16384 fail %u\n",fail);
+    printf("input exhaustive legacy=1024 extended=32768 fail %u\n",fail);
     return fail?1:0;
 }

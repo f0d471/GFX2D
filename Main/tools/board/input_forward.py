@@ -1,23 +1,41 @@
-"""Keyboard/XInput snapshots: legacy ten-bit and checksum-framed fourteen-bit input."""
+"""Keyboard/XInput snapshots: legacy ten-bit and checksum-framed extended input.
+
+Extended frames carry fifteen bits.  Snapshots without bit 14 (APP6/HALTTIME)
+keep the historical ff 7f frame and fourteen-bit CRC span so old senders and
+receivers stay byte-compatible; APP6 packets use the ff 7e frame with the
+fifteen-bit span.  The second sync byte selects the span, so each packet has
+exactly one valid checksum and single-bit payload errors stay deterministically
+rejected.
+"""
 
 import ctypes
 
 
-def crc7(lo,hi):
+def _crc7(spans):
     crc=0
-    for value in (lo,hi):
-        for bit in range(6,-1,-1):
+    for value,bits in spans:
+        for bit in range(bits-1,-1,-1):
             feedback=((crc>>6)^(value>>bit))&1
             crc=((crc<<1)&0x7f)^(9 if feedback else 0)
     return crc
 
 
+def crc7(lo,hi):
+    return _crc7(((lo,7),(hi,7)))
+
+
+def crc7_15(lo,hi):
+    return _crc7(((lo,7),(hi,8)))
+
+
 def packet(keys):
-    if not 0 <= keys <= 0x3fff:
-        raise ValueError("key snapshot must fit fourteen bits")
+    if not 0 <= keys <= 0x7fff:
+        raise ValueError("key snapshot must fit fifteen bits")
     if keys > 0x3ff:
-        lo,hi=keys&0x7f,(keys>>7)&0x7f
-        return bytes((0xff,0x7f,lo,hi,crc7(lo,hi)))
+        lo,hi=keys&0x7f,(keys>>7)&0xff
+        if keys > 0x3fff:
+            return bytes((0xff,0x7e,lo,hi,crc7_15(lo,hi)))
+        return bytes((0xff,0x7f,lo,hi,crc7(lo,hi&0x7f)))
     check = (keys ^ (keys >> 4) ^ (keys >> 8)) & 15
     return bytes((0x80 | (keys & 0x7f), (check << 3) | (keys >> 7)))
 
@@ -33,12 +51,12 @@ class _State(ctypes.Structure):
 
 
 class InputForwarder:
-    # board.h: up, down, left, right, bomb, slow; 1~3 = mode1..3, 4 = 0x380 chord, 5 = app5;
+    # board.h: up, down, left, right, bomb, slow; 1~3 = mode1..3, 4 = 0x380 chord, 5 = app5, 6 = app6;
     # Enter = confirm, Esc = back.  Only these keys are forwarded (2026-11-02): Tab/C/WASD/
     # Backspace are gone and HW/SW is a panel button.
     _keys = ((0x26, 0), (0x28, 1), (0x25, 2), (0x27, 3),
              (0x20, 4), (0x10, 5),
-             (ord("1"), 7), (ord("2"), 8), (ord("3"), 9), (ord("5"), 13),
+             (ord("1"), 7), (ord("2"), 8), (ord("3"), 9), (ord("5"), 13), (ord("6"), 14),
              (0x0d, 10), (0x1b, 11))
     # XInput uses the keyboard table: D-pad = arrows, A/Start = Enter, B/Back = Esc, X = Space,
     # LT held = Shift.  LB/RB have no single bit: they step app_step for the panel (previous/next app).

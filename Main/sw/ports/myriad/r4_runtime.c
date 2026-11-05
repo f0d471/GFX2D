@@ -44,13 +44,16 @@
 #include "gfx_regs.h"
 #endif
 
-/* --- 模式 4 独占的共享内存窗口（见 r4.h 内存注释） ------------------------- */
-#define R4_REC_OFF      0x00000000u     /* 主表 64KiB（512 条 128B） */
-#define R4_SUB_OFF      0x00010000u
-#define R4_DEPTH_OFF    0x00018000u
+/* --- 模式 4 独占的共享内存窗口（见 r4.h 内存注释） -------------------------
+   凝时(SW21)满池实测峰值 1279 条记录(宿主 900 帧扫),512 条主表是走廊/山脊
+   时代的预算,不够它用。共享池 10MiB,三个缓冲一起扩:主表 1536 条(192KiB)、
+   bin 128KiB、深度 32KiB,合计 320KiB,仍在 2D arena(0x400000 起)之前。 */
+#define R4_REC_OFF      0x00000000u     /* 主表 192KiB（1536 条 128B） */
+#define R4_SUB_OFF      0x00030000u
+#define R4_DEPTH_OFF    0x00050000u
 
-#define R4_REC_MAX      (65536u / RAST_RECORD_BYTES)
-#define R4_SUB_CAP      32768u
+#define R4_REC_MAX      (196608u / RAST_RECORD_BYTES)
+#define R4_SUB_CAP      131072u
 #ifndef R4_HUD_TEXT
 #define R4_HUD_TEXT 1
 #endif
@@ -848,7 +851,7 @@ static int submit_hw(gfx_surface_table *tab, int dst_slot, int fb_index,
     const uint32_t shared = g_mem_regions[REGION_SHARED].offset;
 
     p.tri_base = shared + R4_REC_OFF;
-    p.tri_alloc = 65536u;
+    p.tri_alloc = R4_REC_MAX * RAST_RECORD_BYTES;
     p.sub_base = shared + R4_SUB_OFF;
     p.sub_alloc = R4_SUB_CAP;
     p.sub_bytes = bytes;

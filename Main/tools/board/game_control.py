@@ -17,12 +17,12 @@ from input_forward import InputForwarder, packet
 
 MODE_NAMES = {"menu":"应用菜单", "about":"系统信息", "fault":"故障恢复", "flight":"5 · 滑翔",
               "demo": "1 · 演示", "game": "2 · 弹幕", "press": "3 · 压力测试", "r3d": "4 · 三维走廊"}
-MODE_IDS = {"1": "demo", "2": "game", "3": "press", "4": "r3d", "5": "flight"}
+MODE_IDS = {"1": "demo", "2": "game", "3": "press", "4": "r3d", "5": "flight", "6": "sh"}
 MODE_SHORTCUTS = {mode: int(key) for key, mode in MODE_IDS.items()}
-APP_NAMES = {"demo": "演示", "stg": "弹幕", "press": "压力测试", "r4": "三维走廊", "flight": "滑翔", "about": "系统信息"}
-SHORTCUT_BITS = {1: 1 << 7, 2: 1 << 8, 3: 1 << 9, 4: 0x380, 5: 1 << 13}
+APP_NAMES = {"demo": "演示", "stg": "弹幕", "press": "压力测试", "r4": "三维走廊", "flight": "滑翔", "sh": "凝时", "about": "系统信息"}
+SHORTCUT_BITS = {1: 1 << 7, 2: 1 << 8, 3: 1 << 9, 4: 0x380, 5: 1 << 13, 6: 1 << 14}
 BACKEND_NAMES = {"hw": "硬件", "hw-tex": "硬件", "hw-strip": "硬件", "sw": "软件"}
-APP_LINE_DEFAULT = "1 演示　2 弹幕　3 压力测试　4 三维走廊　5 滑翔"
+APP_LINE_DEFAULT = "1 演示　2 弹幕　3 压力测试　4 三维走廊　5 滑翔　6 凝时"
 KEY_LINE = "Enter 确认　Esc 返回　方向键 移动/选择　空格 炸弹　Shift 慢速"
 BG, FONT = "#eef2f7", "Microsoft YaHei UI"
 
@@ -99,7 +99,7 @@ class BoardState:
             try:
                 entry=dict(id=int(data['id']),key=data['key'],kind=data['kind'],graphics=data['graphics'],
                            shortcut=int(data['shortcut']),available=bool(int(data['available'])),title=bytes.fromhex(data['title']).decode('ascii'))
-                if not (0<entry['id']<0xffffffff and entry['shortcut'] in range(6) and data['available'] in ('0','1')
+                if not (0<entry['id']<0xffffffff and entry['shortcut'] in range(7) and data['available'] in ('0','1')
                         and entry['kind'] in ('game','demo','benchmark','system') and entry['graphics'] in ('2d','3d')
                         and 0<len(entry['title'])<=80 and re.fullmatch(r'[A-Za-z_]\w{0,47}',entry['key'],re.ASCII)):
                     raise ValueError('invalid entry')

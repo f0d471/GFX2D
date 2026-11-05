@@ -67,10 +67,10 @@ def main():
     sys.path.insert(0,str(ROOT/'Main/tools/board'))
     from input_forward import packet
     d=Decoder();value=ctypes.c_uint32()
-    for key in range(16384):
+    for key in range(32768):
         accepted=[lib.key_packet_feed(ctypes.byref(d),byte,ctypes.byref(value)) for byte in packet(key)]
         require(sum(accepted)==1 and accepted[-1]==1 and value.value==key,'wire roundtrip: '+str(key))
-    (logs/'wire.log').write_text('Python transmitter / C decoder: 16384 snapshots PASS\n',encoding='utf-8')
+    (logs/'wire.log').write_text('Python transmitter / C decoder: 32768 snapshots PASS\n',encoding='utf-8')
 
     env={**os.environ,'SDL_VIDEODRIVER':'dummy','SDL_AUDIODRIVER':'dummy','GFX2D_UNPACED':'1'}
     from console_checks import validate_host,check_negative_fixtures
@@ -121,7 +121,7 @@ def main():
     current.verify()
     write_json(logs/'result.json',dict(status='PASS',profile=current.profile,
         scope='shared app manager, protocol, lifecycle faults, actual host frontend',
-        native_widths=[64,32],input_snapshots=16384,perf_variants=[0,1],mutation_detected=True))
+        native_widths=[64,32],input_snapshots=32768,perf_variants=[0,1],mutation_detected=True))
     print('CONSOLE HOST PASS lifecycle/input/faults/menu/four-apps/perf-policy')
 
 if __name__=='__main__':main()

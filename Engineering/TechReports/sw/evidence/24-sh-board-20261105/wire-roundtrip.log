@@ -1,0 +1,3 @@
+byte-identical frames for keys <0x4000: PASS
+new packet -> new decoder 32768: PASS
+old packet -> new decoder 16384: PASS

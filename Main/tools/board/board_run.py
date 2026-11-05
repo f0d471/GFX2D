@@ -299,7 +299,7 @@ def main():
             for item in args.input_script.split(","):
                 ms, keys = item.split(":", 1)
                 pair = (int(ms, 0), int(keys, 0))
-                if pair[0] < 0 or pair[1] < 0 or pair[1] > 0x3fff:
+                if pair[0] < 0 or pair[1] < 0 or pair[1] > 0x7fff:
                     raise ValueError(item)
                 script.append(pair)
             if any(script[i][0] > script[i + 1][0] for i in range(len(script) - 1)):
