@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "pack",
+    "sh",
+    "r4-current-consumers",
+    "console",
+    "workflow"
+  ],
+  "run_id": "20261105-235931-b0cbd29c"
+}

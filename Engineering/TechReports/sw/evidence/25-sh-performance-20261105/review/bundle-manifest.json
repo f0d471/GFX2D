@@ -1,0 +1,375 @@
+{
+  "name": "board_release_sh_optimized_20261105",
+  "deployment": "JTAG only; no Flash write",
+  "frontend": "console",
+  "board_bit": "board/gfx2d_ti60.bit",
+  "board_bin": "board/gfx2dGame.bin",
+  "hardware": {
+    "config": "B7",
+    "caps": "0x0000D46F",
+    "synthesis_mode": "speed2",
+    "source_commit": "56c6ae0262e7ebd46a1117957f7c33d2d2d3582d",
+    "source_dirty": false,
+    "validated_by": [
+      "check-runs/ppa-after4"
+    ],
+    "xlr": 59551,
+    "ram": 187,
+    "dsp": 26,
+    "setup_core_clk_ns": 0.706,
+    "hold_core_clk_ns": 0.027,
+    "bit_sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9",
+    "bit_bytes": 2765409,
+    "date": "2026-10-29T05:34:04+08:00",
+    "note": "RA1/RA2 后首个B7;板测r4-board三场景CRC PASS(run ppa-board)",
+    "bin": "console-O2-perf.bin",
+    "bin_sha256": "2dbe8633e902040163c23673bcd646621a20251e95e9c81d368f42fad0d058e7",
+    "bin_bytes": 282614,
+    "bin_verified_by": "verification.json; 2026-11-02 Flash boot + UART app checks PASS on B7; quick software sweep 16 PASS (5 stale-expectation reds listed); r4 corridor cadence about 20 FPS is a known pre-existing issue",
+    "content": {
+      "file": "content.json",
+      "sha256": "df871aceb7fadb286e71403401ec90fa7120a9197c702b91bdc2716872f04f86",
+      "profile": "full",
+      "catalog_sha256": "160622d8a46b6b6ff3702467e2fc94ed9e54520369c419c4a4c1443685020130",
+      "content_ids": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "firmware": {
+      "file": "firmware.json",
+      "sha256": "0140db618a03808a1d17bd142a5e9ea68334bb0ad2b4c9dd29f36cddf8af7b91"
+    },
+    "verification": {
+      "file": "verification.json",
+      "sha256": "c312071847828d9a94b7de3760718f21e604f71539bdec580b18848eaed7d969"
+    },
+    "assets": {
+      "file": "assets.pak",
+      "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52",
+      "bytes": 4134720,
+      "crc32": "a8624648"
+    }
+  },
+  "content": {
+    "apps": [
+      {
+        "enum": "APPFW_DEMO",
+        "graphics": "2d",
+        "host": true,
+        "id": 1,
+        "key": "demo",
+        "kind": "demo",
+        "modules": [
+          "myriad2d"
+        ],
+        "shortcut": 1,
+        "symbol": "g_app_demo",
+        "target_requires": [
+          "KEY",
+          "ALPHA_PM",
+          "ALPHA_ST",
+          "EQ_EXT"
+        ],
+        "title": "2D GRAPHICS DEMO"
+      },
+      {
+        "enum": "APPFW_GAME",
+        "graphics": "2d",
+        "host": true,
+        "id": 2,
+        "key": "stg",
+        "kind": "game",
+        "modules": [
+          "myriad2d"
+        ],
+        "shortcut": 2,
+        "symbol": "g_app_stg",
+        "target_requires": [
+          "KEY",
+          "ALPHA_PM",
+          "ALPHA_ST",
+          "EQ_EXT"
+        ],
+        "title": "DANMAKU GAME"
+      },
+      {
+        "enum": "APPFW_PRESS",
+        "graphics": "2d",
+        "host": true,
+        "id": 3,
+        "key": "press",
+        "kind": "benchmark",
+        "modules": [
+          "myriad2d"
+        ],
+        "shortcut": 3,
+        "symbol": "g_app_press",
+        "target_requires": [
+          "KEY",
+          "ALPHA_PM",
+          "ALPHA_ST",
+          "EQ_EXT"
+        ],
+        "title": "STRESS TEST"
+      },
+      {
+        "describe": "console_r4_describe",
+        "enum": "APPFW_R4",
+        "graphics": "3d",
+        "host": true,
+        "id": 4,
+        "key": "r4",
+        "kind": "game",
+        "modules": [
+          "r4"
+        ],
+        "shortcut": 4,
+        "symbol": "g_app_r4",
+        "target_requires": [
+          "RAST",
+          "RAST_TEX",
+          "TEX"
+        ],
+        "title": "3D CORRIDOR"
+      },
+      {
+        "describe": "console_flight_describe",
+        "enum": "APPFW_FLIGHT",
+        "graphics": "3d",
+        "host": true,
+        "id": 5,
+        "key": "flight",
+        "kind": "game",
+        "modules": [
+          "r4"
+        ],
+        "shortcut": 5,
+        "symbol": "g_app_flight",
+        "target_requires": [
+          "RAST"
+        ],
+        "title": "RIDGE FLIGHT"
+      },
+      {
+        "describe": "console_sh_describe",
+        "enum": "APPFW_SH",
+        "graphics": "3d",
+        "host": true,
+        "id": 7,
+        "key": "sh",
+        "kind": "game",
+        "modules": [
+          "r4"
+        ],
+        "shortcut": 6,
+        "symbol": "g_app_sh",
+        "target_requires": [
+          "RAST"
+        ],
+        "title": "HALTTIME"
+      },
+      {
+        "enum": "APPFW_ABOUT",
+        "graphics": "2d",
+        "host": true,
+        "id": 6,
+        "key": "about",
+        "kind": "system",
+        "modules": [
+          "myriad2d"
+        ],
+        "shortcut": 0,
+        "symbol": "g_app_about",
+        "target_requires": [],
+        "title": "SYSTEM INFORMATION"
+      }
+    ],
+    "asset_limit_bytes": 4194304,
+    "capability_bits": {
+      "ALPHA_PM": 1,
+      "ALPHA_ST": 2,
+      "BAND_HW": 5,
+      "EQ_EXT": 3,
+      "INST": 12,
+      "KEY": 0,
+      "PB": 13,
+      "RAST": 14,
+      "RAST_TEX": 15,
+      "TEX": 6
+    },
+    "catalog_sha256": "63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370",
+    "content_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      7
+    ],
+    "enable_3d": true,
+    "image_limit_bytes": 524288,
+    "modules": {
+      "myriad2d": {
+        "defines": [],
+        "libraries": [],
+        "sources": [
+          "../../ports/myriad/app_game.c",
+          "src/app_demo.c",
+          "../../ports/myriad/frontend_game.c",
+          "../../ports/myriad/stg_modes.c",
+          "../game/gfx2dGame/src/game/*.c",
+          "../../ports/myriad/sw6_input.c",
+          "../../ports/myriad/sw6_report.c"
+        ]
+      },
+      "r4": {
+        "boot": "console_r4_boot",
+        "defines": [
+          "GFX_CONTENT_R4"
+        ],
+        "libraries": [
+          "core/replay_r4.c",
+          "gfx/rast_setup.c",
+          "gfx/rast_ref.c"
+        ],
+        "sources": [
+          "../../ports/myriad/app_r4.c",
+          "../../ports/myriad/app_flight.c",
+          "../../ports/myriad/app_sh.c",
+          "../game/gfx2dGame/src/r4_geometry.c",
+          "../game/gfx2dGame/src/sh_scene.c",
+          "../../ports/myriad/r4_runtime.c",
+          "../game/gfx2dGame/src/r4_scene.c"
+        ]
+      }
+    },
+    "profile": "full",
+    "version": 1
+  },
+  "source_head": "0f96b281795412badd74e0ca3c2af329b1dda958",
+  "source_dirty": true,
+  "verification": {
+    "status": "PASS",
+    "software_run": "20261105-183652-9a0e39d4",
+    "board_run": "20261105-183702-b1d75883",
+    "scope": "selected software and B7 SH checks; no Flash write; manual HDMI/input pending",
+    "target_30hz_met": false,
+    "known_bug": "HW near-wall gun uses world depth"
+  },
+  "files": [
+    {
+      "path": "assets.pak",
+      "bytes": 4134720,
+      "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52"
+    },
+    {
+      "path": "board/firmware.json",
+      "bytes": 1341,
+      "sha256": "7daadeb12e6e25302e807d74c6481ee7ab0f04e5a6c04d1cc67a940c4e35d074"
+    },
+    {
+      "path": "board/gfx2d_ti60.bit",
+      "bytes": 2765409,
+      "sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9"
+    },
+    {
+      "path": "board/gfx2dGame.bin",
+      "bytes": 427378,
+      "sha256": "f1ecb948ba38d8c7f78e981d1f88e5acafbea7688606cab0927aa99aae324c4e"
+    },
+    {
+      "path": "board/hardware.json",
+      "bytes": 1663,
+      "sha256": "9819f7fb9c2a869c08fd77b0c2f4e8b20373eb92d29947ecef3c9bb937530db7"
+    },
+    {
+      "path": "content.json",
+      "bytes": 3980,
+      "sha256": "e73b484eeb1c116ed5e9122dc644fd4a380686d57c09d3ce6a399e353130f2dc"
+    },
+    {
+      "path": "pc/assets.pak",
+      "bytes": 4134720,
+      "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52"
+    },
+    {
+      "path": "pc/build.json",
+      "bytes": 720,
+      "sha256": "04fe5298dbf8010fb05ca22a3bbdda835577db19a2fe7db578036b23a47294a2"
+    },
+    {
+      "path": "pc/content.json",
+      "bytes": 3980,
+      "sha256": "e73b484eeb1c116ed5e9122dc644fd4a380686d57c09d3ce6a399e353130f2dc"
+    },
+    {
+      "path": "pc/gfx2dGame.exe",
+      "bytes": 2120775,
+      "sha256": "4b661822262d490fb4612549de13b9249593b0d3d38d6873314b0704dc629ee3"
+    },
+    {
+      "path": "pc/SDL2.dll",
+      "bytes": 1785344,
+      "sha256": "53e8fa7e9ed43c30bd650c39396f0d9d2067d2fff0b926c9433b75202592e4aa"
+    },
+    {
+      "path": "README.md",
+      "bytes": 838,
+      "sha256": "41bcbeae9816ad55c77f7bf0ce7a6a5578f326d0a18861f6706d9f4f7962ec97"
+    },
+    {
+      "path": "Run-Board.ps1",
+      "bytes": 1577,
+      "sha256": "85af025ea6a98bbd9c965526da83c56065048566392e829108bd55f71336b96f"
+    },
+    {
+      "path": "Run-PC.cmd",
+      "bytes": 61,
+      "sha256": "7e266415462599a30dde13c723ae0387dceeddcef4bb76f4f65baf20a08f1f66"
+    },
+    {
+      "path": "sdk/cpu0.yaml",
+      "bytes": 202,
+      "sha256": "047917680026bd877ccd9be3575fe7abf48f50954db7485b468d346e32f879f3"
+    },
+    {
+      "path": "source-overlay.zip",
+      "bytes": 63976,
+      "sha256": "b5f0b8eb9901bf655e499d7f307136bf7c45294636c75ccdf7e00531dd9c3a71"
+    },
+    {
+      "path": "tools/board/board_run.py",
+      "bytes": 26896,
+      "sha256": "edc2ef7bc63ab4bee1ff2a76b0b95c0ecfebae797ca2dd6ccd7cf8534231f0da"
+    },
+    {
+      "path": "tools/board/game_control.py",
+      "bytes": 24068,
+      "sha256": "884195d7298c01a7e11f709caf3793bb50db9f7ac8b081108a0efce03542c226"
+    },
+    {
+      "path": "tools/board/gfx2d_debug.cfg",
+      "bytes": 2946,
+      "sha256": "fc5f057fb30e82293dba1efd160289b73aa37e191a0b45d3183b6ffb9c8d3f99"
+    },
+    {
+      "path": "tools/board/input_forward.py",
+      "bytes": 4621,
+      "sha256": "4af9ba0b19c5ea073fbc699d9e1e114d44e72d98373f36a80a40957230beb3d2"
+    },
+    {
+      "path": "tools/release_launch.py",
+      "bytes": 4175,
+      "sha256": "e6e802bf506337b9469d1fae0e88d8cd3a0a800b414b31d47cf6571562fe4adc"
+    },
+    {
+      "path": "verification.json",
+      "bytes": 292,
+      "sha256": "19299d5c0684e973aafb28cbe9f6f633c8dff6d78688e00976d42933e44b2ed7"
+    }
+  ]
+}

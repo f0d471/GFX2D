@@ -37,6 +37,9 @@ static int enter(appfw_ctx *c)
     uint32_t ticket;
     int blank;
     if (!s_initialized) { s_hw = (uint32_t)app_port_hardware(); s_initialized = 1; }
+#if SH_BOARD_SOFTWARE
+    s_hw=0;
+#endif
     r4_scene_select(SH_SCENE);
     if (stg_runtime_surfaces_r4(content_runtime(c)) != 0 ||
         renderer_prepare(1, &content_runtime(c)->tab) != 0)
@@ -79,7 +82,13 @@ static int leave(appfw_ctx *c)
     if (shown >= 0)
         content(c)->shown = shown;
     if (s_started) { r4_mode_leave(); s_started = 0; }
-    return r4_fail_count() == before ? 0 : appfw_error("halttime leave", -1);
+    int result=r4_fail_count() == before ? 0 : appfw_error("halttime leave", -1);
+#ifdef SH_BOARD_CAPTURE
+    char line[48];core_out out;core_out_init(&out,line,sizeof line);
+    core_out_str(&out,"SHDONE ");core_out_u32(&out,r4_fail_count()-s_fail_base);
+    core_out_str(&out,"\r\n");appfw_log(line);
+#endif
+    return result;
 }
 
 static int frame(appfw_ctx *c, uint32_t keys, uint32_t n)
@@ -88,6 +97,12 @@ static int frame(appfw_ctx *c, uint32_t keys, uint32_t n)
     int dst;
     int32_t dx,dy;
     (void)n;
+#ifdef SH_BOARD_CAPTURE
+    keys=0;
+#ifdef SH_BOARD_WALL
+    keys=n==1u?PLATFORM_KEY_ACTION:n==2u?PLATFORM_KEY_RESTART:0u;
+#endif
+#endif
     board_pointer_read(&dx,&dy);
     sh_world_look(dx,dy);
     dst = (int)(content(c)->seq & 1u);
@@ -97,6 +112,13 @@ static int frame(appfw_ctx *c, uint32_t keys, uint32_t n)
         return appfw_error("halttime frame", -1);
     content(c)->shown = dst;
     ++content(c)->seq;
+#ifdef SH_BOARD_CAPTURE
+    char line[128];core_out text;core_out_init(&text,line,sizeof line);core_out_str(&text,"SHCRC");
+    uint32_t values[]={n,out.records,out.record_crc,out.crc,out.fail};
+    for(unsigned i=0;i<5;++i){core_out_ch(&text,' ');core_out_u32(&text,values[i]);}
+    core_out_str(&text,"\r\n");appfw_log(line);
+    if(n+1u>=SH_BOARD_CAPTURE)appfw_request(appfw_app_id(APPFW_MENU));
+#endif
     return APPFW_FRAME_OK;
 }
 

@@ -1,0 +1,87 @@
+{
+  "logs/runner/sh-board.log": {
+    "size": 146,
+    "mtime_ns": 1793875526419374700,
+    "sha256": "ee1f1abfae90a3a5a4c15f7eacbdab6dbd9b09018519fe6103f913bd33007c0e"
+  },
+  "logs/sh-board/active.loader.log": {
+    "size": 60326,
+    "mtime_ns": 1793875502955974300,
+    "sha256": "c44a9b2880d0ad05247b63a20144d61ada261bd57cc01d4970360d077de0339c"
+  },
+  "logs/sh-board/active.serial.log": {
+    "size": 59166,
+    "mtime_ns": 1793875502823383100,
+    "sha256": "26c6c38f809b37cc1eb1f34aa767b84d64cc45040d34ee8f333faecf74f450cd"
+  },
+  "logs/sh-board/build-reuse.json": {
+    "size": 179,
+    "mtime_ns": 1793875023245400700,
+    "sha256": "7250b3d39436d328d5a5aec53c252f947b5014da88e90a3b19297080242ed8e9"
+  },
+  "logs/sh-board/corridor-consumer.loader.log": {
+    "size": 4565,
+    "mtime_ns": 1793875526267604300,
+    "sha256": "f8b7f5b50ca88d9926b94a1727ddaaa174e26894c464e9bc99ddbb27b0a925d1"
+  },
+  "logs/sh-board/corridor-consumer.serial.log": {
+    "size": 3394,
+    "mtime_ns": 1793875526124099700,
+    "sha256": "59fd41bbb843a39aae6f4c209ffd2b5a11c8dfe3f9653efff24f4e7690d81255"
+  },
+  "logs/sh-board/hardware.loader.log": {
+    "size": 3635,
+    "mtime_ns": 1793875043586342900,
+    "sha256": "3d1cbae22a062062ccdc9b4640844cf5110da3110825d00b68b6df51ff24b794"
+  },
+  "logs/sh-board/hardware.serial.log": {
+    "size": 2390,
+    "mtime_ns": 1793875043448443000,
+    "sha256": "36524622e4322a26630e849fdd4b98fc15ed1349f5b4277490f95399ad6be11f"
+  },
+  "logs/sh-board/normal.loader.log": {
+    "size": 91192,
+    "mtime_ns": 1793875333772119700,
+    "sha256": "802f57822365bab24e2995594b99aad66e1bacf8da9fa134652bfe6a92524f4c"
+  },
+  "logs/sh-board/normal.serial.log": {
+    "size": 90032,
+    "mtime_ns": 1793875333645293900,
+    "sha256": "9d0c48e3341632e54b86fc17318a6c10d9bbfd9469c678ff1fc97dfdca93f62d"
+  },
+  "logs/sh-board/pixel-mutation.loader.log": {
+    "size": 3378,
+    "mtime_ns": 1793875083872985600,
+    "sha256": "16a0b5dc8bd9d3cb711ff0c14e7ec21a701526c1d233e164eb2edd8cad221068"
+  },
+  "logs/sh-board/pixel-mutation.serial.log": {
+    "size": 2210,
+    "mtime_ns": 1793875083748731500,
+    "sha256": "f515c939e461f109ca81a39ae4f83699b068f97796cd3fc4f9a25a7c9bf8a3e8"
+  },
+  "logs/sh-board/pixels.json": {
+    "size": 770,
+    "mtime_ns": 1793875083873988200,
+    "sha256": "fab74de9eb653340f462065300674ebe9a7aac4f41d1814ce6d885f839ff370c"
+  },
+  "logs/sh-board/result.json": {
+    "size": 1390,
+    "mtime_ns": 1793875526417895900,
+    "sha256": "32caca662e62760a5904013639ddf852459256631e33d1bf02b3e88c9c45ba42"
+  },
+  "logs/sh-board/software.loader.log": {
+    "size": 3812,
+    "mtime_ns": 1793875068899430800,
+    "sha256": "7ac03949ebdf126893e6a34d048f187c6c155252c02d0cf76c4531f1a0dafe86"
+  },
+  "logs/sh-board/software.serial.log": {
+    "size": 2650,
+    "mtime_ns": 1793875068769289800,
+    "sha256": "20ae6f44444e60cf3c2dc2a6e89329fd5369e276b33be2f4ca99dc8c7b582973"
+  },
+  "logs/sh-board/timing.json": {
+    "size": 1022,
+    "mtime_ns": 1793875526267604300,
+    "sha256": "eba1582ae2efc6f260c2993914572d0237fc695d442eadd3d5ddb98fe77debb9"
+  }
+}

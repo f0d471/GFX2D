@@ -1,0 +1,9 @@
+RUN Main/sim/build/check-runs/20261105-234827-ceff11b4
+Traceback (most recent call last):
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/tools/check/check_r4.py", line 112, in <module>
+    main(args.reuse_flight_models)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/tools/check/check_r4.py", line 80, in main
+    if actual!=baseline['consumer_model_sha256']:raise RuntimeError('frozen consumer model changed')
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: frozen consumer model changed

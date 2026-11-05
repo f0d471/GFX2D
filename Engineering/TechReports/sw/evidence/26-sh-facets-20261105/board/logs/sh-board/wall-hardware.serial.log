@@ -1,0 +1,42 @@
+# COM11 @ 115200 8N1, opened 00:04:50
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 3287 presents 3287 errors 0 scene 0 ladder 0 dropped 0 tick_ms 63477 irqA 3809 heap 57824 faults 0 tasks 4 idle 20427847 monitor 56 health 0 stack_free 55592 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4134720 a8624648
+console catalog begin v 1 profile full hash 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 count 7
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52
+console catalog app id 5 key flight kind game graphics 3d shortcut 5 available 1 title 524944474520464c49474854
+console catalog app id 7 key sh kind game graphics 3d shortcut 6 available 1 title 48414c5454494d45
+console catalog app id 6 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+console enter menu
+menu crc 6cc9cabd sel 0
+console menu index 0 id 1 count 7
+console complete app menu id 0 frames 22 presents 22 errors 0
+console leave menu
+r4 enter ladder/hw 1 1
+console scene 3 halttime
+console enter sh
+R4CAD 0 5800826 735 756 24  677718 05edd19c 3c921f72
+SHCRC 0 51 1016209266 99471772 0
+R4CAD 1 3054755 758 778 25  700781 73fcc210 5632e390
+SHCRC 1 57 1446175632 1945944592 0
+R4CAD 2 2845644 780 799 26  681409 1d528773 a8beaafb
+SHCRC 2 57 2831067899 491947891 0
+console status v 2 app sh id 7 backend hw fps_milli 2727 frames 3 presents 3 errors 0 scene 3 ladder 1 dropped 0 tick_ms 8678 irqA 521 heap 57824 faults 0 tasks 4 idle 188903 monitor 1 health 0 stack_free 55492 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4CAD 3 2844358 801 820 27  679592 632f1b60 56c95cdb
+SHCRC 3 57 1456037083 1664031584 0
+r4 leave frames/late 4 4
+R4HEALTH 7281 347 0 0 0
+SHDONE 0
+console complete app sh id 7 frames 4 presents 4 errors 0
+console leave sh
+console enter menu
+menu crc 6cc9cabd sel 0
+console menu index 0 id 1 count 7
+
+# closed 00:05:05, 2417 bytes

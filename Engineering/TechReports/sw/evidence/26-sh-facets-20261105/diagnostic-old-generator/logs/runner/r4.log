@@ -1,0 +1,11 @@
+RUN Main/sim/build/check-runs/20261105-234223-e2a9a8e0
+Traceback (most recent call last):
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/tools/check/check_r4.py", line 112, in <module>
+    main(args.reuse_flight_models)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/tools/check/check_r4.py", line 85, in main
+    command([sys.executable,'Main/tools/assets/gen_r4_models.py','--check'],logs/'models.log')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/tools/check/check_run.py", line 260, in command
+    raise subprocess.CalledProcessError(p.returncode, args)
+subprocess.CalledProcessError: Command '['/usr/bin/python3', 'Main/tools/assets/gen_r4_models.py', '--check']' returned non-zero exit status 1.

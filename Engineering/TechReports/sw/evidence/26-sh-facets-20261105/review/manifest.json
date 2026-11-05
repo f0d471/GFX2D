@@ -1,0 +1,194 @@
+{
+  "scope": "fresh frozen-package JTAG deployment and live panel; no Flash write",
+  "package": "Main/bit/board_release_sh_facets_20261105",
+  "package_manifest_sha256": "712c53283a4d13744c8817829e4be3ee0984dc90866da4508eb3173148903f25",
+  "bit_sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9",
+  "bin_sha256": "9e33e5a6ca66fc57191f12e48f9df484c1a43f768ffacce1ebd11de96b2d77d6",
+  "live_snapshot": {
+    "mode": "sh",
+    "backend": "hw",
+    "fps": 20.0,
+    "bullets": null,
+    "protocol": 2,
+    "app_id": 7,
+    "errors": 0,
+    "catalog": {
+      "1": {
+        "key": "demo",
+        "id": 1,
+        "enum": "APPFW_DEMO",
+        "symbol": "g_app_demo",
+        "title": "2D GRAPHICS DEMO",
+        "kind": "demo",
+        "graphics": "2d",
+        "modules": [
+          "myriad2d"
+        ],
+        "target_requires": [
+          "KEY",
+          "ALPHA_PM",
+          "ALPHA_ST",
+          "EQ_EXT"
+        ],
+        "host": true,
+        "shortcut": 1,
+        "available": true
+      },
+      "2": {
+        "key": "stg",
+        "id": 2,
+        "enum": "APPFW_GAME",
+        "symbol": "g_app_stg",
+        "title": "DANMAKU GAME",
+        "kind": "game",
+        "graphics": "2d",
+        "modules": [
+          "myriad2d"
+        ],
+        "target_requires": [
+          "KEY",
+          "ALPHA_PM",
+          "ALPHA_ST",
+          "EQ_EXT"
+        ],
+        "host": true,
+        "shortcut": 2,
+        "available": true
+      },
+      "3": {
+        "key": "press",
+        "id": 3,
+        "enum": "APPFW_PRESS",
+        "symbol": "g_app_press",
+        "title": "STRESS TEST",
+        "kind": "benchmark",
+        "graphics": "2d",
+        "modules": [
+          "myriad2d"
+        ],
+        "target_requires": [
+          "KEY",
+          "ALPHA_PM",
+          "ALPHA_ST",
+          "EQ_EXT"
+        ],
+        "host": true,
+        "shortcut": 3,
+        "available": true
+      },
+      "4": {
+        "key": "r4",
+        "id": 4,
+        "enum": "APPFW_R4",
+        "symbol": "g_app_r4",
+        "title": "3D CORRIDOR",
+        "kind": "game",
+        "graphics": "3d",
+        "modules": [
+          "r4"
+        ],
+        "target_requires": [
+          "RAST",
+          "RAST_TEX",
+          "TEX"
+        ],
+        "host": true,
+        "shortcut": 4,
+        "describe": "console_r4_describe",
+        "available": true
+      },
+      "5": {
+        "key": "flight",
+        "id": 5,
+        "enum": "APPFW_FLIGHT",
+        "symbol": "g_app_flight",
+        "title": "RIDGE FLIGHT",
+        "kind": "game",
+        "graphics": "3d",
+        "modules": [
+          "r4"
+        ],
+        "target_requires": [
+          "RAST"
+        ],
+        "host": true,
+        "shortcut": 5,
+        "describe": "console_flight_describe",
+        "available": true
+      },
+      "7": {
+        "key": "sh",
+        "id": 7,
+        "enum": "APPFW_SH",
+        "symbol": "g_app_sh",
+        "title": "HALTTIME",
+        "kind": "game",
+        "graphics": "3d",
+        "modules": [
+          "r4"
+        ],
+        "target_requires": [
+          "RAST"
+        ],
+        "host": true,
+        "shortcut": 6,
+        "describe": "console_sh_describe",
+        "available": true
+      },
+      "6": {
+        "key": "about",
+        "id": 6,
+        "enum": "APPFW_ABOUT",
+        "symbol": "g_app_about",
+        "title": "SYSTEM INFORMATION",
+        "kind": "system",
+        "graphics": "2d",
+        "modules": [
+          "myriad2d"
+        ],
+        "target_requires": [],
+        "host": true,
+        "shortcut": 0,
+        "available": true
+      }
+    },
+    "content_hash": "63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370",
+    "profile": "full",
+    "caps": 54383,
+    "triangles": null,
+    "ladder": 1,
+    "scene": 3,
+    "render_fps": null,
+    "connected": true,
+    "keyboard_focus": false,
+    "keys": 0,
+    "notice": "已连接，等待板上反馈。",
+    "updated": "2026-11-06 00:27:03"
+  },
+  "manual_hdmi_review": "pending user",
+  "physical_keys": "pending user",
+  "mode_roundtrip": "SH 55 frames / STG 241 / R4 enter-leave 0 frames / SH; R4 rendering separately tested",
+  "panel": "maintained path, byte-identical frozen game_control.py; live catalog hash matches frozen content",
+  "files": {
+    "deploy.log": {
+      "bytes": 15636,
+      "sha256": "4fa22c8478a51f338e7a832c85850632eadac73638a4570f6101bae10b0a4cc0"
+    },
+    "panel-process.json": {
+      "bytes": 741,
+      "sha256": "fda1aa74503363fb29fac5fca16fe1be9c6ead602492a82a18b82fbd447712f1"
+    },
+    "panel-status.json": {
+      "bytes": 2311,
+      "sha256": "1959e6c2647d474f5f47a3ff5c9e8e3c2bab1665dc6484577ca8829bfc86daec"
+    },
+    "panel.log": {
+      "bytes": 103081,
+      "sha256": "ee0d7e442022c0b1241239b9b5f92d14a06537037e342cb88fc476daaa098739"
+    },
+    "serial.log": {
+      "bytes": 14369,
+      "sha256": "66efe44e575eeaa0df0ce90cb36c22dbb4ae37dcb075da579fe466448336b618"
+    }
+  }
+}

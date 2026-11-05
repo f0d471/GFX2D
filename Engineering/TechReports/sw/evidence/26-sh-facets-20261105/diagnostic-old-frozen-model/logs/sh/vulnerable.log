@@ -1,0 +1,6 @@
+SH FLAT SETUP PASS 100000 exact signed divisions and 10000 byte-identical triangles
+SH NORMAL PASS unit axes, tiny vectors, 3-4-5, diagonal and signs
+SH PROJECTION PASS 50000 reciprocal divisions match R1 rounding exactly
+SH CLOCK PASS 30Hz physics independent of render batches
+SH AI PASS blocked animation stops and cover tangent makes progress
+SH FAIL line 135: s_hits==1 && s_shield==1 && !s_bullet[0].alive

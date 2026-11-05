@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "scope": "JTAG startup and attached live panel; no Flash write; no manual HDMI/input acceptance",
+  "bundle": "Main/bit/board_release_sh_optimized_20261105",
+  "panel_snapshot": {
+    "updated": "2026-11-05 22:26:12",
+    "connected": true,
+    "app_id": 7,
+    "scene": 3,
+    "backend": "hw",
+    "errors": 0,
+    "fps": 7,
+    "render_fps": 7.245
+  },
+  "launchers": "CheckOnly passed in Windows PowerShell 5.1 and PowerShell 7",
+  "files": [
+    {
+      "path": "bundle-manifest.json",
+      "bytes": 10513,
+      "sha256": "490739d7eb118aab62f09bd1f9f77b9bc2cc6d814472a5b0f672b67d8fce30c7"
+    },
+    {
+      "path": "review-boot.loader.log",
+      "bytes": 5649,
+      "sha256": "a11b61e7967c5baa95e1d39d9520cf4fd4ee0ec4ab10ed9a131151481f6223f5"
+    },
+    {
+      "path": "review-boot.serial.log",
+      "bytes": 4456,
+      "sha256": "f37379ad16ac2e3408d77b4c6bcdebb440d1870f37a742c2cd24164c51d529c0"
+    },
+    {
+      "path": "review-panel-status.json",
+      "bytes": 369,
+      "sha256": "2ca3773d4b92d8943f400b78585b57e139fb195eae9177eb5938089c312feda2"
+    },
+    {
+      "path": "review-panel.log",
+      "bytes": 26358,
+      "sha256": "da3b8e2b4981077e823881055f25998af6d9448ee3242ec218a68d8136740f23"
+    }
+  ]
+}

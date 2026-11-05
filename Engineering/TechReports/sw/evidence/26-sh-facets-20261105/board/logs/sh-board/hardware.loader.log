@@ -1,0 +1,57 @@
+=== 烧写比特流 E:\Workspace\FPGA\Efinix\Main\bit\snapshots\B7\gfx2d_ti60.bit
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   467106 bytes written at address 0x00001000
+   downloaded 467106 bytes in 3.509222s (129.988 KiB/s)
+Open On-Chip Debugger 0.11.0+dev-04060-g967f8f6f0-dirty (2026-03-24-19:56)
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+E:/Workspace/FPGA/Efinix/Main/sdk
+Info : auto-selecting first available session transport "jtag". To override use 'transport select <transport>'.
+Info : set servers polling period to 50ms
+Info : clock speed 800 kHz
+Info : JTAG tap: fpga_spinal.bridge tap/device found: 0x10660a79 (mfg: 0x53c (Efinix Inc), part: 0x0660, ver: 0x1)
+[fpga_spinal.cpu0] Target successfully examined.
+Info : starting gdb server for fpga_spinal.cpu0 on 3333
+Info : Listening on port 3333 for gdb connections
+adapter speed: 6000 kHz
+
+shutdown command invoked
+
+=== 等串口采集结束（上限 180 秒）
+--- 串口输出（E:\Workspace\FPGA\Efinix\Main\sim\build\check-runs\20261105-235943-b39484e1\logs\sh-board\hardware.serial.log）---
+# COM11 @ 115200 8N1, opened 00:03:04
+console boot
+console protocol 2 tick_hz 1000
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4134720 a8624648
+console catalog begin v 1 profile full hash 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 count 7
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52
+console catalog app id 5 key flight kind game graphics 3d shortcut 5 available 1 title 524944474520464c49474854
+console catalog app id 7 key sh kind game graphics 3d shortcut 6 available 1 title 48414c5454494d45
+console catalog app id 6 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+console enter menu
+menu crc 6cc9cabd sel 0
+console menu index 0 id 1 count 7
+console complete app menu id 0 frames 21 presents 21 errors 0
+console leave menu
+r4 enter ladder/hw 1 1
+console scene 3 halttime
+console enter sh
+R4CAD 0 14381777 734 761 23  1656674 ef875d55 0941f3de
+SHCRC 0 513 155317214 4018625877 0
+R4CAD 1 7028458 763 786 24  1656087 77fc1ebf d14f9760
+SHCRC 1 513 3511654240 2013011647 0
+r4 leave frames/late 2 2
+R4HEALTH 853 347 0 0 0
+SHDONE 0
+console complete app sh id 7 frames 2 presents 2 e
+# closed 00:03:18, 1571 bytes

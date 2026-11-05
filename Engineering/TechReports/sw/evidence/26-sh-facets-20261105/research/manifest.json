@@ -1,0 +1,88 @@
+{
+  "scope": "research/failed-version provenance; final acceptance remains separate",
+  "failed_runtime_sha256_verified_against_first_board_run": true,
+  "files": {
+    "baseline.json": {
+      "bytes": 76003,
+      "sha256": "81b05064865c36143430ba7ed447d42dad1851e298a10a140dfdb6c60dec8e2d"
+    },
+    "baseline.zip": {
+      "bytes": 2397672,
+      "sha256": "56e54c3229d88d7a571e54ef932032301865bdd6da2ddba9ce0ea1e0826fa6ba"
+    },
+    "diagnostic.loader.log": {
+      "bytes": 4664,
+      "sha256": "d814426c41b1127d9a5dc4fe12a7d2464f917a836126d866f7f428a94ba4fe50"
+    },
+    "diagnostic.serial.log": {
+      "bytes": 3533,
+      "sha256": "c0993e70f0ec8b833bcb86d646ed16c4552ba92726bd54a64ee1091615a178f7"
+    },
+    "empty-parts.log": {
+      "bytes": 72,
+      "sha256": "c08dd43782fa0cae47745274532100f5054683fa8481bdf3b90d1f6c6612f190"
+    },
+    "empty_parts.c": {
+      "bytes": 719,
+      "sha256": "484e327a6c66439fe6f5f8235b27069a1ea152873e57a9f83537e6637214e0f3"
+    },
+    "facet-0.png": {
+      "bytes": 9260,
+      "sha256": "6bf1a367ae25ca7bd0f7de03217d2d37a8f5b157f8eb1ba3f6292bfc5f779b01"
+    },
+    "facet-1.png": {
+      "bytes": 9388,
+      "sha256": "cd0861fbad984861409ef10b3332809f489ea16d6170e77aa6dc2b7f15b68b97"
+    },
+    "facet-2.png": {
+      "bytes": 8638,
+      "sha256": "cdce69ba2f37486e67d48ef92e604cedcbe29b207953153a50dab8238592a043"
+    },
+    "facet-3.png": {
+      "bytes": 3643,
+      "sha256": "0f17e787006ec464c5325684911ec578018fc81760bcc972aecfd89de84486c6"
+    },
+    "failed-console-O2-perf.bin": {
+      "bytes": 467874,
+      "sha256": "ed7716602dbcef63f955519a83ae61de87c4484241c7bcf51088ee493d114137"
+    },
+    "failed-firmware.json": {
+      "bytes": 1341,
+      "sha256": "90750ad1e126fe1b2f71b0f0125476be903ff92890f738c679daac3f30f3bc28"
+    },
+    "fast.loader.log": {
+      "bytes": 14164,
+      "sha256": "bd071d83037497b7e1833b404bc92db898b2e2fd6383ca40428cabe3b98d5cb4"
+    },
+    "fast.serial.log": {
+      "bytes": 13045,
+      "sha256": "1b723deb288868597407cdeedfbbc7a382b06f5a65953c782de808682c6ab05b"
+    },
+    "pc-final.build.log": {
+      "bytes": 505,
+      "sha256": "baaba1537ca8e833a96a127bd980d3aa623ebb88fc0f9f497e19e62006c2f8ef"
+    },
+    "previous-panel-status.json": {
+      "bytes": 374,
+      "sha256": "1cc2fc3369fe1e8bd7f0cd4117e3740ec7e609ab6e60af2e851cc0afbbaa0aee"
+    },
+    "profile.loader.log": {
+      "bytes": 15607,
+      "sha256": "cdd242440ee915623bbe4db806a9eaf438fc1364e513c67fc57fddff1d011ed6"
+    },
+    "profile.serial.log": {
+      "bytes": 14485,
+      "sha256": "593ecfa83a5ad353c8db0cf2cfd1e94fcd99e506c4ba2100ae1b8b69db8bf98a"
+    },
+    "r4-runtime-before-empty-fix.c": {
+      "bytes": 59303,
+      "sha256": "23ac42071950abf74cc8097989de00d14515cae68b68dc90997b0e24a0dbf20c"
+    },
+    "scene-test.log": {
+      "bytes": 846,
+      "sha256": "f5d26bbbebcbf6d5fb8255ede748350b43681cc96a61b43634e07cab48fa9f8f"
+    }
+  },
+  "screenshot_scope": "actual current geometry software raster, not HDMI capture",
+  "starting_snapshot": "653 relevant files before optimization, including inherited dirty work"
+}

@@ -1,0 +1,655 @@
+# frame-counted SH timing, UART COM11
+console status v 2 app menu id 0 backend hw fps_milli 44510 frames 45 presents 45 errors 0 scene 0 ladder 0 dropped 0 tick_ms 10261 irqA 616 heap 57824 faults 0 tasks 4 idle 2089671 monitor 2 health 0 stack_free 54260 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4134720 a8624648
+console catalog begin v 1 profile full hash 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 count 7
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52
+console catalog app id 5 key flight kind game graphics 3d shortcut 5 available 1 title 524944474520464c49474854
+console catalog app id 7 key sh kind game graphics 3d shortcut 6 available 1 title 48414c5454494d45
+console catalog app id 6 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+console enter menu
+menu crc 6cc9cabd sel 0
+console menu index 0 id 1 count 7
+console complete app menu id 0 frames 3 presents 3 errors 0
+console leave menu
+r4 enter ladder/hw 1 1
+console scene 3 halttime
+console enter sh
+console status v 2 app sh id 7 backend hw fps_milli 6000 frames 6 presents 6 errors 0 scene 3 ladder 1 dropped 0 tick_ms 8303 irqA 499 heap 57824 faults 0 tasks 4 idle 642039 monitor 1 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 6 6557 636 1 1 3
+R4TIME 165077 10779573 610067 27804 1971104 1635262 1596103 1449
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 13 presents 13 errors 0 scene 3 ladder 1 dropped 0 tick_ms 9353 irqA 562 heap 57824 faults 0 tasks 4 idle 1194621 monitor 2 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7333 643 1 1 3
+R4TIME 165513 10796639 614218 39640 1973159 1635597 1596125 1458
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 20 presents 20 errors 0 scene 3 ladder 1 dropped 0 tick_ms 10403 irqA 625 heap 57824 faults 0 tasks 4 idle 1743517 monitor 3 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7335 641 1 1 3
+R4TIME 165266 10779345 614349 27773 1971246 1634513 1596329 1452
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 27 presents 27 errors 0 scene 3 ladder 1 dropped 0 tick_ms 11453 irqA 688 heap 57824 faults 0 tasks 4 idle 2297734 monitor 4 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7362 633 1 1 3
+R4TIME 165104 10749096 607707 29124 1969717 1634851 1596627 1446
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 34 presents 34 errors 0 scene 3 ladder 1 dropped 0 tick_ms 12503 irqA 751 heap 57824 faults 0 tasks 4 idle 2856722 monitor 5 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7356 635 1 1 3
+R4TIME 166548 10760718 608067 29138 1972600 1634873 1597360 1445
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 41 presents 41 errors 0 scene 3 ladder 1 dropped 0 tick_ms 13553 irqA 814 heap 57824 faults 0 tasks 4 idle 3411532 monitor 6 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7346 638 1 1 3
+R4TIME 164324 10767460 614382 28212 1971950 1635618 1597290 1454
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 48 presents 48 errors 0 scene 3 ladder 1 dropped 0 tick_ms 14603 irqA 877 heap 57824 faults 0 tasks 4 idle 3964355 monitor 7 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7353 633 1 1 3
+R4TIME 164823 10792444 607557 27856 1981360 1635155 1597060 1447
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 55 presents 55 errors 0 scene 3 ladder 1 dropped 0 tick_ms 15653 irqA 940 heap 57824 faults 0 tasks 4 idle 4521645 monitor 8 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 62 presents 62 errors 0 scene 3 ladder 1 dropped 0 tick_ms 16703 irqA 1003 heap 57824 faults 0 tasks 4 idle 5069875 monitor 9 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7327 636 1 1 3
+R4TIME 164157 10814842 609179 38082 1977113 1635080 1597492 1445
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 69 presents 69 errors 0 scene 3 ladder 1 dropped 0 tick_ms 17753 irqA 1066 heap 57824 faults 0 tasks 4 idle 5623794 monitor 10 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7355 630 1 1 3
+R4TIME 165434 10749069 605019 29257 1972147 1636281 1598150 1447
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 76 presents 76 errors 0 scene 3 ladder 1 dropped 0 tick_ms 18803 irqA 1129 heap 57824 faults 0 tasks 4 idle 6182130 monitor 11 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7358 633 1 1 3
+R4TIME 164217 10777359 608949 27904 1972417 1635981 1598503 1452
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 83 presents 83 errors 0 scene 3 ladder 1 dropped 0 tick_ms 19853 irqA 1192 heap 57824 faults 0 tasks 4 idle 6736024 monitor 12 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7346 639 1 1 3
+R4TIME 164766 10779113 613735 27867 1971792 1636417 1598476 1460
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 90 presents 90 errors 0 scene 3 ladder 1 dropped 0 tick_ms 20903 irqA 1255 heap 57824 faults 0 tasks 4 idle 7287545 monitor 13 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7344 636 1 1 3
+R4TIME 167327 10748884 611311 29024 1974649 1636812 1598230 1459
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 97 presents 97 errors 0 scene 3 ladder 1 dropped 0 tick_ms 21953 irqA 1318 heap 57824 faults 0 tasks 4 idle 7839991 monitor 14 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7329 635 1 1 3
+R4TIME 165437 10817837 609540 38027 1974603 1636571 1598445 1462
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 104 presents 104 errors 0 scene 3 ladder 1 dropped 0 tick_ms 23003 irqA 1381 heap 57824 faults 0 tasks 4 idle 8389198 monitor 15 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7322 633 1 1 3
+R4TIME 165184 10764479 607456 28761 1971856 1637318 1598952 1460
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 111 presents 111 errors 0 scene 3 ladder 1 dropped 0 tick_ms 24053 irqA 1444 heap 57824 faults 0 tasks 4 idle 8937539 monitor 16 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 118 presents 118 errors 0 scene 3 ladder 1 dropped 0 tick_ms 25103 irqA 1507 heap 57824 faults 0 tasks 4 idle 9491320 monitor 17 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7343 637 1 1 3
+R4TIME 165074 10795930 609532 38123 1973387 1636691 1599149 1462
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 125 presents 125 errors 0 scene 3 ladder 1 dropped 0 tick_ms 26153 irqA 1570 heap 57824 faults 0 tasks 4 idle 10042214 monitor 18 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7335 636 1 1 3
+R4TIME 164775 10783500 612323 27843 1972063 1637136 1599450 1465
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 132 presents 132 errors 0 scene 3 ladder 1 dropped 0 tick_ms 27203 irqA 1633 heap 57824 faults 0 tasks 4 idle 10594116 monitor 19 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7339 638 1 1 3
+R4TIME 165003 10790686 611366 27778 1973325 1637283 1599436 1468
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 139 presents 139 errors 0 scene 3 ladder 1 dropped 0 tick_ms 28253 irqA 1696 heap 57824 faults 0 tasks 4 idle 11147432 monitor 20 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7342 636 1 1 3
+R4TIME 164542 10793118 611706 38991 1973307 1637405 1599388 1464
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 146 presents 146 errors 0 scene 3 ladder 1 dropped 0 tick_ms 29303 irqA 1759 heap 57824 faults 0 tasks 4 idle 11699088 monitor 21 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7321 641 1 1 3
+R4TIME 166990 10866696 615668 29051 1976300 1638012 1599848 1469
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 153 presents 153 errors 0 scene 3 ladder 1 dropped 0 tick_ms 30353 irqA 1822 heap 57824 faults 0 tasks 4 idle 12239975 monitor 22 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7331 637 1 1 3
+R4TIME 164474 10771590 611541 28193 1974555 1637507 1600114 1459
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 160 presents 160 errors 0 scene 3 ladder 1 dropped 0 tick_ms 31403 irqA 1885 heap 57824 faults 0 tasks 4 idle 12792542 monitor 23 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7342 635 1 1 3
+R4TIME 165142 10784572 609452 27835 1972341 1637173 1599957 1459
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 167 presents 167 errors 0 scene 3 ladder 1 dropped 0 tick_ms 32453 irqA 1948 heap 57824 faults 0 tasks 4 idle 13345804 monitor 24 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 174 presents 174 errors 0 scene 3 ladder 1 dropped 0 tick_ms 33503 irqA 2011 heap 57824 faults 0 tasks 4 idle 13896326 monitor 25 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7327 636 1 1 3
+R4TIME 165276 10797191 611558 39573 1974450 1637549 1600099 1472
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 181 presents 181 errors 0 scene 3 ladder 1 dropped 0 tick_ms 34553 irqA 2074 heap 57824 faults 0 tasks 4 idle 14446217 monitor 26 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7330 635 1 1 3
+R4TIME 164341 10767002 609915 28742 1974349 1638892 1600614 1471
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 188 presents 188 errors 0 scene 3 ladder 1 dropped 0 tick_ms 35603 irqA 2137 heap 57824 faults 0 tasks 4 idle 14998593 monitor 27 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7339 634 1 1 3
+R4TIME 165002 10821072 618708 27752 1973079 1638438 1600791 1469
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 195 presents 195 errors 0 scene 3 ladder 1 dropped 0 tick_ms 36653 irqA 2200 heap 57824 faults 0 tasks 4 idle 15547117 monitor 28 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7317 635 1 1 3
+R4TIME 164216 10827017 619135 27720 1975616 1637881 1601249 1468
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 202 presents 202 errors 0 scene 3 ladder 1 dropped 0 tick_ms 37703 irqA 2263 heap 57824 faults 0 tasks 4 idle 16093674 monitor 29 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7343 633 1 1 3
+R4TIME 167077 10789058 608176 29199 1979432 1639134 1602008 1468
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 209 presents 209 errors 0 scene 3 ladder 1 dropped 0 tick_ms 38753 irqA 2326 heap 57824 faults 0 tasks 4 idle 16645263 monitor 30 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7320 640 1 1 3
+R4TIME 164973 10827901 622115 27889 1977500 1640349 1602070 1474
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 216 presents 216 errors 0 scene 3 ladder 1 dropped 0 tick_ms 39803 irqA 2389 heap 57824 faults 0 tasks 4 idle 17191241 monitor 31 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7328 635 1 1 3
+R4TIME 164439 10790016 610254 27765 1988149 1640131 1602293 1470
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 223 presents 223 errors 0 scene 3 ladder 1 dropped 0 tick_ms 40853 irqA 2452 heap 57824 faults 0 tasks 4 idle 17741892 monitor 32 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 230 presents 230 errors 0 scene 3 ladder 1 dropped 0 tick_ms 41903 irqA 2515 heap 57824 faults 0 tasks 4 idle 18291141 monitor 33 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7325 634 1 1 3
+R4TIME 165009 10802409 608937 40293 1976695 1640087 1602154 1471
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 237 presents 237 errors 0 scene 3 ladder 1 dropped 0 tick_ms 42953 irqA 2578 heap 57824 faults 0 tasks 4 idle 18839044 monitor 34 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7319 636 1 1 3
+R4TIME 165004 10812720 608492 38643 1981865 1640877 1602622 1483
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 244 presents 244 errors 0 scene 3 ladder 1 dropped 0 tick_ms 44003 irqA 2641 heap 57824 faults 0 tasks 4 idle 19379984 monitor 35 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7309 639 1 1 3
+R4TIME 162982 10816234 614718 37232 1978188 1641306 1602903 1482
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 251 presents 251 errors 0 scene 3 ladder 1 dropped 0 tick_ms 45053 irqA 2704 heap 57824 faults 0 tasks 4 idle 19927187 monitor 36 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7323 640 1 1 3
+R4TIME 163044 10843535 622952 27717 1980516 1641800 1603921 1488
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 258 presents 258 errors 0 scene 3 ladder 1 dropped 0 tick_ms 46103 irqA 2767 heap 57824 faults 0 tasks 4 idle 20472810 monitor 37 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7313 637 1 1 3
+R4TIME 165266 10808726 612468 30762 1981747 1642784 1604107 1488
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 265 presents 265 errors 0 scene 3 ladder 1 dropped 0 tick_ms 47153 irqA 2830 heap 57824 faults 0 tasks 4 idle 21018361 monitor 38 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7308 638 1 1 3
+R4TIME 163526 10819346 624481 27748 1978990 1642842 1604511 1487
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 272 presents 272 errors 0 scene 3 ladder 1 dropped 0 tick_ms 48203 irqA 2893 heap 57824 faults 0 tasks 4 idle 21561085 monitor 39 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7322 636 1 1 3
+R4TIME 163916 10779283 612647 28235 1977139 1642597 1604049 1488
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 279 presents 279 errors 0 scene 3 ladder 1 dropped 0 tick_ms 49253 irqA 2956 heap 57824 faults 0 tasks 4 idle 22108173 monitor 40 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 286 presents 286 errors 0 scene 3 ladder 1 dropped 0 tick_ms 50303 irqA 3019 heap 57824 faults 0 tasks 4 idle 22649905 monitor 41 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7299 640 1 1 3
+R4TIME 163755 10857819 621686 27764 1980091 1644167 1604907 1495
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 293 presents 293 errors 0 scene 3 ladder 1 dropped 0 tick_ms 51353 irqA 3082 heap 57824 faults 0 tasks 4 idle 23192307 monitor 42 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7304 645 1 1 3
+R4TIME 162774 10858825 625262 27849 1981127 1644181 1604787 1500
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 300 presents 300 errors 0 scene 3 ladder 1 dropped 0 tick_ms 52403 irqA 3145 heap 57824 faults 0 tasks 4 idle 23729239 monitor 43 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7288 643 1 1 3
+R4TIME 163865 10850302 624325 27717 1982962 1644348 1605165 1500
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 307 presents 307 errors 0 scene 3 ladder 1 dropped 0 tick_ms 53453 irqA 3208 heap 57824 faults 0 tasks 4 idle 24264253 monitor 44 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7287 639 1 1 3
+R4TIME 163253 10828553 623094 27937 1980916 1643153 1605022 1498
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 314 presents 314 errors 0 scene 3 ladder 1 dropped 0 tick_ms 54503 irqA 3271 heap 57824 faults 0 tasks 4 idle 24803620 monitor 45 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7299 640 1 1 3
+R4TIME 165477 10846145 615991 29213 1984295 1643805 1605838 1493
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 321 presents 321 errors 0 scene 3 ladder 1 dropped 0 tick_ms 55553 irqA 3334 heap 57824 faults 0 tasks 4 idle 25344621 monitor 46 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7300 640 1 1 3
+R4TIME 163694 10905914 620007 29579 1981551 1643918 1605583 1488
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 328 presents 328 errors 0 scene 3 ladder 1 dropped 0 tick_ms 56603 irqA 3397 heap 57824 faults 0 tasks 4 idle 25885175 monitor 47 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7283 640 1 1 3
+R4TIME 163966 10828753 623642 27755 1982259 1643873 1606328 1490
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 335 presents 335 errors 0 scene 3 ladder 1 dropped 0 tick_ms 57653 irqA 3460 heap 57824 faults 0 tasks 4 idle 26417321 monitor 48 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 342 presents 342 errors 0 scene 3 ladder 1 dropped 0 tick_ms 58703 irqA 3523 heap 57824 faults 0 tasks 4 idle 26961847 monitor 49 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7309 639 1 1 3
+R4TIME 163362 10843549 620930 27755 1982785 1644394 1606710 1490
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 349 presents 349 errors 0 scene 3 ladder 1 dropped 0 tick_ms 59753 irqA 3586 heap 57824 faults 0 tasks 4 idle 27500154 monitor 50 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7295 642 1 1 3
+R4TIME 162476 10868093 622611 27755 1982605 1644271 1606824 1498
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 356 presents 356 errors 0 scene 3 ladder 1 dropped 0 tick_ms 60803 irqA 3649 heap 57824 faults 0 tasks 4 idle 28035753 monitor 51 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7287 643 1 1 3
+R4TIME 162801 10868598 623821 27755 1980956 1644475 1606778 1499
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 363 presents 363 errors 0 scene 3 ladder 1 dropped 0 tick_ms 61853 irqA 3712 heap 57824 faults 0 tasks 4 idle 28573309 monitor 52 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7299 634 1 1 3
+R4TIME 162897 10797031 610118 39621 1980814 1644961 1607115 1491
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 370 presents 370 errors 0 scene 3 ladder 1 dropped 0 tick_ms 62903 irqA 3775 heap 57824 faults 0 tasks 4 idle 29113017 monitor 53 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7282 641 1 1 3
+R4TIME 164619 10857501 617503 29130 1985504 1645905 1607315 1508
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 377 presents 377 errors 0 scene 3 ladder 1 dropped 0 tick_ms 63953 irqA 3838 heap 57824 faults 0 tasks 4 idle 29646500 monitor 54 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7308 639 1 1 3
+R4TIME 162004 10803523 614518 40016 1985864 1646219 1607850 1497
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 384 presents 384 errors 0 scene 3 ladder 1 dropped 0 tick_ms 65003 irqA 3901 heap 57824 faults 0 tasks 4 idle 30191114 monitor 55 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7292 639 1 1 3
+R4TIME 161856 10853392 622242 27907 1983547 1645878 1608267 1493
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 391 presents 391 errors 0 scene 3 ladder 1 dropped 0 tick_ms 66053 irqA 3964 heap 57824 faults 0 tasks 4 idle 30729385 monitor 56 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 398 presents 398 errors 0 scene 3 ladder 1 dropped 0 tick_ms 67103 irqA 4027 heap 57824 faults 0 tasks 4 idle 31237083 monitor 57 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7197 644 1 1 3
+R4TIME 227788 10993031 626829 28978 1984719 1646050 1608218 1503
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 405 presents 405 errors 0 scene 3 ladder 1 dropped 0 tick_ms 68153 irqA 4090 heap 57824 faults 0 tasks 4 idle 31738697 monitor 58 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7184 641 1 1 3
+R4TIME 227554 10973561 624705 28923 1985418 1647787 1608748 1512
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 412 presents 412 errors 0 scene 3 ladder 1 dropped 0 tick_ms 69203 irqA 4153 heap 57824 faults 0 tasks 4 idle 32241590 monitor 59 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7180 643 1 1 3
+R4TIME 227165 11062994 628831 28898 1983540 1646557 1608516 1512
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 419 presents 419 errors 0 scene 3 ladder 1 dropped 0 tick_ms 70253 irqA 4216 heap 57824 faults 0 tasks 4 idle 32734388 monitor 60 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7153 644 1 1 3
+R4TIME 218980 11056835 629070 29410 1984508 1647348 1608799 1515
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 426 presents 426 errors 0 scene 3 ladder 1 dropped 0 tick_ms 71303 irqA 4279 heap 57824 faults 0 tasks 4 idle 33233654 monitor 61 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7195 643 1 1 3
+R4TIME 220227 11013857 618981 28901 1986169 1648121 1609534 1519
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 433 presents 433 errors 0 scene 3 ladder 1 dropped 0 tick_ms 72353 irqA 4342 heap 57824 faults 0 tasks 4 idle 33738770 monitor 62 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7187 643 1 1 3
+R4TIME 217628 11025693 626151 31061 1984581 1648159 1609989 1510
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 440 presents 440 errors 0 scene 3 ladder 1 dropped 0 tick_ms 73403 irqA 4405 heap 57824 faults 0 tasks 4 idle 34243782 monitor 63 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7176 645 1 1 3
+R4TIME 218562 10996481 627792 29101 1985609 1648278 1610203 1513
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 447 presents 447 errors 0 scene 3 ladder 1 dropped 0 tick_ms 74453 irqA 4468 heap 57824 faults 0 tasks 4 idle 34745384 monitor 64 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 454 presents 454 errors 0 scene 3 ladder 1 dropped 0 tick_ms 75503 irqA 4531 heap 57824 faults 0 tasks 4 idle 35250208 monitor 65 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7181 647 1 1 3
+R4TIME 219612 11017877 629519 31180 1986576 1648765 1610318 1519
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 461 presents 461 errors 0 scene 3 ladder 1 dropped 0 tick_ms 76553 irqA 4594 heap 57824 faults 0 tasks 4 idle 35745146 monitor 66 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7150 649 1 1 3
+R4TIME 248571 11176987 630381 28970 1985161 1648638 1610268 1522
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 468 presents 468 errors 0 scene 3 ladder 1 dropped 0 tick_ms 77603 irqA 4657 heap 57824 faults 0 tasks 4 idle 36220950 monitor 67 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7100 647 1 1 3
+R4TIME 267068 11120459 630637 29028 1987094 1649351 1610422 1520
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 475 presents 475 errors 0 scene 3 ladder 1 dropped 0 tick_ms 78653 irqA 4720 heap 57824 faults 0 tasks 4 idle 36693646 monitor 68 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7089 644 1 1 3
+R4TIME 259402 11138529 628155 29078 1988042 1649975 1610930 1529
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 482 presents 482 errors 0 scene 3 ladder 1 dropped 0 tick_ms 79703 irqA 4783 heap 57824 faults 0 tasks 4 idle 37164201 monitor 69 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7082 646 1 1 3
+R4TIME 262115 11147191 630060 29272 1987490 1650522 1611251 1530
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 489 presents 489 errors 0 scene 3 ladder 1 dropped 0 tick_ms 80753 irqA 4846 heap 57824 faults 0 tasks 4 idle 37630419 monitor 70 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7082 645 1 1 3
+R4TIME 259288 11110632 629350 29102 1989071 1650530 1611357 1523
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 496 presents 496 errors 0 scene 3 ladder 1 dropped 0 tick_ms 81803 irqA 4909 heap 57824 faults 0 tasks 4 idle 38098738 monitor 71 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7078 642 1 1 3
+R4TIME 260565 11219653 626991 29387 1987491 1650697 1611286 1518
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 503 presents 503 errors 0 scene 3 ladder 1 dropped 0 tick_ms 82853 irqA 4972 heap 57824 faults 0 tasks 4 idle 38562650 monitor 72 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 510 presents 510 errors 0 scene 3 ladder 1 dropped 0 tick_ms 83903 irqA 5035 heap 57824 faults 0 tasks 4 idle 39024311 monitor 73 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7057 645 1 1 3
+R4TIME 260429 11227641 630756 29233 1988527 1650874 1611747 1526
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 517 presents 517 errors 0 scene 3 ladder 1 dropped 0 tick_ms 84953 irqA 5098 heap 57824 faults 0 tasks 4 idle 39489895 monitor 74 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7080 643 1 1 3
+R4TIME 260842 11179324 626229 31298 1987643 1651182 1612570 1529
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 524 presents 524 errors 0 scene 3 ladder 1 dropped 0 tick_ms 86003 irqA 5161 heap 57824 faults 0 tasks 4 idle 39954841 monitor 75 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7072 649 1 1 3
+R4TIME 259284 11177842 631873 31124 1988878 1652114 1612932 1536
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 531 presents 531 errors 0 scene 3 ladder 1 dropped 0 tick_ms 87053 irqA 5224 heap 57824 faults 0 tasks 4 idle 40419198 monitor 76 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7053 649 1 1 3
+R4TIME 277264 11363943 624267 28946 1994301 1653446 1613538 1536
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 538 presents 538 errors 0 scene 3 ladder 1 dropped 0 tick_ms 88120 irqA 5288 heap 57824 faults 0 tasks 4 idle 40904684 monitor 77 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7005 648 1 1 3
+R4TIME 233469 11291629 624147 29015 1989166 1651227 1613479 1534
+console status v 2 app sh id 7 backend hw fps_milli 6566 frames 545 presents 545 errors 0 scene 3 ladder 1 dropped 0 tick_ms 89186 irqA 5352 heap 57824 faults 0 tasks 4 idle 41392977 monitor 78 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6995 648 1 1 3
+R4TIME 269402 11375290 623336 30742 1991479 1652109 1613476 1530
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 552 presents 552 errors 0 scene 3 ladder 1 dropped 0 tick_ms 90253 irqA 5416 heap 57824 faults 0 tasks 4 idle 41870422 monitor 79 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6990 645 1 1 3
+R4TIME 269621 11292276 629355 31130 1991281 1652937 1614294 1529
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 559 presents 559 errors 0 scene 3 ladder 1 dropped 0 tick_ms 91303 irqA 5479 heap 57824 faults 0 tasks 4 idle 42309966 monitor 80 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7012 645 1 1 3
+R4TIME 218639 11306379 628606 29770 1990292 1653123 1614920 1532
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 566 presents 566 errors 0 scene 3 ladder 1 dropped 0 tick_ms 92370 irqA 5543 heap 57824 faults 0 tasks 4 idle 42794453 monitor 81 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6992 648 1 1 3
+R4TIME 224422 11315072 626089 28776 1999443 1653380 1615069 1538
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 573 presents 573 errors 0 scene 3 ladder 1 dropped 0 tick_ms 93437 irqA 5607 heap 57824 faults 0 tasks 4 idle 43273784 monitor 82 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6988 646 1 1 3
+R4TIME 216393 11338401 629521 31845 1993276 1653489 1615582 1529
+console status v 2 app sh id 7 backend hw fps_milli 6566 frames 580 presents 580 errors 0 scene 3 ladder 1 dropped 0 tick_ms 94503 irqA 5671 heap 57824 faults 0 tasks 4 idle 43753407 monitor 83 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6987 650 1 1 3
+R4TIME 216556 11376550 634428 28858 1991080 1653996 1615722 1532
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 587 presents 587 errors 0 scene 3 ladder 1 dropped 0 tick_ms 95570 irqA 5735 heap 57824 faults 0 tasks 4 idle 44230987 monitor 84 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6984 647 1 1 3
+R4TIME 225573 11355669 628696 29698 1991353 1654137 1615781 1534
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 594 presents 594 errors 0 scene 3 ladder 1 dropped 0 tick_ms 96637 irqA 5799 heap 57824 faults 0 tasks 4 idle 44706814 monitor 85 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6967 648 1 1 3
+R4TIME 210795 11378261 633786 29180 1992443 1654830 1616497 1533
+console status v 2 app sh id 7 backend hw fps_milli 6566 frames 601 presents 601 errors 0 scene 3 ladder 1 dropped 0 tick_ms 97703 irqA 5863 heap 57824 faults 0 tasks 4 idle 45177618 monitor 86 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6995 649 1 1 3
+R4TIME 210954 11342669 635226 31165 1994011 1656166 1617609 1542
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 608 presents 608 errors 0 scene 3 ladder 1 dropped 0 tick_ms 98770 irqA 5927 heap 57824 faults 0 tasks 4 idle 45656807 monitor 87 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6976 649 1 1 3
+R4TIME 220162 11355034 631263 29027 1995769 1658110 1618932 1548
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 615 presents 615 errors 0 scene 3 ladder 1 dropped 0 tick_ms 99837 irqA 5991 heap 57824 faults 0 tasks 4 idle 46130433 monitor 88 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6970 651 1 1 3
+R4TIME 211669 11364095 636801 29864 1997704 1660440 1621747 1553
+console status v 2 app sh id 7 backend hw fps_milli 6566 frames 622 presents 622 errors 0 scene 3 ladder 1 dropped 0 tick_ms 100903 irqA 6055 heap 57824 faults 0 tasks 4 idle 46602380 monitor 89 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 629 presents 629 errors 0 scene 3 ladder 1 dropped 0 tick_ms 101953 irqA 6118 heap 57824 faults 0 tasks 4 idle 47046201 monitor 90 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7016 645 1 1 3
+R4TIME 177491 11237843 629443 29772 1993047 1655472 1617437 1545
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 636 presents 636 errors 0 scene 3 ladder 1 dropped 0 tick_ms 103003 irqA 6181 heap 57824 faults 0 tasks 4 idle 47512347 monitor 91 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7060 650 1 1 3
+R4TIME 175259 11298911 636954 29891 1994622 1655176 1617718 1537
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 643 presents 643 errors 0 scene 3 ladder 1 dropped 0 tick_ms 104053 irqA 6244 heap 57824 faults 0 tasks 4 idle 47967753 monitor 92 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7050 647 1 1 3
+R4TIME 175327 11253169 629865 29698 1993981 1657012 1618529 1534
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 650 presents 650 errors 0 scene 3 ladder 1 dropped 0 tick_ms 105103 irqA 6307 heap 57824 faults 0 tasks 4 idle 48432496 monitor 93 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7078 642 1 1 3
+R4TIME 174553 11208530 627431 30153 1994537 1656999 1619166 1550
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 657 presents 657 errors 0 scene 3 ladder 1 dropped 0 tick_ms 106153 irqA 6370 heap 57824 faults 0 tasks 4 idle 48899553 monitor 94 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7072 647 1 1 3
+R4TIME 177139 11224464 631119 29614 1996518 1658707 1619505 1560
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 664 presents 664 errors 0 scene 3 ladder 1 dropped 0 tick_ms 107203 irqA 6433 heap 57824 faults 0 tasks 4 idle 49365025 monitor 95 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7067 647 1 1 3
+R4TIME 175060 11218158 632101 29622 1997455 1660151 1620746 1558
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 671 presents 671 errors 0 scene 3 ladder 1 dropped 0 tick_ms 108253 irqA 6496 heap 57824 faults 0 tasks 4 idle 49830371 monitor 96 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7078 645 1 1 3
+R4TIME 174280 11180869 630258 32072 1997025 1659822 1621743 1556
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 678 presents 678 errors 0 scene 3 ladder 1 dropped 0 tick_ms 109303 irqA 6559 heap 57824 faults 0 tasks 4 idle 50299111 monitor 97 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 685 presents 685 errors 0 scene 3 ladder 1 dropped 0 tick_ms 110353 irqA 6622 heap 57824 faults 0 tasks 4 idle 50759284 monitor 98 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7058 646 1 1 3
+R4TIME 176089 11217755 633068 29754 1999614 1661122 1622374 1559
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 692 presents 692 errors 0 scene 3 ladder 1 dropped 0 tick_ms 111403 irqA 6685 heap 57824 faults 0 tasks 4 idle 51220657 monitor 99 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7056 647 1 1 3
+R4TIME 175805 11180441 630941 31615 2000241 1662760 1624734 1557
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 699 presents 699 errors 0 scene 3 ladder 1 dropped 0 tick_ms 112453 irqA 6748 heap 57824 faults 0 tasks 4 idle 51689064 monitor 100 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7081 645 1 1 3
+R4TIME 179516 11185305 633452 29430 1999599 1661540 1622791 1556
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 706 presents 706 errors 0 scene 3 ladder 1 dropped 0 tick_ms 113503 irqA 6811 heap 57824 faults 0 tasks 4 idle 52167796 monitor 101 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7132 645 1 1 3
+R4TIME 142001 11101169 628450 32060 1999792 1664718 1626104 1560
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 713 presents 713 errors 0 scene 3 ladder 1 dropped 0 tick_ms 114553 irqA 6874 heap 57824 faults 0 tasks 4 idle 52658828 monitor 102 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7175 643 1 1 3
+R4TIME 127305 10987861 620332 29456 2000447 1660828 1622678 1540
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 720 presents 720 errors 0 scene 3 ladder 1 dropped 0 tick_ms 115603 irqA 6937 heap 57824 faults 0 tasks 4 idle 53168985 monitor 103 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7223 648 1 1 3
+R4TIME 119114 11047286 633101 29774 1997666 1660603 1622409 1558
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 727 presents 727 errors 0 scene 3 ladder 1 dropped 0 tick_ms 116653 irqA 7000 heap 57824 faults 0 tasks 4 idle 53686197 monitor 104 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7206 640 1 1 3
+R4TIME 118961 10996095 623934 29812 1999819 1662766 1623084 1569
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 734 presents 734 errors 0 scene 3 ladder 1 dropped 0 tick_ms 117703 irqA 7063 heap 57824 faults 0 tasks 4 idle 54201679 monitor 105 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 741 presents 741 errors 0 scene 3 ladder 1 dropped 0 tick_ms 118753 irqA 7126 heap 57824 faults 0 tasks 4 idle 54727276 monitor 106 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7245 637 1 1 3
+R4TIME 121443 10943518 622340 31428 1999560 1661797 1624306 1556
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 748 presents 748 errors 0 scene 3 ladder 1 dropped 0 tick_ms 119803 irqA 7189 heap 57824 faults 0 tasks 4 idle 55248989 monitor 107 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7233 639 1 1 3
+R4TIME 119731 10958412 624330 28724 2000428 1663903 1624980 1571
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 755 presents 755 errors 0 scene 3 ladder 1 dropped 0 tick_ms 120853 irqA 7252 heap 57824 faults 0 tasks 4 idle 55770917 monitor 108 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7241 636 1 1 3
+R4TIME 119281 10946268 620410 30775 2002877 1664540 1625819 1564
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 762 presents 762 errors 0 scene 3 ladder 1 dropped 0 tick_ms 121903 irqA 7315 heap 57824 faults 0 tasks 4 idle 56301962 monitor 109 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7251 636 1 1 3
+R4TIME 118148 10929176 622495 30456 2000701 1663679 1626098 1566
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 769 presents 769 errors 0 scene 3 ladder 1 dropped 0 tick_ms 122953 irqA 7378 heap 57824 faults 0 tasks 4 idle 56826775 monitor 110 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7216 644 1 1 3
+R4TIME 120235 11046388 624460 30953 2004833 1666378 1627360 1588
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 776 presents 776 errors 0 scene 3 ladder 1 dropped 0 tick_ms 124003 irqA 7441 heap 57824 faults 0 tasks 4 idle 57337353 monitor 111 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7205 644 1 1 3
+R4TIME 150883 11097994 629598 31561 2004866 1667074 1627535 1590
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 783 presents 783 errors 0 scene 3 ladder 1 dropped 0 tick_ms 125053 irqA 7504 heap 57824 faults 0 tasks 4 idle 57846461 monitor 112 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7139 641 1 1 3
+R4TIME 160707 11091261 628283 31894 2004382 1667585 1628619 1585
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 790 presents 790 errors 0 scene 3 ladder 1 dropped 0 tick_ms 126103 irqA 7567 heap 57824 faults 0 tasks 4 idle 58340904 monitor 113 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 797 presents 797 errors 0 scene 3 ladder 1 dropped 0 tick_ms 127153 irqA 7630 heap 57824 faults 0 tasks 4 idle 58826300 monitor 114 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7126 639 1 1 3
+R4TIME 164997 11092516 626160 31997 2005019 1667137 1629496 1582
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 804 presents 804 errors 0 scene 3 ladder 1 dropped 0 tick_ms 128203 irqA 7693 heap 57824 faults 0 tasks 4 idle 59314747 monitor 115 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7130 642 1 1 3
+R4TIME 163832 11083851 631033 31775 2006707 1669843 1629744 1615
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 811 presents 811 errors 0 scene 3 ladder 1 dropped 0 tick_ms 129253 irqA 7756 heap 57824 faults 0 tasks 4 idle 59798224 monitor 116 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7105 646 1 1 3
+R4TIME 164476 11136240 632140 30003 2007443 1669722 1630215 1597
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 818 presents 818 errors 0 scene 3 ladder 1 dropped 0 tick_ms 130303 irqA 7819 heap 57824 faults 0 tasks 4 idle 60270304 monitor 117 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7069 647 1 1 3
+R4TIME 164444 11177916 632290 32091 2007422 1671072 1631952 1594
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 825 presents 825 errors 0 scene 3 ladder 1 dropped 0 tick_ms 131353 irqA 7882 heap 57824 faults 0 tasks 4 idle 60742447 monitor 118 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7102 642 1 1 3
+R4TIME 167175 11110018 629259 29791 2007058 1671041 1632367 1590
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 832 presents 832 errors 0 scene 3 ladder 1 dropped 0 tick_ms 132403 irqA 7945 heap 57824 faults 0 tasks 4 idle 61226155 monitor 119 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7104 640 1 1 3
+R4TIME 165171 11141346 626133 29960 2007449 1670980 1633549 1573
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 839 presents 839 errors 0 scene 3 ladder 1 dropped 0 tick_ms 133453 irqA 8008 heap 57824 faults 0 tasks 4 idle 61703639 monitor 120 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7101 641 1 1 3
+R4TIME 164430 11157654 627663 29654 2010858 1673212 1634316 1585
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 846 presents 846 errors 0 scene 3 ladder 1 dropped 0 tick_ms 134503 irqA 8071 heap 57824 faults 0 tasks 4 idle 62183440 monitor 121 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 853 presents 853 errors 0 scene 3 ladder 1 dropped 0 tick_ms 135553 irqA 8134 heap 57824 faults 0 tasks 4 idle 62660031 monitor 122 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7087 644 1 1 3
+R4TIME 200602 11269378 632159 29693 2012172 1674564 1635312 1600
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 860 presents 860 errors 0 scene 3 ladder 1 dropped 0 tick_ms 136603 irqA 8197 heap 57824 faults 0 tasks 4 idle 63109121 monitor 123 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7000 650 1 1 3
+R4TIME 194432 11380384 638888 29617 2014041 1675538 1635622 1618
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 867 presents 867 errors 0 scene 3 ladder 1 dropped 0 tick_ms 137670 irqA 8261 heap 57824 faults 0 tasks 4 idle 63588247 monitor 124 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6987 647 1 1 3
+R4TIME 198185 11330512 634659 28989 2017164 1676002 1636749 1615
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 874 presents 874 errors 0 scene 3 ladder 1 dropped 0 tick_ms 138737 irqA 8325 heap 57824 faults 0 tasks 4 idle 64074365 monitor 125 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7011 641 1 1 3
+R4TIME 253381 11257218 624572 29146 2016726 1678016 1638100 1624
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 881 presents 881 errors 0 scene 3 ladder 1 dropped 0 tick_ms 139787 irqA 8388 heap 57824 faults 0 tasks 4 idle 64526542 monitor 126 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7009 644 1 1 3
+R4TIME 255057 11323317 630283 29038 2017554 1679358 1639143 1628
+console status v 2 app sh id 7 backend hw fps_milli 6566 frames 888 presents 888 errors 0 scene 3 ladder 1 dropped 0 tick_ms 140853 irqA 8452 heap 57824 faults 0 tasks 4 idle 65016335 monitor 127 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7011 641 1 1 3
+R4TIME 199875 11254083 628597 31462 2018787 1680425 1639777 1630
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 895 presents 895 errors 0 scene 3 ladder 1 dropped 0 tick_ms 141903 irqA 8515 heap 57824 faults 0 tasks 4 idle 65465452 monitor 128 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7014 647 1 1 3
+R4TIME 245801 11277665 635207 29177 2020841 1681489 1641046 1641
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 902 presents 902 errors 0 scene 3 ladder 1 dropped 0 tick_ms 142970 irqA 8579 heap 57824 faults 0 tasks 4 idle 65955890 monitor 129 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6977 650 1 1 3
+R4TIME 252846 11364190 637375 29796 2019142 1682185 1641247 1640
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 909 presents 909 errors 0 scene 3 ladder 1 dropped 0 tick_ms 144037 irqA 8643 heap 57824 faults 0 tasks 4 idle 66434330 monitor 130 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6993 647 1 1 3
+R4TIME 244571 11291881 636862 31720 2021274 1683984 1642958 1647
+console status v 2 app sh id 7 backend hw fps_milli 6566 frames 916 presents 916 errors 0 scene 3 ladder 1 dropped 0 tick_ms 145103 irqA 8707 heap 57824 faults 0 tasks 4 idle 66920659 monitor 131 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7012 646 1 1 3
+R4TIME 201378 11414472 634615 28962 2022155 1685004 1644824 1641
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 923 presents 923 errors 0 scene 3 ladder 1 dropped 0 tick_ms 146170 irqA 8771 heap 57824 faults 0 tasks 4 idle 67411710 monitor 132 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6937 648 1 1 3
+R4TIME 219653 11369173 633305 29780 2024537 1685857 1646075 1641
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 930 presents 930 errors 0 scene 3 ladder 1 dropped 0 tick_ms 147237 irqA 8835 heap 57824 faults 0 tasks 4 idle 67877087 monitor 133 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6937 644 1 1 3
+R4TIME 209645 11381630 633875 28898 2025089 1686778 1647214 1642
+console status v 2 app sh id 7 backend hw fps_milli 6566 frames 937 presents 937 errors 0 scene 3 ladder 1 dropped 0 tick_ms 148303 irqA 8899 heap 57824 faults 0 tasks 4 idle 68342060 monitor 134 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6953 645 1 1 3
+R4TIME 210055 11391503 632229 29868 2025708 1687271 1647898 1634
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 944 presents 944 errors 0 scene 3 ladder 1 dropped 0 tick_ms 149370 irqA 8963 heap 57824 faults 0 tasks 4 idle 68812519 monitor 135 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6926 652 1 1 3
+R4TIME 220443 11482852 640075 29203 2028229 1689204 1650024 1645
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 951 presents 951 errors 0 scene 3 ladder 1 dropped 0 tick_ms 150437 irqA 9027 heap 57824 faults 0 tasks 4 idle 69274232 monitor 136 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 6934 645 1 1 3
+R4TIME 217206 11394876 627336 29729 2030981 1692646 1653756 1641
+console status v 2 app sh id 7 backend hw fps_milli 6566 frames 958 presents 958 errors 0 scene 3 ladder 1 dropped 0 tick_ms 151503 irqA 9091 heap 57824 faults 0 tasks 4 idle 69738397 monitor 137 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 965 presents 965 errors 0 scene 3 ladder 1 dropped 0 tick_ms 152570 irqA 9155 heap 57824 faults 0 tasks 4 idle 70229354 monitor 138 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7019 641 1 1 3
+R4TIME 219852 11165241 632539 29793 2026456 1689859 1650791 1645
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 972 presents 972 errors 0 scene 3 ladder 1 dropped 0 tick_ms 153637 irqA 9219 heap 57824 faults 0 tasks 4 idle 70731865 monitor 139 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7030 646 1 1 3
+R4TIME 175962 11277292 628293 32229 2028264 1691192 1651770 1653
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 979 presents 979 errors 0 scene 3 ladder 1 dropped 0 tick_ms 154687 irqA 9282 heap 57824 faults 0 tasks 4 idle 71190298 monitor 140 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7050 639 1 1 3
+R4TIME 176327 11182034 622011 32110 2028643 1691748 1652944 1642
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 986 presents 986 errors 0 scene 3 ladder 1 dropped 0 tick_ms 155737 irqA 9345 heap 57824 faults 0 tasks 4 idle 71659804 monitor 141 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7043 643 1 1 3
+R4TIME 175849 11232079 625826 29537 2028853 1692645 1654335 1650
+console status v 2 app sh id 7 backend hw fps_milli 6566 frames 993 presents 993 errors 0 scene 3 ladder 1 dropped 0 tick_ms 156803 irqA 9409 heap 57824 faults 0 tasks 4 idle 72158387 monitor 142 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7012 643 1 1 3
+R4TIME 220891 11206376 633213 29765 2031801 1694892 1655750 1658
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1000 presents 1000 errors 0 scene 3 ladder 1 dropped 0 tick_ms 157853 irqA 9472 heap 57824 faults 0 tasks 4 idle 72616303 monitor 143 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7050 639 1 1 3
+R4TIME 218271 11212849 628747 29929 2031835 1695193 1656719 1655
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1007 presents 1007 errors 0 scene 3 ladder 1 dropped 0 tick_ms 158903 irqA 9535 heap 57824 faults 0 tasks 4 idle 73081431 monitor 144 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7066 641 1 1 3
+R4TIME 218264 11182075 630074 29984 2033687 1696947 1659095 1656
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1014 presents 1014 errors 0 scene 3 ladder 1 dropped 0 tick_ms 159953 irqA 9598 heap 57824 faults 0 tasks 4 idle 73554407 monitor 145 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1021 presents 1021 errors 0 scene 3 ladder 1 dropped 0 tick_ms 161003 irqA 9661 heap 57824 faults 0 tasks 4 idle 74021003 monitor 146 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7045 643 1 1 3
+R4TIME 221651 11231331 632887 31912 2039209 1700318 1660439 1670
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1028 presents 1028 errors 0 scene 3 ladder 1 dropped 0 tick_ms 162053 irqA 9724 heap 57824 faults 0 tasks 4 idle 74496172 monitor 147 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7078 640 1 1 3
+R4TIME 218769 11173914 631576 29903 2038487 1701434 1662090 1665
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1035 presents 1035 errors 0 scene 3 ladder 1 dropped 0 tick_ms 163103 irqA 9787 heap 57824 faults 0 tasks 4 idle 74962285 monitor 148 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7030 644 1 1 3
+R4TIME 219134 11287772 633466 29782 2041799 1703663 1664911 1653
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 1042 presents 1042 errors 0 scene 3 ladder 1 dropped 0 tick_ms 164170 irqA 9851 heap 57824 faults 0 tasks 4 idle 75453383 monitor 149 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7018 645 1 1 3
+R4TIME 174455 11226695 632916 29561 2045299 1707681 1669708 1657
+console status v 2 app sh id 7 backend hw fps_milli 6560 frames 1049 presents 1049 errors 0 scene 3 ladder 1 dropped 0 tick_ms 165237 irqA 9915 heap 57824 faults 0 tasks 4 idle 75957989 monitor 150 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7071 642 1 1 3
+R4TIME 203974 11069131 635442 29363 2043980 1706158 1667193 1662
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1056 presents 1056 errors 0 scene 3 ladder 1 dropped 0 tick_ms 166287 irqA 9978 heap 57824 faults 0 tasks 4 idle 76443260 monitor 151 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7117 641 1 1 3
+R4TIME 221122 11079282 625157 29680 2047187 1710466 1671829 1672
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1063 presents 1063 errors 0 scene 3 ladder 1 dropped 0 tick_ms 167337 irqA 10041 heap 57824 faults 0 tasks 4 idle 76935466 monitor 152 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7135 638 1 1 3
+R4TIME 217418 10973739 631021 29671 2046617 1707652 1669623 1668
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1070 presents 1070 errors 0 scene 3 ladder 1 dropped 0 tick_ms 168387 irqA 10104 heap 57824 faults 0 tasks 4 idle 77435930 monitor 153 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1077 presents 1077 errors 0 scene 3 ladder 1 dropped 0 tick_ms 169437 irqA 10167 heap 57824 faults 0 tasks 4 idle 77945643 monitor 154 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7167 646 1 1 3
+R4TIME 148936 11028421 638612 29927 2048241 1709319 1671242 1681
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1084 presents 1084 errors 0 scene 3 ladder 1 dropped 0 tick_ms 170487 irqA 10230 heap 57824 faults 0 tasks 4 idle 78445654 monitor 155 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7132 648 1 1 3
+R4TIME 149218 11118121 630670 29662 2049399 1711704 1673262 1675
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1091 presents 1091 errors 0 scene 3 ladder 1 dropped 0 tick_ms 171537 irqA 10293 heap 57824 faults 0 tasks 4 idle 78947681 monitor 156 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7141 644 1 1 3
+R4TIME 148335 11063515 628627 29846 2051271 1714277 1675003 1694
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1098 presents 1098 errors 0 scene 3 ladder 1 dropped 0 tick_ms 172587 irqA 10356 heap 57824 faults 0 tasks 4 idle 79444003 monitor 157 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 7143 644 1 1 3
+R4TIME 147975 11061923 626948 29980 2055955 1717750 1678434 1707
+console status v 2 app sh id 7 backend hw fps_milli 6666 frames 1105 presents 1105 errors 0 scene 3 ladder 1 dropped 0 tick_ms 173637 irqA 10419 heap 57824 faults 0 tasks 4 idle 79948441 monitor 158 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 7 8322 646 1 1 3
+R4TIME 85319 7506710 641489 29030 2058035 1719168 1678847 1726
+console status v 2 app sh id 7 backend hw fps_milli 8310 frames 1114 presents 1114 errors 0 scene 3 ladder 1 dropped 0 tick_ms 174720 irqA 10484 heap 57824 faults 0 tasks 4 idle 80649984 monitor 159 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 8 9651 643 1 1 3
+R4TIME 83991 7505309 636168 27948 2057875 1719643 1679943 1716
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1123 presents 1123 errors 0 scene 3 ladder 1 dropped 0 tick_ms 175770 irqA 10547 heap 57824 faults 0 tasks 4 idle 81367126 monitor 160 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9624 642 1 1 3
+R4TIME 84578 7518126 635464 27845 2058091 1719260 1680736 1702
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1132 presents 1132 errors 0 scene 3 ladder 1 dropped 0 tick_ms 176820 irqA 10610 heap 57824 faults 0 tasks 4 idle 82079654 monitor 161 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9610 641 1 1 3
+R4TIME 83062 7452144 632135 31171 2057689 1721463 1681629 1706
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1141 presents 1141 errors 0 scene 3 ladder 1 dropped 0 tick_ms 177870 irqA 10673 heap 57824 faults 0 tasks 4 idle 82789177 monitor 162 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1150 presents 1150 errors 0 scene 3 ladder 1 dropped 0 tick_ms 178920 irqA 10736 heap 57824 faults 0 tasks 4 idle 83511700 monitor 163 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9666 642 1 1 3
+R4TIME 84006 7488205 636343 28448 2059020 1722297 1682802 1712
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1159 presents 1159 errors 0 scene 3 ladder 1 dropped 0 tick_ms 179970 irqA 10799 heap 57824 faults 0 tasks 4 idle 84222886 monitor 164 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9624 642 1 1 3
+R4TIME 85324 7494253 634204 32015 2063385 1722918 1684087 1713
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1168 presents 1168 errors 0 scene 3 ladder 1 dropped 0 tick_ms 181020 irqA 10862 heap 57824 faults 0 tasks 4 idle 84932802 monitor 165 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9634 640 1 1 3
+R4TIME 83301 7436914 631327 28901 2060583 1724225 1685270 1709
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1177 presents 1177 errors 0 scene 3 ladder 1 dropped 0 tick_ms 182070 irqA 10925 heap 57824 faults 0 tasks 4 idle 85651762 monitor 166 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9630 643 1 1 3
+R4TIME 84109 7507796 636455 27771 2061914 1724498 1685487 1702
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1186 presents 1186 errors 0 scene 3 ladder 1 dropped 0 tick_ms 183120 irqA 10988 heap 57824 faults 0 tasks 4 idle 86363996 monitor 167 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9577 646 1 1 3
+R4TIME 119741 7659451 639215 28864 2063211 1726416 1686673 1724
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1195 presents 1195 errors 0 scene 3 ladder 1 dropped 0 tick_ms 184170 irqA 11051 heap 57824 faults 0 tasks 4 idle 87037544 monitor 168 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9419 642 1 1 3
+R4TIME 120707 7625311 634544 31138 2064424 1727738 1687809 1723
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1204 presents 1204 errors 0 scene 3 ladder 1 dropped 0 tick_ms 185220 irqA 11114 heap 57824 faults 0 tasks 4 idle 87713533 monitor 169 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9510 642 1 1 3
+R4TIME 119473 7587567 633495 27763 2065746 1728328 1689773 1709
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1213 presents 1213 errors 0 scene 3 ladder 1 dropped 0 tick_ms 186270 irqA 11177 heap 57824 faults 0 tasks 4 idle 88397236 monitor 170 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9483 642 1 1 3
+R4TIME 120335 7614885 632534 31295 2066729 1728508 1690589 1702
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1222 presents 1222 errors 0 scene 3 ladder 1 dropped 0 tick_ms 187320 irqA 11240 heap 57824 faults 0 tasks 4 idle 89077400 monitor 171 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9513 640 1 1 3
+R4TIME 118401 7559754 629309 27796 2068343 1730954 1692056 1714
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1231 presents 1231 errors 0 scene 3 ladder 1 dropped 0 tick_ms 188370 irqA 11303 heap 57824 faults 0 tasks 4 idle 89765727 monitor 172 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1240 presents 1240 errors 0 scene 3 ladder 1 dropped 0 tick_ms 189420 irqA 11366 heap 57824 faults 0 tasks 4 idle 90445671 monitor 173 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9490 640 1 1 3
+R4TIME 119044 7517956 634762 30032 2066715 1731075 1692735 1715
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1249 presents 1249 errors 0 scene 3 ladder 1 dropped 0 tick_ms 190470 irqA 11429 heap 57824 faults 0 tasks 4 idle 91131153 monitor 174 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9491 642 1 1 3
+R4TIME 119281 7595253 630958 29196 2071057 1732401 1693687 1729
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1258 presents 1258 errors 0 scene 3 ladder 1 dropped 0 tick_ms 191520 irqA 11492 heap 57824 faults 0 tasks 4 idle 91816835 monitor 175 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9510 642 1 1 3
+R4TIME 117121 7545448 628160 31955 2071533 1734450 1695207 1731
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1267 presents 1267 errors 0 scene 3 ladder 1 dropped 0 tick_ms 192570 irqA 11555 heap 57824 faults 0 tasks 4 idle 92511359 monitor 176 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9525 645 1 1 3
+R4TIME 117923 7612075 635904 28540 2075299 1736569 1697617 1733
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1276 presents 1276 errors 0 scene 3 ladder 1 dropped 0 tick_ms 193620 irqA 11618 heap 57824 faults 0 tasks 4 idle 93188249 monitor 177 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9431 649 1 1 3
+R4TIME 137323 7739330 641636 28994 2078262 1739737 1699942 1753
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1285 presents 1285 errors 0 scene 3 ladder 1 dropped 0 tick_ms 194670 irqA 11681 heap 57824 faults 0 tasks 4 idle 93850767 monitor 178 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9367 646 1 1 3
+R4TIME 143875 7769416 631651 28935 2078741 1741045 1700578 1756
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1294 presents 1294 errors 0 scene 3 ladder 1 dropped 0 tick_ms 195720 irqA 11744 heap 57824 faults 0 tasks 4 idle 94495119 monitor 179 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9299 646 1 1 3
+R4TIME 142589 7816205 631458 30473 2078408 1740287 1701443 1748
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1303 presents 1303 errors 0 scene 3 ladder 1 dropped 0 tick_ms 196770 irqA 11807 heap 57824 faults 0 tasks 4 idle 95129614 monitor 180 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9259 646 1 1 3
+R4TIME 143165 7803790 638988 31425 2080377 1741081 1701829 1752
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1312 presents 1312 errors 0 scene 3 ladder 1 dropped 0 tick_ms 197820 irqA 11870 heap 57824 faults 0 tasks 4 idle 95756492 monitor 181 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9320 640 1 1 3
+R4TIME 141344 7662398 624492 29007 2080983 1743133 1703164 1756
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1321 presents 1321 errors 0 scene 3 ladder 1 dropped 0 tick_ms 198870 irqA 11933 heap 57824 faults 0 tasks 4 idle 96402871 monitor 182 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1330 presents 1330 errors 0 scene 3 ladder 1 dropped 0 tick_ms 199920 irqA 11996 heap 57824 faults 0 tasks 4 idle 97039736 monitor 183 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9299 646 1 1 3
+R4TIME 141944 7809350 631451 31241 2082917 1744776 1705107 1768
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1339 presents 1339 errors 0 scene 3 ladder 1 dropped 0 tick_ms 200970 irqA 12059 heap 57824 faults 0 tasks 4 idle 97674897 monitor 184 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9294 646 1 1 3
+R4TIME 143908 7807461 639432 30570 2082047 1747310 1706834 1776
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1348 presents 1348 errors 0 scene 3 ladder 1 dropped 0 tick_ms 202020 irqA 12122 heap 57824 faults 0 tasks 4 idle 98302137 monitor 185 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9246 651 1 1 3
+R4TIME 147335 7888697 641268 31316 2087974 1750101 1710497 1775
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1357 presents 1357 errors 0 scene 3 ladder 1 dropped 0 tick_ms 203070 irqA 12185 heap 57824 faults 0 tasks 4 idle 98927701 monitor 186 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9303 649 1 1 3
+R4TIME 116717 7724469 640373 31560 2083724 1744804 1705122 1764
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1366 presents 1366 errors 0 scene 3 ladder 1 dropped 0 tick_ms 204120 irqA 12248 heap 57824 faults 0 tasks 4 idle 99574646 monitor 187 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9356 645 1 1 3
+R4TIME 117913 7694617 638297 29089 2083288 1746322 1706771 1755
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1375 presents 1375 errors 0 scene 3 ladder 1 dropped 0 tick_ms 205170 irqA 12311 heap 57824 faults 0 tasks 4 idle 100219479 monitor 188 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9313 647 1 1 3
+R4TIME 128524 7792549 633009 28933 2085659 1746593 1706685 1754
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1384 presents 1384 errors 0 scene 3 ladder 1 dropped 0 tick_ms 206220 irqA 12374 heap 57824 faults 0 tasks 4 idle 100863658 monitor 189 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9306 648 1 1 3
+R4TIME 126404 7822755 634256 31261 2085700 1747704 1707890 1758
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1393 presents 1393 errors 0 scene 3 ladder 1 dropped 0 tick_ms 207270 irqA 12437 heap 57824 faults 0 tasks 4 idle 101499641 monitor 190 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9253 647 1 1 3
+R4TIME 127356 7820600 639501 30792 2083760 1747171 1708439 1757
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1402 presents 1402 errors 0 scene 3 ladder 1 dropped 0 tick_ms 208320 irqA 12500 heap 57824 faults 0 tasks 4 idle 102123520 monitor 191 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9265 642 1 1 3
+R4TIME 125357 7787153 628866 29018 2089447 1751170 1712182 1763
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1411 presents 1411 errors 0 scene 3 ladder 1 dropped 0 tick_ms 209370 irqA 12563 heap 57824 faults 0 tasks 4 idle 102752390 monitor 192 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1420 presents 1420 errors 0 scene 3 ladder 1 dropped 0 tick_ms 210420 irqA 12626 heap 57824 faults 0 tasks 4 idle 103386302 monitor 193 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9288 645 1 1 3
+R4TIME 126494 7821925 631965 31465 2091357 1752316 1712427 1772
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1429 presents 1429 errors 0 scene 3 ladder 1 dropped 0 tick_ms 211470 irqA 12689 heap 57824 faults 0 tasks 4 idle 104019517 monitor 194 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9285 642 1 1 3
+R4TIME 128061 7769452 636107 29190 2088467 1751899 1712826 1763
+console status v 2 app sh id 7 backend hw fps_milli 8571 frames 1438 presents 1438 errors 0 scene 3 ladder 1 dropped 0 tick_ms 212520 irqA 12752 heap 57824 faults 0 tasks 4 idle 104669587 monitor 195 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 9 9353 642 1 1 3
+R4TIME 125681 7787410 628765 28825 2089948 1752838 1713371 1767
+console status v 2 app sh id 7 backend hw fps_milli 9680 frames 1448 presents 1448 errors 0 scene 3 ladder 1 dropped 0 tick_ms 213553 irqA 12814 heap 57824 faults 0 tasks 4 idle 105415988 monitor 196 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 10 12632 648 1 1 3
+R4TIME 120113 4096618 635430 29762 2090587 1753861 1714041 1777
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1460 presents 1460 errors 0 scene 3 ladder 1 dropped 0 tick_ms 214553 irqA 12874 heap 57824 faults 0 tasks 4 idle 106385296 monitor 197 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14195 648 1 1 3
+R4TIME 81662 4096483 643452 29051 2094704 1755980 1715160 1780
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1472 presents 1472 errors 0 scene 3 ladder 1 dropped 0 tick_ms 215553 irqA 12934 heap 57824 faults 0 tasks 4 idle 107355444 monitor 198 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14226 649 1 1 3
+R4TIME 119873 4136004 636886 36531 2092446 1756857 1717031 1780
+console status v 2 app sh id 7 backend hw fps_milli 11988 frames 1484 presents 1484 errors 0 scene 3 ladder 1 dropped 0 tick_ms 216554 irqA 12994 heap 57824 faults 0 tasks 4 idle 108331188 monitor 199 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 12003 frames 1497 presents 1497 errors 0 scene 3 ladder 1 dropped 0 tick_ms 217637 irqA 13059 heap 57824 faults 0 tasks 4 idle 109374874 monitor 200 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14143 649 1 1 3
+R4TIME 82515 4136576 636500 29299 2096754 1761268 1721031 1787
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1509 presents 1509 errors 0 scene 3 ladder 1 dropped 0 tick_ms 218637 irqA 13119 heap 57824 faults 0 tasks 4 idle 110339435 monitor 201 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14272 642 1 1 3
+R4TIME 93369 3940869 629737 29785 2095046 1757196 1717416 1777
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1521 presents 1521 errors 0 scene 3 ladder 1 dropped 0 tick_ms 219637 irqA 13179 heap 57824 faults 0 tasks 4 idle 111348169 monitor 202 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14539 642 1 1 3
+R4TIME 63124 3946943 631486 29089 2089026 1754725 1715184 1774
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1533 presents 1533 errors 0 scene 3 ladder 1 dropped 0 tick_ms 220637 irqA 13239 heap 57824 faults 0 tasks 4 idle 112395931 monitor 203 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14778 642 1 1 3
+R4TIME 76736 3872172 627387 31797 2091113 1755270 1715861 1770
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1545 presents 1545 errors 0 scene 3 ladder 1 dropped 0 tick_ms 221637 irqA 13299 heap 57824 faults 0 tasks 4 idle 113447155 monitor 204 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1557 presents 1557 errors 0 scene 3 ladder 1 dropped 0 tick_ms 222637 irqA 13359 heap 57824 faults 0 tasks 4 idle 114501263 monitor 205 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14809 640 1 1 3
+R4TIME 52210 3811414 639266 29073 2093960 1756593 1716214 1775
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1569 presents 1569 errors 0 scene 3 ladder 1 dropped 0 tick_ms 223637 irqA 13419 heap 57824 faults 0 tasks 4 idle 115548469 monitor 206 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14714 647 1 1 3
+R4TIME 76628 3921455 632259 29651 2091796 1756995 1716826 1773
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1581 presents 1581 errors 0 scene 3 ladder 1 dropped 0 tick_ms 224637 irqA 13479 heap 57824 faults 0 tasks 4 idle 116582629 monitor 207 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14678 646 1 1 3
+R4TIME 52205 3913301 633726 28663 2091673 1757379 1717802 1770
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1593 presents 1593 errors 0 scene 3 ladder 1 dropped 0 tick_ms 225637 irqA 13539 heap 57824 faults 0 tasks 4 idle 117623663 monitor 208 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14796 646 1 1 3
+R4TIME 76715 3905427 636043 29820 2093116 1758187 1718437 1778
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1605 presents 1605 errors 0 scene 3 ladder 1 dropped 0 tick_ms 226637 irqA 13599 heap 57824 faults 0 tasks 4 idle 118676666 monitor 209 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1617 presents 1617 errors 0 scene 3 ladder 1 dropped 0 tick_ms 227637 irqA 13659 heap 57824 faults 0 tasks 4 idle 119717549 monitor 210 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14711 645 1 1 3
+R4TIME 52284 3894242 631421 31294 2094041 1759038 1719003 1783
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1629 presents 1629 errors 0 scene 3 ladder 1 dropped 0 tick_ms 228637 irqA 13719 heap 57824 faults 0 tasks 4 idle 120757690 monitor 211 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14722 643 1 1 3
+R4TIME 76469 3846464 631285 29789 2094117 1759395 1719872 1784
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1641 presents 1641 errors 0 scene 3 ladder 1 dropped 0 tick_ms 229637 irqA 13779 heap 57824 faults 0 tasks 4 idle 121809960 monitor 212 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14762 643 1 1 3
+R4TIME 52249 3896011 629395 31097 2093368 1759358 1720196 1781
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1653 presents 1653 errors 0 scene 3 ladder 1 dropped 0 tick_ms 230637 irqA 13839 heap 57824 faults 0 tasks 4 idle 122851696 monitor 213 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14712 643 1 1 3
+R4TIME 78202 3894067 641180 29873 2097661 1761174 1721368 1782
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1665 presents 1665 errors 0 scene 3 ladder 1 dropped 0 tick_ms 231637 irqA 13899 heap 57824 faults 0 tasks 4 idle 123892584 monitor 214 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1677 presents 1677 errors 0 scene 3 ladder 1 dropped 0 tick_ms 232637 irqA 13959 heap 57824 faults 0 tasks 4 idle 124945506 monitor 215 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14817 638 1 1 3
+R4TIME 52127 3768760 635293 29005 2098318 1761701 1721646 1778
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1689 presents 1689 errors 0 scene 3 ladder 1 dropped 0 tick_ms 233637 irqA 14019 heap 57824 faults 0 tasks 4 idle 126036471 monitor 216 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14911 640 1 1 3
+R4TIME 76221 3830306 628514 29586 2094783 1761816 1722296 1776
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1701 presents 1701 errors 0 scene 3 ladder 1 dropped 0 tick_ms 234637 irqA 14079 heap 57824 faults 0 tasks 4 idle 127098518 monitor 217 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14868 640 1 1 3
+R4TIME 51965 3821856 636005 29232 2098685 1762890 1723927 1779
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1713 presents 1713 errors 0 scene 3 ladder 1 dropped 0 tick_ms 235637 irqA 14139 heap 57824 faults 0 tasks 4 idle 128165550 monitor 218 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14949 639 1 1 3
+R4TIME 76924 3794862 635084 29648 2099702 1763489 1724295 1779
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1725 presents 1725 errors 0 scene 3 ladder 1 dropped 0 tick_ms 236637 irqA 14199 heap 57824 faults 0 tasks 4 idle 129241023 monitor 219 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1737 presents 1737 errors 0 scene 3 ladder 1 dropped 0 tick_ms 237637 irqA 14259 heap 57824 faults 0 tasks 4 idle 130313592 monitor 220 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14933 639 1 1 3
+R4TIME 52150 3788904 633143 31380 2104936 1763968 1724478 1781
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1749 presents 1749 errors 0 scene 3 ladder 1 dropped 0 tick_ms 238637 irqA 14319 heap 57824 faults 0 tasks 4 idle 131386209 monitor 221 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14938 638 1 1 3
+R4TIME 76332 3770790 633369 31778 2102101 1764370 1725563 1773
+console status v 2 app sh id 7 backend hw fps_milli 12584 frames 1762 presents 1762 errors 0 scene 3 ladder 1 dropped 0 tick_ms 239670 irqA 14381 heap 57824 faults 0 tasks 4 idle 132444679 monitor 222 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 15062 638 1 1 3
+R4TIME 52126 3778016 627721 29862 2103098 1766918 1727038 1781
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1774 presents 1774 errors 0 scene 3 ladder 1 dropped 0 tick_ms 240670 irqA 14441 heap 57824 faults 0 tasks 4 idle 133529084 monitor 223 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14965 638 1 1 3
+R4TIME 76109 3780386 627767 31433 2104230 1767364 1727740 1783
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1786 presents 1786 errors 0 scene 3 ladder 1 dropped 0 tick_ms 241670 irqA 14501 heap 57824 faults 0 tasks 4 idle 134611261 monitor 224 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1798 presents 1798 errors 0 scene 3 ladder 1 dropped 0 tick_ms 242670 irqA 14561 heap 57824 faults 0 tasks 4 idle 135670841 monitor 225 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 12 14792 638 1 1 3
+R4TIME 75623 3884971 633535 31012 2101948 1768104 1728915 1787
+console status v 2 app sh id 7 backend hw fps_milli 12000 frames 1810 presents 1810 errors 0 scene 3 ladder 1 dropped 0 tick_ms 243670 irqA 14621 heap 57824 faults 0 tasks 4 idle 136693820 monitor 226 health 0 stack_free 54420 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4PERF 1783 13664979 14411912 14507247 1783 0 1783 13917 1783
+r4 leave frames/late 1814 1814
+R4HEALTH 18327 347 0 0 0
+console complete app sh id 7 frames 1814 presents 1814 errors 0
+console leave sh
+console enter menu
+menu crc 6cc9cabd sel 0
+console menu index 0 id 1 count 7
+
+# collector complete=True

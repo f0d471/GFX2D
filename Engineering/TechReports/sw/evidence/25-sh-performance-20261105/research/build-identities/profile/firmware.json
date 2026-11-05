@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "profile": "full",
+  "catalog_sha256": "63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370",
+  "compiler": "riscv-none-elf-gcc (xPack GNU RISC-V Embedded GCC x86_64) 13.4.0",
+  "command": [
+    "make",
+    "-C",
+    "<REPO>/Main/sw/apps/console",
+    "-j4",
+    "PLATFORM=target",
+    "APP_PROFILE=full",
+    "OBJDIR=../../../sim/build/sw21-board-audit/profile",
+    "RISCV_BIN=<RISCV_BIN>"
+  ],
+  "source_commit": "0f96b281795412badd74e0ca3c2af329b1dda958",
+  "source_dirty": true,
+  "files": {
+    "console-O2-perf.bin": {
+      "bytes": 417746,
+      "sha256": "21b2ce9abf8fd0b78067c14eda13ad14f4b8abb3cf041a661cbf21d681d98f61"
+    },
+    "console-O2-perf.elf": {
+      "bytes": 2194056,
+      "sha256": "a07a8d562c216d74f75dc371629ed237d933aeeaa47da6d5bf72fb62ef7fb681"
+    },
+    "console-O2-perf.map": {
+      "bytes": 855721,
+      "sha256": "c4a3e4581f5d4102afd5c828a3de469affb2f0579e50c7cba0cb00941247dfb4"
+    }
+  },
+  "assets": {
+    "bytes": 4134720,
+    "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52"
+  },
+  "memory": {
+    "text": 373636,
+    "data": 43962,
+    "bss": 3428992,
+    "limit": 4190208
+  },
+  "image_limit_bytes": 524288,
+  "three_d_symbols": 64,
+  "scope": "build and budget inspection; not board acceptance"
+}

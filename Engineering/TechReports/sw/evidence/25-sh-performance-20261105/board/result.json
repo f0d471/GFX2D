@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "sh-board"
+  ],
+  "run_id": "20261105-183702-b1d75883"
+}

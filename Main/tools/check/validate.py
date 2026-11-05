@@ -34,11 +34,15 @@ add('r4',[sys.executable,P+'check_r4.py'],
 add('flight',[sys.executable,P+'check_flight.py'],
     '滑翔RFL3控制/世界锚定/网格/预热/冻结参考与像素/四区/宽屏/64与32位/变异',['pack'],timeout=1800)
 add('sh',[sys.executable,P+'check_sh.py'],
-    '凝时无限补员/无敌/装填/连续碰撞/连续人体网格/容量与分桶/确定性/64与32位/真实PC',['pack'],timeout=900)
+    '凝时玩法/33姿态切面网格/精确单色setup/容量与分桶/确定性/64与32位/真实PC',['pack'],timeout=900)
+add('sh-board',[sys.executable,P+'check_sh_board.py'],
+    '凝时B7双帧与贴墙开火装填像素/独立武器深度/注错/双实帧窗口/健康；不写Flash',timeout=2400)
 add('flight-board',[sys.executable,P+'check_flight_board.py'],
     '滑翔B7像素对照/实际RTOS双1800帧30Hz节拍/输入/预热（Windows）',timeout=2400)
 add('flight-consumers',[sys.executable,P+'check_r4.py','--reuse-flight-models'],
     'SW19冻结模型的R4三场景消费者/记录与像素/32与64位；不验收模型重生成',['pack'],timeout=3600)
+add('r4-current-consumers',[sys.executable,P+'check_r4.py','--reuse-current-model'],
+    '当前已提交R4模型的消费者/记录与像素/32与64位；模型改动拒收，不验重生成',['pack'],timeout=3600)
 add('r4-board',[sys.executable,P+'check_r4_board.py'],
     'R4 B7 三场景CRC、板上SW/HW、注错、模式往返与60秒两场节拍',timeout=3600)
 add('r4-frozen-board',[sys.executable,P+'check_r4_board.py','--frozen-release',
@@ -157,7 +161,8 @@ for name,item in CHECKS.items():
                 P+'check_r3.py',P+'r3_vectors.py',P+'check_rast.py',P+'rast_model.py',
                 P+'feature_build.py',P+'feature_config.py',P+'regs_gen.py']
     elif name=='sh':inputs=SOFTWARE+['Main/sim/engine/sh/**']
-    elif name in ('flight','flight-consumers'):inputs=SOFTWARE+['Main/sim/engine/flight/**','Main/sim/engine/r4/**']
+    elif name=='sh-board':inputs=SOFTWARE+['Main/sim/engine/sh/**','Main/bit/snapshots/B7/**']
+    elif name in ('flight','flight-consumers','r4-current-consumers'):inputs=SOFTWARE+['Main/sim/engine/flight/**','Main/sim/engine/r4/**']
     elif name=='flight-board':inputs=SOFTWARE+['Main/sim/engine/flight/**','Main/bit/snapshots/B7/**']
     elif name=='ddr-log':inputs=[P+'check_f5_bin.py','Main/sw/bsp/include/board_ddr_log.h','Main/sim/engine/frontend/test_ddr_log.c']
     elif name.startswith('feature-'):

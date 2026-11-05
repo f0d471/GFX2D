@@ -1,0 +1,50 @@
+{
+  "config": "B7",
+  "caps": "0x0000D46F",
+  "synthesis_mode": "speed2",
+  "source_commit": "56c6ae0262e7ebd46a1117957f7c33d2d2d3582d",
+  "source_dirty": false,
+  "validated_by": [
+    "check-runs/ppa-after4"
+  ],
+  "xlr": 59551,
+  "ram": 187,
+  "dsp": 26,
+  "setup_core_clk_ns": 0.706,
+  "hold_core_clk_ns": 0.027,
+  "bit_sha256": "4703e94ccd6746eb0fb774f4b1bf005fbeb9b2ee783e751b98c4fd40291d38b9",
+  "bit_bytes": 2765409,
+  "date": "2026-10-29T05:34:04+08:00",
+  "note": "RA1/RA2 后首个B7;板测r4-board三场景CRC PASS(run ppa-board)",
+  "bin": "console-O2-perf.bin",
+  "bin_sha256": "2dbe8633e902040163c23673bcd646621a20251e95e9c81d368f42fad0d058e7",
+  "bin_bytes": 282614,
+  "bin_verified_by": "verification.json; 2026-11-02 Flash boot + UART app checks PASS on B7; quick software sweep 16 PASS (5 stale-expectation reds listed); r4 corridor cadence about 20 FPS is a known pre-existing issue",
+  "content": {
+    "file": "content.json",
+    "sha256": "df871aceb7fadb286e71403401ec90fa7120a9197c702b91bdc2716872f04f86",
+    "profile": "full",
+    "catalog_sha256": "160622d8a46b6b6ff3702467e2fc94ed9e54520369c419c4a4c1443685020130",
+    "content_ids": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "firmware": {
+    "file": "firmware.json",
+    "sha256": "0140db618a03808a1d17bd142a5e9ea68334bb0ad2b4c9dd29f36cddf8af7b91"
+  },
+  "verification": {
+    "file": "verification.json",
+    "sha256": "c312071847828d9a94b7de3760718f21e604f71539bdec580b18848eaed7d969"
+  },
+  "assets": {
+    "file": "assets.pak",
+    "sha256": "f6a284637a4bbc0133028245cb8ff62dffaac633e1fde6c9db0ae89c70658a52",
+    "bytes": 4134720,
+    "crc32": "a8624648"
+  }
+}

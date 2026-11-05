@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """R4 scene 64/32/sanitizer, deterministic full-frame host references and collectors (cup scene removed 2026-11-02)."""
-import argparse,hashlib,json,os,sys
+import argparse,hashlib,json,os,sys,subprocess
 from check_run import ROOT,session,command,write_json
 from r4_checks import build,flags,frames,compare
 
-def main(reuse_flight_models=False):
+def committed_model(actual,committed):
+    if actual!=committed:raise RuntimeError('current consumer model differs from committed production model')
+    return hashlib.sha256(actual).hexdigest()
+
+
+def main(reuse_flight_models=False,reuse_current_model=False):
     current=session();logs=current.logs('r4');out=current.build('r4-models')
     if os.name=='nt':raise RuntimeError('r4 host check uses WSL')
     sources=['Main/sim/engine/r4/test_scene.c',
@@ -71,7 +76,21 @@ def main(reuse_flight_models=False):
     for name,rows in results.items():
         if len({r['records'] for r in rows})<len(rows)//2:raise RuntimeError('frozen geometry '+name)
     command([sys.executable,'Main/tools/assets/gen_r4_atlas.py','--check'],logs/'atlas.log')
-    if reuse_flight_models:
+    if reuse_current_model:
+        model=ROOT/'Main/sw/apps/game/gfx2dGame/src/r4_models.h'
+        committed=subprocess.check_output(['git','-c','safe.directory='+ROOT.as_posix(),
+            'show','HEAD:Main/sw/apps/game/gfx2dGame/src/r4_models.h'],cwd=ROOT)
+        actual=committed_model(model.read_bytes(),committed)
+        damaged=bytearray(committed);damaged[len(damaged)//2]^=1
+        try:committed_model(bytes(damaged),committed)
+        except RuntimeError:pass
+        else:raise RuntimeError('changed production-model identity escaped')
+        current.artifact(model)
+        write_json(logs/'models.json',dict(status='PASS',sha256=actual,
+            scope='unchanged committed production model, current runtime consumers',
+            mutation='EXPECTED_RED changed model bytes',
+            regeneration='NOT_APPLICABLE: no model or generator adoption'))
+    elif reuse_flight_models:
         # SW19 does not adopt another mesh. The production mesh is OBJ-based;
         # its frozen identity replaces the obsolete procedural generator here.
         baseline=json.loads((ROOT/'Main/sim/engine/flight/baseline.json').read_text(encoding='utf-8-sig'))
@@ -83,7 +102,6 @@ def main(reuse_flight_models=False):
             regeneration='NOT_APPLICABLE: model/generator adoption is outside SW19'))
     else:
         command([sys.executable,'Main/tools/assets/gen_r4_models.py','--check'],logs/'models.log')
-    import subprocess
     p=subprocess.run([sys.executable,'Main/tools/assets/gen_r4_atlas.py','--check','--inject'],
                      capture_output=True,text=True,cwd=ROOT)
     (logs/'atlas-injection.log').write_text(p.stdout+p.stderr,encoding='utf-8')
@@ -102,11 +120,14 @@ def main(reuse_flight_models=False):
     write_json(logs/'result.json',dict(status='PASS',profile=current.profile,
         frames_per_scene={k:len(v) for k,v in results.items()},scenes=list(results),unit=bodies[0].strip(),
         scope='host and shared scene semantics; physical board uses r4-board',
-        model_scope='frozen SW19 identity, no asset regeneration' if reuse_flight_models else 'generator check'))
+        model_scope='current committed production model; no regeneration' if reuse_current_model else
+            'frozen SW19 identity, no asset regeneration' if reuse_flight_models else 'generator check'))
     print('R4 HOST PASS scenes=2 frames='+str(count),flush=True)
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--reuse-flight-models',action='store_true')
+    parser.add_argument('--reuse-current-model',action='store_true')
     args,_=parser.parse_known_args()
-    main(args.reuse_flight_models)
+    if args.reuse_flight_models and args.reuse_current_model:parser.error('choose one model scope')
+    main(args.reuse_flight_models,args.reuse_current_model)

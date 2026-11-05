@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "frames_per_scene": {
+    "l1": 60,
+    "l2": 240
+  },
+  "scenes": [
+    "l1",
+    "l2"
+  ],
+  "unit": "R4 PROJECTION PASS 50000 generic/optimized triangles\nR4 GAMEPLAY PASS ship-plane hit, no gate wall, enemy hit, bomb edge\nR4 GATES REMOVED PASS gate data emits no geometry\nR4 SCENE PASS ticks=2000 peak=238 crc=591840a9",
+  "scope": "host and shared scene semantics; physical board uses r4-board",
+  "model_scope": "current committed production model; no regeneration"
+}

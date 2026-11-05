@@ -7,13 +7,14 @@ from check_run import ROOT, session, command, write_json
 
 def main():
     current=session();logs=current.logs('sh');out=current.build('sh')
+    command(['python3',ROOT/'Main/tools/assets/gen_sh_mesh.py','--check'],logs/'mesh-generator.log')
     base=['gcc','-std=gnu11','-O2','-g','-Wall','-Wextra','-Werror']
     for path in ['Main/sw/lib','Main/sw/api','Main/sw/bsp/include','Main/sw/services/gfx',
                  'Main/sw/apps/game/gfx2dGame/src']:
         base+=['-I'+str(ROOT/path)]
     sources=['Main/sim/engine/sh/test_sh.c','Main/sw/lib/core/fixmath.c',
              'Main/sw/lib/core/sin_tab.c','Main/sw/lib/core/xorshift32.c','Main/sw/lib/gfx/rast_setup.c',
-             'Main/sw/lib/gfx/rast_ref.c']
+             'Main/sw/lib/gfx/rast_ref.c','Main/sw/apps/game/gfx2dGame/src/r4_geometry.c']
     expected=None
     for name,flags in [('64',['-fsanitize=address,undefined','-fno-sanitize-recover=all']),('32',['-m32'])]:
         exe=out/('sh-'+name)
@@ -21,6 +22,11 @@ def main():
         result=command([exe],logs/(name+'.log'),timeout=120)
         if expected is not None and result!=expected:raise RuntimeError('SH 32/64 mismatch')
         expected=result
+    exe=out/'sh-generic'
+    command([*base,'-DSH_DISABLE_VERTEX_CACHE=1','-DSH_DISABLE_SCENE_CACHE=1',*sources,'-o',exe],logs/'generic.build.log')
+    generic=command([exe],logs/'generic.log',timeout=120)
+    geometry=lambda body:next(line for line in body.splitlines() if line.startswith('SH GEOMETRY PASS'))
+    if geometry(generic)!=geometry(expected):raise RuntimeError('SH cache changed record bytes versus generic path')
     # Reintroduce the inherited 32m spawn regression: the actual gameplay test must fail.
     original=(ROOT/'Main/sw/apps/game/gfx2dGame/src/sh_scene.c').read_text()
     anchor='int32_t x=pos[k][0]*SH_ONE/10,z=pos[k][1]*SH_ONE/10;'
@@ -29,6 +35,12 @@ def main():
         'outside-spawn':(anchor,'int32_t x=pos[k][0]*SH_ONE,z=pos[k][1]*SH_ONE/10;'),
         'vulnerable':('++s_hits;s_shield=1;','++s_hits;s_shield=0;'),
         'finite-spawn':('if(alive<SH_ENEMY_MAX){','if(0 && alive<SH_ENEMY_MAX){'),
+        'zero-normal':('uint32_t maximum=0;','v[0]=v[1]=v[2]=0;return;uint32_t maximum=0;'),
+        'stale-camera':('s_room_cache.yaw==s_yaw','1'),
+        'facet-gradient':('screen[j].color=color;inside&=t->inside;',
+                          'screen[j].color=color+j*0x010101u;inside&=t->inside;'),
+        'negative-half':('q+=n<0?r>d/2u:r>=(d+1u)/2u;',
+                         'q+=r>=(d+1u)/2u;'),
     }
     for name,(before,after) in mutations.items():
         if before not in original:raise RuntimeError('mutation anchor missing: '+name)
@@ -51,6 +63,11 @@ def main():
         raise RuntimeError('actual console SH / corridor / SH smoke incomplete')
     from console_checks import clean,catalog
     clean(body);catalog(body)
+    active=command([host/'console-perf','--app','sh','--frames','720','--input-script',
+        '0:17,90:24,180:18,270:20,360:17,450:24,540:18,630:20'],
+        logs/'active.log',env={**env,'GFX2D_SNAPSHOT':'140,260,500'},timeout=240)
+    clean(active)
+    if 'frames 720 presents 720 errors 0' not in active:raise RuntimeError('continuous SH move/fire runtime failed')
     # Exercise the actual runtime's viewmodel depth reset at the inherited white-wall pose.
     wall=logs/'wall';wall.mkdir(exist_ok=True)
     wall_env={**env,'GFX2D_SNAPSHOT':'230','GFX2D_SNAPSHOT_DIR':str(wall)}
@@ -66,7 +83,11 @@ def main():
     current.verify()
     write_json(logs/'result.json',dict(status='PASS',checks=['production gameplay','64/32 parity',
         'ASan/UBSan','endless 9000 ticks','invincible sustained hits','automatic and manual reload',
-        'world-time fragments','2048 host-owned records and bins','viewport padding','determinism',
+        'world-time fragments','30Hz elapsed-clock batches','unit normals and tiny vectors',
+        '50000 exact projection divisions','100000 signed depth divisions and half ties',
+        '10000 byte-identical flat triangles','33 baked faceted poses and flat RGB',
+        'generic/cache record byte equality','cache arena guards',
+        '2048 records and bins','viewport padding','determinism',
         'actual console SH smoke','actual near-wall viewmodel pixels'],mutation=['EXPECTED_RED '+name for name in mutations],
         scope='PC software; no FPGA timing or hardware overlay claim'))
     print('SH PASS')

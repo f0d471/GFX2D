@@ -10,8 +10,10 @@
 *         阶梯：L1=平涂（TEX_EN=0,VCOLOR_EN=1），L2=TEX 仿射（含色键 billboard）。
 *         两者同一位流（B7）上切换，不重综合。
 *
-*         内存：模式 4 独占 SHARED 内三个固定窗口（渲染槽 0x600000/192KiB、
-*         子表 SHARED+0x30000/128KiB、软件 z 条带 SHARED+0x50000/32KiB），与 renderer 的
+*         内存：模式 4 独占 SHARED 内三个固定窗口（渲染槽 0x600000/256KiB、
+*         子表 SHARED+0x40000/128KiB、软件 z 条带 SHARED+0x60000/32KiB）；凝时
+*         凝时另用SHARED+0x68000/64KiB武器子表、0x100000/1MiB记录缓存、
+*         0x200000/2MiB世界中间表面（槽3），世界/武器独立深度；与 renderer 的
 *         实例/分桶 arena（0x400000 起）与背景命令表
 *         （0x800000 起）互不重叠；mode_enter 前框架已做 frontend_game_reset
 *         （在途非零即拒绝进入）。

@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "checks": [
+    "production gameplay",
+    "64/32 parity",
+    "ASan/UBSan",
+    "endless 9000 ticks",
+    "invincible sustained hits",
+    "automatic and manual reload",
+    "world-time fragments",
+    "30Hz elapsed-clock batches",
+    "unit normals and tiny vectors",
+    "50000 exact projection divisions",
+    "generic/cache record byte equality",
+    "cache arena guards",
+    "2048 records and bins",
+    "viewport padding",
+    "determinism",
+    "actual console SH smoke",
+    "actual near-wall viewmodel pixels"
+  ],
+  "mutation": [
+    "EXPECTED_RED outside-spawn",
+    "EXPECTED_RED vulnerable",
+    "EXPECTED_RED finite-spawn",
+    "EXPECTED_RED zero-normal",
+    "EXPECTED_RED stale-camera"
+  ],
+  "scope": "PC software; no FPGA timing or hardware overlay claim"
+}

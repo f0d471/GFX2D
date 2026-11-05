@@ -10,13 +10,14 @@
 *         在目标场前一场发 present 请求；晚到不重置锚点，由 R4CAD 行如实记录。
 *
 *         HUD 走每带 32KiB 槽的旧 2D 命令（字库来自 DDR 表面），世界只走 RAST；
-*         整帧只提交一次，不在完成后另发一张 2D 表。
+*         走廊/滑翔整帧一次提交；凝时依次绘制世界中间面、独立深度武器和HUD。
 ******************************************************************************/
 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "board.h"
 
@@ -44,16 +45,23 @@
 #include "gfx_regs.h"
 #endif
 
-/* --- 模式 4 独占的共享内存窗口（见 r4.h 内存注释） -------------------------
-   凝时(SW21)满池实测峰值 1279 条记录(宿主 900 帧扫),512 条主表是走廊/山脊
-   时代的预算,不够它用。共享池 10MiB,三个缓冲一起扩:主表 1536 条(192KiB)、
-   bin 128KiB、深度 32KiB,合计 320KiB,仍在 2D arena(0x400000 起)之前。 */
-#define R4_REC_OFF      0x00000000u     /* 主表 192KiB（1536 条 128B） */
-#define R4_SUB_OFF      0x00030000u
-#define R4_DEPTH_OFF    0x00050000u
+/* Shared windows: 256KiB records + 128KiB bins + 32KiB strip depth.
+   SH's exact weapon-pose cache is leased below the 2D arena at offset 4MiB. */
+#define R4_REC_OFF      0x00000000u     /* 2048 x 128B */
+#define R4_SUB_OFF      0x00040000u
+#define R4_DEPTH_OFF    0x00060000u
 
-#define R4_REC_MAX      (196608u / RAST_RECORD_BYTES)
+#define R4_REC_MAX      (262144u / RAST_RECORD_BYTES)
 #define R4_SUB_CAP      131072u
+#define R4_SH_CACHE_OFF 0x00100000u
+#define R4_SH_GUN_SUB_OFF 0x00068000u
+#define R4_SH_GUN_SUB_CAP 65536u
+#define R4_SH_WORLD_OFF 0x00200000u
+#define R4_SH_WORLD_SLOT 3u
+_Static_assert(R4_DEPTH_OFF+32768u<=R4_SH_GUN_SUB_OFF,"SH depth/bin overlap");
+_Static_assert(R4_SH_GUN_SUB_OFF+R4_SH_GUN_SUB_CAP<=R4_SH_CACHE_OFF,"SH bin/cache overlap");
+_Static_assert(R4_SH_CACHE_OFF+SH_CACHE_BYTES<=R4_SH_WORLD_OFF,"SH cache/world overlap");
+_Static_assert(R4_SH_WORLD_OFF+FB_BYTES<=0x00400000u,"SH world/2D arena overlap");
 #ifndef R4_HUD_TEXT
 #define R4_HUD_TEXT 1
 #endif
@@ -81,6 +89,8 @@ static unsigned s_canvas_depth_stride;
 static rast_record s_sh_records[SH_PC_RECORD_CAP];
 #endif
 static uint32_t s_record_capacity=R4_REC_MAX;
+static uint32_t s_sh_previous_ms;
+static uint32_t s_sh_world_count,s_sh_gun_bytes;
 static rast_record *s_rec;
 static uint8_t     *s_sub;
 static uint16_t    *s_depth;
@@ -183,6 +193,7 @@ static uint32_t cycles_to_ms16(uint32_t cycles)
 
     return (v > 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)v;
 }
+
 #endif  /* !R4_HUD_NONE */
 
 /* --- HUD：右栏 160 像素，每逻辑行恰占一个 16 像素条带 ----------------------- */
@@ -400,6 +411,48 @@ static uint32_t hud_build_strips(gfx_surface_table *tab,int dst,uint32_t *list)
     strcpy(previous_active[fb],active);
     return bad;
 }
+#ifdef __riscv
+/* SH's PC overlay cannot be written by the CPU while the GPU owns the frame.
+ * Build the target HUD into the existing per-strip 2D phase instead. */
+static uint32_t sh_hud_build(gfx_surface_table *tab,int dst,uint32_t *list)
+{
+    const stg_font font={STG_SLOT_FONT,ASSET_FONT8X16_CELL_W,ASSET_FONT8X16_CELL_H,
+        ASSET_FONT8X16_COLS,0x20u,ASSET_FONT8X16_CELLS,0};
+    static char previous[2][30][80];static unsigned previous_bar[2];
+    uint32_t state[4],bad=0;sh_hud_read(state);
+    unsigned fb=(unsigned)(dst-STG_SLOT_FB0),bar=state[3]*132u/65536u;
+    for(unsigned strip=0;strip<30;++strip) {
+        if(strip>2 && strip!=14 && strip!=15 && strip<28){list[strip]=0;continue;}
+        char text[80]="";
+        if(strip==0)snprintf(text,sizeof text,"HALTTIME  KILLS %u   AMMO %u  %s",(unsigned)state[0],(unsigned)state[1],state[2]?"RELOADING":"READY");
+        if(strip==1)strcpy(text,"INVINCIBLE / ENDLESS  -  AUTO RELOAD");
+        if(strip==2)snprintf(text,sizeof text,"TIME %u.%02u",(unsigned)(state[3]/65536u),(unsigned)((state[3]*100u/65536u)%100u));
+        if(strip==28)strcpy(text,"UP/DOWN MOVE  LEFT/RIGHT TURN  SPACE FIRE");
+        if(strip==29)strcpy(text,"6 HALTTIME    ESC MENU    STOP TO SLOW TIME");
+        if(s_hud_valid[fb][strip] && !strcmp(previous[fb][strip],text) &&
+           (strip!=2 || previous_bar[fb]==bar)){list[strip]=s_hud_count[fb][strip];continue;}
+        gfx_list l;gfx_list_begin(&l,(gfx_cmd *)(void *)((uint8_t *)list+(strip+1u)*32768u),1016,tab);
+        if(strip<3 || strip>=28) {
+            bad+=gfx_fill(&l,dst,(gfx_rect){0,0,639,15},0x00242a32u,GFX_EQ_COPY,0)!=0;
+            bad+=stg_text_draw(&l,&font,dst,12,0,text,NULL)!=0;
+        }
+        if(strip==2) {
+            bad+=gfx_fill(&l,dst,(gfx_rect){160,5,291,9},0x00545c68u,GFX_EQ_COPY,0)!=0;
+            if(bar)bad+=gfx_fill(&l,dst,(gfx_rect){160,5,159+(int)bar,9},0x00e04028u,GFX_EQ_COPY,0)!=0;
+        }
+        if(strip==14 || strip==15) {
+            int offset=strip==14?14:0;
+            bad+=gfx_fill(&l,dst,(gfx_rect){319,offset,321,strip==14?15:6},0x00242a32u,GFX_EQ_COPY,0)!=0;
+            if(strip==15)bad+=gfx_fill(&l,dst,(gfx_rect){314,0,326,2},0x00242a32u,GFX_EQ_COPY,0)!=0;
+            bad+=gfx_fill(&l,dst,(gfx_rect){320,offset,320,strip==14?15:5},0x00ffffffu,GFX_EQ_COPY,0)!=0;
+            if(strip==15)bad+=gfx_fill(&l,dst,(gfx_rect){315,1,325,1},0x00ffffffu,GFX_EQ_COPY,0)!=0;
+        }
+        bad+=gfx_list_end(&l)!=0;list[strip]=l.used-1u;
+        strcpy(previous[fb][strip],text);s_hud_valid[fb][strip]=1;s_hud_count[fb][strip]=list[strip];
+    }
+    previous_bar[fb]=bar;return bad;
+}
+#endif
 #endif  /* !R4_HUD_NONE */
 
 /* --- 背景与帧 CRC ----------------------------------------------------------- */
@@ -709,6 +762,22 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     s_world.ladder=s_ladder;
     s_world.scene=s_scene;
     if(s_scene==2u)r4_scene2_fix_gates(&s_world);
+    if(s_scene==3u)sh_profile_clock(board_cycles);
+    if(s_scene==3u) {
+        if(board_region(REGION_SHARED).size<R4_SH_WORLD_OFF+FB_BYTES){++s_fail;return -1;}
+        sh_world_cache_bind((uint8_t *)board_region(REGION_SHARED).ptr+R4_SH_CACHE_OFF,SH_CACHE_BYTES);
+        /* A private intermediate surface permits two independent Z passes without
+           source/destination aliasing or touching the display's front buffer. */
+        gfx_surface surface={0};
+        surface.width=FB_WIDTH;surface.height=FB_HEIGHT;surface.stride_log2=FB_STRIDE_LOG2;
+        surface.space=GFX_SPACE_DDR;surface.format=GFX_FMT_XRGB8888;
+        surface.base=g_mem_regions[REGION_SHARED].offset+R4_SH_WORLD_OFF;
+        if(gfx_surface_set(tab,R4_SH_WORLD_SLOT,&surface)!=GFX_OK){++s_fail;return -1;}
+#ifdef __riscv
+        if(s_hw && gfx_engine_surf_set_space(R4_SH_WORLD_SLOT,surface.base,FB_WIDTH,FB_HEIGHT,
+            FB_STRIDE_LOG2,GFX_SPACE_DDR,GFX_FMT_XRGB8888)!=GFX_ENG_OK){++s_fail;return -1;}
+#endif
+    }
     if(s_scene==3u)sh_world_init(s_replay_on?s_replay.seed:R4_SEED);
     s_rec = (rast_record *)(void *)((uint8_t *)board_region(REGION_SHARED).ptr + R4_REC_OFF);
     s_record_capacity=R4_REC_MAX;
@@ -759,12 +828,14 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
 
 void r4_timing_start(void)
 {
+    s_sh_previous_ms=(uint32_t)board_time_ms();
     s_anchor = board_frame_count();
     s_fps_start=board_cycles();s_swaps0=board_swap_count();
 }
 
 void r4_mode_leave(void)
 {
+    if(s_scene==3u)sh_world_cache_bind(NULL,0);
     if(s_scene==2u)r4_flight_cache_reset();
 #ifndef __riscv
     free(s_canvas_depth);
@@ -842,25 +913,25 @@ static void r4_register_surfaces(gfx_surface_table *tab)
     }
 }
 
-static int submit_hw(gfx_surface_table *tab, int dst_slot, int fb_index,
-                     uint32_t bytes, uint32_t count, uint32_t *crc_out)
+static int submit_hw_part(gfx_surface_table *tab,int dst_slot,uint32_t bg,uint32_t list,
+                          uint32_t first,uint32_t sub_off,uint32_t sub_cap,
+                          uint32_t bytes,uint32_t count,uint32_t *cycles_out)
 {
     gfx_engine_raster p;
     uint32_t code = ~0u, index = 0u, tag = 0u, id = 0u, caps = 0u;
     uint32_t cycles = 0u, refs = 0u;
     const uint32_t shared = g_mem_regions[REGION_SHARED].offset;
 
-    p.tri_base = shared + R4_REC_OFF;
-    p.tri_alloc = R4_REC_MAX * RAST_RECORD_BYTES;
-    p.sub_base = shared + R4_SUB_OFF;
-    p.sub_alloc = R4_SUB_CAP;
+    p.tri_base = shared + R4_REC_OFF + first*RAST_RECORD_BYTES;
+    p.tri_alloc = count * RAST_RECORD_BYTES;
+    p.sub_base = shared + sub_off;
+    p.sub_alloc = sub_cap;
     p.sub_bytes = bytes;
     p.tri_count = count;
     p.ras_key = 0x00000000u;                    /* atlas 透明色 = 全 0 */
     p.texcfg = 0u;
     {
-        const int sr = gfx_engine_submit_raster(s_hud_device,
-                                                R4_SLOT_BG, (uint32_t)dst_slot, &p);
+        const int sr = gfx_engine_submit_raster(list,bg,(uint32_t)dst_slot,&p);
 
         if (sr != GFX_ENG_OK) {
 #ifdef __riscv
@@ -887,8 +958,31 @@ static int submit_hw(gfx_surface_table *tab, int dst_slot, int fb_index,
     if (gfx_engine_raster_info(&id, &caps, &cycles, &refs) != 0 ||
         refs != (bytes - 120u) / 2u)
         return -1;
-    s_rast_cyc = cycles;
-    s_out.rast_cycles = cycles;
+    *cycles_out=cycles;
+    return 0;
+}
+
+static int submit_hw(gfx_surface_table *tab,int dst_slot,int fb_index,
+                     uint32_t bytes,uint32_t count,uint32_t *crc_out)
+{
+    uint32_t world_cycles=0,gun_cycles=0;
+    if(s_scene==3u && !s_sh_world_count) {
+        if(submit_hw_part(tab,dst_slot,R4_SLOT_BG,s_hud_device,0,R4_SH_GUN_SUB_OFF,
+            R4_SH_GUN_SUB_CAP,s_sh_gun_bytes,count,&gun_cycles))return -1;
+    } else if(s_scene==3u && s_sh_world_count==count) {
+        if(submit_hw_part(tab,dst_slot,R4_SLOT_BG,s_hud_device,0,R4_SUB_OFF,R4_SUB_CAP,
+            bytes,count,&world_cycles))return -1;
+    } else if(s_scene==3u) {
+        const unsigned empty_region=fb_index?REGION_CMDLIST_A:REGION_CMDLIST_B;
+        memset(board_region(empty_region).ptr,0,R4_HUD_ROWS*sizeof(uint32_t));
+        if(submit_hw_part(tab,R4_SH_WORLD_SLOT,R4_SLOT_BG,g_mem_regions[empty_region].offset,
+             0,R4_SUB_OFF,R4_SUB_CAP,bytes,s_sh_world_count,&world_cycles) ||
+           submit_hw_part(tab,dst_slot,R4_SH_WORLD_SLOT,s_hud_device,s_sh_world_count,
+             R4_SH_GUN_SUB_OFF,R4_SH_GUN_SUB_CAP,s_sh_gun_bytes,count-s_sh_world_count,&gun_cycles))
+            return -1;
+    } else if(submit_hw_part(tab,dst_slot,R4_SLOT_BG,s_hud_device,0,R4_SUB_OFF,R4_SUB_CAP,
+                             bytes,count,&world_cycles))return -1;
+    s_rast_cyc=world_cycles+gun_cycles;s_out.rast_cycles=s_rast_cyc;
     *crc_out = 0u;
     (void)fb_index;
     return 0;
@@ -995,7 +1089,11 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
             if(rast_ref_run_frame(s_rec+weapon,count-weapon,&t,&s_raster_frame)!=0)return -1;
         }
     }
-    if(s_scene==0u)for (s = 0u; s < 30u; s++) {
+    if(s_scene==0u
+#ifdef __riscv
+       || s_scene==3u
+#endif
+    )for (s = 0u; s < 30u; s++) {
         /* HUD 命令是条带局部 y：软件路径把目的表面基址平移到本条带首行，
            引擎的 BAND 相位则由硬件把局部 y 落进对应条带——两路同语义。
            山脊滑翔无 HUD（用户定案），整段跳过。 */
@@ -1011,7 +1109,9 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     if(wide && s_scene==0u)for(unsigned y=0;y<FB_HEIGHT;++y)
         memcpy(s_frame.pixels+(size_t)y*s_frame.stride+s_frame.width-160u,
                fb+(size_t)y*FB_ROW_PIXELS+R4_WORLD_WIDTH,160u*sizeof(uint32_t));
+#ifndef __riscv
     if(s_scene==3u)sh_world_overlay(s_frame.pixels,s_frame.width,FB_HEIGHT,s_frame.stride);
+#endif
     *crc_out = 0u;
     return 0;
 }
@@ -1038,7 +1138,14 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     /* 1) 逻辑 tick（30Hz，确定性）。 */
     t_seg = board_cycles();
     if(s_replay_on && replay_r4_key_at(&s_replay,s_out.frames,&keys)) {++s_fail;return -1;}
-    if(s_scene==3u)sh_world_tick(keys,&s_fail);else
+    if(s_scene==3u) {
+#if defined(__riscv) && !GFX2D_R4_JUDGE
+        uint32_t now=(uint32_t)board_time_ms();
+        sh_world_advance(keys,now-s_sh_previous_ms,&s_fail);s_sh_previous_ms=now;
+#else
+        sh_world_tick(keys,&s_fail);
+#endif
+    } else
     r4_world_tick(&s_world, keys, &s_fail);
     if(s_scene==2u) {
         /* User-selected 32 rows per 30Hz frame: approximately 0.5s wipe. */
@@ -1071,8 +1178,17 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
         return -1;
     }
     t_seg = board_cycles();
-    const int bin_bytes=rast_bin_frame(s_rec,produced,s_sub,R4_SUB_CAP,&s_raster_frame);
+    s_sh_world_count=s_scene==3u?sh_world_weapon_start():produced;
+    const int bin_bytes=rast_bin_frame(s_rec,s_sh_world_count,s_sub,R4_SUB_CAP,&s_raster_frame);
     bytes=bin_bytes>0?(uint32_t)bin_bytes:0u;
+    s_sh_gun_bytes=0;
+    if(s_scene==3u && s_sh_world_count<produced) {
+        uint8_t *gun_sub=(uint8_t *)board_region(REGION_SHARED).ptr+R4_SH_GUN_SUB_OFF;
+        int gun_bytes=rast_bin_frame(s_rec+s_sh_world_count,produced-s_sh_world_count,
+                                    gun_sub,R4_SH_GUN_SUB_CAP,&s_raster_frame);
+        if(gun_bytes<120){++s_fail;return -1;}
+        s_sh_gun_bytes=(uint32_t)gun_bytes;
+    } else if(s_scene==3u && s_sh_world_count>produced){++s_fail;return -1;}
     s_out.cyc_bin = board_cycles() - t_seg;
     if (bytes < 120u) {
         s_fail++;
@@ -1087,7 +1203,11 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
 #if R4_HUD_NONE
     hud_bad = 0u;
 #else
-    hud_bad = (s_scene==0u)?hud_build_strips(tab, dst_slot, list):0u;   /* 山脊/凝时无 HUD */
+    hud_bad = (s_scene==0u)?hud_build_strips(tab, dst_slot, list):0u;
+#ifdef __riscv
+    if(s_scene==3u)hud_bad=sh_hud_build(tab,dst_slot,list);
+#endif
+    /* 山脊无HUD；凝时目标端使用条带HUD。 */
 #endif
     s_out.cyc_hud = board_cycles() - t_seg;
     s_fail += hud_bad;
@@ -1107,7 +1227,7 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     }
     s_records = produced;
     s_out.records = produced;
-    s_out.refs = (bytes - 120u) / 2u;
+    s_out.refs = (bytes - 120u) / 2u+(s_sh_gun_bytes?(s_sh_gun_bytes-120u)/2u:0u);
     {
         uint32_t bb = 0u;
 
@@ -1173,6 +1293,9 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
             s_exact++;
         else if ((int32_t)(actual-due)>0)
             s_late++;
+        /* SH physics follows elapsed time. Keep the actual late-frame evidence,
+           then recover the next 30Hz deadline instead of replaying stale slots. */
+        if(s_scene==3u && (int32_t)(actual-due)>0)s_anchor+=actual-due;
         if(s_out.frames==30u) {
             s_window_field=actual;s_window_swaps=board_swap_count();
         } else if(s_out.frames>30u && s_time_count<2048u) {
@@ -1231,6 +1354,14 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
                 s_out.cyc_hud,s_out.cyc_submit,s_out.rast_cycles,s_out.bbox_points,s_out.refs};
             for(unsigned i=0;i<8;++i){core_out_ch(&o,' ');core_out_u32(&o,times[i]);}
             core_out_str(&o,"\r\n");say(line);
+#if SH_PROFILE
+            if(s_scene==3u) {
+                uint32_t profile[12];sh_profile_read(profile);
+                core_out_init(&o,line,sizeof line);core_out_str(&o,"SHCPU");
+                for(unsigned i=0;i<12;++i){core_out_ch(&o,' ');core_out_u32(&o,profile[i]);}
+                core_out_str(&o,"\r\n");say(line);
+            }
+#endif
         }
     }
     s_out.frames++;
