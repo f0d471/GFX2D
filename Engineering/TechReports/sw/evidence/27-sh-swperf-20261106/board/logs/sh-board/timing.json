@@ -1,0 +1,59 @@
+{
+  "normal": {
+    "frames": 1784,
+    "p50_ms": 49.28604,
+    "p99_ms": 50.41672,
+    "max_ms": 62.18292,
+    "late": 1784,
+    "exact": 0,
+    "over": 1784,
+    "fields": 5356,
+    "presents": 1784,
+    "measured_fps": 19.98506348020911,
+    "health": [
+      17682,
+      347,
+      0,
+      0,
+      0
+    ]
+  },
+  "active": {
+    "frames": 1778,
+    "p50_ms": 48.59752,
+    "p99_ms": 126.65243,
+    "max_ms": 160.91182,
+    "late": 1040,
+    "exact": 738,
+    "over": 1139,
+    "fields": 5785,
+    "presents": 1778,
+    "measured_fps": 18.440795159896282,
+    "health": [
+      24435,
+      347,
+      0,
+      0,
+      0
+    ]
+  },
+  "corridor-consumer": {
+    "frames": 34,
+    "p50_ms": 48.35316,
+    "p99_ms": 49.1994,
+    "max_ms": 49.1994,
+    "late": 34,
+    "exact": 0,
+    "over": 34,
+    "fields": 104,
+    "presents": 34,
+    "measured_fps": 19.615384615384617,
+    "health": [
+      25787,
+      336,
+      0,
+      0,
+      0
+    ]
+  }
+}

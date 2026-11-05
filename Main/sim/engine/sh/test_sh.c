@@ -41,6 +41,46 @@ static void flat_setup_checks(void)
     }
     puts("SH FLAT SETUP PASS 100000 exact signed divisions and 10000 byte-identical triangles");
 }
+/* The extended fan path must reproduce the generic clipped polygon record for
+ * record: same fan split, same backface skip/retry order, atomic fallback. */
+static void flat_fan_checks(void)
+{
+    uint32_t rng=424243u;
+    rast_record fast[RAST_MAX_FAN],reference[RAST_MAX_FAN];
+    for(unsigned i=0;i<20000u;++i) {
+        const unsigned width=i%2?640u:1792u;
+        rast_viewport vp={0,0,(uint16_t)width,480};rast_frame frame={width,480};
+        if(i%2){vp.x=13u;vp.y=7u;vp.w=(uint16_t)(width-26u);vp.h=466u;} /* edge-crossing cases */
+        const unsigned n=3u+i%2u;
+        rast_vertex v[4];
+        const unsigned color_mode=i%3u; /* uniform, mixed, mixed */
+        for(unsigned k=0;k<n;++k) {
+            rng=rng*1664525u+1013904223u;v[k].x=(int32_t)(rng%(width*16u));
+            rng=rng*1664525u+1013904223u;v[k].y=(int32_t)(rng%7680u);
+            rng=rng*1664525u+1013904223u;v[k].z=(uint16_t)rng;
+            v[k].u=v[k].v=0;
+            if(!color_mode)v[k].color=0xb32917u;
+            else {rng=rng*1664525u+1013904223u;v[k].color=rng&0xffffffu;}
+        }
+        rast_vertex fv[4];memcpy(fv,v,n*sizeof *v);
+        uint32_t fan_backface=0;
+        memset(fast,0x5a,sizeof fast);
+        int fcount=sh_flat_fan(fv,n,&vp,fast,RAST_MAX_FAN,&fan_backface);
+        if(fcount!=-4 && !fcount && fan_backface) {
+            rast_vertex t=fv[1];fv[1]=fv[n-1u];fv[n-1u]=t;
+            fcount=sh_flat_fan(fv,n,&vp,fast,RAST_MAX_FAN,&fan_backface);
+        }
+        if(fcount==-4)continue; /* whole polygon fell back; the generic path owns it */
+        rast_setup_stats stats={0};
+        int count=gfx_setup_polygon(v,n,&vp,&frame,RAST_VCOLOR_EN,reference,RAST_MAX_FAN,&stats);
+        if(!count && stats.backface){rast_vertex t=v[1];v[1]=v[n-1u];v[n-1u]=t;
+            count=gfx_setup_polygon(v,n,&vp,&frame,RAST_VCOLOR_EN,reference,RAST_MAX_FAN,&stats);}
+        CHECK(fcount==count);
+        for(unsigned r2=0;r2<(unsigned)(fcount>0?fcount:0);++r2)
+            CHECK(!memcmp(&fast[r2],&reference[r2],sizeof fast[r2]));
+    }
+    puts("SH FLAT FAN PASS 20000 tris/quads byte-identical to the generic clipped path");
+}
 static void normal_checks(void)
 {
     static const int32_t in[][3]={{SH_ONE,0,0},{-1966,0,0},{0,655,0},{0,0,1},
@@ -197,6 +237,32 @@ static void scene_cache_checks(void)
 }
 static uint32_t hash(uint32_t h,const void *data,size_t n)
 {const uint8_t *p=data;while(n--)h=(h^*p++)*16777619u;return h;}
+static void bin_cache_checks(void)
+{
+    static uint8_t plain[32768],cached[32768],warm[2u*SH_PC_RECORD_CAP];
+    sh_world_init(7);fx16_mat4 proj;
+    CHECK(!fx16_perspective(&proj,R4_FOV_BAM,4*SH_ONE/3,R4_NEAR_Z,R4_FAR_Z));
+    rast_viewport vp={0,0,640,480};rast_frame frame={640,480};
+    for(unsigned round=0;round<4;++round) {
+        sh_world_look((int32_t)round*5-5,(int32_t)round-1);
+        tick(round&1u?PLATFORM_KEY_UP:PLATFORM_KEY_STRAFE_R);
+        uint32_t n=sh_world_emit(&proj,&vp,records,SH_PC_RECORD_CAP);
+        CHECK(n && n!=UINT32_MAX && n<=SH_PC_RECORD_CAP);
+        int a=rast_bin_frame(records,n,plain,sizeof plain,&frame);CHECK(a>=120);
+        /* The scene-maintained table mixes trusted cached slices with fresh
+           0xFF entries; the output must equal the full-validation bin. */
+        int b=rast_bin_frame_cache(records,n,sh_world_ranges(),cached,sizeof cached,&frame);
+        CHECK(b==a && !memcmp(plain,cached,(size_t)a));
+        /* A fully warm table re-bins identically without touching record bodies. */
+        memcpy(warm,sh_world_ranges(),2u*n);
+        int c=rast_bin_frame_cache(records,n,warm,cached,sizeof cached,&frame);
+        CHECK(c==a && !memcmp(plain,cached,(size_t)a));
+        /* A corrupt trusted entry must fail the frame, not reach the raster. */
+        warm[2u*(n/2u)]=0xFEu;warm[2u*(n/2u)+1u]=0xFFu;
+        CHECK(rast_bin_frame_cache(records,n,warm,cached,sizeof cached,&frame)==-1);
+    }
+    puts("SH BIN CACHE PASS ranged binner byte-identical, trust errors caught");
+}
 static void mesh_checks(void)
 {
     CHECK(SH_MESH_VERTICES<150u && SH_MESH_FACES<=240u && SH_GUN_FACES<=110u);
@@ -321,4 +387,4 @@ static void screenshots(void)
         CHECK(!fclose(f));
     }
 }
-int main(void){flat_setup_checks();normal_checks();projection_checks();elapsed_checks();enemy_motion_checks();simulation();mesh_checks();geometry();weapon_pixels();screenshots();scene_cache_checks();return 0;}
+int main(void){flat_setup_checks();flat_fan_checks();normal_checks();projection_checks();elapsed_checks();enemy_motion_checks();simulation();mesh_checks();bin_cache_checks();geometry();weapon_pixels();screenshots();scene_cache_checks();return 0;}

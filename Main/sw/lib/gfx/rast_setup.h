@@ -139,5 +139,11 @@ int rast_record_valid(const rast_record *r);
 int rast_record_valid_frame(const rast_record *r, const rast_frame *frame);
 int rast_bin_frame(const rast_record *records, unsigned count, uint8_t *out,
                     size_t capacity, const rast_frame *frame);
+/* 分桶缓存形态：ranges[count] 每记录两字节 {首条带,末条带}。取值 0xFF 的
+   记录视为新面孔：照常校验记录体并回填范围；其余条目是生产方已校验记录的
+   既有范围，直接复用，不再读 128B 记录体。输出字节与 rast_bin_frame 完全
+   一致；错误判据（容量、非法记录、空帧空头）不放松。 */
+int rast_bin_frame_cache(const rast_record *records, unsigned count, uint8_t *ranges,
+                         uint8_t *out, size_t capacity, const rast_frame *frame);
 
 #endif

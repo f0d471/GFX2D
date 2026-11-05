@@ -75,34 +75,50 @@ static const rast_viewport *s_mesh_vp;
 static struct {
     int valid;int32_t x,z,pitch;uint16_t yaw;
     fx16_mat4 projection;rast_viewport vp;uint32_t count,version;
-    rast_record *records;
+    rast_record *records;uint8_t *ranges;
 } s_room_cache;
 static struct {
     int valid;int32_t x,z,swing;uint32_t version,count;
-    rast_record *records;
+    rast_record *records;uint8_t *ranges;
 } s_actor_cache[SH_ENEMY_MAX];
 #endif
 #if !SH_DISABLE_SCENE_CACHE
 typedef struct {
     uint32_t valid,count,age;int32_t recoil;uint8_t reload,flash;
     fx16_mat4 projection;rast_viewport vp;
-    rast_record records[256];
+    rast_record records[256];uint8_t ranges[512];
 } sh_weapon_cache;
 static sh_weapon_cache *s_weapon_cache;static uint32_t s_weapon_cache_age;
 #endif
+/* Strip-range tables for the last emission of each pipeline buffer:
+   {first,last} per record, 0xFF pair = fresh record for the binner to
+   validate. Owned here because only the scene knows which slices were
+   cached versus re-emitted; the pipeline keeps one table per buffer. */
+static uint8_t s_ranges_tab[2][2u*SH_PC_RECORD_CAP];
+static uint8_t *s_ranges=s_ranges_tab[0];
+void sh_world_ranges_use(unsigned index)
+{
+    if(index<2u)s_ranges=s_ranges_tab[index];
+}
+uint8_t *sh_world_ranges(void) {return s_ranges;}
 void sh_world_cache_bind(void *memory,uint32_t bytes)
 {
 #if !SH_DISABLE_SCENE_CACHE
     const uint32_t weapon_bytes=(uint32_t)((SH_WEAPON_CACHE_SLOTS*sizeof(sh_weapon_cache)+127u)&~127u);
-    const uint32_t required=weapon_bytes+(1024u+3u*512u)*RAST_RECORD_BYTES;
+    const uint32_t slice_ranges=2u*1024u+3u*(2u*512u);
+    const uint32_t required=weapon_bytes+(1024u+3u*512u)*RAST_RECORD_BYTES+slice_ranges;
     s_weapon_cache=memory && bytes>=required?memory:NULL;s_weapon_cache_age=0;
-    s_room_cache.valid=0;s_room_cache.records=NULL;
-    for(unsigned i=0;i<SH_ENEMY_MAX;++i){s_actor_cache[i].valid=0;s_actor_cache[i].records=NULL;}
+    s_room_cache.valid=0;s_room_cache.records=NULL;s_room_cache.ranges=NULL;
+    for(unsigned i=0;i<SH_ENEMY_MAX;++i){s_actor_cache[i].valid=0;s_actor_cache[i].records=NULL;s_actor_cache[i].ranges=NULL;}
     if(s_weapon_cache) {
         for(unsigned i=0;i<SH_WEAPON_CACHE_SLOTS;++i)s_weapon_cache[i].valid=0;
         uint8_t *storage=(uint8_t *)memory+weapon_bytes;
         s_room_cache.records=(rast_record *)(void *)storage;storage+=1024u*RAST_RECORD_BYTES;
-        for(unsigned i=0;i<SH_ENEMY_MAX;++i){s_actor_cache[i].records=(rast_record *)(void *)storage;storage+=512u*RAST_RECORD_BYTES;}
+        s_room_cache.ranges=storage;storage+=2u*1024u;
+        for(unsigned i=0;i<SH_ENEMY_MAX;++i){
+            s_actor_cache[i].records=(rast_record *)(void *)storage;storage+=512u*RAST_RECORD_BYTES;
+            s_actor_cache[i].ranges=storage;storage+=2u*512u;
+        }
     }
 #else
     (void)memory;(void)bytes;
@@ -115,16 +131,16 @@ static uint32_t s_elapsed_accum,s_elapsed_started;
 #endif
 #if SH_PROFILE
 static uint32_t (*s_clock)(void);
-static uint32_t s_profile[12];
+static uint32_t s_profile[28];
 #define PROF_START uint32_t profile_start=s_clock?s_clock():0
 #define PROF_END(slot) do {if(s_clock){++s_profile[(slot)*2];s_profile[(slot)*2+1]+=s_clock()-profile_start;}}while(0)
 void sh_profile_clock(uint32_t (*clock_fn)(void)){s_clock=clock_fn;}
-void sh_profile_read(uint32_t out[12]){memcpy(out,s_profile,sizeof s_profile);}
+void sh_profile_read(uint32_t out[28]){memcpy(out,s_profile,sizeof s_profile);}
 #else
 #define PROF_START
 #define PROF_END(slot) ((void)0)
 void sh_profile_clock(uint32_t (*clock_fn)(void)){(void)clock_fn;}
-void sh_profile_read(uint32_t out[12]){memset(out,0,12*sizeof *out);}
+void sh_profile_read(uint32_t out[28]){memset(out,0,28*sizeof *out);}
 #endif
 
 static int32_t sh_sin(uint16_t a) {return fx_sin(a)*4;}
@@ -417,14 +433,20 @@ static int32_t sh_round_mul(int32_t a,int32_t b)
     int64_t n=(int64_t)a*b;
     return (int32_t)((n>>16)+(((uint64_t)n&65535u)>=32768u));
 }
-static void sh_transform(const int32_t p[3],int32_t view[3])
+/* Matrix-explicit variants keep the mesh hot loop from reloading the scene
+   globals per vertex; the arithmetic (and every recorded byte) is unchanged. */
+static void sh_transform_m(const fx16_mat4 *m,const int32_t p[3],int32_t view[3])
 {
     if(s_viewmodel){memcpy(view,p,3*sizeof *view);return;}
     for(unsigned i=0;i<3;++i) {
-        int32_t sum=s_view.v[i*4+3];
-        for(unsigned k=0;k<3;++k)if(s_view.v[i*4+k])sum+=sh_round_mul(s_view.v[i*4+k],p[k]);
+        int32_t sum=m->v[i*4+3];
+        for(unsigned k=0;k<3;++k)if(m->v[i*4+k])sum+=sh_round_mul(m->v[i*4+k],p[k]);
         view[i]=sum;
     }
+}
+static void sh_transform(const int32_t p[3],int32_t view[3])
+{
+    sh_transform_m(&s_view,p,view);
 }
 #if !SH_DISABLE_VERTEX_CACHE
 static int32_t sh_project_div(int32_t a,uint32_t denominator,uint32_t reciprocal)
@@ -435,23 +457,27 @@ static int32_t sh_project_div(int32_t a,uint32_t denominator,uint32_t reciprocal
     while(rem>=denominator){++q;rem-=denominator;}
     return (int32_t)(q+(rem>=(denominator+1u)/2u));
 }
-static int sh_project_vertex(const rast_view_vertex *v,rast_vertex *out)
+static int sh_project_vertex_m(const fx16_mat4 *p,const rast_viewport *vp,
+                               const rast_view_vertex *v,rast_vertex *out)
 {
     if(v->z> -R4_NEAR_Z || v->z< -(int32_t)R4_FAR_Z)return -1;
-    const fx16_mat4 *p=s_proj;
     if(p->v[1]||p->v[2]||p->v[3]||p->v[4]||p->v[6]||p->v[7]||p->v[8]||p->v[9]||
        p->v[12]||p->v[13]||p->v[14]!= -SH_ONE||p->v[15])
-        return r4_project_inside(v,1,p,R4_NEAR_Z,R4_FAR_Z,s_mesh_vp,out);
+        return r4_project_inside(v,1,p,R4_NEAR_Z,R4_FAR_Z,vp,out);
     uint32_t w=(uint32_t)-v->z;
     uint32_t reciprocal=UINT32_MAX/w+(UINT32_MAX%w==w-1u);
     int32_t x=sh_project_div(sh_round_mul(p->v[0],v->x),w,reciprocal);
     int32_t y=sh_project_div(sh_round_mul(p->v[5],v->y),w,reciprocal);
     int32_t z=sh_project_div(sh_round_mul(p->v[10],v->z)+p->v[11],w,reciprocal);
     int64_t depth=fx16_round_div(((int64_t)z+SH_ONE)*65535,2*SH_ONE);
-    out->x=s_mesh_vp->x*16+fx16_viewport(x,s_mesh_vp->w,0);
-    out->y=s_mesh_vp->y*16+fx16_viewport(y,s_mesh_vp->h,1);
+    out->x=vp->x*16+fx16_viewport(x,vp->w,0);
+    out->y=vp->y*16+fx16_viewport(y,vp->h,1);
     out->z=(uint16_t)(depth<0?0:depth>65535?65535:depth);out->u=v->u;out->v=v->v;out->color=v->color;
     return 0;
+}
+static int sh_project_vertex(const rast_view_vertex *v,rast_vertex *out)
+{
+    return sh_project_vertex_m(s_proj,s_mesh_vp,v,out);
 }
 
 /* ---- 发射 ---- */
@@ -484,9 +510,12 @@ static inline int sh_flat_setup(const rast_vertex input[3],const rast_viewport *
     for(unsigned i=0;i<3;++i)
         if(v[i].x<(int32_t)vp->x*16 || v[i].x>=(int32_t)(vp->x+vp->w)*16 ||
            v[i].y<(int32_t)vp->y*16 || v[i].y>=(int32_t)(vp->y+vp->h)*16 ||
-           v[i].color!=v[0].color || v[i].u || v[i].v)return -3;
-    int64_t area=(int64_t)(v[1].x-v[0].x)*(v[2].y-v[0].y)-
-                 (int64_t)(v[2].x-v[0].x)*(v[1].y-v[0].y);
+           v[i].u || v[i].v)return -3;
+    int64_t area;
+    { PROF_START;
+    area=(int64_t)(v[1].x-v[0].x)*(v[2].y-v[0].y)-
+         (int64_t)(v[2].x-v[0].x)*(v[1].y-v[0].y);
+    PROF_END(10); }
     if(!area)return 0;
     if(area<0){rast_vertex t=v[1];v[1]=v[2];v[2]=t;area=-area;}
     if(area>=(1<<28))return -3;
@@ -496,31 +525,91 @@ static inline int sh_flat_setup(const rast_vertex input[3],const rast_viewport *
                (int64_t)(v[2].x-v[0].x)*((int32_t)v[1].z-v[0].z);
     if(nx<INT32_MIN || nx>INT32_MAX || ny<INT32_MIN || ny>INT32_MAX)return -3;
     int32_t dzdx,dzdy;
+    { PROF_START;
     if(!sh_gradient20((int32_t)nx,(uint32_t)area,&dzdx) ||
-       !sh_gradient20((int32_t)ny,(uint32_t)area,&dzdy))return 0;
-    rast_record r;memset(&r,0,sizeof r);rast_put32(&r,RAST_O_FLAGS,RAST_VCOLOR_EN);
+       !sh_gradient20((int32_t)ny,(uint32_t)area,&dzdy)){PROF_END(11);return 0;}
+    PROF_END(11); }
+    const uint32_t c0=v[0].color;
+    int32_t rgb[6];
+    if(v[1].color!=c0 || v[2].color!=c0) {
+        /* Per-vertex colors: the six channel gradients use the same exact
+           signed n*2^20/d ladder as the depth, matching gradient() byte for
+           byte (fx16_round_div, half toward +infinity). */
+        for(unsigned k=0;k<3;++k) {
+            const unsigned shift=16u-k*8u; /* record order G,B,R — same as setup_one */
+            const int32_t ca=(int32_t)((c0>>shift)&255u),
+                          cb=(int32_t)((v[1].color>>shift)&255u),
+                          cc=(int32_t)((v[2].color>>shift)&255u);
+            const int32_t nxk=(cb-ca)*(v[2].y-v[0].y)-(cc-ca)*(v[1].y-v[0].y);
+            const int32_t nyk=(v[1].x-v[0].x)*(cc-ca)-(v[2].x-v[0].x)*(cb-ca);
+            if(!sh_gradient20(nxk,(uint32_t)area,&rgb[k*2]) ||
+               !sh_gradient20(nyk,(uint32_t)area,&rgb[k*2+1]))return 0;
+        }
+    } else rgb[0]=rgb[1]=rgb[2]=rgb[3]=rgb[4]=rgb[5]=0;
     int32_t lo[2]={v[0].x,v[0].y},hi[2]={v[0].x,v[0].y};
     for(unsigned i=0;i<3;++i) {
-        const rast_vertex *a=&v[i],*b=&v[(i+1)%3];
-        int32_t dx=b->x-a->x,dy=b->y-a->y;
-        rast_put32(&r,4+i*12,(uint32_t)(-dy*16));rast_put32(&r,8+i*12,(uint32_t)(dx*16));
-        rast_put32(&r,12+i*12,(uint32_t)((int64_t)dy*a->x-(int64_t)dx*a->y));
-        if(a->x<lo[0])lo[0]=a->x;
-        if(a->x>hi[0])hi[0]=a->x;
-        if(a->y<lo[1])lo[1]=a->y;
-        if(a->y>hi[1])hi[1]=a->y;
-        rast_put32(&r,RAST_O_COLOR+i*4,v[0].color);
+        if(v[i].x<lo[0])lo[0]=v[i].x;
+        if(v[i].x>hi[0])hi[0]=v[i].x;
+        if(v[i].y<lo[1])lo[1]=v[i].y;
+        if(v[i].y>hi[1])hi[1]=v[i].y;
     }
     for(unsigned k=0;k<2;++k) {
         lo[k]=(lo[k]+15)>>4;hi[k]>>=4;
         if(lo[k]>hi[k])return 0;
-        rast_put16(&r,RAST_O_BBOX+k*4,(uint16_t)lo[k]);
-        rast_put16(&r,RAST_O_BBOX+k*4+2,(uint16_t)hi[k]);
     }
-    rast_put16(&r,RAST_O_Z0,v[0].z);rast_put16(&r,RAST_O_ORIGIN,(uint16_t)v[0].x);
-    rast_put16(&r,RAST_O_ORIGIN+2,(uint16_t)v[0].y);
-    rast_put32(&r,RAST_O_DZDX,(uint32_t)dzdx);rast_put32(&r,RAST_O_DZDY,(uint32_t)dzdy);
-    memcpy(out,&r,sizeof r);return 1;
+    /* Everything above can still decline; the word build below is final.
+       out is always word aligned: pool records for the mesh/poly paths and a
+       word-aligned union for the fan's atomic staging. Writing straight into
+       the 128-byte record skips the stack build and its copy entirely. */
+    { PROF_START;
+    uint32_t *w=(uint32_t *)(void *)out;
+    w[0]=RAST_VCOLOR_EN;
+    for(unsigned i=0;i<3;++i) {
+        const rast_vertex *a=&v[i],*b=&v[(i+1)%3];
+        const int32_t dx=b->x-a->x,dy=b->y-a->y;
+        uint32_t *e=w+1+i*3;
+        e[0]=(uint32_t)(-dy*16);e[1]=(uint32_t)(dx*16);
+        e[2]=(uint32_t)((int64_t)dy*a->x-(int64_t)dx*a->y);
+        w[20+i]=v[i].color;
+    }
+    w[10]=(uint16_t)v[0].z;
+    w[11]=(uint32_t)dzdx;w[12]=(uint32_t)dzdy;
+    w[13]=0;w[14]=0;w[15]=0;w[16]=0;w[17]=0;
+    w[18]=(uint32_t)(uint16_t)lo[0]|((uint32_t)(uint16_t)hi[0]<<16);
+    w[19]=(uint32_t)(uint16_t)lo[1]|((uint32_t)(uint16_t)hi[1]<<16);
+    w[23]=0;w[31]=0;
+    w[24]=(uint32_t)rgb[0];w[25]=(uint32_t)rgb[1];w[26]=(uint32_t)rgb[2];
+    w[27]=(uint32_t)rgb[3];w[28]=(uint32_t)rgb[4];w[29]=(uint32_t)rgb[5];
+    w[30]=(uint32_t)(uint16_t)v[0].x|((uint32_t)(uint16_t)v[0].y<<16);
+    PROF_END(12); } return 1;
+}
+/* Fan of strictly-inside single-color zero-UV triangles through the exact
+   monochrome setup. Mirrors the generic clipped path on this input: the whole
+   polygon is required strictly inside the viewport first (the generic vp clip
+   is then an identity), the fan split (v0,vi,vi+1) is identical, back-facing
+   fan triangles are skipped and counted exactly like setup_one, so the retry
+   order also matches. Any violation returns -4 before a record is committed;
+   -2 is capacity. */
+static int sh_flat_fan(const rast_vertex *screen,unsigned n,const rast_viewport *vp,
+                       const rast_record *out,uint32_t cap,uint32_t *backface)
+{
+    union { rast_record rec[3]; uint32_t w[96]; } staging;
+    unsigned produced=0;
+    if(cap<n-2u)return -2;
+    for(unsigned i=0;i<n;++i)
+        if(screen[i].x<(int32_t)vp->x*16 || screen[i].x>=(int32_t)(vp->x+vp->w)*16 ||
+           screen[i].y<(int32_t)vp->y*16 || screen[i].y>=(int32_t)(vp->y+vp->h)*16)return -4;
+    for(unsigned i=1;i+1<n;++i) {
+        const rast_vertex tri[3]={screen[0],screen[i],screen[i+1]};
+        const int64_t area=(int64_t)(tri[1].x-tri[0].x)*(tri[2].y-tri[0].y)-
+                           (int64_t)(tri[2].x-tri[0].x)*(tri[1].y-tri[0].y);
+        if(area<=0){++*backface;continue;}
+        const int result=sh_flat_setup(tri,vp,&staging.rec[produced]);
+        if(result<0)return -4;
+        produced+=(unsigned)result;
+    }
+    if(produced)memcpy((rast_record *)out,staging.rec,produced*sizeof *out);
+    return (int)produced;
 }
 
 static int sh_poly(const rast_view_vertex *v, unsigned n, const rast_viewport *vp,
@@ -545,22 +634,55 @@ static int sh_poly(const rast_view_vertex *v, unsigned n, const rast_viewport *v
         const uint32_t before = st.backface;
         int projected=0;
 #if !SH_DISABLE_VERTEX_CACHE
+        int handled=0;
         rast_vertex screen[4];projected=1;
         for(unsigned i=0;i<n;++i)if(sh_project_vertex(&view[i],&screen[i]))projected=0;
-        if(projected)r=gfx_setup_polygon(screen,n,vp,&frame,RAST_VCOLOR_EN,*out,*cap,&st);
+        if(projected) {
+            /* 扩展精确setup:零UV的面(单色或逐顶点色)按扇形拆分快跑;整面不符合才退通用。 */
+            int flat=screen[0].u==0u && screen[0].v==0u;
+            for(unsigned i=1u;flat && i<n;++i)
+                flat=screen[i].u==0u && screen[i].v==0u;
+            if(flat) {
+                uint32_t flat_backface=0;
+                r=sh_flat_fan(screen,n,vp,*out,*cap,&flat_backface);
+                if(r!=-4) {
+                    handled=1;
+                    if(r==0 && flat_backface) {
+                        rast_vertex t = screen[1];
+                        screen[1] = screen[n - 1u];
+                        screen[n - 1u] = t;
+                        r=sh_flat_fan(screen,n,vp,*out,*cap,&flat_backface);
+                    }
+                }
+            }
+            if(!handled) {
+                r=gfx_setup_polygon(screen,n,vp,&frame,RAST_VCOLOR_EN,*out,*cap,&st);
+                /* 背面翻绕重试直接复用已投影的屏幕顶点:逐顶点投影是确定性的,
+                   翻绕后的投影等于投影后的翻绕,避免再走一遍视图裁剪+投影。 */
+                if (r == 0 && st.backface != before) {
+                    rast_vertex t = screen[1];
+                    screen[1] = screen[n - 1u];
+                    screen[n - 1u] = t;
+                    st.backface = before;
+                    r = gfx_setup_polygon(screen,n,vp,&frame,RAST_VCOLOR_EN,*out,*cap,&st);
+                }
+            }
+        }
         else
 #endif
-        r = gfx_setup_view(view, n, s_proj, R4_NEAR_Z, R4_FAR_Z, vp, &frame,
-                           RAST_VCOLOR_EN, *out, (unsigned)*cap, &st);
-        (void)projected;
-        if (r == 0 && st.backface != before) {
-            rast_view_vertex t = view[1];
-            view[1] = view[n - 1u];
-            view[n - 1u] = t;
-            st.backface = before;
+        {
             r = gfx_setup_view(view, n, s_proj, R4_NEAR_Z, R4_FAR_Z, vp, &frame,
                                RAST_VCOLOR_EN, *out, (unsigned)*cap, &st);
+            if (r == 0 && st.backface != before) {
+                rast_view_vertex t = view[1];
+                view[1] = view[n - 1u];
+                view[n - 1u] = t;
+                st.backface = before;
+                r = gfx_setup_view(view, n, s_proj, R4_NEAR_Z, R4_FAR_Z, vp, &frame,
+                                   RAST_VCOLOR_EN, *out, (unsigned)*cap, &st);
+            }
         }
+        (void)projected;
     }
     if (r < 0) s_failed = 1;
     else if (r > 0) { *out += (unsigned)r; *cap -= (uint32_t)r; s_n += (uint32_t)r; }
@@ -686,6 +808,9 @@ static void sh_mesh_draw(const int16_t (*positions)[3],unsigned vertices,
     sh_mesh_vertex v[SH_MESH_VERTICES];
     if(vertices>SH_MESH_VERTICES){s_failed=1;return;}
     const int32_t eye[3]={s_viewmodel?0:s_px,s_viewmodel?0:SH_EYE,s_viewmodel?0:s_pz};
+#if !SH_DISABLE_VERTEX_CACHE
+    const fx16_mat4 mesh_view=s_view,mesh_proj=*s_proj;
+#endif
     /* Rotate the light into model space once. Baked face normals need no normalization. */
     int32_t light[3]={sh_mul(-34000,cs)-sh_mul(23000,sn),49000,
                       sh_mul(-34000,sn)+sh_mul(23000,cs)};
@@ -715,9 +840,9 @@ static void sh_mesh_draw(const int16_t (*positions)[3],unsigned vertices,
 #if !SH_DISABLE_VERTEX_CACHE
             if(!t->ready) {
                 PROF_START;
-                int32_t q[3];sh_transform(t->world,q);
+                int32_t q[3];sh_transform_m(&mesh_view,t->world,q);
                 rast_view_vertex view={q[0],q[1],q[2],0,0,0};
-                t->inside=sh_project_vertex(&view,&t->screen)==0;t->ready=1;
+                t->inside=sh_project_vertex_m(&mesh_proj,vp,&view,&t->screen)==0;t->ready=1;
                 PROF_END(2);
             }
             screen[j]=t->screen;screen[j].color=color;inside&=t->inside;
@@ -739,14 +864,13 @@ static void sh_mesh_draw(const int16_t (*positions)[3],unsigned vertices,
         if(result<0){s_failed=1;return;}
         *out+=(unsigned)result;*cap-=(unsigned)result;s_n+=(unsigned)result;
 #if SH_PROFILE
-        if(s_clock){++s_profile[6];s_profile[7]+=s_clock()-setup_started;}
+        if(s_clock){++s_profile[12];s_profile[13]+=s_clock()-setup_started;}
 #else
         (void)setup_started;
 #endif
     }
     PROF_END(5);
 }
-
 static void sh_enemy_draw(const sh_enemy *e,const rast_viewport *vp,rast_record **out,uint32_t *cap)
 {
     const fx16_vec4 center={{e->x,SH_ONE*9/10,e->z,SH_ONE}};
@@ -829,6 +953,9 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
     s_view = view;
     s_proj = projection;s_mesh_vp=vp;
     s_failed = 0; s_n = 0;s_viewmodel=0;
+    /* Every record starts fresh for the strip-range cache; cached slices
+       overwrite their own entries below as they are copied back. */
+    memset(s_ranges,0xFF,2u*SH_PC_RECORD_CAP);
 
 #if !SH_DISABLE_SCENE_CACHE
     int room_hit=s_room_cache.valid && s_room_cache.x==s_px && s_room_cache.z==s_pz &&
@@ -836,9 +963,12 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
         !memcmp(&s_room_cache.projection,projection,sizeof *projection) &&
         !memcmp(&s_room_cache.vp,vp,sizeof *vp);
     if(room_hit) {
+        PROF_START;
         if(left<s_room_cache.count)return UINT32_MAX;
         memcpy(o,s_room_cache.records,s_room_cache.count*sizeof *o);
+        if(s_room_cache.ranges)memcpy(s_ranges,s_room_cache.ranges,2u*s_room_cache.count);
         o+=s_room_cache.count;left-=s_room_cache.count;s_n=s_room_cache.count;
+        PROF_END(7);
     } else {
         ++s_room_cache.version;
 #endif
@@ -971,6 +1101,7 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
             s_room_cache.x=s_px;s_room_cache.z=s_pz;s_room_cache.yaw=s_yaw;s_room_cache.pitch=s_pitch;
             s_room_cache.projection=*projection;s_room_cache.vp=*vp;s_room_cache.count=s_n;
             memcpy(s_room_cache.records,out,s_n*sizeof *out);
+            if(s_room_cache.ranges)memcpy(s_room_cache.ranges,s_ranges,2u*s_n);
         }
     }
 #endif
@@ -980,8 +1111,12 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
         const int32_t pose=s_enemy[i].move?fx_sin((uint16_t)s_enemy[i].ph)*16/16384:0;
         if(s_actor_cache[i].valid && s_actor_cache[i].x==s_enemy[i].x && s_actor_cache[i].z==s_enemy[i].z &&
            s_actor_cache[i].swing==pose && s_actor_cache[i].version==s_room_cache.version) {
+            PROF_START;
             uint32_t n=s_actor_cache[i].count;if(n>left)return UINT32_MAX;
-            memcpy(o,s_actor_cache[i].records,n*sizeof *o);o+=n;left-=n;s_n+=n;continue;
+            memcpy(o,s_actor_cache[i].records,n*sizeof *o);
+            if(s_actor_cache[i].ranges)memcpy(s_ranges+2u*s_n,s_actor_cache[i].ranges,2u*n);
+            o+=n;left-=n;s_n+=n;
+            PROF_END(8);continue;
         }
         rast_record *actor_begin=o;uint32_t before=s_n;
 #endif
@@ -994,6 +1129,7 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
             s_actor_cache[i].x=s_enemy[i].x;s_actor_cache[i].z=s_enemy[i].z;
             s_actor_cache[i].swing=pose;s_actor_cache[i].version=s_room_cache.version;s_actor_cache[i].count=n;
             memcpy(s_actor_cache[i].records,actor_begin,n*sizeof *actor_begin);
+            if(s_actor_cache[i].ranges)memcpy(s_actor_cache[i].ranges,s_ranges+2u*before,2u*n);
         }
 #endif
     }
@@ -1048,7 +1184,9 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
             if(entry->valid && entry->recoil==s_recoil && entry->reload==(s_reload!=0) && entry->flash==(s_flash!=0) &&
                !memcmp(&entry->projection,projection,sizeof *projection) && !memcmp(&entry->vp,vp,sizeof *vp)) {
                 if(entry->count>left)return UINT32_MAX;
-                memcpy(o,entry->records,entry->count*sizeof *o);s_n+=entry->count;
+                memcpy(o,entry->records,entry->count*sizeof *o);
+                memcpy(s_ranges+2u*s_n,entry->ranges,2u*entry->count);
+                s_n+=entry->count;
                 entry->age=++s_weapon_cache_age;return s_failed?UINT32_MAX:s_n;
             }
             if(!entry->valid){save=entry;oldest=0;}
@@ -1077,6 +1215,7 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
         save->count=s_n-s_weapon_start;save->recoil=s_recoil;save->reload=s_reload!=0;save->flash=s_flash!=0;
         save->projection=*projection;save->vp=*vp;save->age=++s_weapon_cache_age;
         memcpy(save->records,weapon_begin,save->count*sizeof *weapon_begin);save->valid=1;
+        memcpy(save->ranges,s_ranges+2u*s_weapon_start,save->count*2u);
     }
 #endif
     return s_failed ? UINT32_MAX : s_n;

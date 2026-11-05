@@ -463,3 +463,42 @@ int rast_bin_frame(const rast_record *records, unsigned count, uint8_t *out,
     }
     return (int)need;
 }
+
+int rast_bin_frame_cache(const rast_record *records, unsigned count, uint8_t *ranges,
+                         uint8_t *out, size_t capacity, const rast_frame *frame)
+{
+    uint16_t counts[RAST_STRIPS] = {0};
+    size_t next[RAST_STRIPS];
+    size_t need = RAST_STRIPS * 4, cursor = 0;
+    if (!rast_frame_valid(frame) || !out || count > 65535 || (count && !records) ||
+        (count && !ranges)) return -1;
+    /* Pass 1: fresh entries (0xFF) validate the record body and fill their
+       range in place; cached entries are trusted and never re-read. */
+    for (unsigned i = 0; i < count; ++i) {
+        uint8_t *range = &ranges[i * 2u];
+        uint8_t first, last;
+        if (range[0] == 0xFFu) {
+            if (!rast_record_valid_frame(&records[i],frame)) return -1;
+            first = (uint8_t)(rast_get16(&records[i], 76) / RAST_STRIP_H);
+            last = (uint8_t)(rast_get16(&records[i], 78) / RAST_STRIP_H);
+            range[0] = first; range[1] = last;
+        } else {
+            first = range[0]; last = range[1];
+        }
+        if (last >= RAST_STRIPS || first > last) return -1;
+        for (unsigned s = first; s <= last; ++s) { ++counts[s]; need += 2; }
+    }
+    if (need > capacity) return -2;
+    for (unsigned s = 0; s < RAST_STRIPS; ++s) {
+        out[cursor++] = (uint8_t)counts[s]; out[cursor++] = (uint8_t)(counts[s] >> 8);
+        out[cursor++] = 0; out[cursor++] = 0;
+        next[s] = cursor; cursor += (size_t)counts[s] * 2;
+    }
+    for (unsigned i = 0; i < count; ++i) {
+        for (unsigned s = ranges[i * 2u]; s <= ranges[i * 2u + 1u]; ++s) {
+            size_t at = next[s]; next[s] += 2;
+            out[at] = (uint8_t)i; out[at + 1] = (uint8_t)(i >> 8);
+        }
+    }
+    return (int)need;
+}

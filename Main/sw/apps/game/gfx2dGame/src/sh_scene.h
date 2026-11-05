@@ -10,8 +10,8 @@
 #include <stdint.h>
 #include "gfx/rast_setup.h"
 #define SH_PC_RECORD_CAP 2048u
-#define SH_CACHE_BYTES 0x100000u
-#define SH_WEAPON_CACHE_SLOTS 16u
+#define SH_CACHE_BYTES 0xC0000u
+#define SH_WEAPON_CACHE_SLOTS 12u
 void sh_world_cache_bind(void *memory,uint32_t bytes);
 
 void     sh_world_init(uint32_t seed);
@@ -28,8 +28,13 @@ uint32_t sh_score(void);
 uint32_t sh_shield(void);
 uint32_t sh_ticks(void);
 void sh_profile_clock(uint32_t (*clock_fn)(void));
-void sh_profile_read(uint32_t out[12]);
+void sh_profile_read(uint32_t out[28]);
 /* Index separating world records from the independently depth-tested viewmodel. */
 uint32_t sh_world_weapon_start(void);
+/* Strip ranges for the last emission, {first,last} per record with 0xFF pair
+ * marking fresh records; consumed by rast_bin_frame_cache for scene 3.
+ * The pipeline keeps one table per record buffer; select it before emitting. */
+void sh_world_ranges_use(unsigned index);
+uint8_t *sh_world_ranges(void);
 
 #endif /* GFX2D_SH_SCENE_H */

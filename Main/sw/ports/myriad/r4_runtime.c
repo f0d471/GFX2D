@@ -58,6 +58,20 @@
 #define R4_SH_GUN_SUB_CAP 65536u
 #define R4_SH_WORLD_OFF 0x00200000u
 #define R4_SH_WORLD_SLOT 3u
+/* P4 双缓冲:第二套记录窗口借用凝时缓存池尾(槽 16→12 后池缩到 768KiB),
+   第二套子表用世界中间面之后、2D arena 之前的尾窗;实际子表只有几 KiB,
+   上限各自 32KiB,分桶在写入前自检容量。空 HUD 列表头 128 字节。 */
+#define R4_REC_B_OFF    0x001C0000u
+#define R4_REC_B_BYTES  (R4_REC_MAX*RAST_RECORD_BYTES)
+#define R4_SUB_B_OFF    0x003E0000u
+#define R4_SUB_B_CAP    0x8000u
+#define R4_GUN_SUB_B_OFF 0x003F0000u
+#define R4_GUN_SUB_B_CAP 0x8000u
+_Static_assert(R4_SH_CACHE_OFF+SH_CACHE_BYTES<=R4_REC_B_OFF,"pipe cache/records overlap");
+_Static_assert(R4_REC_B_OFF+R4_REC_B_BYTES<=R4_SH_WORLD_OFF,"pipe records/world overlap");
+_Static_assert(R4_SH_WORLD_OFF+FB_BYTES<=R4_SUB_B_OFF,"pipe world/sub overlap");
+_Static_assert(R4_SUB_B_OFF+R4_SUB_B_CAP<=R4_GUN_SUB_B_OFF,"pipe sub/gun-sub overlap");
+_Static_assert(R4_GUN_SUB_B_OFF+R4_GUN_SUB_B_CAP<=0x00400000u,"pipe gun-sub/2D arena overlap");
 _Static_assert(R4_DEPTH_OFF+32768u<=R4_SH_GUN_SUB_OFF,"SH depth/bin overlap");
 _Static_assert(R4_SH_GUN_SUB_OFF+R4_SH_GUN_SUB_CAP<=R4_SH_CACHE_OFF,"SH bin/cache overlap");
 _Static_assert(R4_SH_CACHE_OFF+SH_CACHE_BYTES<=R4_SH_WORLD_OFF,"SH cache/world overlap");
@@ -125,6 +139,27 @@ static uint32_t *s_hud_list;
 static uint32_t s_hud_device;
 static uint8_t s_hud_valid[2][30];
 static uint32_t s_hud_count[2][30];
+
+static int s_pipe_on;             /* 宿主恒 0;进入时按平台与判据开关设置 */
+#ifdef __riscv
+/* --- P4 CPU/FPGA 跨帧流水(scene 3 硬件路径专用)----------------------------
+   世界段提交后 CPU 立即准备下一帧(逻辑/发射/分桶/HUD),光栅等待被真实工作
+   覆盖;记录、世界子表、武器子表各两套轮换,HUD 列表本就随帧序奇偶分区域。
+   在途帧的记录/子表在提交完成前不可复用;呈现按原两场节拍计数,不重复呈现。 */
+static struct {
+    uint32_t produced,bytes,gun_bytes,world_count;
+    uint32_t hud_device;
+    int dst_slot;
+} s_pipe_buf[2];
+static int s_pipe_cur;            /* 待提交帧所在的缓冲 */
+static int s_pipe_valid;          /* 已有一帧准备好待提交 */
+static uint32_t s_pipe_presented; /* 已呈现帧数(两场节拍基准) */
+static int s_pipe_on;
+static rast_record *s_pipe_rec[2];
+static uint8_t *s_pipe_sub[2],*s_pipe_gun_sub[2];
+#endif /* __riscv */
+
+
 uint32_t r4_pending_keys(void) {uint32_t k=s_pending_keys;s_pending_keys=0;return k;}
 void r4_set_key_source(uint32_t (*fn)(void)) {s_key_source=fn;}
 
@@ -780,6 +815,22 @@ int r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t l
     }
     if(s_scene==3u)sh_world_init(s_replay_on?s_replay.seed:R4_SEED);
     s_rec = (rast_record *)(void *)((uint8_t *)board_region(REGION_SHARED).ptr + R4_REC_OFF);
+#ifdef __riscv
+    s_pipe_on=(s_scene==3u && s_hw!=0u && !R4_BOARD_CRC);
+    if(s_pipe_on) {
+        if(board_region(REGION_SHARED).size<R4_GUN_SUB_B_OFF+R4_GUN_SUB_B_CAP){++s_fail;return -1;}
+        uint8_t *shared=(uint8_t *)board_region(REGION_SHARED).ptr;
+        s_pipe_rec[0]=(rast_record *)(void *)(shared+R4_REC_OFF);
+        s_pipe_rec[1]=(rast_record *)(void *)(shared+R4_REC_B_OFF);
+        s_pipe_sub[0]=shared+R4_SUB_OFF;s_pipe_sub[1]=shared+R4_SUB_B_OFF;
+        s_pipe_gun_sub[0]=shared+R4_SH_GUN_SUB_OFF;s_pipe_gun_sub[1]=shared+R4_GUN_SUB_B_OFF;
+        s_pipe_cur=0;s_pipe_valid=0;s_pipe_presented=0;
+        memset(s_pipe_buf,0,sizeof s_pipe_buf);
+        sh_world_ranges_use(0);
+    }
+#else
+    s_pipe_on=0;
+#endif
     s_record_capacity=R4_REC_MAX;
 #ifndef __riscv
     if(s_scene==3u && !s_hw){s_rec=s_sh_records;s_record_capacity=SH_PC_RECORD_CAP;}
@@ -835,6 +886,13 @@ void r4_timing_start(void)
 
 void r4_mode_leave(void)
 {
+#ifdef __riscv
+    if(s_pipe_on) {
+        uint32_t code=0u,index=0u,tag=0u;
+        (void)gfx_engine_wait(&code,&index,&tag);
+        s_pipe_valid=0;s_pipe_on=0;
+    }
+#endif
     if(s_scene==3u)sh_world_cache_bind(NULL,0);
     if(s_scene==2u)r4_flight_cache_reset();
 #ifndef __riscv
@@ -913,13 +971,12 @@ static void r4_register_surfaces(gfx_surface_table *tab)
     }
 }
 
-static int submit_hw_part(gfx_surface_table *tab,int dst_slot,uint32_t bg,uint32_t list,
+static int submit_hw_part_async(gfx_surface_table *tab,int dst_slot,uint32_t bg,uint32_t list,
                           uint32_t first,uint32_t sub_off,uint32_t sub_cap,
-                          uint32_t bytes,uint32_t count,uint32_t *cycles_out)
+                          uint32_t bytes,uint32_t count)
 {
+    (void)tab;
     gfx_engine_raster p;
-    uint32_t code = ~0u, index = 0u, tag = 0u, id = 0u, caps = 0u;
-    uint32_t cycles = 0u, refs = 0u;
     const uint32_t shared = g_mem_regions[REGION_SHARED].offset;
 
     p.tri_base = shared + R4_REC_OFF + first*RAST_RECORD_BYTES;
@@ -934,14 +991,18 @@ static int submit_hw_part(gfx_surface_table *tab,int dst_slot,uint32_t bg,uint32
         const int sr = gfx_engine_submit_raster(list,bg,(uint32_t)dst_slot,&p);
 
         if (sr != GFX_ENG_OK) {
-#ifdef __riscv
             say_u32("r4 err submit rc/count ", (uint32_t)sr, count);
-#else
-            say_u32("r4 err submit rc/count ", (uint32_t)sr, count);
-#endif
             return -1;
         }
     }
+    return 0;
+}
+
+/* 等待一次在途 RAST 完成;引擎出错时复位并重登记表面表。 */
+static int submit_hw_part_finish(gfx_surface_table *tab,uint32_t bytes,uint32_t *cycles_out)
+{
+    uint32_t code = 0u, index = 0u, tag = 0u;
+    uint32_t cycles = 0u, refs = 0u, id = 0u, caps = 0u;
     if (gfx_engine_wait(&code, &index, &tag) != 0 || code != 0u) {
         uint32_t stage = 0u;
 
@@ -960,6 +1021,15 @@ static int submit_hw_part(gfx_surface_table *tab,int dst_slot,uint32_t bg,uint32
         return -1;
     *cycles_out=cycles;
     return 0;
+}
+
+static int submit_hw_part(gfx_surface_table *tab,int dst_slot,uint32_t bg,uint32_t list,
+                          uint32_t first,uint32_t sub_off,uint32_t sub_cap,
+                          uint32_t bytes,uint32_t count,uint32_t *cycles_out)
+{
+    if(submit_hw_part_async(tab,dst_slot,bg,list,first,sub_off,sub_cap,bytes,count)!=0)
+        return -1;
+    return submit_hw_part_finish(tab,bytes,cycles_out);
 }
 
 static int submit_hw(gfx_surface_table *tab,int dst_slot,int fb_index,
@@ -1116,6 +1186,239 @@ static int render_sw(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     return 0;
 }
 
+/* --- 一帧(P4 流水,scene 3 硬件路径)----------------------------------------
+   调 N:先提交已备帧的世界段(不等待),用真实准备工作(逻辑/发射/分桶/HUD)
+   覆盖其光栅,再收世界段、提交武器段并按两场节拍呈现已备帧。输入延迟与
+   同步路径一致:第 N 次调用的键就是第 N 个逻辑帧的键。 */
+#ifdef __riscv
+static int r4_mode_frame_pipe(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
+                              uint32_t keys, r4_out *out)
+{
+    const int       fb_index = dst_slot - STG_SLOT_FB0;
+    const uint32_t  t0 = board_cycles();
+    uint32_t        t_seg, produced, due;
+    uint32_t        world_cycles=0u,gun_cycles=0u;
+    int             rc=0;
+
+    if (fb_index < 0 || fb_index > 1) { s_fail++; return -1; }
+    if(frame_layout(fb_index)) {++s_fail;return -1;}
+
+    /* 1) 在备帧先挂号呈现,再把世界段送上引擎;翻转发生场界,正被下一帧的
+       准备工作覆盖。两场节拍门限照旧:节拍富余时在此等待到目标场。
+       世界段无 HUD:借用本调用 dst 的命令列表区,头部清零即为空列表
+       (该区域的旧 HUD 列表属于上上帧,已呈现完毕);本帧 HUD 稍后原位重建。 */
+    const int cur=s_pipe_cur;
+    unsigned cmd_region=fb_index?REGION_CMDLIST_B:REGION_CMDLIST_A;
+    uint32_t *list=(uint32_t *)board_region(cmd_region).ptr;
+    uint32_t present_ticket=0u;
+    int present_armed=0,world_in_flight=0;
+    if(s_pipe_valid) {
+        const uint32_t world_count=s_pipe_buf[cur].world_count;
+        due = s_anchor + 2u * (s_pipe_presented + 1u);
+        while ((int32_t)(board_frame_count() - (due - 1u)) < 0) {
+            if (board_should_quit())
+                break;
+            board_wait_yield();
+        }
+        board_frame present_frame;
+        if (board_frame_acquire(s_pipe_buf[cur].dst_slot-STG_SLOT_FB0,0,&present_frame) != 0 ||
+            board_present_frame_request(s_pipe_buf[cur].dst_slot-STG_SLOT_FB0,
+                &present_frame, &present_ticket) != 0) {
+            s_fail++;
+            say_u32("r4 err present frame ", s_pipe_presented, 0u);
+            return -1;
+        }
+        /* 三态提交与同步路径同判据:世界段为空只提交武器;无武器段则世界直达
+           目标帧(先画完再挂号呈现,避免显示扫描到写入中的帧);两者都在才先打
+           中间面(世界段异步先行,光栅被准备覆盖)。 */
+        if(world_count && s_pipe_buf[cur].gun_bytes) {
+            present_armed=1;
+            memset(list,0,R4_HUD_ROWS*sizeof *list);
+            if(submit_hw_part_async(tab,R4_SH_WORLD_SLOT,R4_SLOT_BG,
+                 g_mem_regions[cmd_region].offset,0,
+                 cur?R4_SUB_B_OFF:R4_SUB_OFF,R4_SUB_CAP,
+                 s_pipe_buf[cur].bytes,world_count)!=0){s_fail++;return -1;}
+            world_in_flight=1;
+        } else if(world_count) {
+            if(submit_hw_part_async(tab,s_pipe_buf[cur].dst_slot,R4_SLOT_BG,
+                 s_pipe_buf[cur].hud_device,0,
+                 cur?R4_SUB_B_OFF:R4_SUB_OFF,R4_SUB_CAP,
+                 s_pipe_buf[cur].bytes,world_count)!=0){s_fail++;return -1;}
+            if(submit_hw_part_finish(tab,s_pipe_buf[cur].bytes,&world_cycles)!=0){s_fail++;return -1;}
+            present_armed=1;
+        } else {
+            present_armed=1;
+        }
+    }
+    /* 2) 逻辑 tick(30Hz,确定性)。 */
+    t_seg = board_cycles();
+    if(s_replay_on && replay_r4_key_at(&s_replay,s_out.frames,&keys)) {++s_fail;return -1;}
+    {
+#if defined(__riscv) && !GFX2D_R4_JUDGE
+        uint32_t now=(uint32_t)board_time_ms();
+        sh_world_advance(keys,now-s_sh_previous_ms,&s_fail);s_sh_previous_ms=now;
+#else
+        sh_world_tick(keys,&s_fail);
+#endif
+    }
+    s_out.score=sh_score();s_out.shield=sh_shield();s_out.ticks=sh_ticks();
+    s_out.fail=s_fail;
+    s_out.cyc_logic = board_cycles() - t_seg;
+
+    /* 3) 准备下一帧:发射进另一套记录窗口并分桶。 */
+    const int next=s_pipe_valid?(cur^1):cur;
+    t_seg = board_cycles();
+    sh_world_ranges_use((unsigned)next);
+    produced = sh_world_emit(&s_proj, &s_vp, s_pipe_rec[next], s_record_capacity);
+    s_out.cyc_geom = board_cycles() - t_seg;
+    if (produced == 0u || produced > s_record_capacity) {
+        s_fail++;
+        say_u32("r4 err records ", produced, 0u);
+        return -1;
+    }
+    t_seg = board_cycles();
+    {
+        const uint32_t world_count=sh_world_weapon_start();
+        const int bin_bytes=rast_bin_frame_cache(s_pipe_rec[next],world_count,
+            sh_world_ranges(),s_pipe_sub[next],
+            next?R4_SUB_B_CAP:R4_SUB_CAP,&s_raster_frame);
+        const uint32_t bytes=bin_bytes>0?(uint32_t)bin_bytes:0u;
+        uint32_t gun_bytes=0u;
+        if(world_count<produced) {
+            const int gun=rast_bin_frame_cache(s_pipe_rec[next]+world_count,
+                produced-world_count,sh_world_ranges()+2u*world_count,
+                s_pipe_gun_sub[next],
+                next?R4_GUN_SUB_B_CAP:R4_SH_GUN_SUB_CAP,&s_raster_frame);
+            if(gun<120){++s_fail;return -1;}
+            gun_bytes=(uint32_t)gun;
+        } else if(world_count>produced){++s_fail;return -1;}
+        if (bytes < 120u) {
+            s_fail++;
+            say_u32("r4 err bin ", bytes, produced);
+            return -1;
+        }
+        s_pipe_buf[next].produced=produced;
+        s_pipe_buf[next].bytes=bytes;
+        s_pipe_buf[next].gun_bytes=gun_bytes;
+        s_pipe_buf[next].world_count=world_count;
+    }
+    s_out.cyc_bin = board_cycles() - t_seg;
+
+    /* 4) 本调用目的帧的 HUD 条带表(下次调用的武器段随它提交)。 */
+    t_seg = board_cycles();
+    {
+        memset(list, 0, R4_HUD_ROWS*sizeof *list);
+        const uint32_t hud_bad=sh_hud_build(tab,dst_slot,list);
+        s_fail += hud_bad;
+        (void)list;
+        s_pipe_buf[next].hud_device=g_mem_regions[cmd_region].offset;
+        s_pipe_buf[next].dst_slot=dst_slot;
+        s_out.cyc_hud = board_cycles() - t_seg;
+    }
+
+    /* 5) 收世界段,按三态完成本次呈现帧的提交(状态:3 两段式/2 世界已直达/1 仅武器)。 */
+    if(s_pipe_valid) {
+        const uint32_t world_count=s_pipe_buf[cur].world_count;
+        const uint32_t gun_off=cur?R4_GUN_SUB_B_OFF:R4_SH_GUN_SUB_OFF;
+        const uint32_t gun_cap=cur?R4_GUN_SUB_B_CAP:R4_SH_GUN_SUB_CAP;
+        if(world_count && s_pipe_buf[cur].gun_bytes) {
+            if(world_in_flight &&
+               submit_hw_part_finish(tab,s_pipe_buf[cur].bytes,&world_cycles)!=0){s_fail++;return -1;}
+            if(submit_hw_part_async(tab,s_pipe_buf[cur].dst_slot,R4_SH_WORLD_SLOT,
+                 s_pipe_buf[cur].hud_device,world_count,gun_off,gun_cap,
+                 s_pipe_buf[cur].gun_bytes,
+                 s_pipe_buf[cur].produced-world_count)!=0){s_fail++;return -1;}
+            if(submit_hw_part_finish(tab,s_pipe_buf[cur].gun_bytes,&gun_cycles)!=0){s_fail++;return -1;}
+        } else if(!world_count) {
+            if(submit_hw_part_async(tab,s_pipe_buf[cur].dst_slot,R4_SLOT_BG,
+                 s_pipe_buf[cur].hud_device,0,gun_off,gun_cap,
+                 s_pipe_buf[cur].gun_bytes,s_pipe_buf[cur].produced)!=0){s_fail++;return -1;}
+            if(submit_hw_part_finish(tab,s_pipe_buf[cur].gun_bytes,&gun_cycles)!=0){s_fail++;return -1;}
+        }
+    }
+    s_rast_cyc=world_cycles+gun_cycles;
+    s_out.rast_cycles=s_rast_cyc;
+    s_out.cyc_submit=s_rast_cyc;
+    (void)rc;(void)mem;
+
+    /* 6) 呈现已备帧:目标场 = F0 + 2*(已呈现+1)。 */
+    if(s_pipe_valid) {
+        uint32_t bb = 0u;
+        const rast_record *rec=s_pipe_rec[cur];
+        for (uint32_t i = 0u; i < s_pipe_buf[cur].produced; i++) {
+            const int32_t x0 = (int16_t)rast_get16(&rec[i], 72);
+            const int32_t x1 = (int16_t)rast_get16(&rec[i], 74);
+            const int32_t y0 = (int16_t)rast_get16(&rec[i], 76);
+            const int32_t y1 = (int16_t)rast_get16(&rec[i], 78);
+            bb += (uint32_t)(x1 - x0 + 1) * (uint32_t)(y1 - y0 + 1);
+        }
+        s_out.bbox_points=bb;
+        s_out.records=s_pipe_buf[cur].produced;
+        s_out.refs=(s_pipe_buf[cur].bytes-120u)/2u+
+            (s_pipe_buf[cur].gun_bytes?(s_pipe_buf[cur].gun_bytes-120u)/2u:0u);
+    }
+    s_out.render_cycles = board_cycles() - t0;
+    if(present_armed) {
+        {
+            if (board_present_wait(present_ticket) != 0) {
+                s_fail++;
+                say_u32("r4 err present frame ", s_pipe_presented, 0u);
+                return -1;
+            }
+        }
+        {
+            const uint32_t actual = board_frame_count();
+            if (actual == due)
+                s_exact++;
+            else if ((int32_t)(actual-due)>0)
+                s_late++;
+            if(s_scene==3u && (int32_t)(actual-due)>0)s_anchor+=actual-due;
+            if(s_pipe_presented==30u) {
+                s_window_field=actual;s_window_swaps=board_swap_count();
+            } else if(s_pipe_presented>30u && s_time_count<2048u) {
+                s_times[s_time_count++]=s_out.render_cycles;
+                s_window_exact+=(actual==due);
+                s_window_late+=((int32_t)(actual-due)>0);
+                s_window_over+=(s_out.render_cycles>BOARD_HZ/30u);
+                s_window_fields_end=actual;s_window_swaps_end=board_swap_count();
+            }
+        }
+        ++s_pipe_presented;
+        s_pipe_cur=next;
+        s_pipe_valid=1;
+    } else {
+        s_pipe_valid=1;   /* 首帧只准备;已备帧在下次调用提交并呈现 */
+    }
+
+    /* 7) FPS 窗口与统计(与同步路径同口径)。 */
+    s_cyc_acc=(uint32_t)(board_cycles()-s_fps_start);
+    if (s_cyc_acc >= BOARD_HZ) {
+        s_fps=(uint32_t)(((uint64_t)(board_swap_count()-s_swaps0)*BOARD_HZ+s_cyc_acc/2u)/s_cyc_acc);
+        s_swaps0=board_swap_count();s_fps_start=board_cycles();s_fps_valid=1;
+    }
+    s_render_sum+=s_out.render_cycles;++s_render_n;
+    if(s_render_sum>=BOARD_HZ || s_render_n==30u) {
+        s_render_fps[s_hw]=(uint32_t)(((uint64_t)s_render_n*BOARD_HZ*1000u)/s_render_sum);
+        s_render_valid[s_hw]=1u;s_render_sum=0;s_render_n=0u;
+        if(!GFX2D_R4_JUDGE) {
+            char line[128];core_out o;core_out_init(&o,line,sizeof line);
+            core_out_str(&o,"R4STAT");
+            uint32_t values[]={s_fps,s_render_fps[s_hw],s_out.records,s_ladder,s_hw,s_scene};
+            for(unsigned i=0;i<6;++i){core_out_ch(&o,' ');core_out_u32(&o,values[i]);}
+            core_out_str(&o,"\r\n");say(line);
+            core_out_init(&o,line,sizeof line);core_out_str(&o,"R4TIME");
+            uint32_t times[]={s_out.cyc_logic,s_out.cyc_geom,s_out.cyc_bin,
+                s_out.cyc_hud,s_out.cyc_submit,s_out.rast_cycles,s_out.bbox_points,s_out.refs};
+            for(unsigned i=0;i<8;++i){core_out_ch(&o,' ');core_out_u32(&o,times[i]);}
+            core_out_str(&o,"\r\n");say(line);
+        }
+    }
+    s_out.frames++;
+    *out = s_out;
+    return 0;
+}
+#endif
+
 /* --- 一帧 ------------------------------------------------------------------- */
 
 int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
@@ -1127,6 +1430,9 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     uint32_t       *list;
     int             rc;
 
+#ifdef __riscv
+    if(s_pipe_on)return r4_mode_frame_pipe(tab,mem,dst_slot,keys,out);
+#endif
     if (fb_index < 0 || fb_index > 1) {
         s_fail++;
         return -1;
@@ -1179,12 +1485,17 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
     }
     t_seg = board_cycles();
     s_sh_world_count=s_scene==3u?sh_world_weapon_start():produced;
-    const int bin_bytes=rast_bin_frame(s_rec,s_sh_world_count,s_sub,R4_SUB_CAP,&s_raster_frame);
+    /* 凝时:发射层维护每记录条带范围(缓存切片可信,新片回填),跳过已验证
+       记录体的重复扫描;其余场景照旧全量校验。 */
+    const int bin_bytes=(s_scene==3u)
+        ?rast_bin_frame_cache(s_rec,s_sh_world_count,sh_world_ranges(),s_sub,R4_SUB_CAP,&s_raster_frame)
+        :rast_bin_frame(s_rec,s_sh_world_count,s_sub,R4_SUB_CAP,&s_raster_frame);
     bytes=bin_bytes>0?(uint32_t)bin_bytes:0u;
     s_sh_gun_bytes=0;
     if(s_scene==3u && s_sh_world_count<produced) {
         uint8_t *gun_sub=(uint8_t *)board_region(REGION_SHARED).ptr+R4_SH_GUN_SUB_OFF;
-        int gun_bytes=rast_bin_frame(s_rec+s_sh_world_count,produced-s_sh_world_count,
+        int gun_bytes=rast_bin_frame_cache(s_rec+s_sh_world_count,produced-s_sh_world_count,
+                                    sh_world_ranges()+2u*s_sh_world_count,
                                     gun_sub,R4_SH_GUN_SUB_CAP,&s_raster_frame);
         if(gun_bytes<120){++s_fail;return -1;}
         s_sh_gun_bytes=(uint32_t)gun_bytes;
@@ -1356,9 +1667,9 @@ int r4_mode_frame(gfx_surface_table *tab, const gfx_mem *mem, int dst_slot,
             core_out_str(&o,"\r\n");say(line);
 #if SH_PROFILE
             if(s_scene==3u) {
-                uint32_t profile[12];sh_profile_read(profile);
+                uint32_t profile[28];sh_profile_read(profile);
                 core_out_init(&o,line,sizeof line);core_out_str(&o,"SHCPU");
-                for(unsigned i=0;i<12;++i){core_out_ch(&o,' ');core_out_u32(&o,profile[i]);}
+                for(unsigned i=0;i<28;++i){core_out_ch(&o,' ');core_out_u32(&o,profile[i]);}
                 core_out_str(&o,"\r\n");say(line);
             }
 #endif
