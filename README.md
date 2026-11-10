@@ -19,6 +19,9 @@
 **硬件**：Ti60F225 开发板一块（板载 FT4232 下载器，一根 USB 线供电加调试）、
 HDMI 显示器与线。
 
+EL_001 REV2.0 扩展卡的正反面照片与来源登记见
+[`Deliverables/Assert/third-party/README.md`](Deliverables/Assert/third-party/README.md#el_001-rev20-扩展卡照片)。
+
 **工具链**：Efinity 2026.1、Efinity RISC-V 嵌入式 IDE、Java 8、libusbK 驱动、
 WSL 里的 iverilog 与 python3、xPack 的 riscv-none-elf-gcc 13.4.0。
 版本要求、获取方式与安装后的检查见 [`Main/doc/开发环境.md`](Main/doc/开发环境.md) 第 2 节。

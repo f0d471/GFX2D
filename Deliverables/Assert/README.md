@@ -14,7 +14,7 @@
 | `figures/src/render.sh` | 1 个 | 用 Edge 无头模式导出：`bash render.sh [名字 ...]`，不带参数导出全部；导出后检查 png 修改时间，Edge 出错时不报错只留旧图 |
 | `photos/` | 2 个文件 | 2026-10-05 系统运行屏摄，登记见「photos/ 登记」 |
 | `measurements/` | 2 个子目录 | 2026-10-05 面板与 PC 解释器运行记录，登记见「measurements/ 登记」 |
-| `third-party/` | 9 个文件 | 出处台账见 `third-party/README.md` |
+| `third-party/` | 20 个图片文件 | 出处台账见 [`third-party/README.md`](third-party/README.md)，含 EL_001 REV2.0 扩展卡正反面照片 |
 
 | 子目录 | 放什么 | 要求 |
 | --- | --- | --- |
