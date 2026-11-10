@@ -22,6 +22,9 @@ HDMI 显示器与线。
 EL_001 REV2.0 扩展卡的正反面照片与来源登记见
 [`Deliverables/Assert/third-party/README.md`](Deliverables/Assert/third-party/README.md#el_001-rev20-扩展卡照片)。
 
+PS2 无线手柄已购买直插转接板（排针）版本，资料与扩展卡接线候选见
+[`Engineering/Hardware/PS2手柄/README.md`](Engineering/Hardware/PS2手柄/README.md)；SoC 接入未实施。
+
 **工具链**：Efinity 2026.1、Efinity RISC-V 嵌入式 IDE、Java 8、libusbK 驱动、
 WSL 里的 iverilog 与 python3、xPack 的 riscv-none-elf-gcc 13.4.0。
 版本要求、获取方式与安装后的检查见 [`Main/doc/开发环境.md`](Main/doc/开发环境.md) 第 2 节。

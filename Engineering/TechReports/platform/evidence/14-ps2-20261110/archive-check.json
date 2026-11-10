@@ -1,0 +1,13 @@
+{
+  "profile": "quick",
+  "scope": "PS2 archive and static documentation; 15 source/document files plus this verification record",
+  "original_copies_sha256": "PASS (6 files)",
+  "zip_crc": "PASS (3 original archives)",
+  "source_directory_preserved": "PASS (338 files, 183324590 bytes)",
+  "staged_path_rules": "PASS (same localize_paths rules, staged text only)",
+  "added_relative_references": "PASS (23)",
+  "git_whitespace": "PASS",
+  "pdf_visual_review": "PS2 PDF pages 6-7, board guide PDF pages 27-28, daughter-card schematic page 1",
+  "board_scope": "Read-only enumeration only; no PS2 functional test, no reset/programming/Flash",
+  "repository_wide_paths": "Not claimed; prior run had 17 pre-existing findings in unrelated evidence files"
+}

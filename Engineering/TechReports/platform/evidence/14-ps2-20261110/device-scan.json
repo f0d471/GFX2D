@@ -1,0 +1,26 @@
+{
+  "captured_at": "2026-11-10T21:33:00+08:00",
+  "scope": "Read-only serial and USB/JTAG enumeration. No UART session opened, reset, programming, or Flash write.",
+  "ft4232h_c_uart": "COM11",
+  "serial_ports": [
+    {
+      "device": "COM9",
+      "vid": 1027,
+      "pid": 24593,
+      "hwid": "USB VID:PID=0403:6011 SER=5"
+    },
+    {
+      "device": "COM11",
+      "vid": 1027,
+      "pid": 24593,
+      "hwid": "USB VID:PID=0403:6011 SER=5"
+    },
+    {
+      "device": "COM12",
+      "vid": 1027,
+      "pid": 24593,
+      "hwid": "USB VID:PID=0403:6011 SER=5"
+    }
+  ],
+  "usb_scan_file": "usb-scan.json"
+}

@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "archived_on": "2026-11-10",
+  "source_directory_name": "001.PS2手柄",
+  "source_file_count": 338,
+  "source_total_bytes": 183324590,
+  "purchased_adapter": "直插转接板（排针）",
+  "purchase_evidence": "用户于 2026-11-10 明确说明",
+  "archive_policy": "四份手册/原始例程纳入 Git；两份视频按既有厂商资料目录保存；不重复收录解压目录和编译产物，来源目录保持原状。",
+  "files": [
+    {
+      "source_relative_path": "01.使用手册/PS2手柄说明手册.pdf",
+      "archive_relative_path": "Engineering/Hardware/PS2手柄/资料/PS2手柄说明手册.pdf",
+      "retention": "git",
+      "bytes": 727636,
+      "sha256": "b3460ca92a62feefd57c9339721302ee86ab08764ddbbd44926139df248e116d"
+    },
+    {
+      "source_relative_path": "03.源码例程/1.51手柄解析例程.zip",
+      "archive_relative_path": "Engineering/Hardware/PS2手柄/资料/1.51手柄解析例程.zip",
+      "retention": "git",
+      "bytes": 4682777,
+      "sha256": "a6862ffde9340063510e7d8dcdbb28213b1dc164c060a82f7402dd9c52ac65d2"
+    },
+    {
+      "source_relative_path": "03.源码例程/2.STM32 PS2解码例程.zip",
+      "archive_relative_path": "Engineering/Hardware/PS2手柄/资料/2.STM32 PS2解码例程.zip",
+      "retention": "git",
+      "bytes": 8029615,
+      "sha256": "90f170c70ec32115ece8a7349f8b7ca7f0775f87534c5e9e73119ee96280be79"
+    },
+    {
+      "source_relative_path": "03.源码例程/3.Arduino PS2手柄解析.zip",
+      "archive_relative_path": "Engineering/Hardware/PS2手柄/资料/3.Arduino PS2手柄解析.zip",
+      "retention": "git",
+      "bytes": 12181,
+      "sha256": "88709e3fccb2350c4fda01cb6c4e96a866e2fcfdf8710f3e001a1c244a008a8f"
+    },
+    {
+      "source_relative_path": "02.视频教程/手柄使用教程.mp4",
+      "archive_relative_path": "Efinix/05_外设器件手册/PS2手柄/02.视频教程/手柄使用教程.mp4",
+      "retention": "local_vendor_materials",
+      "bytes": 93019526,
+      "sha256": "43216285b3441585caee3b52f2ff3ca34acf9b2bf1d2dbc5448d9fbb57318b57"
+    },
+    {
+      "source_relative_path": "02.视频教程/手柄锁定教程.mp4",
+      "archive_relative_path": "Efinix/05_外设器件手册/PS2手柄/02.视频教程/手柄锁定教程.mp4",
+      "retention": "local_vendor_materials",
+      "bytes": 37206004,
+      "sha256": "ed69d3ade6baf8425188df6c0d63949e98799ce8dff43783e3823051b7fbafc3"
+    }
+  ]
+}
