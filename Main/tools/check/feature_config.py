@@ -206,13 +206,13 @@ CANONICAL = 'B0'
 
 # 每个开关对应的源文件：关闭时从编译输入里整出。
 FEATURE_SOURCES = {
-    'RAST': ('rtl/engine/engine_r3.v', 'rtl/engine/engine_rlst.v', 'rtl/engine/engine_rast.v'),
-    'TEX': ('rtl/engine/engine_tex.v',),
-    'BAND_HW': ('rtl/engine/engine_band.v',),
-    'PB': ('rtl/engine/engine_pb.v', 'rtl/engine/engine_pb_dma.v',
-           'rtl/engine/engine_bin.v', 'rtl/engine/engine_bounds.v',
-           'rtl/engine/engine_packet_check.v'),
-    'INST': ('rtl/engine/engine_inst.v',),
+    'RAST': ('rtl/engine/rast/engine_r3.v', 'rtl/engine/rast/engine_rlst.v', 'rtl/engine/rast/engine_rast.v'),
+    'TEX': ('rtl/engine/buffer/engine_tex.v',),
+    'BAND_HW': ('rtl/engine/buffer/engine_band.v',),
+    'PB': ('rtl/engine/frontend/engine_pb.v', 'rtl/engine/frontend/engine_pb_dma.v',
+           'rtl/engine/frontend/engine_bin.v', 'rtl/engine/frontend/engine_bounds.v',
+           'rtl/engine/frontend/engine_packet_check.v'),
+    'INST': ('rtl/engine/frontend/engine_inst.v',),
 }
 
 

@@ -11,8 +11,8 @@
 | 路径 | 内容 |
 | --- | --- |
 | `gfx2d_ti60/gfx2d_ti60.xml` | 工程文件：源文件列表、综合与布局布线选项、比特流选项、约束文件路径 |
-| `../rtl/engine/engine_band.v` | 已加入源列表，经 mover 接入；帧级 BAND 与 CAPS.BAND 已启用，游戏 HW/STRIP 后端已接入。BAND 独立占 36 RAM，当前整机资源见下方构型记录 |
-| `../rtl/engine/engine_blend.v`、`../rtl/engine/engine_pix.v` | 已由 engine_top/engine_pix 例化并进入整机网表，12 个混合核与 12 个引擎 DSP 对应 |
+| `../rtl/engine/buffer/engine_band.v` | 已加入源列表，经 mover 接入；帧级 BAND 与 CAPS.BAND 已启用，游戏 HW/STRIP 后端已接入。BAND 独立占 36 RAM，当前整机资源见下方构型记录 |
+| `../rtl/engine/core/engine_blend.v`、`../rtl/engine/core/engine_pix.v` | 已由 engine_top/engine_pix 例化并进入整机网表，12 个混合核与 12 个引擎 DSP 对应 |
 | `gfx2d_ti60/gfx2d_ti60.peri.xml` | 接口设计：管脚分配、IO 电压、PLL、LVDS TX、硬 JTAG |
 | `gfx2d_ti60/sdc/gfx2d_ti60.sdc` | 时序约束 |
 | `gfx2d_ti60/ip/soc/` | Sapphire SoC IP 的生成结果（`settings.json` 是配置，`soc.v` 是网表） |

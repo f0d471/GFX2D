@@ -151,7 +151,7 @@ def rtl():
     result = run('game_golden', [BUILD/'game_dump', BUILD/'game',
                                MAIN/'assets/build/assets.pak', '1024'])
     need('G4 GAME GOLDEN PASS' in result, 'game fixture missing evidence')
-    sources = [SIM/'tb_g4_frame.v', *sorted((MAIN/'rtl/engine').glob('*.v')),
+    sources = [SIM/'tb_g4_frame.v', *sorted((MAIN/'rtl/engine').glob('**/*.v')),
         MAIN/'rtl/vendor/verilog-axi/axi_dma_rd.v', MAIN/'rtl/vendor/verilog-axi/axi_dma_wr.v',
         MAIN/'sim/axi_probe/axi_ram_model.v']
     result = {}

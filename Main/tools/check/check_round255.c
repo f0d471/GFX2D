@@ -58,7 +58,7 @@
  * 线性同余的最高 8 位），每行一个 43 位十六进制字：
  *     {eq[2:0], src[7:0], dst[7:0], a[7:0], c[7:0], out[7:0]}
  * 其中 out 用的是本文件同一条快速式（`mix_V`），与仿真测试台里用精确商现算的期望值互相独立。
- * 引擎的混合核（`rtl/engine/engine_blend.v`）拿它做抽样对账，见 `sim/engine/blend/`。
+ * 引擎的混合核（`rtl/engine/core/engine_blend.v`）拿它做抽样对账，见 `sim/engine/blend/`。
  * 不带 `--golden` 时输出与本文件以前逐字节相同。
  */
 #include <stdio.h>

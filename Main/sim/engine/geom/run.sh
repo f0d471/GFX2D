@@ -3,7 +3,7 @@
 #
 # 两步：
 #   1 研究探针 probe_geom.v（产出速率与单独综合，保留为回归）
-#   2 入库实现 rtl/engine/engine_geom.v 的单元仿真
+#   2 入库实现 rtl/engine/core/engine_geom.v 的单元仿真
 #
 # 期望值一律由独立模型 tools/check/geom_model.py 现算，测试台只做「驱动 + 比对」：
 #   三组输入：定向用例 34 条、159 条向量里几何层见到的命令、十一整帧用例的全部命令。
@@ -61,7 +61,7 @@ build_one() {
     local name=$1
     shift
     iverilog -g2012 -I "$RTL/engine" -o "$BUILD/$name.vvp" "$@" \
-        "$RTL/engine/engine_geom.v" tb_engine_geom.v > "$BUILD/$name.compile.log" 2>&1
+        "$RTL/engine/core/engine_geom.v" tb_engine_geom.v > "$BUILD/$name.compile.log" 2>&1
 }
 
 # run_case <日志名> <vvp 名> <记录文件> <期望 RESULT> [plusargs]

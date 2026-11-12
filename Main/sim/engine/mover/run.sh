@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 搬运层 engine_mover 仿真
 #
-# 被测是 rtl/engine/engine_mover.v 整块，经仓内 Axi_Mux（S1）接补齐四样的从机。
+# 被测是 rtl/engine/core/engine_mover.v 整块，经仓内 Axi_Mux（S1）接补齐四样的从机。
 # 用例分四组：协议与上下文、复位与排空、错误、超时；另有六个注错，每一个都要见红
 # （第六个是后补的：正常写流不打 tlast）。
 # 最后单独跑一次从机定时模式（TIMED=1）的回归，它不经过被测，只测 axi_ram_model。
@@ -18,7 +18,7 @@ if [ -z "${EFINITY_HOME:-}" ] || [ ! -f "$EFINITY_HOME/sim_models/verilog/efx_sr
 fi
 
 RTL=../../../rtl
-SRC="$RTL/engine/engine_mover.v $RTL/engine/engine_band.v \
+SRC="$RTL/engine/core/engine_mover.v $RTL/engine/buffer/engine_band.v \
      $RTL/vendor/verilog-axi/axi_dma_rd.v $RTL/vendor/verilog-axi/axi_dma_wr.v \
      $RTL/vendor/axi_mux/Axi_Mux.v $EFINITY_HOME/sim_models/verilog/efx_srl8.v \
      ../../axi_probe/axi_ram_model.v tb_engine_mover.v"

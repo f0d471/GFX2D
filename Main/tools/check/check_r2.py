@@ -11,7 +11,8 @@ from check_rast import SOURCES
 
 E = 'Main/rtl/engine/'
 S = 'Main/sim/engine/'
-FULL = [S+'rast/tb_engine_rast.v', *[E+f'engine_{x}.v' for x in ('rlst','rast','mover','band','tex')],
+FULL = [S+'rast/tb_engine_rast.v', E+'rast/engine_rlst.v', E+'rast/engine_rast.v',
+        E+'core/engine_mover.v', E+'buffer/engine_band.v', E+'buffer/engine_tex.v',
         'Main/rtl/vendor/verilog-axi/axi_dma_rd.v', 'Main/rtl/vendor/verilog-axi/axi_dma_wr.v',
         'Main/sim/axi_probe/axi_ram_model.v']
 FLAGS = ['GFX_HAS_RAST', 'GFX_HAS_BAND_HW', 'GFX_HAS_TEX']
@@ -48,9 +49,9 @@ def main():
             print(name+' '+next(x for x in body.splitlines() if x.startswith('RESULT:')),flush=True)
         results.append({'name':name,'expected_failure':mutation,'log':log.relative_to(ROOT).as_posix()})
 
-    rlst_src=[S+'rlst/tb_engine_rlst.v',E+'engine_rlst.v']
-    core_src=[S+'rast/tb_rast_core.v',E+'engine_rast.v']
-    port_src=[S+'rast/tb_rast_tex_port.v',E+'engine_tex.v']
+    rlst_src=[S+'rlst/tb_engine_rlst.v',E+'rast/engine_rlst.v']
+    core_src=[S+'rast/tb_rast_core.v',E+'rast/engine_rast.v']
+    port_src=[S+'rast/tb_rast_tex_port.v',E+'buffer/engine_tex.v']
     if a.group=='rlst':
         run('normal',compile_case('normal','tb_engine_rlst',rlst_src))
     elif a.group=='ports':
@@ -59,7 +60,7 @@ def main():
             flags=['GFX_HAS_RAST_TEX']+(['RAST_TEX_LAT2'] if lat==2 else [])
             run(f'tex-lat{lat}',compile_case(f'tex-lat{lat}','tb_rast_tex_port',port_src,flags))
             run(f'core-tex-lat{lat}',compile_case(f'core-tex-lat{lat}','tb_rast_core',
-                core_src+[E+'engine_tex.v'],flags))
+                core_src+[E+'buffer/engine_tex.v'],flags))
         # 新模块尚未进入生产预设；关闭态由真实源文件清单而非宏名字推断。
         import feature_build as fb
         import feature_config as fc

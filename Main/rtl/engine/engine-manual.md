@@ -208,7 +208,8 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 
 ### 7.1 宏与依赖
 
-九个自写文件都 `` `include "engine_feature.vh" ``（生成物，见 7.5 节）。
+十八个自写文件都 `` `include "engine_feature.vh" ``（生成物，见 7.5 节；头留在 `engine/` 根，
+`.v` 分布在 `core/`、`buffer/`、`frontend/`、`rast/` 四个子目录）。
 宏是**存在式**的：`` `ifdef GFX_HAS_xxx `` 命中即该机制存在，不定义即整块离开编译输入。
 
 | 位 | 宏 | 依赖 |

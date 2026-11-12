@@ -36,7 +36,7 @@ def main():
         vectors=build/name/'vectors';generate(vectors,frames,textured)
         excluded={Path(x).name for flag,files in fc.FEATURE_SOURCES.items()
                   if not config[flag] for x in files}
-        sources=[x for x in sorted((tree/'engine').glob('*.v')) if x.name not in excluded]
+        sources=[x for x in sorted((tree/'engine').glob('**/*.v')) if x.name not in excluded]
         sources += [tree/'vendor/verilog-axi'/x for x in ('axi_dma_rd.v','axi_dma_wr.v')]
         sources += [ROOT/'Main/sim/axi_probe/axi_ram_model.v']
 
@@ -64,9 +64,9 @@ def main():
         execute(name)
         if name=='l2' and not a.no_mutations:
             jobs=[('owner','engine_top.v','.fd_raster(r3_fd_valid)',".fd_raster(1'b0)"),
-                  ('shadow','engine_r3.v','.tri_base(tri_base_r)','.tri_base(sh_tri)'),
-                  ('stage','engine_cmd.v','err_stage<=7','err_stage<=0'),
-                  ('early-done','engine_cmd.v',
+                  ('shadow','rast/engine_r3.v','.tri_base(tri_base_r)','.tri_base(sh_tri)'),
+                  ('stage','core/engine_cmd.v','err_stage<=7','err_stage<=0'),
+                  ('early-done','core/engine_cmd.v',
                    "if(ras_active && {1'b0,strip_id}+6'd1==strips_r) st<=S_RFINAL;",
                    "if(ras_active && {1'b0,strip_id}+6'd1==strips_r) begin pend_done<=1;st<=S_TERM;end")]
             for tag,file,before,after in jobs:

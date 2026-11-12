@@ -7,20 +7,20 @@
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008" unified_flow="false">
         <efx:top_module name="syn_engine_top" />
         <efx:design_file name="../../../../rtl/engine/engine_top.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_regs.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_cmd.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_bounds.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_packet_check.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_pb_dma.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_bin.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_pb.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_inst.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_geom.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_pix.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_blend.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_tex.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_band.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_mover.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/core/engine_regs.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/core/engine_cmd.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_bounds.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_packet_check.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_pb_dma.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_bin.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_pb.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_inst.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/core/engine_geom.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/core/engine_pix.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/core/engine_blend.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/buffer/engine_tex.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/buffer/engine_band.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/core/engine_mover.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/vendor/verilog-axi/axi_dma_rd.v" version="default" library="default" />
         <efx:design_file name="../../../../rtl/vendor/verilog-axi/axi_dma_wr.v" version="default" library="default" />
         <efx:design_file name="syn_engine_top.v" version="default" library="default" />
@@ -35,6 +35,7 @@
     <efx:ooc_info />
     <efx:ip_info />
     <efx:synthesis tool_name="efx_map">
+        <efx:param name="include" value="../../../../rtl/engine" value_type="e_string" />
         <efx:param name="work_dir" value="work_syn_engine_top" value_type="e_string" />
         <efx:param name="write_efx_verilog" value="on" value_type="e_bool" />
         <efx:param name="allow-const-ram-index" value="0" value_type="e_option" />

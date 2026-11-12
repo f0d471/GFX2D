@@ -180,7 +180,7 @@ def pixel_experiments():
     (LOGS/'golden_export.log').write_text(p.stdout+p.stderr,encoding='utf-8')
     if p.returncode: raise RuntimeError('golden export sanitizer failed')
     prepare_pixel_fixture()
-    rtl=[MAIN/'rtl/engine'/p for p in ('engine_geom.v','engine_pix.v','engine_blend.v')]
+    rtl=[MAIN/'rtl/engine'/p for p in ('core/engine_geom.v','core/engine_pix.v','core/engine_blend.v')]
     argv=['iverilog','-g2012','-s','tb_engine_path','-DCASE="build/hot16"','-o',BUILD/'path.vvp',BUILD/'tb_band_path.v',SIM/'probe_band_local.v',*rtl]
     subprocess.run([str(x) for x in argv],check=True)
     out=run(['vvp','-n',BUILD/'path.vvp'],'band_path')
@@ -432,7 +432,7 @@ endmodule
 '''
     bench=BUILD/'tb_probe_band_dma.v'
     bench.write_text(prefix+core+suffix,encoding='utf-8')
-    rtl=[MAIN/'rtl/engine/engine_mover.v',MAIN/'rtl/vendor/verilog-axi/axi_dma_rd.v',
+    rtl=[MAIN/'rtl/engine/core/engine_mover.v',MAIN/'rtl/vendor/verilog-axi/axi_dma_rd.v',
          MAIN/'rtl/vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v',SIM/'probe_band_ram.v']
     argv=['iverilog','-g2012','-s','tb_probe_band_dma','-DTIMED','-o',BUILD/'dma.vvp',bench,*rtl]
     subprocess.run([str(x) for x in argv],check=True)

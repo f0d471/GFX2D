@@ -525,7 +525,7 @@ wire        grd_pready;
 wire        grd_pslverr;
 
 // 渲染引擎（混合/搬运/几何/计算/控制五层加顶层集成；含片上纹理装载窗口）
-// 寄存器表：rtl/engine/engine_regs.v，偏移与位号的真源是 tools/check/regs_gen.py。
+// 寄存器表：rtl/engine/core/engine_regs.v，偏移与位号的真源是 tools/check/regs_gen.py。
 // 复位：控制层挂 soc_system_reset（同步、高有效），搬运层挂 ddr_rstn 取反
 // （与 Axi_Mux 同一复位源，只在上电与 PLL 失锁时复位）；软复位经寄存器层的
 // drain_req 请求排空，见 engine_top.v 文件头。AXI 主口接 Axi_Mux 的 S1。

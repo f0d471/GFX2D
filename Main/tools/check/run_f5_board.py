@@ -54,7 +54,7 @@ def synthesis():
     slacks=[float(x) for x in re.findall(r'^\S+\s+\S+\s+[-\d.]+\s+([-\d.]+)\s+\(',text[begin:end],re.M)]
     if not slacks or min(slacks)<0:raise RuntimeError('F5 禁止部署负时序位流: '+str(slacks))
     bit=path/'gfx2d_ti60.bit'
-    if max(p.stat().st_mtime_ns for p in (MAIN/'rtl/engine').glob('*.v'))>bit.stat().st_mtime_ns:
+    if max(p.stat().st_mtime_ns for p in (MAIN/'rtl/engine').glob('**/*.v'))>bit.stat().st_mtime_ns:
         raise RuntimeError('RTL 晚于位流，先重建')
     for ext in ['place.rpt','timing.rpt','hier_util.rpt']:
         destination=LOGS/('f5_final_main_'+ext)

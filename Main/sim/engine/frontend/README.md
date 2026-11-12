@@ -119,7 +119,7 @@ planned+模板；5 为底色缓存，6 为动态 prepass，7/8/9 分别是动态
 
 ## 通用实例命令
 
-生产实现位于 lib/gfx/instances.c 与 rtl/engine/engine_inst.v，研究原型仅用于复现。
+生产实现位于 lib/gfx/instances.c 与 rtl/engine/frontend/engine_inst.v，研究原型仅用于复现。
 以下命令在 WSL 的仓库根运行，全部独立产物在本目录忽略的 build/f4 下：
 
 ~~~text

@@ -21,7 +21,7 @@ INCLUDE=write_headers('B3',BUILD/'include')
 
 
 def compile_run(name,bench,defines=(),params=(),expect='PASS',evidence=None):
-    rtl=[MAIN/'rtl/engine'/p for p in ('engine_band.v','engine_mover.v','engine_geom.v','engine_pix.v','engine_blend.v','engine_tex.v')]
+    rtl=[MAIN/'rtl/engine'/p for p in ('buffer/engine_band.v','core/engine_mover.v','core/engine_geom.v','core/engine_pix.v','core/engine_blend.v','buffer/engine_tex.v')]
     rtl += [MAIN/'rtl/vendor/verilog-axi/axi_dma_rd.v',MAIN/'rtl/vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
     argv=['iverilog','-g2012','-I'+str(INCLUDE),'-I'+str(MAIN/'rtl/engine'),'-s',bench.stem,'-DCASE="'+str(BUILD/('empty' if 'EMPTY_CASE' in defines else 'scene'))+'"']
     argv += ['-D'+x for x in defines]
@@ -82,7 +82,7 @@ def prepare_syn():
     root.set('name','engine_band_syn');root.set('description','G2 formal BAND standalone')
     design=root.find(ns+'design_info');design.find(ns+'top_module').set('name','syn_engine_band')
     for f in list(design.findall(ns+'design_file')):design.remove(f)
-    for i,p in enumerate([MAIN/'rtl/engine/engine_band.v',SIM/'syn_engine_band.v']):
+    for i,p in enumerate([MAIN/'rtl/engine/buffer/engine_band.v',SIM/'syn_engine_band.v']):
         design.insert(1+i,ET.Element(ns+'design_file',name=os.path.relpath(p,folder).replace('\\','/'),version='default',library='default'))
     root.find(ns+'constraint_info').find(ns+'sdc_file').set('name','engine_band_syn.sdc')
     for p in root.iter(ns+'param'):

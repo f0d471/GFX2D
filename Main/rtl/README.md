@@ -36,6 +36,17 @@
 `engine/engine-manual.md` 第 4 节；片上纹理（TEX）装载窗口与条带缓冲在此基础启用，
 机制见 `engine-manual.md` 与各文件头注释。
 
+`engine/` 下按机制分四个子目录，`engine_top.v` 与四份生成头留在根。分组的依据是特性宏边界：
+一个子目录里的模块要么整体在构型里、要么整体不在。
+
+| 子目录 | 文件 | 内容 |
+| --- | --- | --- |
+| `core/` | `engine_cmd.v`、`engine_regs.v`、`engine_mover.v`、`engine_geom.v`、`engine_pix.v`、`engine_blend.v` | 必选通路：控制、事务、几何、计算阵列与混合核 |
+| `buffer/` | `engine_tex.v`、`engine_band.v` | 片上存储数据面，对应 `GFX_HAS_TEX` 与 `GFX_HAS_BAND_HW` |
+| `frontend/` | `engine_inst.v`、`engine_pb.v`、`engine_pb_dma.v`、`engine_bin.v`、`engine_bounds.v`、`engine_packet_check.v` | 绘制前端：实例命令与硬件分桶，两者互相例化，不拆开 |
+| `rast/` | `engine_r3.v`、`engine_rlst.v`、`engine_rast.v` | 三维：`r3` 例化 `rlst` 与 `rast`，对应 `GFX_HAS_RAST`/`GFX_HAS_RAST_TEX` |
+| 根 | `engine_top.v`、四份生成头 | 顶层接线与配置守卫；生成头是宏的唯一定义处 |
+
 | 文件 | 说明 |
 | --- | --- |
 | `engine_bin.v`、`engine_bounds.v`、`engine_packet_check.v` | 硬件分桶前端：COUNT/快照、顺序PREFIX与保序SCATTER；18位求交、共享字段校验、32×96桶RAM；引用保持完整逻辑身份，READY首拍最后发布 |
@@ -49,11 +60,11 @@
 | `engine_geom.v` | 几何层。接一条过了十步检查的 FILL 或 BLIT，五者求交、逐行迭代（每行 4 拍）、按 16 字节对齐的覆盖区间发读源、读目的、写目的的描述符（不跨 4KB、不超过 192 拍），每行先发一条边带；`rd_buf = {源/目的, 行号最低位}`，每一行开始之前查 `row_free[行号最低位]`；零面积命令回一拍 `cmd_done`。`engine_top.v` 已例化并接入 SoC 网表 |
 | `engine_pix.v` | 计算阵列与片上缓存。源码按行接收、当前行调度、S1~S7 通路和输出完成排列，同阶段数据与拍号/valid 就近定义。源 512×128、目的 512×96（X 字节不存）两块行缓冲，各放两行乒乓；两拍窗口的像素旋转、首末拍掩码与色键（比原始存储字），在 X 字节最高位打「不写」标记；12 个 `engine_blend` 的四像素通路，FILL 的 a 一律取 `w4[31:24]`；七拍流水挂一个时钟使能 `pipe_en = ws_tready \|\| !ws_tvalid`，写核停时整条停。读流恒 ready，写流没有 `tlast`（由搬运层按拍数打），`row_free[1:0]` 在该半写流末拍被写核收走之后拉高。`engine_top.v` 已例化并接入 SoC 网表 |
 | `engine_top.v`、`engine_regs.v`、`engine_cmd.v` | 控制层：APB 寄存器、命令表批量取数、十步检查、错误三元组与性能计数；`engine_top` 例化混合/搬运/几何/计算四层，各文件已列进工程源文件列表。159 向量端到端与定向用例、单独综合和板卡基线均已验收，已接入 SoC 顶层。条带表头/三相循环、局部 y 转换、反馈拒绝及排空已并入，见 `engine-manual.md`。寄存器偏移由 `tools/check/regs_gen.py` 生成，不手改 `.vh` |
-| `engine_feature.vh`、`engine_config_guard.vh`、`engine_config_error_modules.vh`、`engine_regs_offsets.vh` | 生成物，由 `tools/check/feature_build.py` 写出，不手改。四份都落在本目录，所以 RTL 用同目录 `` `include "engine_feature.vh" `` 即可，不需要额外的 include 路径；`--sync` 重生成、`--check` 校验 |
+| `engine_feature.vh`、`engine_config_guard.vh`、`engine_config_error_modules.vh`、`engine_regs_offsets.vh` | 生成物，由 `tools/check/feature_build.py` 写出，不手改。四份都留在 `engine/` 根，`.v` 已分到子目录，所以综合工程要在 `gfx2d_ti60.xml` 里用 `<efx:param name="include" value="../../rtl/engine" />` 指过去（`efx_run` 把它转成 `I=`），仿真侧用 `iverilog -I rtl/engine`；`--sync` 重生成、`--check` 校验 |
 
 **每个引擎 RTL 文件都必须 `` `include "engine_feature.vh" ``**（放在文件头、`` `default_nettype `` 之后）。
 可选机制由它定义的宏进出编译输入：`` `ifdef GFX_HAS_xxx `` 命中即该机制存在，不定义即整块离开编译输入，
-不做「输入接常量、寄存器照留」的裁剪。九个自写文件当前都带这一行，新增文件要一并加上，
+不做「输入接常量、寄存器照留」的裁剪。十八个自写文件当前都带这一行，新增文件要一并加上，
 否则构型构建时那些 `` `ifdef `` 会被当成未定义而静默走关闭分支。
 构型定义、依赖边、CAPS 编码与七个代表档见 [`../tools/check/feature_config.py`](../tools/check/feature_config.py)；
 生成、同步与校验用 [`../tools/check/feature_build.py`](../tools/check/feature_build.py)，

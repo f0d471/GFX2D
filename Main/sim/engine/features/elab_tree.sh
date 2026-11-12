@@ -7,14 +7,16 @@ TB="$(cd "$(dirname "$0")" && pwd)/tb_feature_elab.v"
 cd "$TREE"
 
 files=(
-  rtl/engine/engine_top.v rtl/engine/engine_regs.v rtl/engine/engine_cmd.v
-  rtl/engine/engine_geom.v rtl/engine/engine_pix.v rtl/engine/engine_blend.v
-  rtl/engine/engine_mover.v
+  rtl/engine/engine_top.v rtl/engine/core/engine_regs.v rtl/engine/core/engine_cmd.v
+  rtl/engine/core/engine_geom.v rtl/engine/core/engine_pix.v rtl/engine/core/engine_blend.v
+  rtl/engine/core/engine_mover.v
   rtl/vendor/verilog-axi/axi_dma_rd.v rtl/vendor/verilog-axi/axi_dma_wr.v
 )
 # 按构型启用的模块补进去；未启用的文件不存在于源树里也允许（源树里仍有副本）。
-for extra in engine_tex engine_band engine_inst engine_bounds engine_packet_check \
-             engine_pb_dma engine_bin engine_pb engine_r3 engine_rlst engine_rast; do
+for extra in buffer/engine_tex buffer/engine_band \
+             frontend/engine_inst frontend/engine_bounds frontend/engine_packet_check \
+             frontend/engine_pb_dma frontend/engine_bin frontend/engine_pb \
+             rast/engine_r3 rast/engine_rlst rast/engine_rast; do
   [ -f "rtl/engine/$extra.v" ] && files+=("rtl/engine/$extra.v")
 done
 

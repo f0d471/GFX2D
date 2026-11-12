@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 单通道混合核（rtl/engine/engine_blend.v）仿真
+# 单通道混合核（rtl/engine/core/engine_blend.v）仿真
 #
 # 用例：
 #   spec      先用 check_round255.c 自己的断言过一次（六个方程、舍入与位宽的规格侧实现）
@@ -16,7 +16,7 @@ cd "$(dirname "$0")"
 
 RTL=../../../rtl
 SPEC_C=../../../tools/check/check_round255.c
-SRC="$RTL/engine/engine_blend.v tb_engine_blend.v"
+SRC="$RTL/engine/core/engine_blend.v tb_engine_blend.v"
 BUILD=build
 mkdir -p "$BUILD"
 rm -f "$BUILD/golden.hex"      # 导出失败时不能拿上一次的金标准顶替

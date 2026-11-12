@@ -30,12 +30,12 @@ REPO_REL = os.path.join("Main", "rtl")
 
 # 注错机制替换涉及的自写 RTL 文件（相对 Main/rtl/）
 FILES = [
-    "engine/engine_blend.v",
-    "engine/engine_cmd.v",
-    "engine/engine_geom.v",
-    "engine/engine_mover.v",
-    "engine/engine_pix.v",
-    "engine/engine_tex.v",
+    "engine/core/engine_blend.v",
+    "engine/core/engine_cmd.v",
+    "engine/core/engine_geom.v",
+    "engine/core/engine_mover.v",
+    "engine/core/engine_pix.v",
+    "engine/buffer/engine_tex.v",
     "engine/engine_top.v",
     "display/display_fetch.v",
     "display/display_out.v",
@@ -66,11 +66,11 @@ SIM_FILES = [
 
 
 def repo_main() -> str:
-    """定位 Main/：从当前目录往上找含 rtl/engine/engine_blend.v 的那一层。"""
+    """定位 Main/：从当前目录往上找含 rtl/engine/core/engine_blend.v 的那一层。"""
     here = os.path.abspath(os.getcwd())
     for cand in [here] + [os.path.join(here, *[".."] * i) for i in range(1, 5)]:
         cand = os.path.normpath(cand)
-        if os.path.isfile(os.path.join(cand, "rtl", "engine", "engine_blend.v")):
+        if os.path.isfile(os.path.join(cand, "rtl", "engine", "core", "engine_blend.v")):
             return cand
     sys.exit("找不到 Main/：请在 Main/ 目录下运行")
 

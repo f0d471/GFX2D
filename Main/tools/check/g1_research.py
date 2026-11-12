@@ -80,7 +80,7 @@ def main():
             root.set('description', 'G1 engine_tex standalone')
             design.find(ns + 'top_module').set('name','syn_engine_tex')
             design.find(ns + 'design_file').set('name','../syn_engine_tex.v')
-            design.insert(2, ET.Element(ns+'design_file',name='../../../../rtl/engine/engine_tex.v',version='default',library='default'))
+            design.insert(2, ET.Element(ns+'design_file',name='../../../../rtl/engine/buffer/engine_tex.v',version='default',library='default'))
             root.find(ns+'constraint_info').find(ns+'sdc_file').set('name','engine_tex_syn.sdc')
             tree.write(BUILD/'engine_tex_syn.xml',encoding='utf-8',xml_declaration=False)
         peri = (template / 'engine_pix_syn.peri.xml').read_text(encoding='utf-8')
@@ -131,7 +131,7 @@ def main():
     run('export', [export, '--sprites', BUILD / 'sprites'])
     rtl = MAIN / 'rtl'
     common = [rtl / 'engine' / p for p in
-              ['engine_geom.v', 'engine_pix.v', 'engine_blend.v', 'engine_mover.v']]
+              ['core/engine_geom.v', 'core/engine_pix.v', 'core/engine_blend.v', 'core/engine_mover.v']]
     common += [rtl / 'vendor/verilog-axi' / p for p in ['axi_dma_rd.v', 'axi_dma_wr.v']]
     common += [MAIN / 'sim/axi_probe/axi_ram_model.v']
     original = (MAIN / 'sim/engine/pix/tb_engine_path.v').read_text(encoding='utf-8')

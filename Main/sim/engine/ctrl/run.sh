@@ -20,9 +20,9 @@ mkdir -p "$BUILD"
 bad=0
 total=0
 
-CORE="$RTL/engine/engine_tex.v $RTL/engine/engine_top.v $RTL/engine/engine_regs.v $RTL/engine/engine_cmd.v $RTL/engine/engine_inst.v $RTL/engine/engine_bounds.v $RTL/engine/engine_packet_check.v $RTL/engine/engine_pb_dma.v $RTL/engine/engine_bin.v $RTL/engine/engine_pb.v \
-$RTL/engine/engine_geom.v $RTL/engine/engine_pix.v $RTL/engine/engine_blend.v \
-$RTL/engine/engine_band.v $RTL/engine/engine_mover.v $RTL/vendor/verilog-axi/axi_dma_rd.v \
+CORE="$RTL/engine/buffer/engine_tex.v $RTL/engine/engine_top.v $RTL/engine/core/engine_regs.v $RTL/engine/core/engine_cmd.v $RTL/engine/frontend/engine_inst.v $RTL/engine/frontend/engine_bounds.v $RTL/engine/frontend/engine_packet_check.v $RTL/engine/frontend/engine_pb_dma.v $RTL/engine/frontend/engine_bin.v $RTL/engine/frontend/engine_pb.v \
+$RTL/engine/core/engine_geom.v $RTL/engine/core/engine_pix.v $RTL/engine/core/engine_blend.v \
+$RTL/engine/buffer/engine_band.v $RTL/engine/core/engine_mover.v $RTL/vendor/verilog-axi/axi_dma_rd.v \
 $RTL/vendor/verilog-axi/axi_dma_wr.v $RTL/../sim/axi_probe/axi_ram_model.v"
 
 # ---------------------------------------------------------------- 1 研究探针

@@ -1,6 +1,6 @@
 // tb_engine_geom：几何层的单元仿真
 //
-// 被测是 rtl/engine/engine_geom.v 整块。测试台按命令接口喂命令，收读写描述符与每行边带，
+// 被测是 rtl/engine/core/engine_geom.v 整块。测试台按命令接口喂命令，收读写描述符与每行边带，
 // 与独立模型（Main/tools/check/geom_model.py --dump-records / --dump-directed）给的
 // 期望值逐条比。期望值不读 RTL，也不在本文件里重算——本文件只做「驱动 + 比对」。
 //

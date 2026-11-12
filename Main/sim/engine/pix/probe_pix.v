@@ -33,12 +33,12 @@
 //   probe_pix_mask     纯组合的首末拍掩码：目的拍 k 的槽 t 有效
 //                      ⟺ 0 ≤ 4k − ld + t < npx。行外像素打「不写」。
 //   probe_pix_path     一行的数据通路：两块行缓冲、旋转、色键、XRGB 的 a、
-//                      12 个 rtl/engine/engine_blend.v、标记合并、写流（含 tlast）。
+//                      12 个 rtl/engine/core/engine_blend.v、标记合并、写流（含 tlast）。
 //                      行级驱动简化为 start 脉冲 + 行参数（数据由测试台预填进 RAM），
 //                      不含读流写入与 row_free 的完整握手——那是入库实现的事。
 // 单独综合的顶层在 syn/syn_probe_pix.v（LFSR 驱动全部输入，含 ws_tready）。
 //
-// 探针只回答上面三问；入库依据在 rtl/engine/engine_pix.v 与同目录 README。
+// 探针只回答上面三问；入库依据在 rtl/engine/core/engine_pix.v 与同目录 README。
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -137,7 +137,7 @@ endmodule
 
 // ---------------------------------------------------------------------------
 // 一行的数据通路：行缓冲 ×2 → 旋转 → 色键 → XRGB 的 a → 12 个 engine_blend →
-// 标记合并 → 写流。研究与综合共用；例化真核 rtl/engine/engine_blend.v（L=3 与正式一致）。
+// 标记合并 → 写流。研究与综合共用；例化真核 rtl/engine/core/engine_blend.v（L=3 与正式一致）。
 //
 // 拍对齐（研究第 3 问的答案，周期编号从「地址寄存器输出第 0 拍地址」起）：
 //   周期 0   地址发生器：源地址 = 半基 + k + off，目的地址 = 半基 + k

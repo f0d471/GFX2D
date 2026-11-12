@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 入库 RTL rtl/engine/engine_pix.v 的正式判据
+# 入库 RTL rtl/engine/core/engine_pix.v 的正式判据
 #
 # 三组，期望值都不取自被测：
 #   unit_*   tb_engine_pix.v，一行一行地跑：sweep 400 行（npx 1..25 × 源/目的相位 4×4）、
@@ -14,7 +14,7 @@
 #            等上一条写回完成再提交时对，几何层一空闲就提交（-DNOWAIT）时必须见红——
 #            数据通路自己不挡这种冲突，控制层的命令下发要处理它。
 #
-# 注错位与 rtl/engine/engine_pix.v 文件头一一对应。
+# 注错位与 rtl/engine/core/engine_pix.v 文件头一一对应。
 # 需要 WSL 里的 iverilog 12 与 gcc；不需要 EFINITY_HOME（不经过 Axi_Mux）。
 set -u
 cd "$(dirname "$0")"
@@ -44,10 +44,10 @@ run_case() {
     esac
 }
 
-UNIT="tb_engine_pix.v $RTL/engine/engine_pix.v $RTL/engine/engine_blend.v"
-PIPE="tb_engine_pix_pipe.v $RTL/engine/engine_pix.v $RTL/engine/engine_blend.v"
-PATH_SRC="tb_engine_path.v $RTL/engine/engine_geom.v $RTL/engine/engine_pix.v \
-$RTL/engine/engine_blend.v $RTL/engine/engine_mover.v \
+UNIT="tb_engine_pix.v $RTL/engine/core/engine_pix.v $RTL/engine/core/engine_blend.v"
+PIPE="tb_engine_pix_pipe.v $RTL/engine/core/engine_pix.v $RTL/engine/core/engine_blend.v"
+PATH_SRC="tb_engine_path.v $RTL/engine/core/engine_geom.v $RTL/engine/core/engine_pix.v \
+$RTL/engine/core/engine_blend.v $RTL/engine/core/engine_mover.v \
 $RTL/vendor/verilog-axi/axi_dma_rd.v $RTL/vendor/verilog-axi/axi_dma_wr.v \
 ../../axi_probe/axi_ram_model.v"
 

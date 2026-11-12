@@ -6,11 +6,11 @@
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008" unified_flow="false">
         <efx:top_module name="syn_engine_bin" />
-        <efx:design_file name="../../../../rtl/engine/engine_inst.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_cmd.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_packet_check.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_bounds.v" version="default" library="default" />
-        <efx:design_file name="../../../../rtl/engine/engine_bin.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_inst.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/core/engine_cmd.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_packet_check.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_bounds.v" version="default" library="default" />
+        <efx:design_file name="../../../../rtl/engine/frontend/engine_bin.v" version="default" library="default" />
         <efx:design_file name="syn_engine_bin.v" version="default" library="default" />
         <efx:top_vhdl_arch name="" />
     </efx:design_info>
@@ -23,6 +23,7 @@
     <efx:ooc_info />
     <efx:ip_info />
     <efx:synthesis tool_name="efx_map">
+        <efx:param name="include" value="../../../../rtl/engine" value_type="e_string" />
         <efx:param name="work_dir" value="work_syn_engine_bin" value_type="e_string" />
         <efx:param name="write_efx_verilog" value="on" value_type="e_bool" />
         <efx:param name="allow-const-ram-index" value="0" value_type="e_option" />

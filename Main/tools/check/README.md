@@ -245,7 +245,7 @@ SET_CLIP 的左上角取 `w1`；裁剪框跨命令表继承，不随表复位；
 测试台据此逐条比。只导出几何层真正见到的命令；`cidx` 是表内下标。
 `--dump-directed` 与它同格式，只是输入换成 34 条定向用例。
 
-入库实现、单元仿真与逐拍测试台在 `Main/rtl/engine/engine_geom.v` 与 `Main/sim/engine/geom/`。
+入库实现、单元仿真与逐拍测试台在 `Main/rtl/engine/core/engine_geom.v` 与 `Main/sim/engine/geom/`。
 
 ## replay2c.py
 

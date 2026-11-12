@@ -12,13 +12,15 @@ for tree in B0 B1 B2 B3 B4 B5 B6 B7; do
   [ -d "$dir/rtl/engine" ] || { echo "  INCOMPLETE $tree（无源树）"; exit 3; }
   cd "$dir"
   files=(
-    rtl/engine/engine_top.v rtl/engine/engine_regs.v rtl/engine/engine_cmd.v
-    rtl/engine/engine_geom.v rtl/engine/engine_pix.v rtl/engine/engine_blend.v
-    rtl/engine/engine_mover.v
+    rtl/engine/engine_top.v rtl/engine/core/engine_regs.v rtl/engine/core/engine_cmd.v
+    rtl/engine/core/engine_geom.v rtl/engine/core/engine_pix.v rtl/engine/core/engine_blend.v
+    rtl/engine/core/engine_mover.v
     rtl/vendor/verilog-axi/axi_dma_rd.v rtl/vendor/verilog-axi/axi_dma_wr.v
   )
-  for extra in engine_tex engine_band engine_inst engine_bounds engine_packet_check \
-               engine_pb_dma engine_bin engine_pb engine_r3 engine_rlst engine_rast; do
+  for extra in buffer/engine_tex buffer/engine_band \
+               frontend/engine_inst frontend/engine_bounds frontend/engine_packet_check \
+               frontend/engine_pb_dma frontend/engine_bin frontend/engine_pb \
+               rast/engine_r3 rast/engine_rlst rast/engine_rast; do
     [ -f "rtl/engine/$extra.v" ] && files+=("rtl/engine/$extra.v")
   done
   if ! iverilog -g2012 -I rtl/engine -o build_contract.vvp -s tb_feature_contract \

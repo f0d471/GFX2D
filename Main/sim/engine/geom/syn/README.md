@@ -4,7 +4,7 @@
 
 | 工程 | 被测 | 量的是什么 | 数据在哪 |
 | --- | --- | --- | --- |
-| `engine_geom_syn.xml` | `rtl/engine/engine_geom.v`（入库实现） | 资源与时序，顶层是 `syn_engine_geom.v` | 本目录工程报告（`outflow/`） |
+| `engine_geom_syn.xml` | `rtl/engine/core/engine_geom.v`（入库实现） | 资源与时序，顶层是 `syn_engine_geom.v` | 本目录工程报告（`outflow/`） |
 | `probe_geom_syn.xml` | `../probe_geom.v`（前期研究的探针） | 「五者求交的 32 位比较链 + 行迭代的地址加法链」的余量与资源，顶层是 `probe_geom_top` | 同上 |
 
 两份都入库、路径全相对。混合核与搬运层的单独综合建在仓库外，丢过一次整机资源

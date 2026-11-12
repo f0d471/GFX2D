@@ -1,6 +1,6 @@
 // 搬运层 engine_mover 的测试台
 //
-// 被测是 rtl/engine/engine_mover.v 整块，经 rtl/vendor/axi_mux/Axi_Mux.v（S1）
+// 被测是 rtl/engine/core/engine_mover.v 整块，经 rtl/vendor/axi_mux/Axi_Mux.v（S1）
 // 接到补齐四样的 sim/axi_probe/axi_ram_model.v。测试台扮演三边：
 //   几何层（发读写描述符）、计算阵列（收读流、送写流）、控制层（发排空请求与门限）
 //

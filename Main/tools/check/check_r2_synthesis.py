@@ -18,8 +18,8 @@ ET.register_namespace('xsi','http://www.w3.org/2001/XMLSchema-instance')
 
 def prepare(folder, l2):
     folder.mkdir(parents=True)
-    for name in ('engine_rlst.v','engine_rast.v','engine_regs_offsets.vh'):
-        shutil.copyfile(ROOT/'Main/rtl/engine'/name,folder/name)
+    for rel in ('rast/engine_rlst.v','rast/engine_rast.v','engine_regs_offsets.vh'):
+        shutil.copyfile(ROOT/'Main/rtl/engine'/rel,folder/Path(rel).name)
     (folder/'engine_feature.vh').write_text('`define GFX_HAS_RAST\n'+
         ('`define GFX_HAS_RAST_TEX\n' if l2 else ''),encoding='utf-8')
     wrapper='''// 动态观察壳只测资源/时序；协议由真实 AXI 测试验证。
@@ -58,6 +58,10 @@ else drive<={drive[2046:0],drive[2047]^drive[2034]^drive[2015]^drive[2000]};
     for i,name in enumerate(('engine_rlst.v','engine_rast.v','syn_r2.v')):
         design.insert(1+i,ET.Element(tag('design_file'),{'name':name,'version':'default','library':'default'}))
     root.find(tag('constraint_info')).find(tag('sdc_file')).set('name','r2.sdc')
+    # 本目录里源码是平铺的副本，模板里指向 rtl/engine 的 include 参数在这里不成立，去掉。
+    syn=root.find(tag('synthesis'))
+    for node in list(syn.findall(tag('param'))):
+        if node.get('name')=='include':syn.remove(node)
     tree.write(folder/'r2_core.xml',encoding='utf-8')
     peri=(template/'engine_bin_syn.peri.xml').read_text(encoding='utf-8').replace('engine_bin_syn','r2_core')
     (folder/'r2_core.peri.xml').write_text(peri,encoding='utf-8')

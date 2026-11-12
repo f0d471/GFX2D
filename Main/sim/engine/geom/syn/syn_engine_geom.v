@@ -1,4 +1,4 @@
-// syn_engine_geom：rtl/engine/engine_geom.v 单独综合的顶层
+// syn_engine_geom：rtl/engine/core/engine_geom.v 单独综合的顶层
 //
 // 只给综合用，不进网表。与研究探针及各层单独综合同一套做法：
 //   * 128 位 LFSR 造命令激励（含裁剪框）、三个方向的 ready 与 row_free[1:0]；

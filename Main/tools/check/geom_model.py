@@ -22,7 +22,7 @@
   * 向量带参考实现的末态裁剪框（clip=）时，模型走完之后的裁剪框必须与它相同。
 命令表的走法与 check_cmd_semantics.py 的 run_lists() 同口径：裁剪框跨表继承，出错处截断（run_vector）。
 
-权威是 Main/doc/赛题二总体设计.md 3.4、3.5 节的规格与 Main/rtl/engine/engine_geom.v 的入库实现；
+权威是 Main/doc/赛题二总体设计.md 3.4、3.5 节的规格与 Main/rtl/engine/core/engine_geom.v 的入库实现；
 研究记录见 Main/sim/engine/geom/README.md。
 """
 

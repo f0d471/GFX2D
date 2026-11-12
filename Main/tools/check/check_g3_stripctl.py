@@ -13,7 +13,7 @@ SIM=MAIN/'sim/engine/stripctl'
 BUILD,LOGS=paths('stripctl','stripctl')
 INCLUDE=write_headers('B3',BUILD/'include')
 LIB=[MAIN/'sw/lib'/p for p in ('gfx/list.c','gfx/strip.c','gfx/strip_plan.c','gfx/check.c','gfx/exec_sw.c','core/format.c')]
-RTL=[MAIN/'rtl/engine'/p for p in ('engine_bounds.v','engine_packet_check.v','engine_pb_dma.v','engine_bin.v','engine_pb.v','engine_top.v','engine_regs.v','engine_cmd.v','engine_inst.v','engine_geom.v','engine_pix.v','engine_blend.v','engine_mover.v','engine_tex.v','engine_band.v')]
+RTL=[MAIN/'rtl/engine'/p for p in ('frontend/engine_bounds.v','frontend/engine_packet_check.v','frontend/engine_pb_dma.v','frontend/engine_bin.v','frontend/engine_pb.v','engine_top.v','core/engine_regs.v','core/engine_cmd.v','frontend/engine_inst.v','core/engine_geom.v','core/engine_pix.v','core/engine_blend.v','core/engine_mover.v','buffer/engine_tex.v','buffer/engine_band.v')]
 RTL += [MAIN/'rtl/vendor/verilog-axi'/p for p in ('axi_dma_rd.v','axi_dma_wr.v')]
 RTL += [MAIN/'sim/axi_probe/axi_ram_model.v']
 

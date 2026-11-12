@@ -7,7 +7,7 @@
 //
 // NOTE:
 //   1. 调用方在 CHECK_INPUT/CHECK_LATCH 期间持有同一包，实例地址范围单独打一拍
-//   2. 错误码语义见同目录 engine-manual.md
+//   2. 错误码语义见 ../engine-manual.md
 //==============================================================================================//
 `default_nettype none
 `include "engine_feature.vh"

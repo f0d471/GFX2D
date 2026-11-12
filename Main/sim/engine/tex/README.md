@@ -1,6 +1,6 @@
 # TEX 片上纹理验证与研究
 
-正式实现为 `rtl/engine/engine_tex.v`，已接入引擎与 SoC。规格见
+正式实现为 `rtl/engine/buffer/engine_tex.v`，已接入引擎与 SoC。规格见
 `rtl/engine/engine-manual.md` 第 4.5 节。
 
 ## 正式验证

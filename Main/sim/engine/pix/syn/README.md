@@ -5,7 +5,7 @@
 | 工程 | 顶层 | 是什么 |
 | --- | --- | --- |
 | `probe_pix_syn.xml` | `syn_probe_pix.v` | 前期研究探针 `probe_pix_path`（两块 128 位行缓冲 + 旋转 + 色键 + 12 核 + 写流） |
-| `engine_pix_syn.xml` | `syn_engine_pix.v` | 入库 `rtl/engine/engine_pix.v` 加 12 个 `engine_blend` |
+| `engine_pix_syn.xml` | `syn_engine_pix.v` | 入库 `rtl/engine/core/engine_pix.v` 加 12 个 `engine_blend` |
 
 两个顶层都用 128 位 LFSR 驱动被测的全部输入（含 `ws_tready` 与行缓冲写口），全部输出折进观测寄存器，
 输入不接常数（顶层输入接常数，综合会把逻辑折掉、余量虚高）。约束 100 MHz。运行 Efinity 2026.1：

@@ -129,7 +129,7 @@ def models(current):
 
 
 def blend_source(alpha, ext):
-    source = (ROOT / 'Main/rtl/engine/engine_blend.v').read_text(encoding='utf-8')
+    source = (ROOT / 'Main/rtl/engine/core/engine_blend.v').read_text(encoding='utf-8')
     start, end = source.index('        case (eq)'), source.index('        endcase')
     body = source[start:end]
     chunks = re.split(r'(?=^            (?:3\'d[0-4]|default): begin)', body, flags=re.M)[1:]
@@ -169,6 +169,11 @@ endmodule
             design.insert(index, ET.Element(f'{{{ns}}}design_file', name=filename, version='default', library='default'))
         root.find(f'{{{ns}}}constraint_info').find(f'{{{ns}}}sdc_file').set('name', 'feature_blend.sdc')
         (folder / 'feature_blend.sdc').write_text('create_clock -name clk -period 10 [get_ports clk]\n', encoding='utf-8')
+        # 本目录里源码是平铺的副本，模板里指向 rtl/engine 的 include 参数在这里不成立，去掉。
+        syn = root.find(f'{{{ns}}}synthesis')
+        for node in list(syn.findall(f'{{{ns}}}param')):
+            if node.get('name') == 'include':
+                syn.remove(node)
         tree.write(folder / 'feature_blend.xml', encoding='utf-8', xml_declaration=True)
         projects.append(folder.relative_to(ROOT).as_posix())
     write_json(current.logs('features') / 'projects.json', {'projects': projects, 'scope': 'standalone variable-input mapping; not whole-SoC area or timing'})

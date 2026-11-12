@@ -1,6 +1,6 @@
 # sim/engine/pix
 
-**计算阵列与片上缓存** 的仿真目录：入库 RTL `rtl/engine/engine_pix.v` 的正式判据，
+**计算阵列与片上缓存** 的仿真目录：入库 RTL `rtl/engine/core/engine_pix.v` 的正式判据，
 加上前期研究的探针（研究做完了，保留为回归）。资源与板上数据结论见 `syn/README.md`
 与各测试台判据。
 

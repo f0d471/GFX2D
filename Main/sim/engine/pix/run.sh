@@ -18,7 +18,7 @@ set -u
 cd "$(dirname "$0")"
 
 RTL=../../../rtl
-SRC="probe_pix.v tb_probe_pix.v $RTL/engine/engine_blend.v"
+SRC="probe_pix.v tb_probe_pix.v $RTL/engine/core/engine_blend.v"
 SRC_WR="$SRC $RTL/vendor/verilog-axi/axi_dma_wr.v ../../axi_probe/axi_ram_model.v"
 BUILD=build
 mkdir -p "$BUILD"

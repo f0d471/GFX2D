@@ -37,20 +37,20 @@ NS = 'http://www.efinixinc.com/enf_proj'
 
 # 特性开关控制的源文件（工程模板里的相对路径用 ../../rtl/ 前缀）。
 FEATURE_SOURCES = {
-    'RAST': ('engine/engine_r3.v', 'engine/engine_rlst.v', 'engine/engine_rast.v'),
-    'TEX': ('engine/engine_tex.v',),
-    'BAND_HW': ('engine/engine_band.v',),
-    'INST': ('engine/engine_inst.v',),
-    'PB': ('engine/engine_pb.v', 'engine/engine_pb_dma.v', 'engine/engine_bin.v',
-           'engine/engine_bounds.v', 'engine/engine_packet_check.v'),
+    'RAST': ('engine/rast/engine_r3.v', 'engine/rast/engine_rlst.v', 'engine/rast/engine_rast.v'),
+    'TEX': ('engine/buffer/engine_tex.v',),
+    'BAND_HW': ('engine/buffer/engine_band.v',),
+    'INST': ('engine/frontend/engine_inst.v',),
+    'PB': ('engine/frontend/engine_pb.v', 'engine/frontend/engine_pb_dma.v', 'engine/frontend/engine_bin.v',
+           'engine/frontend/engine_bounds.v', 'engine/frontend/engine_packet_check.v'),
 }
 
 FIXED_RTL = (
     'top/gfx2d_top.v',
     'bus/apb_probe.v', 'bus/axi_probe_master.v', 'bus/axi_mux_guard.v', 'bus/scanout_stub.v',
     'display/display_top.v', 'display/display_fetch.v', 'display/display_fifo.v', 'display/display_out.v',
-    'engine/engine_blend.v', 'engine/engine_pix.v', 'engine/engine_geom.v', 'engine/engine_mover.v',
-    'engine/engine_regs.v', 'engine/engine_cmd.v', 'engine/engine_top.v',
+    'engine/core/engine_blend.v', 'engine/core/engine_pix.v', 'engine/core/engine_geom.v', 'engine/core/engine_mover.v',
+    'engine/core/engine_regs.v', 'engine/core/engine_cmd.v', 'engine/engine_top.v',
     'vendor/verilog-axi/axi_dma_rd.v', 'vendor/verilog-axi/axi_dma_wr.v',
     'vendor/axi_mux/Axi_Mux.v',
 )
@@ -230,7 +230,8 @@ def populate_tree(config, out):
     """把 rtl/ 复制成该构型自己的源树，并把生成头放进它该在的位置。
 
     生成的 engine_feature.vh / engine_config_guard.vh / engine_regs_offsets.vh
-    与 engine_top.v 同目录，所以 RTL 用同目录 `include 即可，不需要额外的 include 路径。
+    写进 rtl/engine/ 根（`.v` 分布在 core/、buffer/、frontend/、rast/ 子目录），
+    工程 XML 里的 include 参数指向这个目录，RTL 才能找到 `include。
     SoC IP（ip/soc）、外设接口（peri.xml）与约束（sdc/）从现有工程原样复制：
     这三样与特性构型无关，重生成会覆盖 SDK，不能在本工作点里动。
     """

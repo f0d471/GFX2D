@@ -23,7 +23,7 @@ def compile_and_run(tree, config, tag, build, logs, expect_failure=False):
     configure(tree, config)
     excluded = {Path(p).name for flag, paths in fc.FEATURE_SOURCES.items()
                 if not config[flag] for p in paths}
-    sources = [p for p in sorted((tree / 'engine').glob('*.v')) if p.name not in excluded]
+    sources = [p for p in sorted((tree / 'engine').glob('**/*.v')) if p.name not in excluded]
     sources += [tree / 'vendor/verilog-axi' / name for name in ('axi_dma_rd.v', 'axi_dma_wr.v')]
     sources += [MAIN / 'sim/axi_probe/axi_ram_model.v']
     binary = build / (tag + '.vvp')
@@ -49,8 +49,8 @@ def compile_and_run(tree, config, tag, build, logs, expect_failure=False):
 
 def mutations(tree, build, logs):
     top = tree / 'engine/engine_top.v'
-    regs = tree / 'engine/engine_regs.v'
-    cmd = tree / 'engine/engine_cmd.v'
+    regs = tree / 'engine/core/engine_regs.v'
+    cmd = tree / 'engine/core/engine_cmd.v'
     original = {p: p.read_text(encoding='utf-8') for p in (top, regs, cmd)}
     jobs = [
         ('tex-floating', 'B0', top,

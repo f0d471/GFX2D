@@ -34,7 +34,7 @@ def models():
     assert 'frames=10000' in out2
     print(out.strip(),flush=True)
 def compile_rtl(tag,defines=()):
-    sources=[SIM/'tb_engine_instances.v',*sorted((RTL/'engine').glob('*.v')),
+    sources=[SIM/'tb_engine_instances.v',*sorted((RTL/'engine').glob('**/*.v')),
         RTL/'vendor/verilog-axi/axi_dma_rd.v',RTL/'vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
     run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(INCLUDE),'-I'+str(RTL/'engine')]+
         ['-D'+d for d in defines]+['-o',BUILD/(tag+'.vvp')]+sources)
@@ -64,7 +64,7 @@ def protocols():
            ('reset_recovery',66,('-Ptb_engine_instances.RESET_TEST=1',)),
            ('prefetch_timeout_identity',205,('-Ptb_engine_instances.TIMEOUT_TEST=2',))]
     for tag,n,params in cases:
-        sources=[SIM/'tb_engine_instances.v',*sorted((RTL/'engine').glob('*.v')),
+        sources=[SIM/'tb_engine_instances.v',*sorted((RTL/'engine').glob('**/*.v')),
             RTL/'vendor/verilog-axi/axi_dma_rd.v',RTL/'vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
         run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(INCLUDE),'-I'+str(RTL/'engine'),*params,'-o',BUILD/(tag+'.vvp'),*sources])
         out=run(tag,['vvp','-n',BUILD/(tag+'.vvp'),'+CASE='+str(BUILD/'fixtures'/('case%02d'%n))])
