@@ -1,0 +1,2 @@
+RUN Main/sim/build/check-runs/20261106-222218-9be087e0
+SH BOARD PASS pixels/input-driven windows/health; performance target reported separately

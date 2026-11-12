@@ -6,6 +6,26 @@
 
 #define CHECK(x) do {if(!(x)){fprintf(stderr,"SH FAIL line %d: %s\n",__LINE__,#x);exit(1);}}while(0)
 static uint32_t fail;
+static void division_reuse_checks(void)
+{
+#ifdef SH_DIVISION_REUSE
+    static const uint32_t edges[]={0u,1u,2u,3u,65535u,65536u,0x7fffffffu,0x80000000u,UINT32_MAX};
+    for(unsigned i=0;i<sizeof edges/sizeof *edges;++i)
+        for(unsigned j=1;j<sizeof edges/sizeof *edges;++j) {
+            uint32_t n=edges[i],d=edges[j],r,q=sh_divrem32(n,d,UINT32_MAX/d,&r);
+            CHECK(q==n/d && r==n%d);
+        }
+    uint32_t rng=0x196723u;
+    for(unsigned i=0;i<200000u;++i) {
+        rng=rng*1664525u+1013904223u;uint32_t d=i<64u?(1u<<(i&31u)):(rng?rng:1u);
+        rng=rng*1664525u+1013904223u;uint32_t n=i<64u?d:rng;
+        uint32_t r,q=sh_divrem32(n,d,UINT32_MAX/d,&r);
+        CHECK(q==n/d && r==n%d && r<d);
+        CHECK((uint64_t)q*d+r==n);
+    }
+    puts("SH DIVREM PASS 200000 u32 quotient/remainder pairs, powers and exact correction");
+#endif
+}
 static void flat_setup_checks(void)
 {
     uint32_t rng=17;
@@ -237,9 +257,81 @@ static void scene_cache_checks(void)
 }
 static uint32_t hash(uint32_t h,const void *data,size_t n)
 {const uint8_t *p=data;while(n--)h=(h^*p++)*16777619u;return h;}
+/* Frozen twelve-triangle construction: an independent oracle for ring reuse. */
+static void shadow_reference(int32_t x,int32_t z,int32_t rx,int32_t rz,
+                              const rast_viewport *vp,rast_record **out,uint32_t *cap)
+{
+    const int32_t y=SH_ONE/64;
+    for(unsigned i=0;i<12;++i) {
+        uint16_t a=(uint16_t)(i*65536u/12u),b=(uint16_t)((i+1)*65536u/12u);
+        int32_t x1=x+sh_mul(sh_cos(a),rx),z1=z+sh_mul(sh_sin(a),rz);
+        int32_t x2=x+sh_mul(sh_cos(b),rx),z2=z+sh_mul(sh_sin(b),rz);
+        int64_t dx=x-s_px,dz=z-s_pz;
+        uint32_t edge=sh_fog(dx*dx+(int64_t)SH_EYE*SH_EYE+dz*dz,0xedf0f3u);
+        rast_view_vertex v[3]={{x,y,z,0,0,sh_fog(dx*dx+dz*dz,0x8b929cu)},
+            {x1,y,z1,0,0,edge},{x2,y,z2,0,0,edge}};
+        sh_poly(v,3,vp,out,cap);
+    }
+}
+static void shadow_reuse_checks(void)
+{
+    static rast_record fast[160],reference[160];
+    uint32_t rng=0x72316u;
+    sh_world_cache_bind(NULL,0);sh_world_init(7);
+    for(unsigned pose=0;pose<32;++pose) {
+        const unsigned width=pose%3u==0?640u:pose%3u==1?854u:1792u;
+        fx16_mat4 proj;CHECK(!fx16_perspective(&proj,R4_FOV_BAM,
+            (int32_t)(width*SH_ONE/480u),R4_NEAR_Z,R4_FAR_Z));
+        if(pose%5u==0)proj.v[1]=1234; /* generic projection matrix */
+        rast_viewport vp={0,0,(uint16_t)width,480};
+        if(pose&1u){vp.x=13;vp.y=7;vp.w-=26;vp.h-=14;}
+        s_px=(int32_t)(pose%7u)*SH_ONE/3-SH_ONE;
+        s_pz=(int32_t)(pose%9u)*SH_ONE/3-SH_ONE;
+        s_yaw=(uint16_t)(pose*1731u);s_pitch=(int32_t)(pose%7u)*2500-7500;
+        (void)sh_world_emit(&proj,&vp,records,SH_PC_RECORD_CAP);
+        for(unsigned i=0;i<64;++i) {
+            rng=rng*1664525u+1013904223u;int32_t x=(int32_t)(rng%12001u)*SH_ONE/1000-6*SH_ONE;
+            rng=rng*1664525u+1013904223u;int32_t z=(int32_t)(rng%12001u)*SH_ONE/1000-6*SH_ONE;
+            int32_t rx=(int32_t)(i%17u)*SH_ONE/20,rz=(int32_t)(i%13u)*SH_ONE/20;
+            unsigned capacity=i%8u==0?0u:i%8u==1?3u:i%8u==2?9u:160u;
+            memset(fast,0xa5,sizeof fast);memset(reference,0xa5,sizeof reference);
+            rast_record *a=fast,*b=reference;uint32_t ac=capacity,bc=capacity;
+            s_n=0;s_failed=0;sh_ground_shadow(x,z,rx,rz,&vp,&a,&ac);
+            unsigned produced=s_n,failed=s_failed;
+            s_n=0;s_failed=0;shadow_reference(x,z,rx,rz,&vp,&b,&bc);
+            CHECK(produced==s_n && failed==s_failed && ac==bc && a-fast==b-reference);
+            CHECK(!memcmp(fast,reference,sizeof fast));
+        }
+    }
+    puts("SH SHADOW REUSE PASS 2048 rings, seams/clip/projection/viewport/capacity byte identity");
+}
+static void view_reuse_checks(void)
+{
+    uint32_t crc=2166136261u;
+    sh_world_cache_bind(NULL,0);
+    for(unsigned pose=0;pose<96;++pose) {
+        sh_world_init(77);
+        unsigned width=pose%3u==0?640u:pose%3u==1?854u:1792u;
+        fx16_mat4 proj;CHECK(!fx16_perspective(&proj,R4_FOV_BAM,
+            (int32_t)(width*SH_ONE/480u),R4_NEAR_Z,R4_FAR_Z));
+        if(pose%7u==0)proj.v[1]=777;
+        rast_viewport vp={0,0,(uint16_t)width,480};
+        if(pose&1u){vp.x=13;vp.w-=26;}
+        s_px=s_enemy[0].x+(int32_t)(pose%8u)*SH_ONE/40-SH_ONE/10;
+        s_pz=s_enemy[0].z+(int32_t)(pose%9u)*SH_ONE/40-SH_ONE/10;
+        s_yaw=(uint16_t)(pose*1459u);s_pitch=(int32_t)(pose%9u)*2000-8000;
+        uint32_t n=sh_world_emit(&proj,&vp,records,SH_PC_RECORD_CAP);
+        CHECK(n && n<=SH_PC_RECORD_CAP);
+        crc=hash(crc,&n,sizeof n);crc=hash(crc,records,n*sizeof *records);
+    }
+    /* Established against the frozen pre-reuse scene and the generic path. */
+    CHECK(crc==0x1c2d4e40u);
+    printf("SH VIEW REUSE PASS near-camera cases=96 crc=%08x\n",crc);
+}
 static void bin_cache_checks(void)
 {
     static uint8_t plain[32768],cached[32768],warm[2u*SH_PC_RECORD_CAP];
+    static union {uint32_t align;uint8_t bytes[32776];} guarded;
     sh_world_init(7);fx16_mat4 proj;
     CHECK(!fx16_perspective(&proj,R4_FOV_BAM,4*SH_ONE/3,R4_NEAR_Z,R4_FAR_Z));
     rast_viewport vp={0,0,640,480};rast_frame frame={640,480};
@@ -257,11 +349,71 @@ static void bin_cache_checks(void)
         memcpy(warm,sh_world_ranges(),2u*n);
         int c=rast_bin_frame_cache(records,n,warm,cached,sizeof cached,&frame);
         CHECK(c==a && !memcmp(plain,cached,(size_t)a));
+        for(unsigned offset=0;offset<4;++offset) {
+            uint8_t *dst=guarded.bytes+4u+offset;
+            memset(guarded.bytes,0xa5,sizeof guarded.bytes);
+            CHECK(rast_bin_frame_cache(records,n,warm,dst,(size_t)a,&frame)==a);
+            CHECK(!memcmp(plain,dst,(size_t)a) && dst[-1]==0xa5 && dst[a]==0xa5);
+            memset(guarded.bytes,0xa5,sizeof guarded.bytes);
+            CHECK(rast_bin_frame_cache(records,n,warm,dst,(size_t)a-1u,&frame)==-2);
+            for(unsigned k=0;k<sizeof guarded.bytes;++k)CHECK(guarded.bytes[k]==0xa5);
+        }
         /* A corrupt trusted entry must fail the frame, not reach the raster. */
         warm[2u*(n/2u)]=0xFEu;warm[2u*(n/2u)+1u]=0xFFu;
         CHECK(rast_bin_frame_cache(records,n,warm,cached,sizeof cached,&frame)==-1);
     }
     puts("SH BIN CACHE PASS ranged binner byte-identical, trust errors caught");
+}
+static void range_reuse_checks(void)
+{
+    static uint8_t plain[32768],cached[32768];
+    sh_world_cache_bind(cache_memory+1,SH_CACHE_BYTES);sh_world_init(7);
+    fx16_mat4 proj;CHECK(!fx16_perspective(&proj,R4_FOV_BAM,4*SH_ONE/3,R4_NEAR_Z,R4_FAR_Z));
+    rast_viewport vp={0,0,640,480};rast_frame frame={640,480};
+    uint32_t n=sh_world_emit(&proj,&vp,records,SH_PC_RECORD_CAP),split=sh_world_weapon_start();
+    CHECK(n && n<=SH_PC_RECORD_CAP && split && split<n);
+    CHECK(rast_bin_frame_cache(records,split,sh_world_ranges(),cached,sizeof cached,&frame)>=120);
+#if !SH_DISABLE_SCENE_CACHE
+    CHECK(sh_world_ranges_commit(n)==-1); /* weapon slice has not been validated */
+    CHECK(s_room_cache.ranges[0]==0xFFu); /* no partial publication */
+#endif
+    for(unsigned pass=0;pass<5;++pass) {
+        int a=rast_bin_frame(records,n,plain,sizeof plain,&frame);
+        int b=rast_bin_frame_cache(records,n,sh_world_ranges(),cached,sizeof cached,&frame);
+        CHECK(a>=120 && a==b && !memcmp(plain,cached,(size_t)a));
+        CHECK(!sh_world_ranges_commit(n));
+        memcpy(saved_scene,records,n*sizeof *records);uint32_t previous=n;
+#if !SH_DISABLE_SCENE_CACHE
+        CHECK(s_room_cache.ranges[0]!=0xFFu);
+#endif
+        n=sh_world_emit(&proj,&vp,records,SH_PC_RECORD_CAP);
+        CHECK(n==previous && !memcmp(saved_scene,records,n*sizeof *records));
+#if !SH_DISABLE_SCENE_CACHE
+        for(unsigned i=0;i<n;++i)CHECK(sh_world_ranges()[2u*i]!=0xFFu);
+#endif
+        if(pass==1 || pass==3) {
+            sh_world_look(8,0); /* world invalidates, viewmodel remains reusable */
+            n=sh_world_emit(&proj,&vp,records,SH_PC_RECORD_CAP);
+            CHECK(n && n<=SH_PC_RECORD_CAP);
+#if !SH_DISABLE_SCENE_CACHE
+            CHECK(s_room_cache.count && sh_world_ranges()[0]==0xFFu);
+            CHECK(sh_world_ranges()[2u*sh_world_weapon_start()]!=0xFFu);
+            CHECK(rast_bin_frame_cache(records,n,sh_world_ranges(),cached,1,&frame)==-2);
+            CHECK(s_room_cache.ranges[0]==0xFFu); /* rejected capacity never publishes */
+#endif
+        }
+        if(pass==2) {
+            proj.v[0]+=31;vp.x=13;vp.w=614;
+            n=sh_world_emit(&proj,&vp,records,SH_PC_RECORD_CAP);
+            CHECK(n && n<=SH_PC_RECORD_CAP);
+#if !SH_DISABLE_SCENE_CACHE
+            CHECK(sh_world_ranges()[0]==0xFFu);
+            CHECK(sh_world_ranges()[2u*sh_world_weapon_start()]==0xFFu);
+#endif
+        }
+    }
+    sh_world_cache_bind(NULL,0);
+    puts("SH RANGE REUSE PASS next-frame warm slices, camera/projection/viewport invalidation, atomic publication");
 }
 static void mesh_checks(void)
 {
@@ -387,4 +539,4 @@ static void screenshots(void)
         CHECK(!fclose(f));
     }
 }
-int main(void){flat_setup_checks();flat_fan_checks();normal_checks();projection_checks();elapsed_checks();enemy_motion_checks();simulation();mesh_checks();bin_cache_checks();geometry();weapon_pixels();screenshots();scene_cache_checks();return 0;}
+int main(void){division_reuse_checks();flat_setup_checks();flat_fan_checks();normal_checks();projection_checks();elapsed_checks();enemy_motion_checks();simulation();mesh_checks();bin_cache_checks();range_reuse_checks();shadow_reuse_checks();view_reuse_checks();geometry();weapon_pixels();screenshots();scene_cache_checks();return 0;}

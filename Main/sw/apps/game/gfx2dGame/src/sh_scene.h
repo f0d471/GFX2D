@@ -36,5 +36,8 @@ uint32_t sh_world_weapon_start(void);
  * The pipeline keeps one table per record buffer; select it before emitting. */
 void sh_world_ranges_use(unsigned index);
 uint8_t *sh_world_ranges(void);
+/* Publish validated ranges back to cache slices after all bins succeed, before
+ * the next emit/use/bind. Partial or rejected bins must not publish cache. */
+int sh_world_ranges_commit(uint32_t count);
 
 #endif /* GFX2D_SH_SCENE_H */

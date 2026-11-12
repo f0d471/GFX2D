@@ -1,0 +1,43 @@
+{
+  "software": {
+    "result": {
+      "status": "PASS",
+      "profile": "acceptance",
+      "checks": [
+        "pack",
+        "sh",
+        "r4-current-consumers",
+        "lib",
+        "rast",
+        "console"
+      ],
+      "run_id": "20261106-170036-cc0efc5e"
+    },
+    "fresh_inputs_verified": 1008
+  },
+  "board": {
+    "result": {
+      "status": "PASS",
+      "profile": "acceptance",
+      "checks": [
+        "sh-board"
+      ],
+      "run_id": "20261106-170209-a35cfbb1"
+    },
+    "fresh_inputs_verified": 949
+  },
+  "production": {
+    "bytes": 480434,
+    "sha256": "0887f984e83526b87de52234bfd6fb03761f384e02f6af1aad14b60092cd4afc"
+  },
+  "memory": {
+    "text": 385156,
+    "data": 95130,
+    "bss": 3442404,
+    "limit": 4190208
+  },
+  "documentation": "links, whitespace and task machine-path checks PASS",
+  "board_state": "production BIN, B7 JTAG, returned to menu; no Flash writes",
+  "manual_review": "pending",
+  "stable_30hz": "not met"
+}

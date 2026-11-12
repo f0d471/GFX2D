@@ -1,0 +1,3 @@
+SH FLAT SETUP PASS 100000 exact signed divisions and 10000 byte-identical triangles
+SH FLAT FAN PASS 20000 tris/quads byte-identical to the generic clipped path
+SH FAIL line 92: v[k]-expected[i][k]>= -16 && v[k]-expected[i][k]<=16

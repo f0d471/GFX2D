@@ -1,0 +1,30 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "sh-board"
+  ],
+  "changed": null,
+  "commands": {
+    "sh-board": [
+      "<HOST_PATH>/python.exe",
+      "Main/tools/check/check_sh_board.py"
+    ]
+  },
+  "timeouts": {
+    "sh-board": 2400
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log",
+    "Main/sim/engine/sh/**",
+    "Main/bit/snapshots/B7/**"
+  ]
+}

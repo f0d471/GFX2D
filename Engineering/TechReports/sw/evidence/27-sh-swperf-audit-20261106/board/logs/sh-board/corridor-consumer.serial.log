@@ -1,0 +1,39 @@
+# frame-counted SH timing, UART COM11
+console status v 2 app menu id 0 backend hw fps_milli 45275 frames 46 presents 46 errors 0 scene 0 ladder 0 dropped 0 tick_ms 118441 irqA 7107 heap 57824 faults 0 tasks 4 idle 64103844 monitor 109 health 0 stack_free 55700 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4134720 a8624648
+console catalog begin v 1 profile full hash 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 count 7
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52
+console catalog app id 5 key flight kind game graphics 3d shortcut 5 available 1 title 524944474520464c49474854
+console catalog app id 7 key sh kind game graphics 3d shortcut 6 available 1 title 48414c5454494d45
+console catalog app id 6 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+console enter menu
+menu crc 6cc9cabd sel 0
+console menu index 0 id 1 count 7
+console complete app menu id 0 frames 5 presents 5 errors 0
+console leave menu
+r4 enter ladder/hw 2 1
+console scene 0 ladder 2
+console enter r4
+console status v 2 app r4 id 4 backend hw fps_milli 19665 frames 20 presents 20 errors 0 scene 0 ladder 2 dropped 0 tick_ms 14061 irqA 844 heap 57824 faults 0 tasks 4 idle 1088863 monitor 2 health 0 stack_free 57284 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 20 22893 212 2 1 0
+R4TIME 3800 3228734 212213 77977 961400 619813 605421 572
+console status v 2 app r4 id 4 backend hw fps_milli 19665 frames 40 presents 40 errors 0 scene 0 ladder 2 dropped 0 tick_ms 15078 irqA 905 heap 57824 faults 0 tasks 4 idle 1700370 monitor 3 health 0 stack_free 57284 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4STAT 20 20901 226 2 1 0
+R4TIME 3947 3447121 230203 62335 978427 633357 618627 586
+console status v 2 app r4 id 4 backend hw fps_milli 19685 frames 60 presents 60 errors 0 scene 0 ladder 2 dropped 0 tick_ms 16094 irqA 966 heap 57824 faults 0 tasks 4 idle 2265297 monitor 4 health 0 stack_free 57284 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4PERF 34 4842759 4928723 4928723 34 0 34 104 34
+r4 leave frames/late 65 65
+R4HEALTH 26837 336 0 0 0
+console complete app r4 id 4 frames 65 presents 65 errors 0
+console leave r4
+console enter menu
+menu crc 6cc9cabd sel 0
+console menu index 0 id 1 co
+# collector complete=True

@@ -1,0 +1,38 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "lib",
+    "rast"
+  ],
+  "changed": null,
+  "commands": {
+    "lib": [
+      "bash",
+      "Main/tools/check/check_host.sh",
+      "lib"
+    ],
+    "rast": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_rast.py"
+    ]
+  },
+  "timeouts": {
+    "lib": 1800,
+    "rast": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log",
+    "Main/doc/三维数值契约.md",
+    "Main/sim/engine/r4/**",
+    "Main/rtl/**"
+  ]
+}

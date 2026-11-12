@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "pack",
+    "sh",
+    "r4-current-consumers",
+    "lib",
+    "rast",
+    "console"
+  ],
+  "run_id": "20261106-170036-cc0efc5e"
+}

@@ -1,0 +1,75 @@
+{
+  "normal": {
+    "frames": 1791,
+    "p50_ms": 41.62625,
+    "p99_ms": 43.52668,
+    "max_ms": 43.72639,
+    "late": 1791,
+    "exact": 0,
+    "over": 1791,
+    "fields": 5400,
+    "presents": 1791,
+    "measured_fps": 19.9,
+    "health": [
+      23912,
+      347,
+      0,
+      0,
+      0
+    ],
+    "input_snapshot_to_swap_ms": {
+      "count": 1822,
+      "minimum": 93,
+      "average": 100,
+      "maximum": 150,
+      "generation_delay": 1,
+      "scope": "logic input snapshot to display acknowledgement; excludes transport and physical monitor delay"
+    }
+  },
+  "active": {
+    "frames": 1796,
+    "p50_ms": 38.73663,
+    "p99_ms": 127.92111,
+    "max_ms": 143.56887,
+    "late": 1390,
+    "exact": 406,
+    "over": 1379,
+    "fields": 6423,
+    "presents": 1796,
+    "measured_fps": 16.777206912657636,
+    "health": [
+      31289,
+      347,
+      0,
+      0,
+      0
+    ],
+    "input_snapshot_to_swap_ms": {
+      "count": 1827,
+      "minimum": 58,
+      "average": 118,
+      "maximum": 299,
+      "generation_delay": 1,
+      "scope": "logic input snapshot to display acknowledgement; excludes transport and physical monitor delay"
+    }
+  },
+  "corridor-consumer": {
+    "frames": 48,
+    "p50_ms": 49.44103,
+    "p99_ms": 50.75839,
+    "max_ms": 50.75839,
+    "late": 48,
+    "exact": 0,
+    "over": 48,
+    "fields": 164,
+    "presents": 48,
+    "measured_fps": 17.5609756097561,
+    "health": [
+      32695,
+      339,
+      0,
+      0,
+      0
+    ]
+  }
+}

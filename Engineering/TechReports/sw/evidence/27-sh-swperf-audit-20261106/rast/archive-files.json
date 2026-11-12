@@ -1,0 +1,112 @@
+{
+  "logs/rast/geometry-vectors.json": {
+    "size": 15426,
+    "mtime_ns": 1793953488653749700,
+    "sha256": "1f8a2905755dbdb840cf1a14edfda9dc52543c954b787d6df5ecb4cbc29963eb"
+  },
+  "logs/rast/golden-observed.txt": {
+    "size": 97,
+    "mtime_ns": 1793953542725169200,
+    "sha256": "804ce8821b210377d614513db934da5e2e230ad66c6a3361609645138305f0e1"
+  },
+  "logs/rast/hand-vectors.json": {
+    "size": 18294,
+    "mtime_ns": 1793953486167160700,
+    "sha256": "9a7da0e858fea6ef39d024191b445af9d71958cb6588f7d0a44e465cbefe726d"
+  },
+  "logs/rast/host-build.log": {
+    "size": 1068,
+    "mtime_ns": 1793953561076135700,
+    "sha256": "8d0a1ca04d4330129cc9a07c3ac3d17a0b5f0fa43d4b6c6d5b6f5d609259aa3f"
+  },
+  "logs/rast/host-run.log": {
+    "size": 21,
+    "mtime_ns": 1793953578155349000,
+    "sha256": "b73bc84ef5062af4577dc0f7c3f9881824bc39b38cbd57f1c3f8ad18a4ca01da"
+  },
+  "logs/rast/raster-vectors.json": {
+    "size": 38988,
+    "mtime_ns": 1793953542693687400,
+    "sha256": "3a1b2e796837ad1e7938f42ac599f811fb3c08efdebe09070d74dc7ce2a6ac88"
+  },
+  "logs/rast/RAST_ALL_EDGES-build.log": {
+    "size": 0,
+    "mtime_ns": 1793953545777457400,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/RAST_ALL_EDGES.log": {
+    "size": 596,
+    "mtime_ns": 1793953547316336700,
+    "sha256": "0cc54d58315105f6e29a6e4bf1a565232d8df68332f50c953f28d479adc2892c"
+  },
+  "logs/rast/RAST_NO_16-build.log": {
+    "size": 0,
+    "mtime_ns": 1793953547322907400,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/RAST_NO_16.log": {
+    "size": 596,
+    "mtime_ns": 1793953548914267700,
+    "sha256": "0cc54d58315105f6e29a6e4bf1a565232d8df68332f50c953f28d479adc2892c"
+  },
+  "logs/rast/RAST_NO_GUARD-build.log": {
+    "size": 0,
+    "mtime_ns": 1793953548917287400,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/RAST_NO_GUARD.log": {
+    "size": 111,
+    "mtime_ns": 1793953550464914000,
+    "sha256": "a17a31c6300e22726a47ba7c606c7617f0975c63895191a7c127debd07ef6612"
+  },
+  "logs/rast/recip-table.log": {
+    "size": 30,
+    "mtime_ns": 1793953484371530200,
+    "sha256": "f78af93c04b7f7d0c928425922c780c8b3e667512a51797f8cc4055502eaca1c"
+  },
+  "logs/rast/sanitize-build.log": {
+    "size": 0,
+    "mtime_ns": 1793953542754539500,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/sanitize.log": {
+    "size": 26,
+    "mtime_ns": 1793953545757326300,
+    "sha256": "a3e9a0349983003423bd4039d15bc186381af95e1cc43645ffb6910464f5dcfa"
+  },
+  "logs/rast/shared-build.log": {
+    "size": 0,
+    "mtime_ns": 1793953484398713300,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/rast/summary.json": {
+    "size": 472,
+    "mtime_ns": 1793953578748947300,
+    "sha256": "eede13870d337136001d2332d4c5b394d0cbbfd8ec9332ad1e0acecf666a3066"
+  },
+  "logs/rast/target-build.log": {
+    "size": 1300,
+    "mtime_ns": 1793953578031494600,
+    "sha256": "845b8986b930f5263c9d3092ddde70807cd945661f24431d75141ec980abe67c"
+  },
+  "logs/rast/target-disassembly.log": {
+    "size": 1116073,
+    "mtime_ns": 1793953578718006600,
+    "sha256": "a23ac6ad9945ca5a9db4460e919a882656997f6bd3f372544c8b5ce8c2f7eb57"
+  },
+  "logs/rast/viewport-vectors.json": {
+    "size": 15635,
+    "mtime_ns": 1793953532780463800,
+    "sha256": "f972c30b2c5b191de6ba5eb5218f478f319c7fdd3fd292f97c1e9221f9c9e3f4"
+  },
+  "logs/runner/lib.log": {
+    "size": 516,
+    "mtime_ns": 1793953448100515700,
+    "sha256": "5611309e503ffe94b9ef00cde8720b7e9db81a9f8543755072bb6af78d3a07c4"
+  },
+  "logs/runner/rast.log": {
+    "size": 512,
+    "mtime_ns": 1793953578754356000,
+    "sha256": "3eb6347d876b73ea020fb9dfa9c7023cbbfa8ffe6458d5e30ae48375927113c0"
+  }
+}

@@ -34,9 +34,9 @@ add('r4',[sys.executable,P+'check_r4.py'],
 add('flight',[sys.executable,P+'check_flight.py'],
     '滑翔RFL3控制/世界锚定/网格/预热/冻结参考与像素/四区/宽屏/64与32位/变异',['pack'],timeout=1800)
 add('sh',[sys.executable,P+'check_sh.py'],
-    '凝时玩法/33姿态切面网格/精确单色setup/容量与分桶/确定性/64与32位/真实PC',['pack'],timeout=900)
+    '凝时玩法/阴影视坐标复用/精确整数商余数/范围缓存/流水所有权变异/64与32位/真实PC',['pack'],timeout=900)
 add('sh-board',[sys.executable,P+'check_sh_board.py'],
-    '凝时B7双帧与贴墙开火装填像素/独立武器深度/注错/双实帧窗口/健康；不写Flash',timeout=2400)
+    '凝时B7同步与生产流水八帧像素/贴墙开火装填/代际与延迟/注错/双1800呈现；不写Flash',timeout=2400)
 add('flight-board',[sys.executable,P+'check_flight_board.py'],
     '滑翔B7像素对照/实际RTOS双1800帧30Hz节拍/输入/预热（Windows）',timeout=2400)
 add('flight-consumers',[sys.executable,P+'check_r4.py','--reuse-flight-models'],

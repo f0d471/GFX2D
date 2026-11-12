@@ -1,0 +1,3 @@
+SH PIPE PASS A/B records/bins, three submission states, present-after-draw, prior-input snapshot, prime, leave
+SH PIPE PASS preparation failure drains before cache release
+SH PIPE PASS engine failure resets and never presents a failed frame

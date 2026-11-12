@@ -19,8 +19,8 @@ def main():
     from input_forward import packet
     from build_pc import wsl_path
     bit=ROOT/'Main/bit/snapshots/B7/gfx2d_ti60.bit'
-    port=os.environ.get('GFX_CHECK_PORT')
-    if not port:raise IncompleteCheck('set GFX_CHECK_PORT after discovering the FT4232H UART')
+    from check_board_smoke import uart_port
+    port=uart_port()
     current.artifact(bit)
     reuse=os.environ.get('GFX_SH_REUSE_RUN')
     reuse_root=None
@@ -79,30 +79,45 @@ def main():
                 if not end:raise RuntimeError('complete criterion line missing '+name)
                 fresh=fresh[:end.end()]+'\n'
             clean(fresh)
-        return body
-    common='-DSH_BOARD_CAPTURE=2 -DGFX2D_R4_JUDGE=1 -DR4_BOARD_CRC=1'
+        return body.split('# --- 程序已加载，以下才是它的输出 ---',1)[1]
+    common='-DSH_BOARD_CAPTURE=8 -DSH_BOARD_SEQUENCE=1 -DGFX2D_R4_JUDGE=1 -DR4_BOARD_CRC=1'
     normal=firmware('production')
     hw=firmware('capture-hw',common)
     sw=firmware('capture-sw',common+' -DSH_BOARD_SOFTWARE=1')
-    mutant=firmware('capture-pixel',common+' -DR4_INJECT_PIXEL=1')
+    pipe=firmware('capture-pipe',common+' -DSH_PIPE_CAPTURE=1')
+    mutant=firmware('capture-pixel',common+' -DSH_PIPE_CAPTURE=1 -DR4_INJECT_PIXEL=1')
     captures={}
-    for name,binary in [('hardware',hw),('software',sw),('pixel-mutation',mutant)]:
+    for name,binary in [('hardware',hw),('software',sw),('pipeline',pipe),('pixel-mutation',mutant)]:
         body=run(name,binary,program=name=='hardware',stop='SHDONE 0')
         rows=[list(map(int,line.split()[1:])) for line in body.splitlines() if line.startswith('SHCRC ')]
-        if len(rows)!=2 or any(row[-1] for row in rows):raise RuntimeError('missing capture frames '+name)
+        if len(rows)!=8 or [r[0] for r in rows]!=list(range(8)) or any(row[-1] for row in rows):
+            raise RuntimeError('missing capture frames '+name)
         captures[name]=rows
+        if name=='pipeline':
+            trace=[list(map(int,line.split()[1:])) for line in body.splitlines() if line.startswith('SHPIPE ')]
+            sequence=[0,16,8,1,65536,262144,4,16]
+            if len(trace)!=8:raise RuntimeError('missing actual pipeline generation trace')
+            for i,row in enumerate(trace):
+                if row[:3]!=[i,i+1,sequence[i]] or row[3:6]!=[
+                    0x600000+(0x1c0000 if i&1 else 0),0x600000+(0x3e0000 if i&1 else 0x40000),trace[0][5]^(i&1)]:
+                    raise RuntimeError('pipeline input/record/bin generation mismatch '+str(row))
+            write_json(logs/'pipeline.json',dict(status='PASS',trace=trace,input_delay_generations=1,
+                scope='actual production scheduler, deterministic input; pixel CRC compared against board software'))
     if captures['hardware']!=captures['software']:raise RuntimeError('B7 HW/software SH pixels differ')
+    if captures['pipeline']!=captures['software']:raise RuntimeError('production pipeline/software SH pixels differ')
     if all(a[3]==b[3] for a,b in zip(captures['hardware'],captures['pixel-mutation'])):
         raise RuntimeError('injected pixel error escaped the framebuffer comparison')
     write_json(logs/'pixels.json',dict(status='PASS',captures=captures,mutation='EXPECTED_RED pixel CRC mismatch'))
 
     wall_flags='-DSH_BOARD_CAPTURE=4 -DSH_BOARD_WALL=1 -DGFX2D_R4_JUDGE=1 -DR4_BOARD_CRC=1'
     wall={}
-    for name,flags in [('wall-hardware',wall_flags),('wall-software',wall_flags+' -DSH_BOARD_SOFTWARE=1')]:
+    for name,flags in [('wall-hardware',wall_flags),('wall-software',wall_flags+' -DSH_BOARD_SOFTWARE=1'),
+                       ('wall-pipeline',wall_flags+' -DSH_PIPE_CAPTURE=1')]:
         body=run(name,firmware(name,flags),stop='SHDONE 0')
         wall[name]=[list(map(int,line.split()[1:])) for line in body.splitlines() if line.startswith('SHCRC ')]
         if len(wall[name])!=4 or any(row[-1] for row in wall[name]):raise RuntimeError('missing wall/fire/reload capture '+name)
     if wall['wall-hardware']!=wall['wall-software']:raise RuntimeError('independent weapon Z differs at wall/fire/reload')
+    if wall['wall-pipeline']!=wall['wall-software']:raise RuntimeError('pipeline wall/fire/reload pixels differ')
     if len({row[3] for row in wall['wall-hardware']})<3:raise RuntimeError('wall weapon poses did not change')
     write_json(logs/'wall-pixels.json',dict(status='PASS',captures=wall,scope='near wall, idle/fire/reload, independent Z'))
 
@@ -151,7 +166,7 @@ def main():
                                 launch_end=time.monotonic()+.2
                             if line=='console enter '+app:started=True;start=time.monotonic()
                             if line.startswith('console status ') and ' app '+app+' ' in line:
-                                m=re.search(r' frames (\d+)',line)
+                                m=re.search(r' presents (\d+)',line)
                                 if m and int(m[1])>=frames:finishing=True
                     output.write('\n# collector complete='+str(bool(observed.get('complete')))+'\n')
             except Exception as exc:
@@ -176,6 +191,13 @@ def main():
         metrics[name]=dict(frames=p[0],p50_ms=p[1]/100000,p99_ms=p[2]/100000,max_ms=p[3]/100000,
             late=p[4],exact=p[5],over=p[6],fields=p[7],presents=p[8],
             measured_fps=60*p[8]/p[7] if p[7] else 0,health=health[-1])
+        if app=='sh':
+            lag=[list(map(int,line.split()[1:])) for line in body.splitlines() if line.startswith('SHLAG ')]
+            if len(lag)!=1 or lag[0][0]<frames or lag[0][4]!=1:
+                raise RuntimeError('pipeline input-snapshot/present latency window missing '+name)
+            metrics[name]['input_snapshot_to_swap_ms']=dict(count=lag[0][0],minimum=lag[0][1],
+                average=lag[0][2],maximum=lag[0][3],generation_delay=lag[0][4],
+                scope='logic input snapshot to display acknowledgement; excludes transport and physical monitor delay')
         write_json(logs/'timing.json',metrics)
     timing('normal',0x4000,'sh',target_frames)
     timing('active',0x4000,'sh',target_frames,True)

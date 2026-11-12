@@ -1,0 +1,172 @@
+{
+  "logs/runner/sh-board.log": {
+    "size": 146,
+    "mtime_ns": 1793956500657174500,
+    "sha256": "e73898f7722895af1e4e4405fd273919ba486fd0456f08da01e6e2f3c16ef5df"
+  },
+  "logs/sh-board/active.loader.log": {
+    "size": 43983,
+    "mtime_ns": 1793956476978888600,
+    "sha256": "83e10651707f95440f821b83fe923e547136f4ae1fb78d2b7d1681b541e15377"
+  },
+  "logs/sh-board/active.serial.log": {
+    "size": 42823,
+    "mtime_ns": 1793956476844758300,
+    "sha256": "7e384dbcfac4dfd9e34dc08cc54210aba5ecb99a798ed353379935ec6302013d"
+  },
+  "logs/sh-board/capture-hw.build.log": {
+    "size": 3223,
+    "mtime_ns": 1793955821199018000,
+    "sha256": "74b88b7193a711b780832d137ea6bcf07c60c0c0f48f0db3bc0cb148cb07081f"
+  },
+  "logs/sh-board/capture-pipe.build.log": {
+    "size": 3225,
+    "mtime_ns": 1793955904791202200,
+    "sha256": "5e1d1bb1f4ed41f514dd5f7cc14abd1b5ac62ed48f82b9d4888357229cfb7473"
+  },
+  "logs/sh-board/capture-pixel.build.log": {
+    "size": 3226,
+    "mtime_ns": 1793955950444440800,
+    "sha256": "42091840a68ff06df5c37fd4961d29452e362479f8eef8b19023a5f604199acb"
+  },
+  "logs/sh-board/capture-sw.build.log": {
+    "size": 3223,
+    "mtime_ns": 1793955859787751200,
+    "sha256": "74b88b7193a711b780832d137ea6bcf07c60c0c0f48f0db3bc0cb148cb07081f"
+  },
+  "logs/sh-board/corridor-consumer.loader.log": {
+    "size": 4562,
+    "mtime_ns": 1793956500414376800,
+    "sha256": "7dc0c78548c6259bf161db8bb3afee0e03182b23c05c7175db9cc613153c2f0d"
+  },
+  "logs/sh-board/corridor-consumer.serial.log": {
+    "size": 3391,
+    "mtime_ns": 1793956500278321300,
+    "sha256": "158d42515a1d0be07f72a1900649ac836d16f4ddbb676f061ba6fc6d2c8d7c8e"
+  },
+  "logs/sh-board/hardware.loader.log": {
+    "size": 4050,
+    "mtime_ns": 1793955972451615700,
+    "sha256": "6cd60389ba96a01ca347fb0351aa49eb6987894178e5816a600e7c1e121d10c2"
+  },
+  "logs/sh-board/hardware.serial.log": {
+    "size": 2805,
+    "mtime_ns": 1793955972313684100,
+    "sha256": "130417fb65d8748ab1c6e5289c87fe5b12f7ca75796ddf869387f6e732d21598"
+  },
+  "logs/sh-board/normal.loader.log": {
+    "size": 37881,
+    "mtime_ns": 1793956354032584700,
+    "sha256": "48fad9274f004f608004a0a29f34eb8809bdf6a7bab63914f3117ace10453609"
+  },
+  "logs/sh-board/normal.serial.log": {
+    "size": 36721,
+    "mtime_ns": 1793956353898042800,
+    "sha256": "39f871ce28c645c3c7628c20981819cc843c841cec29e3c469bd152f4b1d97a9"
+  },
+  "logs/sh-board/pipeline.json": {
+    "size": 984,
+    "mtime_ns": 1793956045352407600,
+    "sha256": "2a07129d33e56c089a86c92a501446e349545d3b3949946c867e0b4299e38ab9"
+  },
+  "logs/sh-board/pipeline.loader.log": {
+    "size": 4195,
+    "mtime_ns": 1793956045350848600,
+    "sha256": "314c771c67b7868d53a99999db0092e05dbb13970b7e43e893b2513eb9486ad6"
+  },
+  "logs/sh-board/pipeline.serial.log": {
+    "size": 3033,
+    "mtime_ns": 1793956045219258000,
+    "sha256": "56c72562c7b515002f9c04a7d233c7bba3ce9d5af638ed69d586fd2767b1ca90"
+  },
+  "logs/sh-board/pixel-mutation.loader.log": {
+    "size": 4193,
+    "mtime_ns": 1793956062230547100,
+    "sha256": "d2a4980405140b76ba829f07cc95a5325f6870efdc0a628bbb21cc319a83861d"
+  },
+  "logs/sh-board/pixel-mutation.serial.log": {
+    "size": 3025,
+    "mtime_ns": 1793956062094626500,
+    "sha256": "12072b8e043e8c20123b00563df928bce814a2e584d9343662ebb1a0dd1bf554"
+  },
+  "logs/sh-board/pixels.json": {
+    "size": 3331,
+    "mtime_ns": 1793956062232005500,
+    "sha256": "6c5104aab9edd82c7c7e2153d04230061fac7723d5d101dacdb70acbd89e42b2"
+  },
+  "logs/sh-board/production.build.log": {
+    "size": 3223,
+    "mtime_ns": 1793955773083295000,
+    "sha256": "9954f42be0add39477594b6fa51c5ffcbf66bf7f654a8a3a1bdcf7338a46d8d4"
+  },
+  "logs/sh-board/result.json": {
+    "size": 1957,
+    "mtime_ns": 1793956500655116400,
+    "sha256": "bf9e55df3fb651a905b1bdb106e1e5062aabbdf963e136a7e9fb052ab5456145"
+  },
+  "logs/sh-board/software.loader.log": {
+    "size": 6108,
+    "mtime_ns": 1793956028185721400,
+    "sha256": "b38cb2b1eed2d0cd9102b2a0f82eaec93c47e359b0d796ee8bfe717767291536"
+  },
+  "logs/sh-board/software.serial.log": {
+    "size": 4946,
+    "mtime_ns": 1793956028070110400,
+    "sha256": "5bed7f55680d99b11244f98cf1c6a3fbfc5de8fda1ecca9af8a964a24dc5fa1c"
+  },
+  "logs/sh-board/timing.json": {
+    "size": 1557,
+    "mtime_ns": 1793956500415261200,
+    "sha256": "d7e868b8c6e1d76da34205d553685128aea88252a7670e10e80a92ec044d6492"
+  },
+  "logs/sh-board/wall-hardware.build.log": {
+    "size": 3226,
+    "mtime_ns": 1793956107697891300,
+    "sha256": "68cf3be8c5999afa8a7f7512d3ddc0b3cdf2f96ee554c5707cce22d664dd4c23"
+  },
+  "logs/sh-board/wall-hardware.loader.log": {
+    "size": 3298,
+    "mtime_ns": 1793956122610674300,
+    "sha256": "677581eacb87b632b94240aec10938a97093d16125fb7b2bad28e98327a33a7c"
+  },
+  "logs/sh-board/wall-hardware.serial.log": {
+    "size": 2131,
+    "mtime_ns": 1793956122483926200,
+    "sha256": "dc358731c8610b7158f47dd3ed89a6d4fb93475c9190786730103b4fb3dd8f5d"
+  },
+  "logs/sh-board/wall-pipeline.build.log": {
+    "size": 3226,
+    "mtime_ns": 1793956233534990700,
+    "sha256": "fbf14bb2b855bb96eb342b56b56660bed31411c30bfbcfbe754642d80267efe6"
+  },
+  "logs/sh-board/wall-pipeline.loader.log": {
+    "size": 3666,
+    "mtime_ns": 1793956248901083300,
+    "sha256": "3339972a93cd3f1c7cf1b196b1cbf8dd87412651eaf6597938f067b29271605e"
+  },
+  "logs/sh-board/wall-pipeline.serial.log": {
+    "size": 2499,
+    "mtime_ns": 1793956248779938100,
+    "sha256": "e8d1821d66fb55254ec72fcc9cda4bf616eaa29c33b7db92fe5a5f745aaf9bb6"
+  },
+  "logs/sh-board/wall-pixels.json": {
+    "size": 1354,
+    "mtime_ns": 1793956248901614600,
+    "sha256": "67d1be7cf8a7a1b701dc356d84b66a1eb41605de08858b3811a3633516e538ac"
+  },
+  "logs/sh-board/wall-software.build.log": {
+    "size": 3226,
+    "mtime_ns": 1793956164151957200,
+    "sha256": "68cf3be8c5999afa8a7f7512d3ddc0b3cdf2f96ee554c5707cce22d664dd4c23"
+  },
+  "logs/sh-board/wall-software.loader.log": {
+    "size": 4286,
+    "mtime_ns": 1793956190881775200,
+    "sha256": "7cb585c7ca888d47979d50b75904f5fadfe3bd9b4cc74d81b11310faf7523135"
+  },
+  "logs/sh-board/wall-software.serial.log": {
+    "size": 3119,
+    "mtime_ns": 1793956190737548200,
+    "sha256": "54f8a234d9dd7f7df4c0467b717961247ee2c2242e3dbd2fd400c3ead34e3034"
+  }
+}

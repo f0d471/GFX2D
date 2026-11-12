@@ -1,0 +1,47 @@
+# COM11 @ 115200 8N1, opened 22:26:02
+console boot
+console protocol 2 tick_hz 1000
+# --- 程序已加载，以下才是它的输出 ---
+console boot
+console protocol 2 tick_hz 1000
+pak 4134720 a8624648
+console catalog begin v 1 profile full hash 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 count 7
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52
+console catalog app id 5 key flight kind game graphics 3d shortcut 5 available 1 title 524944474520464c49474854
+console catalog app id 7 key sh kind game graphics 3d shortcut 6 available 1 title 48414c5454494d45
+console catalog app id 6 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+console enter menu
+menu crc 6cc9cabd sel 0
+console menu index 0 id 1 count 7
+console complete app menu id 0 frames 23 presents 23 errors 0
+console leave menu
+r4 enter ladder/hw 1 1
+console scene 3 halttime
+console enter sh
+R4CAD 0 10295545 738 765 25  1656846 ef875d55 0941f3de
+SHCRC 0 513 155317214 4018625877 0
+R4CAD 1 6642715 767 792 26  1681216 be502577 ecf31151
+SHCRC 1 520 3975352657 3192923511 0
+R4CAD 2 10310894 794 821 27  1631453 d5dff013 a6deca8b
+SHCRC 2 516 2799618699 3588222995 0
+console status v 2 app sh id 7 backend hw fps_milli 2118 frames 3 presents 3 errors 0 scene 3 ladder 1 dropped 0 tick_ms 9043 irqA 543 heap 57824 faults 0 tasks 4 idle 972668 monitor 1 health 0 stack_free 54136 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4CAD 3 10127446 823 850 28  1621797 7ffc2893 bfb4644c
+SHCRC 3 514 3216270412 2147231891 0
+R4CAD 4 10043707 852 879 29  1602516 080a4bca a281402f
+SHCRC 4 514 2726379567 134892490 0
+R4CAD 5 6154156 881 905 30  1587894 5cf92aa6 82b4c038
+SHCRC 5 511 2192883768 1559833254 0
+console status v 2 app sh id 7 backend hw fps_milli 2142 frames 6 presents 6 errors 0 scene 3 ladder 1 dropped 0 tick_ms 10443 irqA 627 heap 57824 faults 0 tasks 4 idle 1177795 monitor 3 health 0 stack_free 54004 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+R4CAD 6 10055381 907 934 31  1593312 5322859e c9d983f0
+SHCRC 6 507 3386475504 1394771358 0
+R4CAD 7 6126056 936 961 32  1593390 d2a8cb99 1249950b
+SHCRC 7 507 306812171 3534277529 0
+r4 leave frames/late 8 8
+R4HEALTH 1022 347 0 0 0
+SHDONE 0
+console complet
+# closed 22:26:19, 2691 bytes

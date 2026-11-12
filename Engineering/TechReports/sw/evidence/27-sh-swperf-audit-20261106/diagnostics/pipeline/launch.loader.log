@@ -1,0 +1,6 @@
+=== 先开串口 COM11，再加载程序（顺序不能反）
+=== reset halt + load_image + resume
+   [fpga_spinal.cpu0] Target successfully examined.
+   479658 bytes written at address 0x00001000
+   downloaded 479658 bytes in 24.916883s (18.799 KiB/s)
+ERROR: precise serial boundary was not established

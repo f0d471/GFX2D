@@ -1,0 +1,1 @@
+SH PIPE FAIL line 26: !memcmp(record_copy,at(in_flight.tri_base),in_flight.tri_alloc)

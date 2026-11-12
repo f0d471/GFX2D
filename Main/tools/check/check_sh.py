@@ -25,8 +25,16 @@ def main():
     exe=out/'sh-generic'
     command([*base,'-DSH_DISABLE_VERTEX_CACHE=1','-DSH_DISABLE_SCENE_CACHE=1',*sources,'-o',exe],logs/'generic.build.log')
     generic=command([exe],logs/'generic.log',timeout=120)
-    geometry=lambda body:next(line for line in body.splitlines() if line.startswith('SH GEOMETRY PASS'))
-    if geometry(generic)!=geometry(expected):raise RuntimeError('SH cache changed record bytes versus generic path')
+    fingerprints=lambda body:[line for line in body.splitlines() if line.startswith(('SH GEOMETRY PASS','SH VIEW REUSE PASS'))]
+    if fingerprints(generic)!=fingerprints(expected):raise RuntimeError('SH cache changed record bytes versus generic path')
+    for name,flags in [('shadow-reference',['-DSH_DISABLE_SHADOW_REUSE=1']),
+                       ('division-reference',['-DSH_DIVISION_REUSE=0']),
+                       ('mesh-o3',['-O3','-DSH_MESH_OPT=3']),('mesh-o2',['-O3','-DSH_MESH_OPT=2']),
+                       ('mesh-os',['-O3','-DSH_MESH_OPT=1'])]:
+        exe=out/('sh-'+name)
+        command([*base,*flags,*sources,'-o',exe],logs/(name+'.build.log'))
+        if fingerprints(command([exe],logs/(name+'.log'),timeout=120))!=fingerprints(expected):
+            raise RuntimeError('SH optimization changed record bytes '+name)
     # Reintroduce the inherited 32m spawn regression: the actual gameplay test must fail.
     original=(ROOT/'Main/sw/apps/game/gfx2dGame/src/sh_scene.c').read_text()
     anchor='int32_t x=pos[k][0]*SH_ONE/10,z=pos[k][1]*SH_ONE/10;'
@@ -41,6 +49,12 @@ def main():
                           'screen[j].color=color+j*0x010101u;inside&=t->inside;'),
         'negative-half':('q+=n<0?r>d/2u:r>=(d+1u)/2u;',
                          'q+=r>=(d+1u)/2u;'),
+        'range-publication':('memcpy(s_range_pending[i].cache,s_ranges+2u*s_range_pending[i].first,2u*s_range_pending[i].count);',
+                             '(void)s_range_pending[i].cache;'),
+        'shadow-seam':('const unsigned a=i+1u,b=(i+1u)%12u+1u;',
+                       'const unsigned a=i+1u,b=(i+2u)%12u+1u;'),
+        'cached-view-depth':('t->view[2],0,0,color','t->view[2]+SH_ONE/8,0,0,color'),
+        'divrem-correction':('if(r>=d){++q;r-=d;}','if(r>d){++q;r-=d;}'),
     }
     for name,(before,after) in mutations.items():
         if before not in original:raise RuntimeError('mutation anchor missing: '+name)
@@ -52,6 +66,39 @@ def main():
         result=subprocess.run([exe],cwd=ROOT,text=True,capture_output=True,timeout=30)
         (logs/(name+'.log')).write_text(result.stdout+result.stderr)
         if result.returncode!=1 or 'SH FAIL' not in result.stderr:raise RuntimeError('mutation escaped: '+name)
+    # Execute the actual target pipeline with a delayed engine/display model.
+    pipeline_sources=['Main/sw/lib/gfx/rast_setup.c','Main/sw/lib/core/fixmath.c',
+        'Main/sw/lib/core/sin_tab.c','Main/sw/lib/core/format.c','Main/sw/lib/core/logq.c',
+        'Main/sw/lib/core/replay_r4.c','Main/sw/bsp/memmap.c']
+    pipeline_flags=[*base,'-IMain/sw/ports/myriad','-IMain/assets/build',
+                    '-ffunction-sections','-fdata-sections','-Wl,--gc-sections']
+    fixture=ROOT/'Main/sim/engine/sh/test_pipeline.c'
+    for name,extra in [('64',['-fsanitize=address,undefined','-fno-sanitize-recover=all']),('32',['-m32'])]:
+        exe=out/('pipeline-'+name)
+        command([*pipeline_flags,*extra,fixture,*pipeline_sources,'-o',exe],logs/('pipeline-'+name+'.build.log'))
+        command([exe],logs/('pipeline-'+name+'.log'))
+    runtime=(ROOT/'Main/sw/ports/myriad/r4_runtime.c').read_text()
+    pipeline_mutations={
+        'record-base':('shared + rec_off + first*RAST_RECORD_BYTES',
+                       'shared + (rec_off&0u) + R4_REC_OFF + first*RAST_RECORD_BYTES'),
+        'record-overwrite':('const int next=had_frame?(cur^1):cur;','const int next=cur;'),
+        'early-present':('if(had_frame && s_pipe_buf[cur].gun_bytes) {',
+            'if(had_frame){board_frame f;uint32_t ticket;int shown=s_pipe_buf[cur].dst_slot;'
+            'board_frame_acquire(shown,0,&f);board_present_frame_request(shown,&f,&ticket);}\n'
+            '    if(had_frame && s_pipe_buf[cur].gun_bytes) {'),
+        'leave-drain':('if(gfx_engine_wait(&code,&index,&tag) || code) {','if((void)index,(void)tag,code) {'),
+    }
+    for name,(before,after) in pipeline_mutations.items():
+        if before not in runtime:raise RuntimeError('pipeline mutation anchor missing '+name)
+        mutant=out/('runtime-'+name+'.c');mutant.write_text(runtime.replace(before,after,1))
+        test=out/('pipeline-'+name+'.c')
+        test.write_text(fixture.read_text().replace('"../../../sw/ports/myriad/r4_runtime.c"','"'+str(mutant)+'"'))
+        exe=out/('pipeline-'+name)
+        command([*pipeline_flags,test,*pipeline_sources,'-o',exe],logs/('pipeline-'+name+'.build.log'))
+        result=subprocess.run([exe],cwd=ROOT,text=True,capture_output=True,timeout=30)
+        (logs/('pipeline-'+name+'.log')).write_text(result.stdout+result.stderr)
+        if result.returncode!=1 or 'SH PIPE FAIL' not in result.stderr:
+            raise RuntimeError('pipeline mutation escaped '+name)
     app=ROOT/'Main/sw/apps/console';host=out/'host'
     command(['make','-C',app,'-j6','PLATFORM=host','OBJDIR='+str(host),'PERF=1'],logs/'host.build.log',timeout=600)
     env={**os.environ,'SDL_VIDEODRIVER':'dummy','SDL_AUDIODRIVER':'dummy','GFX2D_UNPACED':'1',
@@ -87,8 +134,15 @@ def main():
         '50000 exact projection divisions','100000 signed depth divisions and half ties',
         '10000 byte-identical flat triangles','33 baked faceted poses and flat RGB',
         'generic/cache record byte equality','cache arena guards',
+        'next-frame strip-range reuse and invalidation','atomic range publication',
+        '2048 shadow rings and frozen reference','96 near-camera geometry cases',
+        'O3/O2/Os record byte identity',
+        '200000 exact u32 quotient/remainder pairs','shared area reciprocal and exact fixed-point divisions',
+        'actual target pipeline A/B ownership and three submission states',
+        'present after draw, prime, input generation and failure drains',
         '2048 records and bins','viewport padding','determinism',
-        'actual console SH smoke','actual near-wall viewmodel pixels'],mutation=['EXPECTED_RED '+name for name in mutations],
+        'actual console SH smoke','actual near-wall viewmodel pixels'],
+        mutation=['EXPECTED_RED '+name for name in [*mutations,*('pipeline-'+n for n in pipeline_mutations)]],
         scope='PC software; no FPGA timing or hardware overlay claim'))
     print('SH PASS')
 

@@ -102,6 +102,12 @@ static int frame(appfw_ctx *c, uint32_t keys, uint32_t n)
 #ifdef SH_BOARD_WALL
     keys=n==1u?PLATFORM_KEY_ACTION:n==2u?PLATFORM_KEY_RESTART:0u;
 #endif
+#ifdef SH_BOARD_SEQUENCE
+    static const uint32_t sequence[]={0,PLATFORM_KEY_ACTION,PLATFORM_KEY_RIGHT,
+        PLATFORM_KEY_UP,PLATFORM_KEY_STRAFE_R,PLATFORM_KEY_RESTART,
+        PLATFORM_KEY_LEFT,PLATFORM_KEY_ACTION};
+    keys=sequence[n%8u];
+#endif
 #endif
     board_pointer_read(&dx,&dy);
     sh_world_look(dx,dy);
@@ -110,14 +116,15 @@ static int frame(appfw_ctx *c, uint32_t keys, uint32_t n)
                       keys | r4_pending_keys(), &out) != 0 ||
         r4_fail_count() != s_fail_base)
         return appfw_error("halttime frame", -1);
-    content(c)->shown = dst;
+    if(out.presented_fb>=0)content(c)->shown=STG_SLOT_FB0+out.presented_fb;
     ++content(c)->seq;
 #ifdef SH_BOARD_CAPTURE
+    if(out.presented_fb<0)return APPFW_FRAME_OK;
     char line[128];core_out text;core_out_init(&text,line,sizeof line);core_out_str(&text,"SHCRC");
-    uint32_t values[]={n,out.records,out.record_crc,out.crc,out.fail};
+    uint32_t values[]={out.frames-1u,out.records,out.record_crc,out.crc,out.fail};
     for(unsigned i=0;i<5;++i){core_out_ch(&text,' ');core_out_u32(&text,values[i]);}
     core_out_str(&text,"\r\n");appfw_log(line);
-    if(n+1u>=SH_BOARD_CAPTURE)appfw_request(appfw_app_id(APPFW_MENU));
+    if(out.frames>=SH_BOARD_CAPTURE)appfw_request(appfw_app_id(APPFW_MENU));
 #endif
     return APPFW_FRAME_OK;
 }

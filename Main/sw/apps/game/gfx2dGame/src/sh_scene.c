@@ -23,6 +23,15 @@
 #ifndef SH_DISABLE_VERTEX_CACHE
 #define SH_DISABLE_VERTEX_CACHE 0
 #endif
+#ifndef SH_DISABLE_SHADOW_REUSE
+#define SH_DISABLE_SHADOW_REUSE 0
+#endif
+#ifndef SH_MESH_OPT
+#define SH_MESH_OPT 3
+#endif
+#ifndef SH_DIVISION_REUSE
+#define SH_DIVISION_REUSE 1
+#endif
 
 #define SH_ONE R4_ONE
 #define SH_EYE (155*SH_ONE/100)
@@ -89,6 +98,17 @@ typedef struct {
     rast_record records[256];uint8_t ranges[512];
 } sh_weapon_cache;
 static sh_weapon_cache *s_weapon_cache;static uint32_t s_weapon_cache_age;
+/* A cache slice is published as trusted only after both frame bins succeed. */
+static struct {uint8_t *cache;uint32_t first,count;} s_range_pending[SH_ENEMY_MAX+2u];
+static unsigned s_range_pending_count;
+static void sh_range_pending(uint8_t *cache,uint32_t first,uint32_t count)
+{
+    if(cache && count && cache[0]==0xFFu) {
+        const unsigned i=s_range_pending_count++;
+        s_range_pending[i].cache=cache;
+        s_range_pending[i].first=first;s_range_pending[i].count=count;
+    }
+}
 #endif
 /* Strip-range tables for the last emission of each pipeline buffer:
    {first,last} per record, 0xFF pair = fresh record for the binner to
@@ -101,9 +121,28 @@ void sh_world_ranges_use(unsigned index)
     if(index<2u)s_ranges=s_ranges_tab[index];
 }
 uint8_t *sh_world_ranges(void) {return s_ranges;}
+int sh_world_ranges_commit(uint32_t count)
+{
+    if(count!=s_n || s_failed)return -1;
+#if !SH_DISABLE_SCENE_CACHE
+    /* Validate every pending slice before publishing any of them. A failed or
+       partial bin must not turn unvalidated record bodies into trusted cache. */
+    for(unsigned i=0;i<s_range_pending_count;++i) {
+        uint32_t first=s_range_pending[i].first,n=s_range_pending[i].count;
+        if(first>count || n>count-first)return -1;
+        for(uint32_t k=first;k<first+n;++k)
+            if(s_ranges[2u*k]>s_ranges[2u*k+1u] || s_ranges[2u*k+1u]>=RAST_STRIPS)return -1;
+    }
+    for(unsigned i=0;i<s_range_pending_count;++i)
+        memcpy(s_range_pending[i].cache,s_ranges+2u*s_range_pending[i].first,2u*s_range_pending[i].count);
+    s_range_pending_count=0;
+#endif
+    return 0;
+}
 void sh_world_cache_bind(void *memory,uint32_t bytes)
 {
 #if !SH_DISABLE_SCENE_CACHE
+    s_range_pending_count=0;
     const uint32_t weapon_bytes=(uint32_t)((SH_WEAPON_CACHE_SLOTS*sizeof(sh_weapon_cache)+127u)&~127u);
     const uint32_t slice_ranges=2u*1024u+3u*(2u*512u);
     const uint32_t required=weapon_bytes+(1024u+3u*512u)*RAST_RECORD_BYTES+slice_ranges;
@@ -433,6 +472,17 @@ static int32_t sh_round_mul(int32_t a,int32_t b)
     int64_t n=(int64_t)a*b;
     return (int32_t)((n>>16)+(((uint64_t)n&65535u)>=32768u));
 }
+/* R=floor((2^32-1)/d). For every u32 numerator, floor(n*R/2^32)
+   is the true quotient or one less: its real error is strictly below one.
+   One remainder comparison therefore gives exact quotient and remainder.
+   d is nonzero; n-q*d <= n, so all residual arithmetic stays in u32. */
+static inline uint32_t sh_divrem32(uint32_t n,uint32_t d,uint32_t reciprocal,uint32_t *remainder)
+{
+    uint32_t q=(uint32_t)(((uint64_t)n*reciprocal)>>32);
+    uint32_t r=n-q*d;
+    if(r>=d){++q;r-=d;}
+    *remainder=r;return q;
+}
 /* Matrix-explicit variants keep the mesh hot loop from reloading the scene
    globals per vertex; the arithmetic (and every recorded byte) is unchanged. */
 static void sh_transform_m(const fx16_mat4 *m,const int32_t p[3],int32_t view[3])
@@ -451,21 +501,41 @@ static void sh_transform(const int32_t p[3],int32_t view[3])
 #if !SH_DISABLE_VERTEX_CACHE
 static int32_t sh_project_div(int32_t a,uint32_t denominator,uint32_t reciprocal)
 {
+#if SH_DIVISION_REUSE
+    const uint32_t magnitude=a<0?(uint32_t)(-(int64_t)a):(uint32_t)a;
+    uint32_t r,q=sh_divrem32(magnitude,denominator,reciprocal,&r);
+    /* Projection denominators are bounded by R4_FAR_Z (2^22). */
+    const unsigned chunk=denominator<=65535u?16u:8u;
+    for(unsigned left=16u;left;) {
+        unsigned bits=left<chunk?left:chunk;r<<=bits;
+        q=(q<<bits)+sh_divrem32(r,denominator,reciprocal,&r);left-=bits;
+    }
+    q+=a<0?r>denominator/2u:r>=(denominator+1u)/2u;
+    return (int32_t)(a<0?0u-q:q);
+#else
     int64_t q=((int64_t)a*reciprocal)>>16;
     int64_t rem=(int64_t)a*SH_ONE-q*denominator;
     while(rem<0){--q;rem+=denominator;}
     while(rem>=denominator){++q;rem-=denominator;}
     return (int32_t)(q+(rem>=(denominator+1u)/2u));
+#endif
 }
-static int sh_project_vertex_m(const fx16_mat4 *p,const rast_viewport *vp,
-                               const rast_view_vertex *v,rast_vertex *out)
+static int sh_projection_standard(const fx16_mat4 *p)
+{
+    return !(p->v[1]||p->v[2]||p->v[3]||p->v[4]||p->v[6]||p->v[7]||p->v[8]||p->v[9]||
+       p->v[12]||p->v[13]||p->v[14]!= -SH_ONE||p->v[15]);
+}
+static int sh_project_vertex_known(const fx16_mat4 *p,const rast_viewport *vp,
+                               const rast_view_vertex *v,rast_vertex *out,int standard)
 {
     if(v->z> -R4_NEAR_Z || v->z< -(int32_t)R4_FAR_Z)return -1;
-    if(p->v[1]||p->v[2]||p->v[3]||p->v[4]||p->v[6]||p->v[7]||p->v[8]||p->v[9]||
-       p->v[12]||p->v[13]||p->v[14]!= -SH_ONE||p->v[15])
+    if(!standard)
         return r4_project_inside(v,1,p,R4_NEAR_Z,R4_FAR_Z,vp,out);
     uint32_t w=(uint32_t)-v->z;
-    uint32_t reciprocal=UINT32_MAX/w+(UINT32_MAX%w==w-1u);
+    uint32_t reciprocal=UINT32_MAX/w;
+#if !SH_DIVISION_REUSE
+    reciprocal+=(UINT32_MAX%w==w-1u);
+#endif
     int32_t x=sh_project_div(sh_round_mul(p->v[0],v->x),w,reciprocal);
     int32_t y=sh_project_div(sh_round_mul(p->v[5],v->y),w,reciprocal);
     int32_t z=sh_project_div(sh_round_mul(p->v[10],v->z)+p->v[11],w,reciprocal);
@@ -475,7 +545,12 @@ static int sh_project_vertex_m(const fx16_mat4 *p,const rast_viewport *vp,
     out->z=(uint16_t)(depth<0?0:depth>65535?65535:depth);out->u=v->u;out->v=v->v;out->color=v->color;
     return 0;
 }
-static int sh_project_vertex(const rast_view_vertex *v,rast_vertex *out)
+static inline int sh_project_vertex_m(const fx16_mat4 *p,const rast_viewport *vp,
+                                      const rast_view_vertex *v,rast_vertex *out)
+{
+    return sh_project_vertex_known(p,vp,v,out,sh_projection_standard(p));
+}
+static inline int sh_project_vertex(const rast_view_vertex *v,rast_vertex *out)
 {
     return sh_project_vertex_m(s_proj,s_mesh_vp,v,out);
 }
@@ -483,22 +558,42 @@ static int sh_project_vertex(const rast_view_vertex *v,rast_vertex *out)
 /* ---- 发射 ---- */
 
 #endif
-/* Exact n*2^20/d with RV32 DIV/REM only. Each fractional digit keeps r<<bits
-   in u32; signed half ties still round toward +infinity, as R1 requires. */
-static inline int sh_gradient20(int32_t n,uint32_t d,int32_t *result)
+/* Exact n*2^20/d by radix digits. Production shares the area's reciprocal;
+   the reference retains DIV/REM. Every shifted residual fits u32, and signed
+   half ties still round toward +infinity, as R1 requires. */
+static inline int sh_gradient20_with_reciprocal(int32_t n,uint32_t d,uint32_t reciprocal,int32_t *result)
 {
     uint32_t magnitude=n<0?(uint32_t)(-(int64_t)n):(uint32_t)n;
+#if SH_DIVISION_REUSE
+    uint32_t r,q=sh_divrem32(magnitude,d,reciprocal,&r);
+#else
+    (void)reciprocal;
     uint32_t q=magnitude/d,r=magnitude%d;
+#endif
     if(q>=1024u)return 0;
     unsigned chunk=d<=4095u?20u:d<=65535u?16u:d<=1048575u?12u:d<=16777215u?8u:4u;
     for(unsigned left=20u;left;) {
         unsigned bits=left<chunk?left:chunk;
-        r<<=bits;q=(q<<bits)+r/d;r%=d;left-=bits;
+        r<<=bits;
+#if SH_DIVISION_REUSE
+        q=(q<<bits)+sh_divrem32(r,d,reciprocal,&r);
+#else
+        q=(q<<bits)+r/d;r%=d;
+#endif
+        left-=bits;
     }
     q+=n<0?r>d/2u:r>=(d+1u)/2u;
     if(q>=(1u<<30))return 0;
     *result=n<0?-(int32_t)q:(int32_t)q;
     return 1;
+}
+static inline int sh_gradient20(int32_t n,uint32_t d,int32_t *result)
+{
+    uint32_t reciprocal=0;
+#if SH_DIVISION_REUSE
+    reciprocal=UINT32_MAX/d;
+#endif
+    return sh_gradient20_with_reciprocal(n,d,reciprocal,result);
 }
 
 /* Existing 128B ABI, specialized only for an entirely inside, single-color
@@ -525,9 +620,13 @@ static inline int sh_flat_setup(const rast_vertex input[3],const rast_viewport *
                (int64_t)(v[2].x-v[0].x)*((int32_t)v[1].z-v[0].z);
     if(nx<INT32_MIN || nx>INT32_MAX || ny<INT32_MIN || ny>INT32_MAX)return -3;
     int32_t dzdx,dzdy;
+    uint32_t area_reciprocal=0;
+#if SH_DIVISION_REUSE
+    area_reciprocal=UINT32_MAX/(uint32_t)area;
+#endif
     { PROF_START;
-    if(!sh_gradient20((int32_t)nx,(uint32_t)area,&dzdx) ||
-       !sh_gradient20((int32_t)ny,(uint32_t)area,&dzdy)){PROF_END(11);return 0;}
+    if(!sh_gradient20_with_reciprocal((int32_t)nx,(uint32_t)area,area_reciprocal,&dzdx) ||
+       !sh_gradient20_with_reciprocal((int32_t)ny,(uint32_t)area,area_reciprocal,&dzdy)){PROF_END(11);return 0;}
     PROF_END(11); }
     const uint32_t c0=v[0].color;
     int32_t rgb[6];
@@ -542,8 +641,8 @@ static inline int sh_flat_setup(const rast_vertex input[3],const rast_viewport *
                           cc=(int32_t)((v[2].color>>shift)&255u);
             const int32_t nxk=(cb-ca)*(v[2].y-v[0].y)-(cc-ca)*(v[1].y-v[0].y);
             const int32_t nyk=(v[1].x-v[0].x)*(cc-ca)-(v[2].x-v[0].x)*(cb-ca);
-            if(!sh_gradient20(nxk,(uint32_t)area,&rgb[k*2]) ||
-               !sh_gradient20(nyk,(uint32_t)area,&rgb[k*2+1]))return 0;
+            if(!sh_gradient20_with_reciprocal(nxk,(uint32_t)area,area_reciprocal,&rgb[k*2]) ||
+               !sh_gradient20_with_reciprocal(nyk,(uint32_t)area,area_reciprocal,&rgb[k*2+1]))return 0;
         }
     } else rgb[0]=rgb[1]=rgb[2]=rgb[3]=rgb[4]=rgb[5]=0;
     int32_t lo[2]={v[0].x,v[0].y},hi[2]={v[0].x,v[0].y};
@@ -612,20 +711,13 @@ static int sh_flat_fan(const rast_vertex *screen,unsigned n,const rast_viewport 
     return (int)produced;
 }
 
-static int sh_poly(const rast_view_vertex *v, unsigned n, const rast_viewport *vp,
-                    rast_record **out, uint32_t *cap)
+static int sh_poly_view(rast_view_vertex *view,unsigned n,const rast_viewport *vp,
+                    rast_record **out,uint32_t *cap,const rast_vertex *projected_vertices)
 {
     PROF_START;
-    rast_view_vertex view[4];
     int r;
+    (void)projected_vertices;
     if (n > 4u || *cap < n) { if (*cap < n) s_failed = 1; return -1; }
-    /* 契约:gfx_setup_view 吃视空间顶点(近/远裁剪按它做),投影矩阵单独传。
-       世界系输入在此经视图矩阵变换,与走廊/山脊同口径。 */
-    for (unsigned i = 0; i < n; ++i) {
-        const int32_t p[3]={v[i].x,v[i].y,v[i].z};int32_t transformed[3];
-        sh_transform(p,transformed);
-        view[i]=(rast_view_vertex){transformed[0],transformed[1],transformed[2],v[i].u,v[i].v,v[i].color};
-    }
     {
         const rast_frame frame = {(unsigned)(vp->x + vp->w) > RAST_WIDTH
                                       ? (unsigned)(vp->x + vp->w) : RAST_WIDTH, RAST_HEIGHT};
@@ -636,7 +728,12 @@ static int sh_poly(const rast_view_vertex *v, unsigned n, const rast_viewport *v
 #if !SH_DISABLE_VERTEX_CACHE
         int handled=0;
         rast_vertex screen[4];projected=1;
-        for(unsigned i=0;i<n;++i)if(sh_project_vertex(&view[i],&screen[i]))projected=0;
+        if(projected_vertices)memcpy(screen,projected_vertices,n*sizeof *screen);
+        else {
+            const int standard=sh_projection_standard(s_proj);
+            for(unsigned i=0;i<n;++i)
+                if(sh_project_vertex_known(s_proj,vp,&view[i],&screen[i],standard))projected=0;
+        }
         if(projected) {
             /* 扩展精确setup:零UV的面(单色或逐顶点色)按扇形拆分快跑;整面不符合才退通用。 */
             int flat=screen[0].u==0u && screen[0].v==0u;
@@ -687,6 +784,19 @@ static int sh_poly(const rast_view_vertex *v, unsigned n, const rast_viewport *v
     if (r < 0) s_failed = 1;
     else if (r > 0) { *out += (unsigned)r; *cap -= (uint32_t)r; s_n += (uint32_t)r; }
     PROF_END(3);return r;
+}
+/* World callers transform once; mesh/shadow callers reuse cached view vertices. */
+static int sh_poly(const rast_view_vertex *v,unsigned n,const rast_viewport *vp,
+                    rast_record **out,uint32_t *cap)
+{
+    rast_view_vertex view[4];
+    if(n>4u || *cap<n){if(*cap<n)s_failed=1;return -1;}
+    for(unsigned i=0;i<n;++i) {
+        const int32_t p[3]={v[i].x,v[i].y,v[i].z};int32_t q[3];
+        sh_transform(p,q);
+        view[i]=(rast_view_vertex){q[0],q[1],q[2],v[i].u,v[i].v,v[i].color};
+    }
+    return sh_poly_view(view,n,vp,out,cap,NULL);
 }
 
 /* 世界系四边形:法线朝向剔除+距离雾 */
@@ -770,7 +880,7 @@ static void sh_normalize(int32_t v[3])
     PROF_END(0);
 }
 
-typedef struct {int32_t world[3];rast_vertex screen;uint8_t ready,inside;} sh_mesh_vertex;
+typedef struct {int32_t world[3],view[3];rast_vertex screen;uint8_t ready,inside;} sh_mesh_vertex;
 
 static uint32_t sh_face_color(const int8_t normal[3],unsigned material,const int32_t light[3],
                               int32_t fog_distance)
@@ -799,6 +909,11 @@ static uint32_t sh_face_color(const int8_t normal[3],unsigned material,const int
     PROF_END(1);return col;
 }
 
+#if SH_MESH_OPT == 2
+__attribute__((noinline,optimize("O2")))
+#elif SH_MESH_OPT == 1
+__attribute__((noinline,optimize("Os")))
+#endif
 static void sh_mesh_draw(const int16_t (*positions)[3],unsigned vertices,
                          const uint8_t (*faces)[3],const int8_t (*normals)[3],
                          const uint8_t *materials,unsigned count,int32_t x,int32_t y,int32_t z,
@@ -810,6 +925,7 @@ static void sh_mesh_draw(const int16_t (*positions)[3],unsigned vertices,
     const int32_t eye[3]={s_viewmodel?0:s_px,s_viewmodel?0:SH_EYE,s_viewmodel?0:s_pz};
 #if !SH_DISABLE_VERTEX_CACHE
     const fx16_mat4 mesh_view=s_view,mesh_proj=*s_proj;
+    const int standard_projection=sh_projection_standard(&mesh_proj);
 #endif
     /* Rotate the light into model space once. Baked face normals need no normalization. */
     int32_t light[3]={sh_mul(-34000,cs)-sh_mul(23000,sn),49000,
@@ -833,24 +949,39 @@ static void sh_mesh_draw(const int16_t (*positions)[3],unsigned vertices,
                        (int64_t)nz*(eye[2]-a[2]);
         if(facing<=0)continue;
         uint32_t color=sh_face_color(n,materials[f],light,fog_distance);
-        rast_vertex screen[3];rast_view_vertex world[3];int inside=1;
+        rast_vertex screen[3];int inside=1;
+#if SH_DISABLE_VERTEX_CACHE
+        rast_view_vertex world[3];
+#endif
         for(unsigned j=0;j<3;++j) {
             sh_mesh_vertex *t=&v[faces[f][j]];
-            world[j]=(rast_view_vertex){t->world[0],t->world[1],t->world[2],0,0,color};
 #if !SH_DISABLE_VERTEX_CACHE
             if(!t->ready) {
                 PROF_START;
-                int32_t q[3];sh_transform_m(&mesh_view,t->world,q);
-                rast_view_vertex view={q[0],q[1],q[2],0,0,0};
-                t->inside=sh_project_vertex_m(&mesh_proj,vp,&view,&t->screen)==0;t->ready=1;
+                sh_transform_m(&mesh_view,t->world,t->view);
+                rast_view_vertex view={t->view[0],t->view[1],t->view[2],0,0,0};
+                t->inside=sh_project_vertex_known(&mesh_proj,vp,&view,&t->screen,standard_projection)==0;t->ready=1;
                 PROF_END(2);
             }
             screen[j]=t->screen;screen[j].color=color;inside&=t->inside;
 #else
+            world[j]=(rast_view_vertex){t->world[0],t->world[1],t->world[2],0,0,color};
             inside=0;
 #endif
         }
-        if(!inside){sh_poly(world,3,vp,out,cap);continue;}
+        if(!inside) {
+#if !SH_DISABLE_VERTEX_CACHE
+            rast_view_vertex view[3];
+            for(unsigned j=0;j<3;++j) {
+                const sh_mesh_vertex *t=&v[faces[f][j]];
+                view[j]=(rast_view_vertex){t->view[0],t->view[1],t->view[2],0,0,color};
+            }
+            sh_poly_view(view,3,vp,out,cap,NULL);
+#else
+            sh_poly(world,3,vp,out,cap);
+#endif
+            continue;
+        }
         if(*cap<3u){s_failed=1;return;}
         uint32_t setup_started=0;
 #if SH_PROFILE
@@ -918,6 +1049,31 @@ static void sh_ground_shadow(int32_t x,int32_t z,int32_t rx,int32_t rz,
                               const rast_viewport *vp,rast_record **out,uint32_t *cap)
 {
     const int32_t y=SH_ONE/64;
+#if !SH_DISABLE_VERTEX_CACHE && !SH_DISABLE_SHADOW_REUSE
+    /* The original twelve triangles share thirteen vertices and two colours.
+       Keep triangle order and pass cached view vertices to clipping fallbacks. */
+    rast_view_vertex view[13];rast_vertex projected[13];uint8_t inside[13];
+    const int standard=sh_projection_standard(s_proj);
+    const int64_t dx=x-s_px,dz=z-s_pz;
+    const uint32_t center=sh_fog(dx*dx+dz*dz,0x8b929cu);
+    const uint32_t edge=sh_fog(dx*dx+(int64_t)SH_EYE*SH_EYE+dz*dz,0xedf0f3u);
+    for(unsigned i=0;i<13;++i) {
+        const uint16_t angle=(uint16_t)((i?i-1u:0u)*65536u/12u);
+        const int32_t p[3]={i?x+sh_mul(sh_cos(angle),rx):x,y,
+                            i?z+sh_mul(sh_sin(angle),rz):z};
+        int32_t q[3];sh_transform(p,q);
+        view[i]=(rast_view_vertex){q[0],q[1],q[2],0,0,i?edge:center};
+        inside[i]=sh_project_vertex_known(s_proj,vp,&view[i],&projected[i],standard)==0;
+    }
+    for(unsigned i=0;i<12;++i) {
+        const unsigned a=i+1u,b=(i+1u)%12u+1u;
+        rast_view_vertex tri[3]={view[0],view[a],view[b]};
+        rast_vertex screen[3];
+        const int ready=inside[0] && inside[a] && inside[b];
+        if(ready){screen[0]=projected[0];screen[1]=projected[a];screen[2]=projected[b];}
+        sh_poly_view(tri,3,vp,out,cap,ready?screen:NULL);
+    }
+#else
     for(unsigned i=0;i<12;++i) {
         uint16_t a=(uint16_t)(i*65536u/12u),b=(uint16_t)((i+1)*65536u/12u);
         int32_t x1=x+sh_mul(sh_cos(a),rx),z1=z+sh_mul(sh_sin(a),rz);
@@ -928,6 +1084,7 @@ static void sh_ground_shadow(int32_t x,int32_t z,int32_t rx,int32_t rz,
             {x1,y,z1,0,0,edge},{x2,y,z2,0,0,edge}};
         sh_poly(v,3,vp,out,cap);
     }
+#endif
 }
 
 uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
@@ -956,6 +1113,9 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
     /* Every record starts fresh for the strip-range cache; cached slices
        overwrite their own entries below as they are copied back. */
     memset(s_ranges,0xFF,2u*SH_PC_RECORD_CAP);
+#if !SH_DISABLE_SCENE_CACHE
+    s_range_pending_count=0;
+#endif
 
 #if !SH_DISABLE_SCENE_CACHE
     int room_hit=s_room_cache.valid && s_room_cache.x==s_px && s_room_cache.z==s_pz &&
@@ -967,6 +1127,7 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
         if(left<s_room_cache.count)return UINT32_MAX;
         memcpy(o,s_room_cache.records,s_room_cache.count*sizeof *o);
         if(s_room_cache.ranges)memcpy(s_ranges,s_room_cache.ranges,2u*s_room_cache.count);
+        sh_range_pending(s_room_cache.ranges,0,s_room_cache.count);
         o+=s_room_cache.count;left-=s_room_cache.count;s_n=s_room_cache.count;
         PROF_END(7);
     } else {
@@ -1102,6 +1263,7 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
             s_room_cache.projection=*projection;s_room_cache.vp=*vp;s_room_cache.count=s_n;
             memcpy(s_room_cache.records,out,s_n*sizeof *out);
             if(s_room_cache.ranges)memcpy(s_room_cache.ranges,s_ranges,2u*s_n);
+            sh_range_pending(s_room_cache.ranges,0,s_n);
         }
     }
 #endif
@@ -1115,6 +1277,7 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
             uint32_t n=s_actor_cache[i].count;if(n>left)return UINT32_MAX;
             memcpy(o,s_actor_cache[i].records,n*sizeof *o);
             if(s_actor_cache[i].ranges)memcpy(s_ranges+2u*s_n,s_actor_cache[i].ranges,2u*n);
+            sh_range_pending(s_actor_cache[i].ranges,s_n,n);
             o+=n;left-=n;s_n+=n;
             PROF_END(8);continue;
         }
@@ -1130,6 +1293,7 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
             s_actor_cache[i].swing=pose;s_actor_cache[i].version=s_room_cache.version;s_actor_cache[i].count=n;
             memcpy(s_actor_cache[i].records,actor_begin,n*sizeof *actor_begin);
             if(s_actor_cache[i].ranges)memcpy(s_actor_cache[i].ranges,s_ranges+2u*before,2u*n);
+            sh_range_pending(s_actor_cache[i].ranges,before,n);
         }
 #endif
     }
@@ -1186,6 +1350,7 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
                 if(entry->count>left)return UINT32_MAX;
                 memcpy(o,entry->records,entry->count*sizeof *o);
                 memcpy(s_ranges+2u*s_n,entry->ranges,2u*entry->count);
+                sh_range_pending(entry->ranges,s_n,entry->count);
                 s_n+=entry->count;
                 entry->age=++s_weapon_cache_age;return s_failed?UINT32_MAX:s_n;
             }
@@ -1216,6 +1381,7 @@ uint32_t sh_world_emit(const fx16_mat4 *projection, const rast_viewport *vp,
         save->projection=*projection;save->vp=*vp;save->age=++s_weapon_cache_age;
         memcpy(save->records,weapon_begin,save->count*sizeof *weapon_begin);save->valid=1;
         memcpy(save->ranges,s_ranges+2u*s_weapon_start,save->count*2u);
+        sh_range_pending(save->ranges,s_weapon_start,save->count);
     }
 #endif
     return s_failed ? UINT32_MAX : s_n;

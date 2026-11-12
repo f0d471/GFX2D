@@ -1,0 +1,7 @@
+SH FLAT SETUP PASS 100000 exact signed divisions and 10000 byte-identical triangles
+SH FLAT FAN PASS 20000 tris/quads byte-identical to the generic clipped path
+SH NORMAL PASS unit axes, tiny vectors, 3-4-5, diagonal and signs
+SH PROJECTION PASS 50000 reciprocal divisions match R1 rounding exactly
+SH CLOCK PASS 30Hz physics independent of render batches
+SH AI PASS blocked animation stops and cover tangent makes progress
+SH FAIL line 145: alive==3

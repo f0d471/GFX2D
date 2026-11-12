@@ -1,0 +1,77 @@
+{
+  "work_point": "SW23",
+  "status": "FAIL",
+  "scope": "independent completion audit; production source unchanged",
+  "revision": "59c359bad958b3a089d1331caf739d4bc8f65791",
+  "findings": [
+    {
+      "name": "P4 wrong record buffer",
+      "status": "CONFIRMED",
+      "basis": "physical APB and source"
+    },
+    {
+      "name": "P4 request present before target pixels complete",
+      "status": "CONFIRMED",
+      "basis": "static control flow; no observed HDMI tearing claim"
+    },
+    {
+      "name": "P3 range cache not populated after binning",
+      "status": "REPRODUCED",
+      "basis": "host actual production scene"
+    }
+  ],
+  "timing_scope": "only board archive is uninterrupted timing; APB halt/read/resume is not timing evidence",
+  "attempts": {
+    "first": "serial window expired during slow JTAG load",
+    "second": "target has no hardware breakpoint unit",
+    "final": "APB halt/read/resume without breakpoints, 16 samples"
+  },
+  "board_restored": "production menu, JTAG only; Flash unchanged",
+  "reproduce_ranges": "From repository root: gcc -std=gnu11 -O2 -Wall -Wextra -Werror -IMain/sw/lib -IMain/sw/api -IMain/sw/bsp/include -IMain/sw/services/gfx -IMain/sw/apps/game/gfx2dGame/src Engineering/TechReports/sw/evidence/27-sh-swperf-audit-20261106/diagnostics/probe_ranges.c Main/sw/lib/core/fixmath.c Main/sw/lib/core/sin_tab.c Main/sw/lib/core/xorshift32.c Main/sw/lib/gfx/rast_setup.c Main/sw/lib/gfx/rast_ref.c Main/sw/apps/game/gfx2dGame/src/r4_geometry.c -o Main/sim/build/sw23-range-probe && Main/sim/build/sw23-range-probe",
+  "files": {
+    "probe_ranges.c": {
+      "bytes": 1784,
+      "sha256": "4f7553e015d667c41c933267e408102e5bc2b7115f045320f058df58430686e7"
+    },
+    "ranges.log": {
+      "bytes": 204,
+      "sha256": "560294cfb8be36e29ad26d1eca15f01ed3a3f7966a5a99a1c3dfc43b3366e96c"
+    },
+    "probe_pipeline.py": {
+      "bytes": 5653,
+      "sha256": "04896a488713a5498eb2a911e1bb4eb55b2546b642aea814de24d94ef1133928"
+    },
+    "pipeline-apb/apb.log": {
+      "bytes": 3727,
+      "sha256": "955dc46854395fcfa790e3e1c7018653a2aab886b32f49ec0749088123f80ad0"
+    },
+    "pipeline-apb/result.json": {
+      "bytes": 8475,
+      "sha256": "20789c555d406ebc9945d3beba5536f3f63b89c90ec1990971d7a1ca4f55446e"
+    },
+    "pipeline-fast/launch.loader.log": {
+      "bytes": 10848,
+      "sha256": "19ee2663fff08cce9a11f4188cc25f77eb4c18055629080da0167042d5232f46"
+    },
+    "pipeline-fast/launch.serial.log": {
+      "bytes": 9705,
+      "sha256": "c6fc21ba5d769fca9fefc683aff2a2defab79e9d01f8f77e54ae107074cb7cdf"
+    },
+    "pipeline-fast/breakpoints.log": {
+      "bytes": 805,
+      "sha256": "65c57338d7809c1b858e61a299c9f6321b93db75fae334d47df9bc34ea2bd49e"
+    },
+    "pipeline/launch.loader.log": {
+      "bytes": 310,
+      "sha256": "9139dbe84d506db7d8b3ead53b96a7b4420b301620db08bd623f22c9b941d97d"
+    },
+    "pipeline/launch.serial.log": {
+      "bytes": 381,
+      "sha256": "a5b9a37383346561efa6536e03c66a220d3d7bb4a9c3fbeca6d4edbdc5700fb4"
+    },
+    "restored-menu.serial.log": {
+      "bytes": 1513,
+      "sha256": "0502fa0bb8be894f16d98cd29d2236b7e3e03060cd3b7d4596648d1de01d676f"
+    }
+  }
+}

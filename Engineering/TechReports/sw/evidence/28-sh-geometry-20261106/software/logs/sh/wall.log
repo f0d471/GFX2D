@@ -1,0 +1,45 @@
+board: GFX2D_UNPACED=1，呈现不等场
+console boot
+console protocol 2 tick_hz 1000
+pak 4134720 a8624648
+console catalog begin v 1 profile full hash 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 count 7
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52
+console catalog app id 5 key flight kind game graphics 3d shortcut 5 available 1 title 524944474520464c49474854
+console catalog app id 7 key sh kind game graphics 3d shortcut 6 available 1 title 48414c5454494d45
+console catalog app id 6 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+r4 enter ladder/hw 1 0
+console scene 3 halttime
+console enter sh
+R4STAT 0 126831 248 1 0 3
+R4TIME 208 12586 715 33 704278 0 1324226 823
+console status v 2 app sh id 7 backend sw fps_milli 30662 frames 31 presents 31 errors 0 scene 3 ladder 1 dropped 0 tick_ms 1050 irqA 0 heap 0 faults 0 tasks 1 idle 30 monitor 0 health 0 stack_free 0 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 00000000
+R4STAT 31 163720 157 1 0 3
+R4TIME 204 10208 475 31 617199 0 896964 568
+console status v 2 app sh id 7 backend sw fps_milli 30000 frames 61 presents 61 errors 0 scene 3 ladder 1 dropped 0 tick_ms 2050 irqA 0 heap 0 faults 0 tasks 1 idle 60 monitor 0 health 0 stack_free 0 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 00000000
+R4STAT 30 136270 150 1 0 3
+R4TIME 247 11386 571 28 620709 0 1005733 700
+console status v 2 app sh id 7 backend sw fps_milli 30000 frames 91 presents 91 errors 0 scene 3 ladder 1 dropped 0 tick_ms 3050 irqA 0 heap 0 faults 0 tasks 1 idle 90 monitor 0 health 0 stack_free 0 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 00000000
+R4STAT 30 135847 112 1 0 3
+R4TIME 199 10085 348 29 586965 0 836438 453
+console status v 2 app sh id 7 backend sw fps_milli 30000 frames 121 presents 121 errors 0 scene 3 ladder 1 dropped 0 tick_ms 4050 irqA 0 heap 0 faults 0 tasks 1 idle 120 monitor 0 health 0 stack_free 0 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 00000000
+R4STAT 30 166402 53 1 0 3
+R4TIME 243 7144 237 36 512828 0 701409 205
+console status v 2 app sh id 7 backend sw fps_milli 30000 frames 151 presents 151 errors 0 scene 3 ladder 1 dropped 0 tick_ms 5050 irqA 0 heap 0 faults 0 tasks 1 idle 150 monitor 0 health 0 stack_free 0 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 00000000
+R4STAT 30 187640 45 1 0 3
+R4TIME 248 2459 246 30 548880 0 666045 198
+console status v 2 app sh id 7 backend sw fps_milli 30000 frames 181 presents 181 errors 0 scene 3 ladder 1 dropped 0 tick_ms 6050 irqA 0 heap 0 faults 0 tasks 1 idle 180 monitor 0 health 0 stack_free 0 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 00000000
+R4STAT 30 198177 45 1 0 3
+R4TIME 211 2312 285 29 521559 0 664148 202
+console status v 2 app sh id 7 backend sw fps_milli 30000 frames 211 presents 211 errors 0 scene 3 ladder 1 dropped 0 tick_ms 7050 irqA 0 heap 0 faults 0 tasks 1 idle 210 monitor 0 health 0 stack_free 0 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 00000000
+board: snapshot 230 -> /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261106-222216-7efb2d65/logs/sh/wall/snap_00230.ppm
+console status v 2 app sh id 7 backend sw fps_milli 24000 frames 235 presents 235 errors 0 scene 3 ladder 1 dropped 0 tick_ms 8050 irqA 0 heap 0 faults 0 tasks 1 idle 234 monitor 0 health 0 stack_free 0 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 00000000
+R4STAT 24 193424 45 1 0 3
+R4TIME 242 593 149 28 569349 0 664148 202
+R4PERF 209 577473 846152 852387 1 0 0 430 209
+r4 leave frames/late 240 1
+console complete app sh id 7 frames 240 presents 240 errors 0
+console leave sh

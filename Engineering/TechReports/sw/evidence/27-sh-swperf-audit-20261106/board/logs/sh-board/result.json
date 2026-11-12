@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "scope": "frozen B7 JTAG function and measured cadence; no Flash write",
+  "frames_per_sh_window": 1800,
+  "timing": {
+    "normal": {
+      "frames": 1784,
+      "p50_ms": 49.35187,
+      "p99_ms": 50.36409,
+      "max_ms": 62.07797,
+      "late": 1784,
+      "exact": 0,
+      "over": 1784,
+      "fields": 5357,
+      "presents": 1784,
+      "measured_fps": 19.981332835542283,
+      "health": [
+        18105,
+        347,
+        0,
+        0,
+        0
+      ]
+    },
+    "active": {
+      "frames": 1795,
+      "p50_ms": 49.62489,
+      "p99_ms": 132.20414,
+      "max_ms": 153.09053,
+      "late": 1313,
+      "exact": 482,
+      "over": 1355,
+      "fields": 6442,
+      "presents": 1795,
+      "measured_fps": 16.718410431543,
+      "health": [
+        25496,
+        347,
+        0,
+        0,
+        0
+      ]
+    },
+    "corridor-consumer": {
+      "frames": 34,
+      "p50_ms": 48.42759,
+      "p99_ms": 49.28723,
+      "max_ms": 49.28723,
+      "late": 34,
+      "exact": 0,
+      "over": 34,
+      "fields": 104,
+      "presents": 34,
+      "measured_fps": 19.615384615384617,
+      "health": [
+        26837,
+        336,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "target_30hz_met": false,
+  "manual_hdmi_review": "pending",
+  "physical_input_review": "pending"
+}

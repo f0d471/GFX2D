@@ -12,8 +12,9 @@
 *
 *         内存：模式 4 独占 SHARED 内三个固定窗口（渲染槽 0x600000/256KiB、
 *         子表 SHARED+0x40000/128KiB、软件 z 条带 SHARED+0x60000/32KiB）；凝时
-*         凝时另用SHARED+0x68000/64KiB武器子表、0x100000/1MiB记录缓存、
-*         0x200000/2MiB世界中间表面（槽3），世界/武器独立深度；与 renderer 的
+*         凝时另用SHARED+0x68000/64KiB武器子表、0x100000/768KiB记录缓存、
+*         0x1C0000/256KiB第二套记录、0x200000/2MiB世界中间面（槽3），
+*         0x3E0000与0x3F0000各32KiB第二套子表；世界/武器独立深度；与 renderer 的
 *         实例/分桶 arena（0x400000 起）与背景命令表
 *         （0x800000 起）互不重叠；mode_enter 前框架已做 frontend_game_reset
 *         （在途非零即拒绝进入）。
@@ -134,11 +135,14 @@ typedef struct {
     uint32_t rast_cycles;   /* 上一帧引擎 RAST 相位周期（hw 路径有效） */
     uint32_t render_cycles; /* 上一帧整帧渲染时间（含等待前） */
     uint32_t crc, record_crc, hud_crc;
+    int32_t presented_fb;   /* This call's completed presentation, -1 on SH pipeline prime. */
 } r4_out;
 
 /* 进入/离开/一帧。tab/mem 由框架提供（表面表已按 R4 槽登记）。
    keys 是本逻辑 tick 的按键位图；dst_slot 是目的面槽号（STG_SLOT_FB0/1）。
-   返回 0 成功；失败已累计内部 fail，调用方不得 present。 */
+   返回 0 成功；失败已累计内部 fail，调用方不得 present。
+   凝时硬件流水首调只准备，presented_fb=-1；随后呈现前一次调用的输入代，
+   frames只计实际呈现。调用方以presented_fb更新显示面，不能把dst当作已显示面。 */
 int      r4_mode_enter(gfx_surface_table *tab, const gfx_mem *mem, int hw, uint32_t ladder);
 void     r4_timing_start(void);
 void     r4_scene_select(uint32_t scene);

@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "sha256": "52ced451ba8d99fe9eca3263220300c47dbe151b511b642e147bf5593c924dac",
+  "scope": "unchanged committed production model, current runtime consumers",
+  "mutation": "EXPECTED_RED changed model bytes",
+  "regeneration": "NOT_APPLICABLE: no model or generator adoption"
+}

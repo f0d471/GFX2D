@@ -1,0 +1,4 @@
+# COM11 @ 115200 8N1, opened 16:25:06
+console status v 2 app menu id 0 backend hw fps_milli 60000 frames 2086 presents 2086 errors 0 scene 0 ladder 0 dropped 0 tick_ms 51378 irqA 3083 heap 57824 faults 0 tasks 4 idle 65010841 monitor 39 health 0 stack_free 57284 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 0000d46f
+
+# closed 16:25:26, 313 bytes

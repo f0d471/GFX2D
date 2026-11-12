@@ -1,0 +1,10 @@
+{
+  "frozen-sw23": [
+    "SH VIEW REUSE PASS near-camera cases=96 crc=1c2d4e40",
+    "SH GEOMETRY PASS records_peak=776 deterministic_crc=8c6858ca width=640/854/1792 padding"
+  ],
+  "current-generic": [
+    "SH VIEW REUSE PASS near-camera cases=96 crc=1c2d4e40",
+    "SH GEOMETRY PASS records_peak=776 deterministic_crc=8c6858ca width=640/854/1792 padding"
+  ]
+}

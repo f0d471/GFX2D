@@ -1,0 +1,23 @@
+board: GFX2D_UNPACED=1，呈现不等场
+console boot
+console protocol 2 tick_hz 1000
+pak 4134720 a8624648
+console catalog begin v 1 profile full hash 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 count 7
+console catalog app id 1 key demo kind demo graphics 2d shortcut 1 available 1 title 32442047524150484943532044454d4f
+console catalog app id 2 key stg kind game graphics 2d shortcut 2 available 1 title 44414e4d414b552047414d45
+console catalog app id 3 key press kind benchmark graphics 2d shortcut 3 available 1 title 5354524553532054455354
+console catalog app id 4 key r4 kind game graphics 3d shortcut 4 available 1 title 334420434f525249444f52
+console catalog app id 5 key flight kind game graphics 3d shortcut 5 available 1 title 524944474520464c49474854
+console catalog app id 7 key sh kind game graphics 3d shortcut 6 available 1 title 48414c5454494d45
+console catalog app id 6 key about kind system graphics 2d shortcut 0 available 1 title 53595354454d20494e464f524d4154494f4e
+console catalog end
+r4 enter ladder/hw 2 0
+console scene 0 ladder 2
+console enter r4
+R4STAT 0 181270 219 2 0 0
+R4TIME 69 7706 655 619 552452 0 625953 577
+console status v 2 app r4 id 4 backend sw fps_milli 31000 frames 31 presents 31 errors 0 scene 0 ladder 2 dropped 0 tick_ms 1066 irqA 0 heap 0 faults 0 tasks 1 idle 30 monitor 0 health 0 stack_free 0 catalog 63b3e4131582755b372ce7f036d1435b510d5a068cac5c37b02b63b3889f7370 caps 00000000
+R4PERF 9 551203 587055 587055 0 0 0 18 9
+r4 leave frames/late 40 0
+console complete app r4 id 4 frames 40 presents 40 errors 0
+console leave r4

@@ -1,0 +1,2 @@
+SW23_RANGE_PROBE records=513 bin_bytes=2786 warm_after_bin=513 room_records=148 room_cached_warm=0 next_emit_warm=0 room_hit=1 records_equal=1
+REPRODUCED: scene cache discards every validated strip range
