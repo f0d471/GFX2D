@@ -4,14 +4,14 @@
 特性位的定义与依赖在 feature_config.py；寄存器偏移/位号的单一真源仍是 regs_gen.py。
 本脚本只做“按构型把两者组合成产物”，不复制任何真源：
 
-    engine_feature.vh        宏的唯一定义处（存在式宏，关闭即不定义）
-    engine_config_guard.vh   四条依赖边的命名缺失模块守卫（由 engine_top 例化）
-    engine_regs_offsets.vh   按构型生成 CAPS 复位值（调 regs_gen 的生成函数）
-    gfx_regs.h               同上，软件侧
-    gfx_feature.h            软件侧的“编译时预期能力”，供按构型检查
-    gfx2d_ti60.xml           Efinity 工程：源列表按构型排除禁用模块
-    sim-include/             仿真侧 include 入口（与 RTL 侧同内容）
-    config.json              构型名、CAPS、开关、源列表（供检查脚本消费）
+    include/engine_feature.vh     宏的唯一定义处（存在式宏，关闭即不定义）
+    include/engine_regs_offsets.vh 按构型生成 CAPS 复位值（调 regs_gen 的生成函数）
+    core/engine_config_guard.v    依赖守卫，一个模块，由 engine_top 例化一次；与构型无关
+    gfx_regs.h                    同上，软件侧
+    gfx_feature.h                 软件侧的“编译时预期能力”，供按构型检查
+    gfx2d_ti60.xml                Efinity 工程：源列表按构型排除禁用模块
+    sim-include/                  仿真侧 include 入口（只放特性宏）
+    config.json                   构型名、CAPS、开关、源列表（供检查脚本消费）
 
 用法（在仓库根）：
     python3 Main/tools/check/feature_build.py --list
@@ -51,6 +51,7 @@ FIXED_RTL = (
     'display/display_top.v', 'display/display_fetch.v', 'display/display_fifo.v', 'display/display_out.v',
     'engine/core/engine_blend.v', 'engine/core/engine_pix.v', 'engine/core/engine_geom.v', 'engine/core/engine_mover.v',
     'engine/core/engine_regs.v', 'engine/core/engine_cmd.v', 'engine/engine_top.v',
+    'engine/core/engine_config_guard.v',
     'vendor/verilog-axi/axi_dma_rd.v', 'vendor/verilog-axi/axi_dma_wr.v',
     'vendor/axi_mux/Axi_Mux.v',
 )
@@ -116,18 +117,25 @@ def feature_header(name, config):
     return '\n'.join(lines)
 
 
-def guard_header(config):
-    """依赖守卫：不满足时例化命名缺失模块，让 elaboration 与综合在开工前失败。
+def guard_module(config):
+    """依赖守卫：一个模块，依赖不满足时例化不存在的模块，让编译/综合硬失败。
 
-    不用 `error：本机 Icarus 的预处理对 `error 只给警告、退出码仍为 0；
-    也不能只用 initial $fatal：仿真启动报错不等于综合前拒绝。
+    与构型无关：内容只由 feature_config.GUARDS 与 EXCLUDES 决定，所以不按构型生成，
+    只在依赖表变化时重写，由 engine_top 例化一次。不定义任何 GFX_CONFIG_ERROR_* 模块，
+    因此违规组合在 iverilog、hierarchy -check 与厂商综合（blackbox-error=1）里都是硬失败，
+    报错里带着违规边的名字。
+    不用 `error：本机 Icarus 的预处理对 `error 只给警告、退出码仍为 0。
     每条边一个唯一的实例名，避免同一模块里多条守卫同时展开时重名。
     """
     lines = [
-        '// 由 tools/check/feature_build.py 生成：本构型的依赖守卫，由 engine_top 例化。',
-        '// 守卫不满足时引用未定义模块，hierarchy -check 与厂商综合会硬失败。',
-        '`ifndef GFX_ENGINE_CONFIG_GUARD_VH',
-        '`define GFX_ENGINE_CONFIG_GUARD_VH',
+        '// 由 tools/check/feature_build.py 生成：依赖守卫，由 engine_top 例化一次。',
+        '// 依赖不满足时例化一个不存在的模块，仿真、hierarchy -check 与厂商综合都会硬失败，',
+        '// 报错里带违规边的名字。内容只随 feature_config.py 的依赖表变化，与构型无关。',
+        '`timescale 1ns/1ps',
+        '`default_nettype none',
+        '`include "engine_feature.vh"',
+        '',
+        'module gfx_config_guard();',
         '',
     ]
     for owner, need, module in fc.GUARDS:
@@ -145,25 +153,7 @@ def guard_header(config):
         lines += [f'`ifdef {macros[first]}', f'  `ifdef {macros[second]}',
                   f'    {module} u_config_error_{first.lower()}_{second.lower()}();',
                   '  `endif', '`endif']
-    lines += ['', '`endif', '']
-    return '\n'.join(lines)
-
-
-def error_modules(config):
-    """守卫的对侧声明。
-
-    这五个模块都给出空实现，所以守卫在本构型里**不会**让编译失败。
-    正式保证来自两处：构建入口在任何产物生成之前拒绝非法清单（本文件的 build()），
-    以及 netlist 结构检查断言被关闭的机制在网表里不存在对应实例。
-    这里保留守卫片段是为了让被绕过的清单在 elaboration 日志里留下明确指认，
-    而不是伪装成黑盒错误；设计取舍记在 spec 的 2.4 节。
-    """
-    lines = ['// 由 tools/check/feature_build.py 生成：守卫的对侧声明，模块体为空。',
-             '// 合法性由构建入口在生成产物前拒绝；本文件只保证守卫不会伪装成黑盒错误。', '']
-    for _, _, module in fc.GUARDS:
-        lines += [f'module {module}();', 'endmodule', '']
-    for _, _, module in fc.EXCLUDES:
-        lines += [f'module {module}();', 'endmodule', '']
+    lines += ['', 'endmodule', '', '`default_nettype wire', '']
     return '\n'.join(lines)
 
 
@@ -229,9 +219,10 @@ def project_xml(config, xml_path, tree_root):
 def populate_tree(config, out):
     """把 rtl/ 复制成该构型自己的源树，并把生成头放进它该在的位置。
 
-    生成的 engine_feature.vh / engine_config_guard.vh / engine_regs_offsets.vh
-    写进 rtl/engine/ 根（`.v` 分布在 core/、buffer/、frontend/、rast/ 子目录），
-    工程 XML 里的 include 参数指向这个目录，RTL 才能找到 `include。
+    生成的 engine_feature.vh 与 engine_regs_offsets.vh 写进 rtl/engine/include/，
+    守卫模块 core/engine_config_guard.v 按当前依赖表重写进 rtl/engine/core/
+    （`.v` 分布在 core/、buffer/、frontend/、rast/ 子目录），
+    工程 XML 里的 include 参数指向 include/，RTL 才能找到 `include。
     SoC IP（ip/soc）、外设接口（peri.xml）与约束（sdc/）从现有工程原样复制：
     这三样与特性构型无关，重生成会覆盖 SDK，不能在本工作点里动。
     """
@@ -253,20 +244,32 @@ def populate_tree(config, out):
         raise SystemExit('缺少 SoC IP 目录: ' + str(ip))
     shutil.copytree(ip, project / 'ip')
     engine = out / 'rtl' / 'engine'
-    for name in ('engine_feature.vh', 'engine_config_guard.vh', 'engine_regs_offsets.vh'):
-        shutil.copyfile(out / name, engine / name)
+    include = engine / 'include'
+    include.mkdir(exist_ok=True)
+    for name_ in ('engine_feature.vh', 'engine_regs_offsets.vh'):
+        shutil.copyfile(out / name_, include / name_)
+    # 守卫模块与构型无关，仍按当前依赖表重写一遍，避免仓库副本过期被带进树里
+    (engine / 'core' / 'engine_config_guard.v').write_text(
+        guard_module(config), encoding='utf-8', newline='\n')
 
 
 # 主工程构型跟随配置真源；同步头、寄存器与综合模式后重建位流。
 CANONICAL_CONFIG = fc.CANONICAL
 
 
-def write_feature_files(config, name, out):
-    """写出与构型绑定、位置无关的三份特性头。"""
-    (out / 'engine_feature.vh').write_text(feature_header(name, config), encoding='utf-8', newline='\n')
-    (out / 'engine_config_guard.vh').write_text(guard_header(config), encoding='utf-8', newline='\n')
-    (out / 'engine_config_error_modules.vh').write_text(
-        error_modules(config), encoding='utf-8', newline='\n')
+def write_engine_headers(config, name, engine_dir):
+    """把生成物按仓库布局写进 rtl/engine：声明头进 include/，守卫模块进 core/。"""
+    engine_dir = Path(engine_dir)
+    include = engine_dir / 'include'
+    include.mkdir(parents=True, exist_ok=True)
+    core = engine_dir / 'core'
+    core.mkdir(parents=True, exist_ok=True)
+    (include / 'engine_feature.vh').write_text(feature_header(name, config),
+                                               encoding='utf-8', newline='\n')
+    (include / 'engine_regs_offsets.vh').write_text(regs_gen.gen_vh(fc.caps(config)),
+                                                    encoding='utf-8', newline='\n')
+    (core / 'engine_config_guard.v').write_text(guard_module(config),
+                                                encoding='utf-8', newline='\n')
 
 
 def write_headers(config_name, out_dir):
@@ -277,7 +280,8 @@ def write_headers(config_name, out_dir):
         raise ValueError('INVALID '+config_name+': '+'；'.join(reasons))
     out = Path(out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
-    write_feature_files(config, fc.name_of(config), out)
+    (out/'engine_feature.vh').write_text(feature_header(fc.name_of(config), config),
+                                         encoding='utf-8', newline='\n')
     (out/'engine_regs_offsets.vh').write_text(regs_gen.gen_vh(fc.caps(config)), encoding='utf-8', newline='\n')
     return out
 
@@ -286,8 +290,8 @@ def sync_canonical():
     """把默认构型的特性头与综合模式同步到主工程。
 
     仓库内的 RTL、仿真与应用构建使用配置真源指定的默认构型：
-    特性头写进 rtl/engine/ 根（`.v` 在 core/、buffer/、frontend/、rast/ 子目录），
-    工程 XML 的 include 参数指向该目录，RTL 才能找到 `include；
+    两份声明头写进 rtl/engine/include/，守卫模块写进 rtl/engine/core/，
+    工程 XML 的 include 参数指向 include/，RTL 才能找到 `include；
     软件侧另给一份到 sw/bsp/include，使 engineTest 一类程序默认就能做
     「编译时预期能力 vs 运行时 CAPS」的配对判据。
     按构型构建时这四份文件被构型自己的副本覆盖。
@@ -296,9 +300,7 @@ def sync_canonical():
     assert not fc.check(config), fc.check(config)
     name = fc.name_of(config)
     out = MAIN / 'rtl' / 'engine'
-    write_feature_files(config, name, out)
-    (out / 'engine_regs_offsets.vh').write_text(regs_gen.gen_vh(fc.caps(config)),
-                                                encoding='utf-8', newline='\n')
+    write_engine_headers(config, name, out)
     sw = MAIN / 'sw' / 'bsp' / 'include'
     if sw.is_dir():
         (sw / 'gfx_feature.h').write_text(software_header(name, config),
@@ -321,10 +323,9 @@ def check_canonical():
     name = fc.name_of(config)
     out = MAIN / 'rtl' / 'engine'
     expected = {
-        'engine_feature.vh': feature_header(name, config),
-        'engine_config_guard.vh': guard_header(config),
-        'engine_config_error_modules.vh': error_modules(config),
-        'engine_regs_offsets.vh': regs_gen.gen_vh(fc.caps(config)),
+        'include/engine_feature.vh': feature_header(name, config),
+        'include/engine_regs_offsets.vh': regs_gen.gen_vh(fc.caps(config)),
+        'core/engine_config_guard.v': guard_module(config),
     }
     bad = [f for f, text in expected.items()
            if (out / f).read_text(encoding='utf-8') != text]
@@ -354,7 +355,7 @@ def build(config_name, out_dir):
     out.mkdir(parents=True)
     caps = fc.caps(config)
 
-    write_feature_files(config, name, out)
+    (out / 'engine_feature.vh').write_text(feature_header(name, config), encoding='utf-8', newline='\n')
     (out / 'engine_regs_offsets.vh').write_text(regs_gen.gen_vh(caps), encoding='utf-8', newline='\n')
     (out / 'gfx_regs.h').write_text(regs_gen.gen_h(caps), encoding='utf-8', newline='\n')
     (out / 'gfx_feature.h').write_text(software_header(name, config), encoding='utf-8', newline='\n')
@@ -363,8 +364,11 @@ def build(config_name, out_dir):
 
     sim_include = out / 'sim-include'
     sim_include.mkdir()
-    for name_ in ('engine_feature.vh', 'engine_config_guard.vh'):
-        shutil.copyfile(out / name_, sim_include / name_)
+    shutil.copyfile(out / 'engine_feature.vh', sim_include / 'engine_feature.vh')
+    # 树根不再留这两份的副本：它们已经进了 rtl/engine/include/，
+    # 留着会让按 CWD 找 include 的工具读到树根那份，掩盖真正被编译的头。
+    for name_ in ('engine_feature.vh', 'engine_regs_offsets.vh'):
+        (out / name_).unlink()
 
     record = {
         'config': name,
@@ -388,7 +392,7 @@ def main():
     ap.add_argument('--config', help='构型名（代表档如 B5）或位串（如 11110-111-d）')
     ap.add_argument('--out-dir', help='产物目录；存在时先清空')
     ap.add_argument('--list', action='store_true', help='列出代表档与合法结构组合')
-    ap.add_argument('--sync', action='store_true', help='把默认构型的特性头写进 rtl/engine/')
+    ap.add_argument('--sync', action='store_true', help='把默认构型的特性头写进 rtl/engine/（声明头进 include/）')
     ap.add_argument('--check', action='store_true', help='校验 rtl/engine/ 的特性头与默认构型一致')
     ap.add_argument('--headers-only', action='store_true', help='只向隔离目录写构型/寄存器头，不清目录或修改默认构型')
     args = ap.parse_args()

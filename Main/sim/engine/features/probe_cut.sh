@@ -9,9 +9,9 @@ fail=0
 printf '%-4s %-8s %-8s %-8s %-8s %s\n' 档 TEX PB BAND INST 结果
 for tree in B0 B1 B2 B3 B4 B5 B6 B7; do
   [ -d "$tree/rtl/engine" ] || continue
-  ( cd "$tree/rtl/engine" && iverilog -g2012 -E engine_top.v  -o "$WORK/$tree.top.v"   2>/dev/null
-                            iverilog -g2012 -E core/engine_mover.v -o "$WORK/$tree.mover.v" 2>/dev/null
-                            iverilog -g2012 -E core/engine_cmd.v   -o "$WORK/$tree.cmd.v"   2>/dev/null )
+  ( cd "$tree/rtl/engine" && iverilog -g2012 -E -I include engine_top.v  -o "$WORK/$tree.top.v"   2>/dev/null
+                            iverilog -g2012 -E -I include core/engine_mover.v -o "$WORK/$tree.mover.v" 2>/dev/null
+                            iverilog -g2012 -E -I include core/engine_cmd.v   -o "$WORK/$tree.cmd.v"   2>/dev/null )
   tex=$(grep -c 'engine_tex #' "$WORK/$tree.top.v" || true)
   pb=$(grep -c 'engine_pb #' "$WORK/$tree.top.v" || true)
   band=$(grep -c 'engine_band #' "$WORK/$tree.mover.v" || true)

@@ -18,8 +18,10 @@ ET.register_namespace('xsi','http://www.w3.org/2001/XMLSchema-instance')
 
 def prepare(folder, l2):
     folder.mkdir(parents=True)
-    for rel in ('rast/engine_rlst.v','rast/engine_rast.v','engine_regs_offsets.vh'):
-        shutil.copyfile(ROOT/'Main/rtl/engine'/rel,folder/Path(rel).name)
+    for src in (ROOT/'Main/rtl/engine/rast/engine_rlst.v',
+                ROOT/'Main/rtl/engine/rast/engine_rast.v',
+                ROOT/'Main/rtl/engine/include/engine_regs_offsets.vh'):
+        shutil.copyfile(src,folder/src.name)
     (folder/'engine_feature.vh').write_text('`define GFX_HAS_RAST\n'+
         ('`define GFX_HAS_RAST_TEX\n' if l2 else ''),encoding='utf-8')
     wrapper='''// 动态观察壳只测资源/时序；协议由真实 AXI 测试验证。

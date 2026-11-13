@@ -13,7 +13,7 @@ SIM=MAIN/'sim/engine/stripctl'
 BUILD,LOGS=paths('stripctl','stripctl')
 INCLUDE=write_headers('B3',BUILD/'include')
 LIB=[MAIN/'sw/lib'/p for p in ('gfx/list.c','gfx/strip.c','gfx/strip_plan.c','gfx/check.c','gfx/exec_sw.c','core/format.c')]
-RTL=[MAIN/'rtl/engine'/p for p in ('frontend/engine_bounds.v','frontend/engine_packet_check.v','frontend/engine_pb_dma.v','frontend/engine_bin.v','frontend/engine_pb.v','engine_top.v','core/engine_regs.v','core/engine_cmd.v','frontend/engine_inst.v','core/engine_geom.v','core/engine_pix.v','core/engine_blend.v','core/engine_mover.v','buffer/engine_tex.v','buffer/engine_band.v')]
+RTL=[MAIN/'rtl/engine'/p for p in ('frontend/engine_bounds.v','frontend/engine_packet_check.v','frontend/engine_pb_dma.v','frontend/engine_bin.v','frontend/engine_pb.v','engine_top.v','core/engine_config_guard.v','core/engine_regs.v','core/engine_cmd.v','frontend/engine_inst.v','core/engine_geom.v','core/engine_pix.v','core/engine_blend.v','core/engine_mover.v','buffer/engine_tex.v','buffer/engine_band.v')]
 RTL += [MAIN/'rtl/vendor/verilog-axi'/p for p in ('axi_dma_rd.v','axi_dma_wr.v')]
 RTL += [MAIN/'sim/axi_probe/axi_ram_model.v']
 
@@ -36,7 +36,7 @@ def cc(name,src,defines=(),san=True):
 
 def rtl(name,sh,defines=(),want='PASS',evidence=None):
     run(name+'_compile',['iverilog','-g2012','-s','tb_stripctl','-Ptb_stripctl.SH='+str(sh),
-        '-I'+str(INCLUDE),'-I'+str(MAIN/'rtl/engine'),*['-D'+x for x in defines],'-o',BUILD/(name+'.vvp'),SIM/'tb_stripctl.v',*RTL])
+        '-I'+str(INCLUDE),'-I'+str(MAIN/'rtl/engine/include'),*['-D'+x for x in defines],'-o',BUILD/(name+'.vvp'),SIM/'tb_stripctl.v',*RTL])
     out=run(name,['vvp','-n',BUILD/(name+'.vvp'),'+case='+str(BUILD/('scene'+str(sh)))],SIM,evidence=evidence)
     if 'RESULT: '+want not in out or 'WATCHDOG' in out:raise RuntimeError(name+' RTL result')
     return out

@@ -208,8 +208,8 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 
 ### 7.1 宏与依赖
 
-十八个自写文件都 `` `include "engine_feature.vh" ``（生成物，见 7.5 节；头留在 `engine/` 根，
-`.v` 分布在 `core/`、`buffer/`、`frontend/`、`rast/` 四个子目录）。
+十九个自写文件都 `` `include "engine_feature.vh" ``（生成物，见 7.5 节；头在 `engine/include/`，
+`.v` 分布在 `core/`、`buffer/`、`frontend/`、`rast/` 四个子目录，`engine_top.v` 在根）。
 宏是**存在式**的：`` `ifdef GFX_HAS_xxx `` 命中即该机制存在，不定义即整块离开编译输入。
 
 | 位 | 宏 | 依赖 |
@@ -264,9 +264,11 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 
 ### 7.5 生成物与判据
 
-`tools/check/feature_build.py` 生成 `engine_feature.vh`、`engine_config_guard.vh`、
-`engine_config_error_modules.vh`、`engine_regs_offsets.vh` 与软件侧 `gfx_feature.h`，
-都不手改。`--sync` 写主工程默认构型（`feature_config.CANONICAL`，现为 B0 基本档）及综合模式，`--check` 校验。
+`tools/check/feature_build.py` 生成 `include/engine_feature.vh`、`include/engine_regs_offsets.vh`、
+`core/engine_config_guard.v`（依赖守卫模块，由 `engine_top` 例化一次）与软件侧 `gfx_feature.h`，
+都不手改。守卫与构型无关，内容只随 `feature_config.py` 的依赖表变化；依赖不满足时它例化一个
+不存在的模块，编译与厂商综合都硬失败。`--sync` 写主工程默认构型（`feature_config.CANONICAL`，
+现为 B0 基本档）及综合模式，`--check` 校验。
 
 判据入口：`validate.py --checks feature-caps feature-elab feature-probe feature-contract feature-function`
 （WSL），`feature-synthesis` 与 `feature-board` 走 Windows Efinity，

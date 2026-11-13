@@ -9,7 +9,7 @@ fail=0
 printf '%-4s %-10s %-10s %-12s %-10s %s\n' 档 S_CFG counts table_base band_mode 结果
 for tree in B0 B1 B2 B3 B4 B5 B6 B7; do
   [ -d "$tree/rtl/engine" ] || continue
-  ( cd "$tree/rtl/engine" && iverilog -g2012 -E core/engine_cmd.v -o "$WORK/$tree.cmd.pp.v" 2>/dev/null )
+  ( cd "$tree/rtl/engine" && iverilog -g2012 -E -I include core/engine_cmd.v -o "$WORK/$tree.cmd.pp.v" 2>/dev/null )
   cfg=$(grep -c 'S_CFG:' "$WORK/$tree.cmd.pp.v" || true)
   cnt=$(grep -c 'counts\[' "$WORK/$tree.cmd.pp.v" || true)
   tab=$(grep -c 'table_base' "$WORK/$tree.cmd.pp.v" || true)

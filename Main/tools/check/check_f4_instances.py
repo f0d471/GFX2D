@@ -36,7 +36,7 @@ def models():
 def compile_rtl(tag,defines=()):
     sources=[SIM/'tb_engine_instances.v',*sorted((RTL/'engine').glob('**/*.v')),
         RTL/'vendor/verilog-axi/axi_dma_rd.v',RTL/'vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
-    run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(INCLUDE),'-I'+str(RTL/'engine')]+
+    run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(INCLUDE),'-I'+str(RTL/'engine/include')]+
         ['-D'+d for d in defines]+['-o',BUILD/(tag+'.vvp')]+sources)
     return BUILD/(tag+'.vvp')
 def rtl_cases(profile):
@@ -66,7 +66,7 @@ def protocols():
     for tag,n,params in cases:
         sources=[SIM/'tb_engine_instances.v',*sorted((RTL/'engine').glob('**/*.v')),
             RTL/'vendor/verilog-axi/axi_dma_rd.v',RTL/'vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
-        run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(INCLUDE),'-I'+str(RTL/'engine'),*params,'-o',BUILD/(tag+'.vvp'),*sources])
+        run(tag+'_compile',['iverilog','-g2012','-s','tb_engine_instances','-I'+str(INCLUDE),'-I'+str(RTL/'engine/include'),*params,'-o',BUILD/(tag+'.vvp'),*sources])
         out=run(tag,['vvp','-n',BUILD/(tag+'.vvp'),'+CASE='+str(BUILD/'fixtures'/('case%02d'%n))])
         assert 'RESULT: PASS' in out and 'FAIL' not in out,tag+': '+out[-2500:]
         print('F4 PROTOCOL PASS '+tag,flush=True)

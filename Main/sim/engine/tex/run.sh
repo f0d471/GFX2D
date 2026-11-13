@@ -19,15 +19,15 @@ gcc -O2 -std=c11 -Wall -Wextra -Werror -I../../../tools/check -I../../../sw/lib 
 ./build/dump --tex-sprites build/tex_sprites > build/dump.log || exit 1
 
 RTL_FILES="$RTL/engine/buffer/engine_tex.v $RTL/engine/core/engine_geom.v $RTL/engine/core/engine_cmd.v $RTL/engine/frontend/engine_inst.v $RTL/engine/frontend/engine_bounds.v $RTL/engine/frontend/engine_packet_check.v $RTL/engine/frontend/engine_pb_dma.v $RTL/engine/frontend/engine_bin.v $RTL/engine/frontend/engine_pb.v \
-    $RTL/engine/buffer/engine_band.v $RTL/engine/core/engine_mover.v $RTL/engine/core/engine_regs.v $RTL/engine/engine_top.v \
+    $RTL/engine/buffer/engine_band.v $RTL/engine/core/engine_mover.v $RTL/engine/core/engine_regs.v $RTL/engine/engine_top.v $RTL/engine/core/engine_config_guard.v \
     $RTL/engine/core/engine_pix.v $RTL/engine/core/engine_blend.v \
     $RTL/vendor/verilog-axi/axi_dma_rd.v $RTL/vendor/verilog-axi/axi_dma_wr.v \
     ../../../sim/axi_probe/axi_ram_model.v"
 
 run_case() {  # <名字> <期望 PASS|FAIL> [注错开关]
     local name="$1" want="$2" inj="${3:-}"
-    if ! iverilog -g2012 -I build/include -I "$RTL/engine" -s tb_engine_tex -DCASE='"build/tex_sprites"' $inj \
-         ${G1_EXTRA_DEFS:-} -I $RTL/engine -o build/$name.vvp tb_engine_tex.v $RTL_FILES; then
+    if ! iverilog -g2012 -I build/include -I "$RTL/engine/include" -s tb_engine_tex -DCASE='"build/tex_sprites"' $inj \
+         ${G1_EXTRA_DEFS:-} -I $RTL/engine/include -o build/$name.vvp tb_engine_tex.v $RTL_FILES; then
         echo "$name: COMPILE-FAIL"
         bad=1
         return

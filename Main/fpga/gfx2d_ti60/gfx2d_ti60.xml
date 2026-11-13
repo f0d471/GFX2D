@@ -30,6 +30,7 @@
         <efx:design_file name="../../rtl/engine/frontend/engine_inst.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/buffer/engine_tex.v" version="default" library="default" />
         <efx:design_file name="../../rtl/engine/engine_top.v" version="default" library="default" />
+        <efx:design_file name="../../rtl/engine/core/engine_config_guard.v" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/verilog-axi/axi_dma_rd.v" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/verilog-axi/axi_dma_wr.v" version="default" library="default" />
         <efx:design_file name="../../rtl/vendor/axi_mux/Axi_Mux.v" version="default" library="default" />
@@ -67,7 +68,7 @@
     </efx:ip_info>
     <efx:synthesis tool_name="efx_map">
         
-        <efx:param name="include" value="../../rtl/engine" value_type="e_string" />
+        <efx:param name="include" value="../../rtl/engine/include" value_type="e_string" />
         <efx:param name="work_dir" value="work_syn" value_type="e_string" />
         <efx:param name="write_efx_verilog" value="on" value_type="e_bool" />
         <efx:param name="allow-const-ram-index" value="0" value_type="e_option" />

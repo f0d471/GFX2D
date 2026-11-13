@@ -2,7 +2,7 @@
 # 引擎寄存器表的单一真源。
 #
 # 偏移、位域、复位值与读写属性只在本文件的 REGS 表里写一遍，一条命令生成两份产物：
-#   Main/rtl/engine/engine_regs_offsets.vh   Verilog `localparam`，RTL `include
+#   Main/rtl/engine/include/engine_regs_offsets.vh   Verilog `localparam`，RTL `include
 #   Main/sw/bsp/include/gfx_regs.h           C `#define`，驱动 include
 # `--check` 重新生成并与仓库内两份产物逐行比，不一致即退出码 1（挂提交前检查，
 # 与 localize_paths.py --check 同一位置）。语义（每一位干什么）的权威是
@@ -258,7 +258,7 @@ def gen_h(caps_value=None):
     return "\n".join(L) + "\n"
 
 MAIN = Path(__file__).resolve().parents[2]
-VH_PATH = MAIN / "rtl/engine/engine_regs_offsets.vh"
+VH_PATH = MAIN / "rtl/engine/include/engine_regs_offsets.vh"
 H_PATH = MAIN / "sw/bsp/include/gfx_regs.h"
 
 def main():

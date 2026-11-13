@@ -29,9 +29,7 @@ def main():
             config.update(EQ_EXT=False,ALPHA=False,KEY=False,DELIVERY=False)
             if not textured:config['TEX']=False
         assert fc.is_legal(config)
-        fb.write_feature_files(config,fc.name_of(config),tree/'engine')
-        import regs_gen
-        (tree/'engine/engine_regs_offsets.vh').write_text(regs_gen.gen_vh(fc.caps(config)))
+        fb.write_engine_headers(config,fc.name_of(config),tree/'engine')
         frames=1 if name.endswith('-min') else count
         vectors=build/name/'vectors';generate(vectors,frames,textured)
         excluded={Path(x).name for flag,files in fc.FEATURE_SOURCES.items()
@@ -43,7 +41,7 @@ def main():
         def execute(tag,negative=False):
             binary=build/(tag+'.vvp')
             text=command(['iverilog','-g2012','-Wportbind','-Wimplicit','-Wselect-range',
-                '-s','tb_r3','-I',tree/'engine',*(['-DR3_LAT2'] if name=='lat2' else []),
+                '-s','tb_r3','-I',tree/'engine'/'include',*(['-DR3_LAT2'] if name=='lat2' else []),
                 '-o',binary,ROOT/'Main/sim/engine/r3/tb_r3.v',*sources],logs/(tag+'.compile.log'))
             if 'warning:' in text.lower():raise RuntimeError(text)
             args=['vvp','-n',binary,f'+VECTORS={vectors}',f'+FRAMES={1 if negative else frames}']

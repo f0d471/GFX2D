@@ -25,7 +25,7 @@ bad=0
 run_one() {
     local name=$1 src=$2
     shift 2
-    if ! iverilog -g2012 -I "$RTL/engine" -o "$BUILD/$name.vvp" "$@" $src > "$BUILD/$name.compile.log" 2>&1; then
+    if ! iverilog -g2012 -I "$RTL/engine/include" -o "$BUILD/$name.vvp" "$@" $src > "$BUILD/$name.compile.log" 2>&1; then
         echo "RESULT: COMPILE-ERROR (see $BUILD/$name.compile.log)"
         return
     fi

@@ -20,7 +20,7 @@ mkdir -p "$BUILD"
 bad=0
 total=0
 
-CORE="$RTL/engine/buffer/engine_tex.v $RTL/engine/engine_top.v $RTL/engine/core/engine_regs.v $RTL/engine/core/engine_cmd.v $RTL/engine/frontend/engine_inst.v $RTL/engine/frontend/engine_bounds.v $RTL/engine/frontend/engine_packet_check.v $RTL/engine/frontend/engine_pb_dma.v $RTL/engine/frontend/engine_bin.v $RTL/engine/frontend/engine_pb.v \
+CORE="$RTL/engine/buffer/engine_tex.v $RTL/engine/engine_top.v $RTL/engine/core/engine_config_guard.v $RTL/engine/core/engine_regs.v $RTL/engine/core/engine_cmd.v $RTL/engine/frontend/engine_inst.v $RTL/engine/frontend/engine_bounds.v $RTL/engine/frontend/engine_packet_check.v $RTL/engine/frontend/engine_pb_dma.v $RTL/engine/frontend/engine_bin.v $RTL/engine/frontend/engine_pb.v \
 $RTL/engine/core/engine_geom.v $RTL/engine/core/engine_pix.v $RTL/engine/core/engine_blend.v \
 $RTL/engine/buffer/engine_band.v $RTL/engine/core/engine_mover.v $RTL/vendor/verilog-axi/axi_dma_rd.v \
 $RTL/vendor/verilog-axi/axi_dma_wr.v $RTL/../sim/axi_probe/axi_ram_model.v"
@@ -51,7 +51,7 @@ python3 ../../../tools/check/vec_to_sim.py "$BUILD/emit.txt" "$BUILD/vec_stream.
 # ---------------------------------------------------------------- 3 engine_top
 build_engine() {  # build_engine <名字> <注错开关，空为干净构建> <plusargs> <期望 RESULT>
     local name=$1 inj=$2 pargs=$3 want=$4
-    if ! iverilog -g2012 $inj -I "$RTL/engine" -I "$RTL/../sim/axi_probe" \
+    if ! iverilog -g2012 $inj -I "$RTL/engine/include" -I "$RTL/../sim/axi_probe" \
             -o "$BUILD/$name.vvp" tb_engine_top.v $CORE \
             > "$BUILD/$name.compile.log" 2>&1; then
         echo "  $name: RESULT: COMPILE-ERROR (see $BUILD/$name.compile.log)"

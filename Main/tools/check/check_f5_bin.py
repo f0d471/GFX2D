@@ -66,7 +66,7 @@ def models():
 def compile_rtl(tag,top,defines=(),params=()):
     src=[SIM/(top+'.v'),*sorted((MAIN/'rtl/engine').glob('**/*.v')),
          MAIN/'rtl/vendor/verilog-axi/axi_dma_rd.v',MAIN/'rtl/vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
-    run(tag+'_compile',['iverilog','-g2012','-s',top,'-I'+str(INCLUDE),'-I'+str(MAIN/'rtl/engine'),
+    run(tag+'_compile',['iverilog','-g2012','-s',top,'-I'+str(INCLUDE),'-I'+str(MAIN/'rtl/engine/include'),
                        *['-D'+d for d in defines],*params,'-o',BUILD/(tag+'.vvp'),*src])
     return BUILD/(tag+'.vvp')
 

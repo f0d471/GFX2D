@@ -15,8 +15,7 @@ MAIN = ROOT / 'Main'
 
 def configure(tree, config):
     engine = tree / 'engine'
-    fb.write_feature_files(config, fc.name_of(config), engine)
-    (engine / 'engine_regs_offsets.vh').write_text(regs_gen.gen_vh(fc.caps(config)), encoding='utf-8')
+    fb.write_engine_headers(config, fc.name_of(config), engine)
 
 
 def compile_and_run(tree, config, tag, build, logs, expect_failure=False):
@@ -28,7 +27,7 @@ def compile_and_run(tree, config, tag, build, logs, expect_failure=False):
     sources += [MAIN / 'sim/axi_probe/axi_ram_model.v']
     binary = build / (tag + '.vvp')
     body = command(['iverilog', '-g2012', '-Wportbind', '-s', 'tb_feature_function',
-                    '-I', tree / 'engine', '-I', MAIN / 'sim/axi_probe', '-o', binary,
+                    '-I', tree / 'engine' / 'include', '-I', MAIN / 'sim/axi_probe', '-o', binary,
                     MAIN / 'sim/engine/features/tb_feature_function.v', *sources],
                    logs / (tag + '.compile.log'))
     floating = re.findall(r'^.*dangling input port.*$', body, re.M)

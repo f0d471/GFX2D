@@ -60,7 +60,7 @@ echo ""
 build_one() {
     local name=$1
     shift
-    iverilog -g2012 -I "$RTL/engine" -o "$BUILD/$name.vvp" "$@" \
+    iverilog -g2012 -I "$RTL/engine/include" -o "$BUILD/$name.vvp" "$@" \
         "$RTL/engine/core/engine_geom.v" tb_engine_geom.v > "$BUILD/$name.compile.log" 2>&1
 }
 

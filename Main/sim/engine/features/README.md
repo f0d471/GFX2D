@@ -13,7 +13,8 @@
 | [elab_verbose.sh](elab_verbose.sh) | 同上但打印完整编译器输出，诊断用 |
 | [probe_cut.sh](probe_cut.sh) | 对预处理后的源文件数实例化点，断言关闭的机制离开编译输入 |
 | [probe_strip.sh](probe_strip.sh) | STRIP 不增减例化，改用源码内容判定：断言条带状态与条带表只在 STRIP 开时出现 |
-| [guard_negative.sh](guard_negative.sh) | 五条非法构型被构建入口拒绝且诊断指认到具体依赖；研究构型被接受 |
+| [guard_negative.sh](guard_negative.sh) | 九条非法构型被构建入口拒绝且诊断指认到具体依赖；研究构型被接受 |
+| [guard_compile_negative.sh](guard_compile_negative.sh) | 绕过生成器的非法构型（B5 删掉 `GFX_HAS_BAND_HW`）必须编不过，且诊断点名 `PB_REQUIRES_BAND_HW`；同树不改宏时必须编得过 |
 | [regress_suites.sh](regress_suites.sh) | 批量跑指定仿成套件并汇总末行结果 |
 | [tb_feature_elab.v](tb_feature_elab.v) | elaboration 探针，只验通道接通，不设功能判据 |
 | [tb_feature_function.v](tb_feature_function.v) | 全引擎随机反压下的非对齐多行绘制、逐像素保护字、六方程关闭态与错误三元组、实例与 PB LOAD/EXEC/FLUSH |
@@ -34,6 +35,7 @@ python3 Main/tools/check/feature_build.py --check
 bash Main/sim/engine/features/elab_all.sh
 bash Main/sim/engine/features/probe_cut.sh
 bash Main/sim/engine/features/guard_negative.sh
+bash Main/sim/engine/features/guard_compile_negative.sh
 python3 Main/tools/check/validate.py --checks feature-caps feature-elab feature-probe feature-contract feature-function --profile acceptance --run
 ```
 

@@ -136,7 +136,7 @@ HARDWARE=['Main/rtl/**','Main/fpga/**','Main/sdk/**','Main/sw/**','Main/tools/bo
 for name,item in CHECKS.items():
     if name=='paths':inputs=['@tracked-text']
     elif name=='workflow':inputs=['Main/tools/check/**','Main/tools/board/**','Main/sw/lib/test/golden.txt']
-    elif name=='regs':inputs=[P+'regs_gen.py','Main/rtl/engine/engine_regs_offsets.vh','Main/sw/bsp/include/gfx_regs.h']
+    elif name=='regs':inputs=[P+'regs_gen.py','Main/rtl/engine/include/engine_regs_offsets.vh','Main/sw/bsp/include/gfx_regs.h']
     elif name=='semantics':inputs=[P+'check_cmd_semantics.py','Main/doc/赛题二总体设计.md']
     elif name in ('rast','r4','r4-board','r4-frozen-board','console','console-profiles','console-profiles-board','console-board','platform-sdk','sw16-board'):inputs=SOFTWARE + ['Main/doc/三维数值契约.md',
         'Main/sim/engine/r4/**','Main/tools/board/**','Main/rtl/**']

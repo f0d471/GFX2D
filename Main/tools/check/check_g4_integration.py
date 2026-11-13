@@ -159,7 +159,7 @@ def rtl():
                          ('game_bad_header', 'INJ_STRIP_HEADER_OFFSET'),
                          ('game_bad_perf', 'INJ_STRIP_PERF')]:
         exe = BUILD/(name+'.vvp')
-        args = ['iverilog', '-g2012', '-s', 'tb_g4_frame', '-I'+str(MAIN/'rtl/engine')]
+        args = ['iverilog', '-g2012', '-s', 'tb_g4_frame', '-I'+str(MAIN/'rtl/engine/include')]
         if define:
             args += ['-D'+define]
         run(name+'_compile', [*args, '-o', exe, *sources])

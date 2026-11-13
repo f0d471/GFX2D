@@ -23,7 +23,7 @@ INCLUDE=write_headers('B3',BUILD/'include')
 def compile_run(name,bench,defines=(),params=(),expect='PASS',evidence=None):
     rtl=[MAIN/'rtl/engine'/p for p in ('buffer/engine_band.v','core/engine_mover.v','core/engine_geom.v','core/engine_pix.v','core/engine_blend.v','buffer/engine_tex.v')]
     rtl += [MAIN/'rtl/vendor/verilog-axi/axi_dma_rd.v',MAIN/'rtl/vendor/verilog-axi/axi_dma_wr.v',MAIN/'sim/axi_probe/axi_ram_model.v']
-    argv=['iverilog','-g2012','-I'+str(INCLUDE),'-I'+str(MAIN/'rtl/engine'),'-s',bench.stem,'-DCASE="'+str(BUILD/('empty' if 'EMPTY_CASE' in defines else 'scene'))+'"']
+    argv=['iverilog','-g2012','-I'+str(INCLUDE),'-I'+str(MAIN/'rtl/engine/include'),'-s',bench.stem,'-DCASE="'+str(BUILD/('empty' if 'EMPTY_CASE' in defines else 'scene'))+'"']
     argv += ['-D'+x for x in defines]
     argv += ['-P'+bench.stem+'.'+x for x in params]
     argv += ['-o',str(BUILD/(name+'.vvp')),str(bench),*[str(x) for x in rtl]]

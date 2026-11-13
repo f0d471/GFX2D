@@ -2,7 +2,8 @@
 """编排入口：按构型的禁用契约与依赖守卫反例（自建源树，跑完删）。
 
 contract_all.sh 验七代表档的 CAPS 位、CTRL 不支持位、保留寄存器读写与无实例哨兵；
-guard_negative.sh 验六条非法组合被构建入口拒绝、研究构型被接受。
+guard_negative.sh 验九条非法组合被构建入口拒绝、研究构型被接受；
+guard_compile_negative.sh 验绕过生成器造出的非法构型在编译阶段就被守卫拦住。
 """
 import subprocess
 import sys
@@ -23,7 +24,7 @@ def main():
             sys.stdout.write(build.stdout)
             print('feature-contract FAIL：构型源树没建起来', file=sys.stderr)
             return 1
-        for script in ('guard_negative.sh', 'contract_all.sh'):
+        for script in ('guard_negative.sh', 'guard_compile_negative.sh', 'contract_all.sh'):
             proc = subprocess.run(['bash', str(FEATURES / script), work],
                                   cwd=ROOT, capture_output=True, text=True,
                                   encoding='utf-8', errors='replace')

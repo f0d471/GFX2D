@@ -16,12 +16,6 @@
 `include "engine_feature.vh"
 `include "engine_regs_offsets.vh"
 
-// 配置守卫的对侧声明：守卫不满足时例化这些模块，让 elaboration 与综合在开工前失败。
-// 模块体为空，合法性由 feature_config.py 在生成输入前判定；这里只在漏检时兜底。
-`default_nettype wire
-`include "engine_config_error_modules.vh"
-`default_nettype none
-
 module engine_top #(
     parameter integer STRIP_H = 16,
     parameter integer TEX_READ_LATENCY = 1
@@ -769,10 +763,10 @@ module engine_top #(
         .samp_valid(samp_valid),.samp_ready(samp_ready),.samp_word(samp_word),
         .samp_rvalid(samp_rvalid),.samp_rdata(samp_rdata));
 `endif
-    // 配置合法性守卫：依赖不满足时引用未定义模块，让 elaboration 与综合在开工前失败。
-    // 例化点是 engine_config_guard.vh 的分支，模块声明在 engine_config_error_modules.vh。
-    wire _gfx_config_guard_unused;
-`include "engine_config_guard.vh"
+    // 配置合法性守卫：依赖不满足时，这个模块里会例化一个不存在的模块，
+    // 仿真、hierarchy -check 与厂商综合都硬失败，报错带违规边的名字。
+    // 内容由 tools/check/feature_build.py 从 feature_config.py 的依赖表生成，与构型无关。
+    gfx_config_guard u_config_guard();
 
 endmodule
 `default_nettype wire

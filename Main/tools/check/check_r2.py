@@ -29,7 +29,7 @@ def main():
     def compile_case(name, top, sources, flags=()):
         exe = build/(name+'.vvp')
         body = command(['iverilog','-g2012','-Wportbind','-Wselect-range','-Wimplicit',
-                        '-I',E,'-s',top,*['-D'+f for f in flags],'-o',exe,*sources], logs/(name+'.compile.log'))
+                        '-I',E+'include','-s',top,*['-D'+f for f in flags],'-o',exe,*sources], logs/(name+'.compile.log'))
         assert 'warning:' not in body.lower(), body
         return exe
 

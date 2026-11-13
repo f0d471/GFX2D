@@ -6,7 +6,7 @@ TREE=$(cd "${1:?需要构型源树目录}" && pwd)
 TB="$(cd "$(dirname "$0")" && pwd)/tb_feature_elab.v"
 cd "$TREE"
 files=(
-  rtl/engine/engine_top.v rtl/engine/core/engine_regs.v rtl/engine/core/engine_cmd.v
+  rtl/engine/engine_top.v rtl/engine/core/engine_config_guard.v rtl/engine/core/engine_regs.v rtl/engine/core/engine_cmd.v
   rtl/engine/core/engine_geom.v rtl/engine/core/engine_pix.v rtl/engine/core/engine_blend.v
   rtl/engine/core/engine_mover.v
   rtl/vendor/verilog-axi/axi_dma_rd.v rtl/vendor/verilog-axi/axi_dma_wr.v
@@ -16,4 +16,4 @@ for extra in buffer/engine_tex buffer/engine_band \
              frontend/engine_pb_dma frontend/engine_bin frontend/engine_pb; do
   [ -f "rtl/engine/$extra.v" ] && files+=("rtl/engine/$extra.v")
 done
-iverilog -g2012 -I rtl/engine -o /dev/null -s tb_feature_elab "$TB" "${files[@]}" 2>&1 | head -40
+iverilog -g2012 -I rtl/engine/include -o /dev/null -s tb_feature_elab "$TB" "${files[@]}" 2>&1 | head -40

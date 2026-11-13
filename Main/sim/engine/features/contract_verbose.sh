@@ -6,8 +6,8 @@ TREE=$(cd "${1:?需要构型源树}" && pwd)
 TB="$(cd "$(dirname "$0")" && pwd)/tb_feature_contract.v"
 cd "$TREE"
 echo "--- 只含 engine_top 的依赖闭包 ---"
-iverilog -g2012 -I rtl/engine -o /dev/null -s tb_feature_contract "$TB" \
-  rtl/engine/engine_top.v rtl/engine/core/engine_regs.v rtl/engine/core/engine_cmd.v \
+iverilog -g2012 -I rtl/engine/include -o /dev/null -s tb_feature_contract "$TB" \
+  rtl/engine/engine_top.v rtl/engine/core/engine_config_guard.v rtl/engine/core/engine_regs.v rtl/engine/core/engine_cmd.v \
   rtl/engine/core/engine_geom.v rtl/engine/core/engine_pix.v rtl/engine/core/engine_blend.v \
   rtl/engine/core/engine_mover.v rtl/vendor/verilog-axi/axi_dma_rd.v \
   rtl/vendor/verilog-axi/axi_dma_wr.v rtl/engine/buffer/engine_band.v \

@@ -30,7 +30,7 @@ total=0
 build_one() {
     local name="$1" inj="$2" want="$3" real="$4" defs src
     if [ "$real" = 1 ]; then defs="-DREALWR"; src="$SRC_WR"; else defs=""; src="$SRC"; fi
-    if ! iverilog -g2012 -I "$RTL/engine" $inj $defs -o "$BUILD/$name.vvp" $src \
+    if ! iverilog -g2012 -I "$RTL/engine/include" $inj $defs -o "$BUILD/$name.vvp" $src \
             > "$BUILD/$name.compile.log" 2>&1; then
         echo "  $name: RESULT: COMPILE-ERROR (see $BUILD/$name.compile.log)"
         bad=$((bad + 1)); total=$((total + 1)); return

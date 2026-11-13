@@ -29,7 +29,7 @@ mkdir -p "$BUILD/frames" "$BUILD/sw6"
 bad=0
 total=0
 
-CORE="$RTL/engine/buffer/engine_tex.v $RTL/engine/engine_top.v $RTL/engine/core/engine_regs.v $RTL/engine/core/engine_cmd.v $RTL/engine/frontend/engine_inst.v $RTL/engine/frontend/engine_bounds.v $RTL/engine/frontend/engine_packet_check.v $RTL/engine/frontend/engine_pb_dma.v $RTL/engine/frontend/engine_bin.v $RTL/engine/frontend/engine_pb.v \
+CORE="$RTL/engine/buffer/engine_tex.v $RTL/engine/engine_top.v $RTL/engine/core/engine_config_guard.v $RTL/engine/core/engine_regs.v $RTL/engine/core/engine_cmd.v $RTL/engine/frontend/engine_inst.v $RTL/engine/frontend/engine_bounds.v $RTL/engine/frontend/engine_packet_check.v $RTL/engine/frontend/engine_pb_dma.v $RTL/engine/frontend/engine_bin.v $RTL/engine/frontend/engine_pb.v \
 $RTL/engine/core/engine_geom.v $RTL/engine/core/engine_pix.v $RTL/engine/core/engine_blend.v \
 $RTL/engine/buffer/engine_band.v $RTL/engine/core/engine_mover.v $RTL/vendor/verilog-axi/axi_dma_rd.v \
 $RTL/vendor/verilog-axi/axi_dma_wr.v $RTL/../sim/axi_probe/axi_ram_model.v"
@@ -67,7 +67,7 @@ run_case() {  # run_case <名字> <CASE前缀> <额外宏/参数> <期望 RESULT
     # INJECT 一律从 $extra 传（iverilog 对同名 -P 取先出现的那个，写死在前面会
     # 让注错构建的覆盖失效——第一版注错构建因此全绿）
     if ! iverilog -g2012 -DCASE="\"$casep\"" $extra \
-            -I "$RTL/engine" -I "$RTL/../sim/axi_probe" \
+            -I "$RTL/engine/include" -I "$RTL/../sim/axi_probe" \
             -o "$BUILD/$name.vvp" tb_engine_frame.v $CORE \
             > "$BUILD/$name.compile.log" 2>&1; then
         echo "  $name: RESULT: COMPILE-ERROR (see $BUILD/$name.compile.log)"

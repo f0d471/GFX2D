@@ -6,7 +6,7 @@
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/../../../.." && pwd)
 cd "$ROOT/Main/sim"
-FEATURE_H=$ROOT/Main/rtl/engine/engine_feature.vh
+FEATURE_H=$ROOT/Main/rtl/engine/include/engine_feature.vh
 suites=("$@")
 if [ ${#suites[@]} -eq 0 ]; then
   suites=(engine/blend engine/pix engine/tex engine/frame engine/geom engine/ctrl \

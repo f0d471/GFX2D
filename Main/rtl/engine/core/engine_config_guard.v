@@ -1,7 +1,11 @@
-// 由 tools/check/feature_build.py 生成：本构型的依赖守卫，由 engine_top 例化。
-// 守卫不满足时引用未定义模块，hierarchy -check 与厂商综合会硬失败。
-`ifndef GFX_ENGINE_CONFIG_GUARD_VH
-`define GFX_ENGINE_CONFIG_GUARD_VH
+// 由 tools/check/feature_build.py 生成：依赖守卫，由 engine_top 例化一次。
+// 依赖不满足时例化一个不存在的模块，仿真、hierarchy -check 与厂商综合都会硬失败，
+// 报错里带违规边的名字。内容只随 feature_config.py 的依赖表变化，与构型无关。
+`timescale 1ns/1ps
+`default_nettype none
+`include "engine_feature.vh"
+
+module gfx_config_guard();
 
 `ifdef GFX_HAS_PB
   `ifndef GFX_HAS_BAND_HW
@@ -49,4 +53,6 @@
   `endif
 `endif
 
-`endif
+endmodule
+
+`default_nettype wire

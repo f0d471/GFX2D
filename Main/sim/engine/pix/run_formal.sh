@@ -28,7 +28,7 @@ run_case() {
     local name="$1" top="$2" want="$3" src="$4"
     shift 4
     total=$((total+1))
-    if ! iverilog -g2012 -I "$RTL/engine" -s "$top" "$@" \
+    if ! iverilog -g2012 -I "$RTL/engine/include" -s "$top" "$@" \
         -o "build/$name.vvp" $src >"build/$name.compile.log" 2>&1; then
         echo "  $name: COMPILE FAIL (build/$name.compile.log)"; bad=$((bad+1)); return
     fi

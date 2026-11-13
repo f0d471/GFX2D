@@ -31,7 +31,7 @@ total=0
 run_case() {
     local name=$1
     shift
-    if ! iverilog -g2012 -I "$RTL/engine" -I "$RTL/vendor/axi_mux" -o "$BUILD/$name.vvp" "$@" $SRC \
+    if ! iverilog -g2012 -I "$RTL/engine/include" -I "$RTL/vendor/axi_mux" -o "$BUILD/$name.vvp" "$@" $SRC \
             > "$BUILD/$name.compile.log" 2>&1; then
         echo "RESULT: COMPILE-ERROR (see $BUILD/$name.compile.log)"
         return
