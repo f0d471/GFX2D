@@ -286,7 +286,8 @@ def sync_canonical():
     """把默认构型的特性头与综合模式同步到主工程。
 
     仓库内的 RTL、仿真与应用构建使用配置真源指定的默认构型：
-    特性头与 engine_top.v 同目录，所以 RTL 用同目录 `include 即可；
+    特性头写进 rtl/engine/ 根（`.v` 在 core/、buffer/、frontend/、rast/ 子目录），
+    工程 XML 的 include 参数指向该目录，RTL 才能找到 `include；
     软件侧另给一份到 sw/bsp/include，使 engineTest 一类程序默认就能做
     「编译时预期能力 vs 运行时 CAPS」的配对判据。
     按构型构建时这四份文件被构型自己的副本覆盖。
