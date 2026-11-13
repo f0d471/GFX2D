@@ -77,7 +77,7 @@ typedef struct {
 extern const stg_card stg_cards[STG_CARD_N];
 
 /* 关卡集：经典与 EX 的全部常量表打包成一份。游戏在标题→开局的过渡帧上按
-   「四个方向键同按」二选一（EX 路线，见 doc/软件升级-玩法与审美.md §4）；
+   「四个方向键同按」二选一（EX 路线，见 stg_stage.c 中的 EX 路线定义）；
    经典路线的表指针与旧的全局表逐项相同，判据与录像不受影响。 */
 typedef struct {
     const stg_event    *events;

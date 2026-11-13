@@ -1,2 +1,0 @@
-SH DIVREM PASS 200000 u32 quotient/remainder pairs, powers and exact correction
-SH FAIL line 33: sh_gradient20(-1,1u<<21,&tie) && tie==0

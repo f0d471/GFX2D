@@ -1,3 +1,0 @@
-# COM11 @ 115200 8N1, opened 22:50:26
-console boot
-console protocol 2 tick_hz 1000

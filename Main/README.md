@@ -16,25 +16,12 @@ tick，PC使用宿主事件循环。当前软件与输入契约见[应用与输�
 `bit/board_release_console_full_20261030/`，包内manifest和verification登记所选内容与验证边界；
 板端启动器仅JTAG重载，不改Flash。
 
-PC 模式4支持自适应宽屏：世界按窗口比例增加横向视野，HUD靠右；内部高480、宽640～1792。
-固定录像/CRC与板端继续使用640×480。完整运行包的
-`Run-PC-Fullscreen.cmd`直接全屏，
-`Run-PC.ps1 -FixedAspect`保留固定比例对照；显示能力与边界见`sw/README.md`。
+当前开发默认构型为 B0；B7 提供固定功能三维条带光栅。当前源码、冻结快照、
+本地运行包和板卡状态分别核对。接口见 `rtl/engine/engine-manual.md`，
+位流与固件身份见 `bit/snapshots/`。
 
-当前开发默认构型是B0。可选B7已接入固定功能三维条带光栅：CPU setup、
-第1页影子参数、单一门铃/帧控制、片上颜色/z、纹理与HUD分相执行。
-当前B7位流、资源/时序和来源以 `bit/snapshots/B7/manifest.json` 为准。
-三维诊断程序源码在 `sw/apps/test/rastTest/`，二维特性诊断在 `sw/apps/test/featureTest/`；
-检查入口每轮按选定输入构建，不依赖历史发布包中的旧BIN。
-接口与复现入口见`rtl/engine/engine-manual.md`第8节和`sim/engine/r3/README.md`。
-
-模式4已接入480x480三维世界/160px HUD、倒角走廊、顶点光照、近景实体、世界弹幕和周期相机视差，
-L1/L2支持同源SW/HW对照（茶杯场景2026-11-02按用户定案删除）。早期软件视觉升级复用当时的B7；实板自动/脚本各1800帧，
-均3600场/1800交换、迟到0，max分别30.95632/32.34376ms。本批RTL未变且未重新综合。操作与验证见
-[软件登记](sw/README.md#r4-模式4三维走廊)和[三维演示验证](sim/engine/r4/README.md)。
-当前运行包见[bit目录](bit/README.md)，提供PC窗口/全屏和板端JTAG启动入口；Flash未写。
-`r4-frozen-board` 默认按快照B7的SHA256查找配套综合树与报告，只验收冻结硬件上的当前软件；
-`r4-board` 保留当前RTL一致性要求。两者不依赖已退役的旧发布目录。
+软件维护范围为构建、BSP、参考执行、素材装载、RTOS、框架与 console。
+应用作为演示负载，玩法、美术与手感不作为长期维护工作点。
 
 以下早期整机资源/性能数字保留其历史构型与验收边界。
 
@@ -77,7 +64,6 @@ Flash 内容未改写。游戏条带后端接入、`N_max` 与 16 KiB cache 对�
 | 命令表构造层与软件执行器 | **主机侧已验收**（2026-09-21）：`sw/lib/gfx/`（`gfx_abi.h` 数据布局、`check.c` 十步检查、`list.c` 构造层、`exec_sw.c` 执行器、`cases.c` 十一个整帧用例）与判据 `sw/lib/test/`（独立参考实现 `ref_exec`、手写 45 条向量、交换格式重放器）就位。78 项断言在 64 位与 `-m32` 下输出逐字节相同，ASan + UBSan 无报告；工具导出的 159 条向量与手写 45 条在两个实现上逐项一致；六个方程的注错各自只命中用到它的用例；同一份源码用 riscv-none-elf-gcc 13.4.0 零告警编过。整帧 CRC 期望值入库 `sw/lib/test/golden.txt`，吞吐测量与引擎仿真拿它当金标准。同一执行器随后在板上逐帧对账，并完成分方程吞吐测量 |
 | PC 平台层 | **已验收**（2026-09-21）：`sw/bsp/host/board.c` 的场节拍按扫描输出的既成事实重写（场计数自由运行 + present 等下一个场边界），`board.h` 补 `board_frame_count`/`board_swap_count`/`board_should_quit` 三个服务，缩放用最近邻、无窗跑同一个二进制；`sw/lib/core/replay` 是录像格式的唯一真源，`tools/check/replay2c.py` 在 `.g2dr`、C 数组与录制文本之间转换。判据程序 `sw/apps/test/platformTest` 与 `tools/check/check_sw4_pc.sh` 全过：十一用例 CRC 对 `golden.txt`、600 帧节拍（每帧恰好一场）、掉帧注错、1800 帧回放两遍逐帧相同、有窗与无窗逐行相同、注错构建见红。板上那三个查询也已上板跑过（`platformTest` 板上产物 `fail =0`：十一用例 CRC 与 `golden.txt` 逐行相同、600 帧 `dfield=dswap=600` 且每帧恰一场、`drop` 的 2 减 1、60 帧回放两遍 `diff=0`；板上节拍抖动 1~2 微秒，PC 上约 300 微秒） |
 | 基础 Demo（赛题基础要求 3） | **已验收**（2026-09-28）：`sw/apps/game/gfx2dGame` 的基础 Demo——场景 A 是大量方块随机移动（N=100~5000、Q12.4、四个固定出屏样例、COPY／ALPHA／ADD 各走 FILL 与 BLIT），场景 B 是三张整屏图快速切换（初始化时预合成进 DDR 离屏层，每帧一次整屏 BLIT COPY）；默认演示模式，`-DSW6_JUDGE=1` 走判据模式回放两段入库录像。`tools/check/check_sw6_demo.sh` 十项全过：录像可重生成、判据模式 1226 帧 `fail 0` 且与入库期望日志逐行相同、有窗与无窗逐字节相同、两遍逐帧相同、HUD 的 `hcrc` 与 Python 侧按字库文本独立重画的整块矩形一致、三个 `scene` 参考值与每个 B 帧对上、四个方程各自注错见红、双缓冲不变量的反例见红、`SAN=1` 无报告、两种板上构建零告警。**板上对账已完成**：2026-09-28 在 20 项新素材包与 Spleen 字库下重跑，判据模式快速档（77,158 字节）经 `board_run.py --bin` 跑 480 帧 `fail 0`，从 `pak` 行起 489 行与 PC 期望日志逐行相同，原始串口日志 `sw/apps/game/gfx2dGame/logs/sw6_board_quick.log`。演示模式的 HDMI 画面与软硬件帧率对比随游戏集成验证 |
-| 游戏本体 | **已验收**（2026-09-28）：竖版弹幕射击 MYRIAD，A~D 四批完成。数值基础（`sw/lib/core/fixmath`：Q.8 定点、16 位二进制角、正弦表、`fx_atan2`）、实体池（`src/game/stg_pool`，同一遍更新、出界与稳定压缩）、批量提交 `gfx_blit_run()`、弹型与发射器（期望文件由 Python 独立实现 `tools/check/gen_stg_patterns.py` 生成）、碰撞、按池组帧；自机与规则（`stg_game`，一帧七步的契约）、敌机槽位表与关卡（事件表加符卡表，终符令牌门控）、12 张脚本生成的霓虹素材与 Spleen 字库、HUD 与判据入口 `-DSTG_FIELD=4`；工具辅助通关录像 `sw/apps/game/gfx2dGame/replay/stg_clear.g2dr`（由 `tools/check/gen_stg_clear.c` 搜出，9208 帧打到 CLEAR）与回放入口 `-DSTG_JUDGE_REPLAY=1`，S1 规模（约 2040 颗 16×16 敌弹）在 PC 上正常显示。`tools/check/check_sw7_game.sh`（带 `RISCV_BIN`）全过、各注错见红。板上的逐帧对账与性能数字见「板上移植」行 |
 | 演示模式、压力测试与统计埋点 | **已验收**（2026-09-28）：A~D 四批完成。按方程的普查 `sw/lib/gfx/census` 与模拟时钟、帧时间直方图 `sw/lib/core/framehist`、日志队列 `sw/lib/core/logq` 与 `board_tx_room()`；`N_max` 搜索状态机 `sw/lib/core/nmax`（倍增加二分、等涨潮、确认与退步）；默认构建是模式框架（1 基础 Demo、2 游戏、3 压力测试，和弦切换）、每秒一行统计 CSV、自动驾驶；模式 3 在终符上搜索（模拟时钟下 16×16 `N_max` 2002、8×8 5321，只验证流程）与固定旋钮 `-DGFX2D_PRESS_KNOB`；出图 `tools/stats/plot_stats.py` 与第一版统计（S1 规模每帧 872,384 像素，是设计文档估算的 1.28 倍）。`tools/check/check_sw8_stats.sh` 全过、各注错见红。板上的软件与硬件数字见「板上移植」行 |
 | 板上移植 | **已验收**（2026-10-04）：比特流上接通两路中断、真实硬件执行器、双命令表流水、Flash 自启动与键盘/手柄输入。修复后软件前 600 帧、同帧 CRC 与注错、性能和 Flash 判据通过；完整硬件 9208 帧新回放暂缓，旧日志仅为历史证据。普通游戏 240 帧短测预热后 60 fps、软件约 2.5 fps；硬件 `N_max` 为 16×16 的 1014、8×8 的 1365，软件均 `BELOW_N0`；S1 约 30.6 fps，扫描欠载 0。完整关卡流水性能和 HDMI/实体键现场观察仍未覆盖 |
 | SoC IP 定型（升级 3.4.0、接按键、预留中断与摄像头） | 已上板并验收（2026-09-19）：efx_soc 3.4.0 重新生成，开 GPIO1 接 KEY0~3、开用户中断 A/B/C、保留 I2C0 给摄像头、关 `axiA` 与 `io_ddrMasters_0`；工具链换成 gcc 13.4.0。调试通路连续 6 次会话、memTest、APB 探针、`ddrAliasTest`、`ddrBurstProbe`、缓存一致性三件套、`bootSizeTest`（含对照组）与 gfx2dGame 60 帧 CRC 全过；HDMI 八色竖条与板上四个按键（KEY0~3）已确认 |

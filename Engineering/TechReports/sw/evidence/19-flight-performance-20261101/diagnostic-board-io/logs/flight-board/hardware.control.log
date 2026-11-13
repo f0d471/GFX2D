@@ -1,6 +1,0 @@
-ERROR: 加载没有正面证据（要求考察到目标，且写入 251466 字节）
-ERROR: precise serial boundary was not established
-=== 烧写比特流 E:\Workspace\FPGA\.worktrees\Efinix-flight1\Main\bit\snapshots\B7\gfx2d_ti60.bit
-=== 先开串口 COM11，再加载程序（顺序不能反）
-=== reset halt + load_image + resume
-   [TIMEOUT 90s]

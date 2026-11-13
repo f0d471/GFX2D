@@ -1,2 +1,0 @@
-RUN Main/sim/build/check-runs/sw19-board-acceptance-06
-FLIGHT BOARD PASS hardware pixels/FreeRTOS timing/input/prewarm

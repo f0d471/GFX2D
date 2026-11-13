@@ -1,5 +1,5 @@
 /* 由 Main/tools/check/gen_sin_tab.py 生成，不手改。
-   口径见 Engineering/TechReports/sw/06-游戏本体.md 3.4 节：1024 项一周加 256 项尾巴，
+   口径见 Main/tools/check/gen_sin_tab.py 的 table()/render()：1024 项一周加 256 项尾巴，
    Q1.14，按绝对值四舍五入再补回符号。check_sw7_game.sh 重新生成并逐字节比对。 */
 
 #include "core/fixmath.h"

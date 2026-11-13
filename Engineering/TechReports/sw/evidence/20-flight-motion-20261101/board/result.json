@@ -1,8 +1,0 @@
-{
-  "status": "PASS",
-  "profile": "acceptance",
-  "checks": [
-    "flight-board"
-  ],
-  "run_id": "sw20-board-acceptance-01"
-}

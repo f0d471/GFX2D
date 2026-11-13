@@ -66,39 +66,9 @@ def main():
         result=subprocess.run([exe],cwd=ROOT,text=True,capture_output=True,timeout=30)
         (logs/(name+'.log')).write_text(result.stdout+result.stderr)
         if result.returncode!=1 or 'SH FAIL' not in result.stderr:raise RuntimeError('mutation escaped: '+name)
-    # Execute the actual target pipeline with a delayed engine/display model.
-    pipeline_sources=['Main/sw/lib/gfx/rast_setup.c','Main/sw/lib/core/fixmath.c',
-        'Main/sw/lib/core/sin_tab.c','Main/sw/lib/core/format.c','Main/sw/lib/core/logq.c',
-        'Main/sw/lib/core/replay_r4.c','Main/sw/bsp/memmap.c']
-    pipeline_flags=[*base,'-IMain/sw/ports/myriad','-IMain/assets/build',
-                    '-ffunction-sections','-fdata-sections','-Wl,--gc-sections']
-    fixture=ROOT/'Main/sim/engine/sh/test_pipeline.c'
-    for name,extra in [('64',['-fsanitize=address,undefined','-fno-sanitize-recover=all']),('32',['-m32'])]:
-        exe=out/('pipeline-'+name)
-        command([*pipeline_flags,*extra,fixture,*pipeline_sources,'-o',exe],logs/('pipeline-'+name+'.build.log'))
-        command([exe],logs/('pipeline-'+name+'.log'))
-    runtime=(ROOT/'Main/sw/ports/myriad/r4_runtime.c').read_text()
-    pipeline_mutations={
-        'record-base':('shared + rec_off + first*RAST_RECORD_BYTES',
-                       'shared + (rec_off&0u) + R4_REC_OFF + first*RAST_RECORD_BYTES'),
-        'record-overwrite':('const int next=had_frame?(cur^1):cur;','const int next=cur;'),
-        'early-present':('if(had_frame && s_pipe_buf[cur].gun_bytes) {',
-            'if(had_frame){board_frame f;uint32_t ticket;int shown=s_pipe_buf[cur].dst_slot;'
-            'board_frame_acquire(shown,0,&f);board_present_frame_request(shown,&f,&ticket);}\n'
-            '    if(had_frame && s_pipe_buf[cur].gun_bytes) {'),
-        'leave-drain':('if(gfx_engine_wait(&code,&index,&tag) || code) {','if((void)index,(void)tag,code) {'),
-    }
-    for name,(before,after) in pipeline_mutations.items():
-        if before not in runtime:raise RuntimeError('pipeline mutation anchor missing '+name)
-        mutant=out/('runtime-'+name+'.c');mutant.write_text(runtime.replace(before,after,1))
-        test=out/('pipeline-'+name+'.c')
-        test.write_text(fixture.read_text().replace('"../../../sw/ports/myriad/r4_runtime.c"','"'+str(mutant)+'"'))
-        exe=out/('pipeline-'+name)
-        command([*pipeline_flags,test,*pipeline_sources,'-o',exe],logs/('pipeline-'+name+'.build.log'))
-        result=subprocess.run([exe],cwd=ROOT,text=True,capture_output=True,timeout=30)
-        (logs/('pipeline-'+name+'.log')).write_text(result.stdout+result.stderr)
-        if result.returncode!=1 or 'SH PIPE FAIL' not in result.stderr:
-            raise RuntimeError('pipeline mutation escaped '+name)
+    from check_pipeline import run_pipeline, PIPELINE_MUTATIONS
+    run_pipeline(current)
+    pipeline_mutations=PIPELINE_MUTATIONS
     app=ROOT/'Main/sw/apps/console';host=out/'host'
     command(['make','-C',app,'-j6','PLATFORM=host','OBJDIR='+str(host),'PERF=1'],logs/'host.build.log',timeout=600)
     env={**os.environ,'SDL_VIDEODRIVER':'dummy','SDL_AUDIODRIVER':'dummy','GFX2D_UNPACED':'1',

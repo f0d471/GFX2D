@@ -6,7 +6,7 @@
     python3 Main/tools/assets/pack_assets.py --assets <目录> --out <目录>
 
 输入  <assets>/manifest.txt（TSV，字段见该文件头）
-输出  <out>/assets.pak   包格式的权威是 Engineering/TechReports/sw/04-素材流水线.md 3.6 节
+输出  <out>/assets.pak   包格式的权威是 Main/sw/lib/core/assetpak.h
       <out>/assets.h     稳定编号、包版本与 CRC、宽高/行跨/格式、图集网格
 
 两条不能变的性质：
@@ -381,7 +381,7 @@ def build_header(items, total, pack_crc, max_pak):
     a = L.append
     a("/* 由 Main/tools/assets/pack_assets.py 从 manifest.txt 生成，不要手改。")
     a(" *")
-    a(" * 包格式的权威是 Engineering/TechReports/sw/04-素材流水线.md 3.6 节；")
+    a(" * 包格式的权威是 Main/sw/lib/core/assetpak.h；")
     a(" * ENTRY 是包内条目序号（assetpak_entry_at 用），ID 是 manifest 里写明的不变编号")
     a(" * （assetpak_find 用）。包 ID 不是表面槽号：gfx_surface_table 只有 16 槽，")
     a(" * 应用按当前画面需要选择要登记哪几条，不能按 ID 一次全登。 */")

@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "profile": "quick",
+  "scope": "actual target scheduler with delayed engine/display models; no board claim",
+  "checks": [
+    "64/32",
+    "ASan/UBSan",
+    "A/B records and sublists",
+    "in-flight ownership",
+    "prime and input generations",
+    "present after draw",
+    "failure and leave drain"
+  ],
+  "mutations": [
+    "EXPECTED_RED record-base",
+    "EXPECTED_RED record-overwrite",
+    "EXPECTED_RED early-present",
+    "EXPECTED_RED leave-drain"
+  ]
+}

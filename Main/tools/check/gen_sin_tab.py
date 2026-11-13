@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """gen_sin_tab.py —— 生成 SW7 数值基础的正弦表 `Main/sw/lib/core/sin_tab.c`
 
-口径是 spec 定死的（Engineering/TechReports/sw/06-游戏本体.md 3.4 节）：
+表的定义如下：
 
     1024 项一周，加 256 项尾巴（前 256 项的重复），共 1280 项 int16；
     sin_tab[i] = 16384 * sin(2*pi*i / 1024)，幅度 Q1.14（sin 90 度 = 16384）；
@@ -55,7 +55,7 @@ def table():
 def render(vals):
     lines = []
     lines.append("/* 由 Main/tools/check/gen_sin_tab.py 生成，不手改。")
-    lines.append("   口径见 Engineering/TechReports/sw/06-游戏本体.md 3.4 节：1024 项一周加 256 项尾巴，")
+    lines.append("   口径见 Main/tools/check/gen_sin_tab.py 的 table()/render()：1024 项一周加 256 项尾巴，")
     lines.append("   Q1.14，按绝对值四舍五入再补回符号。check_sw7_game.sh 重新生成并逐字节比对。 */")
     lines.append("")
     lines.append('#include "core/fixmath.h"')

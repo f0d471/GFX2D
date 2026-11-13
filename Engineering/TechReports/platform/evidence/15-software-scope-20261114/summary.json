@@ -1,0 +1,28 @@
+{
+  "base_commit": "ac094af846cfed85ce004fb0cffe52d722a5b78d",
+  "scope": "hardware support software and application documentation; Deliverables protected",
+  "deleted_files": 1629,
+  "deleted_bytes": 56803191,
+  "sw_chapters_before": 28,
+  "sw_chapters_after": 18,
+  "protected_files": 944,
+  "protected_byte_identical": 943,
+  "link_only_core_chapter": [
+    "Engineering/TechReports/sw/04-素材流水线.md"
+  ],
+  "checks": {
+    "workflow_pack_pipeline": {
+      "status": "PASS",
+      "profile": "quick",
+      "run_id": "20261114-003426-6ad15942",
+      "result": "checks/result.json"
+    },
+    "paths": {
+      "profile": "quick",
+      "run_id": "20261114-software-scope-paths-final",
+      "result": "paths/result.json",
+      "status": "PASS"
+    }
+  },
+  "hardware_deployment": "not part of this change"
+}

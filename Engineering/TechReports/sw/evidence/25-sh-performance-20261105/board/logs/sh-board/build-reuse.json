@@ -1,5 +1,0 @@
-{
-  "scope": "compile artifacts only; physical board tests rerun",
-  "previous_run": "Main/sim/build/check-runs/20261105-182505-4a2c0b75",
-  "verified_producer_files": 833
-}

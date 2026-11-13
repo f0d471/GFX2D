@@ -168,6 +168,29 @@ class WorkflowTests(unittest.TestCase):
             self.assertIn('rast', selected)
             self.assertNotIn('instances', selected)
 
+    def test_application_edits_do_not_require_gameplay_acceptance(self):
+        for name in ['Main/sw/apps/game/gfx2dGame/src/sh_scene.c',
+                     'Main/sw/apps/game/gfx2dGame/src/game/stg_stage.c']:
+            selected=validate.suggest([name])
+            self.assertIn('app',selected)
+            self.assertTrue(set(selected).isdisjoint({'game','stats','flight','sh'}))
+
+    def test_runtime_and_bsp_keep_hardware_consumers_without_gameplay_gates(self):
+        for name in ['Main/sw/ports/myriad/r4_runtime.c','Main/sw/bsp/ti60/board.c']:
+            selected=validate.suggest([name])
+            self.assertIn('console',selected)
+            self.assertIn('pipeline',selected)
+            self.assertTrue(set(selected).isdisjoint({'game','stats','flight','sh'}))
+        self.assertIn('platform-sdk',validate.suggest(['Main/sw/services/platform/platform.c']))
+
+    def test_pipeline_fixture_routes_to_real_scheduler_check(self):
+        selected=validate.suggest(['Main/sim/engine/sh/test_pipeline.c'])
+        self.assertIn('pipeline',selected)
+        self.assertNotIn('sh',selected)
+        self.assertNotIn('frame',selected)
+        self.assertEqual(validate.expand(['pipeline','pack','pipeline']),['pack','pipeline'])
+        self.assertEqual(validate.suggest(['Engineering/Todo/sw/preview.html']),['paths'])
+
     def test_generated_integer_table_is_an_identity_input(self):
         # 被 C include 的倒数种子改变后，lib/rast 的旧 PASS 必须失效。
         name = 'Main/sw/lib/core/recip_tab.inc'

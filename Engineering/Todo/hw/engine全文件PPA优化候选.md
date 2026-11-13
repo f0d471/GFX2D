@@ -773,9 +773,9 @@ B5 仅净减 240，虽然从超容变为可布局，最终余量只有 8 XLR。
 
 表面内容在 PB BUSY 中禁止软件修改，只能证明“同一个 id 的值不变”，不能证明
 “不同 id 的值相同”或“背景 id 的检查覆盖所有源 id”。PC1 的证明混淆了这两件事。
-相关锚点：[PB 选择](../../../Main/rtl/engine/engine_pb.v)、
-[构建器读表](../../../Main/rtl/engine/engine_bin.v)、
-[被删除的检查](../../../Main/rtl/engine/engine_packet_check.v)、
+相关锚点：[PB 选择](../../../Main/rtl/engine/frontend/engine_pb.v)、
+[构建器读表](../../../Main/rtl/engine/frontend/engine_bin.v)、
+[被删除的检查](../../../Main/rtl/engine/frontend/engine_packet_check.v)、
 [权威表面谓词](../../../Main/sw/lib/gfx/check.c)。
 
 本轮新做了隔离定向仿真，范围为完整 `engine_top` + 真 mover/AXI DMA + 仓内 AXI RAM
@@ -864,7 +864,7 @@ cmd 8。它确实用存储和控制成本换取局部访问能力，不能把条
 **B3-A：小容量表面表使用昂贵的组合多读口。** 三组 16×32 位数组共 192B，执行侧两路
 96 位组合读，另有 APB 读回和复位/valid 更新。map 明确报 `surf_w0/w1/w2w` 因读口非同步
 而映成 logic memory；regs 的 0 RAM 与大 LUT 占用相互印证。源码锚点是
-[engine_regs](../../../Main/rtl/engine/engine_regs.v) 的 SURF 存储、读回和软复位部分。
+[engine_regs](../../../Main/rtl/engine/core/engine_regs.v) 的 SURF 存储、读回和软复位部分。
 不能把 regs 的全部 5662.5 都归给这 192B，但这是有直接映射证据的重点对象。
 
 替代方案比较：同步表+当前命令源/目的快照；配置阶段验证后形成紧凑执行描述符；对忙时
@@ -1024,8 +1024,8 @@ CPU setup + 定点增量光栅 + 条带颜色/z，适合有限动态几何的固
 
 对于动态复杂场景，后续先按实际独占阶段计时决定 CPU/setup、记录复用或光栅工作量的
 优先级。submit 包含 raster，不能相加；不同 LOD、相机、缓存和场景的 FPS 也不能当等
-工作量加速比。[凝时当前报告](../../TechReports/sw/25-凝时板端缺陷与帧率优化.md)已明确
-记录约 7.69/11.71 FPS 的两个长窗口和 30Hz 未达状态，本轮没有重测这些数值。
+工作量加速比。计时和生产流水的边界见[配套运行时记录](../../TechReports/sw/27-记录缓存与生产流水所有权.md)；
+应用帧率目标已撤销，不作为硬件 PPA 工作的固定验收负载。
 
 Standard SoC 的保留也有历史实测依据：Lite 曾有调试/板端问题，不能为了 RAM 余量直接
 换回。缓存、setup 单元、参数 cache 和表面表 RAM 化会竞争剩余资源，应放在同一产品预算

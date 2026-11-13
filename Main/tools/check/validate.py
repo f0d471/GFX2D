@@ -27,6 +27,8 @@ add('workflow', [sys.executable, P+'test_validation.py'], '编排、缺项、证
 add('pack', [sys.executable, 'Main/tools/assets/pack_assets.py'], '准备实际素材输入')
 add('lib', ['bash', P+'check_host.sh', 'lib'], '库的正常 64/32 位与 sanitizer')
 add('app', ['bash', P+'check_host.sh', 'app'], '游戏应用的正常 64/32 位与 sanitizer')
+add('pipeline',[sys.executable,P+'check_pipeline.py'],
+    '真实生产调度的A/B记录、呈现屏障、故障排空与四变异；独立于玩法',['pack'])
 add('rast', [sys.executable, P+'check_rast.py'],
     'R1 定点/128B setup/两参考器/独立有理数模型/10万光栅与1万几何/变异/双目标', ['lib'])
 add('r4',[sys.executable,P+'check_r4.py'],
@@ -160,6 +162,7 @@ for name,item in CHECKS.items():
                 'Main/sim/engine/r3/**','Main/sim/axi_probe/axi_ram_model.v',
                 P+'check_r3.py',P+'r3_vectors.py',P+'check_rast.py',P+'rast_model.py',
                 P+'feature_build.py',P+'feature_config.py',P+'regs_gen.py']
+    elif name=='pipeline':inputs=SOFTWARE+['Main/sim/engine/sh/test_pipeline.c']
     elif name=='sh':inputs=SOFTWARE+['Main/sim/engine/sh/**']
     elif name=='sh-board':inputs=SOFTWARE+['Main/sim/engine/sh/**','Main/bit/snapshots/B7/**']
     elif name in ('flight','flight-consumers','r4-current-consumers'):inputs=SOFTWARE+['Main/sim/engine/flight/**','Main/sim/engine/r4/**']
@@ -200,7 +203,7 @@ def suggest(changed):
     selected = ['paths']
     for path in changed:
         name = path.replace('\\','/')
-        if name.endswith('.md') or name in ('.gitignore','.gitattributes'):
+        if name.endswith('.md') or name.startswith(('Engineering/','Deliverables/')) or name in ('.gitignore','.gitattributes'):
             continue
         recognized=False
         if name.startswith('Main/tools/check/'):
@@ -209,7 +212,7 @@ def suggest(changed):
             if Path(name).name in ('rast_model.py','rast_check.c','gen_recip_tab.py'):
                 selected.append('rast')
             if Path(name).name in ('check_common.sh','check_host.sh'):
-                selected += ['lib','app','game','stats']
+                selected += ['lib','app']
             for key, value in CHECKS.items():
                 if any(arg == name for arg in value['command']):
                     selected.append(key)
@@ -219,25 +222,25 @@ def suggest(changed):
             if '/rast_' in name or 'test_rast' in name or 'rast_golden' in name or 'recip_tab' in name:
                 selected.append('rast')
             elif '/gfx/' in name:selected += ['instances','bin','stripctl']
-            if any(x in name for x in ('fixmath','sin_tab')):selected += ['app','game']
+            if any(x in name for x in ('fixmath','sin_tab')):selected += ['rast']
         if name.startswith('Main/sw/apps/test/rastTest/'):
             recognized=True
             selected.append('rast')
         if name.startswith('Main/sw/apps/game/'):
             recognized=True
-            selected += ['app','game']
-            if any(x in name for x in ('renderer','modes','stats','press','auto','chord','main.c')):
-                selected.append('stats')
+            selected += ['app']
             if 'renderer' in name:selected += ['frontend','instances','bin']
-        if name.startswith(('Main/sw/apps/console/','Main/sw/ports/myriad/','Main/sw/rtos/')):
+        if name.startswith(('Main/sw/apps/console/','Main/sw/ports/','Main/sw/rtos/',
+                            'Main/sw/api/','Main/sw/services/','Main/sw/runtime/','Main/sw/firmware/','Main/sw/system/')):
             recognized=True
-            selected += ['console','layers','game','stats']
+            selected += ['console','layers','platform-sdk']
+            if name.endswith('r4_runtime.c'):selected.append('pipeline')
         if name.startswith(('Main/sw/bsp/','Main/sw/mk/')):
             recognized=True
-            selected += ['layers','pc','demo','game','stats']
+            selected += ['layers','pc','demo','console','pipeline']
         if name.startswith(('Main/assets/','Main/tools/assets/')):
             recognized=True
-            selected += ['assets','demo','game']
+            selected += ['assets','demo']
         if name.startswith('Main/rtl/engine/'):
             recognized=True
             part = Path(name).stem.removeprefix('engine_')
@@ -258,7 +261,10 @@ def suggest(changed):
             selected += ['workflow','board']
         if name.startswith('Main/sim/'):
             recognized=True
-            selected += ['instances','bin'] if '/frontend/' in name else ['stripctl'] if '/stripctl/' in name else ['frame']
+            if name.startswith('Main/sim/engine/sh/'):
+                selected.append('pipeline' if name.endswith('test_pipeline.c') else 'sh')
+            elif name.startswith('Main/sim/engine/flight/'):selected.append('flight')
+            else:selected += ['instances','bin'] if '/frontend/' in name else ['stripctl'] if '/stripctl/' in name else ['frame']
         if name.endswith('axi_ram_model.v'):
             selected += ['axi_probe','axi_mux_guard','display','mover','pix','ctrl','frame','band','stripctl','instances','bin']
         if not recognized:raise ValueError('未映射的改动需显式选择 --checks: '+name)

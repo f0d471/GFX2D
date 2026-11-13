@@ -1,0 +1,10 @@
+{
+  "sin_generator_match": true,
+  "c_comment_only": [
+    "Main/sw/apps/game/gfx2dGame/src/game/stg_stage.c",
+    "Main/sw/apps/game/gfx2dGame/src/game/stg_stage.h",
+    "Main/sw/apps/game/gfx2dGame/test/test_stg_ex.c",
+    "Main/sw/lib/core/sin_tab.c"
+  ],
+  "python_syntax": true
+}

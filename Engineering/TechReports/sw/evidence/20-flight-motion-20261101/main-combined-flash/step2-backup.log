@@ -1,5 +1,0 @@
-Connecting to JTAG_TAP: efx_ti
-Connecting to JTAG_TAP: efx_ti
-Flash device: Winbond W25Q64 8 MiB (JEDEC ID: 0xEF6017) @ JTAG freq 6.0 MHz
-Reading 8192 KiB from flash @ 0x00000000 ...
-Finished read in 38 seconds

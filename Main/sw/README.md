@@ -1,11 +1,7 @@
 # sw：本项目编写的 RISC-V 程序
 
-RIDGE FLIGHT（应用5、场景2）的固定30Hz与环境预热见[滑翔性能与节拍](../doc/滑翔性能与节拍.md)。
-帧率是否达到目标以该轮板端证据为准，PC参考运行只证明功能/像素边界。
-
-HALTTIME（快捷键6、目录ID7）当前为PC无敌无限模式：持续补员、自动/手动装填、
-连续人形网格与红晶表面。原生入口在 `apps/console/build_windows_sh_endless/`，
-操作与当前范围见[凝时PC玩法](../doc/凝时PC玩法.md)。PC记录缓冲独立于板端共享窗口。
+本目录维护驱动硬件的 BSP、参考执行器、素材装载、RTOS、框架与 console。
+游戏与应用保留为演示负载；玩法、造型、HUD 和手感由应用自行迭代，不建立长期规格。
 
 与 `sdk/` 的分工：`sdk/` 是 IP 生成的 BSP 和官方示例，重新生成 SoC IP 时会被覆盖，**只读**；本目录放本项目编写的程序，不会被生成器碰到。
 项目要往 sdk 加的东西一律放在 `bsp/` 这一层，由它转出去，不改 sdk 本身。
@@ -89,57 +85,21 @@ cup3d历史独立演示不作为新SDK模板。接口与编译判据由platform-
 
 ## 应用与开发入口
 
-### R4 模式4（三维走廊）
+### 三维硬件消费者
 
-本节的编译参数描述旧`gfx2dGame`开发/判据入口；产品端 Esc 返回，数字4始终启动三维走廊。
-茶杯场景已于 2026-11-02 按用户定案删除，三维内 C 不再切场景。数值、视口和资源机制共用。
+产品从 console 的 catalog 启动内容；`apps/game/gfx2dGame` 保留旧开发/判据入口。
+应用生成记录，`ports/myriad/r4_runtime.c` 管提交、等待、共享区和呈现；
+`lib/gfx/rast_setup` 与 `rast_ref` 维护数值和参考结果。固定硬件帧为 640×480，
+setup ABI 为 128B，规格见 [三维数值契约](../doc/三维数值契约.md)。
 
-PC交互模式4默认自适应：BSP按实际绘制像素宽高比提供高480、宽640～1792的画布，
-右侧160像素HUD整体靠右，世界占剩余宽度，保持垂直FOV并重算投影aspect。
-4:3、16:10、16:9及常见21:9/32:9均可适配；更窄/超过上限时保比例留边，
-整数画布有不足一个内部像素的比例取整余边。4K不会直接变成4K软件光栅负载。
-`GFX2D_ASPECT=fixed`关闭自适应。R4录像回放、JUDGE/CRC判据及Ti60始终走原640×480路径；
-宽屏改变可见范围，不改变世界状态、碰撞、按键位图或30Hz逻辑节拍。
+主表、子表、软件深度、记录缓存、中间面和两套命令区以运行时静态断言及容量检查为准。
+3D 独占 TEX，离开时等待排空并恢复 2D 热集；错误帧不 present，旧前缓冲在换帧确认后复用。
+两段绘制分别完成后再请求呈现，记录与子表按同一代配对。首调只准备，不登记伪呈现。
+生产流水与同步 CRC 分开验证；独立所有权判据为 `validate.py --checks pipeline`。
 
-窗口缩放和跨屏后每帧重新读取实际输出尺寸，帧边界调整画布/深度和投影缓存；
-纹理重置恢复实际画布尺寸与过滤。显示器断开事件与退出全屏时检查窗口仍可见，
-失效的旧屏位置回到现有屏。验证入口为`pc-wide`和Windows的`pc-window`。
-
-`gfx2dGame`新增模式4：同一B7位流上运行左480×480世界空间走廊、门框、飞船、敌机/弹与右侧160px
-DDR HUD。L1平涂、L2为16KiB/64×64 atlas的仿射纹理与色键；世界物体全部走RAST深度测试。
-逻辑固定30Hz，几何与按键采用显式seed/tick。原模式1/2/3及生产默认后端保持原选择。
-
-数字4进入三维走廊，Tab切板上CPU/硬件光栅（产品面板改为按钮），Shift切L1/L2，
-方向键移动飞船，射击自动进行。
-HUD的SW/HW FPS是当前场景/阶梯最近一次有效渲染测量，未测显示`--`；呈现FPS与渲染FPS分别记录。
-走廊采用八面倒角截面、五段纵深、连续顶点明暗与金属面板；最近门框有真实内壁。
-21面自机带平滑机身、机翼/座舱和引擎焰，敌机远处用billboard、近处用实体与发光核心。
-右栏将标题预合成为144×48，保留计分和实测软硬件FPS。相机作四秒小幅周期平移，
-自机独立横纵移动；未操作时自动驾驶，方向键接管。空格使用炸弹清弹并短暂无敌，
-命中与撞框在自机所在世界深度判定，护盾耗尽后延时重生；L1 不生成隐藏敌机的弹。
-
-应用文件`r4_scene`负责世界；`ports/myriad/r4_runtime.c`负责执行适配，共享资源由图形服务管理。子视口在`lib/gfx`，
-R4RP在`lib/core/replay_r4`，格式为32B头加每tick一个小端u32；新魔数、30Hz、seed、scene、阶梯
-与素材身份均显式校验。录制构建设`GFX2D_R4_RECORD=1`；回放构建设`GFX2D_R4_REPLAY=1`并在
-OBJDIR/replay提供`r4_replay.h`中的`r4_replay_data`字节数组，检查器给出完整生成/构建例子。
-
-模式4独占SHARED起点64KiB主表、其后32KiB子表与32KiB软件条带z，进出前等待在途资源释放。
-3D独占TEX，HUD字库走DDR；返回2D前重装并校验热集。3D底色单独放OFFSCREEN尾部2MiB，
-保留原二维预合成的前三个2MiB槽；切换判据检查这6MiB内容不被改写。
-两张帧缓冲分别使用 CMDLIST_A/B 的 HUD 命令区，等待完成后只更新变化行。
-相机每30 tick精确推进4m；静态墙缓存的投影、视口、阶梯、世界相位必须逐项相同。
-进入模式预热120种相机/墙相位，动态门框、自机、敌机与弹仍逐帧setup；缓存、共享投影、
-视口内无裁剪快路均与通用路径逐记录对拍。
-首帧选择非扫描面，呈现确认后才复用旧前缓冲。
-错误帧不present；功能测试固定HUD的非确定内容，性能版本显示实际值并关闭逐帧CRC。
-构建可选`GFX2D_START_MODE=4`、`GFX2D_R4_SCENE=0|1`、`GFX2D_R4_HW=0|1`和
-`GFX2D_R4_LADDER=1|2`。验证入口及日志字段见[三维演示验证](../sim/engine/r4/README.md)。
-
-PC支持F11/Alt+Enter切全屏、Esc退回窗口、F1/F2/F3切窗口大小、F4切最近邻/平滑放大。
-按当前画布比例等比显示；固定入口保持4:3。这些显示键不进入游戏录像。Windows原生构建入口为
-`python Main/tools/board/build_pc.py --out Main/sw/apps/game/gfx2dGame/build_windows`（从仓库根）；
-`GFX2D_SCALE_FILTER=linear`选择平滑放大，`GFX2D_FULLSCREEN=1`全屏启动；
-自适应模式随窗口比例重新渲染，固定判据帧和板上采样保持原有尺寸。
+PC 可使用显式画布和窗口/全屏；固定回放、CRC 和 Ti60 保持硬件尺寸。平台窗口行为见
+`sim/host` 与 `pc-window`，三维固定负载与字段见 [三维演示验证](../sim/engine/r4/README.md)。
+应用玩法和画质专项在 `validate.py --list` 中按需要显式选择。
 
 按「跑完之后拿到的是什么」分：
 
@@ -317,159 +277,12 @@ wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw8_stats.sh'
 第 7 项跑主机探针，测的是 `bsp/include/dcache_line.h` 里那段真实的纯算术。
 脚本需要交叉工具链，`RISCV_BIN=<RISCV_BIN>` 传进去。
 
-## gfx2dGame 的期望值
+## 演示负载与可选应用检查
 
-它是**基础 Demo**（赛题基础要求 3），当前默认构建是**模式框架**（启动横幅 `gfx2dGame MODES`）：
-三个模式 1 基础 Demo（实时输入，A／B 两个阶段每 600 场自动轮换，HUD 右上角显示 SW FPS、N／k、命令数、
-写入像素数与三段耗时）、2 游戏、3 压力测试（终符上的 `N_max` 搜索，模拟时钟或板上真实时钟）。
-上电进 `-DGFX2D_START_MODE=<1|2|3>`（缺省 2）。PC 上数字键 1~3 直接选模式、Tab 切后端标签；板上切换的是真实执行器。
-板上用和弦：
-上 + 下按住 8 帧切下一个模式，左 + 右按住 8 帧切后端，松开之后才会再触发。模式 2 里连续 600 帧无按键时自动驾驶接管，
-任何按键立即交还。每次进入一个模式，第一帧之后打一行
-`mode <m> enter frame <帧号> crc <整帧 CRC32> pool <四个池> clip <裁剪框>`。
-每 60 场打一行统计 CSV（`csvh,` 表头、`csv,` 每秒一行、结束时 `csvsum,` 汇总）；
-这些行与框架自己的行先进日志队列，每帧只取出 `board_tx_room()` 那么多字节（模式 1 里基础 Demo 的逐帧日志照旧直接打）。
-`-DSW6_JUDGE=1` 是**判据模式**：不走模式框架，不读实时按键，按入库的两段录像各回放两遍，逐帧打日志与入库期望值对账。
-
-判据、日志格式与逐帧契约以 `Main/tools/check/check_sw6_demo.sh` 与 `logs/sw6_judge.log` 为准；
-跑全部十项判据用 `Main/tools/check/check_sw6_demo.sh`。
-
-```
-# 模式框架：窗口里玩游戏（方向键、左 Shift 低速、空格炸弹），1/2/3 切模式
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host && ./build_host/gfx2dGame'
-
-# 上电直接进基础 Demo（模式 1）
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_m1 EXTRA_CFLAGS=-DGFX2D_START_MODE=1 && ./build_host_m1/gfx2dGame'
-
-# 模式 3 两遍搜索跑完就退出（模拟时钟，无窗口不等场；本机约 6 分半）
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_m3 EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_EXIT=1" && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_m3/gfx2dGame'
-
-# 切换判据：合成按键来回切 150 次，每行 mode ... enter 与冷启动的第一帧比（check_sw8_stats.sh 的 M10）
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_swj EXTRA_CFLAGS=-DGFX2D_SWITCH_JUDGE=1 && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_swj/gfx2dGame'
-
-# 日志不阻塞长跑：模式 2、36000 帧、每场 192 字节的串口额度，按 60 Hz 节拍约 10 分钟（check_sw8_stats.sh 的 M14）
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_long EXTRA_CFLAGS="-DGFX2D_START_MODE=2 -DGFX2D_FRAMES=36000" && SDL_VIDEODRIVER=dummy GFX2D_TX_BUDGET=192 ./build_host_long/gfx2dGame | grep ^csv'
-
-# 自动驾驶打一局（游戏的判据入口，受击打开）：逐帧 g 行、每段 seg 行，末尾 auto 行与 fail 0（check_sw8_stats.sh 的 M16）
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_auto EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_AUTO=1" && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_auto/gfx2dGame | grep -E "^(seg|auto|fail)"'
-
-# 回放工具辅助的通关录像 replay/stg_clear.g2dr（游戏的判据入口，受击打开）：9208 帧打到 CLEAR，
-# 末尾 clear、end 两行与 Main/tools/check/gen_stg_clear.c --verify 的摘要同格式（check_sw7_game.sh 的 G16）
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_rep EXTRA_CFLAGS="-DSTG_FIELD=4 -DSTG_JUDGE_REPLAY=1" && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_rep/gfx2dGame | grep -E "^(seg|clear|end|fail)"'
-
-# S1 规模：模式 3 不搜索、16x16、旋钮固定 1744（约 2040 颗敌弹），窗口里看；统计 CSV 照打（check_sw7_game.sh 的 G17）
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_s1 EXTRA_CFLAGS="-DGFX2D_START_MODE=3 -DGFX2D_PRESS_KNOB=1744" && ./build_host_s1/gfx2dGame'
-
-# 判据模式全量一遍：约 22 秒、1226 帧，末尾 fail 0 与 done
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host EXTRA_CFLAGS=-DSW6_JUDGE=1 && ./build_host/gfx2dGame'
-
-# 判据模式快速档（每段每遍 120 帧，A 段仍覆盖 N=5000）
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host EXTRA_CFLAGS="-DSW6_JUDGE=1 -DSW6_FRAMES=120" && ./build_host/gfx2dGame'
-
-# 十项判据串起来（录像可重生成 → 编过跑通 → 对期望日志 → 有窗无窗 → 两遍 → HUD → 场景 B
-#                  → 计数 → 四个方程的注错见红 → Sanitizer 与板上目标构建）
-# 不传 RISCV_BIN 时板上目标构建会跳过（工具链不在 PATH 上），跳过不算通过
-wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> bash Main/tools/check/check_sw6_demo.sh'
-wsl -e bash -c 'RISCV_BIN=<RISCV_BIN> SW6_QUICK=1 bash Main/tools/check/check_sw6_demo.sh'
-```
-
-`logs/` 下这一条目的日志：
-
-| 文件 | 是什么 |
-| --- | --- |
-| `sw6_judge.log` | 判据模式**全量**一遍的期望值：1236 行（首行横幅、`pak`、三行 `scene`、`eq P`、A 两遍各 246 帧、B 两遍各 367 帧、两行 `eq A`、`fail 0`、`done`） |
-| `sw6_judge_quick.log` | 快速档（`-DSW6_FRAMES=120`）的期望值；它的逐帧行按段、按遍必须是全量档的前缀 |
-| `sw6_board_quick.log` | 板上判据模式快速档的串口原始输出（2026-09-28，产物 77,158 字节、sha256 前 16 位 `cb5af521cc1d6a34`，素材由程序从 Flash 读 `pak 2840320 b370ba0a`）：`fail 0`，从 `pak` 行起 489 行去掉 `cyc` 后与 `sw6_judge_quick.log` 逐行相同 |
-| `sw8_stats_demo.log`、`sw8_stats_game.log`、`sw8_stats_s1.log`、`sw8_stats_press.log` | 统计与出图的四份样例（PC、无窗口、按 60 Hz 节拍）：模式 1 的 1300 帧、模式 2 无人操作 5400 帧、S1 规模（`GFX2D_PRESS_KNOB=1744`）1800 帧、模式 3 两遍搜索；`Main/tools/stats/plot_stats.py` 由它们画出 `Deliverables/Assert/figures/sw8_*.png`。CSV 里的帧时间与周期数是 PC 的墙钟，只验证流程 |
-| `pc_normal.log`、`pc_inject.log`、`board_normal.log`、`board_inject.log` | **分层骨架初版的旧日志**，原地保留：它们是 60 帧图案那个版本的产物，当前二进制不再产生它们，**不要拿它们当期望值** |
-
-固定值（`logs/sw6_judge.log` 的头几行与第 0 帧）：
-
-```
-gfx2dGame <构建档名>
-pak 2840320 b370ba0a
-scene 0 scrc d90fb7b2
-scene 1 scrc 70fd3e3d
-scene 2 scrc 0211c146
-eq P 53 18 0 2
-f 0 A p 1 s - keys 00000000 n 100 k 0 cmd 159 pix 391496 ksk 5935 hud - - off 4 cyc 27 497 176435 crc 8295c1f0 scrc 62772be8 hcrc ecc28265
-...
-```
-
-- `cyc` 三列是 `board_cycles()` 的差值，每台机器、每次运行都不同，**比对前必须去掉**；
-  其余每一列都是确定的。
-- A 段第 106 帧起 `n 5000`；N=5000 时 `cmd` 约 5067（每张命令表上限 32768 条）。
-- `scene i` 是三张离屏图预合成后的参考值；B 段每个 `f` 行的 `scrc` 等于它本帧 `s` 那一张。
-- `scrc` 是**排除 HUD 矩形**（`x=400..639, y=0..159`）后的场景区 CRC，`crc` 是整帧，
-  `hcrc` 是 HUD 矩形本身；三者都逐行喂、跳过行跨间隙。
-- 判据模式下 HUD 的实时量（`SW FPS` 与三段耗时）显示 `--`：实测值进画面，
-  同一份输入两次就跑不出相同的整帧 CRC。演示模式显示实测值。
-
-**板上**（xPack 的 `riscv-none-elf-gcc` 13.4.0 装在 WSL 里、不在 PATH 上，
-`<RISCV_BIN>` 的取值见 `../doc/开发环境.md` 第 11 节；`board_run.py` 的解释器设置见 `../tools/board/README.md`）：
-
-```
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make RISCV_BIN=<RISCV_BIN> OBJDIR=build_board_quick EXTRA_CFLAGS="-DSW6_JUDGE=1 -DSW6_FRAMES=120"'
-<EFINITY>\python311\bin\python.exe tools\board\board_run.py --bin sw\apps\game\gfx2dGame\build_board_quick\gfx2dGame-O2.bin --stop-on done --seconds 2700 --log <串口日志>
-wsl -e python3 Main/tools/check/check_sw6_log.py --board <串口日志> Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log
-```
-
-判据模式**不读 `board_keys()`**，所以板上不需要接按键就能跑。程序用 `--bin` 经 JTAG 写进 DDR 运行，
-素材包照样由程序从 Flash 素材分区读，所以 Flash 里要有与 `assets.h` 同一版的包（`pak` 行会核对）；
-不用 `--flash-boot`，因为它跑的是 Flash 应用区里固化的程序（现在是素材判据程序 `assetTest`），不是这次的产物。
-`--board` 从最后一个 `gfx2dGame` 横幅之后的 `pak` 行起比，`board_run.py` 的 `#` 标记行与
-Flash 旧程序在 `reset halt` 之前的输出都跳过。这一步是引擎接入之前唯一一次「RV32 上的软件执行器 +
-素材装载 + 整条组帧路径与 PC 等价」的证据；快速档在板上一次约 16 分钟。
-板上软件执行器每帧执行 0.4~4.4 秒，加上三遍 CRC 与一行串口，一帧 1~5 秒，演示模式一段 600 帧在板上要十分钟以上，
-所以演示模式的 HDMI 画面与软硬件帧率对比留给板上移植（引擎接上之后）。
-
-### 弹幕场入口与游戏的判据入口
-
-`EXTRA_CFLAGS=-DSTG_FIELD=<n>` 编出弹幕场（五种弹型、静止自机）或游戏的判据入口（用游戏的霓虹素材与表面槽），
-启动横幅换成 `gfx2dGame STG`；不给这个开关时仍是上面的基础 Demo，行为与日志不变。
-
-| n | 是什么 |
-| --: | --- |
-| 1 | 演示：圆环、螺旋、自机狙、扇形、随机雨各 300 帧轮流，再是五个一起的合并段 600 帧，循环；每 60 帧一行 `d`（活动元素数与三段周期数） |
-| 2 | 判据：不读按键，五段各 120 帧、合并段 240 帧，每段一行 `seg`、每帧一行 `f`（帧号、段号、四个池的存活数、活动元素数、本段累计的命中与擦弹、游戏区 400×480 的 CRC），末尾 `fail`、`done`；每帧自查追加的拒绝数为 0、普查的 ALPHA 条数等于发出的敌弹数 |
-| 3 | `N_max` 搜索：无窗口、不执行命令表、不呈现，只做普查与模拟时钟，16×16 与 8×8 两种负载各搜一遍，打 `nmax cfg`、逐档 `nmax probe` 与 `nmax result`；结果不是 `OK` 记一次 fail。PC 上约 1.5 秒 |
-| 4 | 游戏的判据入口：输入是固定的按键脚本（`src/game/stg_script.c`），受击默认关掉（`-DSTG_JUDGE_HITS=1` 打开），跑完一局回到标题为止（约 10,185 帧）。每段一行 `seg <帧号> <段名>`，每帧一行 `g`（阶段、段号、三个池的存活数、五类活动元素、残机、炸弹、得分、擦弹、整帧 640×480 的 CRC），末尾 `fail`、`done`；每帧自查追加的拒绝数为 0、普查的各方程条数等于组帧记下的。HUD 的实时量一律 `--` |
-
-```
-# 演示：窗口里看五种弹型轮流（绿色方块是静止的自机）
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_stg EXTRA_CFLAGS=-DSTG_FIELD=1 && ./build_host_stg/gfx2dGame'
-
-# 判据：约 14 秒、840 帧，末尾 fail 0 与 done；无窗口时加 SDL_VIDEODRIVER=dummy
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_stg2 EXTRA_CFLAGS=-DSTG_FIELD=2 && SDL_VIDEODRIVER=dummy ./build_host_stg2/gfx2dGame'
-
-# N_max 搜索（模拟时钟）：两遍各一行 nmax result，末尾 fail 0 与 done
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_stg3 EXTRA_CFLAGS=-DSTG_FIELD=3 && SDL_VIDEODRIVER=dummy ./build_host_stg3/gfx2dGame'
-
-# 没有显示器时截帧看画面：第 0、300、839 次呈现各写一张 PPM
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && SDL_VIDEODRIVER=dummy GFX2D_SNAPSHOT=0,300,839 GFX2D_SNAPSHOT_DIR=/tmp ./build_host_stg2/gfx2dGame'
-
-# 游戏的判据入口：一局约 10,185 帧；GFX2D_UNPACED=1 让呈现不等场，PC 上约 75 秒
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && make PLATFORM=host OBJDIR=build_host_stg4 EXTRA_CFLAGS=-DSTG_FIELD=4 && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 ./build_host_stg4/gfx2dGame'
-
-# 截各段的画面：标题、杂兵段、Boss 进场、四张符卡、CLEAR
-wsl -e bash -c 'cd sw/apps/game/gfx2dGame && SDL_VIDEODRIVER=dummy GFX2D_UNPACED=1 GFX2D_SNAPSHOT=60,700,1900,2600,4600,6600,9500,10100 GFX2D_SNAPSHOT_DIR=/tmp ./build_host_stg4/gfx2dGame'
-```
-
-- 判据模式的日志两遍逐字节相同；`check_sw7_game.sh` 的 G10 跑两遍比对。
-- `GFX2D_SNAPSHOT=<k,k,...>` 只在 PC 的 `bsp/host` 里有：到第 k 次成功的 `board_present()`（从 0 起）时，
-  把要呈现的那一面写成 `snap_<k>.ppm`（640×480 的二进制 PPM），目录由 `GFX2D_SNAPSHOT_DIR` 给，缺省当前目录；
-  stderr 里打一行 `board: snapshot k -> 路径`。不改 `board.h`，也不改应用的输出，任何应用都能用。
-- `GFX2D_UNPACED=1` 也只在 PC 的 `bsp/host` 里有：`board_present()` 照常上传、计数、截帧，但不等下一个场起始；
-  `board_wait_frame()` 也不等。场号仍按墙钟走，所以不等场时场数增量没有意义；只给判据入口这类不看帧率的运行用。
-- `STG_FIELD=3` 的期望输出（2026-09-26 定值的常量与模拟时钟模型）：
-
-  ```
-  nmax result OK n_max 2429 knob 2448 ft_max 1659652 ft_p99 1659652 probes 15 timeouts 0
-  nmax result OK n_max 6419 knob 6576 ft_max 1663388 ft_p99 1663388 probes 17 timeouts 0
-  ```
-
-  前一行是 16×16 负载、后一行是 8×8。**这是模拟时钟下的流程验证，不是性能数字**；板上的数字见「板上移植」一节。
-- 板上构建与基础 Demo 相同，另加 `EXTRA_CFLAGS=-DSTG_FIELD=2`（或 `4`）；`-DSTG_FRAMES=N` 限总帧数。
+基础 Demo、弹幕、压力、走廊、滑翔和凝时保留源码、素材与运行入口。
+应用可用 `app` 做正常构建/单测，玩法、截图和长回放专项显式选择。
+硬件固定命令/记录的期望由独立参考执行器和实际判据保存，不将应用外观升级为硬件规格。
+console 操作和输入协议见 [应用与输入契约](../doc/应用与输入契约.md)。
 
 ## 板上移植
 
@@ -842,7 +655,7 @@ SET_CLIP 错误 2/1024/cafe005a、容量错误 2/1024/0、错误后再提交与�
 新 bit 的 engineTest 兼容性在 engineTest/logs/g3_compatibility.log。
 该程序使用 JTAG，不写 Flash；游戏条带后端与 `N_max` 在 `gfx2dGame`。
 
-## 当前游戏后端
+## 图形提交后端
 
 模式 2/3 支持 GFX2D_START_BACKEND=0/1/2/3，依次为软件、直通 DDR、
 直通 TEX、条带 STRIP；运行时切换先收尾在途表。模式 1 的基础 Demo

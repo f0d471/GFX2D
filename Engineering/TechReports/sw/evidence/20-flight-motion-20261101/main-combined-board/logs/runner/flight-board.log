@@ -1,8 +1,0 @@
-RUN Main/sim/build/check-runs/combined-flight-board-03
-Traceback (most recent call last):
-  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_flight_board.py", line 91, in <module>
-    try:main()
-        ^^^^^^
-  File "E:\Workspace\FPGA\Efinix\Main\tools\check\check_flight_board.py", line 79, in main
-    raise RuntimeError('FreeRTOS flight cadence/budget failed: '+str(v))
-RuntimeError: FreeRTOS flight cadence/budget failed: [1800, 2080487, 2454021, 3025029, 1, 1799, 0, 3600, 1800]

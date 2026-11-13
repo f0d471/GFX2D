@@ -1,8 +1,0 @@
-RUN Main/sim/build/check-runs/sw19-board-acceptance-03
-Traceback (most recent call last):
-  File "E:\Workspace\FPGA\.worktrees\Efinix-flight1\Main\tools\check\check_flight_board.py", line 91, in <module>
-    try:main()
-        ^^^^^^
-  File "E:\Workspace\FPGA\.worktrees\Efinix-flight1\Main\tools\check\check_flight_board.py", line 79, in main
-    raise RuntimeError('FreeRTOS flight cadence/budget failed: '+str(v))
-RuntimeError: FreeRTOS flight cadence/budget failed: [1800, 1922270, 2554614, 3703237, 30, 1770, 6, 3607, 1800]

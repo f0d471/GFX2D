@@ -1,9 +1,0 @@
-SH NORMAL PASS unit axes, tiny vectors, 3-4-5, diagonal and signs
-SH PROJECTION PASS 50000 reciprocal divisions match R1 rounding exactly
-SH CLOCK PASS 30Hz physics independent of render batches
-SH AI PASS blocked animation stops and cover tangent makes progress
-SH ENDLESS PASS ticks=9000 spawned=336 kills=334 protected_hits=3008
-SH GAMEPLAY PASS spawn/time/strafe/aim/projectile/cover/swept-hit/invincible/reload/pickup/shards
-SH GEOMETRY PASS records_peak=896 deterministic_crc=3e386f13 width=640/854/1792 padding
-SH VIEWMODEL PASS gun remains visible against a near wall
-SH CACHE PASS camera-independent weapon records, invalidation and arena guards

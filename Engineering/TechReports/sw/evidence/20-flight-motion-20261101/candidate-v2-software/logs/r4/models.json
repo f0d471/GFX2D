@@ -1,6 +1,0 @@
-{
-  "status": "PASS",
-  "sha256": "241e4bf3db92b5e178d89fc4cee305edd156d2a20e992e2373dc967edc38406e",
-  "scope": "unchanged frozen consumer model",
-  "regeneration": "NOT_APPLICABLE: model/generator adoption is outside SW19"
-}

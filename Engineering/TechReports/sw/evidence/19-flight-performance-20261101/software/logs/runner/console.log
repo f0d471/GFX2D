@@ -1,2 +1,0 @@
-RUN Main/sim/build/check-runs/sw19-software-final-v4
-CONSOLE HOST PASS lifecycle/input/faults/menu/four-apps/perf-policy

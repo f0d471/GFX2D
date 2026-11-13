@@ -1,0 +1,42 @@
+{
+  "profile": "quick",
+  "checks": [
+    "workflow",
+    "pack",
+    "pipeline"
+  ],
+  "changed": null,
+  "commands": {
+    "workflow": [
+      "/usr/bin/python3",
+      "Main/tools/check/test_validation.py"
+    ],
+    "pack": [
+      "/usr/bin/python3",
+      "Main/tools/assets/pack_assets.py"
+    ],
+    "pipeline": [
+      "/usr/bin/python3",
+      "Main/tools/check/check_pipeline.py"
+    ]
+  },
+  "timeouts": {
+    "workflow": 1800,
+    "pack": 1800,
+    "pipeline": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/lib/test/golden.txt",
+    "Main/sw/**",
+    "Main/sdk/**",
+    "Main/assets/**",
+    "Main/tools/assets/**",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge.log",
+    "Main/sw/apps/game/gfx2dGame/logs/sw6_judge_quick.log",
+    "Main/sim/engine/sh/test_pipeline.c"
+  ]
+}

@@ -1,6 +1,0 @@
-{
-  "kind": "historical_run_snapshot",
-  "current_inputs_revalidated": false,
-  "local_paths": "placeholders in metadata; raw logs byte-identical",
-  "source_run": "Main/sim/build/check-runs/sw20-board-acceptance-03"
-}
