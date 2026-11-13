@@ -1,0 +1,193 @@
+# 变异清单（唯一真相）。每条记录对应一处生产 RTL 的故意改错。
+# 字段：defect 缺陷模型；spec 规格出处；rule 字面替换（必须唯一匹配）；
+# runs 应发现它的用例与见红位置正则（旧名 macro 只用于追溯原开关）。
+# 校验与执行：run_mutation.py；迁移等价性：verify_migration.py。
+- id: blend.copy_dst
+  target: Main/rtl/engine/core/engine_blend.v
+  macro: INJ_COPY_DST
+  defect: 输入依赖
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.5 像素流水线
+  rule:
+    find: "            3'd0: begin // COPY     Fs=255 Fd=0\n\n                sel_base = {1'b0, src};"
+    replace: "            3'd0: begin // COPY     Fs=255 Fd=0\n\n                sel_base = {1'b0, src} + {1'b0, dst};"
+  runs:
+  - suite: engine/blend
+    case: narrow_copy
+    evidence: 'MISMATCH #\d+: eq=0 '
+  expect:
+    status: FAIL
+    evidence: ''
+  note: COPY 的 Fd 是 0，目的像素不得进入结果；只有让不用的输入变化，这条约束才看得出
+- id: blend.wrong_eq
+  target: Main/rtl/engine/core/engine_blend.v
+  macro: INJ_WRONG_EQ
+  defect: 运算恒等
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.5 像素流水线
+  rule:
+    find: "            3'd3: begin // CONST    Fs=c   Fd=255-c\n\n                sel_base = {1'b0, dst};\n                sel_m1   = $signed({1'b0, src}) - $signed({1'b0, dst});"
+    replace: "            3'd3: begin // CONST    Fs=c   Fd=255-c\n\n                sel_base = {1'b0, src};\n                sel_m1   = $signed({1'b0, dst}) - $signed({1'b0, src});"
+  runs:
+  - suite: engine/blend
+    case: narrow_const
+    evidence: 'MISMATCH #\d+: eq=3 '
+  expect:
+    status: FAIL
+    evidence: ''
+  note: CONST 的 base 与 m1 同时取错后 base×255+m1×m2 不再恒等于规格算式
+- id: blend.unreg_c
+  target: Main/rtl/engine/core/engine_blend.v
+  macro: INJ_UNREG_C
+  defect: 流水对齐
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.5 像素流水线
+  rule:
+    find: '    wire signed [17:0] c_stage = $signed(r_c);  // c255 恒正（<= 130050 < 2^17，第 17 位为 0），按 18 位有符号给进 DSP 的 C 口。'
+    replace: '    wire signed [17:0] c_stage = $signed(c255_comb);'
+  runs:
+  - suite: engine/blend
+    case: narrow_unreg
+    evidence: 'MISMATCH #\d+: eq=1 '
+  expect:
+    status: FAIL
+    evidence: ''
+  note: 级 2 必须用级 1 寄存的 base×255，否则两拍的操作数被相加
+- id: blend.x_no_en
+  target: Main/rtl/engine/core/engine_blend.v
+  macro: INJ_X_NO_EN
+  defect: 停顿时序
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.5 像素流水线
+  rule:
+    find: '        if (en) r_x <= x_comb;'
+    replace: '        r_x <= x_comb;'
+  runs:
+  - suite: engine/blend
+    case: stall
+    evidence: 'MISMATCH #\d+: eq='
+  expect:
+    status: FAIL
+    evidence: ''
+  note: 停顿期间级 2 不得推进；同一份源码在 exhaustive 上 PASS，只有插停顿拍才见红
+- id: blend.trunc16
+  target: Main/rtl/engine/core/engine_blend.v
+  macro: INJ_TRUNC16
+  defect: 位宽截断
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.5 像素流水线
+  rule:
+    find: '    wire [17:0] t      = t_full;'
+    replace: '    wire [17:0] t      = {2''b00, t_full[15:0]};'
+  runs:
+  - suite: engine/blend
+    case: narrow_trunc
+    evidence: 'MISMATCH #\d+: eq=2 '
+  expect:
+    status: FAIL
+    evidence: ''
+  note: t 模截断到 16 位会丢进位，规格写明中间量不得截断
+- id: pix.en_notready
+  target: Main/rtl/engine/core/engine_pix.v
+  macro: INJ_EN_NOTREADY
+  defect: 握手反压
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rule:
+    find: '    wire pipe_en = ws_tready || !ws_tvalid; // 出口空着就不等 ready'
+    replace: '    wire pipe_en = 1''b1;'
+  runs:
+  - suite: engine/pix
+    case: unit_stall
+    evidence: BEATS_OR_GAP n=
+  - suite: engine/pix
+    case: pipe_burst
+    evidence: PIX_MISMATCH beat=
+  expect:
+    status: FAIL
+    evidence: ''
+  note: 出口未 ready 时计算链必须保持；恒 ready 的测试台看不见，必须靠停顿用例
+- id: pix.core_noen
+  target: Main/rtl/engine/core/engine_pix.v
+  macro: INJ_CORE_NOEN
+  defect: 停顿时序
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rule:
+    find: '    wire core_en = pipe_en; // 核与外围同停'
+    replace: '    wire core_en = 1''b1;'
+  runs:
+  - suite: engine/pix
+    case: unit_stall
+    evidence: PIX_MISMATCH n=
+  - suite: engine/pix
+    case: pipe_burst
+    evidence: PIX_MISMATCH beat=
+  expect:
+    status: FAIL
+    evidence: ''
+  note: 混合核必须与外围同停，否则停顿时像素被重复处理
+- id: pix.rot_off
+  target: Main/rtl/engine/core/engine_pix.v
+  macro: INJ_ROT_OFF
+  defect: 像素相位
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rule:
+    find: '    wire [2:0] align_start = align_start_raw;'
+    replace: '    wire [2:0] align_start = align_start_raw + 3''d1;'
+  runs:
+  - suite: engine/pix
+    case: unit_stall
+    evidence: PIX_MISMATCH n=
+  expect:
+    status: FAIL
+    evidence: ''
+  note: 源/目的首拍相位差决定对齐窗口，错一个位置整行像素错位
+- id: pix.skip_key
+  target: Main/rtl/engine/core/engine_pix.v
+  macro: INJ_SKIP_KEY
+  defect: 条件判断
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.5 像素流水线
+  rule:
+    find: "    `ifdef GFX_KEY\n        wire [3:0] s3_key_hit_next = row_blit && row_key_en ? {\n            s3_src_next[127:96] == row_key, s3_src_next[95:64] == row_key,\n            s3_src_next[63:32] == row_key, s3_src_next[31:0] == row_key} : 4'd0;\n    `else\n        wire [3:0] s3_key_hit_next = 4'd0;\n    `endif"
+    replace: '    wire [3:0] s3_key_hit_next = 4''d0;'
+  runs:
+  - suite: engine/pix
+    case: unit_stall
+    evidence: MASK_MISMATCH n=
+  - suite: engine/pix
+    case: path_golden
+    evidence: MEM_MISMATCH addr=
+  expect:
+    status: FAIL
+    evidence: ''
+  note: 色键命中必须不写目的像素；单元靠「不写」掩码比对，真实通路靠整片内存比对
+- id: pix.drop_mask
+  target: Main/rtl/engine/core/engine_pix.v
+  macro: INJ_DROP_MASK
+  defect: 掩码边界
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rule:
+    find: "    assign s3_mask_next = (s2_beat == 8'd0) ? row_first_mask :\n        (s2_beat == (row_dst_beats - 8'd1)) ? row_last_mask : 4'hf; // beat==0 先判，一拍行用首 mask"
+    replace: "    assign s3_mask_next = (s2_beat == 8'd0) ? 4'hf :\n        (s2_beat == (row_dst_beats - 8'd1)) ? row_last_mask : 4'hf;"
+  runs:
+  - suite: engine/pix
+    case: unit_stall
+    evidence: MASK_MISMATCH n=\d+ ls=0 ld=0 beat=0 slot=1
+  expect:
+    status: FAIL
+    evidence: ''
+  note: 首拍掩码管住行首越界像素，丢了就会写坏目标行头部

@@ -7,12 +7,19 @@
 #             方程用不到的输入跟着循环变量变，输出必须与它们无关
 #   golden    抽样 1024 条与 check_round255.c 导出的金标准对一次
 #   stall     随机插入 en 拉低的停顿拍（步长 5 抽样），停顿期间输入是乱值
-#   五个注错   各自要红在它对应的判据上
+#   narrow_*  压到单个方程的快速用例，供变异测试快速判红
 #
 # 全量穷举一次约 6 分钟（WSL、iverilog 12）；开发期要快跑用 ONLY_EQ 或 STRIDE，
 # 判据必须跑默认值。只有明文 RTL，不需要 EFINITY_HOME。
+# 故意改错的变异体不在 RTL 里，见 Main/sim/mutation/mutants.yaml 与 run_mutation.py。
 set -u
 cd "$(dirname "$0")"
+
+# 单例模式：--case <用例名> 只构建并运行这一个用例、只打印结果，判定交给
+# sim/mutation 的跑器（它还要比对见红位置）。不给参数时行为与原来完全一致。
+CASE_ONLY=""
+if [ "${1:-}" = "--case" ]; then CASE_ONLY="${2:-}"; shift 2; fi
+matched=0
 
 RTL=../../../rtl
 SPEC_C=../../../tools/check/check_round255.c
@@ -22,6 +29,7 @@ mkdir -p "$BUILD"
 rm -f "$BUILD/golden.hex"      # 导出失败时不能拿上一次的金标准顶替
 
 bad=0
+total=0
 
 run_case() {
     local name=$1
@@ -39,9 +47,13 @@ run_case() {
 check() {
     local name=$1 want=$2
     shift 2
+    if [ -n "$CASE_ONLY" ] && [ "$name" != "$CASE_ONLY" ]; then return 0; fi
+    matched=1
+    total=$((total + 1))
     local r
     r=$(run_case "$name" "$@")
     echo "  $name: $r"
+    if [ -n "$CASE_ONLY" ]; then return 0; fi
     case "$r" in
         "RESULT: $want"*) ;;
         *) bad=$((bad + 1)) ;;
@@ -69,20 +81,22 @@ check exhaustive PASS
 check golden     PASS -DGOLDEN
 check stall      PASS -DSTALL -DSTRIDE=5
 
-# ---- 注错：每一个都要红在它对应的判据上 ----
-# ONLY_EQ 把范围压到被注错的那个方程，FAILFAST 让它在第一处不符就收尾，所以这几个都很快。
-# inject_copy_dst 只有「用不到的输入会变」时才红，inject_x_no_en 只有插了停顿拍才红，
-# 它们证明 exhaustive 与 stall 真的在检查这两件事。
-# 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏），不经过 parameter。
-echo "注错用例（期望 FAIL）:"
-check inject_wrong_eq FAIL -DINJ_WRONG_EQ -DONLY_EQ=3 -DFAILFAST
-check inject_trunc16  FAIL -DINJ_TRUNC16  -DONLY_EQ=2 -DFAILFAST
-check inject_unreg_c  FAIL -DINJ_UNREG_C  -DONLY_EQ=1 -DFAILFAST
-check inject_copy_dst FAIL -DINJ_COPY_DST -DONLY_EQ=0 -DFAILFAST
-check inject_x_no_en  FAIL -DINJ_X_NO_EN  -DSTALL -DSTRIDE=5 -DFAILFAST
+# ---- 收窄范围的快速用例 ----
+# 全量穷举一次约 6 分钟；下面几条把范围压到单个方程，供变异测试的跑器快速判红用。
+# 正常构建下它们同样必须 PASS（只是覆盖范围小，判据不变）。
+echo "收窄范围的快速用例:"
+check narrow_copy  PASS -DONLY_EQ=0 -DFAILFAST
+check narrow_trunc PASS -DONLY_EQ=2 -DFAILFAST
+check narrow_unreg PASS -DONLY_EQ=1 -DFAILFAST
+check narrow_const PASS -DONLY_EQ=3 -DFAILFAST
+
+if [ -n "$CASE_ONLY" ]; then
+    [ "$matched" = 1 ] || { echo "RESULT: CASE-NOT-FOUND ($CASE_ONLY)"; exit 3; }
+    exit 0
+fi
 
 if [ "$bad" -eq 0 ]; then
-    echo "SIM OK: 9/9 cases as expected"
+    echo "SIM OK: $total/$total cases as expected"
 else
     echo "SIM BROKEN: $bad case(s) not as expected"
     exit 1

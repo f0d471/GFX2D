@@ -16,14 +16,6 @@
 // 结束时期望队列取空、两半都放出来、没有多余的拍。
 `timescale 1ns/1ps
 `default_nettype none
-// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）；INJ_VAL 只为打印。
-`ifdef INJ_EN_NOTREADY
-`define INJ_VAL 8
-`elsif INJ_CORE_NOEN
-`define INJ_VAL 16
-`else
-`define INJ_VAL 0
-`endif
 `ifndef READY_MODE
 `define READY_MODE 2
 `endif
@@ -289,11 +281,8 @@ module tb_engine_pix_pipe;
         begin
             $display("pipe: cmds=%0d rows=%0d long=%0d beats=%0d slots=%0d waits=%0d stall=%0d overlap=%0d gap=%0d proto=%0d",
                      cmds, rows, long_rows, beats_out, checked, waits, stall_cyc, overlap_cyc, gap_cyc, proto_bad);
-            if (`INJ_VAL == 0) begin
-                if (bad == 0) $display("RESULT: PASS (%0d rows, %0d slots checked)", rows, checked);
-                else $display("RESULT: FAIL (%0d mismatches)", bad);
-            end else if (bad > 0) $display("RESULT: FAIL (inject %0d: %0d mismatches, as expected)", `INJ_VAL, bad);
-            else $display("RESULT: NOT_RED (inject %0d)", `INJ_VAL);
+            if (bad == 0) $display("RESULT: PASS (%0d rows, %0d slots checked)", rows, checked);
+            else $display("RESULT: FAIL (%0d mismatches)", bad);
             $finish;
         end
     endtask

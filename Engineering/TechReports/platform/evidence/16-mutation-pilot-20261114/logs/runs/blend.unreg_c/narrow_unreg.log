@@ -1,0 +1,5 @@
+== tb_engine_blend ONLY_EQ=1 STRIDE=1 ==
+  MISMATCH #65791: eq=1 src=0 dst=255 a=1 c=255  got=255 want=254
+检查 65791 个向量，不一致 1 处
+RESULT: FAIL
+tb_engine_blend.v:158: $finish called at 657950000 (1ps)

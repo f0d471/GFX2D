@@ -17,6 +17,11 @@
 set -u
 cd "$(dirname "$0")"
 
+# 单例模式：--case <用例名> 跳过研究探针，只让 run_formal.sh 跑那一个用例，
+# 只打印结果；判定交给 sim/mutation 的跑器。不给参数时行为与原来一致。
+CASE_ONLY=""
+if [ "${1:-}" = "--case" ]; then CASE_ONLY="${2:-}"; shift 2; fi
+
 RTL=../../../rtl
 SRC="probe_pix.v tb_probe_pix.v $RTL/engine/core/engine_blend.v"
 SRC_WR="$SRC $RTL/vendor/verilog-axi/axi_dma_wr.v ../../axi_probe/axi_ram_model.v"
@@ -49,6 +54,7 @@ build_one() {
     esac
 }
 
+if [ -z "$CASE_ONLY" ]; then
 echo "B4 研究探针 probe_pix："
 build_one probe_normal          ""  PASS    0
 build_one probe_realwr          ""  PASS    1
@@ -66,8 +72,15 @@ if [ "$bad" -ne 0 ]; then
     exit 1
 fi
 echo "PROBE OK: $total/$total checks as expected"
+fi
 
 # 入库 RTL 的正式判据，项数取它自己报的
+if [ -n "$CASE_ONLY" ]; then
+    formal=$(bash run_formal.sh --case "$CASE_ONLY")
+    rc=$?
+    echo "$formal"
+    exit $rc
+fi
 formal=$(bash run_formal.sh)
 rc=$?
 echo "$formal"

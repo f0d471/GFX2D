@@ -1,0 +1,34 @@
+B4 研究探针 probe_pix：
+  probe_normal: RESULT: PASS (10216 slots checked)
+      const-ready: stall cycles: head 0, mid 0
+  probe_realwr: RESULT: PASS (10216 slots checked)
+      realwr: 422 descriptors, stall cycles: head 426, mid 36 (rows with mid stalls 4)
+  probe_inj_rot: RESULT: FAIL (inject 1: 5220 mismatches, as expected)
+  probe_inj_key: RESULT: FAIL (inject 2: 274 mismatches, as expected)
+  probe_inj_msk: RESULT: FAIL (inject 4: 652 mismatches, as expected)
+  probe_inj_rdy: RESULT: FAIL (inject 8: 9412 mismatches, as expected)
+  probe_inj_core: RESULT: FAIL (inject 16: 3392 mismatches, as expected)
+  probe_inj_rdy_const: RESULT: NOT_RED (inject 8: no mismatch caught)
+  probe_inj_core_const: RESULT: NOT_RED (inject 16: no mismatch caught)
+PROBE OK: 9/9 checks as expected
+B4 入库像素单元（一行一行）：
+  unit_ready: RESULT: PASS (418 rows, 10216 slots checked)
+  unit_stall: RESULT: PASS (418 rows, 10216 slots checked)
+B4 入库像素单元（乒乓与流水，行与行之间不等）：
+  pipe_ready: RESULT: PASS (874 rows, 28340 slots checked)
+      pipe: cmds=300 rows=874 long=25 beats=7085 slots=28340 waits=470 stall=0 overlap=1539 gap=0 proto=0
+  pipe_stall: RESULT: PASS (874 rows, 28340 slots checked)
+      pipe: cmds=300 rows=874 long=25 beats=7085 slots=28340 waits=490 stall=1131 overlap=1667 gap=0 proto=0
+  pipe_burst: RESULT: PASS (874 rows, 28340 slots checked)
+      pipe: cmds=300 rows=874 long=25 beats=7085 slots=28340 waits=569 stall=49164 overlap=2378 gap=0 proto=0
+  directed_export: PIX CASES: commands=31 pixels=1494 written=1431 key=49 src_oob=14
+B1~B4 真实通路与随机反压 AXI RAM：
+  path_golden: RESULT: PASS (B1-B4, software executor golden)
+      PATH stats commands=30 read=78 write=61 stalls=334 mem_bad=0 errors=0
+  hazard_export: PIX CASES: commands=5 pixels=2592 written=2592 key=0 src_oob=0
+  path_hazard_wait: RESULT: PASS (B1-B4, software executor golden)
+      PATH stats commands=4 read=10 write=10 stalls=327 mem_bad=0 errors=0
+  path_hazard_nowait: RESULT: FAIL (B1-B4 integration)
+SIM OK: 8/8 RTL checks as expected
+SIM OK: 17/17 checks as expected
+exit=0

@@ -1,0 +1,164 @@
+{
+  "report": "Engineering/TechReports/platform/16-注错机制改为外部变异.md",
+  "date": "2026-11-14",
+  "scope": {
+    "migrated_modules": [
+      "engine_blend",
+      "engine_pix"
+    ],
+    "mutants": 10,
+    "files": [
+      "Main/rtl/engine/core/engine_blend.v",
+      "Main/rtl/engine/core/engine_pix.v"
+    ]
+  },
+  "identity": {
+    "git": "551c2029",
+    "manifest_sha256": "3a833433ee8ff3791984afd06fa8e4dd77d4df308880e339128f4a77481b21f4",
+    "rtl_sha256": {
+      "Main/rtl/engine/core/engine_blend.v": "307bde7c44c1a001f9e0e810918b99631084821d9ebd9f9671ee8e0de06e88d8",
+      "Main/rtl/engine/core/engine_pix.v": "ff05359e24900e57d14834461abd4c20be898865bb5a890debaadaa6dbc5bd1f"
+    },
+    "tools_sha256": {
+      "Main/sim/mutation/run_mutation.py": "41e74a4e9b0c8f779109f3c7b8df4196ef76db6885dd67e45565b2caac4c1632",
+      "Main/sim/mutation/verify_migration.py": "a0d73a78f0afc3689e605ff8d76075ff9b480995110816613d30d5bd2725971c",
+      "Main/sim/mutation/migrate_ifdef.py": "842afd900d999032f959f09ac6b01680ff8bd2dba9440e5f1ebebbcd56734538"
+    }
+  },
+  "mutation": {
+    "counts": {
+      "KILLED": 10
+    },
+    "baseline": {
+      "engine/blend:narrow_copy": "通过",
+      "engine/blend:narrow_const": "通过",
+      "engine/blend:narrow_unreg": "通过",
+      "engine/blend:stall": "通过",
+      "engine/blend:narrow_trunc": "通过",
+      "engine/pix:unit_stall": "通过",
+      "engine/pix:pipe_burst": "通过",
+      "engine/pix:path_golden": "通过"
+    },
+    "runs": {
+      "blend.copy_dst": [
+        {
+          "case": "narrow_copy",
+          "result": "FAIL",
+          "evidence": "MISMATCH #0: eq=0 "
+        }
+      ],
+      "blend.wrong_eq": [
+        {
+          "case": "narrow_const",
+          "result": "FAIL",
+          "evidence": "MISMATCH #1: eq=3 "
+        }
+      ],
+      "blend.unreg_c": [
+        {
+          "case": "narrow_unreg",
+          "result": "FAIL",
+          "evidence": "MISMATCH #65791: eq=1 "
+        }
+      ],
+      "blend.x_no_en": [
+        {
+          "case": "stall",
+          "result": "FAIL",
+          "evidence": "MISMATCH #1: eq="
+        }
+      ],
+      "blend.trunc16": [
+        {
+          "case": "narrow_trunc",
+          "result": "FAIL",
+          "evidence": "MISMATCH #767: eq=2 "
+        }
+      ],
+      "pix.en_notready": [
+        {
+          "case": "unit_stall",
+          "result": "FAIL",
+          "evidence": "BEATS_OR_GAP n="
+        },
+        {
+          "case": "pipe_burst",
+          "result": "FAIL",
+          "evidence": "PIX_MISMATCH beat="
+        }
+      ],
+      "pix.core_noen": [
+        {
+          "case": "unit_stall",
+          "result": "FAIL",
+          "evidence": "PIX_MISMATCH n="
+        },
+        {
+          "case": "pipe_burst",
+          "result": "FAIL",
+          "evidence": "PIX_MISMATCH beat="
+        }
+      ],
+      "pix.rot_off": [
+        {
+          "case": "unit_stall",
+          "result": "FAIL",
+          "evidence": "PIX_MISMATCH n="
+        }
+      ],
+      "pix.skip_key": [
+        {
+          "case": "unit_stall",
+          "result": "FAIL",
+          "evidence": "MASK_MISMATCH n="
+        },
+        {
+          "case": "path_golden",
+          "result": "FAIL",
+          "evidence": "MEM_MISMATCH addr="
+        }
+      ],
+      "pix.drop_mask": [
+        {
+          "case": "unit_stall",
+          "result": "FAIL",
+          "evidence": "MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=1"
+        }
+      ]
+    }
+  },
+  "verify": {
+    "forward_line_or_token_equal": {
+      "Main/rtl/engine/core/engine_blend.v": true,
+      "Main/rtl/engine/core/engine_pix.v": true
+    },
+    "reverse_ok": 10,
+    "reverse_total": 10
+  },
+  "suites": {
+    "blend": {
+      "SIM OK": [
+        "7/7 cases as expected"
+      ],
+      "exit": "0"
+    },
+    "pix": {
+      "SIM OK": [
+        "8/8 RTL checks as expected",
+        "17/17 checks as expected"
+      ],
+      "exit": "0"
+    }
+  },
+  "commands": [
+    "python3 Main/sim/mutation/run_mutation.py --audit",
+    "python3 Main/sim/mutation/run_mutation.py --run --timeout 300",
+    "python3 Main/sim/mutation/verify_migration.py --base-rev 551c2029",
+    "cd Main/sim/engine/blend && bash run.sh",
+    "cd Main/sim/engine/pix && bash run.sh"
+  ],
+  "notes": [
+    "本轮未综合、未上板；生产 RTL 的变化由 verify_migration 的预处理比对证明。",
+    "shadow/ 未归档（可按同一清单重建），原始用例日志在 logs/ 下。"
+  ]
+}

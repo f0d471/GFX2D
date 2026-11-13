@@ -1,0 +1,23 @@
+STALL_DATA_CHANGED at 415000
+STALL_DATA_CHANGED at 425000
+PIX_MISMATCH beat=0 slot=0 got=000e3f90 exp=00072173
+PIX_MISMATCH beat=0 slot=1 got=00e7257b exp=001d3837
+PIX_MISMATCH beat=0 slot=2 got=001e7445 exp=002c2e4e
+PIX_MISMATCH beat=0 slot=3 got=00c55beb exp=00952210
+PIX_MISMATCH beat=1 slot=0 got=008a013a exp=00004707
+PIX_MISMATCH beat=1 slot=1 got=001e2f32 exp=004d1839
+PIX_MISMATCH beat=1 slot=2 got=00312e37 exp=00118664
+PIX_MISMATCH beat=1 slot=3 got=0002c29b exp=0049120c
+PIX_MISMATCH beat=2 slot=0 got=001f2606 exp=000e3f90
+PIX_MISMATCH beat=2 slot=1 got=0024303e exp=00e7257b
+PIX_MISMATCH beat=2 slot=2 got=001d121b exp=001e7445
+PIX_MISMATCH beat=2 slot=3 got=0044762d exp=00c55beb
+PIX_MISMATCH beat=3 slot=0 got=00411f78 exp=008a013a
+PIX_MISMATCH beat=3 slot=1 got=0040408b exp=001e2f32
+PIX_MISMATCH beat=3 slot=2 got=00133659 exp=00312e37
+PIX_MISMATCH beat=3 slot=3 got=009c2522 exp=0002c29b
+STALL_DATA_CHANGED at 475000
+ROW_NEVER_FREE row=2 half=0
+pipe: cmds=0 rows=2 long=0 beats=4 slots=16 waits=1 stall=7 overlap=0 gap=19985 proto=0
+RESULT: FAIL (20009 mismatches)
+tb_engine_pix_pipe.v:286: $finish called at 200360000 (1ps)

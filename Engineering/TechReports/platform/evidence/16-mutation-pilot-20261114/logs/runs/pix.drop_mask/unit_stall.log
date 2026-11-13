@@ -1,0 +1,22 @@
+MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=1
+MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=2
+MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=3
+MASK_MISMATCH n=1 ls=0 ld=1 beat=0 slot=0
+MASK_MISMATCH n=1 ls=0 ld=1 beat=0 slot=2
+MASK_MISMATCH n=1 ls=0 ld=1 beat=0 slot=3
+MASK_MISMATCH n=1 ls=0 ld=2 beat=0 slot=0
+MASK_MISMATCH n=1 ls=0 ld=2 beat=0 slot=1
+MASK_MISMATCH n=1 ls=0 ld=2 beat=0 slot=3
+MASK_MISMATCH n=1 ls=0 ld=3 beat=0 slot=0
+MASK_MISMATCH n=1 ls=0 ld=3 beat=0 slot=1
+MASK_MISMATCH n=1 ls=0 ld=3 beat=0 slot=2
+MASK_MISMATCH n=1 ls=1 ld=0 beat=0 slot=1
+MASK_MISMATCH n=1 ls=1 ld=0 beat=0 slot=2
+MASK_MISMATCH n=1 ls=1 ld=0 beat=0 slot=3
+MASK_MISMATCH n=1 ls=1 ld=1 beat=0 slot=0
+MASK_MISMATCH n=1 ls=1 ld=1 beat=0 slot=2
+MASK_MISMATCH n=1 ls=1 ld=1 beat=0 slot=3
+MASK_MISMATCH n=1 ls=1 ld=2 beat=0 slot=0
+sweep done: 400 rows
+RESULT: FAIL (2913 mismatches)
+tb_engine_pix.v:266: $finish called at 127250000 (1ps)

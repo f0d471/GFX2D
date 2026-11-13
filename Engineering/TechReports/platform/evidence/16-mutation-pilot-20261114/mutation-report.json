@@ -1,0 +1,253 @@
+{
+  "time": "2026-11-14T01:27:47+0800",
+  "git": "551c2029",
+  "manifest": "Main/sim/mutation/mutants.yaml",
+  "baseline": {
+    "engine/blend:narrow_copy": {
+      "status": "通过",
+      "result": "PASS",
+      "seconds": 0.6
+    },
+    "engine/blend:narrow_const": {
+      "status": "通过",
+      "result": "PASS",
+      "seconds": 173.2
+    },
+    "engine/blend:narrow_unreg": {
+      "status": "通过",
+      "result": "PASS",
+      "seconds": 143.8
+    },
+    "engine/blend:stall": {
+      "status": "通过",
+      "result": "PASS",
+      "seconds": 5.6
+    },
+    "engine/blend:narrow_trunc": {
+      "status": "通过",
+      "result": "PASS",
+      "seconds": 1.3
+    },
+    "engine/pix:unit_stall": {
+      "status": "通过",
+      "result": "PASS",
+      "seconds": 6.5
+    },
+    "engine/pix:pipe_burst": {
+      "status": "通过",
+      "result": "PASS",
+      "seconds": 7.5
+    },
+    "engine/pix:path_golden": {
+      "status": "通过",
+      "result": "PASS",
+      "seconds": 5.1
+    }
+  },
+  "mutants": [
+    {
+      "id": "blend.copy_dst",
+      "target": "Main/rtl/engine/core/engine_blend.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "307bde7c44c1a001",
+      "sha_after": "94d56a6133903bd0",
+      "runs": [
+        {
+          "case": "narrow_copy",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "MISMATCH #0: eq=0 ",
+          "detail": "MISMATCH #0: eq=0 src=0 dst=165 a=77 c=255  got=165 want=0 | 检查 0 个向量，不一致 1 处 | RESULT: FAIL",
+          "seconds": 0.6
+        }
+      ]
+    },
+    {
+      "id": "blend.wrong_eq",
+      "target": "Main/rtl/engine/core/engine_blend.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "307bde7c44c1a001",
+      "sha_after": "cfb9f444a6b1aead",
+      "runs": [
+        {
+          "case": "narrow_const",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "MISMATCH #1: eq=3 ",
+          "detail": "MISMATCH #1: eq=3 src=0 dst=1 a=1 c=0  got=0 want=1 | 检查 1 个向量，不一致 1 处 | RESULT: FAIL",
+          "seconds": 0.6
+        }
+      ]
+    },
+    {
+      "id": "blend.unreg_c",
+      "target": "Main/rtl/engine/core/engine_blend.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "307bde7c44c1a001",
+      "sha_after": "5faa26d32c850b9f",
+      "runs": [
+        {
+          "case": "narrow_unreg",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "MISMATCH #65791: eq=1 ",
+          "detail": "MISMATCH #65791: eq=1 src=0 dst=255 a=1 c=255  got=255 want=254 | 检查 65791 个向量，不一致 1 处 | RESULT: FAIL",
+          "seconds": 1.2
+        }
+      ]
+    },
+    {
+      "id": "blend.x_no_en",
+      "target": "Main/rtl/engine/core/engine_blend.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "307bde7c44c1a001",
+      "sha_after": "3f783a4f6ebbe561",
+      "runs": [
+        {
+          "case": "stall",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "MISMATCH #1: eq=",
+          "detail": "MISMATCH #1: eq=0 src=5 dst=160 a=82 c=250  got=10 want=5 | MISMATCH #7: eq=0 src=35 dst=134 a=112 c=220  got=40 want=35 | MISMATCH #12: eq=0 src=60 dst=153 a=137 c=195  got=65 want=60",
+          "seconds": 5.5
+        }
+      ]
+    },
+    {
+      "id": "blend.trunc16",
+      "target": "Main/rtl/engine/core/engine_blend.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "307bde7c44c1a001",
+      "sha_after": "fa45b1a880c20fc3",
+      "runs": [
+        {
+          "case": "narrow_trunc",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "MISMATCH #767: eq=2 ",
+          "detail": "MISMATCH #767: eq=2 src=2 dst=255 a=253 c=1  got=0 want=255 | 检查 767 个向量，不一致 1 处 | RESULT: FAIL",
+          "seconds": 0.7
+        }
+      ]
+    },
+    {
+      "id": "pix.en_notready",
+      "target": "Main/rtl/engine/core/engine_pix.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "ff05359e24900e57",
+      "sha_after": "77906c8aa4ac0a5a",
+      "runs": [
+        {
+          "case": "unit_stall",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "BEATS_OR_GAP n=",
+          "detail": "RESULT: FAIL (1236 mismatches)",
+          "seconds": 24.9
+        },
+        {
+          "case": "pipe_burst",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "PIX_MISMATCH beat=",
+          "detail": "PIX_MISMATCH beat=0 slot=0 got=000e3f90 exp=00072173 | PIX_MISMATCH beat=0 slot=1 got=00e7257b exp=001d3837 | PIX_MISMATCH beat=0 slot=2 got=001e7445 exp=002c2e4e",
+          "seconds": 4.3
+        }
+      ]
+    },
+    {
+      "id": "pix.core_noen",
+      "target": "Main/rtl/engine/core/engine_pix.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "ff05359e24900e57",
+      "sha_after": "1dd8f4d99b897107",
+      "runs": [
+        {
+          "case": "unit_stall",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "PIX_MISMATCH n=",
+          "detail": "PIX_MISMATCH n=2 ls=0 ld=0 eq=2 beat=0 slot=0 got=00de4006 exp=00deffff | PIX_MISMATCH n=2 ls=2 ld=3 eq=1 beat=0 slot=3 got=00054f47 exp=00ffffff | PIX_MISMATCH n=2 ls=3 ld=3 eq=2 beat=0 slot=3 got=00142d7a exp=00ffffff",
+          "seconds": 6.1
+        },
+        {
+          "case": "pipe_burst",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "PIX_MISMATCH beat=",
+          "detail": "PIX_MISMATCH beat=1 slot=0 got=008a013a exp=00004707 | PIX_MISMATCH beat=1 slot=1 got=001e2f32 exp=004d1839 | PIX_MISMATCH beat=1 slot=2 got=00312e37 exp=00118664",
+          "seconds": 8.2
+        }
+      ]
+    },
+    {
+      "id": "pix.rot_off",
+      "target": "Main/rtl/engine/core/engine_pix.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "ff05359e24900e57",
+      "sha_after": "699b7e3e8d361859",
+      "runs": [
+        {
+          "case": "unit_stall",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "PIX_MISMATCH n=",
+          "detail": "MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=0 | PIX_MISMATCH n=1 ls=0 ld=2 eq=3 beat=0 slot=2 got=008e4482 exp=00392587 | MASK_MISMATCH n=1 ls=0 ld=3 beat=0 slot=3",
+          "seconds": 5.4
+        }
+      ]
+    },
+    {
+      "id": "pix.skip_key",
+      "target": "Main/rtl/engine/core/engine_pix.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "ff05359e24900e57",
+      "sha_after": "de497b38ccb06797",
+      "runs": [
+        {
+          "case": "unit_stall",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "MASK_MISMATCH n=",
+          "detail": "MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=0 | MASK_MISMATCH n=1 ls=0 ld=1 beat=0 slot=1 | MASK_MISMATCH n=1 ls=0 ld=3 beat=0 slot=3",
+          "seconds": 5.2
+        },
+        {
+          "case": "path_golden",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "MEM_MISMATCH addr=",
+          "detail": "MEM_MISMATCH addr=00003ff0 got=00609045008d6eee000c953300a54c77 want=00ff9045008d6eee000c953300a54c77 | MEM_MISMATCH addr=00004000 got=00fcd87e0028eb8d00b02fef002ba8a6 want=00fcd87e00ffeb8d00b0ffef00ffa8a6 | MEM_MISMATCH addr=00004010 got=005e6014000fead3008ec15b000dfff7 want=00ff60ff00ffead300ffc15",
+          "seconds": 4.8
+        }
+      ]
+    },
+    {
+      "id": "pix.drop_mask",
+      "target": "Main/rtl/engine/core/engine_pix.v",
+      "status": "KILLED",
+      "note": "",
+      "sha_before": "ff05359e24900e57",
+      "sha_after": "b4e4b45ded673c0c",
+      "runs": [
+        {
+          "case": "unit_stall",
+          "status": "见红",
+          "result": "FAIL",
+          "evidence": "MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=1",
+          "detail": "MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=1 | MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=2 | MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=3",
+          "seconds": 5.4
+        }
+      ]
+    }
+  ]
+}

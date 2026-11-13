@@ -1,0 +1,4 @@
+== tb_engine_blend ONLY_EQ=3 STRIDE=1 ==
+检查 16777216 个向量，不一致 0 处
+RESULT: PASS
+tb_engine_blend.v:272: $finish called at 167772190000 (1ps)

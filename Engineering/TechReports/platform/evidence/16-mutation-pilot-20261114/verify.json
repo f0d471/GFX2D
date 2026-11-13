@@ -1,0 +1,62 @@
+{
+  "Main/rtl/engine/core/engine_blend.v": {
+    "forward": true,
+    "mutants": [
+      {
+        "id": "blend.copy_dst",
+        "macro": "INJ_COPY_DST",
+        "ok": true
+      },
+      {
+        "id": "blend.wrong_eq",
+        "macro": "INJ_WRONG_EQ",
+        "ok": true
+      },
+      {
+        "id": "blend.unreg_c",
+        "macro": "INJ_UNREG_C",
+        "ok": true
+      },
+      {
+        "id": "blend.x_no_en",
+        "macro": "INJ_X_NO_EN",
+        "ok": true
+      },
+      {
+        "id": "blend.trunc16",
+        "macro": "INJ_TRUNC16",
+        "ok": true
+      }
+    ]
+  },
+  "Main/rtl/engine/core/engine_pix.v": {
+    "forward": true,
+    "mutants": [
+      {
+        "id": "pix.en_notready",
+        "macro": "INJ_EN_NOTREADY",
+        "ok": true
+      },
+      {
+        "id": "pix.core_noen",
+        "macro": "INJ_CORE_NOEN",
+        "ok": true
+      },
+      {
+        "id": "pix.rot_off",
+        "macro": "INJ_ROT_OFF",
+        "ok": true
+      },
+      {
+        "id": "pix.skip_key",
+        "macro": "INJ_SKIP_KEY",
+        "ok": true
+      },
+      {
+        "id": "pix.drop_mask",
+        "macro": "INJ_DROP_MASK",
+        "ok": true
+      }
+    ]
+  }
+}

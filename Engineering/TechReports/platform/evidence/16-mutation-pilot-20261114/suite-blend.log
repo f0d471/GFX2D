@@ -1,0 +1,13 @@
+规格侧 check_round255.c:
+  check_round255: 总判定：全部通过
+正常用例:
+  exhaustive: RESULT: PASS
+  golden: RESULT: PASS
+  stall: RESULT: PASS
+收窄范围的快速用例:
+  narrow_copy: RESULT: PASS
+  narrow_trunc: RESULT: PASS
+  narrow_unreg: RESULT: PASS
+  narrow_const: RESULT: PASS
+SIM OK: 7/7 cases as expected
+exit=0

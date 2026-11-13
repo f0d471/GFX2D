@@ -1,21 +1,6 @@
 // Formal RTL unit test: sidebands + read stream + write stream.
 `timescale 1ns/1ps
 `default_nettype none
-// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）；INJ_VAL 只为打印，
-// 名字与 run_formal.sh 的用例一一对应。
-`ifdef INJ_ROT_OFF
-`define INJ_VAL 1
-`elsif INJ_SKIP_KEY
-`define INJ_VAL 2
-`elsif INJ_DROP_MASK
-`define INJ_VAL 4
-`elsif INJ_EN_NOTREADY
-`define INJ_VAL 8
-`elsif INJ_CORE_NOEN
-`define INJ_VAL 16
-`else
-`define INJ_VAL 0
-`endif
 module tb_engine_pix;
     reg clk=0, rst=1; always #5 clk=~clk;
     reg [1:0] half, sfmt, lead_src, lead_dst;
@@ -276,11 +261,8 @@ module tb_engine_pix;
             f_npx=(k<4)?253:640;f_ls=(k*3+1)%4;f_ld=k%4;half=k%2;
             gen_row(0,k%6,k%3,k[0]);run_row;
         end
-        if(`INJ_VAL==0) begin
-            if(bad==0)$display("RESULT: PASS (%0d rows, %0d slots checked)",rows_run,checked);
-            else $display("RESULT: FAIL (%0d mismatches)",bad);
-        end else if(bad>0)$display("RESULT: FAIL (inject %0d: %0d mismatches, as expected)",`INJ_VAL,bad);
-        else $display("RESULT: NOT_RED (inject %0d)",`INJ_VAL);
+        if(bad==0)$display("RESULT: PASS (%0d rows, %0d slots checked)",rows_run,checked);
+        else $display("RESULT: FAIL (%0d mismatches)",bad);
         $finish;
     end
 endmodule

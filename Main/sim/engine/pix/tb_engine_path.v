@@ -12,12 +12,6 @@
 // 配 --sprites 那组用例量两种提交方式的总周期数（PERF 一行，从第一条提交到最后一条写回完成）。
 `timescale 1ns/1ps
 `default_nettype none
-// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）。
-`ifdef INJ_SKIP_KEY
-`define INJ_VAL 2
-`else
-`define INJ_VAL 0
-`endif
 `ifndef CASE
 `define CASE "build/directed"
 `endif

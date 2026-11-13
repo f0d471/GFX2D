@@ -146,6 +146,12 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 正常编译不定义任何 `INJ_*`（预处理删除，不依赖综合器优化）；一次只开一个，
 用例与各 `sim/engine/*/run.sh` 一一对应，变异必须在指明的消费者处见红。
 
+**迁移进行中（2026-11-14）。** `engine_blend` 与 `engine_pix` 的十条已经移出生产 RTL，
+改成外部变异活动：变异体写在 `Main/sim/mutation/mutants.yaml`，由
+`run_mutation.py` 在隔离影子树里施加，生产源码一个字符都不动。下面表里这两组留在
+原处，只是记录每处「改错什么」；它们对应的 `INJ_*` 开关已不存在，别的模块仍按条件编译走。
+全部迁完后本节改成对外部活动的索引。
+
 | 开关 | 注入缺陷 |
 | --- | --- |
 | `INJ_WRONG_EQ`（blend） | CONST 用 base=src、m1=dst-src 代入，恒等不成立 |

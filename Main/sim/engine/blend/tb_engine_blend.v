@@ -11,13 +11,8 @@
 //   2. 抽样与 check_round255.c 的输出对一次（-DGOLDEN，读 build/golden.hex）。
 //   3. 停顿（-DSTALL）：随机插入 en 拉低的拍，停顿期间输入换成乱值，
 //      流水线与期望值的延迟链一起停住，恢复后逐值仍须相同。
-//   4. 注错必须见红（配 -DFAILFAST）：
-//        -DINJ_WRONG_EQ   改错一个方程（CONST）
-//        -DINJ_TRUNC16    中间量模截断到 16 位
-//        -DINJ_UNREG_C    乘之后只寄存乘积，base×255 仍取当前输入
-//        -DINJ_COPY_DST   COPY 误用 dst（抄了 ADD 行），只有不用的输入会变时才看得出
-//        -DINJ_X_NO_EN    级 2 的 r_x 不看 en，只有停顿时才看得出
-//      开关直接传给被测（预处理器级宏），本测试台不持有也不转译它们。
+//   4. 变异必须见红（配 -DFAILFAST）：变异体在 Main/sim/mutation/mutants.yaml，
+//      由跑器在隔离树里施加；本测试台不持有也不转译任何注错开关。
 //
 // 驱动方式：每拍换一个向量，输入的延迟链给出同一拍的期望值，比较在 negedge 做，
 // 因此总周期数约等于向量数，全量穷举（50462976 个向量）才跑得动。
@@ -28,7 +23,6 @@
 //   -DSTRIDE=n    抽样步长（默认 1 = 全量）；停顿用例用 5，判据的穷举要跑默认值
 //   -DSTALL       随机插入停顿拍（约 1/8 的拍）
 //   -DGOLDEN      改跑 build/golden.hex 的抽样对账
-//   -DINJ_xxx     注错开关，直接作用于被测 RTL 的 `ifdef
 `timescale 1ns/1ps
 `default_nettype none
 
@@ -43,21 +37,7 @@ module tb_engine_blend;
     localparam integer ONLY_EQ = -1;          // -1 = 六个方程都跑
 `endif
 
-// 注错位号只用于打印，名字即判据：开关由 run.sh 以 -DINJ_xxx 直接传给被测 RTL
-`ifdef INJ_WRONG_EQ
-    localparam integer INJECT_VAL = 1;
-`elsif INJ_TRUNC16
-    localparam integer INJECT_VAL = 2;
-`elsif INJ_UNREG_C
-    localparam integer INJECT_VAL = 4;
-`elsif INJ_COPY_DST
-    localparam integer INJECT_VAL = 8;
-`elsif INJ_X_NO_EN
-    localparam integer INJECT_VAL = 16;
-`else
-    localparam integer INJECT_VAL = 0;
-`endif
-
+// 变异体由 Main/sim/mutation 的跑器施加，本测试台不持有也不转译注错开关。
 `ifdef STRIDE
     localparam integer STRIDE = `STRIDE;
 `else
@@ -209,8 +189,7 @@ module tb_engine_blend;
     integer ii, jj, kk, fi;
 
     initial begin
-        $display("== tb_engine_blend INJECT=%0d ONLY_EQ=%0d STRIDE=%0d ==",
-                 INJECT_VAL, ONLY_EQ, STRIDE);
+        $display("== tb_engine_blend ONLY_EQ=%0d STRIDE=%0d ==", ONLY_EQ, STRIDE);
 
         for (si = 0; si < L; si = si + 1) begin
             ds[si] = 8'd0; dd[si] = 8'd0; da[si] = 8'd0; dc[si] = 8'd0; de[si] = 3'd0;

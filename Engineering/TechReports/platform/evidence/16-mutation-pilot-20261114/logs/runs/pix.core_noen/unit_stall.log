@@ -1,0 +1,22 @@
+PIX_MISMATCH n=2 ls=0 ld=0 eq=2 beat=0 slot=0 got=00de4006 exp=00deffff
+PIX_MISMATCH n=2 ls=2 ld=3 eq=1 beat=0 slot=3 got=00054f47 exp=00ffffff
+PIX_MISMATCH n=2 ls=3 ld=3 eq=2 beat=0 slot=3 got=00142d7a exp=00ffffff
+PIX_MISMATCH n=3 ls=0 ld=3 eq=0 beat=1 slot=0 got=00787d24 exp=0065bc5e
+PIX_MISMATCH n=3 ls=0 ld=3 eq=0 beat=1 slot=1 got=00407532 exp=0065bc5e
+PIX_MISMATCH n=3 ls=1 ld=3 eq=1 beat=0 slot=3 got=00809851 exp=00ff98ff
+PIX_MISMATCH n=3 ls=2 ld=2 eq=1 beat=0 slot=2 got=00afa0da exp=00afffda
+PIX_MISMATCH n=3 ls=2 ld=3 eq=2 beat=0 slot=3 got=0040006b exp=00ffff6b
+PIX_MISMATCH n=3 ls=2 ld=3 eq=2 beat=1 slot=0 got=0048275f exp=00ffff49
+PIX_MISMATCH n=3 ls=2 ld=3 eq=2 beat=1 slot=1 got=00a6ccd6 exp=00a6ffd6
+PIX_MISMATCH n=3 ls=3 ld=2 eq=2 beat=0 slot=2 got=003328f5 exp=00fffff5
+PIX_MISMATCH n=3 ls=3 ld=2 eq=2 beat=1 slot=0 got=00c80d68 exp=00c8ffff
+PIX_MISMATCH n=4 ls=0 ld=2 eq=0 beat=1 slot=0 got=006d2310 exp=00da70a1
+PIX_MISMATCH n=4 ls=0 ld=2 eq=0 beat=1 slot=1 got=001095d0 exp=00da70a1
+PIX_MISMATCH n=4 ls=0 ld=3 eq=1 beat=0 slot=3 got=00bd826b exp=00ff82ff
+PIX_MISMATCH n=4 ls=0 ld=3 eq=1 beat=1 slot=0 got=009a5ba1 exp=00ffffff
+PIX_MISMATCH n=4 ls=1 ld=2 eq=1 beat=0 slot=3 got=00c8e859 exp=00c8e8ff
+PIX_MISMATCH n=4 ls=1 ld=2 eq=1 beat=1 slot=0 got=007c5fc7 exp=007cffff
+PIX_MISMATCH n=4 ls=1 ld=3 eq=2 beat=0 slot=3 got=00e0c28c exp=00e0ffff
+sweep done: 400 rows
+RESULT: FAIL (4328 mismatches)
+tb_engine_pix.v:266: $finish called at 127250000 (1ps)

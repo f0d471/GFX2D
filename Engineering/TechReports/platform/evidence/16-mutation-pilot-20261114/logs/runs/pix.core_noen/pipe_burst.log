@@ -1,0 +1,22 @@
+PIX_MISMATCH beat=1 slot=0 got=008a013a exp=00004707
+PIX_MISMATCH beat=1 slot=1 got=001e2f32 exp=004d1839
+PIX_MISMATCH beat=1 slot=2 got=00312e37 exp=00118664
+PIX_MISMATCH beat=1 slot=3 got=0002c29b exp=0049120c
+PIX_MISMATCH beat=2 slot=0 got=001f2606 exp=000e3f90
+PIX_MISMATCH beat=2 slot=1 got=0024303e exp=00e7257b
+PIX_MISMATCH beat=2 slot=2 got=001d121b exp=001e7445
+PIX_MISMATCH beat=2 slot=3 got=0044762d exp=00c55beb
+PIX_MISMATCH beat=3 slot=0 got=001f2606 exp=008a013a
+PIX_MISMATCH beat=3 slot=1 got=0024303e exp=001e2f32
+PIX_MISMATCH beat=3 slot=2 got=001d121b exp=00312e37
+PIX_MISMATCH beat=3 slot=3 got=0044762d exp=0002c29b
+PIX_MISMATCH beat=5 slot=0 got=005b6e5e exp=00411f78
+PIX_MISMATCH beat=5 slot=1 got=0026090a exp=0040408b
+PIX_MISMATCH beat=5 slot=2 got=007b0730 exp=00133659
+PIX_MISMATCH beat=5 slot=3 got=00aa0e13 exp=009c2522
+PIX_MISMATCH beat=6 slot=0 got=005b6e5e exp=0050000b
+PIX_MISMATCH beat=6 slot=1 got=0026090a exp=00161316
+PIX_MISMATCH beat=6 slot=2 got=007b0730 exp=002d8a29
+pipe: cmds=300 rows=874 long=25 beats=7085 slots=28340 waits=569 stall=49164 overlap=2378 gap=0 proto=0
+RESULT: FAIL (15668 mismatches)
+tb_engine_pix_pipe.v:286: $finish called at 717680000 (1ps)

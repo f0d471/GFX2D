@@ -86,17 +86,9 @@ module engine_pix (
     wire write_fire = ws_tvalid && ws_tready;
 
     // 计算链使能：出口满则整链保持，空则不等 ready
-`ifdef INJ_EN_NOTREADY // 注错：计算通路不看下游反压
-    wire pipe_en = 1'b1;
-`else
     wire pipe_en = ws_tready || !ws_tvalid; // 出口空着就不等 ready
-`endif
 
-`ifdef INJ_CORE_NOEN // 注错：核心不随外围流水暂停
-    wire core_en = 1'b1;
-`else
     wire core_en = pipe_en; // 核与外围同停
-`endif
 
     // 恒定输出：ws_tkeep 全 1，rs_tready 恒 1
     assign ws_tkeep = 16'hffff;
@@ -356,11 +348,7 @@ module engine_pix (
     wire [2:0] align_start_raw = src_read_ahead
         ? ({1'b0, row_lead_src} - {1'b0, row_lead_dst})
         : ({1'b0, row_lead_src} + 3'd4 - {1'b0, row_lead_dst}); // st = (ls-ld) mod 4
-`ifdef INJ_ROT_OFF // 注错：旋转错一个位置
-    wire [2:0] align_start = align_start_raw + 3'd1;
-`else
     wire [2:0] align_start = align_start_raw;
-`endif
 
     wire [127:0] aligned_src =
         (align_start == 3'd0) ? src_window[127:0]  :
@@ -371,9 +359,6 @@ module engine_pix (
     wire [95:0] s3_dst_next = row_read_dst ? s2_dst : 96'd0; // 不读目的时清 0
 
     // 色键：比对齐后的原始 32 位字
-`ifdef INJ_SKIP_KEY // 注错：色键命中的像素照写
-    wire [3:0] s3_key_hit_next = 4'd0;
-`else
     `ifdef GFX_KEY
         wire [3:0] s3_key_hit_next = row_blit && row_key_en ? {
             s3_src_next[127:96] == row_key, s3_src_next[95:64] == row_key,
@@ -381,7 +366,6 @@ module engine_pix (
     `else
         wire [3:0] s3_key_hit_next = 4'd0;
     `endif
-`endif
 
     // alpha：XRGB 取 255，其余取源字高字节
     wire xrgb_src = row_blit && (row_src_format == FMT_XRGB); // 仅 BLIT/XRGB
@@ -393,13 +377,8 @@ module engine_pix (
 
     // 首/末拍掩码：只有首末拍可能越界，中间恒满
     wire [3:0] s3_mask_next;
-`ifdef INJ_DROP_MASK // 注错：丢首拍掩码
-    assign s3_mask_next = (s2_beat == 8'd0) ? 4'hf :
-        (s2_beat == (row_dst_beats - 8'd1)) ? row_last_mask : 4'hf;
-`else
     assign s3_mask_next = (s2_beat == 8'd0) ? row_first_mask :
         (s2_beat == (row_dst_beats - 8'd1)) ? row_last_mask : 4'hf; // beat==0 先判，一拍行用首 mask
-`endif
 
     // S3 打拍：所有组合输入在此截止
     always @(posedge clk) begin

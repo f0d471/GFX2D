@@ -1,0 +1,17 @@
+Main/rtl/engine/core/engine_blend.v
+  正向（不定义任何 INJ_）: PASS  代码相同，注释有改动  98 行 vs 99 行
+  blend.copy_dst         反演 PASS  -DINJ_COPY_DST  283 token
+  blend.wrong_eq         反演 PASS  -DINJ_WRONG_EQ  280 token
+  blend.unreg_c          反演 PASS  -DINJ_UNREG_C  280 token
+  blend.x_no_en          反演 PASS  -DINJ_X_NO_EN  278 token
+  blend.trunc16          反演 PASS  -DINJ_TRUNC16  281 token
+Main/rtl/engine/core/engine_pix.v
+  正向（不定义任何 INJ_）: PASS  逐行相同  465 行 vs 465 行
+  pix.en_notready        反演 PASS  -DINJ_EN_NOTREADY  1567 token
+  pix.core_noen          反演 PASS  -DINJ_CORE_NOEN  1569 token
+  pix.rot_off            反演 PASS  -DINJ_ROT_OFF  1571 token
+  pix.skip_key           反演 PASS  -DINJ_SKIP_KEY  1551 token
+  pix.drop_mask          反演 PASS  -DINJ_DROP_MASK  1569 token
+
+正向 2/2 个文件；反演 10/10 条；全部一致
+verify exit=0

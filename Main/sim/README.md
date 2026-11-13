@@ -22,10 +22,10 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 | `axi_probe/` | `rtl/bus/axi_probe_master.v` 与 `rtl/vendor/axi_mux/Axi_Mux.v`，两个主机并发 | 正常 + 4 个注错。需要 `EFINITY_HOME` 指向 Efinity 安装目录（取 `EFX_SRL8` 原语模型） |
 | `axi_mux_guard/` | `rtl/bus/axi_mux_guard.v` 与 `Axi_Mux`（X3，三个主机：扫描替身、引擎替身、CPU 替身） | 读、写两个方向各一组：14 个用例（11 正常/对照 + 3 注错），加两项保护开关逐项比对与一项「inject_wlast 的 FAIL 来自 wlast_err」检查，共 17 项。同样需要 `EFINITY_HOME` |
 | `display/` | `rtl/display/` 的扫描输出：`display_fifo`（厂商异步 FIFO 的封装）与 `display_top` | 两个测试台。`tb_fifo_semantics`：正常 + `inject_no_reset`；`tb_display`：`image`（含像素时钟 ±0.5% 两组）、`swap`、`inflight`、`level`、`starve`、`snapshot`、`corerst`、`image_full`（整帧 640×480，用 `FULL=1` 打开）与 7 个注错。只有明文 RTL，不需要 `EFINITY_HOME` |
-| `engine/blend/` | `rtl/engine/core/engine_blend.v`（单通道混合核） | `exhaustive`（六个方程全定义域 50462976 个向量，方程用不到的输入跟着变）、`golden`（抽样 1024 条对 `check_round255.c` 导出的金标准）、`stall`（随机插入 `en` 拉低的停顿拍）与 5 个注错。全量一次约 6 分钟。只有明文 RTL，不需要 `EFINITY_HOME` |
+| `engine/blend/` | `rtl/engine/core/engine_blend.v`（单通道混合核） | `exhaustive`（六个方程全定义域 50462976 个向量，方程用不到的输入跟着变）、`golden`（抽样 1024 条对 `check_round255.c` 导出的金标准）、`stall`（随机插入 `en` 拉低的停顿拍）与四条收窄范围的快速用例（`narrow_*`，供变异跑器快速判红）。五条变异体已移到 [`mutation/mutants.yaml`](mutation/mutants.yaml)，RTL 里没有注错分支。全量一次约 6 分钟。只有明文 RTL，不需要 `EFINITY_HOME` |
 | `engine/mover/` | `rtl/engine/core/engine_mover.v`（搬运层）经仓内 `Axi_Mux`（S1）接从机 | `normal`（读侧仲裁、读流分发与上下文、写掩码、状态里的命令索引与末行标记、在途契约、地址与突发约束）、`drain`（读、写突发中途各排空一次，控制层复位与软复位各一组；请求完成后继续举着时 `drain_done` 只打一次、请求撤下之前不收新提交）、`err`（读回、写响应 SLVERR 各一例）、`timeout`（从机按住超过门限）与 5 个注错，另加从机定时模式的回归 `slave_timed`（`tb_slave_timed.v`，直连从机、不经过被测）。需要 `EFINITY_HOME`（`Axi_Mux` 例化 `EFX_SRL8`） |
 | `engine/geom/` | `rtl/engine/core/engine_geom.v`（几何层）。同目录另有前期研究的探针 `probe_geom.v`（`probe_geom_intersect`、`probe_geom_d7`、`probe_geom_rowiter`），保留为回归 | 期望值全部由独立模型 `tools/check/geom_model.py` 现算，测试台只做「驱动 + 比对」：定向用例 34 条、159 条向量里几何层见到的 59 条命令、十一整帧用例的 17 条命令，合计 1020 + 338 + 5224 条记录逐字段比、每个描述符过 16 字节对齐/不跨 4KB 的规矩、读写避让的读源/读目的有无、零面积命令的完成脉冲与命令索引；握手监视器查多发的描述符与非空命令的 `cmd_done`，行缓冲替身查每一行都开在空着的那一半上。另加 `+STALL`（三个方向各压反压）与 `+RFSTALL`（行缓冲替身的排空拉长到 23 拍），判据是序列与恒 ready 时相同。五个注错，探针 14/14，全套 27/27。不需要 `EFINITY_HOME` |
-| `engine/pix/` | `rtl/engine/core/engine_pix.v`（计算阵列与片上缓存）。同目录另有前期研究的探针 `probe_pix.v`，保留为回归 | 一行一行的单元测试 418 行 / 10216 个槽与五个注错；乒乓测试台 874 行 / 28340 个槽（行与行之间不等，三种写流下游）与两个注错；从几何层到搬运层的真实通路（几何层、计算阵列、搬运层、两个 DMA 核、随机反压从机）30 条命令 512 KiB 逐字对软件执行器；跨命令写后读一组（等写回必须对、不等必须红）；研究探针 9 项，全套 25/25。不需要 `EFINITY_HOME` |
+| `engine/pix/` | `rtl/engine/core/engine_pix.v`（计算阵列与片上缓存）。同目录另有前期研究的探针 `probe_pix.v`，保留为回归 | 一行一行的单元测试 418 行 / 10216 个槽（含停顿那一遍）；乒乓测试台 874 行 / 28340 个槽（行与行之间不等，三种写流下游）；从几何层到搬运层的真实通路（几何层、计算阵列、搬运层、两个 DMA 核、随机反压从机）30 条命令 512 KiB 逐字对软件执行器；跨命令写后读一组（等写回必须对、不等必须红）；研究探针 9 项，入库 RTL 全套 9/9。五条变异体已移到 [`mutation/mutants.yaml`](mutation/mutants.yaml)，`unit_stall`/`pipe_burst`/`path_golden` 是它们的发现者。不需要 `EFINITY_HOME` |
 | `engine/ctrl/` | 控制层：研究探针 `probe_check.v`（保留为回归）+ 正式单元仿真 `tb_engine_top.v`（`rtl/engine/engine_top.v` 全链经 APB 提交，从机是 `axi_ram_model`）| 探针：定向 54 条 × 三结构全符、随机 3000 组互比、预计算位等价。正式：159 条一致性向量端到端逐条对错误三元组与内存、定向判据（取数边界/总线错误/超时/软复位/写后读/首错顺序/PERF 与 APB 对账），6576 项检查 0 错；两个注错构建（对调 space/format、关掉逐条回退）各自见红。不需要 `EFINITY_HOME` |
 | `engine/frame/` | 整帧仿真：`tb_engine_frame.v`（`engine_top` 经 APB 提交整张命令表，从机 `axi_ram_model` 带随机反压，4 MiB 存储，其中用例窗口由各用例 `cnt.hex` 指定）| 十一个整帧金标准（内存逐 128 位对软件执行器、帧缓冲 CRC 对 `golden.txt` 11/11）+ 基础 Demo 场景 A 连续两帧（`tools/check/sw6_frames_dump.c` 从游戏本体的 `sw6_scene_a.c` 组表导出）+ 定时从机弹幕性能（16 颗 16×16 ALPHA，`PERF_BUSY` 逐颗对账）+ 从机 SLVERR 窗口注错；计数器对账 `PIXEL == pixel_total − src_oob`、`RD/WR_BEAT`、`RD/WR_BURST` 对从机观测值。不需要 `EFINITY_HOME` |
 
@@ -47,7 +47,10 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 
 每个 `run.sh` 除了正常用例，还必须带注错用例：把一处改错，对应的判据必须报 FAIL。全部用例都符合预期才输出 `SIM OK`，否则退出码非零。只跑正常用例无法说明判据真的在检查东西。
 
-注错的机制、命名与提交前检查见 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节（原型是变异测试 / functional qualification，与安全标准的 fault injection 不同）。要点：生产 RTL 里不放运行时注错开关，变异分支包在 `` `ifdef INJ_xxx `` 内，开关由 `run.sh` 以 `-DINJ_xxx` 传入，不定义时那些行进不了编译输入。`sim/` 下不综合的研究探针（`probe_*.v`）例外，它们继续用参数化注错口，不进网表。
+注错的机制、命名与提交前检查见 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节（原型是变异测试 / functional qualification，与安全标准的 fault injection 不同）。两种机制并存，以迁移进度为准：
+
+- **外部变异活动（迁移目标，2026-11-14 起 `engine/blend`、`engine/pix` 已迁）**：生产 RTL 不含任何注错分支；变异体写在 [`mutation/mutants.yaml`](mutation/mutants.yaml)，由 [`mutation/run_mutation.py`](mutation/run_mutation.py) 在隔离影子树里应用一条规则后调用本目录的 `run.sh --case <名字>`，按登记的见红位置正则判定 KILLED / KILLED-WEAK / SURVIVED / PARTIAL / INVALID。见 [mutation/README](mutation/README.md)。
+- **条件编译（其余模块仍在用）**：变异分支包在 `` `ifdef INJ_xxx `` 内，开关由 `run.sh` 以 `-DINJ_xxx` 传入，不定义时那些行进不了编译输入。`sim/` 下不综合的研究探针（`probe_*.v`）例外，它们继续用参数化注错口，不进网表。
 
 | 用例 | 注错内容 | 期望 |
 | --- | --- | --- |
@@ -62,11 +65,7 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 | `axi_mux_guard/inject_noguard` | 关掉 SoC 防饿死保护（`GUARD_EN=0`），激进读引擎 | FAIL，最大地址等待超过同一阈值（实测 889 > 700） |
 | `axi_mux_guard/inject_mask_s0` | 让保护掩码把 S0 位也清掉 | FAIL，扫描拿不到授权 |
 | `axi_mux_guard/inject_wlast` | 引擎替身的 WLAST 打一拍（2026-09-19 之前的真实 bug） | FAIL，从机 `wlast_err` 非零 |
-| `engine/blend/inject_wrong_eq` | 混合核的 CONST 行代入写错（`base`、`m1` 都取错） | FAIL，第一处不符的向量在 CONST 上 |
-| `engine/blend/inject_trunc16` | 中间量 `t` 模截断到 16 位 | FAIL，ADD 上 `src + dst ≥ 257` 处丢进位 |
-| `engine/blend/inject_unreg_c` | 乘之后只寄存乘积，`base × 255` 仍取当前输入（2026-09-29 草案里真实出现过的错） | FAIL，ALPHA 上两拍的操作数被相加 |
-| `engine/blend/inject_copy_dst` | COPY 的 `base` 误取 `src + dst`（抄了 ADD 行） | FAIL，COPY 的第一个向量；方程用不到的输入若固定成 0 就看不出 |
-| `engine/blend/inject_x_no_en` | 级 2 的 `r_x` 不看 `en` | FAIL，第一次停顿之后；`en` 恒为 1 时看不出 |
+| `sim/mutation` 的 `blend.*` 五条 | CONST 代入写错、`t` 模截断到 16 位、`base×255` 不取寄存值、COPY 的 `base` 误取 `src + dst`、级 2 不看 `en` | 由跑器施加，不是 `run.sh` 的用例；期望见红位置登记在 `mutants.yaml` 的 `runs[].evidence` |
 | `engine/mover/inject_nogate_rd` | 去掉读方向的在途门控（`-DINJ_NO_GATE_RD`），读核一 ready 就放下一个 | FAIL，读流上下文错位（拍子带的目标缓冲号与命令索引属于另一笔），总线侧也有违例周期 |
 | `engine/mover/inject_mask` | 带内掩码旁路（`-DINJ_MASK_BYPASS`），`wstrb` 与 X 字节直通 | FAIL，被标记「不写」的像素被写进了目的区 |
 | `engine/mover/inject_nodrain` | 排空旁路（`-DINJ_DRAIN_BYPASS`），排空期不帮忙收读流、也不补哑拍 | FAIL，两个方向都停在忙态，排空完成等不到 |
@@ -78,7 +77,7 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 | `engine/geom/inject_alpha` | `-DINJ_ALPHA_AS_COPY`：ALPHA 也按 COPY 走「不读目的」的避让 | FAIL，`sideband read-dst` 判定不一致，读描述符少一半 |
 | `engine/geom/inject_extra` | `-DINJ_COPY_READ`：COPY 也发读目的描述符（边带仍说不读） | FAIL，握手监视器的 `PROTO handshake count`（消费循环看不见多发的描述符） |
 | `engine/geom/inject_norf` | `-DINJ_ROW_NOFREE`：行开始之前不看 `row_free`，配 `+RFSTALL` | FAIL，行缓冲替身的 `BUFERR ... started on busy half` |
-| `engine/pix` 的五个注错 | `-DINJ_ROT_OFF`、`-DINJ_SKIP_KEY`、`-DINJ_DROP_MASK`、`-DINJ_EN_NOTREADY`、`-DINJ_CORE_NOEN` | FAIL，各自红在对应的像素比对或协议检查上；`-DINJ_EN_NOTREADY`/`-DINJ_CORE_NOEN` 在恒 ready 的测试台上必须不红 |
+| `sim/mutation` 的 `pix.*` 五条 | 旋转错一个位置、色键命中的像素照写、丢首拍掩码、计算链不看下游反压、混合核不随流水停 | 由跑器施加；`unit_stall`、`pipe_burst`、`path_golden` 各自负责其中几条，见红位置登记在 `mutants.yaml` |
 | `engine/tex` 的四个注错 | `-DINJ_VALID_EARLY`、`-DINJ_WR_LOOSE`、`-DINJ_STAT_DROP`、`-DINJ_TX_NOWAIT` | FAIL，证据行分别是 `STR-DATA`、`APB-UNALIGN-SIDE-EFFECT`、`TEX INJECT 4 STATUS_MISSING`、`PIXEL_STREAM_COLLISION` |
 | `display` 的七个注错 | `-DINJ_NO_DRAIN`、`-DINJ_NO_CLEAR`、`-DINJ_SWAP_NOW`、`-DINJ_INFLIGHT2`、`-DINJ_LAG0`、`-DINJ_PHASE3`、`-DINJ_ORDER_REV` | FAIL，各自红在对应的判据上 |
 | `engine/geom` 的探针注错 | `probe_geom.v` 的 `INJECT`（跨 4KB 不拆、漏第五项、`probe_geom_d7` 的 ALPHA 误避让） | FAIL，各自红在探针自己的判据上（14/14 → 见红） |
