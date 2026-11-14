@@ -27,9 +27,9 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-// INJECT 值由 run.sh 以 -DINJ_VAL=N 传入（照 sim/engine/geom 的惯例）
-`ifndef INJ_VAL
-`define INJ_VAL 0
+// INJECT 值由 run.sh 以 -DINJECT_VAL=N 传入（照 sim/engine/geom 的惯例）
+`ifndef INJECT_VAL
+`define INJECT_VAL 0
 `endif
 
 module tb_probe_pix;
@@ -131,7 +131,7 @@ module tb_probe_pix;
     assign ws_tready = 1'b1;
 `endif
 
-    probe_pix_path #(.INJECT(`INJ_VAL)) dut (
+    probe_pix_path #(.INJECT(`INJECT_VAL)) dut (
         .clk(clk), .rst(rst),
         .start(start), .half(half), .is_blit(is_blit), .eq(eq),
         .key_en(key_en), .key_w5(key_w5), .w4(w4), .c(c), .sfmt(sfmt),
@@ -142,7 +142,7 @@ module tb_probe_pix;
         .ws_tvalid(ws_tvalid), .ws_tready(ws_tready),
         .busy(busy), .dbg_off(dbg_off), .dbg_st(dbg_st));
 
-    // INJECT 由 -DINJ_VAL 传入，见文件头
+    // INJECT 由 -DINJECT_VAL 传入，见文件头
 
     // ---------------------------------------------------------------- 参考模型（照 exec_sw.c）
     function [7:0] r255;
@@ -487,7 +487,7 @@ module tb_probe_pix;
         $display("const-ready: stall cycles: head %0d, mid %0d", stall_head, stall_mid);
 `endif
 
-        if (`INJ_VAL == 0) begin
+        if (`INJECT_VAL == 0) begin
             if (bad == 0)
                 $display("RESULT: PASS (%0d slots checked)", checked);
             else
@@ -496,9 +496,9 @@ module tb_probe_pix;
         end else begin
             // 注错构建：有红才算对（run.sh 判「RESULT: FAIL」）
             if (bad > 0)
-                $display("RESULT: FAIL (inject %0d: %0d mismatches, as expected)", `INJ_VAL, bad);
+                $display("RESULT: FAIL (inject %0d: %0d mismatches, as expected)", `INJECT_VAL, bad);
             else
-                $display("RESULT: NOT_RED (inject %0d: no mismatch caught)", `INJ_VAL);
+                $display("RESULT: NOT_RED (inject %0d: no mismatch caught)", `INJECT_VAL);
         end
         $finish;
     end
