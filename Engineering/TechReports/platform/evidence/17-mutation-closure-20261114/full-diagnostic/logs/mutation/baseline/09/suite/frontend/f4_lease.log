@@ -1,0 +1,1 @@
+F4 LEASE PASS double_buffer=independent busy_reuse=rejected stale_generation=rejected release_after_consumer=ok

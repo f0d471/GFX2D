@@ -27,6 +27,9 @@ mkdir -p "$BUILD"
 
 bad=0
 total=0
+selected="${2:-}"
+if [ "${1:-}" != "" ] && [ "${1:-}" != "--case" ]; then exit 2; fi
+case "$selected" in ""|normal|drain|err|timeout|stream_owner) ;; *) exit 2;; esac
 
 run_case() {
     local name=$1
@@ -44,6 +47,7 @@ run_case() {
 
 check() {
     local name=$1 want=$2
+    if [ -n "$selected" ] && [ "$selected" != "$name" ]; then return; fi
     shift 2
     local r
     r=$(run_case "$name" "$@")
@@ -58,6 +62,7 @@ check() {
 
 echo "正常用例:"
 check normal  PASS -DCASE_NORMAL
+check stream_owner PASS -DCASE_STREAM_OWNER
 check drain   PASS -DCASE_DRAIN
 check err     PASS -DCASE_ERR -DERR_REGION
 check timeout PASS -DCASE_TIMEOUT -DTMO_LIMIT_VAL=64

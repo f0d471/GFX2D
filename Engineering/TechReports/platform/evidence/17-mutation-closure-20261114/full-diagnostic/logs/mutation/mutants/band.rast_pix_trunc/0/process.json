@@ -1,0 +1,6 @@
+{
+  "returncode": 1,
+  "timeout": false,
+  "seconds": 37.953,
+  "cmd": "python3 Main/tools/check/check_r2.py --group rtl"
+}

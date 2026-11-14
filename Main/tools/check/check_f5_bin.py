@@ -86,9 +86,13 @@ def frame():
     print('F5 FRAME PASS pixels/padding/READY/AXI_counters',flush=True)
 
 def mutations():
-    # 六个变异体（bin.clip/order/skip/ready/high_byte/stale）已移到
-    # Main/sim/mutation/mutants.yaml，由上面的分桶正常用例承担发现责任。
-    print('F5 MUTATIONS delegated to Main/sim/mutation/mutants.yaml',flush=True)
+    import importlib.util
+    source=ROOT/'Main/sim/mutation/run_mutation.py'
+    spec=importlib.util.spec_from_file_location('mutation_campaign',source)
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    prefixes=('bin.',)
+    rows=[r for r in module.load_manifest() if any(r['id'].startswith(p) for p in prefixes)]
+    module.campaign(session(),rows,1800)
 
 def protocols():
     for n in [*range(1,9),12,13,14,15,17,18,20,21,22,23,24,25]:
@@ -106,7 +110,7 @@ def game():
     source=MAIN/'sw/apps/game/gfx2dGame/src';lib=MAIN/'sw/lib'
     run('game_dump_compile',['gcc','-O2','-std=c11','-Wall','-Wextra','-Werror',
         '-ffunction-sections','-fdata-sections','-Wl,--gc-sections',
-        *['-I'+str(p) for p in [lib,MAIN/'sw/bsp/include',source,MAIN/'assets/build']],
+        *['-I'+str(p) for p in [lib,MAIN/'sw/bsp/include',MAIN/'sw/ports/myriad',MAIN/'sw/services/gfx',source,MAIN/'assets/build']],
         MAIN/'tools/check/f5_game_dump.c',MAIN/'sw/ports/myriad/stg_modes.c',
         *sorted((source/'game').glob('stg_*.c')),*sorted((lib/'gfx').glob('*.c')),
         *sorted((lib/'core').glob('*.c')),'-o',BUILD/'game_dump'])

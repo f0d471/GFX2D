@@ -1,0 +1,6 @@
+{
+  "returncode": 1,
+  "timeout": false,
+  "seconds": 4.73,
+  "cmd": "bash Main/sim/engine/tex/run.sh --case normal"
+}

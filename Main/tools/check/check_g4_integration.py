@@ -13,7 +13,9 @@ MAIN = Path(__file__).resolve().parents[2]
 ROOT = MAIN.parent
 SIM = MAIN / 'sim/engine/g4'
 from check_run import paths
+from feature_build import write_headers
 BUILD, LOGS = paths('g4', 'g4')
+INCLUDE = write_headers('B3', BUILD/'include')
 APP = MAIN / 'sw/apps/game/gfx2dGame'
 
 
@@ -26,7 +28,7 @@ def run(name, args, cwd=ROOT, env=None):
     p = subprocess.run(list(map(str, args)), cwd=cwd, env=env,
                        capture_output=True, text=True)
     (LOGS / (name + '.log')).write_text(p.stdout + p.stderr, encoding='utf-8')
-    need(p.returncode == 0, name + ' failed; see log')
+    need(p.returncode == 0, name + ' exit='+str(p.returncode)+': '+(p.stdout+p.stderr)[-2000:])
     return p.stdout + p.stderr
 
 
@@ -144,7 +146,7 @@ def rtl():
     lib = MAIN / 'sw/lib'
     run('game_dump_compile', ['gcc', '-O2', '-std=c11', '-Wall', '-Wextra', '-Werror',
         '-ffunction-sections', '-fdata-sections', '-Wl,--gc-sections',
-        *['-I' + str(p) for p in (lib, MAIN/'sw/bsp/include', game, MAIN/'assets/build')],
+        *['-I' + str(p) for p in (lib, MAIN/'sw/bsp/include', MAIN/'sw/ports/myriad', MAIN/'sw/services/gfx', game, MAIN/'assets/build')],
         MAIN/'tools/check/g4_game_dump.c', MAIN/'sw/ports/myriad/stg_modes.c',
         *sorted((game/'game').glob('stg_*.c')), *sorted((lib/'gfx').glob('*.c')),
         *sorted((lib/'core').glob('*.c')), '-o', BUILD/'game_dump'])
@@ -159,7 +161,7 @@ def rtl():
     # Main/sim/mutation/mutants.yaml，由这一帧正常回放承担发现责任。
     for name, define in [('game_frame', None)]:
         exe = BUILD/(name+'.vvp')
-        args = ['iverilog', '-g2012', '-s', 'tb_g4_frame', '-I'+str(MAIN/'rtl/engine/include')]
+        args = ['iverilog', '-g2012', '-s', 'tb_g4_frame', '-I'+str(INCLUDE), '-I'+str(MAIN/'rtl/engine/include')]
         if define:
             args += ['-D'+define]
         run(name+'_compile', [*args, '-o', exe, *sources])

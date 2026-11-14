@@ -1,87 +1,51 @@
-# 变异测试活动
+# 外部变异测试
 
-生产源码里不放注错分支。变异体写在本目录的 [`mutants.yaml`](mutants.yaml)，跑器在隔离
-影子树里施加一条，再用 `Main/sim/` 与 `Main/tools/check/` 下原有的测试跑，按退出码与
-登记的见红位置判定。它回答的问题只有一个：**判据到底有没有在检查东西**。
+生产 RTL/C 只保留真实逻辑。`mutants.yaml` 登记缺陷模型、规格出处、唯一字面替换规则、
+普通测试命令和具体检查器标签；测试台不知道是否施加变异。研究探针和事务级错误响应仍归各自测试环境。
 
-当前全仓 75 条（RTL 70 条、软件执行器 5 条），生产源码里的 `INJ_*` 开关已归零。
+## 执行
 
-## 文件
-
-| 文件 | 作用 |
-| --- | --- |
-| `mutants.yaml` | 唯一真相：一条变异一行，含缺陷模型、规格出处、一组字面替换规则、发现它的命令与见红位置 |
-| `run_mutation.py` | 跑器：建影子树、施加一条规则、跑基线+变异体、按退出码与正则分类、写报告 |
-| `verify_migration.py` | 迁移等价性证明：正向逐行相同、反演词法相同（Verilog 用 `iverilog -E`，C 用 `gcc -E`） |
-| `migrate_ifdef.py` | 迁移期一次性工具：把 `INJ_*` 块抽成规则并删除变异分支；全部迁完即可删除 |
-
-## 命令
+从仓库根、配置好开发环境的 WSL 中运行：
 
 ```sh
-python3 Main/sim/mutation/run_mutation.py --list             # 清单
-python3 Main/sim/mutation/run_mutation.py --audit            # 规则唯一性、规格出处、见红位置齐全
-python3 Main/sim/mutation/run_mutation.py --run              # 全量，写新的运行目录
-python3 Main/sim/mutation/run_mutation.py --run --ids blend.wrong_eq
-python3 Main/sim/mutation/run_mutation.py --run --autofill-evidence   # 把见红标签写回清单（仍需人工复核）
-python3 Main/sim/mutation/verify_migration.py --base-rev <迁移前的提交>
+python3 Main/tools/check/validate.py --checks mutation-tools mutation --profile acceptance
+python3 Main/tools/check/validate.py --checks mutation-tools mutation --profile acceptance --run
+python3 Main/sim/mutation/run_mutation.py --audit
+python3 Main/sim/mutation/run_mutation.py --run --profile quick --ids blend.wrong_eq
 ```
 
-运行目录默认 `Main/sim/build/check-runs/mutation-<时间>/`（已在忽略范围）：
-`shadow/` 是影子树（`Main/` 整棵复制，去掉 `build`/`logs`/位流），`baseline/` 与
-`logs/<变异>/` 是归档的原始输出，`mutation-report.json/md` 是结果。
+`validate.py` 默认只显示计划，`--run` 才执行。quick/acceptance/release 传递给普通消费者，
+分别采用其已有参数；不通过缩小激励或修改期望结果让变异变绿。
 
-## 清单的字段
+## 隔离与身份
 
-```yaml
-- id: bin.bin_clip            # <模块>.<改错什么>
-  target: Main/rtl/engine/frontend/engine_bin.v
-  macro: INJ_BIN_CLIP         # 只用于追溯原来的 ifdef 开关
-  defect: 表面谓词             # 缺陷模型
-  spec: {doc: Main/doc/赛题二总体设计.md, section: 3.4 命令与软件接口}
-  rules:                      # 同一宏多处生效时是一组，跑器一次全施加
-    - {find: "...", replace: "..."}
-  runs:
-    - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
-      log: Main/sim/engine/frontend/logs        # 文件或目录；目录只读本轮新写的 *.log
-      evidence: MEM_MISMATCH                    # 检查器标签级正则
-```
+跑器冻结 Git 登记的源文件和实际字节摘要，复制到本轮 `build/mutation/shadow/`；
+文件后缀不用于猜测是否复制旧夹具，`.bin` 等真实输入仍按源码清单保留。
+不复制历史 build/logs。素材和测试向量在隔离树内现场生成。
+复制树通过显式源码清单使用公共 `check_run.Session`，不向上寻找外层仓库冒充输入身份。
 
-`rules[].find` 必须唯一匹配，上下文不够就往上扩行；`replace` 可以为空（整块删除，
-`#ifndef` 类变异就是这种）。`--audit` 会在规则失效或规格出处找不到时直接失败。
+所有未变异基线先执行并通过，任何基线失败则不执行变异。每条变异只改变登记的目标，
+同一条的多处规则同时生效；结束或异常立即恢复。不同命令具有独立运行目录，
+shell 套件构建目录也先清空，禁止按文件时间戳捡取上一条输出。
 
-## 判定
+## 判定与证据
 
-| 状态 | 含义 | 算不算「判据有效」 |
-| --- | --- | --- |
-| `KILLED` | 变异体退出非零，且见红位置匹配 `runs[].evidence` | 算 |
-| `KILLED-WEAK` | 红了，但见红位置对不上或只靠超时 | 不算，记缺口 |
-| `SURVIVED` | 变异体退出 0，判据没抓到 | 不算，记缺口 |
-| `PARTIAL` | 登记多条命令，只有部分抓到 | 算部分，记缺口 |
-| `INVALID` | 规则不唯一、编译失败、或同轮基线不通过 | 整轮失败（退出码非零） |
+- `KILLED`：普通消费者非零退出，具体检查器标签匹配，且不是准备/编译失败。
+- `SURVIVED`：普通消费者成功，未检出。
+- `KILLED-WEAK`：只超时、只出现总看门狗或没有匹配到指定检查器。
+- `PARTIAL`：多个发现者中只有部分检出。
+- `INVALID`：规则失效、基础设施失败或输入不成立。
 
-基线是同一条命令、同一棵树、不施加规则，要求退出 0。所以套件的 `--case` 模式必须
-「该用例不是 PASS 就退出非零」，这是跑器能从退出码判定的前提。
+只有选定条目全部 KILLED 才通过；其余状态返回失败。等价变异应另附独立证明后调整清单，
+不能仅因它存活而宣布等价，也不要求人为制造一个等价实例。
+证据正则由规格与检查器定义，跑器不从失败输出自动改写自己的期望。
 
-## 套件侧的两个约定
+输出进入公共运行目录的 `logs/mutation/`：冻结摘要、每条基线和变异的完整 stdout、
+原始套件日志、子进程结果、子会话输入身份、报告及文件摘要。验收后由 validate 统一归档，
+不截断日志，不覆盖历史记录。`--keep-shadow` 仅用于诊断，正常结束清理影子树。
 
-1. **`--case <名字>`**：只构建并运行那一个用例、只打印 `RESULT:`，由跑器判定；
-   不加时套件行为不变，按原来的用例表判 PASS/FAIL。
-2. **不留注错开关**：变异体由跑器施加，套件里不再有 `-DINJ_*`，也不要有「知道有变异」
-   的分支（`INJ_VAL`/`ANY_INJECT` 一类）。
+## 迁移核对
 
-Python 检查没有统一入口，清单的 `runs[].cmd` 直接写整条命令；跑器在影子树根执行它，
-脚本从 `__file__` 推出的仓根因此落在影子树上，读到的就是被改过的那份源码。
-
-## 新增一条变异
-
-1. 想清楚它对应哪条规格、模拟哪类真实错误、哪个检查器应该抓到、为什么抓得到。
-2. 在 `mutants.yaml` 写 `rules`（可以用 `migrate_ifdef.py --from-rev` 从历史里的
-   `ifdef` 生成，也可以手写），`runs[].evidence` 先留空。
-3. `--audit` 全绿后 `--run --ids <id> --autofill-evidence`，看它红在哪一行，
-   把 evidence 改成检查器标签级正则，再跑一次确认 `KILLED`。
-
-## 还没做
-
-- `run_mutation.py` 尚未注册成 `validate.py` 的检查项，当前是独立命令 + 本轮证据。
-- 7 个测试台里的 `INJ_VAL`/`ANY_INJECT` 死代码未清（宏已不存在，恒为假）。
-- 整机综合未对账；`engine_regs` / `engine_pb` 两个零变异模块待补。
+`verify_migration.py --base-rev 551c2029 --json <输出>` 在 B0/B3/B5/B7 下核对生产展开，
+有历史宏的条目同时核对反演；每条规则至少在一个构型下改变展开代码，防止关闭分支造成空证明。
+迁移前的一次性剥离工具及生产树还原工具已退役，正常维护只需清单、跑器和普通消费者。

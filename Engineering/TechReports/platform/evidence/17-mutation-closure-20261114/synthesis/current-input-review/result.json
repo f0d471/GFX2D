@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "feature-synthesis"
+  ],
+  "run_id": "20261114-181520-5161fef9"
+}

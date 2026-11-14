@@ -1,0 +1,4 @@
+directed: 54 cases x3 structures, all as expected
+directed=54 random=3000 total=3054 errors=0
+RESULT: PASS
+tb_probe_check.v:341: $finish called at 517785000 (1ps)

@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "timeout": false,
+  "seconds": 13.895,
+  "cmd": "bash Main/sim/display/run.sh --case image"
+}

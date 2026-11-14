@@ -1,0 +1,249 @@
+{
+  "schema": 2,
+  "profile": "acceptance",
+  "revision": "0c551c6a72047b0ab640b446ff53a0b76d6a1e62",
+  "baseline": {
+    "python3 Main/tools/check/check_g2_band.py": {
+      "status": "PASS",
+      "seconds": 56.966,
+      "log": "baseline/00/stdout.log"
+    },
+    "bash Main/sim/engine/mover/run.sh --case drain": {
+      "status": "PASS",
+      "seconds": 0.602,
+      "log": "baseline/01/stdout.log"
+    },
+    "bash Main/sim/engine/mover/run.sh --case normal": {
+      "status": "PASS",
+      "seconds": 0.611,
+      "log": "baseline/02/stdout.log"
+    },
+    "bash Main/sim/engine/mover/run.sh --case stream_owner": {
+      "status": "PASS",
+      "seconds": 0.613,
+      "log": "baseline/03/stdout.log"
+    },
+    "python3 Main/tools/check/check_r2.py --group rtl": {
+      "status": "PASS",
+      "seconds": 892.728,
+      "log": "baseline/04/stdout.log"
+    }
+  },
+  "mutants": [
+    {
+      "id": "geom.band_clip",
+      "target": "Main/rtl/engine/core/engine_geom.v",
+      "rules": [
+        {
+          "find": "            if(band_enable) begin\n                if($signed({2'b00,band_y0})>t_y0) t_y0=$signed({2'b00,band_y0});\n                if($signed({2'b00,band_y0})+BAND_H18-18'sd1<t_y1)\n                    t_y1=$signed({2'b00,band_y0})+BAND_H18-18'sd1;\n            end",
+          "replace": "            // 注错：漏掉当前条带求交。"
+        }
+      ],
+      "runs": [
+        {
+          "cmd": "python3 Main/tools/check/check_g2_band.py",
+          "status": "KILLED",
+          "seconds": 16.748,
+          "returncode": 1,
+          "evidence": "BAND_ERROR code=2",
+          "expected_evidence": "BAND_ERROR code=2",
+          "log": "mutants/geom.band_clip/0/stdout.log"
+        }
+      ],
+      "source_sha256": "87256a350487b053daaf640a5ef2d35c901dc1f4d277afdbdda9cff11004e8c5",
+      "status": "KILLED"
+    },
+    {
+      "id": "mover.drain_bypass",
+      "target": "Main/rtl/engine/core/engine_mover.v",
+      "rules": [
+        {
+          "find": "    wire        rd_drain_help = draining && rd_busy;\n    wire        wr_drain_help = draining && wr_busy;",
+          "replace": "    // 注错：排空期不帮忙收/补，直接等两个方向自己空\n    wire        rd_drain_help = 1'b0;\n    wire        wr_drain_help = 1'b0;"
+        }
+      ],
+      "runs": [
+        {
+          "cmd": "bash Main/sim/engine/mover/run.sh --case drain",
+          "status": "KILLED",
+          "seconds": 1.202,
+          "returncode": 1,
+          "evidence": "ERR 排空没有完成（等了 20000 拍）",
+          "expected_evidence": "ERR [^\\n]+|MODEL: wlast mismatch",
+          "log": "mutants/mover.drain_bypass/0/stdout.log"
+        }
+      ],
+      "source_sha256": "8a79e82dbde05a15d97244dc712f6c345bdae68ab86a01f649ecabd91d70741f",
+      "status": "KILLED"
+    },
+    {
+      "id": "mover.drain_level",
+      "target": "Main/rtl/engine/core/engine_mover.v",
+      "rules": [
+        {
+          "find": "    wire drain_enter     = drain_req && !draining && !drain_served;",
+          "replace": "    wire drain_enter     = drain_req && !draining;     // 注错：drain_done 之后仍按电平重进"
+        },
+        {
+          "find": "    assign      drain_hold = draining || drain_req;",
+          "replace": "    assign      drain_hold = draining;                 // 注错：只在排空态里挡提交"
+        }
+      ],
+      "runs": [
+        {
+          "cmd": "bash Main/sim/engine/mover/run.sh --case drain",
+          "status": "KILLED",
+          "seconds": 0.517,
+          "returncode": 1,
+          "evidence": "ERR 请求一直举着时 drain_done 打了 2 次，应为 1 次",
+          "expected_evidence": "ERR [^\\n]+|MODEL: wlast mismatch",
+          "log": "mutants/mover.drain_level/0/stdout.log"
+        }
+      ],
+      "source_sha256": "5e1d0c76c2025f83e65402e6ce9bcdf0803315ef6a6642670be887031a69b479",
+      "status": "KILLED"
+    },
+    {
+      "id": "mover.mask_bypass",
+      "target": "Main/rtl/engine/core/engine_mover.v",
+      "rules": [
+        {
+          "find": "        wire kill = raw_drain_kill || (!(wr_ctx_flush || wr_ctx_pb) && core_wdata[32*gp + 31]);\n        assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4] & {4{~kill}};\n        assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];\n        assign m_axi_wdata[32*gp+24 +: 8] = (wr_ctx_flush || wr_ctx_pb) ? core_wdata[32*gp+24 +:8] : 8'h00;",
+          "replace": "        // 注错：带内掩码旁路，wstrb 与 X 字节直通上总线\n        wire kill = 1'b0;\n        assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4];\n        assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];\n        assign m_axi_wdata[32*gp+24 +: 8] = core_wdata[32*gp+24 +: 8];"
+        }
+      ],
+      "runs": [
+        {
+          "cmd": "bash Main/sim/engine/mover/run.sh --case normal",
+          "status": "KILLED",
+          "seconds": 0.405,
+          "returncode": 1,
+          "evidence": "ERR 写目的字 768 像素 0 got 80000040 want 00000300 (拍 0)",
+          "expected_evidence": "ERR [^\\n]+|MODEL: wlast mismatch",
+          "log": "mutants/mover.mask_bypass/0/stdout.log"
+        }
+      ],
+      "source_sha256": "4b4ed204a33617ae822b5f365d2b0b1cdf0866b6f6bb01449000876529463f6f",
+      "status": "KILLED"
+    },
+    {
+      "id": "mover.no_gate_rd",
+      "target": "Main/rtl/engine/core/engine_mover.v",
+      "rules": [
+        {
+          "find": "    wire        rd_gate_done = (rd_status_seen && rd_stream_done);",
+          "replace": "    wire        rd_gate_done = 1'b1;                   // 注错：去掉读门控"
+        }
+      ],
+      "runs": [
+        {
+          "cmd": "bash Main/sim/engine/mover/run.sh --case normal",
+          "status": "KILLED",
+          "seconds": 8.638,
+          "returncode": 1,
+          "evidence": "ERR 像素读流数据不符：字 260 got 5a5a5a5a5a5a5a5a5a5a5a5a00000200 want 5a5a5a5a5a5a5a5a5a5a5a5a00000104",
+          "expected_evidence": "ERR [^\\n]+|MODEL: wlast mismatch",
+          "log": "mutants/mover.no_gate_rd/0/stdout.log"
+        }
+      ],
+      "source_sha256": "bd9018c6c9e053351d7bbd8cebc35340b3c7e653fa8085cb504a8576aa78846d",
+      "status": "KILLED"
+    },
+    {
+      "id": "mover.no_gate_wr",
+      "target": "Main/rtl/engine/core/engine_mover.v",
+      "rules": [
+        {
+          "find": "    wire        wr_gate_done = wr_status_seen;",
+          "replace": "    wire        wr_gate_done = 1'b1;                   // 注错：去掉写门控"
+        }
+      ],
+      "runs": [
+        {
+          "cmd": "bash Main/sim/engine/mover/run.sh --case normal",
+          "status": "KILLED",
+          "seconds": 0.469,
+          "returncode": 1,
+          "evidence": "ERR 上一笔写还没结束就接受了下一个写描述符",
+          "expected_evidence": "ERR [^\\n]+|MODEL: wlast mismatch",
+          "log": "mutants/mover.no_gate_wr/0/stdout.log"
+        }
+      ],
+      "source_sha256": "0960bd8deaf057e85e16298a82c87bca9dfcd58bf9f29608dc09c4260656e264",
+      "status": "KILLED"
+    },
+    {
+      "id": "mover.no_tlast",
+      "target": "Main/rtl/engine/core/engine_mover.v",
+      "rules": [
+        {
+          "find": "    wire         ws_core_tlast  = (wr_beats_left == 12'd1);",
+          "replace": "    // 注错：正常写流不打 tlast，只有排空哑拍打\n    wire         ws_core_tlast  = wr_drain_help ? (wr_beats_left == 12'd1) : 1'b0;"
+        }
+      ],
+      "runs": [
+        {
+          "cmd": "bash Main/sim/engine/mover/run.sh --case normal",
+          "status": "KILLED",
+          "seconds": 0.634,
+          "returncode": 1,
+          "evidence": "WRITE-LAST-MISMATCH",
+          "expected_evidence": "WRITE-LAST-MISMATCH",
+          "log": "mutants/mover.no_tlast/0/stdout.log"
+        }
+      ],
+      "source_sha256": "237d2824ec807588e78e4accc32607c21ec7e4cf60d2175797c3805c96b17fee",
+      "status": "KILLED"
+    },
+    {
+      "id": "mover.tx_nowait",
+      "target": "Main/rtl/engine/core/engine_mover.v",
+      "rules": [
+        {
+          "find": "    wire        tex_data_blocks = tx_busy;",
+          "replace": "    wire        tex_data_blocks = 1'b0;                 // 注错：去掉目的流等待"
+        }
+      ],
+      "runs": [
+        {
+          "cmd": "bash Main/sim/engine/mover/run.sh --case stream_owner",
+          "status": "KILLED",
+          "seconds": 0.416,
+          "returncode": 1,
+          "evidence": "TEX-OWNER-FAIL",
+          "expected_evidence": "TEX-OWNER-FAIL",
+          "log": "mutants/mover.tx_nowait/0/stdout.log"
+        }
+      ],
+      "source_sha256": "f7080f7d0c76820f7d2cf9f3f2f23692ab99da3dc027d36c307cf6480198ebd1",
+      "status": "KILLED"
+    },
+    {
+      "id": "rast.rast_partial_commit",
+      "target": "Main/rtl/engine/rast/engine_rast.v",
+      "rules": [
+        {
+          "find": "    assign zwr_en = commit_fire;",
+          "replace": "    assign zwr_en = out_v && out_wr && !stopping;"
+        }
+      ],
+      "runs": [
+        {
+          "cmd": "python3 Main/tools/check/check_r2.py --group rtl",
+          "status": "KILLED",
+          "seconds": 34.565,
+          "returncode": 1,
+          "evidence": "atomic color/z commit",
+          "expected_evidence": "atomic color/z commit",
+          "log": "mutants/rast.rast_partial_commit/0/stdout.log"
+        }
+      ],
+      "source_sha256": "de3150cb0da497bbe32c0b2c44243e473acbcf3c7f6829c692e7fd45cab5a864",
+      "status": "KILLED"
+    }
+  ],
+  "counts": {
+    "KILLED": 9
+  },
+  "status": "PASS"
+}

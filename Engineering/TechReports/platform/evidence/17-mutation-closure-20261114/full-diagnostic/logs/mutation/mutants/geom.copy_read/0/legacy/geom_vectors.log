@@ -1,0 +1,29 @@
+WARNING: tb_engine_geom.v:492: $readmemh(build/vectors.hex): Not enough words in the file for the requested range [0:131071].
+engine_geom unit sim: rec=build/vectors.hex
+  PROTO handshake count cidx 0: sb 2/2 rd 2/0 wr 2/2 (seen/expected)
+  PROTO handshake count cidx 0: sb 14/14 rd 14/12 wr 14/14 (seen/expected)
+  PROTO handshake count cidx 0: sb 26/26 rd 36/34 wr 26/26 (seen/expected)
+  PROTO handshake count cidx 0: sb 28/28 rd 38/36 wr 28/28 (seen/expected)
+  PROTO handshake count cidx 0: sb 30/30 rd 40/38 wr 30/30 (seen/expected)
+  PROTO handshake count cidx 0: sb 58/58 rd 92/90 wr 58/58 (seen/expected)
+  PROTO handshake count cidx 0: sb 68/68 rd 100/98 wr 68/68 (seen/expected)
+  PROTO handshake count cidx 0: sb 78/78 rd 112/110 wr 78/78 (seen/expected)
+  PROTO handshake count cidx 0: sb 80/80 rd 114/112 wr 80/80 (seen/expected)
+  PROTO handshake count cidx 1: sb 82/82 rd 116/114 wr 82/82 (seen/expected)
+  PROTO handshake count cidx 0: sb 84/84 rd 118/116 wr 84/84 (seen/expected)
+  PROTO handshake count cidx 0: sb 86/86 rd 120/118 wr 86/86 (seen/expected)
+  PROTO handshake count cidx 0: sb 88/88 rd 122/120 wr 88/88 (seen/expected)
+  PROTO handshake count cidx 0: sb 90/90 rd 122/120 wr 90/90 (seen/expected)
+  PROTO handshake count cidx 1: sb 92/92 rd 122/120 wr 92/92 (seen/expected)
+  PROTO handshake count cidx 2: sb 94/94 rd 122/120 wr 94/94 (seen/expected)
+  PROTO handshake count cidx 0: sb 96/96 rd 122/120 wr 96/96 (seen/expected)
+  PROTO handshake count cidx 0: sb 98/98 rd 122/120 wr 98/98 (seen/expected)
+  PROTO handshake count cidx 0: sb 100/100 rd 122/120 wr 100/100 (seen/expected)
+  PROTO handshake count cidx 0: sb 102/102 rd 122/120 wr 102/102 (seen/expected)
+
+  commands 59, expected records 338
+  rows 108, cycles 718, cycles/row 6.64
+  rule1 violations 0, mismatches 0, done-pulse errors 0, protocol 23, buffer 0
+  handshakes sb 108 rd 122 wr 108, cmd_done 5
+RESULT: FAIL (23 errors; 334 checks run)
+tb_engine_geom.v:529: $finish called at 7226000 (1ps)

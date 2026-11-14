@@ -1,0 +1,13 @@
+研究探针 probe_check（B5 前期研究）：
+  probe: RESULT: PASS
+
+vec_to_sim: 159 条向量，2767 行记录 -> build/vec_stream.txt
+engine_top 单元仿真（B1~B5 全部，159 向量 + 定向）：
+  engine_top: RESULT: FAIL (3 errors)
+    VEC-FAIL #75: code=6 idx=0 tag=00000000 exp=5/0/00000000
+    VEC-FAIL #145: code=6 idx=0 tag=00000000 exp=5/0/00000000
+    VEC-FAIL #148: code=6 idx=0 tag=00000000 exp=5/0/00000000
+  registers: RESULT: PASS registers
+
+
+SIM FAIL: 1/2 项不符合期望

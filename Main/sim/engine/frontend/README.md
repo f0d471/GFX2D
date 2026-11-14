@@ -131,7 +131,7 @@ python3 Main/tools/check/check_f4_instances.py --run-dir Main/sim/build/check-ru
 <EFINITY_WSL> 是开发环境手册所列 Efinity 安装目录的 WSL 路径。
 
 --models 为 10000 张独立标量像素金标准与 ASan/UBSan；--rtl 为完整引擎 144 组，
---mutations 覆盖六类定向变异，--protocols 覆盖稀疏 stride 跨页、完整错误身份、
+--mutations 调用公共隔离跑器覆盖六类定向变异（validate 的普通项不重复选择它），--protocols 覆盖稀疏 stride 跨页、完整错误身份、
 数组读错/超时排空、预取超时完整身份与软复位恢复；--lease 检查双帧独占、忙时重用与过期 generation。
 --v2 在独立目录复跑条带控制的两套万张与 16/32 行 RTL，不覆盖其历史证据。
 --legacy 已包含 --v2；显式重复选择自动去重。快速档通过公共 `--profile quick` 选择；

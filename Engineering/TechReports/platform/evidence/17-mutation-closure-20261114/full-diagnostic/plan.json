@@ -1,0 +1,30 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "mutation"
+  ],
+  "changed": null,
+  "commands": {
+    "mutation": [
+      "/usr/bin/python3",
+      "Main/sim/mutation/run_mutation.py",
+      "--run"
+    ]
+  },
+  "timeouts": {
+    "mutation": 21600
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/rtl/**",
+    "Main/sim/**",
+    "Main/sw/**",
+    "Main/assets/**",
+    "Main/tools/check/**",
+    "Main/sim/engine/band/README.md",
+    "Main/rtl/engine/engine-manual.md",
+    "Main/doc/赛题二总体设计.md",
+    "Main/sim/engine/frontend/README.md"
+  ]
+}

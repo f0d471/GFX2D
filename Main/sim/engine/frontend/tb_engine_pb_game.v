@@ -147,19 +147,22 @@ module tb_engine_pb_game #(parameter integer SH=16,TIMED_MODEL=0);
     endtask
 
 
-    localparam [31:0] TABLE=32'h00600000, FB=32'h00001000, PB=32'h00700000, INSTANCE=32'h00580000;
+    localparam [31:0] TABLE=32'h00600000, FB=32'h00001000, PB=32'h00700000, INSTANCE=32'h00780000;
     reg [127:0] expected [0:524287];
     reg [31:0] surfaces [0:47];
     reg [31:0] texture [0:4095];
     reg [31:0] stats [0:8];
-    reg [2047:0] prefix;
+    string prefix;
     reg inject_write=0;
     integer ar_cmd=0, ar_pixel=0, aw_pixel=0,aw_band=0,obs_rd=0,obs_wr=0,obs_pb_rd=0,obs_pb_wr=0;
     reg rd_owner=0,wr_owner=0;
+    wire frontend_read = (araddr>=TABLE && araddr<TABLE+32'h100000) ||
+                         (araddr>=PB && araddr<PB+32'h20400) ||
+                         (araddr>=INSTANCE && araddr<INSTANCE+32'h80000);
     always @(posedge clk) begin
         if(arvalid && arready) begin
-            if(araddr>=INSTANCE) ar_cmd<=ar_cmd+1; else ar_pixel<=ar_pixel+1;
-            rd_owner<=araddr>=INSTANCE;
+            if(frontend_read) ar_cmd<=ar_cmd+1; else ar_pixel<=ar_pixel+1;
+            rd_owner<=frontend_read;
         end
         if(awvalid && awready)begin aw_pixel<=aw_pixel+1;wr_owner<=awaddr>=PB;if(awaddr<PB)aw_band<=aw_band+1;end
         if(rvalid&&rready)begin obs_rd<=obs_rd+1;if(rd_owner)obs_pb_rd<=obs_pb_rd+1;end
@@ -202,7 +205,7 @@ module tb_engine_pb_game #(parameter integer SH=16,TIMED_MODEL=0);
             n=0;stv=1;
             while((stv&1)!=0 || (stv&12)==0) begin
                 repeat(20)step;apb_rd(R_STATUS,stv);n=n+1;
-                if(n>300000)begin $display("WATCHDOG st=%d band=%d fe=%d",dut.u_cmd.st,dut.u_mover.g_band.u_band.phase,dut.u_cmd.fe_st);$finish;end
+                if(n>300000)begin $display("WATCHDOG st=%d band_busy=%d fe=%d",dut.u_cmd.st,dut.u_mover.band_busy,dut.u_cmd.fe_st);$finish;end
             end
             apb_rd(R_EIDX,eidx);apb_rd(R_ETAG,etag);checks=checks+1;
             if(((stv>>4)&15)!=code || eidx!=idx || etag!=tag ||

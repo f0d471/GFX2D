@@ -1,0 +1,3 @@
+display/starve: RESULT: FAIL errors=3 checks=10 fields=13
+display/image_full: SKIPPED（要整帧跑就 FULL=1 bash run.sh）
+SIM BROKEN: 1 case(s) not as expected

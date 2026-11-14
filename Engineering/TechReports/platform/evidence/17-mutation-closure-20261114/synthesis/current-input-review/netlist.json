@@ -1,0 +1,69 @@
+{
+  "variants": {
+    "B0": {
+      "present": {
+        "TEX": false,
+        "BAND_HW": false,
+        "INST": false,
+        "PB": false,
+        "RAST": false
+      },
+      "expected": {
+        "TEX": false,
+        "BAND_HW": false,
+        "INST": false,
+        "PB": false,
+        "RAST": false
+      }
+    },
+    "B3": {
+      "present": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false,
+        "RAST": false
+      },
+      "expected": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false,
+        "RAST": false
+      }
+    },
+    "B5": {
+      "present": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": true,
+        "RAST": false
+      },
+      "expected": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": true,
+        "RAST": false
+      }
+    },
+    "B7": {
+      "present": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false,
+        "RAST": true
+      },
+      "expected": {
+        "TEX": true,
+        "BAND_HW": true,
+        "INST": true,
+        "PB": false,
+        "RAST": true
+      }
+    }
+  },
+  "failures": []
+}

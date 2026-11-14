@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "timeout": false,
+  "seconds": 43.164,
+  "cmd": "python3 Main/tools/check/check_f4_instances.py --models"
+}

@@ -1,0 +1,705 @@
+{
+  "schema": 1,
+  "run_id": "20261114-211735-695a5640",
+  "revision": "0c551c6a72047b0ab640b446ff53a0b76d6a1e62",
+  "profile": "acceptance",
+  "settings": {
+    "HOST_CC": "",
+    "CC": "",
+    "CFLAGS": "",
+    "CPPFLAGS": "",
+    "LDFLAGS": "",
+    "OPT": "",
+    "RISCV_BIN": "",
+    "SW6_QUICK": "",
+    "SW7_SKIP_SEARCH": "",
+    "SW8_SKIP_LONG": "",
+    "EXTRA_CFLAGS": "",
+    "INJECT": "",
+    "VEC": "",
+    "GOLDEN": "",
+    "SAN32": "",
+    "TEST_ARGS": "",
+    "MAKEFLAGS": "",
+    "ASSETS_PAK": "",
+    "ASSETS_BUILD": "",
+    "GFX2D_ASSETS_PAK": "",
+    "GFX2D_TX_BUDGET": "",
+    "GFX2D_ASPECT": "",
+    "GFX2D_FULLSCREEN": "",
+    "GFX2D_SCALE_FILTER": "",
+    "APP_PROFILE": "",
+    "APPS": "",
+    "APP_CATALOG": ""
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/lib/test/golden.txt",
+    "Main/sim/mutation/run_mutation.py",
+    "Main/sim/mutation/test_mutation.py",
+    "Main/tools/check/localize_paths.py",
+    "Main/tools/check/regs_gen.py",
+    "Main/rtl/engine/include/engine_regs_offsets.vh",
+    "Main/sw/bsp/include/gfx_regs.h"
+  ],
+  "inputs": {
+    "Main/rtl/engine/include/engine_regs_offsets.vh": {
+      "size": 5775,
+      "mtime_ns": 1794540920182877700,
+      "sha256": "1c3834c891d65301aa89ca3dd903c2f8a2fd0a05a106eed6eb2410c16660b2df"
+    },
+    "Main/sim/mutation/run_mutation.py": {
+      "size": 14444,
+      "mtime_ns": 1794650692552851800,
+      "sha256": "a7927f0286a6bbf43102add8318eb0af656c871580c0542a752aa7c13c62d088"
+    },
+    "Main/sim/mutation/test_mutation.py": {
+      "size": 5169,
+      "mtime_ns": 1794649523831467300,
+      "sha256": "c332d12da70c066ec9c3fd6e872a6bfb8746d94b246c21fff5db18f6eeaa7ecd"
+    },
+    "Main/sw/bsp/include/gfx_regs.h": {
+      "size": 4947,
+      "mtime_ns": 1792735771329224700,
+      "sha256": "2bcb811929808afd92892195c8a23de525594a59f5ccaebcb6b908b7fd3db3c1"
+    },
+    "Main/sw/lib/test/golden.txt": {
+      "size": 374,
+      "mtime_ns": 1789927838538035800,
+      "sha256": "539c1ea0a2b3defa9ab96af101e6209cdb1ec5d02ae7d9318673e28e8392271e"
+    },
+    "Main/tools/board/bin2hex.py": {
+      "size": 925,
+      "mtime_ns": 1789511362732745500,
+      "sha256": "200930eefff5184515e11026fe88d824e240512699de83210a3826e431f80918"
+    },
+    "Main/tools/board/bit_manifest.py": {
+      "size": 5133,
+      "mtime_ns": 1793614082850868400,
+      "sha256": "f50a00050bb0e82401d5c9dc6b30127770f47e2c952d37d87d5d7ff58d0b286f"
+    },
+    "Main/tools/board/board_run.py": {
+      "size": 26896,
+      "mtime_ns": 1793836830183487400,
+      "sha256": "edc2ef7bc63ab4bee1ff2a76b0b95c0ecfebae797ca2dd6ccd7cf8534231f0da"
+    },
+    "Main/tools/board/console_catalog.py": {
+      "size": 9067,
+      "mtime_ns": 1793823717091282100,
+      "sha256": "418583cf6cb00ba2f6fa04bd173a0f5a8c290e5f269a88487f7f6b4f8cc1bd12"
+    },
+    "Main/tools/board/game_control.py": {
+      "size": 24068,
+      "mtime_ns": 1793836114793369500,
+      "sha256": "884195d7298c01a7e11f709caf3793bb50db9f7ac8b081108a0efce03542c226"
+    },
+    "Main/tools/board/gfx2d_debug.cfg": {
+      "size": 2946,
+      "mtime_ns": 1789784319827840200,
+      "sha256": "fc5f057fb30e82293dba1efd160289b73aa37e191a0b45d3183b6ffb9c8d3f99"
+    },
+    "Main/tools/board/input_forward.py": {
+      "size": 4621,
+      "mtime_ns": 1793839770953321100,
+      "sha256": "4af9ba0b19c5ea073fbc699d9e1e114d44e72d98373f36a80a40957230beb3d2"
+    },
+    "Main/tools/board/make_flash_image.py": {
+      "size": 8837,
+      "mtime_ns": 1790560432085383000,
+      "sha256": "1c08be0f400973691a556d4d44e1cc688bb01a799db1f404b03d2f2d10d58226"
+    },
+    "Main/tools/board/package_game.py": {
+      "size": 12650,
+      "mtime_ns": 1793560341098919900,
+      "sha256": "8a4b259f92e171e79ce1b703aeec1c0c5b527a30a1702e012e8fc3bfaeb5d97d"
+    },
+    "Main/tools/board/pc_review.ps1": {
+      "size": 9529,
+      "mtime_ns": 1793435394953062300,
+      "sha256": "a2e53b270c8cda01ef3f2baa2f4bab5cbf1ab0814b739ea5f8bb03055e9beed8"
+    },
+    "Main/tools/board/play.ps1": {
+      "size": 2632,
+      "mtime_ns": 1793188301807835300,
+      "sha256": "fb67c066d98d87c0f067a0608cb893c899360b80629868a5e620a3a3ef560564"
+    },
+    "Main/tools/board/release_launch.py": {
+      "size": 4175,
+      "mtime_ns": 1793294662399772000,
+      "sha256": "e6e802bf506337b9469d1fae0e88d8cd3a0a800b414b31d47cf6571562fe4adc"
+    },
+    "Main/tools/board/run_g4_matrix.py": {
+      "size": 4173,
+      "mtime_ns": 1791823920933564400,
+      "sha256": "52c879c7172b01e06029854632a5814a8e2410448045064a69eb4c4e160f61f4"
+    },
+    "Main/tools/check/check_board_game.py": {
+      "size": 4323,
+      "mtime_ns": 1792147244800125400,
+      "sha256": "33669a6c47327f55198896a0ed07a084bfc7957e3f3ffa50a27150d0af726d9f"
+    },
+    "Main/tools/check/check_board_smoke.py": {
+      "size": 7475,
+      "mtime_ns": 1792146076664261000,
+      "sha256": "911dacded9897fcc8ae260e23ed3f7f837c0ab6d7fe1fa467c375eb1558db813"
+    },
+    "Main/tools/check/check_cmd_semantics.py": {
+      "size": 58038,
+      "mtime_ns": 1791804048792677900,
+      "sha256": "16588d65a56cd5c1c8ef26ddc551d2ac3336c4394471f9fa85c8800291cb5ba0"
+    },
+    "Main/tools/check/check_common.sh": {
+      "size": 3682,
+      "mtime_ns": 1791826741612595400,
+      "sha256": "2875458ae27941807e041a8f8506f0cb93233b2ddd91eebbbeb19e51236fb948"
+    },
+    "Main/tools/check/check_console.py": {
+      "size": 8214,
+      "mtime_ns": 1793836842197668700,
+      "sha256": "0bc5977bdc9eb01eae049060cb37f64f88489706af91245eef742a15994ae10c"
+    },
+    "Main/tools/check/check_console_board.py": {
+      "size": 7368,
+      "mtime_ns": 1793560316032202800,
+      "sha256": "49d4a4df824ac7cf55523acc1edd77ecf1f52781cadb76b53a79996addfd375e"
+    },
+    "Main/tools/check/check_console_profiles.py": {
+      "size": 7252,
+      "mtime_ns": 1793295432568744800,
+      "sha256": "b2e30172b338c63b198e348c81ff42f2cc57913cfb4dc8af43240a4fc06f2e23"
+    },
+    "Main/tools/check/check_console_profiles_board.py": {
+      "size": 4433,
+      "mtime_ns": 1793295138751355000,
+      "sha256": "733fc624add78a565ec8088c8c8a597b839c24fd707a4111ef54f88da5efeee6"
+    },
+    "Main/tools/check/check_f4_instances.py": {
+      "size": 18381,
+      "mtime_ns": 1794645577217316500,
+      "sha256": "69fde106d096a8ed3ba4fed7be92f4515faf8af0e7571f78d716fdd5ff434cdf"
+    },
+    "Main/tools/check/check_f5_bin.py": {
+      "size": 15266,
+      "mtime_ns": 1794648629578755200,
+      "sha256": "3f4542cf97a375b78899c8c76ae9e95d07cb4ee6404cfec14d50298b288b38a5"
+    },
+    "Main/tools/check/check_feature_board.py": {
+      "size": 8584,
+      "mtime_ns": 1792147229028661500,
+      "sha256": "cb485677521b83ea1403898105217106f4c0081fb7a1575c15e1c7f0a4516e62"
+    },
+    "Main/tools/check/check_feature_caps.py": {
+      "size": 2374,
+      "mtime_ns": 1792140507305597100,
+      "sha256": "dfaa877736b1c773ae3fb46b3f33a371bacd0fa165cfd3c116e8b6aa1831d946"
+    },
+    "Main/tools/check/check_feature_contract.py": {
+      "size": 1802,
+      "mtime_ns": 1794540927825498600,
+      "sha256": "7f6b29e5ed71cddd65b9e97e7a2a94e8c6f2686ad8acaf0896781c46362b2fc1"
+    },
+    "Main/tools/check/check_feature_elab.py": {
+      "size": 1246,
+      "mtime_ns": 1792072671263301300,
+      "sha256": "f001ab11c96b6f90c5fcedde291f0ec0e993c4e197e92e3690e5d0bd42d3b13e"
+    },
+    "Main/tools/check/check_feature_function.py": {
+      "size": 5545,
+      "mtime_ns": 1794540912808881200,
+      "sha256": "f9325b0a69fe87c5e3eed3cc7cbb470a3cb5545db70c457cf9682fb660a07188"
+    },
+    "Main/tools/check/check_feature_probe.py": {
+      "size": 1491,
+      "mtime_ns": 1792072674013749400,
+      "sha256": "95751d58fb87a41e3978d23265277ba7ae6b1b52cf04460b4f852322a0547634"
+    },
+    "Main/tools/check/check_feature_synthesis.py": {
+      "size": 7809,
+      "mtime_ns": 1792737417950443000,
+      "sha256": "a935f32d15c61276af4d393eaa0efe02c7454180a799dcad00ee4b5e30e16385"
+    },
+    "Main/tools/check/check_flight.py": {
+      "size": 4964,
+      "mtime_ns": 1793544494306641200,
+      "sha256": "e90284e0ce709cf162d17dba91d799f77d1296d4598bdb67a940ec8e29ebaeeb"
+    },
+    "Main/tools/check/check_flight_board.py": {
+      "size": 5971,
+      "mtime_ns": 1793463672876678200,
+      "sha256": "05595284a4f262620e8922d72b3038093bb059e942b53e9a4b75d275bd33ca79"
+    },
+    "Main/tools/check/check_frontend.py": {
+      "size": 17184,
+      "mtime_ns": 1793228087113567000,
+      "sha256": "fee239286f573722ae7828f352ac21622e306cf8de03672a53de2f16de76bbd9"
+    },
+    "Main/tools/check/check_frozen_baseline.py": {
+      "size": 6813,
+      "mtime_ns": 1793300301972917400,
+      "sha256": "6218f04cd8a4000ba601b5ae43a708fdb0d7586d02a00634ffb562096477d06b"
+    },
+    "Main/tools/check/check_g1_logs.py": {
+      "size": 5625,
+      "mtime_ns": 1791395441687697200,
+      "sha256": "440457a8ca24604b4c97ade6bd0ba61655aed9fbf085957d6d96f517889a7bec"
+    },
+    "Main/tools/check/check_g2_band.py": {
+      "size": 16885,
+      "mtime_ns": 1794630800542739300,
+      "sha256": "8e7fdeba882acd607044094b3931a4a6c20a0be18659f8a445cb92621a708a6c"
+    },
+    "Main/tools/check/check_g3_stripctl.py": {
+      "size": 8564,
+      "mtime_ns": 1794636592570439000,
+      "sha256": "aa06df906dee958881d078fa1a43933306a45ceb8d04c67caa8bc3685bf901b3"
+    },
+    "Main/tools/check/check_g4_integration.py": {
+      "size": 15907,
+      "mtime_ns": 1794647504981309400,
+      "sha256": "a3ad99e4e58fde6b2bf520bc4ae6bc858a41a4559c4dcd66191e6bceba8f04e8"
+    },
+    "Main/tools/check/check_host.sh": {
+      "size": 699,
+      "mtime_ns": 1791821804659261200,
+      "sha256": "54c78f5718026cf70fff37365083a3fa7a6ae0dc5a3942d8c11d58a8ad23581e"
+    },
+    "Main/tools/check/check_layers_isolated.py": {
+      "size": 1342,
+      "mtime_ns": 1793295650404722200,
+      "sha256": "474d6b0e9b65b3e201d47f6691715f1d327aea847a049992665c03395f3ce23d"
+    },
+    "Main/tools/check/check_object_isolation.py": {
+      "size": 2506,
+      "mtime_ns": 1793196460587231300,
+      "sha256": "7df137d0bc10b18a015b149fa7963e3fad21f9d3101345df213d3ed0d33a7781"
+    },
+    "Main/tools/check/check_pc_wide.py": {
+      "size": 3454,
+      "mtime_ns": 1793560316057847400,
+      "sha256": "20cf0f8d43db372197ec4e028959f35e72061c192288d2eb63dbd7064d7d6d2e"
+    },
+    "Main/tools/check/check_pc_window.py": {
+      "size": 1419,
+      "mtime_ns": 1793833181715294700,
+      "sha256": "bdb1bf6811f3f6cea6f709361de84777709f7ec0c21102a867efd7b18d0aaff4"
+    },
+    "Main/tools/check/check_pipeline.py": {
+      "size": 3718,
+      "mtime_ns": 1794587351744925700,
+      "sha256": "76e988de052af6b9bf630fffb82660f9b3f491330f2d2b045afb9b1684636918"
+    },
+    "Main/tools/check/check_platform_sdk.py": {
+      "size": 7556,
+      "mtime_ns": 1793228083797382400,
+      "sha256": "57880d8c89ef623c7b63fad65f0d2383f5863dd108db3ad1953edebf4965a226"
+    },
+    "Main/tools/check/check_r2.py": {
+      "size": 5451,
+      "mtime_ns": 1794630821443343000,
+      "sha256": "1ebb5bb0a52f8b8dd33e8ef2c1d41e8f6b42e70644092cb90e1a132a70236c92"
+    },
+    "Main/tools/check/check_r2_synthesis.py": {
+      "size": 6821,
+      "mtime_ns": 1794540465923629600,
+      "sha256": "ed1985badb62264196183ac3cccd76faab5b53ba5ca0ebf4ba4aeb76b92a7d2a"
+    },
+    "Main/tools/check/check_r3.py": {
+      "size": 4496,
+      "mtime_ns": 1794540465896199900,
+      "sha256": "f713625f8d453ffc2e8e214c1ccf5a046eb61a4ef6fe063093d685c7ef7d63ee"
+    },
+    "Main/tools/check/check_r3_board.py": {
+      "size": 6976,
+      "mtime_ns": 1792738152657699400,
+      "sha256": "1ed8629554fbdd9ee289ca26828b33a53d0c300352b032404ddb18119ab1a253"
+    },
+    "Main/tools/check/check_r4.py": {
+      "size": 9016,
+      "mtime_ns": 1793894363940228700,
+      "sha256": "ba5dcc8e9ad75202b02993ab355232488f4e86066941af22d1d54eb66253773f"
+    },
+    "Main/tools/check/check_r4_board.py": {
+      "size": 12807,
+      "mtime_ns": 1793560186324176500,
+      "sha256": "12f2269f613eca5e6e030b6704a89430d0e6a56d974a92e7ed2488be5d322b1f"
+    },
+    "Main/tools/check/check_rast.py": {
+      "size": 27748,
+      "mtime_ns": 1792830543918887000,
+      "sha256": "cab7b939336541703ca1447a71b034fc48eb34add1c785c4d7282834f454a583"
+    },
+    "Main/tools/check/check_round255.c": {
+      "size": 21377,
+      "mtime_ns": 1794488477504812200,
+      "sha256": "44d241eb572718f446511659bc5b64b9dcb1b8766c6106ea6a54977cc4d5ecb7"
+    },
+    "Main/tools/check/check_run.py": {
+      "size": 13366,
+      "mtime_ns": 1794650691588433400,
+      "sha256": "6b1252dd407209f7c6f9cac823949eec92d69e9cf01144df3dc5166da86ee4b6"
+    },
+    "Main/tools/check/check_sh.py": {
+      "size": 8157,
+      "mtime_ns": 1794587351745921400,
+      "sha256": "f1f2585e196e06c9c38edf42a4157eb52c4f95a56628d8fbab60594ca3a9f707"
+    },
+    "Main/tools/check/check_sh_board.py": {
+      "size": 13870,
+      "mtime_ns": 1793955592027686200,
+      "sha256": "1687fe68e9ffff0f11e9f454089929338f6eabe560e2700dcaee561fb4ea7aa1"
+    },
+    "Main/tools/check/check_subst.c": {
+      "size": 14103,
+      "mtime_ns": 1791798617736720800,
+      "sha256": "601a4ec533cac7ad92da10a1ae173beadd9ae53b424c1ae0a80ab3058a8a1c8a"
+    },
+    "Main/tools/check/check_sw16_board.py": {
+      "size": 10938,
+      "mtime_ns": 1793276032422495500,
+      "sha256": "a3113da941c366850e748cc7487a9363364a70c3cddc37a3c6df722f75a4a98c"
+    },
+    "Main/tools/check/check_sw4_pc.sh": {
+      "size": 7438,
+      "mtime_ns": 1791800715847043100,
+      "sha256": "0ca6dc4b5b0ccd2e138586127095a353bffd56d64f6da1c706bac09204668a6e"
+    },
+    "Main/tools/check/check_sw4_scale.c": {
+      "size": 5581,
+      "mtime_ns": 1791800931696481800,
+      "sha256": "c5d64b987dcd1bb49964b867c9710eb961fb7ff2cd23857321827aac42c000d2"
+    },
+    "Main/tools/check/check_sw5_assets.sh": {
+      "size": 16574,
+      "mtime_ns": 1791821937233054100,
+      "sha256": "8f4fc9fa635c4a05c8a29dfff389527eb41214030779831ad45cac0cd1bfd066"
+    },
+    "Main/tools/check/check_sw5_pak.py": {
+      "size": 11286,
+      "mtime_ns": 1791801402899271700,
+      "sha256": "7d2912554f607f8cbb12b3eae87a867fd0fbc6719447dfce8987ef925a79452d"
+    },
+    "Main/tools/check/check_sw6_demo.sh": {
+      "size": 15697,
+      "mtime_ns": 1791822844482438300,
+      "sha256": "0fc10e972f67b9784797caa7603a786a14b5536e3e8528b78c04a7eb9090b92e"
+    },
+    "Main/tools/check/check_sw6_log.py": {
+      "size": 16987,
+      "mtime_ns": 1791801358573277500,
+      "sha256": "65e658f9e6547b46aaac64b3ee860c1fa8ae0af834d97ed754ddf0a2b1801c99"
+    },
+    "Main/tools/check/check_sw7_game.sh": {
+      "size": 41640,
+      "mtime_ns": 1794587465455368000,
+      "sha256": "83b96af13f06577e1b0f77376324a751db09beb5afd3c9a4bcf755c2a45d7a76"
+    },
+    "Main/tools/check/check_sw8_stats.sh": {
+      "size": 37941,
+      "mtime_ns": 1793228087450183200,
+      "sha256": "aa7e54a6f7b6be3dc6133b1d4368b5fcfb1bd798231d41acf44981b54ab28ee0"
+    },
+    "Main/tools/check/check_sw8_tx.c": {
+      "size": 3443,
+      "mtime_ns": 1791800931713078300,
+      "sha256": "b6be10f6164d9b24d64e6986c9ff868e3d2dc9c533ea1df907bde7b3aa0723e3"
+    },
+    "Main/tools/check/check_sw9_board.py": {
+      "size": 3619,
+      "mtime_ns": 1791800916113241400,
+      "sha256": "ae4b347db74513c3a0c7141638933de0bb8f2b1c31864c513ca0d68960a25fb2"
+    },
+    "Main/tools/check/check_sw9_flash.py": {
+      "size": 2195,
+      "mtime_ns": 1791014776500916200,
+      "sha256": "ddf33e3822485244e85e3f92a1d2e0df9e4bebc3b395ac214c5a96a40be6b8ad"
+    },
+    "Main/tools/check/check_sw9_logs.py": {
+      "size": 4979,
+      "mtime_ns": 1791044903210708000,
+      "sha256": "8be2a6fb51581deb90ae7a11159bfc68e77098d4fff8c599c233017d72e3f90c"
+    },
+    "Main/tools/check/check_sw9_nmax.py": {
+      "size": 2275,
+      "mtime_ns": 1791013557376065800,
+      "sha256": "7d837b46a61682a5df334d1bb9ee85abe39242d8711e539850430df6e19f9f44"
+    },
+    "Main/tools/check/check_sw9_perf.py": {
+      "size": 3469,
+      "mtime_ns": 1791013771291485000,
+      "sha256": "1f55e01d0e464a4bb0c28c465e31458f6a617f4fe62dbcb80204420bc6dca47e"
+    },
+    "Main/tools/check/check_sw_layers.sh": {
+      "size": 13733,
+      "mtime_ns": 1793196498795854700,
+      "sha256": "5ef2f548105c5ee197c47dd16b65e30bbebdaf984e1715cf1cc3cadbec2c0bde"
+    },
+    "Main/tools/check/console_checks.py": {
+      "size": 11082,
+      "mtime_ns": 1793828835978542200,
+      "sha256": "b5bef3991110b3e3c1590803ba73ab09395bbb38926050b4dda964285bdc6772"
+    },
+    "Main/tools/check/e7_injection_check.py": {
+      "size": 3200,
+      "mtime_ns": 1790442423073116900,
+      "sha256": "4e902dc494b4052f6ebfd59a1ef6879057d61f24376d327a93e07f40f195ad93"
+    },
+    "Main/tools/check/e7_key_probe.c": {
+      "size": 5074,
+      "mtime_ns": 1791800953261698600,
+      "sha256": "8afe0aee5999663acc4012ef714c0dc77e31a5d863e545864777ff9e36bf3c55"
+    },
+    "Main/tools/check/e7_output_check.py": {
+      "size": 14689,
+      "mtime_ns": 1791801402883404400,
+      "sha256": "4b4d2b68b6dd732fdd37d3fe64237b16731ac7fcf124a116f7190d15cd5df8a3"
+    },
+    "Main/tools/check/e8_entity_abi.c": {
+      "size": 3755,
+      "mtime_ns": 1791800953279443400,
+      "sha256": "1f406634ee6267985f5a9276d013624f97a5dedce95514c22acb0bbc69b62bd9"
+    },
+    "Main/tools/check/e8_entity_golden.c": {
+      "size": 8268,
+      "mtime_ns": 1791802395663799700,
+      "sha256": "06742e57891320abf01983dd75ad8143dd7aba7cf85095a8398bd59d3414e146"
+    },
+    "Main/tools/check/f5_game_dump.c": {
+      "size": 5204,
+      "mtime_ns": 1794646473550510400,
+      "sha256": "4909fbb21ef48fb52eafdeaeb03f2d066c4918125b121afa89377113df87a03d"
+    },
+    "Main/tools/check/feature_build.py": {
+      "size": 20706,
+      "mtime_ns": 1794542769886712500,
+      "sha256": "4a936ab87d83c34881599f94bea7ef66dd4bdad0f884f1dcc56ca58ec944e816"
+    },
+    "Main/tools/check/feature_config.py": {
+      "size": 10914,
+      "mtime_ns": 1794488477663840400,
+      "sha256": "3fa4c708085ddc53ea8f77fa992bbe0a7c0e40eca3c5bc37780910d627c57f45"
+    },
+    "Main/tools/check/feature_netlist.py": {
+      "size": 3134,
+      "mtime_ns": 1792737419293297000,
+      "sha256": "fe7d18b8a6f90dbe929bbbcb99f1a87063176974cc09a5e59cb713163a466c16"
+    },
+    "Main/tools/check/feature_synthesis.py": {
+      "size": 5809,
+      "mtime_ns": 1792736385495290400,
+      "sha256": "e7bfdbcafac94a18b5c2c999f76dbe7cd9f3f2743520e4e01f33dc17afe9dbba"
+    },
+    "Main/tools/check/frontend_report_figures.py": {
+      "size": 6924,
+      "mtime_ns": 1791572454321685900,
+      "sha256": "ca4efa31dbac92f4813670d7ead6e8f1e458bf92f98bdde22ad18091b15e84e7"
+    },
+    "Main/tools/check/g1_research.py": {
+      "size": 13175,
+      "mtime_ns": 1794488551102913500,
+      "sha256": "845b47271f244ea4da67cdcd996aaf08c6b47abf0e6a6237dc5d7a1b4cc07d4f"
+    },
+    "Main/tools/check/g2_research.py": {
+      "size": 28641,
+      "mtime_ns": 1794488553002088600,
+      "sha256": "c04a6ed88d3f87fdb9303edab1380564e2683570f28f0d3badd4fa1ff86b1543"
+    },
+    "Main/tools/check/g3_research.py": {
+      "size": 9110,
+      "mtime_ns": 1791801402967394700,
+      "sha256": "e57457d884eeca09a6cd2314ba9da00e2f2e8e5e9d556ed5f4d176368c4c1dd7"
+    },
+    "Main/tools/check/g4_game_dump.c": {
+      "size": 4379,
+      "mtime_ns": 1794646472951825700,
+      "sha256": "f2328625fbc611329fcdb62a7e90844da5fa818dd0511f843a286b78d3b2c914"
+    },
+    "Main/tools/check/gen_recip_tab.py": {
+      "size": 901,
+      "mtime_ns": 1792619849006350400,
+      "sha256": "b8c309d069a44a11a87fb82b25700a06f7ee2f2ed189e3e177013d837cfac595"
+    },
+    "Main/tools/check/gen_sin_tab.py": {
+      "size": 3912,
+      "mtime_ns": 1794587465456378300,
+      "sha256": "abd4cd0b55449e74a5ee8160c04c1349c47618821d7acf51a3bb806ff9f87188"
+    },
+    "Main/tools/check/gen_stg_clear.c": {
+      "size": 15175,
+      "mtime_ns": 1791801402985128800,
+      "sha256": "a06f97f28d8dd06751dbe29cca72d2e2526138ac5081ca97af0be530f95e9a81"
+    },
+    "Main/tools/check/gen_stg_patterns.py": {
+      "size": 16903,
+      "mtime_ns": 1791800814128924700,
+      "sha256": "17528653c758c9dfb552ee73512f73ff7f833a3af6d4b2276efdf3ff3395bb4b"
+    },
+    "Main/tools/check/gen_sw6_replay.py": {
+      "size": 4683,
+      "mtime_ns": 1790560432190108700,
+      "sha256": "91604431489fcd5f4d39508c7ab4773bb38ea8d3ce68ec74fd2c68843eee922a"
+    },
+    "Main/tools/check/geom_cases_dump.c": {
+      "size": 3541,
+      "mtime_ns": 1791798643619167300,
+      "sha256": "27e89fb4d45f716527d013bbe91cb03dca625a6668e50167f9c1540e79b868aa"
+    },
+    "Main/tools/check/geom_cases_dump.sh": {
+      "size": 1132,
+      "mtime_ns": 1791798643640630100,
+      "sha256": "8ceac34e22f3534d85fb7ba624951703688c1a4ad89590230d37ef2c50e27929"
+    },
+    "Main/tools/check/geom_model.py": {
+      "size": 51082,
+      "mtime_ns": 1794488477794956200,
+      "sha256": "f6c0ff926e16676345fae8ca13d5614362efed25934f281b1e49cef63cfb5635"
+    },
+    "Main/tools/check/localize_paths.py": {
+      "size": 8893,
+      "mtime_ns": 1793465489874252100,
+      "sha256": "d6638009a0a289cc25c222239e941efbc85c81b2eb17a7766ac352a7a7fc8d12"
+    },
+    "Main/tools/check/pix_cases_dump.c": {
+      "size": 17172,
+      "mtime_ns": 1791798643574414900,
+      "sha256": "a9559e7a8ec7dca7f175c44220ac4e0c19e654d101b329a8982867e3df85db5b"
+    },
+    "Main/tools/check/r3_vectors.py": {
+      "size": 3009,
+      "mtime_ns": 1792737678339267000,
+      "sha256": "f917aae745d3e323f6a120ae66dd06d9f7dcd56ab56d903338aae22443feeb51"
+    },
+    "Main/tools/check/r4_checks.py": {
+      "size": 5951,
+      "mtime_ns": 1793462829171270300,
+      "sha256": "8dedd7f0134b050a09def1ec68ad1d9d629201a4ebcfefcd057001ceb44c0392"
+    },
+    "Main/tools/check/rast_check.c": {
+      "size": 173,
+      "mtime_ns": 1792620394270781400,
+      "sha256": "93a51de32f5cb16a4e074e347872f585cd1ab505717fe14ecb1f0005e69a01ed"
+    },
+    "Main/tools/check/rast_model.py": {
+      "size": 8284,
+      "mtime_ns": 1792768110842309700,
+      "sha256": "7eac3d550606c1c482081ae77b06386b8e10305c1cf02a774b17277b3b5cf65e"
+    },
+    "Main/tools/check/rast_stream.py": {
+      "size": 13424,
+      "mtime_ns": 1792685993319919700,
+      "sha256": "f5df82635c72ce0ba8e83ffa87c35aeaa7cd43bc855419164d09bfd30c9abb5b"
+    },
+    "Main/tools/check/rebuild_frontend_baseline.py": {
+      "size": 2961,
+      "mtime_ns": 1791573170055992300,
+      "sha256": "c77add8137391bd048fa0e74ec3f647361f65167e8f149a0e99acd75d0a858a1"
+    },
+    "Main/tools/check/regs_gen.py": {
+      "size": 14029,
+      "mtime_ns": 1794542769912982000,
+      "sha256": "0f945861aac00ff65f981d8f32ff0f486c19c99a220287eea0a5ecdc64406675"
+    },
+    "Main/tools/check/replay2c.py": {
+      "size": 11936,
+      "mtime_ns": 1791801402950460400,
+      "sha256": "e0b3defc0e6db6d2321d7c14953f18e30a6911e7618fb94bcb3cfc68d43c3310"
+    },
+    "Main/tools/check/research_engine_features.py": {
+      "size": 17246,
+      "mtime_ns": 1794488836618138500,
+      "sha256": "e3c1fc2d642f66231f6bb289b185cbd158fe8956526ceddce24a3cd89fb716ba"
+    },
+    "Main/tools/check/research_strip_frontend.py": {
+      "size": 6912,
+      "mtime_ns": 1793228087734285300,
+      "sha256": "838e5e94040fa13fe1a274b2016514e37ff8becc3340179034e636a334dd415c"
+    },
+    "Main/tools/check/run_f4_board.py": {
+      "size": 5490,
+      "mtime_ns": 1791822187643649700,
+      "sha256": "f2aee48916be00e9f1869758339dab155ed165285445a16a3e987bc9ef7f517c"
+    },
+    "Main/tools/check/run_f5_board.py": {
+      "size": 17644,
+      "mtime_ns": 1794488594272647600,
+      "sha256": "152ca486442b4fddc95497fa579d292ff9c7c97d8ee8805928bd8377e585e07e"
+    },
+    "Main/tools/check/run_f5_jtag_capture.py": {
+      "size": 6226,
+      "mtime_ns": 1791709189457135200,
+      "sha256": "c60da80ccb985971ad9510cdbfb0d1814fda612eb526a2e1e3e41a82670e95d1"
+    },
+    "Main/tools/check/run_f5_synthesis.py": {
+      "size": 5158,
+      "mtime_ns": 1792145947329025900,
+      "sha256": "968742feff7e6928d1e8ab109188219311f4395cc605ed8adca1966004b18c26"
+    },
+    "Main/tools/check/run_frontend_board.py": {
+      "size": 2449,
+      "mtime_ns": 1791822187644654600,
+      "sha256": "9b899ae44cf87a9451c88c694d55916ef703a31244c94f2d557ad4b44000c990"
+    },
+    "Main/tools/check/sw6_frames_dump.c": {
+      "size": 9586,
+      "mtime_ns": 1791798629321655500,
+      "sha256": "93c878abac1fe0bceb1dbf7c3968373be9181a7c8262c69cd3115d2a7f62a956"
+    },
+    "Main/tools/check/test_game_control.py": {
+      "size": 7814,
+      "mtime_ns": 1793560895404335200,
+      "sha256": "eaa69be1b0c4ae717f8d18327c1d2a7c36abdfe2a29cfc6aaaaefe6d7134deb2"
+    },
+    "Main/tools/check/test_validation.py": {
+      "size": 20191,
+      "mtime_ns": 1794587351746919100,
+      "sha256": "398d7498c1a9fba7a6890c4c80c00d6454465734bedf97ae09b7883b340c6fd8"
+    },
+    "Main/tools/check/validate.py": {
+      "size": 28686,
+      "mtime_ns": 1794660488413992300,
+      "sha256": "d7163d0d8773654dbdebbbbddbb546fb22595016d06e1471b8320faa7ad6a430"
+    },
+    "Main/tools/check/validate_frontend_board.py": {
+      "size": 12051,
+      "mtime_ns": 1791612591560249200,
+      "sha256": "46d4518e21fe5922a194dacdfea2d99e2758f0af677e830d2252eb67375e7c10"
+    },
+    "Main/tools/check/vec_to_sim.py": {
+      "size": 3395,
+      "mtime_ns": 1791800885265048500,
+      "sha256": "06781cabc19a6138d80757bd60dcc830bfd91cecf547beb565c12e3a1ccafaee"
+    }
+  },
+  "checks": {
+    "check:workflow": {
+      "status": "PASS",
+      "attempt": 1,
+      "seconds": 19.014,
+      "details": {
+        "log": "Main/sim/build/check-runs/20261114-211735-695a5640/logs/runner/workflow.log",
+        "not_applicable": []
+      }
+    },
+    "check:mutation-tools": {
+      "status": "PASS",
+      "attempt": 1,
+      "seconds": 6.824,
+      "details": {
+        "log": "Main/sim/build/check-runs/20261114-211735-695a5640/logs/runner/mutation-tools.log",
+        "not_applicable": []
+      }
+    },
+    "check:regs": {
+      "status": "PASS",
+      "attempt": 1,
+      "seconds": 6.798,
+      "details": {
+        "log": "Main/sim/build/check-runs/20261114-211735-695a5640/logs/runner/regs.log",
+        "not_applicable": []
+      }
+    }
+  },
+  "artifacts": {}
+}

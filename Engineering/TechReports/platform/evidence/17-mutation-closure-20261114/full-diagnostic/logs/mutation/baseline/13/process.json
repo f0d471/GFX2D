@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "timeout": false,
+  "seconds": 18.191,
+  "cmd": "bash Main/sim/display/run.sh --case starve"
+}

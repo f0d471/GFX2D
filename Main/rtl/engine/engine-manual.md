@@ -1,6 +1,6 @@
 # engine 设计文档
 
-引擎 RTL（`rtl/engine/`）的随码文档：模块清单、编码表、注错开关与关键协议。
+引擎 RTL（`rtl/engine/`）的随码文档：模块清单、编码表、外部变异索引与关键协议。
 寄存器偏移与位号的单一真源是 `engine_regs_offsets.vh`（`tools/check/regs_gen.py` 生成），
 命令语义的权威是 `doc/赛题二总体设计.md` 3.4 节，层间协议见本文第 4 节。
 
@@ -143,7 +143,7 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 
 ## 5 变异测试（外部活动）
 
-生产源码里没有注错分支。75 条变异体写在
+生产源码里没有注错分支。变异体的唯一清单为
 [`../../sim/mutation/mutants.yaml`](../../sim/mutation/mutants.yaml)，由
 [`../../sim/mutation/run_mutation.py`](../../sim/mutation/run_mutation.py) 在隔离影子树里
 施加后调用本目录各 `sim/` 套件的正常用例，按退出码与见红位置判定。缺陷模型、规格出处、
@@ -154,11 +154,13 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 | blend | 5 | `sim/engine/blend` 的 `exhaustive`、`stall`、`narrow_*` |
 | pix | 5 | `sim/engine/pix` 的 `unit_stall`、`pipe_burst`、`path_golden` |
 | geom | 6 | `sim/engine/geom` 的 `geom_directed`、`geom_rfstall`、`check_g2_band.py` |
-| mover | 11 | `sim/engine/mover` 的 `normal`、`drain`、`check_g2_band.py` |
+| mover | 11 | `sim/engine/mover` 的 `normal`、`drain`、`stream_owner`，以及 R2 所有者前检与 `check_g2_band.py` |
 | tex | 4 | `sim/engine/tex` 的 `normal`、`normal_latency2`、`check_r2.py` |
 | cmd | 7 | `sim/engine/ctrl` 的 `engine_top`、`check_f4_instances.py`、`check_g3/g4` |
 | inst | 2 | `check_f4_instances.py` |
 | bin | 6 | `check_f5_bin.py` |
+| regs | 2 | `sim/engine/ctrl --case registers`：SETUP 读锁存、IRQ W1C |
+| pb | 2 | `check_f5_bin.py --frame --protocols`：逐包源与裁剪快照 |
 | band | 5 | `check_g2_band.py` 的 `path_random`、`control`、`empty` |
 | rast / rlst | 7 + 4 | `check_r2.py --group rtl` / `--group rlst` |
 | display（fetch / out） | 4 + 3 | `sim/display` 的 `image`、`starve`、`inflight`、`swap` |
@@ -166,8 +168,9 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 | 软件执行器（strip / exec_sw / instances） | 2 + 2 + 1 | `check_g3_stripctl.py`、`check_f4_instances.py --models` |
 
 迁移前这些开关包在 `` `ifdef INJ_* `` 里，本轮全部撤掉；等价性由
-`verify_migration.py` 用预处理输出双向证明（正向逐行相同、反演词法相同），
-结论见 platform 系列第 17 章。
+`verify_migration.py` 在 B0/B3/B5/B7 核对生产展开、历史反演与非空激活；
+所有普通基线先通过，每条变异独立施加，弱证据或存活不得汇总为通过。操作与证据布局见
+[`../../sim/mutation/README.md`](../../sim/mutation/README.md)。
 
 ## 6 排版约束
 

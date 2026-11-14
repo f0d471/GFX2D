@@ -1,0 +1,7 @@
+B4 入库像素单元（一行一行）：
+B4 入库像素单元（乒乓与流水，行与行之间不等）：
+  pipe_burst: RESULT: FAIL (20009 mismatches)
+      pipe: cmds=0 rows=2 long=0 beats=4 slots=16 waits=1 stall=7 overlap=0 gap=19985 proto=0
+  directed_export: PIX CASES: commands=31 pixels=1494 written=1431 key=49 src_oob=14
+B1~B4 真实通路与随机反压 AXI RAM：
+  hazard_export: PIX CASES: commands=5 pixels=2592 written=2592 key=0 src_oob=0

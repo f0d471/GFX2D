@@ -1,0 +1,5 @@
+WARNING: tb_engine_path.v:216: $readmemh(build/directed.cmd.hex): Not enough words in the file for the requested range [0:63].
+PERF cycles=3086 commands=30
+PATH stats commands=30 read=78 write=61 stalls=334 mem_bad=0 errors=0
+RESULT: PASS (B1-B4, software executor golden)
+tb_engine_path.v:259: $finish called at 31110000 (1ps)

@@ -16,7 +16,7 @@ RUNS = ROOT / 'Main/sim/build/check-runs'
 CACHE_DIR = RUNS / 'cache'
 SOURCE_SUFFIXES = {'.c', '.h', '.inc', '.v', '.vh', '.py', '.sh', '.ps1', '.mk',
                    '.xml', '.sdc', '.json', '.bin', '.dat', '.txt', '.g2dr', '.png', '.bdf',
-                   '.hex', '.ld', '.cfg', '.yaml', '.yml'}
+                   '.hex', '.ld', '.cfg', '.yaml', '.yml', '.sv', '.s', '.S', '.ttf', '.otf'}
 _SESSION = None
 
 
@@ -37,7 +37,28 @@ def git(*args):
 
 
 def source_files():
-    files = git('ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'Main')
+    manifest = os.environ.get('GFX_CHECK_SOURCE_MANIFEST')
+    if manifest:
+        context = json.loads(Path(manifest).read_text(encoding='utf-8'))
+        names = context['files']
+        expected = set(names)
+        if not names: raise RuntimeError('隔离源码输入清单为空')
+        if any(Path(n).is_absolute() or '..' in Path(n).parts for n in names):
+            raise RuntimeError('隔离源码清单含越界文件')
+        actual=[]
+        # scandir 的目录项已给出类型，避免在 WSL/Windows 间为每个文件重复 stat。
+        for folder,dirs,files_ in os.walk(ROOT/'Main'):
+            dirs[:]=[d for d in dirs if d not in ('logs','build','outflow','__pycache__') and not d.startswith(('build_','build-','work_'))]
+            for name in files_:
+                p=Path(folder)/name
+                if p.suffix.lower() in SOURCE_SUFFIXES or name.lower()=='makefile' or p.relative_to(ROOT).as_posix() in expected:
+                    actual.append(p.relative_to(ROOT).as_posix())
+        if set(actual)!=set(names):
+            raise RuntimeError('隔离源码清单不符: missing='+str(sorted(set(names)-set(actual)))+
+                               ' extra='+str(sorted(set(actual)-set(names))))
+        return sorted(names)
+    else:
+        files = git('ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'Main')
     result = []
     for name in files.decode('utf-8').split('\0'):
         p = Path(name)
@@ -96,11 +117,11 @@ def selected_sources(patterns):
     names=[name for name in source_files() if any(fnmatch.fnmatchcase(name,p) for p in patterns if not p.startswith('@'))]
     if '@tracked-text' in patterns:
         from localize_paths import candidates
-        names += [name for name,_ in candidates(True)]
+        names += [name for name,_ in candidates(True) if (ROOT/name).is_file()]
     for pattern in patterns:
         if not any(c in pattern for c in '*?[') and not pattern.startswith('@') and (ROOT/pattern).is_file():
             names.append(pattern)
-    return sorted({name for name in names if (ROOT/name).is_file()})
+    return sorted(set(names))
 
 
 class Session:
@@ -133,8 +154,11 @@ class Session:
         else:
             self.patterns=input_patterns or ['Main/**']
             inputs = cached_identities(selected_sources(self.patterns),'inputs',fresh)
+            if not inputs: raise RuntimeError('检查源码输入清单为空')
+            context = os.environ.get('GFX_CHECK_SOURCE_MANIFEST')
+            revision = json.loads(Path(context).read_text())['revision'] if context else git('rev-parse', 'HEAD').decode().strip()
             write_json(self.manifest, {'schema': 1, 'run_id': self.path.name,
-                'revision': git('rev-parse', 'HEAD').decode().strip(), 'profile': profile,
+                'revision': revision, 'profile': profile,
                 'settings': settings, 'input_patterns':self.patterns,'inputs': inputs, 'checks': {}, 'artifacts': {}})
         # 相对仓库根的路径可由 Windows 与 WSL 共用。
         os.environ['GFX_CHECK_RUN_DIR'] = self.path.relative_to(ROOT.resolve()).as_posix()

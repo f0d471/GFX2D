@@ -1,0 +1,12 @@
+RUN Main/sim/build/check-runs/task
+Traceback (most recent call last):
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_r2.py", line 101, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_r2.py", line 56, in main
+    run('normal',compile_case('normal','tb_engine_rlst',rlst_src))
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_r2.py", line 48, in run
+    assert not failed and 'RESULT: PASS ' in body, (name,body[-2000:])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('normal', 'FATAL: Main/sim/engine/rlst/tb_engine_rlst.v:108: RLST result code=9 refs=0\n       Time: 1820000  Scope: tb_engine_rlst.run_case\n')

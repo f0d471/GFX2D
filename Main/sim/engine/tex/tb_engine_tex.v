@@ -1,17 +1,13 @@
 // tb_engine_tex：v1-TEX 的正式判据，两个层级
 //
-// 单元级 engine_tex（INJECT 可注错，见下）：
+// 单元级 engine_tex：普通 APB 与读流协议检查：
 //   APB-LOAD    4096 字装载/逐字读回（首末地址与相邻字隔离靠逐字不同的图案）
 //   APB-UNALIGN 未对齐读写回 PSLVERR 且不改 RAM
 //   STR-*       读流：数据逐拍对参考、首拍延迟恒 2（bank 输出寄存器 + 输出寄存器）、
 //               描述符内 valid 连续、tlast 落在末拍、buf/cidx 随流与状态带回、
 //               状态在末拍之后
-//   注错位（-DINJECT_TEX_VAL=n，注入构建只跑单元级，对应判据必须见红）：
-//     1  valid 提前一级（数据错拍）→ STR 数据比对见红
-//     2  未对齐写放行 → APB-UNALIGN 见红
-//     4  状态吞掉 → STR 等状态看门狗见红
 //
-// 整机级 engine_top（INJECT 恒 0；软件执行器金标准，fixture 由
+// 整机级 engine_top 的普通回归：软件执行器金标准，fixture 由
 // tools/check/pix_cases_dump.c --tex-sprites 导出：40 颗 16×16 预乘 ALPHA，
 // 前 20 颗源在片上 TEX、后 20 颗在 DDR，命令表 41 条跨两个取数批）：
 //   RENDER      512 KiB 期望内存逐 128 位比对；PERF_RD_*/WR_* 与从机观测对账
@@ -40,31 +36,9 @@ module tb_engine_tex #(
     reg clk = 0, rst = 1;
     always #5 clk = ~clk;
 
-    // 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）；TEX_INJ 只为打印。
-    `ifdef INJ_VALID_EARLY
-    localparam integer TEX_INJ = 1;
-    `elsif INJ_WR_LOOSE
-    localparam integer TEX_INJ = 2;
-    `elsif INJ_STAT_DROP
-    localparam integer TEX_INJ = 4;
-    `elsif INJ_TX_NOWAIT
-    localparam integer TEX_INJ = 64;
-    `else
-    localparam integer TEX_INJ = 0;
-    `endif
 
-    // 上面开关的合取，用于「注入构建跑到单元级就收尾」这一个判断。
-    // INJ_TX_NOWAIT 不在其中：它注入的是搬运层（原始设计用 mover 的注错参数做同一件事），
+    // 单元与整机共用正常激励，不因是否施加源码变异而跳过流程。
     // 靶子在整机级的像素流碰撞，单元级看不到，必须让它继续跑下去。
-`ifdef INJ_VALID_EARLY
-`define INJ_ANY_TEX
-`endif
-`ifdef INJ_WR_LOOSE
-`define INJ_ANY_TEX
-`endif
-`ifdef INJ_STAT_DROP
-`define INJ_ANY_TEX
-`endif
 
     integer errors = 0;
     integer tck = 0;
@@ -229,14 +203,7 @@ module tb_engine_tex #(
                 errors = errors + 1;
                 $display("STR-WATCHDOG beats=%0d last=%0d stat=%0d",
                          str_beats, str_last_seen, str_stat_ok);
-                if (TEX_INJ == 4) begin
-                    if (errors == 1 && str_beats == 1 && str_last_seen &&
-                        !str_stat_ok && str_bad == 0)
-                        $display("TEX INJECT 4 STATUS_MISSING");
-                    else
-                        $display("TEX INJECT NOT_RED");
-                    $finish;
-                end
+                $fatal(1,"STR-STATUS-MISSING beats=%0d last=%0d stat=%0d", str_beats, str_last_seen, str_stat_ok);
             end
         end
     endtask
@@ -378,9 +345,6 @@ module tb_engine_tex #(
         if (u_eng.u_mover.core_rs_pix && u_eng.u_mover.tex_rs_pix)
             begin
                 errors=errors+1; $display("PIXEL_STREAM_COLLISION");
-`ifdef INJ_TX_NOWAIT
-                $display("TEX MIX INJECT red"); $finish;
-`endif
             end
         if (prev_fe_state == 2'd2 && !prev_fe_stat && u_eng.u_cmd.fe_stat && !prev_fetch_status)
             begin errors=errors+1; $display("FETCH_STATUS_ATTRIBUTION"); end
@@ -558,39 +522,19 @@ module tb_engine_tex #(
 
     initial begin
         $readmemh({`CASE, ".tex.hex"}, tex_ref);
-`ifdef INJ_TX_NOWAIT
-        // 这一处变异注入的是搬运层，靶子在整机级的像素流碰撞，fixture 照常装载
-`elsif INJ_ANY_TEX
-        // 其余注错构建只跑单元级，整机级的 fixture 不装载
-`else
         $readmemh({`CASE, ".cmd.hex"}, cmd_rom);
         $readmemh({`CASE, ".surf.hex"}, surf_rom);
         $readmemh({`CASE, ".exp.hex"}, exp_mem);
         $readmemh({`CASE, ".init.hex"}, init_mem);
         $readmemh({`CASE, ".cnt.hex"}, cnt_hex);
         $readmemh({`CASE, ".stats.hex"}, stats_hex);
-`endif
 
         // ---------------- 单元级 ----------------
         repeat (5) @(negedge clk); rst = 0;
         repeat (2) @(negedge clk);
         unit_apb_cases;
         unit_stream_cases;
-`ifdef INJ_ANY_TEX
-        // 每处变异各自打印一行定位证据，run.sh 按它核对「红在对应判据上」；
-        // 取不到证据时打印 NOT_RED，避免把「注错没生效」误读成「判据没问题」。
-`ifdef INJ_VALID_EARLY
-        if (errors != 0) $display("STR-DATA red=%0d", errors);
-`endif
-`ifdef INJ_WR_LOOSE
-        if (errors != 0) $display("APB-UNALIGN-SIDE-EFFECT red=%0d", errors);
-`endif
-        $display("TEX INJECT %0d red=%0d", TEX_INJ, errors);
-        if (errors == 0) $display("TEX INJECT NOT_RED");
-        $finish;
-`else
         $display("UNIT done errors=%0d", errors);
-`endif
 
         // ---------------- 整机级：渲染 + PERF 对账 ----------------
         rst = 1;

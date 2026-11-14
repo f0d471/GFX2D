@@ -1,0 +1,22 @@
+WARNING: tb_engine_geom.v:492: $readmemh(build/vectors.hex): Not enough words in the file for the requested range [0:131071].
+engine_geom unit sim: rec=build/vectors.hex
+  (+RFSTALL: row buffer drain 23 cycles)
+  MISMATCH sideband row/py/npx/beats/lead mismatch
+        RTL row=0 py=0 npx=4 beats=1 lead=0/3
+        EXP row=0 py=0 npx=1 beats=1 lead=0/3
+  MISMATCH read descriptor addr/beats/buf mismatch
+        RTL cidx=0 buf=0 addr=00004000 beats=2
+        EXP cidx=0 buf=0 addr=00004000 beats=1
+  MISMATCH sideband row/py/npx/beats/lead mismatch
+        RTL row=1 py=1 npx=4 beats=1 lead=0/3
+        EXP row=1 py=1 npx=1 beats=1 lead=0/3
+  MISMATCH read descriptor addr/beats/buf mismatch
+        RTL cidx=0 buf=1 addr=00004010 beats=2
+        EXP cidx=0 buf=1 addr=00004010 beats=1
+
+  commands 59, expected records 338
+  rows 108, cycles 1510, cycles/row 13.98
+  rule1 violations 0, mismatches 4, done-pulse errors 0, protocol 0, buffer 0
+  handshakes sb 108 rd 122 wr 108, cmd_done 5
+RESULT: FAIL (4 errors; 334 checks run)
+tb_engine_geom.v:529: $finish called at 15146000 (1ps)

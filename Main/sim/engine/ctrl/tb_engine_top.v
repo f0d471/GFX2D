@@ -13,9 +13,9 @@
 //     不死锁；前一条 BUS_WRITE 先于后一条 BAD_FIELD。
 //   6 PERF_CMD/PIXEL/KEY_SKIP 的精确对账与读拍、CAPS、APB 拒绝语义。
 //
-// 注错构建（run.sh 另编两次）：-DINJ_CHK_SWAP 对调 space/format、-DINJ_NO_FB 关掉逐条回退，
-// 各自必须让至少一条向量见红（+vectors_only 只跑向量段并反转判据）。
-// 开关是预处理器级宏，直接作用于被测 RTL，本测试台不持有也不转译它们。
+// 原生产源码注错构建已退役；相同正常激励由外部变异活动检验，
+// 正常向量始终检查相同期望；外部变异由公共活动独立判红。
+// 本测试台只检查行为，不持有或转译生产源码的变异开关。
 // +vec_from=N 跳过前 N 条向量（调试用）。
 //
 // 地址约定：模型存储 4 MiB、按 (addr>>4) 取模映射。命令表区 0x0020_0000 起每表
@@ -798,7 +798,7 @@ module tb_engine_top;
     end
 
     // 主流程
-    reg [31:0] id_rd, caps_rd;
+    reg [31:0] id_rd, caps_rd, irq_rd;
     initial begin
         rst = 1'b1;
         repeat (8) step();
@@ -818,6 +818,18 @@ module tb_engine_top;
             $display("CAPS-FAIL got=%08x exp=%08x", caps_rd, EC_CAPS_VALUE);
         end
 
+        // 普通 APB 用例：ID/CAPS 的 SETUP 读，以及对空 IRQ 写 1 只能清位、不能置位。
+        if ($test$plusargs("regs_only")) begin
+            apb_wr(R_IRQ_EN, 32'd3);
+            apb_wr(R_IRST, 32'd3);
+            apb_rd(R_IRST, irq_rd);
+            if (irq_rd !== 32'd0 || irq_b !== 1'b0) begin
+                errors=errors+1; $display("IRQ-FAIL W1C empty status=%h irq=%b",irq_rd,irq_b);
+            end
+            if(errors==0) $display("RESULT: PASS registers");
+            else $display("RESULT: FAIL registers errors=%0d",errors);
+            $finish;
+        end
         parse_vectors;
         if (!$test$plusargs("directed_only")) run_vectors;
         if (!$test$plusargs("vectors_only")) directed_all;

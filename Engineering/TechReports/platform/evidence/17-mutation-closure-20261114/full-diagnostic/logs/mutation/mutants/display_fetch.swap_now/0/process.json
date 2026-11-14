@@ -1,0 +1,6 @@
+{
+  "returncode": 1,
+  "timeout": false,
+  "seconds": 16.905,
+  "cmd": "bash Main/sim/display/run.sh --case swap"
+}

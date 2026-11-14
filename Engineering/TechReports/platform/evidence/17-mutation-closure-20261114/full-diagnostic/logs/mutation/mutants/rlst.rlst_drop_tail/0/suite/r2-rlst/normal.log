@@ -1,0 +1,6 @@
+CASE PASS mode=0 base=00800000 bytes=120 code=0 refs=0
+CASE PASS mode=0 base=00800000 bytes=320 code=0 refs=100
+CASE PASS mode=0 base=00800000 bytes=130 code=0 refs=5
+CASE PASS mode=0 base=00800000 bytes=120 code=0 refs=0
+FATAL: Main/sim/engine/rlst/tb_engine_rlst.v:73: record reconstruction word=24
+       Time: 57045000  Scope: tb_engine_rlst

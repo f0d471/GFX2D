@@ -1,0 +1,92 @@
+{
+  "logs/reuse-review.json": {
+    "size": 789,
+    "mtime_ns": 1794651212927509100,
+    "sha256": "1c6ee1eb1d6fc2946d37412ee746425f17c9e7403c16890655a61941299dc3ec"
+  },
+  "logs/r2-ports/core-tex-lat1.compile.log": {
+    "size": 0,
+    "mtime_ns": 1794650659430792900,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/r2-ports/core-tex-lat1.log": {
+    "size": 146,
+    "mtime_ns": 1794650659643283700,
+    "sha256": "cf6df64d2f9c43ba7412a1c764c63c7fb67d757a719566ded21fd0d22213830e"
+  },
+  "logs/r2-ports/core-tex-lat2.compile.log": {
+    "size": 0,
+    "mtime_ns": 1794650659835071600,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/r2-ports/core-tex-lat2.log": {
+    "size": 146,
+    "mtime_ns": 1794650660118141100,
+    "sha256": "651d077852f29495a8eb7ec993f418759060d657fb62f0f2dcf6958c53d7d0f9"
+  },
+  "logs/r2-ports/core.compile.log": {
+    "size": 0,
+    "mtime_ns": 1794650659049448700,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/r2-ports/core.log": {
+    "size": 146,
+    "mtime_ns": 1794650659232738500,
+    "sha256": "1455f9cc991c6ac35943ef770d48f653332f5cc7119532118e8720d5d86e18f1"
+  },
+  "logs/r2-ports/summary.json": {
+    "size": 904,
+    "mtime_ns": 1794650660178262900,
+    "sha256": "0b49190c5acc40fc4170ac27340f149617b3698caeea565349d26bbbc5f98976"
+  },
+  "logs/r2-ports/tex-lat1.compile.log": {
+    "size": 0,
+    "mtime_ns": 1794650659289784200,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/r2-ports/tex-lat1.log": {
+    "size": 131,
+    "mtime_ns": 1794650659416757300,
+    "sha256": "7eff34cc29468222a4e27a46198a5239737033eed0ad5428d3ac7d776534e30f"
+  },
+  "logs/r2-ports/tex-lat2.compile.log": {
+    "size": 0,
+    "mtime_ns": 1794650659672658700,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "logs/r2-ports/tex-lat2.log": {
+    "size": 131,
+    "mtime_ns": 1794650659806870700,
+    "sha256": "12a9f27957a5de1c9da83cc143f6736be461182d21fb28c4633726e54ecac8db"
+  },
+  "logs/runner/blend.log": {
+    "size": 331,
+    "mtime_ns": 1794650327135641200,
+    "sha256": "cb6a1fada05fe31fe1107190e5c1f53e169a04c19c2a82d45d151aff9e3d176a"
+  },
+  "logs/runner/display.log": {
+    "size": 624,
+    "mtime_ns": 1794650598484845800,
+    "sha256": "92d9d84edd0e5946a3b627a4d5d015214de464c706714c5fc751054cde80a66e"
+  },
+  "logs/runner/mover.log": {
+    "size": 163,
+    "mtime_ns": 1794650612589250100,
+    "sha256": "429e6f4bc02aa16cbfb41d9d53c3a56d8f213e3cafe29c45c21a2fd77bec5da7"
+  },
+  "logs/runner/pix.log": {
+    "size": 2141,
+    "mtime_ns": 1794650390555548200,
+    "sha256": "bd288d56e2723d311873b2ec2c4d47c37bb58e15f22a1bb209087cc699a3c115"
+  },
+  "logs/runner/rast-ports.log": {
+    "size": 518,
+    "mtime_ns": 1794650660180432400,
+    "sha256": "80b96ebf4836688ea9fbcfb33c6b1da616450d11d5ef59e003a0c2fcc61dd8b9"
+  },
+  "logs/runner/tex.log": {
+    "size": 77,
+    "mtime_ns": 1794650640954343200,
+    "sha256": "0598121cf31a2a13f8354bf180bb2f07765f1c02c0f38bd65c30bb44e6c95ebb"
+  }
+}

@@ -15,7 +15,7 @@ bash Main/sim/engine/band/run.sh
 python3 Main/tools/check/check_g2_band.py --prepare-syn
 ```
 
-9 个正常检查、8 个针对性变异全部符合预期才输出 SIM OK。完整通路实际例化
+普通入口执行正常数据面与协议检查；8 个生产源码变异由统一 mutation 活动在相同检查器上检出。完整通路实际例化
 geom/pix/blend/mover/BAND/TEX 与两个 DMA 核；内存逐 128 位对软件执行器，
 每组完整比较 512 KiB。含混合源、负 x、跨条带、重叠、色键、取数并发、空条带、
 原始高字节及 8/16/32 行；控制测试含 4KB 拆分、迟到数据超时、取消与错误重试。

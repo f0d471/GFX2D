@@ -1,0 +1,17 @@
+RUN Main/sim/build/check-runs/task
+Traceback (most recent call last):
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_f4_instances.py", line 273, in <module>
+    try:main()
+        ~~~~^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_f4_instances.py", line 270, in main
+    for name in selected:session().perform('f4.'+name,globals()[name])
+                         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_run.py", line 221, in perform
+    result = action()
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_f4_instances.py", line 30, in models
+    out=run('host',[BUILD/'host',BUILD/'fixtures'])
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_f4_instances.py", line 24, in run
+    if p.returncode:raise RuntimeError(tag+' exit '+str(p.returncode)+': '+body[-2000:])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: host exit -6: host: /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/frontend/test_instances.c:121: boundaries: Assertion `one.w[2]==pair(i+1,1)' failed.
+

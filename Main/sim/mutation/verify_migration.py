@@ -26,6 +26,8 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / 'Main/tools/check'))
+from feature_build import write_headers
 MANIFEST = ROOT / "Main/sim/mutation/mutants.yaml"
 INCLUDE = "Main/rtl/engine/include"
 
@@ -52,14 +54,14 @@ def tokens(text: str) -> list[str]:
     return out
 
 
-def expand(path: Path, defs: list[str], work: Path) -> str:
+def expand(path: Path, defs: list[str], work: Path, include=None) -> str:
     """预处理一个源文件：Verilog 用 iverilog -E，C 用 gcc -E（只用于比对，不编译）。"""
     out = work / "expand.out"
     if path.suffix == ".c":
         cmd = ["gcc", "-E", "-P", "-I", str(ROOT / "Main/sw/lib"), "-I", str(ROOT / "Main/sw/lib/core"),
                "-I", str(ROOT / "Main/sw/lib/gfx"), "-o", str(out), *[f"-D{d}" for d in defs], str(path)]
     else:
-        cmd = ["iverilog", "-E", "-I", str(ROOT / INCLUDE), "-o", str(out), *[f"-D{d}" for d in defs], str(path)]
+        cmd = ["iverilog", "-E", "-I", str(include or ROOT / INCLUDE), "-I", str(ROOT / INCLUDE), "-o", str(out), *[f"-D{d}" for d in defs], str(path)]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode:
         sys.exit(f"预处理失败：{' '.join(cmd)}\n{r.stderr[:400]}")
@@ -78,65 +80,49 @@ def main() -> int:
     for row in rows:
         by_target.setdefault(row["target"], []).append(row)
 
-    work = Path(tempfile.mkdtemp(prefix="mutation-verify-"))
+    work = Path(tempfile.mkdtemp(prefix="mutation-verify-", dir=ROOT/'Main/sim/build'))
     ok_all = True
     report = {}
+    configs = {name:write_headers(name, work/name) for name in ('B0','B3','B5','B7')}
     for target, mutants in by_target.items():
-        pre_raw = subprocess.run(["git", "-C", str(ROOT), "show", f"{args.base_rev}:{target}"],
-                                 capture_output=True, check=True).stdout
-        pre_file = work / ("pre_" + Path(target).name)
-        pre_file.write_bytes(pre_raw.replace(b"\r\n", b"\n"))
-
-        post_file = ROOT / target
-        pre_expand = expand(pre_file, [], work)
-        post_expand = expand(post_file, [], work)
-        pre_none = norm(pre_expand)
-        post_none = norm(post_expand)
-        if pre_none == post_none:
-            forward, how = True, "逐行相同"
-        elif tokens(pre_expand) == tokens(post_expand):
-            forward, how = True, "代码相同，注释有改动"
-        else:
-            forward, how = False, "代码不同"
+        pre_raw = subprocess.check_output(['git','-C',str(ROOT),'show',f'{args.base_rev}:{target}'])
+        pre_file=work/('pre_'+Path(target).name);pre_file.write_bytes(pre_raw.replace(b'\r\n',b'\n'))
+        post_file=ROOT/target
+        forward=True;expanded={}
+        for config,include in configs.items():
+            before=expand(pre_file,[],work,include);after=expand(post_file,[],work,include)
+            same=tokens(before)==tokens(after)
+            forward &= same;expanded[config]=tokens(after)
         ok_all &= forward
-        print(f"{target}")
-        print(f"  正向（不定义任何 INJ_）: {'PASS' if forward else 'FAIL'}  {how}  "
-              f"{len(pre_none)} 行 vs {len(post_none)} 行")
-
-        post_text = post_file.read_text(encoding="utf-8")
-        detail = []
+        detail=[]
         for row in mutants:
-            mid, macro = row["id"], row.get("macro", "")
-            mutated = work / ("mut_" + Path(target).name)
-            text = post_text
-            ok_rules = True
-            for rule in row["rules"]:
-                if text.count(rule["find"]) != 1:
-                    ok_rules = False
-                    break
-                text = text.replace(rule["find"], rule["replace"])
-            if not ok_rules:
-                print(f"  {mid:<26} 规则匹配次数不是 1，无法反演")
-                ok_all = False
-                detail.append({"id": mid, "ok": False, "why": "规则不唯一"})
-                continue
-            mutated.write_text(text, encoding="utf-8", newline="")
-            want = tokens(expand(pre_file, [macro], work)) if macro else []
-            got = tokens(expand(mutated, [], work))
-            same = bool(want) and want == got
-            ok_all &= same
-            detail.append({"id": mid, "macro": macro, "ok": same, "rules": len(row["rules"])})
-            print(f"  {mid:<26} 反演 {'PASS' if same else 'FAIL'}  "
-                  f"{'-D' + macro if macro else '(无宏名)'}  {len(row['rules'])} 处  {len(got)} token")
-
-        report[target] = {"forward": forward, "mutants": detail}
+            text=post_file.read_text()
+            for rule in row['rules']:
+                if text.count(rule['find'])!=1:raise RuntimeError(row['id']+': rule not unique')
+                text=text.replace(rule['find'],rule['replace'],1)
+            mutated=work/('mut_'+Path(target).name);mutated.write_text(text)
+            active=[];same=True
+            for config,include in configs.items():
+                got=tokens(expand(mutated,[],work,include))
+                if got!=expanded[config]:active.append(config)
+                if row.get('macro'):
+                    want=tokens(expand(pre_file,[row['macro']],work,include))
+                    same &= got==want
+            ok=bool(active) and same;ok_all &= ok
+            detail.append({'id':row['id'],'ok':ok,'active_configs':active,'historical_macro':row.get('macro')})
+            print(row['id'], 'PASS' if ok else 'FAIL', 'active='+','.join(active),flush=True)
+        report[target]={'forward':forward,'configs':list(configs),'mutants':detail}
+    import shutil
+    shutil.rmtree(work)
 
     if args.json:
         Path(args.json).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    total = sum(len(v["mutants"]) for v in report.values())
-    passed = sum(1 for v in report.values() for m in v["mutants"] if m["ok"])
+    entries = [m for v in report.values() for m in v['mutants']]
+    historical = [m for m in entries if m['historical_macro']]
+    passed = sum(1 for m in historical if m['ok'])
     print(f"\n正向 {sum(1 for v in report.values() if v['forward'])}/{len(report)} 个文件；"
-          f"反演 {passed}/{total} 条；{'全部一致' if ok_all else '有不一致，先修'}")
+          f"历史反演 {passed}/{len(historical)} 条；非空激活 {sum(bool(m['active_configs']) for m in entries)}/{len(entries)} 条；"
+          f"{'全部一致' if ok_all else '有不一致，先修'}")
     return 0 if ok_all else 1
 
 

@@ -1,0 +1,6 @@
+{
+  "returncode": 1,
+  "timeout": false,
+  "seconds": 9.164,
+  "cmd": "bash Main/sim/engine/mover/run.sh --case normal"
+}

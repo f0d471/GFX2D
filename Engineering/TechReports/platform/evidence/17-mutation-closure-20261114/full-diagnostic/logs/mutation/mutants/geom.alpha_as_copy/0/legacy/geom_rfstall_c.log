@@ -1,0 +1,805 @@
+WARNING: tb_engine_geom.v:492: $readmemh(build/cases.hex): Not enough words in the file for the requested range [0:131071].
+engine_geom unit sim: rec=build/cases.hex
+  (+RFSTALL: row buffer drain 23 cycles)
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  MISMATCH sideband read-dst vs D7
+  PROTO handshake count cidx 0: sb 480/480 rd 480/0 wr 480/480 (seen/expected)
+  PROTO handshake count cidx 0: sb 544/544 rd 128/64 wr 544/544 (seen/expected)
+  PROTO handshake count cidx 0: sb 608/608 rd 192/128 wr 608/608 (seen/expected)
+        RTL cidx=0 buf=1 addr=00200100 beats=16
+        EXP cidx=0 buf=2 addr=00097320 beats=16
+        RTL cidx=0 addr=00098320 beats=16 last=0
+        EXP cidx=0 addr=00097320 beats=16 last=0
+        RTL row=2 py=152 npx=64 beats=16 lead=0/0
+        EXP row=1 py=151 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200200 beats=16
+        EXP cidx=0 buf=1 addr=00200100 beats=16
+        RTL cidx=0 buf=1 addr=00200300 beats=16
+        EXP cidx=0 buf=3 addr=00098320 beats=16
+        RTL cidx=0 addr=0009a320 beats=16 last=0
+        EXP cidx=0 addr=00098320 beats=16 last=0
+        RTL row=4 py=154 npx=64 beats=16 lead=0/0
+        EXP row=2 py=152 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200400 beats=16
+        EXP cidx=0 buf=0 addr=00200200 beats=16
+        RTL cidx=0 buf=1 addr=00200500 beats=16
+        EXP cidx=0 buf=2 addr=00099320 beats=16
+        RTL cidx=0 addr=0009c320 beats=16 last=0
+        EXP cidx=0 addr=00099320 beats=16 last=0
+        RTL row=6 py=156 npx=64 beats=16 lead=0/0
+        EXP row=3 py=153 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200600 beats=16
+        EXP cidx=0 buf=1 addr=00200300 beats=16
+        RTL cidx=0 buf=1 addr=00200700 beats=16
+        EXP cidx=0 buf=3 addr=0009a320 beats=16
+        RTL cidx=0 addr=0009e320 beats=16 last=0
+        EXP cidx=0 addr=0009a320 beats=16 last=0
+        RTL row=8 py=158 npx=64 beats=16 lead=0/0
+        EXP row=4 py=154 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200800 beats=16
+        EXP cidx=0 buf=0 addr=00200400 beats=16
+        RTL cidx=0 buf=1 addr=00200900 beats=16
+        EXP cidx=0 buf=2 addr=0009b320 beats=16
+        RTL cidx=0 addr=000a0320 beats=16 last=0
+        EXP cidx=0 addr=0009b320 beats=16 last=0
+        RTL row=10 py=160 npx=64 beats=16 lead=0/0
+        EXP row=5 py=155 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200a00 beats=16
+        EXP cidx=0 buf=1 addr=00200500 beats=16
+        RTL cidx=0 buf=1 addr=00200b00 beats=16
+        EXP cidx=0 buf=3 addr=0009c320 beats=16
+        RTL cidx=0 addr=000a2320 beats=16 last=0
+        EXP cidx=0 addr=0009c320 beats=16 last=0
+        RTL row=12 py=162 npx=64 beats=16 lead=0/0
+        EXP row=6 py=156 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200c00 beats=16
+        EXP cidx=0 buf=0 addr=00200600 beats=16
+        RTL cidx=0 buf=1 addr=00200d00 beats=16
+        EXP cidx=0 buf=2 addr=0009d320 beats=16
+        RTL cidx=0 addr=000a4320 beats=16 last=0
+        EXP cidx=0 addr=0009d320 beats=16 last=0
+        RTL row=14 py=164 npx=64 beats=16 lead=0/0
+        EXP row=7 py=157 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200e00 beats=16
+        EXP cidx=0 buf=1 addr=00200700 beats=16
+        RTL cidx=0 buf=1 addr=00200f00 beats=16
+        EXP cidx=0 buf=3 addr=0009e320 beats=16
+        RTL cidx=0 addr=000a6320 beats=16 last=0
+        EXP cidx=0 addr=0009e320 beats=16 last=0
+        RTL row=16 py=166 npx=64 beats=16 lead=0/0
+        EXP row=8 py=158 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201000 beats=16
+        EXP cidx=0 buf=0 addr=00200800 beats=16
+        RTL cidx=0 buf=1 addr=00201100 beats=16
+        EXP cidx=0 buf=2 addr=0009f320 beats=16
+        RTL cidx=0 addr=000a8320 beats=16 last=0
+        EXP cidx=0 addr=0009f320 beats=16 last=0
+        RTL row=18 py=168 npx=64 beats=16 lead=0/0
+        EXP row=9 py=159 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201200 beats=16
+        EXP cidx=0 buf=1 addr=00200900 beats=16
+        RTL cidx=0 buf=1 addr=00201300 beats=16
+        EXP cidx=0 buf=3 addr=000a0320 beats=16
+        RTL cidx=0 addr=000aa320 beats=16 last=0
+        EXP cidx=0 addr=000a0320 beats=16 last=0
+        RTL row=20 py=170 npx=64 beats=16 lead=0/0
+        EXP row=10 py=160 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201400 beats=16
+        EXP cidx=0 buf=0 addr=00200a00 beats=16
+        RTL cidx=0 buf=1 addr=00201500 beats=16
+        EXP cidx=0 buf=2 addr=000a1320 beats=16
+        RTL cidx=0 addr=000ac320 beats=16 last=0
+        EXP cidx=0 addr=000a1320 beats=16 last=0
+        RTL row=22 py=172 npx=64 beats=16 lead=0/0
+        EXP row=11 py=161 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201600 beats=16
+        EXP cidx=0 buf=1 addr=00200b00 beats=16
+        RTL cidx=0 buf=1 addr=00201700 beats=16
+        EXP cidx=0 buf=3 addr=000a2320 beats=16
+        RTL cidx=0 addr=000ae320 beats=16 last=0
+        EXP cidx=0 addr=000a2320 beats=16 last=0
+        RTL row=24 py=174 npx=64 beats=16 lead=0/0
+        EXP row=12 py=162 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201800 beats=16
+        EXP cidx=0 buf=0 addr=00200c00 beats=16
+        RTL cidx=0 buf=1 addr=00201900 beats=16
+        EXP cidx=0 buf=2 addr=000a3320 beats=16
+        RTL cidx=0 addr=000b0320 beats=16 last=0
+        EXP cidx=0 addr=000a3320 beats=16 last=0
+        RTL row=26 py=176 npx=64 beats=16 lead=0/0
+        EXP row=13 py=163 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201a00 beats=16
+        EXP cidx=0 buf=1 addr=00200d00 beats=16
+        RTL cidx=0 buf=1 addr=00201b00 beats=16
+        EXP cidx=0 buf=3 addr=000a4320 beats=16
+        RTL cidx=0 addr=000b2320 beats=16 last=0
+        EXP cidx=0 addr=000a4320 beats=16 last=0
+        RTL row=28 py=178 npx=64 beats=16 lead=0/0
+        EXP row=14 py=164 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201c00 beats=16
+        EXP cidx=0 buf=0 addr=00200e00 beats=16
+        RTL cidx=0 buf=1 addr=00201d00 beats=16
+        EXP cidx=0 buf=2 addr=000a5320 beats=16
+        RTL cidx=0 addr=000b4320 beats=16 last=0
+        EXP cidx=0 addr=000a5320 beats=16 last=0
+        RTL row=30 py=180 npx=64 beats=16 lead=0/0
+        EXP row=15 py=165 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201e00 beats=16
+        EXP cidx=0 buf=1 addr=00200f00 beats=16
+        RTL cidx=0 buf=1 addr=00201f00 beats=16
+        EXP cidx=0 buf=3 addr=000a6320 beats=16
+        RTL cidx=0 addr=000b6320 beats=16 last=0
+        EXP cidx=0 addr=000a6320 beats=16 last=0
+        RTL row=32 py=182 npx=64 beats=16 lead=0/0
+        EXP row=16 py=166 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202000 beats=16
+        EXP cidx=0 buf=0 addr=00201000 beats=16
+        RTL cidx=0 buf=1 addr=00202100 beats=16
+        EXP cidx=0 buf=2 addr=000a7320 beats=16
+        RTL cidx=0 addr=000b8320 beats=16 last=0
+        EXP cidx=0 addr=000a7320 beats=16 last=0
+        RTL row=34 py=184 npx=64 beats=16 lead=0/0
+        EXP row=17 py=167 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202200 beats=16
+        EXP cidx=0 buf=1 addr=00201100 beats=16
+        RTL cidx=0 buf=1 addr=00202300 beats=16
+        EXP cidx=0 buf=3 addr=000a8320 beats=16
+        RTL cidx=0 addr=000ba320 beats=16 last=0
+        EXP cidx=0 addr=000a8320 beats=16 last=0
+        RTL row=36 py=186 npx=64 beats=16 lead=0/0
+        EXP row=18 py=168 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202400 beats=16
+        EXP cidx=0 buf=0 addr=00201200 beats=16
+        RTL cidx=0 buf=1 addr=00202500 beats=16
+        EXP cidx=0 buf=2 addr=000a9320 beats=16
+        RTL cidx=0 addr=000bc320 beats=16 last=0
+        EXP cidx=0 addr=000a9320 beats=16 last=0
+        RTL row=38 py=188 npx=64 beats=16 lead=0/0
+        EXP row=19 py=169 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202600 beats=16
+        EXP cidx=0 buf=1 addr=00201300 beats=16
+        RTL cidx=0 buf=1 addr=00202700 beats=16
+        EXP cidx=0 buf=3 addr=000aa320 beats=16
+        RTL cidx=0 addr=000be320 beats=16 last=0
+        EXP cidx=0 addr=000aa320 beats=16 last=0
+        RTL row=40 py=190 npx=64 beats=16 lead=0/0
+        EXP row=20 py=170 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202800 beats=16
+        EXP cidx=0 buf=0 addr=00201400 beats=16
+        RTL cidx=0 buf=1 addr=00202900 beats=16
+        EXP cidx=0 buf=2 addr=000ab320 beats=16
+        RTL cidx=0 addr=000c0320 beats=16 last=0
+        EXP cidx=0 addr=000ab320 beats=16 last=0
+        RTL row=42 py=192 npx=64 beats=16 lead=0/0
+        EXP row=21 py=171 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202a00 beats=16
+        EXP cidx=0 buf=1 addr=00201500 beats=16
+        RTL cidx=0 buf=1 addr=00202b00 beats=16
+        EXP cidx=0 buf=3 addr=000ac320 beats=16
+        RTL cidx=0 addr=000c2320 beats=16 last=0
+        EXP cidx=0 addr=000ac320 beats=16 last=0
+        RTL row=44 py=194 npx=64 beats=16 lead=0/0
+        EXP row=22 py=172 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202c00 beats=16
+        EXP cidx=0 buf=0 addr=00201600 beats=16
+        RTL cidx=0 buf=1 addr=00202d00 beats=16
+        EXP cidx=0 buf=2 addr=000ad320 beats=16
+        RTL cidx=0 addr=000c4320 beats=16 last=0
+        EXP cidx=0 addr=000ad320 beats=16 last=0
+        RTL row=46 py=196 npx=64 beats=16 lead=0/0
+        EXP row=23 py=173 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202e00 beats=16
+        EXP cidx=0 buf=1 addr=00201700 beats=16
+        RTL cidx=0 buf=1 addr=00202f00 beats=16
+        EXP cidx=0 buf=3 addr=000ae320 beats=16
+        RTL cidx=0 addr=000c6320 beats=16 last=0
+        EXP cidx=0 addr=000ae320 beats=16 last=0
+        RTL row=48 py=198 npx=64 beats=16 lead=0/0
+        EXP row=24 py=174 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203000 beats=16
+        EXP cidx=0 buf=0 addr=00201800 beats=16
+        RTL cidx=0 buf=1 addr=00203100 beats=16
+        EXP cidx=0 buf=2 addr=000af320 beats=16
+        RTL cidx=0 addr=000c8320 beats=16 last=0
+        EXP cidx=0 addr=000af320 beats=16 last=0
+        RTL row=50 py=200 npx=64 beats=16 lead=0/0
+        EXP row=25 py=175 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203200 beats=16
+        EXP cidx=0 buf=1 addr=00201900 beats=16
+        RTL cidx=0 buf=1 addr=00203300 beats=16
+        EXP cidx=0 buf=3 addr=000b0320 beats=16
+        RTL cidx=0 addr=000ca320 beats=16 last=0
+        EXP cidx=0 addr=000b0320 beats=16 last=0
+        RTL row=52 py=202 npx=64 beats=16 lead=0/0
+        EXP row=26 py=176 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203400 beats=16
+        EXP cidx=0 buf=0 addr=00201a00 beats=16
+        RTL cidx=0 buf=1 addr=00203500 beats=16
+        EXP cidx=0 buf=2 addr=000b1320 beats=16
+        RTL cidx=0 addr=000cc320 beats=16 last=0
+        EXP cidx=0 addr=000b1320 beats=16 last=0
+        RTL row=54 py=204 npx=64 beats=16 lead=0/0
+        EXP row=27 py=177 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203600 beats=16
+        EXP cidx=0 buf=1 addr=00201b00 beats=16
+        RTL cidx=0 buf=1 addr=00203700 beats=16
+        EXP cidx=0 buf=3 addr=000b2320 beats=16
+        RTL cidx=0 addr=000ce320 beats=16 last=0
+        EXP cidx=0 addr=000b2320 beats=16 last=0
+        RTL row=56 py=206 npx=64 beats=16 lead=0/0
+        EXP row=28 py=178 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203800 beats=16
+        EXP cidx=0 buf=0 addr=00201c00 beats=16
+        RTL cidx=0 buf=1 addr=00203900 beats=16
+        EXP cidx=0 buf=2 addr=000b3320 beats=16
+        RTL cidx=0 addr=000d0320 beats=16 last=0
+        EXP cidx=0 addr=000b3320 beats=16 last=0
+        RTL row=58 py=208 npx=64 beats=16 lead=0/0
+        EXP row=29 py=179 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203a00 beats=16
+        EXP cidx=0 buf=1 addr=00201d00 beats=16
+        RTL cidx=0 buf=1 addr=00203b00 beats=16
+        EXP cidx=0 buf=3 addr=000b4320 beats=16
+        RTL cidx=0 addr=000d2320 beats=16 last=0
+        EXP cidx=0 addr=000b4320 beats=16 last=0
+        RTL row=60 py=210 npx=64 beats=16 lead=0/0
+        EXP row=30 py=180 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203c00 beats=16
+        EXP cidx=0 buf=0 addr=00201e00 beats=16
+        RTL cidx=0 buf=1 addr=00203d00 beats=16
+        EXP cidx=0 buf=2 addr=000b5320 beats=16
+        RTL cidx=0 addr=000d4320 beats=16 last=0
+        EXP cidx=0 addr=000b5320 beats=16 last=0
+        RTL row=62 py=212 npx=64 beats=16 lead=0/0
+        EXP row=31 py=181 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203e00 beats=16
+        EXP cidx=0 buf=1 addr=00201f00 beats=16
+        RTL cidx=0 buf=1 addr=00203f00 beats=16
+        EXP cidx=0 buf=3 addr=000b6320 beats=16
+        RTL cidx=0 addr=000d6320 beats=16 last=1
+        EXP cidx=0 addr=000b6320 beats=16 last=0
+        RTL 32 rows, EXP 64 rows
+  PROTO handshake count cidx 0: sb 736/704 rd 320/320 wr 736/704 (seen/expected)
+  PROTO handshake count cidx 0: sb 784/784 rd 400/320 wr 784/784 (seen/expected)
+        RTL cidx=1 buf=1 addr=00200100 beats=16
+        EXP cidx=1 buf=2 addr=000c94b0 beats=16
+        RTL cidx=1 addr=000ca4b0 beats=16 last=0
+        EXP cidx=1 addr=000c94b0 beats=16 last=0
+        RTL row=2 py=202 npx=64 beats=16 lead=0/0
+        EXP row=1 py=201 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00200200 beats=16
+        EXP cidx=1 buf=1 addr=00200100 beats=16
+        RTL cidx=1 buf=1 addr=00200300 beats=16
+        EXP cidx=1 buf=3 addr=000ca4b0 beats=16
+        RTL cidx=1 addr=000cc4b0 beats=16 last=0
+        EXP cidx=1 addr=000ca4b0 beats=16 last=0
+        RTL row=4 py=204 npx=64 beats=16 lead=0/0
+        EXP row=2 py=202 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00200400 beats=16
+        EXP cidx=1 buf=0 addr=00200200 beats=16
+        RTL cidx=1 buf=1 addr=00200500 beats=16
+        EXP cidx=1 buf=2 addr=000cb4b0 beats=16
+        RTL cidx=1 addr=000ce4b0 beats=16 last=0
+        EXP cidx=1 addr=000cb4b0 beats=16 last=0
+        RTL row=6 py=206 npx=64 beats=16 lead=0/0
+        EXP row=3 py=203 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00200600 beats=16
+        EXP cidx=1 buf=1 addr=00200300 beats=16
+        RTL cidx=1 buf=1 addr=00200700 beats=16
+        EXP cidx=1 buf=3 addr=000cc4b0 beats=16
+        RTL cidx=1 addr=000d04b0 beats=16 last=0
+        EXP cidx=1 addr=000cc4b0 beats=16 last=0
+        RTL row=8 py=208 npx=64 beats=16 lead=0/0
+        EXP row=4 py=204 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00200800 beats=16
+        EXP cidx=1 buf=0 addr=00200400 beats=16
+        RTL cidx=1 buf=1 addr=00200900 beats=16
+        EXP cidx=1 buf=2 addr=000cd4b0 beats=16
+        RTL cidx=1 addr=000d24b0 beats=16 last=0
+        EXP cidx=1 addr=000cd4b0 beats=16 last=0
+        RTL row=10 py=210 npx=64 beats=16 lead=0/0
+        EXP row=5 py=205 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00200a00 beats=16
+        EXP cidx=1 buf=1 addr=00200500 beats=16
+        RTL cidx=1 buf=1 addr=00200b00 beats=16
+        EXP cidx=1 buf=3 addr=000ce4b0 beats=16
+        RTL cidx=1 addr=000d44b0 beats=16 last=0
+        EXP cidx=1 addr=000ce4b0 beats=16 last=0
+        RTL row=12 py=212 npx=64 beats=16 lead=0/0
+        EXP row=6 py=206 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00200c00 beats=16
+        EXP cidx=1 buf=0 addr=00200600 beats=16
+        RTL cidx=1 buf=1 addr=00200d00 beats=16
+        EXP cidx=1 buf=2 addr=000cf4b0 beats=16
+        RTL cidx=1 addr=000d64b0 beats=16 last=0
+        EXP cidx=1 addr=000cf4b0 beats=16 last=0
+        RTL row=14 py=214 npx=64 beats=16 lead=0/0
+        EXP row=7 py=207 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00200e00 beats=16
+        EXP cidx=1 buf=1 addr=00200700 beats=16
+        RTL cidx=1 buf=1 addr=00200f00 beats=16
+        EXP cidx=1 buf=3 addr=000d04b0 beats=16
+        RTL cidx=1 addr=000d84b0 beats=16 last=0
+        EXP cidx=1 addr=000d04b0 beats=16 last=0
+        RTL row=16 py=216 npx=64 beats=16 lead=0/0
+        EXP row=8 py=208 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00201000 beats=16
+        EXP cidx=1 buf=0 addr=00200800 beats=16
+        RTL cidx=1 buf=1 addr=00201100 beats=16
+        EXP cidx=1 buf=2 addr=000d14b0 beats=16
+        RTL cidx=1 addr=000da4b0 beats=16 last=0
+        EXP cidx=1 addr=000d14b0 beats=16 last=0
+        RTL row=18 py=218 npx=64 beats=16 lead=0/0
+        EXP row=9 py=209 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00201200 beats=16
+        EXP cidx=1 buf=1 addr=00200900 beats=16
+        RTL cidx=1 buf=1 addr=00201300 beats=16
+        EXP cidx=1 buf=3 addr=000d24b0 beats=16
+        RTL cidx=1 addr=000dc4b0 beats=16 last=0
+        EXP cidx=1 addr=000d24b0 beats=16 last=0
+        RTL row=20 py=220 npx=64 beats=16 lead=0/0
+        EXP row=10 py=210 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00201400 beats=16
+        EXP cidx=1 buf=0 addr=00200a00 beats=16
+        RTL cidx=1 buf=1 addr=00201500 beats=16
+        EXP cidx=1 buf=2 addr=000d34b0 beats=16
+        RTL cidx=1 addr=000de4b0 beats=16 last=0
+        EXP cidx=1 addr=000d34b0 beats=16 last=0
+        RTL row=22 py=222 npx=64 beats=16 lead=0/0
+        EXP row=11 py=211 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00201600 beats=16
+        EXP cidx=1 buf=1 addr=00200b00 beats=16
+        RTL cidx=1 buf=1 addr=00201700 beats=16
+        EXP cidx=1 buf=3 addr=000d44b0 beats=16
+        RTL cidx=1 addr=000e04b0 beats=16 last=0
+        EXP cidx=1 addr=000d44b0 beats=16 last=0
+        RTL row=24 py=224 npx=64 beats=16 lead=0/0
+        EXP row=12 py=212 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00201800 beats=16
+        EXP cidx=1 buf=0 addr=00200c00 beats=16
+        RTL cidx=1 buf=1 addr=00201900 beats=16
+        EXP cidx=1 buf=2 addr=000d54b0 beats=16
+        RTL cidx=1 addr=000e24b0 beats=16 last=0
+        EXP cidx=1 addr=000d54b0 beats=16 last=0
+        RTL row=26 py=226 npx=64 beats=16 lead=0/0
+        EXP row=13 py=213 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00201a00 beats=16
+        EXP cidx=1 buf=1 addr=00200d00 beats=16
+        RTL cidx=1 buf=1 addr=00201b00 beats=16
+        EXP cidx=1 buf=3 addr=000d64b0 beats=16
+        RTL cidx=1 addr=000e44b0 beats=16 last=0
+        EXP cidx=1 addr=000d64b0 beats=16 last=0
+        RTL row=28 py=228 npx=64 beats=16 lead=0/0
+        EXP row=14 py=214 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00201c00 beats=16
+        EXP cidx=1 buf=0 addr=00200e00 beats=16
+        RTL cidx=1 buf=1 addr=00201d00 beats=16
+        EXP cidx=1 buf=2 addr=000d74b0 beats=16
+        RTL cidx=1 addr=000e64b0 beats=16 last=0
+        EXP cidx=1 addr=000d74b0 beats=16 last=0
+        RTL row=30 py=230 npx=64 beats=16 lead=0/0
+        EXP row=15 py=215 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00201e00 beats=16
+        EXP cidx=1 buf=1 addr=00200f00 beats=16
+        RTL cidx=1 buf=1 addr=00201f00 beats=16
+        EXP cidx=1 buf=3 addr=000d84b0 beats=16
+        RTL cidx=1 addr=000e84b0 beats=16 last=0
+        EXP cidx=1 addr=000d84b0 beats=16 last=0
+        RTL row=32 py=232 npx=64 beats=16 lead=0/0
+        EXP row=16 py=216 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00202000 beats=16
+        EXP cidx=1 buf=0 addr=00201000 beats=16
+        RTL cidx=1 buf=1 addr=00202100 beats=16
+        EXP cidx=1 buf=2 addr=000d94b0 beats=16
+        RTL cidx=1 addr=000ea4b0 beats=16 last=0
+        EXP cidx=1 addr=000d94b0 beats=16 last=0
+        RTL row=34 py=234 npx=64 beats=16 lead=0/0
+        EXP row=17 py=217 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00202200 beats=16
+        EXP cidx=1 buf=1 addr=00201100 beats=16
+        RTL cidx=1 buf=1 addr=00202300 beats=16
+        EXP cidx=1 buf=3 addr=000da4b0 beats=16
+        RTL cidx=1 addr=000ec4b0 beats=16 last=0
+        EXP cidx=1 addr=000da4b0 beats=16 last=0
+        RTL row=36 py=236 npx=64 beats=16 lead=0/0
+        EXP row=18 py=218 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00202400 beats=16
+        EXP cidx=1 buf=0 addr=00201200 beats=16
+        RTL cidx=1 buf=1 addr=00202500 beats=16
+        EXP cidx=1 buf=2 addr=000db4b0 beats=16
+        RTL cidx=1 addr=000ee4b0 beats=16 last=0
+        EXP cidx=1 addr=000db4b0 beats=16 last=0
+        RTL row=38 py=238 npx=64 beats=16 lead=0/0
+        EXP row=19 py=219 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00202600 beats=16
+        EXP cidx=1 buf=1 addr=00201300 beats=16
+        RTL cidx=1 buf=1 addr=00202700 beats=16
+        EXP cidx=1 buf=3 addr=000dc4b0 beats=16
+        RTL cidx=1 addr=000f04b0 beats=16 last=0
+        EXP cidx=1 addr=000dc4b0 beats=16 last=0
+        RTL row=40 py=240 npx=64 beats=16 lead=0/0
+        EXP row=20 py=220 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00202800 beats=16
+        EXP cidx=1 buf=0 addr=00201400 beats=16
+        RTL cidx=1 buf=1 addr=00202900 beats=16
+        EXP cidx=1 buf=2 addr=000dd4b0 beats=16
+        RTL cidx=1 addr=000f24b0 beats=16 last=0
+        EXP cidx=1 addr=000dd4b0 beats=16 last=0
+        RTL row=42 py=242 npx=64 beats=16 lead=0/0
+        EXP row=21 py=221 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00202a00 beats=16
+        EXP cidx=1 buf=1 addr=00201500 beats=16
+        RTL cidx=1 buf=1 addr=00202b00 beats=16
+        EXP cidx=1 buf=3 addr=000de4b0 beats=16
+        RTL cidx=1 addr=000f44b0 beats=16 last=0
+        EXP cidx=1 addr=000de4b0 beats=16 last=0
+        RTL row=44 py=244 npx=64 beats=16 lead=0/0
+        EXP row=22 py=222 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00202c00 beats=16
+        EXP cidx=1 buf=0 addr=00201600 beats=16
+        RTL cidx=1 buf=1 addr=00202d00 beats=16
+        EXP cidx=1 buf=2 addr=000df4b0 beats=16
+        RTL cidx=1 addr=000f64b0 beats=16 last=0
+        EXP cidx=1 addr=000df4b0 beats=16 last=0
+        RTL row=46 py=246 npx=64 beats=16 lead=0/0
+        EXP row=23 py=223 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00202e00 beats=16
+        EXP cidx=1 buf=1 addr=00201700 beats=16
+        RTL cidx=1 buf=1 addr=00202f00 beats=16
+        EXP cidx=1 buf=3 addr=000e04b0 beats=16
+        RTL cidx=1 addr=000f84b0 beats=16 last=0
+        EXP cidx=1 addr=000e04b0 beats=16 last=0
+        RTL row=48 py=248 npx=64 beats=16 lead=0/0
+        EXP row=24 py=224 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00203000 beats=16
+        EXP cidx=1 buf=0 addr=00201800 beats=16
+        RTL cidx=1 buf=1 addr=00203100 beats=16
+        EXP cidx=1 buf=2 addr=000e14b0 beats=16
+        RTL cidx=1 addr=000fa4b0 beats=16 last=0
+        EXP cidx=1 addr=000e14b0 beats=16 last=0
+        RTL row=50 py=250 npx=64 beats=16 lead=0/0
+        EXP row=25 py=225 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00203200 beats=16
+        EXP cidx=1 buf=1 addr=00201900 beats=16
+        RTL cidx=1 buf=1 addr=00203300 beats=16
+        EXP cidx=1 buf=3 addr=000e24b0 beats=16
+        RTL cidx=1 addr=000fc4b0 beats=16 last=0
+        EXP cidx=1 addr=000e24b0 beats=16 last=0
+        RTL row=52 py=252 npx=64 beats=16 lead=0/0
+        EXP row=26 py=226 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00203400 beats=16
+        EXP cidx=1 buf=0 addr=00201a00 beats=16
+        RTL cidx=1 buf=1 addr=00203500 beats=16
+        EXP cidx=1 buf=2 addr=000e34b0 beats=16
+        RTL cidx=1 addr=000fe4b0 beats=16 last=0
+        EXP cidx=1 addr=000e34b0 beats=16 last=0
+        RTL row=54 py=254 npx=64 beats=16 lead=0/0
+        EXP row=27 py=227 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00203600 beats=16
+        EXP cidx=1 buf=1 addr=00201b00 beats=16
+        RTL cidx=1 buf=1 addr=00203700 beats=16
+        EXP cidx=1 buf=3 addr=000e44b0 beats=16
+        RTL cidx=1 addr=001004b0 beats=16 last=0
+        EXP cidx=1 addr=000e44b0 beats=16 last=0
+        RTL row=56 py=256 npx=64 beats=16 lead=0/0
+        EXP row=28 py=228 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00203800 beats=16
+        EXP cidx=1 buf=0 addr=00201c00 beats=16
+        RTL cidx=1 buf=1 addr=00203900 beats=16
+        EXP cidx=1 buf=2 addr=000e54b0 beats=16
+        RTL cidx=1 addr=001024b0 beats=16 last=0
+        EXP cidx=1 addr=000e54b0 beats=16 last=0
+        RTL row=58 py=258 npx=64 beats=16 lead=0/0
+        EXP row=29 py=229 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00203a00 beats=16
+        EXP cidx=1 buf=1 addr=00201d00 beats=16
+        RTL cidx=1 buf=1 addr=00203b00 beats=16
+        EXP cidx=1 buf=3 addr=000e64b0 beats=16
+        RTL cidx=1 addr=001044b0 beats=16 last=0
+        EXP cidx=1 addr=000e64b0 beats=16 last=0
+        RTL row=60 py=260 npx=64 beats=16 lead=0/0
+        EXP row=30 py=230 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00203c00 beats=16
+        EXP cidx=1 buf=0 addr=00201e00 beats=16
+        RTL cidx=1 buf=1 addr=00203d00 beats=16
+        EXP cidx=1 buf=2 addr=000e74b0 beats=16
+        RTL cidx=1 addr=001064b0 beats=16 last=0
+        EXP cidx=1 addr=000e74b0 beats=16 last=0
+        RTL row=62 py=262 npx=64 beats=16 lead=0/0
+        EXP row=31 py=231 npx=64 beats=16 lead=0/0
+        RTL cidx=1 buf=0 addr=00203e00 beats=16
+        EXP cidx=1 buf=1 addr=00201f00 beats=16
+        RTL cidx=1 buf=1 addr=00203f00 beats=16
+        EXP cidx=1 buf=3 addr=000e84b0 beats=16
+        RTL cidx=1 addr=001084b0 beats=16 last=1
+        EXP cidx=1 addr=000e84b0 beats=16 last=0
+        RTL 32 rows, EXP 64 rows
+  PROTO handshake count cidx 1: sb 848/816 rd 384/384 wr 848/816 (seen/expected)
+        RTL 1 rows, EXP 480 rows
+  PROTO handshake count cidx 0: sb 1296/817 rd 384/384 wr 1296/816 (seen/expected)
+        RTL cidx=0 buf=1 addr=00200100 beats=16
+        EXP cidx=0 buf=2 addr=0017d7d0 beats=16
+        RTL cidx=0 addr=0017e7d0 beats=16 last=0
+        EXP cidx=0 addr=0017d7d0 beats=16 last=0
+        RTL row=2 py=382 npx=64 beats=16 lead=0/0
+        EXP row=1 py=381 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200200 beats=16
+        EXP cidx=0 buf=1 addr=00200100 beats=16
+        RTL cidx=0 buf=1 addr=00200300 beats=16
+        EXP cidx=0 buf=3 addr=0017e7d0 beats=16
+        RTL cidx=0 addr=001807d0 beats=16 last=0
+        EXP cidx=0 addr=0017e7d0 beats=16 last=0
+        RTL row=4 py=384 npx=64 beats=16 lead=0/0
+        EXP row=2 py=382 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200400 beats=16
+        EXP cidx=0 buf=0 addr=00200200 beats=16
+        RTL cidx=0 buf=1 addr=00200500 beats=16
+        EXP cidx=0 buf=2 addr=0017f7d0 beats=16
+        RTL cidx=0 addr=001827d0 beats=16 last=0
+        EXP cidx=0 addr=0017f7d0 beats=16 last=0
+        RTL row=6 py=386 npx=64 beats=16 lead=0/0
+        EXP row=3 py=383 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200600 beats=16
+        EXP cidx=0 buf=1 addr=00200300 beats=16
+        RTL cidx=0 buf=1 addr=00200700 beats=16
+        EXP cidx=0 buf=3 addr=001807d0 beats=16
+        RTL cidx=0 addr=001847d0 beats=16 last=0
+        EXP cidx=0 addr=001807d0 beats=16 last=0
+        RTL row=8 py=388 npx=64 beats=16 lead=0/0
+        EXP row=4 py=384 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200800 beats=16
+        EXP cidx=0 buf=0 addr=00200400 beats=16
+        RTL cidx=0 buf=1 addr=00200900 beats=16
+        EXP cidx=0 buf=2 addr=001817d0 beats=16
+        RTL cidx=0 addr=001867d0 beats=16 last=0
+        EXP cidx=0 addr=001817d0 beats=16 last=0
+        RTL row=10 py=390 npx=64 beats=16 lead=0/0
+        EXP row=5 py=385 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200a00 beats=16
+        EXP cidx=0 buf=1 addr=00200500 beats=16
+        RTL cidx=0 buf=1 addr=00200b00 beats=16
+        EXP cidx=0 buf=3 addr=001827d0 beats=16
+        RTL cidx=0 addr=001887d0 beats=16 last=0
+        EXP cidx=0 addr=001827d0 beats=16 last=0
+        RTL row=12 py=392 npx=64 beats=16 lead=0/0
+        EXP row=6 py=386 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200c00 beats=16
+        EXP cidx=0 buf=0 addr=00200600 beats=16
+        RTL cidx=0 buf=1 addr=00200d00 beats=16
+        EXP cidx=0 buf=2 addr=001837d0 beats=16
+        RTL cidx=0 addr=0018a7d0 beats=16 last=0
+        EXP cidx=0 addr=001837d0 beats=16 last=0
+        RTL row=14 py=394 npx=64 beats=16 lead=0/0
+        EXP row=7 py=387 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00200e00 beats=16
+        EXP cidx=0 buf=1 addr=00200700 beats=16
+        RTL cidx=0 buf=1 addr=00200f00 beats=16
+        EXP cidx=0 buf=3 addr=001847d0 beats=16
+        RTL cidx=0 addr=0018c7d0 beats=16 last=0
+        EXP cidx=0 addr=001847d0 beats=16 last=0
+        RTL row=16 py=396 npx=64 beats=16 lead=0/0
+        EXP row=8 py=388 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201000 beats=16
+        EXP cidx=0 buf=0 addr=00200800 beats=16
+        RTL cidx=0 buf=1 addr=00201100 beats=16
+        EXP cidx=0 buf=2 addr=001857d0 beats=16
+        RTL cidx=0 addr=0018e7d0 beats=16 last=0
+        EXP cidx=0 addr=001857d0 beats=16 last=0
+        RTL row=18 py=398 npx=64 beats=16 lead=0/0
+        EXP row=9 py=389 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201200 beats=16
+        EXP cidx=0 buf=1 addr=00200900 beats=16
+        RTL cidx=0 buf=1 addr=00201300 beats=16
+        EXP cidx=0 buf=3 addr=001867d0 beats=16
+        RTL cidx=0 addr=001907d0 beats=16 last=0
+        EXP cidx=0 addr=001867d0 beats=16 last=0
+        RTL row=20 py=400 npx=64 beats=16 lead=0/0
+        EXP row=10 py=390 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201400 beats=16
+        EXP cidx=0 buf=0 addr=00200a00 beats=16
+        RTL cidx=0 buf=1 addr=00201500 beats=16
+        EXP cidx=0 buf=2 addr=001877d0 beats=16
+        RTL cidx=0 addr=001927d0 beats=16 last=0
+        EXP cidx=0 addr=001877d0 beats=16 last=0
+        RTL row=22 py=402 npx=64 beats=16 lead=0/0
+        EXP row=11 py=391 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201600 beats=16
+        EXP cidx=0 buf=1 addr=00200b00 beats=16
+        RTL cidx=0 buf=1 addr=00201700 beats=16
+        EXP cidx=0 buf=3 addr=001887d0 beats=16
+        RTL cidx=0 addr=001947d0 beats=16 last=0
+        EXP cidx=0 addr=001887d0 beats=16 last=0
+        RTL row=24 py=404 npx=64 beats=16 lead=0/0
+        EXP row=12 py=392 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201800 beats=16
+        EXP cidx=0 buf=0 addr=00200c00 beats=16
+        RTL cidx=0 buf=1 addr=00201900 beats=16
+        EXP cidx=0 buf=2 addr=001897d0 beats=16
+        RTL cidx=0 addr=001967d0 beats=16 last=0
+        EXP cidx=0 addr=001897d0 beats=16 last=0
+        RTL row=26 py=406 npx=64 beats=16 lead=0/0
+        EXP row=13 py=393 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201a00 beats=16
+        EXP cidx=0 buf=1 addr=00200d00 beats=16
+        RTL cidx=0 buf=1 addr=00201b00 beats=16
+        EXP cidx=0 buf=3 addr=0018a7d0 beats=16
+        RTL cidx=0 addr=001987d0 beats=16 last=0
+        EXP cidx=0 addr=0018a7d0 beats=16 last=0
+        RTL row=28 py=408 npx=64 beats=16 lead=0/0
+        EXP row=14 py=394 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201c00 beats=16
+        EXP cidx=0 buf=0 addr=00200e00 beats=16
+        RTL cidx=0 buf=1 addr=00201d00 beats=16
+        EXP cidx=0 buf=2 addr=0018b7d0 beats=16
+        RTL cidx=0 addr=0019a7d0 beats=16 last=0
+        EXP cidx=0 addr=0018b7d0 beats=16 last=0
+        RTL row=30 py=410 npx=64 beats=16 lead=0/0
+        EXP row=15 py=395 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00201e00 beats=16
+        EXP cidx=0 buf=1 addr=00200f00 beats=16
+        RTL cidx=0 buf=1 addr=00201f00 beats=16
+        EXP cidx=0 buf=3 addr=0018c7d0 beats=16
+        RTL cidx=0 addr=0019c7d0 beats=16 last=0
+        EXP cidx=0 addr=0018c7d0 beats=16 last=0
+        RTL row=32 py=412 npx=64 beats=16 lead=0/0
+        EXP row=16 py=396 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202000 beats=16
+        EXP cidx=0 buf=0 addr=00201000 beats=16
+        RTL cidx=0 buf=1 addr=00202100 beats=16
+        EXP cidx=0 buf=2 addr=0018d7d0 beats=16
+        RTL cidx=0 addr=0019e7d0 beats=16 last=0
+        EXP cidx=0 addr=0018d7d0 beats=16 last=0
+        RTL row=34 py=414 npx=64 beats=16 lead=0/0
+        EXP row=17 py=397 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202200 beats=16
+        EXP cidx=0 buf=1 addr=00201100 beats=16
+        RTL cidx=0 buf=1 addr=00202300 beats=16
+        EXP cidx=0 buf=3 addr=0018e7d0 beats=16
+        RTL cidx=0 addr=001a07d0 beats=16 last=0
+        EXP cidx=0 addr=0018e7d0 beats=16 last=0
+        RTL row=36 py=416 npx=64 beats=16 lead=0/0
+        EXP row=18 py=398 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202400 beats=16
+        EXP cidx=0 buf=0 addr=00201200 beats=16
+        RTL cidx=0 buf=1 addr=00202500 beats=16
+        EXP cidx=0 buf=2 addr=0018f7d0 beats=16
+        RTL cidx=0 addr=001a27d0 beats=16 last=0
+        EXP cidx=0 addr=0018f7d0 beats=16 last=0
+        RTL row=38 py=418 npx=64 beats=16 lead=0/0
+        EXP row=19 py=399 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202600 beats=16
+        EXP cidx=0 buf=1 addr=00201300 beats=16
+        RTL cidx=0 buf=1 addr=00202700 beats=16
+        EXP cidx=0 buf=3 addr=001907d0 beats=16
+        RTL cidx=0 addr=001a47d0 beats=16 last=0
+        EXP cidx=0 addr=001907d0 beats=16 last=0
+        RTL row=40 py=420 npx=64 beats=16 lead=0/0
+        EXP row=20 py=400 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202800 beats=16
+        EXP cidx=0 buf=0 addr=00201400 beats=16
+        RTL cidx=0 buf=1 addr=00202900 beats=16
+        EXP cidx=0 buf=2 addr=001917d0 beats=16
+        RTL cidx=0 addr=001a67d0 beats=16 last=0
+        EXP cidx=0 addr=001917d0 beats=16 last=0
+        RTL row=42 py=422 npx=64 beats=16 lead=0/0
+        EXP row=21 py=401 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202a00 beats=16
+        EXP cidx=0 buf=1 addr=00201500 beats=16
+        RTL cidx=0 buf=1 addr=00202b00 beats=16
+        EXP cidx=0 buf=3 addr=001927d0 beats=16
+        RTL cidx=0 addr=001a87d0 beats=16 last=0
+        EXP cidx=0 addr=001927d0 beats=16 last=0
+        RTL row=44 py=424 npx=64 beats=16 lead=0/0
+        EXP row=22 py=402 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202c00 beats=16
+        EXP cidx=0 buf=0 addr=00201600 beats=16
+        RTL cidx=0 buf=1 addr=00202d00 beats=16
+        EXP cidx=0 buf=2 addr=001937d0 beats=16
+        RTL cidx=0 addr=001aa7d0 beats=16 last=0
+        EXP cidx=0 addr=001937d0 beats=16 last=0
+        RTL row=46 py=426 npx=64 beats=16 lead=0/0
+        EXP row=23 py=403 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00202e00 beats=16
+        EXP cidx=0 buf=1 addr=00201700 beats=16
+        RTL cidx=0 buf=1 addr=00202f00 beats=16
+        EXP cidx=0 buf=3 addr=001947d0 beats=16
+        RTL cidx=0 addr=001ac7d0 beats=16 last=0
+        EXP cidx=0 addr=001947d0 beats=16 last=0
+        RTL row=48 py=428 npx=64 beats=16 lead=0/0
+        EXP row=24 py=404 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203000 beats=16
+        EXP cidx=0 buf=0 addr=00201800 beats=16
+        RTL cidx=0 buf=1 addr=00203100 beats=16
+        EXP cidx=0 buf=2 addr=001957d0 beats=16
+        RTL cidx=0 addr=001ae7d0 beats=16 last=0
+        EXP cidx=0 addr=001957d0 beats=16 last=0
+        RTL row=50 py=430 npx=64 beats=16 lead=0/0
+        EXP row=25 py=405 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203200 beats=16
+        EXP cidx=0 buf=1 addr=00201900 beats=16
+        RTL cidx=0 buf=1 addr=00203300 beats=16
+        EXP cidx=0 buf=3 addr=001967d0 beats=16
+        RTL cidx=0 addr=001b07d0 beats=16 last=0
+        EXP cidx=0 addr=001967d0 beats=16 last=0
+        RTL row=52 py=432 npx=64 beats=16 lead=0/0
+        EXP row=26 py=406 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203400 beats=16
+        EXP cidx=0 buf=0 addr=00201a00 beats=16
+        RTL cidx=0 buf=1 addr=00203500 beats=16
+        EXP cidx=0 buf=2 addr=001977d0 beats=16
+        RTL cidx=0 addr=001b27d0 beats=16 last=0
+        EXP cidx=0 addr=001977d0 beats=16 last=0
+        RTL row=54 py=434 npx=64 beats=16 lead=0/0
+        EXP row=27 py=407 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203600 beats=16
+        EXP cidx=0 buf=1 addr=00201b00 beats=16
+        RTL cidx=0 buf=1 addr=00203700 beats=16
+        EXP cidx=0 buf=3 addr=001987d0 beats=16
+        RTL cidx=0 addr=001b47d0 beats=16 last=0
+        EXP cidx=0 addr=001987d0 beats=16 last=0
+        RTL row=56 py=436 npx=64 beats=16 lead=0/0
+        EXP row=28 py=408 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203800 beats=16
+        EXP cidx=0 buf=0 addr=00201c00 beats=16
+        RTL cidx=0 buf=1 addr=00203900 beats=16
+        EXP cidx=0 buf=2 addr=001997d0 beats=16
+        RTL cidx=0 addr=001b67d0 beats=16 last=0
+        EXP cidx=0 addr=001997d0 beats=16 last=0
+        RTL row=58 py=438 npx=64 beats=16 lead=0/0
+        EXP row=29 py=409 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203a00 beats=16
+        EXP cidx=0 buf=1 addr=00201d00 beats=16
+        RTL cidx=0 buf=1 addr=00203b00 beats=16
+        EXP cidx=0 buf=3 addr=0019a7d0 beats=16
+        RTL cidx=0 addr=001b87d0 beats=16 last=0
+        EXP cidx=0 addr=0019a7d0 beats=16 last=0
+        RTL row=60 py=440 npx=64 beats=16 lead=0/0
+        EXP row=30 py=410 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203c00 beats=16
+        EXP cidx=0 buf=0 addr=00201e00 beats=16
+        RTL cidx=0 buf=1 addr=00203d00 beats=16
+        EXP cidx=0 buf=2 addr=0019b7d0 beats=16
+        RTL cidx=0 addr=001ba7d0 beats=16 last=0
+        EXP cidx=0 addr=0019b7d0 beats=16 last=0
+        RTL row=62 py=442 npx=64 beats=16 lead=0/0
+        EXP row=31 py=411 npx=64 beats=16 lead=0/0
+        RTL cidx=0 buf=0 addr=00203e00 beats=16
+        EXP cidx=0 buf=1 addr=00201f00 beats=16
+        RTL cidx=0 buf=1 addr=00203f00 beats=16
+        EXP cidx=0 buf=3 addr=0019c7d0 beats=16
+        RTL cidx=0 addr=001bc7d0 beats=16 last=1
+        EXP cidx=0 addr=0019c7d0 beats=16 last=0
+        RTL 32 rows, EXP 64 rows
+  PROTO handshake count cidx 0: sb 881/849 rd 448/448 wr 880/848 (seen/expected)
+  PROTO handshake count cidx 0: sb 893/893 rd 536/492 wr 892/892 (seen/expected)
+  PROTO handshake count cidx 1: sb 913/913 rd 532/512 wr 912/912 (seen/expected)
+  PROTO handshake count cidx 2: sb 977/977 rd 640/576 wr 976/976 (seen/expected)
+  PROTO handshake count cidx 1: sb 1127/1127 rd 726/576 wr 1126/1126 (seen/expected)
+  PROTO handshake count cidx 0: sb 1277/1277 rd 726/576 wr 1276/1276 (seen/expected)
+  PROTO handshake count cidx 4: sb 1317/1317 rd 616/576 wr 1316/1316 (seen/expected)
+  PROTO handshake count cidx 0: sb 1381/1381 rd 704/640 wr 1380/1380 (seen/expected)
+
+  commands 17, expected records 5224
+  rows 1381, cycles 14956626, cycles/row 10830.28
+  rule1 violations 0, mismatches 3524, done-pulse errors 0, protocol 15, buffer 0
+  handshakes sb 1381 rd 640 wr 1380, cmd_done 1
+RESULT: FAIL (3539 errors; 98 checks run)
+tb_engine_geom.v:529: $finish called at 149566306000 (1ps)

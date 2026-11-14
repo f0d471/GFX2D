@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "profile": "acceptance",
+  "checks": [
+    "mutation"
+  ],
+  "run_id": "20261114-204813-938e9729"
+}

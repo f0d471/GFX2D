@@ -1,0 +1,111 @@
+{
+  "status": "PASS",
+  "kind": "post-validation comment alignment",
+  "files": [
+    {
+      "path": "Main/sim/engine/tex/tb_engine_tex.v",
+      "before_sha256": "6bf4146ced6cd74b1e012eccd74250641867ab1addfacff429605e61ab7a587b",
+      "after_sha256": "895c7dff735dd2f5f178b45853a465b30460ae64dbb2ec0025a3c8d6de758bda",
+      "executable_content_unchanged": true,
+      "line_count_unchanged": true,
+      "comment_changes": [
+        {
+          "line": 3,
+          "before": "// 单元级 engine_tex（INJECT 可注错，见下）：",
+          "after": "// 单元级 engine_tex：普通 APB 与读流协议检查："
+        },
+        {
+          "line": 40,
+          "before": "    // 上面开关的合取，用于「注入构建跑到单元级就收尾」这一个判断。",
+          "after": "    // 单元与整机共用正常激励，不因是否施加源码变异而跳过流程。"
+        }
+      ]
+    },
+    {
+      "path": "Main/sim/engine/mover/tb_engine_mover.v",
+      "before_sha256": "a9c0f1dca7bbcafb9732858facc58248ef106fb6c7869381b1fd26ee8a154b86",
+      "after_sha256": "a7424eb92e0f88c5da3742c037da528d8ae0f7bba1dd081537266742779a3f1d",
+      "executable_content_unchanged": true,
+      "line_count_unchanged": true,
+      "comment_changes": [
+        {
+          "line": 16,
+          "before": "// 注错位见 engine_mover.v 文件头。",
+          "after": "// 普通协议用例见 run.sh；外部源码变异登记在 sim/mutation。"
+        }
+      ]
+    },
+    {
+      "path": "Main/sim/engine/ctrl/tb_engine_top.v",
+      "before_sha256": "0204edc87fbc87faca761c90d5fdf1e778cbf06d2423e626be0b479140cd0dff",
+      "after_sha256": "d07390a30e73f0dfdd16b695682106c231afed73d749cdc523904d5022af1458",
+      "executable_content_unchanged": true,
+      "line_count_unchanged": true,
+      "comment_changes": [
+        {
+          "line": 16,
+          "before": "// 注错构建（run.sh 另编两次）：-DINJ_CHK_SWAP 对调 space/format、-DINJ_NO_FB 关掉逐条回退，",
+          "after": "// 原生产源码注错构建已退役；相同正常激励由外部变异活动检验，"
+        },
+        {
+          "line": 17,
+          "before": "// 各自必须让至少一条向量见红（+vectors_only 只跑向量段并反转判据）。",
+          "after": "// 正常向量始终检查相同期望；外部变异由公共活动独立判红。"
+        },
+        {
+          "line": 18,
+          "before": "// 开关是预处理器级宏，直接作用于被测 RTL，本测试台不持有也不转译它们。",
+          "after": "// 本测试台只检查行为，不持有或转译生产源码的变异开关。"
+        }
+      ]
+    },
+    {
+      "path": "Main/sim/engine/stripctl/tb_stripctl.v",
+      "before_sha256": "681a4e07aacdcd002617ab25d269e03d6079a3fea15616f6f744a65e340e5142",
+      "after_sha256": "4d366ac51ac03cc5e3eb908919b5e9cb46a2ba239367b73d214d6f8394036c21",
+      "executable_content_unchanged": true,
+      "line_count_unchanged": true,
+      "comment_changes": [
+        {
+          "line": 16,
+          "before": "// 注错构建（run.sh 另编两次）：-DINJ_CHK_SWAP 对调 space/format、-DINJ_NO_FB 关掉逐条回退，",
+          "after": "// 原生产源码注错构建已退役；相同正常激励由外部变异活动检验，"
+        },
+        {
+          "line": 17,
+          "before": "// 各自必须让至少一条向量见红（+vectors_only 只跑向量段并反转判据）。",
+          "after": "// 正常向量始终检查相同期望；外部变异由公共活动独立判红。"
+        },
+        {
+          "line": 18,
+          "before": "// 开关是预处理器级宏，直接作用于被测 RTL，本测试台不持有也不转译它们。",
+          "after": "// 本测试台只检查行为，不持有或转译生产源码的变异开关。"
+        }
+      ]
+    },
+    {
+      "path": "Main/sim/engine/ctrl/run.sh",
+      "before_sha256": "be3631ba44b2cb8a27d03204f9003e7546265a0cf91e67b375aac605985390d9",
+      "after_sha256": "62419b25c278d69558e9a2c394f58e182006d7aca822b5cc2ca99c517c2f5432",
+      "executable_content_unchanged": true,
+      "line_count_unchanged": true,
+      "comment_changes": [
+        {
+          "line": 8,
+          "before": "#   3 两个注错构建：-DINJ_CHK_SWAP 对调 space/format、-DINJ_NO_FB 关掉逐条回退，",
+          "after": "#   3 普通寄存器用例：SETUP 读锁存与 IRQ W1C；源码变异由独立活动施加，"
+        },
+        {
+          "line": 9,
+          "before": "#     各自必须让至少一条向量见红（+vectors_only 反转判据）",
+          "after": "#     正常用例始终要求 PASS；源码变异的检出由 sim/mutation 独立管理。"
+        },
+        {
+          "line": 55,
+          "before": "build_engine() {  # build_engine <名字> <注错开关，空为干净构建> <plusargs> <期望 RESULT>",
+          "after": "build_engine() {  # build_engine <名字> <编译定义，空为默认> <plusargs> <期望 RESULT>"
+        }
+      ]
+    }
+  ]
+}

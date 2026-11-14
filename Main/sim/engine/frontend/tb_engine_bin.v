@@ -94,7 +94,7 @@ module tb_engine_bin;
     integer f,scenes,k,n,an,used,refs,span,rc,i,w,guard,limit,errors=0;
     reg [127:0] gold;
     reg [511:0] meta;
-    reg [1023:0] filename;
+    string filename;
     initial begin
         if(!$value$plusargs("CASES=%s",filename))filename="Main/sim/engine/frontend/build/f5/bin_cases.dat";
         f=$fopen(filename,"r");if(!f)$fatal(1,"missing cases");

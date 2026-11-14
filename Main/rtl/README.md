@@ -73,7 +73,7 @@
 生成、同步与校验用 [`../tools/check/feature_build.py`](../tools/check/feature_build.py)，
 按构型的判据入口见 [`../tools/check/README.md`](../tools/check/README.md)。
 
-引擎与显示共 15 个文件、75 条变异，全部写在
+引擎、显示及软件执行器的变异，全部写在
 [`../sim/mutation/mutants.yaml`](../sim/mutation/mutants.yaml)：生产源码里没有任何注错分支，
 变异体只存在于跑器建的隔离影子树里。每条记录带缺陷模型、规格出处、字面替换规则与
 发现它的用例，执行与判定见 [`../sim/mutation/README.md`](../sim/mutation/README.md)。

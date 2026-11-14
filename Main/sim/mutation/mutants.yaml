@@ -1,66 +1,59 @@
-# 变异清单（唯一真相）。每条记录对应一处生产源码的故意改错。
-# 字段：defect 缺陷模型；spec 规格出处；rules 字面替换（每条必须唯一匹配，同一宏可多处）；
-# runs 应发现它的命令与见红位置正则；macro 只用于追溯原来的 ifdef 开关。
-# 校验与执行：run_mutation.py；迁移等价性：verify_migration.py。
+# 规格、独立源码规则、普通发现者与具体检查器标签。
 - id: band.band_addr_stride
   target: Main/rtl/engine/buffer/engine_band.v
   macro: INJ_BAND_ADDR_STRIDE
   defect: 地址与对齐
   spec:
-    doc: Main/rtl/engine/engine-manual.md
-    section: 4.3 计算阵列（engine_pix）
+    doc: Main/sim/engine/band/README.md
+    section: 正式复现
   rules:
   - find: '            idx = yy * ROW_WORDS + col;'
     replace: '            idx = (yy << 8) + col; // 注错：按 256 词固定行距换算，行宽不同时错位'
   runs:
   - cmd: python3 Main/tools/check/check_g2_band.py
-    log: Main/sim/engine/band/logs
-    evidence: ''
+    evidence: UNIT-(?:FLUSH|READ|WRITE|CONFLICT|CANCEL|LOAD)|BAND-PATH|MASK_MISMATCH|MEM_MISMATCH|MISMATCH|FLUSH-
   note: 注错：按 256 词固定行距换算，行宽不同时错位
 - id: band.band_early_flush
   target: Main/rtl/engine/buffer/engine_band.v
   macro: INJ_BAND_EARLY_FLUSH
   defect: 排空与生命周期
   spec:
-    doc: Main/rtl/engine/engine-manual.md
-    section: 4.3 计算阵列（engine_pix）
+    doc: Main/sim/engine/band/README.md
+    section: 正式复现
   rules:
   - find: '    assign flush_ready = (phase == EXEC) && !rd_busy && !wr_busy && !cancel && !lease_blk;'
     replace: '    assign flush_ready = (phase == EXEC) && !cancel; // 注错：flush 提前，本地流没收尾'
   runs:
   - cmd: python3 Main/tools/check/check_g2_band.py
-    log: Main/sim/engine/band/logs
-    evidence: ''
+    evidence: EARLY_FLUSH_ACCEPTED|UNIT-FLUSH
   note: 注错：flush 提前，本地流没收尾
 - id: band.band_flush_addr
   target: Main/rtl/engine/buffer/engine_band.v
   macro: INJ_BAND_FLUSH_ADDR
   defect: 地址与对齐
   spec:
-    doc: Main/rtl/engine/engine-manual.md
-    section: 4.3 计算阵列（engine_pix）
+    doc: Main/sim/engine/band/README.md
+    section: 正式复现
   rules:
   - find: '    assign dma_wr_addr = dst_cursor;'
     replace: '    assign dma_wr_addr = dst_cursor + 32''d16; // 注错：flush 地址偏 16 字节'
   runs:
   - cmd: python3 Main/tools/check/check_g2_band.py
-    log: Main/sim/engine/band/logs
-    evidence: ''
+    evidence: UNIT-(?:FLUSH|READ|WRITE|CONFLICT|CANCEL|LOAD)|BAND-PATH|MASK_MISMATCH|MEM_MISMATCH|MISMATCH|FLUSH-
   note: 注错：flush 地址偏 16 字节
 - id: band.band_pixel_mask
   target: Main/rtl/engine/buffer/engine_band.v
   macro: INJ_BAND_PIXEL_MASK
   defect: 掩码与写通道
   spec:
-    doc: Main/rtl/engine/engine-manual.md
-    section: 4.3 计算阵列（engine_pix）
+    doc: Main/sim/engine/band/README.md
+    section: 正式复现
   rules:
   - find: "        assign ram_we[p] = !rst && (fill_write ||\n            (pixel_write && !bad_keep && !ws_data[32*p+31]) || ras_we_vec[p]);"
     replace: '        assign ram_we[p] = !rst && (fill_write || (pixel_write && !bad_keep) || ras_we_vec[p]); // 注错：bit31 不写标记失效'
   runs:
   - cmd: python3 Main/tools/check/check_g2_band.py
-    log: Main/sim/engine/band/logs
-    evidence: ''
+    evidence: UNIT-(?:FLUSH|READ|WRITE|CONFLICT|CANCEL|LOAD)|BAND-PATH|MASK_MISMATCH|MEM_MISMATCH|MISMATCH|FLUSH-
   note: 注错：bit31 不写标记失效
 - id: band.rast_pix_trunc
   target: Main/rtl/engine/buffer/engine_band.v
@@ -74,8 +67,7 @@
     replace: "    // 注错：像素号截到 11 位，每 2048 个位置别名一次\n    wire [RAST_PIX_AW-1:0] ras_pix = {{(RAST_PIX_AW-11){1'b0}}, ras_wr_pix[10:0]};"
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rtl
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: UNIT-(?:FLUSH|READ|WRITE|CONFLICT|CANCEL|LOAD)|BAND-PATH|MASK_MISMATCH|MEM_MISMATCH|MISMATCH|FLUSH-
   note: 注错：像素号截到 11 位，每 2048 个位置别名一次
 - id: bin.bin_clip
   target: Main/rtl/engine/frontend/engine_bin.v
@@ -94,9 +86,8 @@
   - find: '                        packets<=index;scan<=0;prefix<=0;total_refs<=0;read_bucket(0,PREFIX);end'
     replace: "                        inj_last_clip<=clip;\n                        packets<=index;scan<=0;prefix<=0;total_refs<=0;read_bucket(0,PREFIX);end"
   runs:
-  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin
+    evidence: F5 BIN model mismatch
   note: TODO
 - id: bin.bin_high_byte
   target: Main/rtl/engine/frontend/engine_bin.v
@@ -109,9 +100,8 @@
   - find: "                        io(1,pb_base+reference_offset+ram_offset+((ram_cursor-1)<<3),16,\n                            {384'd0,current_ref,ram_half},WROTE);"
     replace: "                        io(1,pb_base+reference_offset+ram_offset+((ram_cursor-1)<<3),16,\n                            {384'd0,32'd0,index,ram_half},WROTE);"
   runs:
-  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin
+    evidence: F5 BIN model mismatch
   note: TODO
 - id: bin.bin_order
   target: Main/rtl/engine/frontend/engine_bin.v
@@ -124,9 +114,8 @@
   - find: '    wire [63:0] current_ref={packet[7:0]==5?instance_id:32''hffffffff,index};'
     replace: '    wire [63:0] current_ref={packet[7:0]==5?instance_id:32''hffffffff,index+32''d1};'
   runs:
-  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin
+    evidence: F5 BIN model mismatch
   note: TODO
 - id: bin.bin_ready
   target: Main/rtl/engine/frontend/engine_bin.v
@@ -139,9 +128,8 @@
   - find: '    localparam [31:0] INIT_STATUS=1;'
     replace: '    localparam [31:0] INIT_STATUS=2;'
   runs:
-  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin
+    evidence: F5 BIN model mismatch
   note: TODO
 - id: bin.bin_skip
   target: Main/rtl/engine/frontend/engine_bin.v
@@ -154,9 +142,8 @@
   - find: '                        if(packet[79:64]==0)state<=NEXT;'
     replace: "                        if(second_pass)state<=NEXT;\n                        else\n                        if(packet[79:64]==0)state<=NEXT;"
   runs:
-  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin
+    evidence: F5 BIN model mismatch
   note: TODO
 - id: bin.bin_stale
   target: Main/rtl/engine/frontend/engine_bin.v
@@ -169,9 +156,8 @@
   - find: '                    state<=CLEAR;'
     replace: '                    state<=frame_seen?INIT:CLEAR;'
   runs:
-  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin
+    evidence: F5 BIN model mismatch
   note: TODO
 - id: blend.copy_dst
   target: Main/rtl/engine/core/engine_blend.v
@@ -185,7 +171,6 @@
     replace: "            3'd0: begin // COPY     Fs=255 Fd=0\n\n                sel_base = {1'b0, src} + {1'b0, dst};"
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case narrow_copy
-    log: Main/sim/engine/blend/build
     evidence: 'MISMATCH #\d+: eq=0 '
   note: COPY 的 Fd 是 0，目的像素不得进入结果；只有让不用的输入变化，这条约束才看得出
 - id: blend.trunc16
@@ -200,7 +185,6 @@
     replace: '    wire [17:0] t      = {2''b00, t_full[15:0]};'
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case narrow_trunc
-    log: Main/sim/engine/blend/build
     evidence: 'MISMATCH #\d+: eq=2 '
   note: t 模截断到 16 位会丢进位，规格写明中间量不得截断
 - id: blend.unreg_c
@@ -215,7 +199,6 @@
     replace: '    wire signed [17:0] c_stage = $signed(c255_comb);'
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case narrow_unreg
-    log: Main/sim/engine/blend/build
     evidence: 'MISMATCH #\d+: eq=1 '
   note: 级 2 必须用级 1 寄存的 base×255，否则两拍的操作数被相加
 - id: blend.wrong_eq
@@ -230,7 +213,6 @@
     replace: "            3'd3: begin // CONST    Fs=c   Fd=255-c\n\n                sel_base = {1'b0, src};\n                sel_m1   = $signed({1'b0, dst}) - $signed({1'b0, src});"
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case narrow_const
-    log: Main/sim/engine/blend/build
     evidence: 'MISMATCH #\d+: eq=3 '
   note: CONST 的 base 与 m1 同时取错后 base×255+m1×m2 不再恒等于规格算式
 - id: blend.x_no_en
@@ -245,7 +227,6 @@
     replace: '        r_x <= x_comb;'
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case stall
-    log: Main/sim/engine/blend/build
     evidence: 'MISMATCH #\d+: eq='
   note: 停顿期间级 2 不得推进；同一份源码在 exhaustive 上 PASS，只有插停顿拍才见红
 - id: cmd.chk_swap
@@ -260,8 +241,7 @@
     replace: '    wire [4:0] chk = v_swap;              // 注错：用对调 space/format 的错误码'
   runs:
   - cmd: bash Main/sim/engine/ctrl/run.sh
-    log: Main/sim/engine/ctrl/build
-    evidence: 'engine_top: RESULT: FAIL'
+    evidence: VEC-FAIL
   note: 注错：用对调 space/format 的错误码
 - id: cmd.inst_early_done
   target: Main/rtl/engine/core/engine_cmd.v
@@ -275,8 +255,7 @@
     replace: "                    if(inst_active && geom_busy)done_set<=1;\n`endif\n                    if (wr_stat_valid && wr_stat_err) begin"
   runs:
   - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+    evidence: DONE BEFORE DMA DRAIN|MEM addr=|INSTANCE mismatch|PERF-PIXEL|LIST1-ERR|FRAME.*mem_bad=[1-9]
   note: TODO
 - id: cmd.inst_state
   target: Main/rtl/engine/core/engine_cmd.v
@@ -290,8 +269,7 @@
     replace: "                    if(inst_active)inst_packet[127:96]<=0;\n`endif\n                    if (wr_stat_valid && wr_stat_err) begin"
   runs:
   - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+    evidence: DONE BEFORE DMA DRAIN|MEM addr=|INSTANCE mismatch|PERF-PIXEL|LIST1-ERR|FRAME.*mem_bad=[1-9]
   note: TODO
 - id: cmd.inst_xyuv
   target: Main/rtl/engine/core/engine_cmd.v
@@ -305,8 +283,7 @@
     replace: '                        w0<={inst_packet[127:96],inst_uv,inst_xy,inst_packet[31:8],8''h02};'
   runs:
   - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+    evidence: DONE BEFORE DMA DRAIN|MEM addr=|INSTANCE mismatch|PERF-PIXEL|LIST1-ERR|FRAME.*mem_bad=[1-9]
   note: TODO
 - id: cmd.no_fb
   target: Main/rtl/engine/core/engine_cmd.v
@@ -322,8 +299,7 @@
     replace: "                        pend_err  <= 1'b1;      // 注错：关掉逐条回退\n                        err_code  <= EC_ERR_FETCH;\n                        err_index <= global_nbi;\n                        err_tag   <= 32'd0;\n                        st        <= S_TERM;"
   runs:
   - cmd: bash Main/sim/engine/ctrl/run.sh
-    log: Main/sim/engine/ctrl/build
-    evidence: 'engine_top: RESULT: FAIL'
+    evidence: VEC-FAIL|VEC-MEM
   note: 注错：关掉逐条回退
 - id: cmd.strip_header_offset
   target: Main/rtl/engine/core/engine_cmd.v
@@ -337,7 +313,7 @@
     replace: '                        base_r<=table_base+{27''d0,strip_id}*32768;'
   runs:
   - cmd: python3 Main/tools/check/check_g4_integration.py --rtl
-    evidence: ''
+    evidence: PIXEL-FAIL|PIXEL-COUNT-FAIL|G3.*(?:DIFF|FAIL)|G3 PIXEL|MISMATCH|frame.*difference
   note: TODO
 - id: cmd.strip_local_y
   target: Main/rtl/engine/core/engine_cmd.v
@@ -351,7 +327,7 @@
     replace: '                    i1_dst_y <= $signed(w0[95:80]);'
   runs:
   - cmd: python3 Main/tools/check/check_g4_integration.py --rtl
-    evidence: ''
+    evidence: PIXEL-FAIL|PIXEL-COUNT-FAIL|G3.*(?:DIFF|FAIL)|G3 PIXEL|MISMATCH|frame.*difference
   note: TODO
 - id: display_fetch.inflight2
   target: Main/rtl/display/display_fetch.v
@@ -364,9 +340,8 @@
   - find: "    assign can_issue = (state == S_RUN) && started && en_eff && !ar_valid && !fs_event &&\n                       !in_flight && (row < V_ACTIVE) && room_for_line;"
     replace: "    // 注错：允许两笔在途\n    assign can_issue = (state == S_RUN) && started && en_eff && !ar_valid && !fs_event &&\n                       (row < V_ACTIVE) && room_for_line;"
   runs:
-  - cmd: bash Main/sim/display/run.sh
-    log: Main/sim/display/build
-    evidence: 'inflight: RESULT: FAIL'
+  - cmd: bash Main/sim/display/run.sh --case inflight
+    evidence: ERROR (?:image|line width|inflight|arlen|araddr|drain-invariant|[^\n]*got)
   note: 注错：允许两笔在途
 - id: display_fetch.no_clear
   target: Main/rtl/display/display_fetch.v
@@ -379,9 +354,8 @@
   - find: '                    fifo_rst <= 1''b1;'
     replace: '                    fifo_rst <= 1''b0;             // 注错：场起始不清 FIFO'
   runs:
-  - cmd: bash Main/sim/display/run.sh
-    log: Main/sim/display/build
-    evidence: 'image: RESULT: FAIL'
+  - cmd: bash Main/sim/display/run.sh --case image
+    evidence: ERROR (?:image|line width|inflight|arlen|araddr|drain-invariant|[^\n]*got)
   note: 注错：场起始不清 FIFO
 - id: display_fetch.no_drain
   target: Main/rtl/display/display_fetch.v
@@ -394,9 +368,8 @@
   - find: '                        state <= (in_flight || ar_valid) ? S_DRAIN : S_RESET;'
     replace: '                        state <= S_RESET;'
   runs:
-  - cmd: bash Main/sim/display/run.sh
-    log: Main/sim/display/build
-    evidence: 'starve: RESULT: FAIL'
+  - cmd: bash Main/sim/display/run.sh --case starve
+    evidence: ERROR (?:image|line width|inflight|arlen|araddr|drain-invariant|[^\n]*got)
   note: TODO
 - id: display_fetch.swap_now
   target: Main/rtl/display/display_fetch.v
@@ -411,9 +384,8 @@
   - find: "            if (swap_wr_any)\n                swap_req_sh <= pwdata[0];"
     replace: "            if (swap_wr_any)\n                swap_req_sh <= 1'b0;      // 注错：请求位不再由软件置起"
   runs:
-  - cmd: bash Main/sim/display/run.sh
-    log: Main/sim/display/build
-    evidence: 'swap: RESULT: FAIL'
+  - cmd: bash Main/sim/display/run.sh --case swap
+    evidence: ERROR (?:image|line width|inflight|arlen|araddr|drain-invariant|[^\n]*got)
   note: 注错 SWAP_NOW：写请求立刻切换，不等场起始（会切出撕裂帧）
 - id: display_out.lag0
   target: Main/rtl/display/display_out.v
@@ -426,9 +398,8 @@
   - find: '    wire [1:0] sel_base = psel_d1;'
     replace: '    wire [1:0] sel_base = psel;                // 注错：对齐取 D=0'
   runs:
-  - cmd: bash Main/sim/display/run.sh
-    log: Main/sim/display/build
-    evidence: 'image: RESULT: FAIL'
+  - cmd: bash Main/sim/display/run.sh --case image
+    evidence: ERROR (?:image|line width|inflight|arlen|araddr|drain-invariant|[^\n]*got)
   note: 注错：对齐取 D=0
 - id: display_out.order_rev
   target: Main/rtl/display/display_out.v
@@ -441,9 +412,8 @@
   - find: '    wire [1:0] sel = sel_base;'
     replace: '    wire [1:0] sel = ~sel_base;                // 注错：拍内像素顺序拆反'
   runs:
-  - cmd: bash Main/sim/display/run.sh
-    log: Main/sim/display/build
-    evidence: 'image: RESULT: FAIL'
+  - cmd: bash Main/sim/display/run.sh --case image
+    evidence: ERROR (?:image|line width|inflight|arlen|araddr|drain-invariant|[^\n]*got)
   note: 注错：拍内像素顺序拆反
 - id: display_out.phase3
   target: Main/rtl/display/display_out.v
@@ -456,9 +426,8 @@
   - find: '    wire pop_phase   = group_start;'
     replace: '    wire pop_phase   = de0 & (psel == 2''d3);   // 注错：弹出相位改成 psel==3'
   runs:
-  - cmd: bash Main/sim/display/run.sh
-    log: Main/sim/display/build
-    evidence: 'image: RESULT: FAIL'
+  - cmd: bash Main/sim/display/run.sh --case image
+    evidence: ERROR (?:image|line width|inflight|arlen|araddr|drain-invariant|[^\n]*got)
   note: 注错：弹出相位改成 psel==3
 - id: exec_sw.strip_noflush
   target: Main/sw/lib/gfx/exec_sw.c
@@ -472,8 +441,7 @@
     replace: ''
   runs:
   - cmd: python3 Main/tools/check/check_g3_stripctl.py
-    log: Main/sim/engine/stripctl/logs
-    evidence: ''
+    evidence: 'scene [0-9]+: [0-9]+ bytes differ|PIXEL-FAIL|PERF-FAIL'
   note: TODO
 - id: exec_sw.strip_order
   target: Main/sw/lib/gfx/exec_sw.c
@@ -487,8 +455,7 @@
     replace: '            const gfx_cmd *c=&bucket[counts[s]-k-1u];'
   runs:
   - cmd: python3 Main/tools/check/check_g3_stripctl.py
-    log: Main/sim/engine/stripctl/logs
-    evidence: ''
+    evidence: 'scene [0-9]+: [0-9]+ bytes differ|PIXEL-FAIL|PERF-FAIL'
   note: TODO
 - id: geom.alpha_as_copy
   target: Main/rtl/engine/core/engine_geom.v
@@ -502,8 +469,7 @@
     replace: '    assign d7_read_dst = ((r_eq == EQ_COPY) || (r_eq == EQ_ALPHA));  // 注错：ALPHA 也按 COPY'
   runs:
   - cmd: bash Main/sim/engine/geom/run.sh
-    log: Main/sim/engine/geom/build
-    evidence: 'geom_directed: RESULT: FAIL'
+    evidence: MISMATCH|RULE1|DONEERR|BUFERR|PROTO
   note: 注错：ALPHA 也按 COPY
 - id: geom.band_clip
   target: Main/rtl/engine/core/engine_geom.v
@@ -517,8 +483,7 @@
     replace: '            // 注错：漏掉当前条带求交。'
   runs:
   - cmd: python3 Main/tools/check/check_g2_band.py
-    log: Main/sim/engine/band/logs
-    evidence: ''
+    evidence: BAND_ERROR code=2
   note: 注错：漏掉当前条带求交。
 - id: geom.copy_read
   target: Main/rtl/engine/core/engine_geom.v
@@ -532,8 +497,7 @@
     replace: '    wire seg_read_dst = 1''b1;             // 注错：COPY 也发读目的描述符'
   runs:
   - cmd: bash Main/sim/engine/geom/run.sh
-    log: Main/sim/engine/geom/build
-    evidence: 'geom_directed: RESULT: FAIL'
+    evidence: MISMATCH|RULE1|DONEERR|BUFERR|PROTO
   note: 注错：COPY 也发读目的描述符
 - id: geom.no_split
   target: Main/rtl/engine/core/engine_geom.v
@@ -549,8 +513,7 @@
     replace: '        sxcross = 1''b0;                      // 注错：跨 4KB 不拆'
   runs:
   - cmd: bash Main/sim/engine/geom/run.sh
-    log: Main/sim/engine/geom/build
-    evidence: 'geom_directed: RESULT: FAIL'
+    evidence: MISMATCH|RULE1|DONEERR|BUFERR|PROTO
   note: 注错：跨 4KB 不拆
 - id: geom.row_nofree
   target: Main/rtl/engine/core/engine_geom.v
@@ -564,8 +527,7 @@
     replace: "    // 注错：不看 row_free，直接开下一行\n    wire rf_first = 1'b1;                 // 命令的第 0 行\n    wire rf_cur   = 1'b1;                 // S_GATE 里等的这一行\n    wire rf_next  = 1'b1;                 // S_ADV 要推进到的下一行"
   runs:
   - cmd: bash Main/sim/engine/geom/run.sh
-    log: Main/sim/engine/geom/build
-    evidence: 'geom_rfstall: RESULT: FAIL'
+    evidence: MISMATCH|RULE1|DONEERR|BUFERR|PROTO
   note: 注错：不看 row_free，直接开下一行
 - id: geom.skip_surf
   target: Main/rtl/engine/core/engine_geom.v
@@ -579,8 +541,7 @@
     replace: '            // 注错：整块跳过第五项求交'
   runs:
   - cmd: bash Main/sim/engine/geom/run.sh
-    log: Main/sim/engine/geom/build
-    evidence: 'geom_directed: RESULT: FAIL'
+    evidence: MISMATCH|RULE1|DONEERR|BUFERR|PROTO
   note: 注错：整块跳过第五项求交
 - id: inst.inst_skip
   target: Main/rtl/engine/frontend/engine_inst.v
@@ -594,8 +555,7 @@
     replace: '                        instance_id <= instance_id + 32''d2;'
   runs:
   - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+    evidence: DONE BEFORE DMA DRAIN|MEM addr=|INSTANCE mismatch|PERF-PIXEL|LIST1-ERR|FRAME.*mem_bad=[1-9]
   note: 注错：instance_id 每次加 2，跳过一半实例
 - id: inst.inst_stride
   target: Main/rtl/engine/frontend/engine_inst.v
@@ -609,8 +569,7 @@
     replace: "                        cursor <= cursor + 32'd4;\n                        word_addr <= cursor + 32'd4;"
   runs:
   - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+    evidence: DONE BEFORE DMA DRAIN|MEM addr=|INSTANCE mismatch|PERF-PIXEL|LIST1-ERR|FRAME.*mem_bad=[1-9]
   note: 注错：游标固定步进 4，不按 stride
 - id: instances.inst_xyuv
   target: Main/sw/lib/gfx/instances.c
@@ -624,8 +583,7 @@
     replace: "            if (entry==8u) { uint32_t tmp=xy;xy=uv;uv=tmp; }\n            *scalar=unpack(c,xy,uv); return GFX_OK;"
   runs:
   - cmd: python3 Main/tools/check/check_f4_instances.py --models
-    log: Main/sim/engine/frontend/logs
-    evidence: ''
+    evidence: PIXEL scene=|Assertion.*one.w\[2\]==pair|Assertion.*expanded\[i\]
   note: TODO
 - id: mover.band_drain_mask
   target: Main/rtl/engine/core/engine_mover.v
@@ -639,8 +597,7 @@
     replace: '    wire raw_drain_kill=1''b0;'
   runs:
   - cmd: python3 Main/tools/check/check_g2_band.py
-    log: Main/sim/engine/band/logs
-    evidence: ''
+    evidence: DRAIN_MEMORY|CONTROL_MEM
   note: TODO
 - id: mover.band_flow_wait
   target: Main/rtl/engine/core/engine_mover.v
@@ -654,8 +611,7 @@
     replace: '    wire        band_data_blocks=1''b0;'
   runs:
   - cmd: python3 Main/tools/check/check_g2_band.py
-    log: Main/sim/engine/band/logs
-    evidence: ''
+    evidence: BAND_FLOW_COLLISION
   note: TODO
 - id: mover.band_raw_mask
   target: Main/rtl/engine/core/engine_mover.v
@@ -671,8 +627,7 @@
     replace: '        assign m_axi_wdata[32*gp+24 +: 8] = 8''h00;'
   runs:
   - cmd: python3 Main/tools/check/check_g2_band.py
-    log: Main/sim/engine/band/logs
-    evidence: ''
+    evidence: DRAIN_MEMORY|CONTROL_MEM|MEM_MISMATCH
   note: TODO
 - id: mover.drain_bypass
   target: Main/rtl/engine/core/engine_mover.v
@@ -685,9 +640,8 @@
   - find: "    wire        rd_drain_help = draining && rd_busy;\n    wire        wr_drain_help = draining && wr_busy;"
     replace: "    // 注错：排空期不帮忙收/补，直接等两个方向自己空\n    wire        rd_drain_help = 1'b0;\n    wire        wr_drain_help = 1'b0;"
   runs:
-  - cmd: bash Main/sim/engine/mover/run.sh
-    log: Main/sim/engine/mover/build
-    evidence: 'drain: RESULT: FAIL'
+  - cmd: bash Main/sim/engine/mover/run.sh --case drain
+    evidence: 'ERR [^\n]+|MODEL: wlast mismatch'
   note: 注错：排空期不帮忙收/补，直接等两个方向自己空
 - id: mover.drain_level
   target: Main/rtl/engine/core/engine_mover.v
@@ -702,9 +656,8 @@
   - find: '    assign      drain_hold = draining || drain_req;'
     replace: '    assign      drain_hold = draining;                 // 注错：只在排空态里挡提交'
   runs:
-  - cmd: bash Main/sim/engine/mover/run.sh
-    log: Main/sim/engine/mover/build
-    evidence: 'drain: RESULT: FAIL'
+  - cmd: bash Main/sim/engine/mover/run.sh --case drain
+    evidence: 'ERR [^\n]+|MODEL: wlast mismatch'
   note: 注错：drain_done 之后仍按电平重进
 - id: mover.inst_owner
   target: Main/rtl/engine/core/engine_mover.v
@@ -717,9 +670,8 @@
   - find: "    assign fs_instance=rd_ctx_instance;\n    assign rd_stat_instance=legacy_rd_stat && rd_ctx_instance;"
     replace: "    assign fs_instance=1'b0;\n    assign rd_stat_instance=1'b0;"
   runs:
-  - cmd: bash Main/sim/engine/mover/run.sh
-    log: Main/sim/engine/mover/build
-    evidence: ''
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    evidence: FD owner data/tag|FD status owner/tag
   note: TODO
 - id: mover.mask_bypass
   target: Main/rtl/engine/core/engine_mover.v
@@ -732,9 +684,8 @@
   - find: "        wire kill = raw_drain_kill || (!(wr_ctx_flush || wr_ctx_pb) && core_wdata[32*gp + 31]);\n        assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4] & {4{~kill}};\n        assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];\n        assign m_axi_wdata[32*gp+24 +: 8] = (wr_ctx_flush || wr_ctx_pb) ? core_wdata[32*gp+24 +:8] : 8'h00;"
     replace: "        // 注错：带内掩码旁路，wstrb 与 X 字节直通上总线\n        wire kill = 1'b0;\n        assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4];\n        assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];\n        assign m_axi_wdata[32*gp+24 +: 8] = core_wdata[32*gp+24 +: 8];"
   runs:
-  - cmd: bash Main/sim/engine/mover/run.sh
-    log: Main/sim/engine/mover/build
-    evidence: 'normal: RESULT: FAIL'
+  - cmd: bash Main/sim/engine/mover/run.sh --case normal
+    evidence: 'ERR [^\n]+|MODEL: wlast mismatch'
   note: 注错：带内掩码旁路，wstrb 与 X 字节直通上总线
 - id: mover.no_gate_rd
   target: Main/rtl/engine/core/engine_mover.v
@@ -747,9 +698,8 @@
   - find: '    wire        rd_gate_done = (rd_status_seen && rd_stream_done);'
     replace: '    wire        rd_gate_done = 1''b1;                   // 注错：去掉读门控'
   runs:
-  - cmd: bash Main/sim/engine/mover/run.sh
-    log: Main/sim/engine/mover/build
-    evidence: 'normal: RESULT: FAIL'
+  - cmd: bash Main/sim/engine/mover/run.sh --case normal
+    evidence: 'ERR [^\n]+|MODEL: wlast mismatch'
   note: 注错：去掉读门控
 - id: mover.no_gate_wr
   target: Main/rtl/engine/core/engine_mover.v
@@ -762,9 +712,8 @@
   - find: '    wire        wr_gate_done = wr_status_seen;'
     replace: '    wire        wr_gate_done = 1''b1;                   // 注错：去掉写门控'
   runs:
-  - cmd: bash Main/sim/engine/mover/run.sh
-    log: Main/sim/engine/mover/build
-    evidence: 'normal: RESULT: FAIL'
+  - cmd: bash Main/sim/engine/mover/run.sh --case normal
+    evidence: 'ERR [^\n]+|MODEL: wlast mismatch'
   note: 注错：去掉写门控
 - id: mover.no_tlast
   target: Main/rtl/engine/core/engine_mover.v
@@ -777,9 +726,8 @@
   - find: '    wire         ws_core_tlast  = (wr_beats_left == 12''d1);'
     replace: "    // 注错：正常写流不打 tlast，只有排空哑拍打\n    wire         ws_core_tlast  = wr_drain_help ? (wr_beats_left == 12'd1) : 1'b0;"
   runs:
-  - cmd: bash Main/sim/engine/mover/run.sh
-    log: Main/sim/engine/mover/build
-    evidence: 'normal: RESULT: FAIL'
+  - cmd: bash Main/sim/engine/mover/run.sh --case normal
+    evidence: WRITE-LAST-MISMATCH
   note: 注错：正常写流不打 tlast，只有排空哑拍打
 - id: mover.tx_nowait
   target: Main/rtl/engine/core/engine_mover.v
@@ -792,9 +740,8 @@
   - find: '    wire        tex_data_blocks = tx_busy;'
     replace: '    wire        tex_data_blocks = 1''b0;                 // 注错：去掉目的流等待'
   runs:
-  - cmd: bash Main/sim/engine/mover/run.sh
-    log: Main/sim/engine/mover/build
-    evidence: ''
+  - cmd: bash Main/sim/engine/mover/run.sh --case stream_owner
+    evidence: TEX-OWNER-FAIL
   note: 注错：去掉目的流等待
 - id: pix.core_noen
   target: Main/rtl/engine/core/engine_pix.v
@@ -808,10 +755,8 @@
     replace: '    wire core_en = 1''b1;'
   runs:
   - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
-    log: Main/sim/engine/pix/build
     evidence: PIX_MISMATCH n=
   - cmd: bash Main/sim/engine/pix/run.sh --case pipe_burst
-    log: Main/sim/engine/pix/build
     evidence: PIX_MISMATCH beat=
   note: 混合核必须与外围同停，否则停顿时像素被重复处理
 - id: pix.drop_mask
@@ -826,7 +771,6 @@
     replace: "    assign s3_mask_next = (s2_beat == 8'd0) ? 4'hf :\n        (s2_beat == (row_dst_beats - 8'd1)) ? row_last_mask : 4'hf;"
   runs:
   - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
-    log: Main/sim/engine/pix/build
     evidence: MASK_MISMATCH n=\d+ ls=0 ld=0 beat=0 slot=1
   note: 首拍掩码管住行首越界像素，丢了就会写坏目标行头部
 - id: pix.en_notready
@@ -841,10 +785,8 @@
     replace: '    wire pipe_en = 1''b1;'
   runs:
   - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
-    log: Main/sim/engine/pix/build
     evidence: BEATS_OR_GAP n=
   - cmd: bash Main/sim/engine/pix/run.sh --case pipe_burst
-    log: Main/sim/engine/pix/build
     evidence: PIX_MISMATCH beat=
   note: 出口未 ready 时计算链必须保持；恒 ready 的测试台看不见，必须靠停顿用例
 - id: pix.rot_off
@@ -859,7 +801,6 @@
     replace: '    wire [2:0] align_start = align_start_raw + 3''d1;'
   runs:
   - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
-    log: Main/sim/engine/pix/build
     evidence: PIX_MISMATCH n=
   note: 源/目的首拍相位差决定对齐窗口，错一个位置整行像素错位
 - id: pix.skip_key
@@ -874,10 +815,8 @@
     replace: '    wire [3:0] s3_key_hit_next = 4''d0;'
   runs:
   - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
-    log: Main/sim/engine/pix/build
     evidence: MASK_MISMATCH n=
   - cmd: bash Main/sim/engine/pix/run.sh --case path_golden
-    log: Main/sim/engine/pix/build
     evidence: MEM_MISMATCH addr=
   note: 色键命中必须不写目的像素；单元靠「不写」掩码比对，真实通路靠整片内存比对
 - id: rast.rast_bias_reverse
@@ -892,8 +831,7 @@
     replace: '                    bias_pos0 <= !((w_a0 > 32''sd0) || (w_a0 == 32''sd0 && w_b0 > 32''sd0));'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rtl
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: rast.rast_edge_scale
   target: Main/rtl/engine/rast/engine_rast.v
@@ -907,8 +845,7 @@
     replace: '                            c_er[0] <= w_c0 + c_es[0];'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rtl
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: rast.rast_key_miss
   target: Main/rtl/engine/rast/engine_rast.v
@@ -922,8 +859,7 @@
     replace: '    wire response_key = 1''b0;'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rtl
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: rast.rast_no_barrier
   target: Main/rtl/engine/rast/engine_rast.v
@@ -937,8 +873,7 @@
     replace: '                    if (!scan_active || stopping) begin'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rtl
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: rast.rast_partial_commit
   target: Main/rtl/engine/rast/engine_rast.v
@@ -952,8 +887,7 @@
     replace: '    assign zwr_en = out_v && out_wr && !stopping;'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rtl
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: atomic color/z commit
   note: TODO
 - id: rast.rast_round
   target: Main/rtl/engine/rast/engine_rast.v
@@ -967,8 +901,7 @@
     replace: '            q16 = a[47:16];'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rtl
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: rast.rast_z_reverse
   target: Main/rtl/engine/rast/engine_rast.v
@@ -982,8 +915,7 @@
     replace: '    wire response_write = mcover[RL-1] && mz[RL-1] > z_response && !response_key;'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rtl
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: rlst.rlst_credit
   target: Main/rtl/engine/rast/engine_rlst.v
@@ -997,8 +929,7 @@
     replace: '    wire         s_reserve_ok = 1''b1;'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rlst
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: rlst.rlst_drop_tail
   target: Main/rtl/engine/rast/engine_rlst.v
@@ -1012,8 +943,7 @@
     replace: "                                 && 1'b0\n                    ) begin"
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rlst
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: rlst.rlst_owner_early
   target: Main/rtl/engine/rast/engine_rlst.v
@@ -1027,8 +957,7 @@
     replace: '                    if (s_stat_seen) begin'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rlst
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: rlst.rlst_sub_offset
   target: Main/rtl/engine/rast/engine_rlst.v
@@ -1042,8 +971,7 @@
     replace: '    wire [23:0]  b_rel_next = s_rel + {s_recv, 5''d0};'
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rlst
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: TODO
 - id: strip.strip_clip
   target: Main/sw/lib/gfx/strip.c
@@ -1057,8 +985,7 @@
     replace: "        out.w[2]++;\n#ifdef GFX_FRONTEND_DETAIL_STORE\n        DETAIL_BEGIN(store_start);"
   runs:
   - cmd: python3 Main/tools/check/check_g3_stripctl.py
-    log: Main/sim/engine/stripctl/logs
-    evidence: ''
+    evidence: 'scene [0-9]+: [0-9]+ bytes differ|PIXEL-FAIL|PERF-FAIL'
   note: TODO
 - id: strip.strip_drop
   target: Main/sw/lib/gfx/strip.c
@@ -1072,8 +999,7 @@
     replace: "        if(s!=s0)continue;\n#ifdef GFX_FRONTEND_DETAIL_STORE\n        DETAIL_BEGIN(store_start);"
   runs:
   - cmd: python3 Main/tools/check/check_g3_stripctl.py
-    log: Main/sim/engine/stripctl/logs
-    evidence: ''
+    evidence: 'scene [0-9]+: [0-9]+ bytes differ|PIXEL-FAIL|PERF-FAIL'
   note: TODO
 - id: tex.rast_samp_early
   target: Main/rtl/engine/buffer/engine_tex.v
@@ -1087,8 +1013,7 @@
     replace: "    // 注错：valid/data 提前一拍，与 RAM 读出 错拍（连续换 bank 时见红）\n    assign samp_rvalid = (READ_LATENCY == 1) ? samp_fire : sv1;\n    assign samp_rdata  = (READ_LATENCY == 1) ? bank_q[32*samp_word[1:0] +: 32]\n                                             : bank_q[32*sb1 +: 32];"
   runs:
   - cmd: python3 Main/tools/check/check_r2.py --group rtl
-    log: Main/sim/engine/rast/logs
-    evidence: ''
+    evidence: MISMATCH|BAND/z compare|DDR flush mismatch|completion counters|reference count|record reconstruction|credit reservation|slot overwrite|strip before retirement|RLST result|empty strip headers|FD contract|early strip completion|strip lifecycle
   note: 注错：valid/data 提前一拍，与 RAM 读出 错拍（连续换 bank 时见红）
 - id: tex.stat_drop
   target: Main/rtl/engine/buffer/engine_tex.v
@@ -1101,9 +1026,8 @@
   - find: '            if (rs_tvalid && rs_tlast) stat_r <= 1''b1;'
     replace: '            // 注错：状态脉冲吞掉'
   runs:
-  - cmd: bash Main/sim/engine/tex/run.sh
-    log: Main/sim/engine/tex/build
-    evidence: 'normal: RESULT: FAIL'
+  - cmd: bash Main/sim/engine/tex/run.sh --case normal
+    evidence: STR-STATUS-MISSING
   note: 注错：状态脉冲吞掉
 - id: tex.valid_early
   target: Main/rtl/engine/buffer/engine_tex.v
@@ -1116,9 +1040,8 @@
   - find: "    assign rs_tvalid = (READ_LATENCY == 1) ? v0 : v1;\n    assign rs_tlast  = (READ_LATENCY == 1) ? l0 : l1;"
     replace: "    // 注错：valid/last 提前一级，与 data 错拍\n    assign rs_tvalid = (READ_LATENCY == 1) ? issue : v0;\n    assign rs_tlast  = (READ_LATENCY == 1) ? (issue && left == 1) : l0;"
   runs:
-  - cmd: bash Main/sim/engine/tex/run.sh
-    log: Main/sim/engine/tex/build
-    evidence: 'normal: RESULT: FAIL'
+  - cmd: bash Main/sim/engine/tex/run.sh --case normal
+    evidence: STR-DATA|STR-1B FAIL
   note: 注错：valid/last 提前一级，与 data 错拍
 - id: tex.wr_loose
   target: Main/rtl/engine/buffer/engine_tex.v
@@ -1131,9 +1054,8 @@
   - find: '    wire       apb_wr_en    = apb_wr_acc && apb_aligned;'
     replace: '    wire       apb_wr_en    = apb_wr_acc;              // 注错：未对齐写也放行'
   runs:
-  - cmd: bash Main/sim/engine/tex/run.sh
-    log: Main/sim/engine/tex/build
-    evidence: 'normal: RESULT: FAIL'
+  - cmd: bash Main/sim/engine/tex/run.sh --case normal
+    evidence: APB-UNALIGN-SIDE-EFFECT|STR-1B FAIL
   note: 注错：未对齐写也放行
 - id: top.strip_perf
   target: Main/rtl/engine/engine_top.v
@@ -1147,5 +1069,53 @@
     replace: '    wire perf_rdb = (g_rd_valid && g_rd_ready && !g_rd_tex)'
   runs:
   - cmd: python3 Main/tools/check/check_g4_integration.py --rtl
-    evidence: ''
+    evidence: PERF-FAIL
   note: TODO
+- id: regs.read_phase
+  target: Main/rtl/engine/core/engine_regs.v
+  defect: APB SETUP 读锁存
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 3 错误与 PERF 编码
+  rules:
+  - find: if (rd_setup) begin
+    replace: if (rd_setup && penable) begin
+  runs:
+  - cmd: bash Main/sim/engine/ctrl/run.sh --case registers
+    evidence: ID-FAIL|CAPS-FAIL|VEC-FAIL|APB-FAIL|CASE-FAIL|CIDX-ERR
+- id: regs.irq_w1c
+  target: Main/rtl/engine/core/engine_regs.v
+  defect: 中断 W1C 清除
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 3 错误与 PERF 编码
+  rules:
+  - find: irq_stat <= irq_stat & ~pwdata[1:0];
+    replace: irq_stat <= irq_stat | pwdata[1:0];
+  runs:
+  - cmd: bash Main/sim/engine/ctrl/run.sh --case registers
+    evidence: IRQ-FAIL
+- id: pb.command_clip
+  target: Main/rtl/engine/frontend/engine_pb.v
+  defect: 逐包裁剪快照
+  spec:
+    doc: Main/sim/engine/frontend/README.md
+    section: 硬件分桶与引用列表
+  rules:
+  - find: assign command_clip = snapshot;
+    replace: assign command_clip = 64'd0;
+  runs:
+  - cmd: python3 Main/tools/check/check_f5_bin.py --frame --protocols
+    evidence: FAIL pixel|OLD-CLIP-FAIL|FAIL status|FAIL error|FAIL PB status
+- id: pb.source_id
+  target: Main/rtl/engine/frontend/engine_pb.v
+  defect: 逐包源表面选择
+  spec:
+    doc: Main/sim/engine/frontend/README.md
+    section: 硬件分桶与引用列表
+  rules:
+  - find: 'assign src_id    = state == CFG_BG ? bg_id_r : bin_busy ? bin_src : packet[19:16];'
+    replace: assign src_id    = bg_id_r;
+  runs:
+  - cmd: python3 Main/tools/check/check_f5_bin.py --frame --protocols
+    evidence: FAIL pixel|OLD-CLIP-FAIL|FAIL status|FAIL error|FAIL PB status

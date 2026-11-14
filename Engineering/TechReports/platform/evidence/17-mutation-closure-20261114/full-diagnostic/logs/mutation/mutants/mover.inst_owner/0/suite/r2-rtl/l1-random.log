@@ -1,0 +1,4 @@
+OWNER PASS kind=0 beats=8 last-held=32
+OWNER PASS kind=2 beats=8 last-held=32
+FATAL: Main/sim/engine/rast/tb_engine_rast.v:443: FD owner data/tag kind=1 beat=0
+       Time: 1355000  Scope: tb_engine_rast.owner_case

@@ -1,0 +1,18 @@
+HEADERS B3
+APB-UNALIGN-SIDE-EFFECT got=deadbeef
+UNIT APB done (errors=1)
+STR-DATA row=0 beat=0 got=40262d2b402e333240373939deadbeef want=40262d2b402e33324037393940000000
+STR-1B FAIL beats=1/1 bad=1 lat=1
+STR-DATA row=0 beat=0 got=40262d2b402e333240373939deadbeef want=40262d2b402e33324037393940000000
+STR-MAX FAIL beats=192/192 bad=1 lat=1
+STR-DATA row=0 beat=0 got=40262d2b402e333240373939deadbeef want=40262d2b402e33324037393940000000
+UNIT STR done (errors=3)
+UNIT done errors=3
+TEX_OVERLAP ar=193 hold=133 pixel_stat_during_fetch=0
+RENDER done errors=3
+ERR cases done errors=3
+SOFT-RST done errors=3
+HARD-RST done errors=3
+TEX SIM FAIL errors=3
+tb_engine_tex.v:669: $finish called at 1586315000 (1ps)
+normal: RESULT: FAIL

@@ -1,0 +1,27 @@
+生成期望值（独立模型）：
+写出 build/directed.hex：1089 行记录（34 条命令）
+写出 build/vectors.hex：718 行记录（59 条命令）
+写出 build/cases.hex：5265 行记录（17 条命令）
+
+研究探针 probe_geom（B3 前期研究）：
+  probe: RESULT: PASS (14/14)
+
+单元仿真 engine_geom（第 03 章 3.7 节）：
+  geom_directed: RESULT: PASS (200 checks)
+  geom_vectors: RESULT: PASS (334 checks)
+  geom_cases: RESULT: PASS (98 checks)
+
+握手用例（判据：序列与恒 ready 时逐条相同）：
+  geom_stall: RESULT: PASS (200 checks)
+      (+STALL)
+  geom_stall_c: RESULT: PASS (98 checks)
+      (+STALL)
+  geom_rfstall: RESULT: PASS (200 checks)
+      (+RFSTALL)
+  geom_rfstall_v: RESULT: PASS (334 checks)
+      (+RFSTALL)
+  geom_rfstall_c: RESULT: PASS (98 checks)
+      (+RFSTALL)
+
+
+SIM OK: 17/17 checks as expected

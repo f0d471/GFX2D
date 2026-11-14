@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "timeout": false,
+  "seconds": 168.314,
+  "cmd": "python3 Main/tools/check/check_g3_stripctl.py"
+}

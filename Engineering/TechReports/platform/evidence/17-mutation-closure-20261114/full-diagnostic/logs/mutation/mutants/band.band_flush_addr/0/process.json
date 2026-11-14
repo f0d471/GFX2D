@@ -1,0 +1,6 @@
+{
+  "returncode": 1,
+  "timeout": false,
+  "seconds": 12.261,
+  "cmd": "python3 Main/tools/check/check_g2_band.py"
+}

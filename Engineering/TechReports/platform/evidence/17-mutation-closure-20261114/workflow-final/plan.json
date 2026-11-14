@@ -1,0 +1,42 @@
+{
+  "profile": "acceptance",
+  "checks": [
+    "workflow",
+    "mutation-tools",
+    "regs"
+  ],
+  "changed": null,
+  "commands": {
+    "workflow": [
+      "/usr/bin/python3",
+      "Main/tools/check/test_validation.py"
+    ],
+    "mutation-tools": [
+      "/usr/bin/python3",
+      "Main/sim/mutation/test_mutation.py"
+    ],
+    "regs": [
+      "/usr/bin/python3",
+      "Main/tools/check/regs_gen.py",
+      "--check"
+    ]
+  },
+  "timeouts": {
+    "workflow": 1800,
+    "mutation-tools": 1800,
+    "regs": 1800
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/tools/check/**",
+    "Main/tools/board/**",
+    "Main/sw/lib/test/golden.txt",
+    "Main/sim/mutation/run_mutation.py",
+    "Main/sim/mutation/test_mutation.py",
+    "Main/tools/check/localize_paths.py",
+    "Main/tools/check/regs_gen.py",
+    "Main/rtl/engine/include/engine_regs_offsets.vh",
+    "Main/sw/bsp/include/gfx_regs.h"
+  ]
+}

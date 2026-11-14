@@ -1,0 +1,17 @@
+VEC-FAIL #138: code=9 idx=0 tag=00000000 exp=9/1/00000000
+VEC-MEM #138: [00001000] got=00004080 exp=00ff0000
+VEC-MEM #138: [00001004] got=00004080 exp=00ff0000
+VEC-MEM #138: [00001008] got=00004080 exp=00ff0000
+VEC-MEM #138: [0000100c] got=00004080 exp=00ff0000
+VEC-MEM #138: [00001010] got=00004080 exp=00ff0000
+VEC-MEM #138: [00001014] got=00004080 exp=00ff0000
+VEC-MEM #138: [00001018] got=00004080 exp=00ff0000
+VEC-MEM #138: [0000101c] got=00004080 exp=00ff0000
+CASE-FAIL d4a_fetch17: code=9(idx=16 tag=00000000) exp=9(idx=17 tag=00000000)
+MEM-FAIL d4a_fetch17: [00010600] got=00000000 exp=00000010
+CASE-FAIL fallback_timeout: 未进入逐条回退
+CASE-FAIL fallback_timeout: 排空前提前报错 status=00000098
+CASE-FAIL fallback_timeout: 收尾 status=00000098 exp=TIMEOUT且空闲
+checks=6632 errors=14 vectors=159 vec_fail=9
+RESULT: FAIL (14 errors)
+tb_engine_top.v:843: $finish called at 449895000 (1ps)

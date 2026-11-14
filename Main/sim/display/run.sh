@@ -21,6 +21,10 @@ FIFO_SRC="$RTL/display/display_fifo.v $FIFO_RTL tb_fifo_semantics.v"
 BUILD=build
 mkdir -p "$BUILD"
 bad=0
+selected="${2:-}"
+if [ "${1:-}" != "" ] && [ "${1:-}" != "--case" ]; then exit 2; fi
+case "$selected" in ""|image|image_clk_plus|image_clk_minus|swap|inflight|level|starve|snapshot|corerst|image_full) ;; *) exit 2;; esac
+if [ "$selected" = image_full ]; then FULL=1; fi
 
 run_one() {
     local name=$1 src=$2
@@ -36,6 +40,7 @@ run_one() {
 }
 
 check_fifo() {
+    if [ -n "$selected" ]; then return; fi
     local name=$1 want=$2
     shift 2
     local r
@@ -46,6 +51,7 @@ check_fifo() {
 
 check_disp() {
     local name=$1 want=$2
+    if [ -n "$selected" ] && [ "$selected" != "$name" ]; then return; fi
     shift 2
     local r
     r=$(run_one "$name" "$DISPLAY_SRC" "$@")

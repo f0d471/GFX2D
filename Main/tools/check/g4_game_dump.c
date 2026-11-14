@@ -12,7 +12,7 @@
 
 #define BYTES 0x800000u
 #define FB 0x1000u
-#define SRC 0x240000u
+#define SRC 0x200000u
 #define TABLE 0x600000u
 static unsigned char memory[BYTES], initial[BYTES], golden[BYTES], tex[16384];
 static unsigned char table[GFX_STRIP_TABLE_BYTES] __attribute__((aligned(32768)));
@@ -45,7 +45,7 @@ int main(int argc,char **argv)
     gfx_surface dst={FB,640,480,12,0,0};
     gfx_mem mem={0,memory,BYTES,tex,sizeof tex};
     gfx_strip_config cfg={30,4,0,0};
-    assetpak pak;assetpak_limits limit={0x300000u};
+    assetpak pak;assetpak_limits limit={TABLE-SRC};
     stg_draw_cfg draw;stg_hud_live live={0};stg_frame_stats stats;
     exec_sw_state es;exec_sw_error err;exec_sw_stats xs;
     gfx_list list;FILE *f;unsigned i,off=0,knob=1024;
@@ -54,7 +54,9 @@ int main(int argc,char **argv)
     if(argc>3)knob=(unsigned)atoi(argv[3]);
     for(i=0;i<BYTES;i++)memory[i]=(unsigned char)(i*37u+(i>>12));
     f=fopen(argv[2],"rb");if(!f)return 3;
-    size=fread(memory+SRC,1,0x300000u,f);fclose(f);
+    size=fread(memory+SRC,1,TABLE-SRC,f);
+    if(ferror(f) || fgetc(f)!=EOF){fprintf(stderr,"fixture asset region overflow\n");fclose(f);return 4;}
+    fclose(f);
     if(assetpak_parse(&pak,memory+SRC,(unsigned)size,&limit))return 4;
     gfx_surface_reset(&tab);
     if(gfx_surface_set(&tab,0,&dst) || gfx_surface_set(&tab,1,&dst))return 5;

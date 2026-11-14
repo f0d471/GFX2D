@@ -13,9 +13,9 @@
 //     不死锁；前一条 BUS_WRITE 先于后一条 BAD_FIELD。
 //   6 PERF_CMD/PIXEL/KEY_SKIP 的精确对账与读拍、CAPS、APB 拒绝语义。
 //
-// 注错构建（run.sh 另编两次）：-DINJ_CHK_SWAP 对调 space/format、-DINJ_NO_FB 关掉逐条回退，
-// 各自必须让至少一条向量见红（+vectors_only 只跑向量段并反转判据）。
-// 开关是预处理器级宏，直接作用于被测 RTL，本测试台不持有也不转译它们。
+// 原生产源码注错构建已退役；相同正常激励由外部变异活动检验，
+// 正常向量始终检查相同期望；外部变异由公共活动独立判红。
+// 本测试台只检查行为，不持有或转译生产源码的变异开关。
 // +vec_from=N 跳过前 N 条向量（调试用）。
 //
 // 地址约定：模型存储 4 MiB、按 (addr>>4) 取模映射。命令表区 0x0020_0000 起每表
@@ -172,7 +172,7 @@ module tb_stripctl #(parameter integer SH=16);
     localparam [31:0] TABLE=32'h00300000, FB=32'h00001000;
     reg [127:0] expected [0:262143];
     reg [31:0] surfaces [0:47];
-    reg [2047:0] prefix;
+    string prefix;
     reg inject_write=0;
     integer ar_cmd=0, ar_pixel=0, aw_pixel=0;
     always @(posedge clk) begin

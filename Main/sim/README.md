@@ -10,20 +10,24 @@ R4软件场景与真实板测的入口为`validate.py --checks r4`和Windows的`
 wsl -e bash -c 'bash sim/<目录>/run.sh'
 ```
 
+生产源码变异统一使用 `validate.py --checks mutation-tools mutation --profile acceptance --run`；
+基线、独立变异、源码身份、状态与归档约定见 [mutation](mutation/README.md)。
+普通套件不自行选择错误 RTL，研究模型与事务级响应注入仍在各自套件内。
+
 ## 目录
 
 | 目录 | 被测模块 | 用例 |
 | --- | --- | --- |
 | `host/` | PC画布与SDL窗口 | `pc-wide`：解析覆盖/深度、哨兵/原子拒绝、投影比例、世界状态、64/32与变异；Windows `pc-window`：实际窗口/双屏全屏、过滤/纹理恢复、失焦、模拟断屏恢复 |
-| `engine/rlst/`、`engine/rast/` | 三维取数、光栅、BAND/TEX 新口 | `validate.py --checks rlst rast-ports rast-rtl`；真实 mover/AXI、L1/L2/L2二拍、两份 C 参考器、协议/取消/十三类注错；acceptance 使用十万条记录 |
+| `engine/rlst/`、`engine/rast/` | 三维取数、光栅、BAND/TEX 新口 | `validate.py --checks rlst rast-ports rast-rtl`；真实 mover/AXI、L1/L2/L2二拍、两份 C 参考器、协议/取消；十三类生产源码变异见 `mutation`；acceptance 使用十万条记录 |
 | `engine/r3/` | B7真实顶层与单一帧控制 | `--checks r3`：五构型整帧、影子参数、完成屏障、错误/取消/重启和四变异；Windows的`r3-synthesis/r3-board/r3-legacy-board`分别验证综合与板级边界 |
 | `hdmi/` | `rtl/hdmi/hdmi_tx.v` 整条通路 | 正常 + 2 个注错 |
 | `apb_probe/` | `rtl/bus/apb_probe.v` | 正常 + 2 个注错 |
 | `axi_probe/` | `rtl/bus/axi_probe_master.v` 与 `rtl/vendor/axi_mux/Axi_Mux.v`，两个主机并发 | 正常 + 4 个注错。需要 `EFINITY_HOME` 指向 Efinity 安装目录（取 `EFX_SRL8` 原语模型） |
 | `axi_mux_guard/` | `rtl/bus/axi_mux_guard.v` 与 `Axi_Mux`（X3，三个主机：扫描替身、引擎替身、CPU 替身） | 读、写两个方向各一组：14 个用例（11 正常/对照 + 3 注错），加两项保护开关逐项比对与一项「inject_wlast 的 FAIL 来自 wlast_err」检查，共 17 项。同样需要 `EFINITY_HOME` |
-| `display/` | `rtl/display/` 的扫描输出：`display_fifo`（厂商异步 FIFO 的封装）与 `display_top` | 两个测试台。`tb_fifo_semantics`：正常 + `inject_no_reset`；`tb_display`：`image`（含像素时钟 ±0.5% 两组）、`swap`、`inflight`、`level`、`starve`、`snapshot`、`corerst`、`image_full`（整帧 640×480，用 `FULL=1` 打开）与 7 个注错。只有明文 RTL，不需要 `EFINITY_HOME` |
+| `display/` | `rtl/display/` 的扫描输出：`display_fifo`（厂商异步 FIFO 的封装）与 `display_top` | 两个测试台。`tb_fifo_semantics`：正常 + `inject_no_reset`；`tb_display`：`image`（含像素时钟 ±0.5% 两组）、`swap`、`inflight`、`level`、`starve`、`snapshot`、`corerst`、`image_full`（整帧 640×480，用 `FULL=1` 打开）；7 条生产源码变异由 `mutation` 独立活动执行。只有明文 RTL，不需要 `EFINITY_HOME` |
 | `engine/blend/` | `rtl/engine/core/engine_blend.v`（单通道混合核） | `exhaustive`（六个方程全定义域 50462976 个向量，方程用不到的输入跟着变）、`golden`（抽样 1024 条对 `check_round255.c` 导出的金标准）、`stall`（随机插入 `en` 拉低的停顿拍）与四条收窄范围的快速用例（`narrow_*`，供变异跑器快速判红）。五条变异体已移到 [`mutation/mutants.yaml`](mutation/mutants.yaml)，RTL 里没有注错分支。全量一次约 6 分钟。只有明文 RTL，不需要 `EFINITY_HOME` |
-| `engine/mover/` | `rtl/engine/core/engine_mover.v`（搬运层）经仓内 `Axi_Mux`（S1）接从机 | `normal`（读侧仲裁、读流分发与上下文、写掩码、状态里的命令索引与末行标记、在途契约、地址与突发约束）、`drain`（读、写突发中途各排空一次，控制层复位与软复位各一组；请求完成后继续举着时 `drain_done` 只打一次、请求撤下之前不收新提交）、`err`（读回、写响应 SLVERR 各一例）、`timeout`（从机按住超过门限）与 5 个注错，另加从机定时模式的回归 `slave_timed`（`tb_slave_timed.v`，直连从机、不经过被测）。需要 `EFINITY_HOME`（`Axi_Mux` 例化 `EFX_SRL8`） |
+| `engine/mover/` | `rtl/engine/core/engine_mover.v`（搬运层）经仓内 `Axi_Mux`（S1）接从机 | `normal`（读侧仲裁、读流分发与上下文、写掩码、状态里的命令索引与末行标记、在途契约、地址与突发约束）、`drain`（读、写突发中途各排空一次，控制层复位与软复位各一组；请求完成后继续举着时 `drain_done` 只打一次、请求撤下之前不收新提交）、`err`（读回、写响应 SLVERR 各一例）、`timeout`（从机按住超过门限）以及 `stream_owner`（TEX 持有流时预发 DDR 长读）；生产源码变异由 `mutation` 执行。从机定时模型另有独立测试台 `tb_slave_timed.v`。需要 `EFINITY_HOME`（`Axi_Mux` 例化 `EFX_SRL8`） |
 | `engine/geom/` | `rtl/engine/core/engine_geom.v`（几何层）。同目录另有前期研究的探针 `probe_geom.v`（`probe_geom_intersect`、`probe_geom_d7`、`probe_geom_rowiter`），保留为回归 | 期望值全部由独立模型 `tools/check/geom_model.py` 现算，测试台只做「驱动 + 比对」：定向用例 34 条、159 条向量里几何层见到的 59 条命令、十一整帧用例的 17 条命令，合计 1020 + 338 + 5224 条记录逐字段比、每个描述符过 16 字节对齐/不跨 4KB 的规矩、读写避让的读源/读目的有无、零面积命令的完成脉冲与命令索引；握手监视器查多发的描述符与非空命令的 `cmd_done`，行缓冲替身查每一行都开在空着的那一半上。另加 `+STALL`（三个方向各压反压）与 `+RFSTALL`（行缓冲替身的排空拉长到 23 拍），判据是序列与恒 ready 时相同。五个注错，探针 14/14，全套 27/27。不需要 `EFINITY_HOME` |
 | `engine/pix/` | `rtl/engine/core/engine_pix.v`（计算阵列与片上缓存）。同目录另有前期研究的探针 `probe_pix.v`，保留为回归 | 一行一行的单元测试 418 行 / 10216 个槽（含停顿那一遍）；乒乓测试台 874 行 / 28340 个槽（行与行之间不等，三种写流下游）；从几何层到搬运层的真实通路（几何层、计算阵列、搬运层、两个 DMA 核、随机反压从机）30 条命令 512 KiB 逐字对软件执行器；跨命令写后读一组（等写回必须对、不等必须红）；研究探针 9 项，入库 RTL 全套 9/9。五条变异体已移到 [`mutation/mutants.yaml`](mutation/mutants.yaml)，`unit_stall`/`pipe_burst`/`path_golden` 是它们的发现者。不需要 `EFINITY_HOME` |
 | `engine/ctrl/` | 控制层：研究探针 `probe_check.v`（保留为回归）+ 正式单元仿真 `tb_engine_top.v`（`rtl/engine/engine_top.v` 全链经 APB 提交，从机是 `axi_ram_model`）| 探针：定向 54 条 × 三结构全符、随机 3000 组互比、预计算位等价。正式：159 条一致性向量端到端逐条对错误三元组与内存、定向判据（取数边界/总线错误/超时/软复位/写后读/首错顺序/PERF 与 APB 对账），6576 项检查 0 错；两个注错构建（对调 space/format、关掉逐条回退）各自见红。不需要 `EFINITY_HOME` |
@@ -45,9 +49,9 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 与流隔离、PERF、错误、复位及四个定向变异，共 6/6。研究探针另行保留，
 入口和证据见 [tex/README](engine/tex/README.md)。
 
-每个 `run.sh` 除了正常用例，还必须带注错用例：把一处改错，对应的判据必须报 FAIL。全部用例都符合预期才输出 `SIM OK`，否则退出码非零。只跑正常用例无法说明判据真的在检查东西。
+普通套件负责正常激励与检查器，选中普通单例未通过时必须非零退出；对应生产源码变异由独立 `mutation` 活动施加。只有正常基线与变异检出都满足各自判据，才能声明判据有效。
 
-注错已统一为外部变异活动：生产源码不含任何注错分支，75 条变异体写在
+注错已统一为外部变异活动：生产源码不含任何注错分支，变异体统一写在
 [`mutation/mutants.yaml`](mutation/mutants.yaml)，由 [`mutation/run_mutation.py`](mutation/run_mutation.py)
 在隔离影子树里施加后跑本目录的正常用例，按退出码与见红位置正则判定。机制、状态与命令见
 [mutation/README](mutation/README.md) 与 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节。
@@ -117,7 +121,7 @@ DDR3 控制器与官方的 `axi_interconnect_beta` 是加密 RTL，SoC 网表里
 
 整机条带接入的真实游戏整帧与同板证据在 [engine/g4](engine/g4/README.md)：
 check_g4_integration.py --rtl 使用 8 MiB 随机反压模型，检查 TEX/BAND、
-整帧可见区与 padding、DDR/PERF，并要求三种变异见红。
+整帧可见区与 padding、DDR/PERF，；三种源码变异由 `mutation` 在同一帧判据上独立检出。
 
 绘制前端的方案研究在 [engine/frontend](engine/frontend/README.md)：
 1680 份真实状态的阶段记录计数与生产构造观察点等价，以及既有整机 CSV 的分型回归。

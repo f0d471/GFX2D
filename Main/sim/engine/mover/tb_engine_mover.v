@@ -13,40 +13,12 @@
 //   CASE_ERR      读回 SLVERR 与写响应 SLVERR 各一例，状态里的错误与命令索引正确
 //   CASE_TIMEOUT  从机按住超过门限：报超时、不放弃；放开后照常完成，数据属于原来那一笔
 //
-// 注错位见 engine_mover.v 文件头。
+// 普通协议用例见 run.sh；外部源码变异登记在 sim/mutation。
 `timescale 1ns/1ps
 `default_nettype none
 
 module tb_engine_mover;
 
-// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏），本测试台不持有也不转译它们；
-// ANY_INJ 只为「有注错时不跑那一段正常流程」用，与 run.sh 的用例一一对应。
-`ifdef INJ_NO_GATE_RD
-`define ANY_INJ
-`endif
-`ifdef INJ_MASK_BYPASS
-`define ANY_INJ
-`endif
-`ifdef INJ_DRAIN_BYPASS
-`define ANY_INJ
-`endif
-`ifdef INJ_NO_GATE_WR
-`define ANY_INJ
-`endif
-`ifdef INJ_DRAIN_LEVEL
-`define ANY_INJ
-`endif
-`ifdef INJ_NO_TLAST
-`define ANY_INJ
-`endif
-`ifdef INJ_TX_NOWAIT
-`define ANY_INJ
-`endif
-`ifdef ANY_INJ
-    localparam integer ANY_INJECT = 1;
-`else
-    localparam integer ANY_INJECT = 0;
-`endif
 `ifdef TMO_LIMIT_VAL
     localparam integer TMO_LIMIT = `TMO_LIMIT_VAL;
 `else
@@ -126,6 +98,7 @@ module tb_engine_mover;
     wire [127:0] rs_tdata; wire [15:0] rs_tkeep; wire rs_tlast, rs_tvalid; wire [1:0] rs_buf;
     wire [127:0] fs_tdata; wire [15:0] fs_tkeep; wire fs_tlast, fs_tvalid; wire [3:0] fs_cidx;
     reg          rs_ready = 1, fs_ready = 1;
+    reg          tex_inflight = 0;
 
     reg  [31:0] wr_addr = 0; reg [11:0] wr_bytes = 0; reg [3:0] wr_cidx = 0;
     reg         wr_last_row = 0; reg wr_valid = 0; wire wr_ready;
@@ -159,11 +132,12 @@ module tb_engine_mover;
         .band_y0(16'd0), .band_frame_height(16'd480),
         .rd_valid(rd_valid), .rd_ready(rd_ready),
         .tx_addr(), .tx_bytes(), .tx_buf(), .tx_cidx(), .tx_valid(),
-        .tx_ready(1'b1), .tx_busy(1'b0),
+        .tx_ready(1'b1), .tx_busy(tex_inflight),
         .tx_rs_tdata(128'd0), .tx_rs_tvalid(1'b0), .tx_rs_tlast(1'b0),
         .tx_rs_buf(2'd0),
         .tx_stat_valid(1'b0), .tx_stat_cidx(4'd0), .tx_stat_buf(2'd0),
         .fd_addr(fd_addr), .fd_bytes(fd_bytes), .fd_cidx(fd_cidx),
+        .fd_instance(1'b0), .fs_instance(), .rd_stat_instance(),
         .fd_valid(fd_valid), .fd_ready(fd_ready),
         .rs_tdata(rs_tdata), .rs_tkeep(rs_tkeep), .rs_tlast(rs_tlast), .rs_tvalid(rs_tvalid),
         .rs_tready(rs_ready), .rs_buf(rs_buf),
@@ -443,6 +417,24 @@ module tb_engine_mover;
 
     // 描述符握手计数：任务用它判「这一次举手已经握上」
     integer rd_fire_n = 0, fd_fire_n = 0, wr_fire_n = 0;
+    // 从请求字节数独立对账 DMA 输入流；总看门狗不能替代末拍协议检查。
+    integer checked_write_left = 0;
+    integer checked_write_next;
+    always @(posedge clk) begin
+        if (rst) checked_write_left = 0;
+        else begin
+            checked_write_next = checked_write_left;
+            if (wr_valid && wr_ready) checked_write_next = wr_bytes / 16;
+            if (dut.ws_core_tvalid && dut.wr_data_ready) begin
+                if (checked_write_next <= 0 || dut.ws_core_tlast !== (checked_write_next == 1)) begin
+                    $display("ERR WRITE-LAST-MISMATCH remaining=%0d last=%b", checked_write_next, dut.ws_core_tlast);
+                    $fatal(1, "WRITE-LAST-MISMATCH");
+                end
+                checked_write_next = checked_write_next - 1;
+            end
+            checked_write_left = checked_write_next;
+        end
+    end
     always @(posedge clk) if (!rst) begin
         if (rd_valid && rd_ready) rd_fire_n <= rd_fire_n + 1;
         if (fd_valid && fd_ready) fd_fire_n <= fd_fire_n + 1;
@@ -519,6 +511,27 @@ module tb_engine_mover;
             @(negedge clk);
         end
     endtask
+
+    // 普通协议用例：TEX 持有返回流期间允许 DDR 长读预发，但不能抢共享输出。
+    // 与源码是否变异无关；先确认 DDR 数据确实已经到达，再释放 TEX 所有权。
+    task case_stream_owner;
+        begin
+            tex_inflight = 1;
+            fork
+                pix_read(PB, 64, 2'd0, 4'd2);
+                begin
+                    repeat (100) @(negedge clk);
+                    if (!dut.core_rs_tvalid) begin
+                        errors=errors+1; $display("TEX-OWNER-NOT-EXERCISED");
+                    end
+                    tex_inflight = 0;
+                end
+            join
+        end
+    endtask
+    always @(posedge clk) if (!rst && tex_inflight && rs_tvalid) begin
+        errors=errors+1; $display("TEX-OWNER-FAIL DDR forwarded before TEX retirement");
+    end
 
     task do_write;
         input integer aw;
@@ -718,7 +731,7 @@ module tb_engine_mover;
             verify_write(WB + 96, 4, 3, 4);
 
             // (c) 软复位那一组：消费者维持 ready，读方向靠搬运层自己把数据吃掉
-            if (ANY_INJECT == 0) begin
+            begin
                 exp_pix_en = 0; exp_rd_st_cidx = -1;
                 @(negedge clk);
                 base = rd_fire_n;
@@ -868,6 +881,9 @@ module tb_engine_mover;
 
 `ifdef CASE_NORMAL
         case_normal;
+`endif
+`ifdef CASE_STREAM_OWNER
+        case_stream_owner;
 `endif
 `ifdef CASE_DRAIN
         case_drain;

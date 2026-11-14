@@ -1,0 +1,4 @@
+RUN Main/sim/build/check-runs/task
+F4 BOUNDARY PASS split=65535+4465 atomic=arg/closed/arena overlap=checked stride=12 cross4k padding=checked
+F4 HOST PASS frames=10000 equations=6 layouts=2 DDR/TEX clip_epochs=2 independent_scalar_pixels=equal
+F4 CHECK PASS scope=acceptance run=Main/sim/build/check-runs/task

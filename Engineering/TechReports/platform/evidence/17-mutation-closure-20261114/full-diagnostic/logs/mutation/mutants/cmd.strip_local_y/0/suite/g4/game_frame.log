@@ -1,0 +1,9 @@
+PIXEL-FAIL y=         16 word=          1 got=8c67421df8d3ae89643f1af5d0ab8661 exp=0067421d00d3ae89003f1af5d0ab8661
+PIXEL-FAIL y=         16 word=          2 got=dcb7926d4823fed9b48f6a4520fbd6b1 exp=0072907f0021d9c20082674600143f57
+PIXEL-FAIL y=         16 word=          3 got=2c07e2bd98734e2904dfba95704b2601 exp=002ed1dc002dcfda0035f2ff0035f2ff
+PIXEL-FAIL y=         16 word=          4 got=7c57320de8c39e79542f0ae5c09b7651 exp=0035f2ff0035f2ff0035f0fd0032e1ed
+G3 FRAME SH=         16 diff=      62940 cmd_reads=        206 pixel_reads=        501 writes=        480 DDR_beats=     83650
+PIXEL-COUNT-FAIL got=     14924/         6 want=    479190/     13311
+G4 game frame checks=      17301 errors=          2
+RESULT: FAIL
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/g4/tb_g4_frame.v:238: $finish called at 3146715000 (1ps)

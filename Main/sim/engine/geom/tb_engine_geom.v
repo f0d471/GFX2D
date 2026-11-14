@@ -29,21 +29,6 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏），本测试台不持有也不转译它们；
-// 下面的 INJECT_VAL 只为打印，名字与 run.sh 的用例一一对应。
-`ifdef INJ_SKIP_SURF
-`define INJECT_VAL 1
-`elsif INJ_NO_SPLIT
-`define INJECT_VAL 2
-`elsif INJ_ALPHA_AS_COPY
-`define INJECT_VAL 4
-`elsif INJ_COPY_READ
-`define INJECT_VAL 8
-`elsif INJ_ROW_NOFREE
-`define INJECT_VAL 16
-`else
-`define INJECT_VAL 0
-`endif
 
 module tb_engine_geom;
     // ---- 记录格式的字段下标，与 tools/check/geom_model.py 的 REC_* 表一一对应 ----
@@ -95,7 +80,7 @@ module tb_engine_geom;
 
     // ---------------------------------------------------------------- 记录文件
     reg [31:0] mem [0:131071];
-    reg [1023:0] recfile;
+    string recfile;
     integer p, i;
 
     // ---------------------------------------------------------------- DUT
@@ -506,7 +491,7 @@ module tb_engine_geom;
         for (i = 0; i < 131072; i = i + 1) mem[i] = 32'hFFFFFFFF;
         $readmemh(recfile, mem);
 
-        $display("engine_geom unit sim: rec=%0s INJECT=%0d", recfile, `INJECT_VAL);
+        $display("engine_geom unit sim: rec=%0s", recfile);
         if ($test$plusargs("STALL"))   begin stall_en = 1'b1; $display("  (+STALL)"); end
         if ($test$plusargs("RFSTALL")) begin
             rf_stall = 1'b1; drain_len = 23; $display("  (+RFSTALL: row buffer drain 23 cycles)");

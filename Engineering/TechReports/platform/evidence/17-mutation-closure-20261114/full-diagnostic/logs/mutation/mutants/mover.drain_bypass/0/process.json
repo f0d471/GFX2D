@@ -1,0 +1,6 @@
+{
+  "returncode": 1,
+  "timeout": false,
+  "seconds": 1.565,
+  "cmd": "bash Main/sim/engine/mover/run.sh --case drain"
+}

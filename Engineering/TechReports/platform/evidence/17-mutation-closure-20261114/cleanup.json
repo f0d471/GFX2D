@@ -1,0 +1,70 @@
+{
+  "scope": "Task-created helper files only; formal evidence retained",
+  "files": [
+    {
+      "name": "mutation_setup_20261114.py",
+      "bytes": 8569,
+      "sha256": "c97b212665873c5a17407ae19d55db1284bcf354b313c48a4b60cd4e5e61e8e4"
+    },
+    {
+      "name": "mutation_verify_setup_20261114.py",
+      "bytes": 2658,
+      "sha256": "c00cca4911f4e9c8f770cbaeca24166b8ae830362a03063a01db5924df010023"
+    },
+    {
+      "name": "mutation_cleanup_20261114.py",
+      "bytes": 6184,
+      "sha256": "da90fd7f1565c0364e3155517275cc0a026a218632dadf6dc96aa77ee0e5e18d"
+    },
+    {
+      "name": "mutation_docs_setup_20261114.py",
+      "bytes": 1618,
+      "sha256": "f1e8df7c4e98eae47bda7b5d3f04ea97934732e1d42a10bb48b161f43239869a"
+    },
+    {
+      "name": "mutation_report_setup_20261114.py",
+      "bytes": 6221,
+      "sha256": "4928a2015c2acdb8f711a10f0753d4ac239b7b91dab7b73a4e6c1b63d7483976"
+    },
+    {
+      "name": "mutation_indexes_20261114.py",
+      "bytes": 2535,
+      "sha256": "408babba2c612a27af9d8e2d85573c937db3573a31aebcb48fb3aaa27240f1bb"
+    },
+    {
+      "name": "mutation_consumer_review_20261114.py",
+      "bytes": 2566,
+      "sha256": "d8140b3672e3f89dc45131b62b197089a926d41b24229026931fd163ca608236"
+    },
+    {
+      "name": "mutation_synthesis_review_20261114.py",
+      "bytes": 1700,
+      "sha256": "aaf28e5d27cef38b0445ea86fa0134115d8a0a53ac119e90d2a1c7dbcf3eb476"
+    },
+    {
+      "name": "mutation_coverage_review_20261114.py",
+      "bytes": 6211,
+      "sha256": "c5cfd38611ac70f5bf4cf90397cabd339a553c2680290506ff2db658b6a1ded1"
+    },
+    {
+      "name": "mutation_comment_review_20261114.py",
+      "bytes": 3529,
+      "sha256": "f7f861c7b159ee529ab59f419e64f7e0d1bd9fde6dbac769ab94169f0d685a24"
+    },
+    {
+      "name": "mutation_comment_prepare_20261114.py",
+      "bytes": 1167,
+      "sha256": "2125097a45b810637adfddb771a07fc3f23d1b12432923d611b6a42dddba40d5"
+    },
+    {
+      "name": "mutation_finish_docs_20261114.py",
+      "bytes": 3828,
+      "sha256": "0727707625e9360fc666659a3273f1f3f0a5654455885529b6f3488982177bbd"
+    },
+    {
+      "name": "mutation-usb-scan-20261114.log",
+      "bytes": 42,
+      "sha256": "cbeaefba0278753569d30ee61e3c250c94dc17cbaace11f008be22e789f38d79"
+    }
+  ]
+}

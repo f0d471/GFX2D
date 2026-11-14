@@ -1,0 +1,10 @@
+WARNING: tb_engine_geom.v:492: $readmemh(build/cases.hex): Not enough words in the file for the requested range [0:131071].
+engine_geom unit sim: rec=build/cases.hex
+  (+STALL)
+
+  commands 17, expected records 5224
+  rows 1956, cycles 9960, cycles/row 5.09
+  rule1 violations 0, mismatches 0, done-pulse errors 0, protocol 0, buffer 0
+  handshakes sb 1956 rd 1312 wr 1956, cmd_done 1
+RESULT: PASS (98 checks)
+tb_engine_geom.v:529: $finish called at 99646000 (1ps)

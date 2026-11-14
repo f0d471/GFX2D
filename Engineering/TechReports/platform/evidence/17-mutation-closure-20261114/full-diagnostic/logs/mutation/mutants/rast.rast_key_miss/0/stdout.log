@@ -1,0 +1,25 @@
+RUN Main/sim/build/check-runs/task
+RECORD-DIGEST crc32=d739b681 count=23
+CROSS-C PASS records=23 L1=0 refs=2 strips=30
+CROSS-C PASS records=23 L1=1 refs=2 strips=30
+EXPORT PASS records=23 frames=1 commits=393
+SELF-CHECK R1-FIXTURE-MATCH
+RECORD-DIGEST crc32=5c8e992b count=100000
+CROSS-C PASS records=50000 L1=0 refs=2 strips=30
+CROSS-C PASS records=50000 L1=1 refs=2 strips=30
+CROSS-C PASS records=50000 L1=0 refs=2 strips=30
+CROSS-C PASS records=50000 L1=1 refs=2 strips=30
+EXPORT PASS records=100000 frames=2 commits=502557
+l1-random RESULT: PASS records=100000 refs=121487 retired=121487 commits=522201 AXI_R=124352 AXI_W=960 cycles=6852119
+l1-directed RESULT: PASS records=23 refs=24 retired=24 commits=403 AXI_R=511 AXI_W=480 cycles=257920
+Traceback (most recent call last):
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_r2.py", line 101, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_r2.py", line 91, in main
+    run(name+'-random',binaries[name],vector_args('random',name=='l1'))
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_r2.py", line 48, in run
+    assert not failed and 'RESULT: PASS ' in body, (name,body[-2000:])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('l2-random', 'OWNER PASS kind=0 beats=8 last-held=32\nOWNER PASS kind=2 beats=8 last-held=32\nOWNER PASS kind=1 beats=8 last-held=32\nOWNER PASS kind=0 beats=8 last-held=32\nMISMATCH f=0 strip=0 pix=145 got=00000000/0064 want=12345678/ffff\nMISMATCH f=0 strip=0 pix=146 got=00000000/0069 want=12345678/ffff\nMISMATCH f=0 strip=0 pix=177 got=00000000/0064 want=12345678/ffff\nMISMATCH f=0 strip=0 pix=178 got=00000000/0069 want=12345678/ffff\nMISMATCH f=0 strip=0 pix=358 got=00000000/0064 want=12345678/ffff\nFATAL: Main/sim/engine/rast/tb_engine_rast.v:527: BAND/z compare errors=440\n       Time: 967970000  Scope: tb_engine_rast\n')

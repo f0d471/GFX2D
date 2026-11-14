@@ -1,0 +1,1 @@
+F5 PB LEASE PASS independent_frames=2 busy_reuse=rejected stale_generation=rejected release_after_consumer=ok

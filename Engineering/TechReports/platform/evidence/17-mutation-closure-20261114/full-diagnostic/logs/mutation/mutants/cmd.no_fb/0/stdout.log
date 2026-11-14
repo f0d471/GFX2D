@@ -1,0 +1,18 @@
+研究探针 probe_check（B5 前期研究）：
+  probe: RESULT: PASS
+
+vec_to_sim: 159 条向量，2767 行记录 -> build/vec_stream.txt
+engine_top 单元仿真（B1~B5 全部，159 向量 + 定向）：
+  engine_top: RESULT: FAIL (14 errors)
+    VEC-FAIL #138: code=9 idx=0 tag=00000000 exp=9/1/00000000
+    VEC-MEM #138: [00001000] got=00004080 exp=00ff0000
+    VEC-MEM #138: [00001004] got=00004080 exp=00ff0000
+    VEC-MEM #138: [00001008] got=00004080 exp=00ff0000
+    VEC-MEM #138: [0000100c] got=00004080 exp=00ff0000
+    VEC-MEM #138: [00001010] got=00004080 exp=00ff0000
+    VEC-MEM #138: [00001014] got=00004080 exp=00ff0000
+    VEC-MEM #138: [00001018] got=00004080 exp=00ff0000
+  registers: RESULT: PASS registers
+
+
+SIM FAIL: 1/2 项不符合期望

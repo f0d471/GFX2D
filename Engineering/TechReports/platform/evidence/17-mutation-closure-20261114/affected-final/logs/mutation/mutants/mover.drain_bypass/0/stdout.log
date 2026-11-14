@@ -1,0 +1,3 @@
+正常用例:
+  drain: RESULT: FAIL (72 errors)
+SIM BROKEN: 1 of 1 check(s) not as expected

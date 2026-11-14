@@ -1,0 +1,12 @@
+WARNING: /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/frontend/tb_engine_instances.v:229: $readmemh(/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/build/check-runs/task/build/f4/fixtures/case12.cmd.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/frontend/tb_engine_instances.v:234: $readmemh(/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/build/check-runs/task/build/f4/fixtures/case12.init.hex): Not enough words in the file for the requested range [0:8191].
+DONE BEFORE DMA DRAIN
+DONE BEFORE DMA DRAIN
+DONE BEFORE DMA DRAIN
+DONE BEFORE DMA DRAIN
+DONE BEFORE DMA DRAIN
+DONE BEFORE DMA DRAIN
+PROFILE fetch_cycles=28 decode_cycles=8 geometry_cycles=6 pixel_output_beats=2
+FRAME cycles=150 rd_burst=4 rd_beat=14 wr_burst=1 wr_beat=2 pixel=5 key=0 cmd=4 mem_bad=0
+RESULT: FAIL (frame)
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/frontend/tb_engine_instances.v:401: $finish called at 11105000 (1ps)

@@ -5,12 +5,6 @@
 // 三相计数从 start 到 flushed，含直接控制器提交间隙，不含上传 TEX 和 SoC 扫描争用。
 `timescale 1ns/1ps
 `default_nettype none
-// 注错开关以 -DINJ_xxx 直接传给被测 RTL（预处理器级宏）。
-`ifdef INJ_SKIP_KEY
-`define INJ_VAL 2
-`else
-`define INJ_VAL 0
-`endif
 `ifndef CASE
 `define CASE "build/directed"
 `endif

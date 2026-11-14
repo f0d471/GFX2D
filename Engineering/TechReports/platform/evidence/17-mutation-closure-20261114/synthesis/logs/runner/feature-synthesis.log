@@ -1,0 +1,12 @@
+warning: unable to access 'C:\Users\14297/.config/git/ignore': Permission denied
+RUN Main/sim/build/check-runs/20261114-173646-ec4addda
+FEATURE SYNTHESIS REUSE B0 (verified compiler inputs)
+FEATURE SYNTHESIS PASS B0 xlr=36681
+FEATURE SYNTHESIS REUSE B3 (verified compiler inputs)
+FEATURE SYNTHESIS PASS B3 xlr=43519
+FEATURE SYNTHESIS REUSE B5 (verified compiler inputs)
+FEATURE SYNTHESIS PASS B5 xlr=60792
+FEATURE SYNTHESIS REUSE B7 (verified compiler inputs)
+FEATURE SYNTHESIS PASS B7 xlr=59901
+warning: unable to access 'C:\Users\14297/.config/git/ignore': Permission denied
+FEATURE SYNTHESIS PASS presets=4; netlist and all clock relationships

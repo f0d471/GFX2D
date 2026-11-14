@@ -1,0 +1,26 @@
+{
+  "kind": "unaffected_module_behavior_review",
+  "source_run": "Main/sim/build/check-runs/20261114-174540-edfe2938",
+  "scope": [
+    "blend",
+    "pix",
+    "display",
+    "mover",
+    "tex",
+    "rast-ports"
+  ],
+  "profile": "acceptance",
+  "all_six_completed": true,
+  "changed_files": [
+    "Main/rtl/README.md",
+    "Main/rtl/engine/engine-manual.md",
+    "Main/sim/README.md",
+    "Main/sim/mutation/run_mutation.py",
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py"
+  ],
+  "unchanged_inputs": 743,
+  "execution_and_verdict_functions_unchanged": true,
+  "new_input_registration_checks": "20261114-180458-1a935fde",
+  "boundary": "Frozen ordinary module tests completed before documentation and input-registration changes; not a rerun of the new registry"
+}

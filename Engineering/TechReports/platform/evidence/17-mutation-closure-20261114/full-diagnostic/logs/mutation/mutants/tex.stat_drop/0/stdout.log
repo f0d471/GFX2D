@@ -1,0 +1,5 @@
+HEADERS B3
+UNIT APB done (errors=0)
+STR-WATCHDOG beats=1 last=1 stat=0
+FATAL: tb_engine_tex.v:206: STR-STATUS-MISSING beats=1 last=1 stat=0
+       Time: 445930000  Scope: tb_engine_tex.wait_stream_done

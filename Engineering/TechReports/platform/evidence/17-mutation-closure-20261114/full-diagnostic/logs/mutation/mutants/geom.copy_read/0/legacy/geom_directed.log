@@ -1,0 +1,29 @@
+WARNING: tb_engine_geom.v:492: $readmemh(build/directed.hex): Not enough words in the file for the requested range [0:131071].
+engine_geom unit sim: rec=build/directed.hex
+  PROTO handshake count cidx 0: sb 100/100 rd 100/0 wr 100/100 (seen/expected)
+  PROTO handshake count cidx 0: sb 106/106 rd 6/0 wr 106/106 (seen/expected)
+  PROTO handshake count cidx 0: sb 114/114 rd 16/0 wr 122/122 (seen/expected)
+  PROTO handshake count cidx 0: sb 123/123 rd 18/9 wr 131/131 (seen/expected)
+  PROTO handshake count cidx 0: sb 132/132 rd 27/18 wr 140/140 (seen/expected)
+  PROTO handshake count cidx 0: sb 141/141 rd 36/27 wr 149/149 (seen/expected)
+  PROTO handshake count cidx 0: sb 150/150 rd 45/36 wr 158/158 (seen/expected)
+  PROTO handshake count cidx 0: sb 159/159 rd 54/45 wr 167/167 (seen/expected)
+  PROTO handshake count cidx 0: sb 168/168 rd 63/54 wr 176/176 (seen/expected)
+  PROTO handshake count cidx 0: sb 177/177 rd 72/63 wr 185/185 (seen/expected)
+  PROTO handshake count cidx 0: sb 186/186 rd 81/72 wr 194/194 (seen/expected)
+  PROTO handshake count cidx 0: sb 195/195 rd 90/81 wr 203/203 (seen/expected)
+  PROTO handshake count cidx 0: sb 204/204 rd 99/90 wr 212/212 (seen/expected)
+  PROTO handshake count cidx 0: sb 213/213 rd 108/99 wr 221/221 (seen/expected)
+  PROTO handshake count cidx 0: sb 222/222 rd 117/108 wr 230/230 (seen/expected)
+  PROTO handshake count cidx 0: sb 231/231 rd 126/117 wr 239/239 (seen/expected)
+  PROTO handshake count cidx 0: sb 240/240 rd 135/126 wr 248/248 (seen/expected)
+  PROTO handshake count cidx 0: sb 249/249 rd 144/135 wr 257/257 (seen/expected)
+  PROTO handshake count cidx 0: sb 258/258 rd 153/144 wr 266/266 (seen/expected)
+  PROTO handshake count cidx 0: sb 260/260 rd 146/144 wr 268/268 (seen/expected)
+
+  commands 34, expected records 1020
+  rows 364, cycles 2161, cycles/row 5.93
+  rule1 violations 0, mismatches 0, done-pulse errors 0, protocol 26, buffer 0
+  handshakes sb 364 rd 280 wr 376, cmd_done 1
+RESULT: FAIL (26 errors; 200 checks run)
+tb_engine_geom.v:529: $finish called at 21656000 (1ps)

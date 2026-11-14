@@ -1,0 +1,3 @@
+正常用例:
+  normal: RESULT: FAIL (看门狗：仿真没有自己结束)
+SIM BROKEN: 1 of 1 check(s) not as expected

@@ -24,6 +24,8 @@ add('paths', [sys.executable, P+'localize_paths.py', '--check', '--tracked'], '�
 add('regs', [sys.executable, P+'regs_gen.py', '--check'], '寄存器生成物与真源一致')
 add('semantics', [sys.executable, P+'check_cmd_semantics.py'], '命令语义向量与错误模型')
 add('workflow', [sys.executable, P+'test_validation.py'], '编排、缺项、证据过期与复用反例')
+add('mutation', [sys.executable, 'Main/sim/mutation/run_mutation.py', '--run'], '独立源码变异、全部基线、检查器证据与输入身份', timeout=21600)
+add('mutation-tools', [sys.executable, 'Main/sim/mutation/test_mutation.py'], '变异跑器隔离、异常、误判与源码身份反例')
 add('pack', [sys.executable, 'Main/tools/assets/pack_assets.py'], '准备实际素材输入')
 add('lib', ['bash', P+'check_host.sh', 'lib'], '库的正常 64/32 位与 sanitizer')
 add('app', ['bash', P+'check_host.sh', 'app'], '游戏应用的正常 64/32 位与 sanitizer')
@@ -70,7 +72,7 @@ add('sw16-board',[sys.executable,P+'check_sw16_board.py'],
     'B7软件板验收：引擎、SDK像素回读、RTOS五应用/故障和R4；JTAG不写Flash',timeout=7200)
 for name,group,purpose in [('rlst','rlst','R2 取数/FIFO/分片/协议/取消'),
     ('rast-ports','ports','R2 核心 RAW/取消/II=1、TEX L=1/2 与关闭态'),
-    ('rast-rtl','rtl','R2 两参考器/真实 AXI 十万条 L1/L2/L2二拍/十三变异')]:
+    ('rast-rtl','rtl','R2 两参考器/真实 AXI 十万条 L1/L2/L2二拍；变异单列 mutation')]:
     add(name,[sys.executable,P+'check_r2.py','--group',group],purpose,timeout=10800)
 add('r2-synthesis',[sys.executable,P+'check_r2_synthesis.py'],
     'R2 独立 L1/L2 RAM/DSP/时序及 B0/B3 整机四步（Windows）',timeout=18000)
@@ -98,9 +100,9 @@ add('stripctl', [sys.executable,P+'check_g3_stripctl.py'], '条带控制与生�
 add('g4-host',[sys.executable,P+'check_g4_integration.py','--host'],'整机条带宿主回放', ['pack'])
 add('g4-rtl',[sys.executable,P+'check_g4_integration.py','--rtl'],'整机条带 RTL 帧', ['pack'])
 add('frontend',[sys.executable,P+'check_frontend.py','--models','--pipeline'],'前端模型与资源生命周期')
-add('instances',[sys.executable,P+'check_f4_instances.py','--models','--rtl','--mutations','--protocols','--lease'],
+add('instances',[sys.executable,P+'check_f4_instances.py','--models','--rtl','--protocols','--lease'],
     '实例构造、完整引擎、变异、错误与 lease')
-add('bin',[sys.executable,P+'check_f5_bin.py','--models','--bin','--frame','--mutations','--protocols','--lease'],
+add('bin',[sys.executable,P+'check_f5_bin.py','--models','--bin','--frame','--protocols','--lease'],
     '硬件分桶、完整引擎、变异、错误与 lease')
 add('bin-game',[sys.executable,P+'check_f5_bin.py','--game','--replay'],'分桶生产帧与完整宿主回放',['pack'])
 add('research',[sys.executable,P+'check_f5_bin.py','--research'],'冻结研究输入复现')
@@ -138,6 +140,8 @@ HARDWARE=['Main/rtl/**','Main/fpga/**','Main/sdk/**','Main/sw/**','Main/tools/bo
 for name,item in CHECKS.items():
     if name=='paths':inputs=['@tracked-text']
     elif name=='workflow':inputs=['Main/tools/check/**','Main/tools/board/**','Main/sw/lib/test/golden.txt']
+    elif name=='mutation':inputs=RTL_INPUTS
+    elif name=='mutation-tools':inputs=['Main/sim/mutation/run_mutation.py','Main/sim/mutation/test_mutation.py',P+'localize_paths.py']
     elif name=='regs':inputs=[P+'regs_gen.py','Main/rtl/engine/include/engine_regs_offsets.vh','Main/sw/bsp/include/gfx_regs.h']
     elif name=='semantics':inputs=[P+'check_cmd_semantics.py','Main/doc/赛题二总体设计.md']
     elif name in ('rast','r4','r4-board','r4-frozen-board','console','console-profiles','console-profiles-board','console-board','platform-sdk','sw16-board'):inputs=SOFTWARE + ['Main/doc/三维数值契约.md',
@@ -259,7 +263,10 @@ def suggest(changed):
         if name.startswith('Main/tools/board/'):
             recognized=True
             selected += ['workflow','board']
-        if name.startswith('Main/sim/'):
+        if name.startswith('Main/sim/mutation/'):
+            recognized=True
+            selected += ['mutation-tools','mutation']
+        elif name.startswith('Main/sim/'):
             recognized=True
             if name.startswith('Main/sim/engine/sh/'):
                 selected.append('pipeline' if name.endswith('test_pipeline.c') else 'sh')
@@ -329,6 +336,10 @@ def main():
     parser.add_argument('--archive')
     parser.add_argument('--snapshot',action='store_true',help='仅归档运行当时的状态，不重判当前源码，不生成新的通过结论')
     parser.add_argument('--fresh-inputs',action='store_true',help='保留时间戳的复制／外部改写后强制复核输入字节')
+    parser.add_argument('--synthesis-presets',nargs='+',choices=['B0','B1','B2','B3','B4','B5','B6','B7'],
+                        help='显式选择 feature-synthesis 的构型；完整记录到本轮计划')
+    parser.add_argument('--synthesis-reuse-from',help='feature-synthesis 的既有构型树；逐项核对编译输入后才能复用')
+    parser.add_argument('--mutation-ids',nargs='+',help='按影响选择 mutation 条目；命令和范围写入计划')
     args=parser.parse_args()
     if args.list:
         for name,item in CHECKS.items(): print(name+'\t'+item['purpose'])
@@ -354,6 +365,22 @@ def main():
         changed+=git('ls-files','--others','--exclude-standard').decode('utf-8').splitlines()
     selected=expand(args.checks) if args.checks else suggest(changed) if changed is not None else []
     if not selected:parser.error('提供 --checks 或 --changed；--list 查看唯一清单')
+    if 'mutation' in selected:
+        import yaml
+        rows=yaml.safe_load((ROOT/'Main/sim/mutation/mutants.yaml').read_text(encoding='utf-8'))
+        if args.mutation_ids:
+            wanted=list(dict.fromkeys(args.mutation_ids))
+            if set(wanted)-{r['id'] for r in rows}:parser.error('未知变异编号')
+            rows=[r for r in rows if r['id'] in wanted]
+            CHECKS['mutation']['command'] += ['--ids',','.join(wanted)]
+        CHECKS['mutation']['inputs']=list(dict.fromkeys(CHECKS['mutation']['inputs']+[r['spec']['doc'] for r in rows]))
+    elif args.mutation_ids:parser.error('--mutation-ids 需要选择 mutation')
+    if args.synthesis_presets:
+        if 'feature-synthesis' not in selected:parser.error('--synthesis-presets 需要选择 feature-synthesis')
+        CHECKS['feature-synthesis']['command'] += ['--only',*dict.fromkeys(args.synthesis_presets)]
+    if args.synthesis_reuse_from:
+        if 'feature-synthesis' not in selected:parser.error('--synthesis-reuse-from 需要选择 feature-synthesis')
+        CHECKS['feature-synthesis']['command'] += ['--reuse-from',args.synthesis_reuse_from]
     plan={'profile':args.profile,'checks':selected,'changed':changed,
           'commands':{name:CHECKS[name]['command'] for name in selected},
           'timeouts':{name:CHECKS[name]['timeout'] for name in selected},
@@ -375,7 +402,7 @@ def main():
             return {'log':log.relative_to(ROOT).as_posix(),
                     'not_applicable':re.findall(r'^NOT_APPLICABLE .*$',output,re.M)}
         current.perform('check:'+name,execute,reusable=name not in
-                        ('board','feature-board','board-game','r3-board','r3-legacy-board','r4-board','r4-frozen-board','console-board','sw16-board'))
+                        ('mutation','board','feature-board','board-game','r3-board','r3-legacy-board','r4-board','r4-frozen-board','console-board','sw16-board'))
         print('PASS '+name,flush=True)
     current.require(['check:'+name for name in selected])
     write_json(current.path/'result.json',{'status':'PASS','profile':current.profile,'checks':selected,'run_id':current.path.name})

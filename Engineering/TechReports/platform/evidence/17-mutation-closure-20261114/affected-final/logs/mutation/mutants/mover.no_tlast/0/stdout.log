@@ -1,0 +1,3 @@
+正常用例:
+  normal: RESULT: MISSING (see build/normal.log)
+SIM BROKEN: 1 of 1 check(s) not as expected

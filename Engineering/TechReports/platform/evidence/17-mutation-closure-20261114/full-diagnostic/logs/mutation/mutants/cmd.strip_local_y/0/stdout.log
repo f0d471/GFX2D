@@ -1,0 +1,14 @@
+RUN Main/sim/build/check-runs/task
+Traceback (most recent call last):
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_g4_integration.py", line 314, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_g4_integration.py", line 294, in main
+    rtl()
+    ~~~^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_g4_integration.py", line 170, in rtl
+    need(expected in output and 'WATCHDOG' not in output, name+': unexpected RTL result')
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/tools/check/check_g4_integration.py", line 24, in need
+    raise RuntimeError(message)
+RuntimeError: game_frame: unexpected RTL result

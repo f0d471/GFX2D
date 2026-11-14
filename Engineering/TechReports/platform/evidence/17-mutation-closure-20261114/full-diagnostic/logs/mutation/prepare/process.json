@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "timeout": false,
+  "seconds": 1.033,
+  "cmd": "python3 Main/tools/assets/pack_assets.py"
+}

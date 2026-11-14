@@ -1,0 +1,4 @@
+HEADERS B3
+normal: RESULT: PASS
+normal_latency2: RESULT: PASS
+TEX suite PASS

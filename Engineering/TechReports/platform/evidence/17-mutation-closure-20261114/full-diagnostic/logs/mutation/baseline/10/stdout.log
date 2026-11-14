@@ -1,0 +1,2 @@
+RUN Main/sim/build/check-runs/task
+G4 RTL PASS: real game frame

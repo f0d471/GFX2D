@@ -1,0 +1,12 @@
+CONTROL_MEM kind=1 addr=00051ff0
+CONTROL_MEM kind=1 addr=00052000
+CONTROL_MEM kind=1 addr=00052010
+CONTROL normal AR=32 AW=32 local=1
+CONTROL_MEM kind=2 addr=00050000
+CONTROL_MEM kind=2 addr=00050010
+CONTROL_MEM kind=2 addr=00050020
+DRAIN_MEMORY bad=344
+CONTROL cancel raw-prefix=10 WL=0
+RESULT: FAIL
+CONTROL errors=2904 timeouts=2 read-status=0 write-status=1
+/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/band/tb_engine_band_mover.v:196: $finish called at 226200000 (1ps)

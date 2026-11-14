@@ -1,0 +1,35 @@
+生成期望值（独立模型）：
+写出 build/directed.hex：1089 行记录（34 条命令）
+写出 build/vectors.hex：718 行记录（59 条命令）
+写出 build/cases.hex：5265 行记录（17 条命令）
+
+研究探针 probe_geom（B3 前期研究）：
+  probe: RESULT: PASS (14/14)
+
+单元仿真 engine_geom（第 03 章 3.7 节）：
+  geom_directed: RESULT: FAIL (435 errors; 200 checks run)
+  geom_vectors: RESULT: FAIL (284 errors; 334 checks run)
+  geom_cases: RESULT: FAIL (3539 errors; 98 checks run)
+
+握手用例（判据：序列与恒 ready 时逐条相同）：
+  geom_stall: RESULT: FAIL (435 errors; 200 checks run)
+      (+STALL)
+  geom_stall_c: RESULT: FAIL (3539 errors; 98 checks run)
+      (+STALL)
+  geom_rfstall: RESULT: FAIL (435 errors; 200 checks run)
+      (+RFSTALL)
+  geom_rfstall_v: RESULT: FAIL (284 errors; 334 checks run)
+      (+RFSTALL)
+  geom_rfstall_c: RESULT: FAIL (3539 errors; 98 checks run)
+      (+RFSTALL)
+
+  geom_directed: 正常构建里出现了违例
+  geom_vectors: 正常构建里出现了违例
+  geom_cases: 正常构建里出现了违例
+  geom_stall: 正常构建里出现了违例
+  geom_stall_c: 正常构建里出现了违例
+  geom_rfstall: 正常构建里出现了违例
+  geom_rfstall_v: 正常构建里出现了违例
+  geom_rfstall_c: 正常构建里出现了违例
+
+SIM BROKEN: 16 of 17 check(s) not as expected

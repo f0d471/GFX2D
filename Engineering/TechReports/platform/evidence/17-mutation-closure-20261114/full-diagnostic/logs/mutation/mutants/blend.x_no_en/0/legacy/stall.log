@@ -1,0 +1,15 @@
+== tb_engine_blend ONLY_EQ=-1 STRIDE=5 ==
+  MISMATCH #1: eq=0 src=5 dst=160 a=82 c=250  got=10 want=5
+  MISMATCH #7: eq=0 src=35 dst=134 a=112 c=220  got=40 want=35
+  MISMATCH #12: eq=0 src=60 dst=153 a=137 c=195  got=65 want=60
+  MISMATCH #18: eq=0 src=90 dst=255 a=167 c=165  got=95 want=90
+  MISMATCH #24: eq=0 src=120 dst=221 a=197 c=135  got=125 want=120
+  MISMATCH #69: eq=1 src=0 dst=85 a=0 c=85  got=90 want=85
+  MISMATCH #73: eq=1 src=0 dst=105 a=0 c=105  got=110 want=105
+  MISMATCH #78: eq=1 src=0 dst=130 a=0 c=130  got=135 want=130
+  MISMATCH #79: eq=1 src=0 dst=135 a=0 c=135  got=140 want=135
+  MISMATCH #87: eq=1 src=0 dst=175 a=0 c=175  got=180 want=175
+检查 427284 个向量，不一致 43463 处
+  停顿拍 61076 个
+RESULT: FAIL
+tb_engine_blend.v:272: $finish called at 4883630000 (1ps)

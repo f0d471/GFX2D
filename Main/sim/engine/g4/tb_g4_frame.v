@@ -151,7 +151,7 @@ module tb_g4_frame #(parameter integer SH=16);
     reg [31:0] surfaces [0:47];
     reg [31:0] texture [0:4095];
     reg [31:0] stats [0:2];
-    reg [2047:0] prefix;
+    string prefix;
     reg inject_write=0;
     integer ar_cmd=0, ar_pixel=0, aw_pixel=0;
     always @(posedge clk) begin
@@ -196,7 +196,7 @@ module tb_g4_frame #(parameter integer SH=16);
             n=0;stv=1;
             while((stv&1)!=0 || (stv&12)==0) begin
                 repeat(20)step;apb_rd(R_STATUS,stv);n=n+1;
-                if(n>300000)begin $display("WATCHDOG st=%d band=%d fe=%d",dut.u_cmd.st,dut.u_mover.g_band.u_band.phase,dut.u_cmd.fe_st);$finish;end
+                if(n>300000)begin $display("WATCHDOG st=%d band_busy=%d fe=%d",dut.u_cmd.st,dut.u_mover.band_busy,dut.u_cmd.fe_st);$finish;end
             end
             apb_rd(R_EIDX,eidx);apb_rd(R_ETAG,etag);checks=checks+1;
             if(((stv>>4)&15)!=code || eidx!=idx || etag!=tag ||

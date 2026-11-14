@@ -1,0 +1,1 @@
+../../rtl/vendor/ddr3_controller/common/efx_fifo_v2.3/efx_fifo_wrapper.v:404: warning: Anachronistic use of begin/end to surround generate schemes.

@@ -1,0 +1,3 @@
+pipe: cmds=300 rows=874 long=25 beats=7085 slots=28340 waits=569 stall=49164 overlap=2378 gap=0 proto=0
+RESULT: PASS (874 rows, 28340 slots checked)
+tb_engine_pix_pipe.v:286: $finish called at 717680000 (1ps)

@@ -411,7 +411,7 @@ module tb_engine_rast;
 
     integer fd,n,i,k,j,offset,cursor,fi,nframes,total,subsize,substart,fcnt,sx,p;
     integer expected_refs, expected_commits, frame_refs, refbase, commitbase;
-    reg [1023:0] mainfile,framefile,expfile;
+    string mainfile,framefile,expfile;
     reg [31:0] got, ec;
     reg [15:0] ez;
     task owner_case;

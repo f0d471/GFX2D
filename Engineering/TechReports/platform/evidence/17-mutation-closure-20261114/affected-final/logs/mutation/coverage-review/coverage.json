@@ -1,0 +1,974 @@
+{
+  "status": "PASS",
+  "total": 79,
+  "retained_unaffected": 70,
+  "rerun_affected": 9,
+  "not_a_single_run_aggregate": true,
+  "source_change_review": {
+    "changed": [
+      "Main/sim/engine/mover/tb_engine_mover.v",
+      "Main/sim/mutation/mutants.yaml",
+      "Main/tools/check/validate.py"
+    ],
+    "testbench_consumers": [
+      "Main/sim/engine/mover/run.sh"
+    ],
+    "manifest_execution_unchanged": true,
+    "cli_only_selects_existing_ids": true,
+    "normative_documents_unchanged": true,
+    "toolchain_equal": true
+  },
+  "mutants": [
+    {
+      "id": "band.band_addr_stride",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "58ce6c426de4d9525c47c152dd61f2705aaf925fed000d469eab4fe899869d6e",
+      "rule_identity": "508bde34456e6fceaff2a69ae98b3cfbdf5b0cbf10cf93bb366ba5735e74f825",
+      "evidence": [
+        "UNIT-READ"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "band.band_early_flush",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "e5c8bc6a0bb3c36292bb5e877f68acf4f94f195c003eedb6e685de95065a841e",
+      "rule_identity": "df03f3298a533589b3ed0f8c023d8a20b8d8203a7409c64981a904cd65a09792",
+      "evidence": [
+        "EARLY_FLUSH_ACCEPTED"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "band.band_flush_addr",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "8839c5da68200140ddc2917115e6f39be4ac6b260afeee471d314723aa0c32ad",
+      "rule_identity": "d4c041f854123d223f3ce1dab727d90eb8e9366b66721a8d41714f4fde601ae0",
+      "evidence": [
+        "UNIT-FLUSH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "band.band_pixel_mask",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "b963f964f978c0a0b2adec1a8aea57cef6d46ab1a1a4de276ada8084eea5634b",
+      "rule_identity": "1d33b3c4f966c5a18eca7d8aef7e2e2e0d9aa7134e394496b1b0c78a4e053a75",
+      "evidence": [
+        "UNIT-READ"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "band.rast_pix_trunc",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "9a14b4a3311b498da8ae4f7022d99680d154cd3b745a87a437e614f956a857cb",
+      "rule_identity": "ce8cc4c0aa19c3bc0d7808a3df533f401a8071559eb8c39e645efcfd8ff74c7f",
+      "evidence": [
+        "MISMATCH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "bin.bin_clip",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "1d87ff53a0ba67f086b13ead07c4d7ad210cc7345bdffce74427c70bd07d6c39",
+      "rule_identity": "23576e2bbfca0bb3866140d7554eccdaebbcab0e454633804237a2faf6f8cb0a",
+      "evidence": [
+        "F5 BIN model mismatch"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "bin.bin_high_byte",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "7ff7914e7a59d2ce0941460d0bbdf049ec37ce4aaeb9b10c91984b894a4dee83",
+      "rule_identity": "56b376d819f3c2c1cad15511e603d563c1ed14dd85b8b15641d87d369c63fbb5",
+      "evidence": [
+        "F5 BIN model mismatch"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "bin.bin_order",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "122255c4eb60657209d13fcaf0d4da5b0339965bc429293095bb17ad46cc3939",
+      "rule_identity": "1b1302f2d9dfdf21d4f7379112ccb5673beeefd1ced3da255f0f0938753c1adb",
+      "evidence": [
+        "F5 BIN model mismatch"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "bin.bin_ready",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "0b0209811216599949fe4326007b508becc2fc79835da790d3040938a7f5ed07",
+      "rule_identity": "45260c0c6d751b64d6f0aea91f738bc0f81ad26bc14701b01e7d5a35e7dce69a",
+      "evidence": [
+        "F5 BIN model mismatch"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "bin.bin_skip",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "df9d3c9e63ea9aa2a629c0db289a3740004456a914d43c67a3fef199331fcdfc",
+      "rule_identity": "098d6d77d7387587edb0ac18d556b60dd49f191aa73ef2f4e96dd451ccd43894",
+      "evidence": [
+        "F5 BIN model mismatch"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "bin.bin_stale",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "dd1ec77e2d74c33e59839b2aae9b3123ec9f44390735a565c3c28db8242bcbc3",
+      "rule_identity": "d56ec1aaecc57bac94419219e13c0f88989732fd316820273a01604bf499c775",
+      "evidence": [
+        "F5 BIN model mismatch"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "blend.copy_dst",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "94d56a6133903bd0b9e1f8cb9cd45e9ef3959fe4f9742f2463886b503f2bee92",
+      "rule_identity": "06a4e12bb8a3164ae25dd44beb035b395f4ff316c5f2a2ad197e2f77314470ba",
+      "evidence": [
+        "MISMATCH #0: eq=0 "
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "blend.trunc16",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "fa45b1a880c20fc30e2707e89aa1072a6dcfd1d0e3920abe6516f9b705009d8e",
+      "rule_identity": "a04ae185b7d6ac46243b053fceb6896cd13498e3ec0ef0abcc490b76f8070f68",
+      "evidence": [
+        "MISMATCH #767: eq=2 "
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "blend.unreg_c",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "5faa26d32c850b9f685ddf712df2fa27d8c8f6d7f4e6a38751759d9c435bac0b",
+      "rule_identity": "6d984eb8610ff18d90a17148bbcd6a95ce774f914f1cb75e81fe7276dcfcdecc",
+      "evidence": [
+        "MISMATCH #65791: eq=1 "
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "blend.wrong_eq",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "cfb9f444a6b1aeadc053882a0a84baee5787775054c6e4a8050e335f97c27de8",
+      "rule_identity": "471f00c9a05792165996415f50396cbd22ea3daa777463e1d75f97b915248c2e",
+      "evidence": [
+        "MISMATCH #1: eq=3 "
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "blend.x_no_en",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "3f783a4f6ebbe561f555751e3ec583059d13972a990e0a446f63388f88750596",
+      "rule_identity": "e02b3f20bc45b72f0c7b9d2eefef6ca8817ee9caab83ea1d7ceef0b1731bb34d",
+      "evidence": [
+        "MISMATCH #1: eq="
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "cmd.chk_swap",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "15a289bbd973be4af4abd80d0a03e5d7fe5ab6748bac3c05f5a596b5b70a0a7a",
+      "rule_identity": "e56e31a5ef6d8f8048f4b06b0bd4cb4d1b090c066e32616a7d50810dcc43723c",
+      "evidence": [
+        "VEC-FAIL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "cmd.inst_early_done",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "0f8b1c9dccab380812fe1d67f2a94b96f3d419bfbe685fd27b593312f9edd524",
+      "rule_identity": "a4204bd21e597a344918f8f5a33a34283c02d8c392ea98565a9585cf58a6d0e0",
+      "evidence": [
+        "DONE BEFORE DMA DRAIN"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "cmd.inst_state",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "d20b1b478dcb99eaa6e4eea244652319b67fb90eef088735a44acf296244f948",
+      "rule_identity": "c1daee52d588094b15810fa849cb07af4c13a98153518edc654f7ab87faaca42",
+      "evidence": [
+        "PERF-PIXEL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "cmd.inst_xyuv",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "cb7092aab17826ca07eb893d7782c35fe1588a95ad8493d2f09b7afc2e46f1cd",
+      "rule_identity": "60956421a217f5e4442c40fa63521b4ce774a2c25bef7909bf5f501d534892b3",
+      "evidence": [
+        "PERF-PIXEL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "cmd.no_fb",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "a8f4a7dff48a3c1692a7ad5c14f21be15a18a0e30fca4d2b4825f63c45fdcc79",
+      "rule_identity": "d08f234aafa0a25385704f6cc561f6871867e0ac7b03781eabf9e9feedf74584",
+      "evidence": [
+        "VEC-FAIL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "cmd.strip_header_offset",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "a8c065f153c4fc0102bdb4918ffdbcdbd164d9521273447451975210bf7f85f5",
+      "rule_identity": "a4292768a2686dd1b099747ad62cb157dd9a7485a3bdef2ce4efa7b9646aa271",
+      "evidence": [
+        "PIXEL-FAIL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "cmd.strip_local_y",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "88d26439a8ddb74878acbb08e45cd5d3549ac5b528a4adbe59be26a66a2bdae4",
+      "rule_identity": "f27a1914aa07f2821e0aa27359aefe72b9ed079dfa1c6b0b0df40d4c410056a0",
+      "evidence": [
+        "PIXEL-FAIL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "display_fetch.inflight2",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "c1dcf2bb7eb66daaa1bf79ee54899fcf3834c212557fc9c200a9e332fd045e2c",
+      "rule_identity": "5467dba66b3d9096ad75f82b438caf2256038714e4232e5cd32eb12edd24458c",
+      "evidence": [
+        "ERROR araddr"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "display_fetch.no_clear",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "d0e90234782cad5aaea0f6065711c05ec362c78e693b417ca26e07f1dde7d35e",
+      "rule_identity": "53bc77031e95d9cf74cbc41d934b41579e18beb0071aa770132b5fc24118de9b",
+      "evidence": [
+        "ERROR image"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "display_fetch.no_drain",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "43b915fa4f773a4bbe0c0967a0f3e9b2cb62012bb3a1dd08a0949ef04fbb62ad",
+      "rule_identity": "5927533ae7db04e1cb946dd8d68c9e5661720aa39b67b57764678da7f204df0f",
+      "evidence": [
+        "ERROR image"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "display_fetch.swap_now",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "a3ca59a8e29427cd2d1a1c97abd3f4597737b84cd4d934a54513252d01f164d0",
+      "rule_identity": "5abdf0e0a258ecf93ca5f366f076a895af219385f2079cf2118661668652f6e3",
+      "evidence": [
+        "ERROR araddr"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "display_out.lag0",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "67c5476557f3cb74b7d03dc37f90b66e8eb68c8d8e621ab8aba1132ebcb53a40",
+      "rule_identity": "13560a76ecfc4c7976a10d632efbd24c16f3a9ee28c739c36409cf4c4d2b45e4",
+      "evidence": [
+        "ERROR image"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "display_out.order_rev",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "7e21ba7616f72b6017e09c605d18ab21644dbfe15fce21a94cb8246c58f4b406",
+      "rule_identity": "6a9337d6fe56773823060eddfd849b73ebdac91128eeeb5f7e012ef78de41b8e",
+      "evidence": [
+        "ERROR image"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "display_out.phase3",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "6e902c5952ad6c125d144af08ca08ca842b243b426f1b62713bfd15178fdd25c",
+      "rule_identity": "613155438b11e3797f2e31c7f1d314928df09dc7edad21698feb1de740e0d0fc",
+      "evidence": [
+        "ERROR image"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "exec_sw.strip_noflush",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "33259ad52c70277873dd9153c3bbbafcae409e78656da197f4a6926d6430af20",
+      "rule_identity": "139f7d8afca9bd4e4fe795936abbb5402f63ad46e577dd66fd8b9897b17ac828",
+      "evidence": [
+        "scene 0: 41093 bytes differ"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "exec_sw.strip_order",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "afda14c1160bcee9748361e082eda2da607ca2811730bd7b5a7af64f005f997c",
+      "rule_identity": "741141f3c101b387b06099563166ed428121776dde72b0d9dba6a16e3e67a77d",
+      "evidence": [
+        "scene 0: 864 bytes differ"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "geom.alpha_as_copy",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "1894dd699d9a5a9d535cc0b9d9ffe02e902663b201c2260522670e4bcdb2cfb0",
+      "rule_identity": "7c68d8f372496e6e778ed4ba8f24851ba8328d67b9687e9f9b9ed956144b5578",
+      "evidence": [
+        "MISMATCH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "geom.band_clip",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+      "mutated_source_sha256": "87256a350487b053daaf640a5ef2d35c901dc1f4d277afdbdda9cff11004e8c5",
+      "rule_identity": "059c4ceeb570261b99f4e9e0be25f88ced1ad97fd99805362775c35acd4fff5a",
+      "evidence": [
+        "BAND_ERROR code=2"
+      ],
+      "kind": "affected_consumer_rerun"
+    },
+    {
+      "id": "geom.copy_read",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "6e9102b17374ddabaab12879da95c5dfeac1782f64a913049f75cba341bd40e6",
+      "rule_identity": "50e047e7c67d95ea30738572650a20f4e58e13fa945b5f60d9c0ce5a13745294",
+      "evidence": [
+        "PROTO"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "geom.no_split",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "17bcfb7129fd5a87340810c721415d3b2e3fd309fd15c183e14ba8f65ef3dcb5",
+      "rule_identity": "dcbff688389ad234920a5db940a635923c2117292a663e20f43714dcb2464e1a",
+      "evidence": [
+        "RULE1"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "geom.row_nofree",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "166e46edc3716713a4d46f4231deb103432c3290b44872cc61fea757f0478321",
+      "rule_identity": "a0e2d252743e8c0c68907df397c22dfed6f44d97be258e2f08b0e322a50e2276",
+      "evidence": [
+        "BUFERR"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "geom.skip_surf",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "7ed674e93565c45744e2d4364de891b960c33ab75531ce2640a2635b00ee5593",
+      "rule_identity": "c345944cd27c3d286bddee21139ecf04c9569f5536f4064f94ad0028626c20ee",
+      "evidence": [
+        "MISMATCH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "inst.inst_skip",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "e06aa80d47ffc167a56f45eb0141fdf9c2eadacc298c36959539b7e25c218637",
+      "rule_identity": "0537cf366604f3e54d54c0cbcbd5f717407c73e2a7d05d9d62078a495bc0d463",
+      "evidence": [
+        "INSTANCE mismatch"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "inst.inst_stride",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "71673070a2e9e721dd3bc52605027c00f0e8e706f5f2e0245beef91bc05c0dfb",
+      "rule_identity": "51c7a9e9124e06b94643340f93a664a83675ecd7baa11e49afa1cbe69303ece6",
+      "evidence": [
+        "PERF-PIXEL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "instances.inst_xyuv",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "02912861d54ce73528b2f5dbea809455ca5a40b5900baf332b2abbbcb22b9e78",
+      "rule_identity": "72e45dbc86b3be485be3b1463d8e8d0e9533fb40cc6653bbf0ab005fc66e5d1b",
+      "evidence": [
+        "Assertion `one.w[2]==pair"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "mover.band_drain_mask",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "cf4e55782b25c1aa864fed5249de51438b106be8f0bea758237b564dd0fb6428",
+      "rule_identity": "db817a133e2a1cc5038e230cba153dd7b1c5c4ff975d35c3fce8e6ae9021b016",
+      "evidence": [
+        "CONTROL_MEM"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "mover.band_flow_wait",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "7048efd62d84b24ed191a62edf7bbab61f72660497decb398675e54b01cf43a0",
+      "rule_identity": "baf3037230de8fd72000d10403ba6174296be80b0e665a5afbeeafafe60ae2d7",
+      "evidence": [
+        "BAND_FLOW_COLLISION"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "mover.band_raw_mask",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "cf9556913c9610b6854184e23a0b16f0a7b9ba2788e07233e63b6397158bc88a",
+      "rule_identity": "38eb6e50d76baac94adc91d8758d0be2152b6d97afbf0ef6d1a57e4c0b36cfdf",
+      "evidence": [
+        "CONTROL_MEM"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "mover.drain_bypass",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+      "mutated_source_sha256": "8a79e82dbde05a15d97244dc712f6c345bdae68ab86a01f649ecabd91d70741f",
+      "rule_identity": "526a31763d6bb3a64d4f25e2ee41d8d774c1786eab01ff6f1a11a85223613517",
+      "evidence": [
+        "ERR 排空没有完成（等了 20000 拍）"
+      ],
+      "kind": "affected_consumer_rerun"
+    },
+    {
+      "id": "mover.drain_level",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+      "mutated_source_sha256": "5e1d0c76c2025f83e65402e6ce9bcdf0803315ef6a6642670be887031a69b479",
+      "rule_identity": "730c8875c11420ba5d6b4265b495db9dc8778ee002c9ac3b86266e196e1dd764",
+      "evidence": [
+        "ERR 请求一直举着时 drain_done 打了 2 次，应为 1 次"
+      ],
+      "kind": "affected_consumer_rerun"
+    },
+    {
+      "id": "mover.inst_owner",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "d1529d57283990ae6b23acaf0420e4fab9ace83c18ceeee4933a2c0029a415c7",
+      "rule_identity": "b743c5bf99119b466132c8e364f361ac84fcd6d856e840721a7df98694cfff5e",
+      "evidence": [
+        "FD owner data/tag"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "mover.mask_bypass",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+      "mutated_source_sha256": "4b4ed204a33617ae822b5f365d2b0b1cdf0866b6f6bb01449000876529463f6f",
+      "rule_identity": "cbc27e6f8aa5bed7e41a571c1f17ce0c88034bf98546ed4be63926fa332833fb",
+      "evidence": [
+        "ERR 写目的字 768 像素 0 got 80000040 want 00000300 (拍 0)"
+      ],
+      "kind": "affected_consumer_rerun"
+    },
+    {
+      "id": "mover.no_gate_rd",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+      "mutated_source_sha256": "bd9018c6c9e053351d7bbd8cebc35340b3c7e653fa8085cb504a8576aa78846d",
+      "rule_identity": "a508ce7357e3bcbd152389ce3467b6f732436929a628783297a7d973ddaaa115",
+      "evidence": [
+        "ERR 像素读流数据不符：字 260 got 5a5a5a5a5a5a5a5a5a5a5a5a00000200 want 5a5a5a5a5a5a5a5a5a5a5a5a00000104"
+      ],
+      "kind": "affected_consumer_rerun"
+    },
+    {
+      "id": "mover.no_gate_wr",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+      "mutated_source_sha256": "0960bd8deaf057e85e16298a82c87bca9dfcd58bf9f29608dc09c4260656e264",
+      "rule_identity": "a130e9e28a6693654bf43001c1ec04fc6c3118c90b12d96e387a4af9ad0fcad0",
+      "evidence": [
+        "ERR 上一笔写还没结束就接受了下一个写描述符"
+      ],
+      "kind": "affected_consumer_rerun"
+    },
+    {
+      "id": "mover.no_tlast",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+      "mutated_source_sha256": "237d2824ec807588e78e4accc32607c21ec7e4cf60d2175797c3805c96b17fee",
+      "rule_identity": "65987f0995ced48872ba6db47eb6a8ab154b8b8ecda1caac13b1f996b210a62b",
+      "evidence": [
+        "WRITE-LAST-MISMATCH"
+      ],
+      "kind": "affected_consumer_rerun"
+    },
+    {
+      "id": "mover.tx_nowait",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+      "mutated_source_sha256": "f7080f7d0c76820f7d2cf9f3f2f23692ab99da3dc027d36c307cf6480198ebd1",
+      "rule_identity": "20f8fd7d8fd59f6899717d0be05186b796855a3c002f83453ee3ab3d4af51c86",
+      "evidence": [
+        "TEX-OWNER-FAIL"
+      ],
+      "kind": "affected_consumer_rerun"
+    },
+    {
+      "id": "pix.core_noen",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "38d69e1aaacbdb2cdd806d931c3d33e8dbe1d33290ca5821373ccb488c1fcd07",
+      "rule_identity": "800607ceb023a39770ff8cd03a16cf094c142495e51181e0e7ed5167e62eadfb",
+      "evidence": [
+        "PIX_MISMATCH n=",
+        "PIX_MISMATCH beat="
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "pix.drop_mask",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "08cc4affe312c544f4a07b55fdfdc886e482ccb24703f8efce0a4b37db34eaaa",
+      "rule_identity": "dcad4ea14edfd3ec56dccca64ec64a2b768f91cb60e665bfc581961941d7efb0",
+      "evidence": [
+        "MASK_MISMATCH n=1 ls=0 ld=0 beat=0 slot=1"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "pix.en_notready",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "7db62c1db8d7f304e7788c55b0d77f0cf95ad48a1be7301352d1a66a870466cf",
+      "rule_identity": "d980bb018e138e666370d0b65409710299099aa78acba92dc91e638d0a380249",
+      "evidence": [
+        "BEATS_OR_GAP n=",
+        "PIX_MISMATCH beat="
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "pix.rot_off",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "73e8f69e827ffc83f4d6078fe8ae1bb052e91fe0fcc305f98491ea72c3856ec5",
+      "rule_identity": "5fb52b94bc072f0f7e3302a90855a50250db1d5c0ae1dfa8dfc74f0304711069",
+      "evidence": [
+        "PIX_MISMATCH n="
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "pix.skip_key",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "072c4b504b4dc879edee820db6d9ac17f8ee43a73250faaceacc39295f83bc94",
+      "rule_identity": "2d28acf566173bbef42d88ad6b2c81c8f3de40bd7b957eb9428d5de59d8b00f3",
+      "evidence": [
+        "MASK_MISMATCH n=",
+        "MEM_MISMATCH addr="
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rast.rast_bias_reverse",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "7a9226a878721146e7984666c82ba0d85d3411d756469dbc8d8cb95538642de3",
+      "rule_identity": "03f1020fbefe891e7dce1f9ee30ce39a820fce80bf09e1cf987edfc241b3284c",
+      "evidence": [
+        "MISMATCH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rast.rast_edge_scale",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "098415515147d4de0e4b613f92ef1242c43a3970744179c47340a48f244975a4",
+      "rule_identity": "9c2bbf168fb73fd92be5b698fe5419166edaa84cfb403696f6cbb8f979b1f2d2",
+      "evidence": [
+        "MISMATCH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rast.rast_key_miss",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "7261d0bb6ed29457dfb138d857a066e0ded71e8cf93dca5dc55216c6afc2426b",
+      "rule_identity": "fe221a60342c3e81d58b4f1992b4c86281ea90a2bb2dba97a1f4d9ef33d79c37",
+      "evidence": [
+        "MISMATCH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rast.rast_no_barrier",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "2ad6635be5f8bc9bbef9c11a4066e51cbcc560ce8a691ab88636fe82eb06ff69",
+      "rule_identity": "84464129e26267659cab516938a8ed2f7bebc6d84684f1a0e880c6d350840602",
+      "evidence": [
+        "early strip completion"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rast.rast_partial_commit",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+      "mutated_source_sha256": "de3150cb0da497bbe32c0b2c44243e473acbcf3c7f6829c692e7fd45cab5a864",
+      "rule_identity": "a657843c6209dbde22b960da387071d5e6d66669e0c8f9768581fc619a33c88b",
+      "evidence": [
+        "atomic color/z commit"
+      ],
+      "kind": "affected_consumer_rerun"
+    },
+    {
+      "id": "rast.rast_round",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "d85a54c2acf1bc71e52ea96dcfbc9e2c2923c88f7bca90e4b2ce3aa1e716e0da",
+      "rule_identity": "8e2341ff52d8ca47b52498a6c8a4a7831313c7edeee94320fcb2edd55335c369",
+      "evidence": [
+        "MISMATCH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rast.rast_z_reverse",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "42a0e54fb00bc5039eec8562b573db4da66a060d163d491e2091cfdef9b05f31",
+      "rule_identity": "ef53ecaa202e8b30a75e184e9a6c7411ed4aacfc35682808a2026f7f15b08e0e",
+      "evidence": [
+        "MISMATCH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rlst.rlst_credit",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "0857e85a5ce068f6e68b797ecd9b6ff9862778c8d2d94e66a444d2e866bb687b",
+      "rule_identity": "b305c470743d86a32f37ec77b48c4d0c0ec8dd1742e05bf998970e73782fab1e",
+      "evidence": [
+        "credit reservation"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rlst.rlst_drop_tail",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "ae0881af484d3743879f9683673e3ec65d62e7612e9865f7a1ef9a9f2c5e1aa9",
+      "rule_identity": "eee5a3757c62c06183187f0abeffe409c36cace30b3cc772ca71436477954e4f",
+      "evidence": [
+        "record reconstruction"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rlst.rlst_owner_early",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "387fa35c2d4136871f3f85ed05fb7fc37646860a58c290cb1351d9299d628ac6",
+      "rule_identity": "c1fbd14ebaa646f08a92dba50e1548956fe17478988c0ffb7003f176cc31bf58",
+      "evidence": [
+        "RLST result"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "rlst.rlst_sub_offset",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "d6a88eadf6ed4bd0f23e8cfad6aad7c7db3bf56fe88a2b2c7d5b45150f7d3fb6",
+      "rule_identity": "797d180ef5bdeee5ea53515929f7f2b6cb5745e63e98a2f783b1843d987293fb",
+      "evidence": [
+        "RLST result"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "strip.strip_clip",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "b592c1de9ac00653a243c290ab355759b6a14a653710d19b74baac0ef3843615",
+      "rule_identity": "9e2559f78e69b34848753a93f5a9c8423aa6c4bde8a03fc8c7d59722ab1e15aa",
+      "evidence": [
+        "scene 0: 18595 bytes differ"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "strip.strip_drop",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "d532b19dc806576d358c158c4d791ea37c57d4defccccf32e01e47adfead7e2c",
+      "rule_identity": "275ab64a403f6640a9077c90d754af8c7800660b9f563d4ca65f552f0d7c7244",
+      "evidence": [
+        "scene 0: 34852 bytes differ"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "tex.rast_samp_early",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "9885abb3004ac92766d3e6a2913ca74d0f3be73dd7e6d2ced3e7359546fd9f8e",
+      "rule_identity": "34b2a71aedb67cbdc049ba29a23e4231a201fd7a179d491fd54d5d9d4bfcf3f9",
+      "evidence": [
+        "MISMATCH"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "tex.stat_drop",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "862174fed80a8de14444e09fd6a4d7e545166a6ae7aa9dfc2f78756d0de391a8",
+      "rule_identity": "e0b02ac97f965caaaf11aa65405a50d25223bf5e164a66c41fa031e28533362a",
+      "evidence": [
+        "STR-STATUS-MISSING"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "tex.valid_early",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "a327157149039028fb875699275554c32a802ea4dd0fc94cdad3cdf3266e6aa5",
+      "rule_identity": "c3b71016a927657b78393e5eb2aafaf5a4f21abe13b3ea4d647f3c7c6d6841d1",
+      "evidence": [
+        "STR-1B FAIL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "tex.wr_loose",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "3fac9468be85d81fe7105f9737538fbb9c1cae962b9f12657b7bb9c7b25d2944",
+      "rule_identity": "066b68d1b9ecbd0d7ce58f37241295fdfe5d8950e6c771a73f15dd21f5afd9b1",
+      "evidence": [
+        "APB-UNALIGN-SIDE-EFFECT"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "top.strip_perf",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "81a86eb6e4aee712e7af0d72d74cceb6a940d8498e4d528aa978136f2c9e0e0e",
+      "rule_identity": "887bbccf72ef782e75bf3bb76c9b2d7498d5ecf1e1abb08cea523b319c3f9fff",
+      "evidence": [
+        "PERF-FAIL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "regs.read_phase",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "8a08855a4100e70c93e77a80364ab74b3c5da6d7f9071471edfd6faa46457a9e",
+      "rule_identity": "bbb83e6a4e9b7a2e2b67eead7fc9fbb37a9f6a5de7cc50e47adf654fe30f944f",
+      "evidence": [
+        "ID-FAIL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "regs.irq_w1c",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "3879fea01fd33380461e82a9eeef8784835e6d7fb7cecb2587844112824837ae",
+      "rule_identity": "d8d4880dc56dfc52170ac6ea6ac0124851c2c6c0384096955641e88aca51c135",
+      "evidence": [
+        "IRQ-FAIL"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "pb.command_clip",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "d5f0ff39cf97b11cd673e593157d5815666e49bf653205cd6e28a2cadfc43713",
+      "rule_identity": "3904fce319eee6f10258f52f4bdab05a6e8a8b12d4d4f43a2dc411ba888e44db",
+      "evidence": [
+        "FAIL pixel"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    },
+    {
+      "id": "pb.source_id",
+      "status": "KILLED",
+      "profile": "acceptance",
+      "source_run": "Main/sim/build/check-runs/20261114-180849-ceb7cfd2",
+      "mutated_source_sha256": "d33a2c2885285de6a7488d993e836dccb67774f2a3457e2a970eeb6822788596",
+      "rule_identity": "8fd3c113078a25aa77a1d2fa2350da06a02896dbff4efd9d34f60d0eddbf58b2",
+      "evidence": [
+        "FAIL pixel"
+      ],
+      "kind": "unaffected_frozen_evidence"
+    }
+  ]
+}

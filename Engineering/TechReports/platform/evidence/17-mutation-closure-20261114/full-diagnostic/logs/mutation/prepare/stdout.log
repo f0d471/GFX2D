@@ -1,0 +1,24 @@
+pack_assets: 22 项，4134720 字节 = 3.943 MiB，占 4 MiB 分区的 98.6%
+  pak crc32 0xA8624648  ->  assets/build/assets.pak
+  [0] id=1  BG_GRAD      xrgb        640x480 sl=12 fmt=0  1966080 字节 crc=D3C25F90
+  [1] id=2  CHECKER_TILE xrgb        128x128 sl= 9 fmt=0    65536 字节 crc=80797E72
+  [2] id=3  TILE_ATLAS   premult     128x96  sl= 9 fmt=1    49152 字节 crc=C686F36D  预乘改动 12096 像素/最大 240 级/进位 17518 处
+  [3] id=4  FONT8X16     xrgb        128x96  sl= 9 fmt=0    49152 字节 crc=618E4BF4
+  [4] id=5  BULLET_PM    premult      32x32  sl= 7 fmt=1     4096 字节 crc=637664FE  预乘改动 740 像素/最大 98 级/进位 1136 处
+  [5] id=6  BULLET_ST    straight     32x32  sl= 7 fmt=2     4096 字节 crc=346A5853
+  [6] id=7  KEY_DEMO     xrgb         32x32  sl= 7 fmt=0     4096 字节 crc=6C21DBCC  色键像素 768
+  [7] id=8  SOLID8       xrgb          8x8   sl= 5 fmt=0      256 字节 crc=BEDCE8B1
+  [8] id=9  BUL16        premult      64x16  sl= 8 fmt=1     4096 字节 crc=46A1F2EE  预乘改动 336 像素/最大 98 级/进位 356 处
+  [9] id=10 BUL8         premult      32x8   sl= 7 fmt=1     1024 字节 crc=95A26812  预乘改动 80 像素/最大 97 级/进位 72 处
+  [10] id=11 RICE20       premult     320x80  sl=11 fmt=1   163840 字节 crc=B309A378  预乘改动 3680 像素/最大 98 级/进位 4514 处
+  [11] id=12 PSHOT        premult       6x24  sl= 5 fmt=1      768 字节 crc=0F872141  预乘改动 136 像素/最大 250 级/进位 165 处
+  [12] id=13 SPARK        premult      32x40  sl= 7 fmt=1     5120 字节 crc=AE8929DB  预乘改动 188 像素/最大 239 级/进位 188 处
+  [13] id=14 SHIPS        xrgb        128x96  sl= 9 fmt=0    49152 字节 crc=FDB31A07  色键像素 8994
+  [14] id=15 BOSS         premult     192x288 sl=10 fmt=1   294912 字节 crc=A69AE80D  预乘改动 2260 像素/最大 75 级/进位 2474 处
+  [15] id=16 STARS        xrgb          8x2   sl= 5 fmt=0       64 字节 crc=6114E4C5  色键像素 6
+  [16] id=17 TITLE        premult     240x90  sl=10 fmt=1    92160 字节 crc=A8D0ADCE  预乘改动 2535 像素/最大 185 级/进位 2671 处
+  [17] id=18 DIGITS       xrgb        256x32  sl=10 fmt=0    32768 字节 crc=79EBCB3C  色键像素 6732
+  [18] id=19 ICONS        xrgb         64x16  sl= 8 fmt=0     4096 字节 crc=8080FF08  色键像素 754
+  [19] id=20 FONT_CYAN    xrgb        128x96  sl= 9 fmt=0    49152 字节 crc=E6E90965  色键像素 9519
+  [20] id=21 BG_LAYERS    xrgb        512x608 sl=11 fmt=0  1245184 字节 crc=64D36D7C  色键像素 82428
+  [21] id=22 FONT_AMBER   xrgb        128x96  sl= 9 fmt=0    49152 字节 crc=5BC55A89  色键像素 9519

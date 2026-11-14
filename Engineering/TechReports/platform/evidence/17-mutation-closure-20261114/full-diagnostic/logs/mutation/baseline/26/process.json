@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "timeout": false,
+  "seconds": 1.757,
+  "cmd": "bash Main/sim/engine/ctrl/run.sh --case registers"
+}

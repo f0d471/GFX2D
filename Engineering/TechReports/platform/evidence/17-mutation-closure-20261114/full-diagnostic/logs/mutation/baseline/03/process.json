@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "timeout": false,
+  "seconds": 0.724,
+  "cmd": "bash Main/sim/engine/blend/run.sh --case narrow_copy"
+}
