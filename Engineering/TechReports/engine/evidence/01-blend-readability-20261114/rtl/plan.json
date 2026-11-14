@@ -1,0 +1,47 @@
+{
+  "profile": "quick",
+  "checks": [
+    "blend",
+    "pix",
+    "frame",
+    "mutation"
+  ],
+  "changed": null,
+  "commands": {
+    "blend": [
+      "bash",
+      "Main/sim/engine/blend/run.sh"
+    ],
+    "pix": [
+      "bash",
+      "Main/sim/engine/pix/run.sh"
+    ],
+    "frame": [
+      "bash",
+      "Main/sim/engine/frame/run.sh"
+    ],
+    "mutation": [
+      "/usr/bin/python3",
+      "Main/sim/mutation/run_mutation.py",
+      "--run",
+      "--ids",
+      "blend.copy_dst,blend.trunc16,blend.unreg_c,blend.wrong_eq,blend.x_no_en"
+    ]
+  },
+  "timeouts": {
+    "blend": 1800,
+    "pix": 1800,
+    "frame": 1800,
+    "mutation": 21600
+  },
+  "input_patterns": [
+    "Main/tools/check/check_run.py",
+    "Main/tools/check/validate.py",
+    "Main/rtl/**",
+    "Main/sim/**",
+    "Main/sw/**",
+    "Main/assets/**",
+    "Main/tools/check/**",
+    "Main/doc/赛题二总体设计.md"
+  ]
+}

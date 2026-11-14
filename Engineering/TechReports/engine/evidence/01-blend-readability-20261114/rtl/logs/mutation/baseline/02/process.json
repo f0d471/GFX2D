@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "timeout": false,
+  "seconds": 137.09,
+  "cmd": "bash Main/sim/engine/blend/run.sh --case narrow_unreg"
+}

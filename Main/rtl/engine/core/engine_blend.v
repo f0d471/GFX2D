@@ -4,7 +4,6 @@
 //
 // DESCRIPTION: 单通道混合核：六个方程写成同一个整数恒等 base×255 + m1×m2，
 //   三级流水（判定+乘、求和、除 255 饱和）。方程表见 engine-manual.md；
-//   故意改错的变异体不在这里，见 Main/sim/mutation/mutants.yaml。
 //
 // NOTE:
 //   1. base×255 与乘积必须同一拍寄存，只寄存乘积会让级 2 相加两拍的操作数
@@ -33,12 +32,11 @@ module engine_blend (
     always @(*) begin
         case (eq)
             3'd0: begin // COPY     Fs=255 Fd=0
-
                 sel_base = {1'b0, src};
-
                 sel_m1   = 9'sd0;
                 sel_m2   = 9'sd0;
             end
+
 `ifdef GFX_ALPHA
             3'd1: begin //  ALPHA    Fs=255 Fd=255-a
                 sel_base = {1'b0, src};
@@ -46,11 +44,13 @@ module engine_blend (
                 sel_m2   = $signed({1'b0, (8'd255 - a)});
             end
 `endif
+
             3'd2: begin // ADD      Fs=255 Fd=255
                 sel_base = {1'b0, src} + {1'b0, dst};
                 sel_m1   = 9'sd0;
                 sel_m2   = 9'sd0;
             end
+
 `ifdef GFX_EQ_EXT
             3'd3: begin // CONST    Fs=c   Fd=255-c
 
@@ -65,6 +65,7 @@ module engine_blend (
                 sel_m2   = $signed({1'b0, dst});
             end
 `endif
+
 `ifdef GFX_ALPHA
             default: begin // ALPHA 非预乘  Fs=a Fd=255-a
                 sel_base = {1'b0, dst};
@@ -72,13 +73,13 @@ module engine_blend (
                 sel_m2   = $signed({1'b0, a});
             end
 `else
-            // 无 ALPHA：未使能的方程号按 COPY 处理，避免出现组合环或不定值
-            default: begin
+            default: begin // 无 ALPHA：未使能的方程号按 COPY 处理，避免出现组合环或不定值
                 sel_base = {1'b0, src};
                 sel_m1   = 9'sd0;
                 sel_m2   = 9'sd0;
             end
 `endif
+
         endcase
     end
 
@@ -91,7 +92,6 @@ module engine_blend (
     // 级 1 寄存器
     reg signed [17:0] r_p;
     reg        [17:0] r_c;
-
     always @(posedge clk) begin
         if (en) begin
             r_p <= p_comb;
@@ -100,28 +100,20 @@ module engine_blend (
     end
 
     // 级 2：x = 乘积 + base×255
-
     wire signed [17:0] c_stage = $signed(r_c);  // c255 恒正（<= 130050 < 2^17，第 17 位为 0），按 18 位有符号给进 DSP 的 C 口。
-
     wire signed [18:0] x_comb  = r_p + c_stage;
 
     reg signed [18:0] r_x;
-
     always @(posedge clk) begin
-
         if (en) r_x <= x_comb;
-
     end
 
     // 级 3：t = x + 128、除以 255、饱和
     wire [17:0] xv     = r_x[17:0];
     wire [17:0] t_full = xv + 18'd128; // 四舍五入
-
     wire [17:0] t      = t_full;
-
     wire [18:0] qs = {1'b0, t} + {11'd0, t[17:8]};
     wire [9:0]  q  = qs[17:8];
-
     wire [7:0] out_comb = (q > 10'd255) ? 8'd255 : q[7:0];
 
     always @(posedge clk) begin

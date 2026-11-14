@@ -1,0 +1,13 @@
+RUN Main/sim/build/check-runs/blend-readability-20261114/rtl
+AUDIT PASS mutants=5
+BASELINE 1/5 PASS 0.7s bash Main/sim/engine/blend/run.sh --case narrow_copy
+BASELINE 2/5 PASS 1.4s bash Main/sim/engine/blend/run.sh --case narrow_trunc
+BASELINE 3/5 PASS 137.1s bash Main/sim/engine/blend/run.sh --case narrow_unreg
+BASELINE 4/5 PASS 155.7s bash Main/sim/engine/blend/run.sh --case narrow_const
+BASELINE 5/5 PASS 5.5s bash Main/sim/engine/blend/run.sh --case stall
+MUTANT 1/5 blend.copy_dst KILLED
+MUTANT 2/5 blend.trunc16 KILLED
+MUTANT 3/5 blend.unreg_c KILLED
+MUTANT 4/5 blend.wrong_eq KILLED
+MUTANT 5/5 blend.x_no_en KILLED
+MUTATION PASS

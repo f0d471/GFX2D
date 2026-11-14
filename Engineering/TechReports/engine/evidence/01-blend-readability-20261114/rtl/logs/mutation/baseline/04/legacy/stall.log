@@ -1,0 +1,5 @@
+== tb_engine_blend ONLY_EQ=-1 STRIDE=5 ==
+检查 427284 个向量，不一致 0 处
+  停顿拍 61076 个
+RESULT: PASS
+tb_engine_blend.v:272: $finish called at 4883630000 (1ps)

@@ -1,0 +1,5 @@
+warning: unable to access 'C:\Users\14297/.config/git/ignore': Permission denied
+RUN Main/sim/build/check-runs/blend-readability-20261114/synthesis
+FEATURE SYNTHESIS PASS B0 xlr=36681
+warning: unable to access 'C:\Users\14297/.config/git/ignore': Permission denied
+FEATURE SYNTHESIS PASS presets=1; netlist and all clock relationships

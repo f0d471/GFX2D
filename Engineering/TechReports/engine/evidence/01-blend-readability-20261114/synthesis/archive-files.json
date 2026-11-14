@@ -1,0 +1,47 @@
+{
+  "logs/feature-synthesis/netlist.json": {
+    "size": 365,
+    "mtime_ns": 1794666563996920300,
+    "sha256": "c38338ae6c70f16050cf912b3e4710b36897701114027a923c5ee7e4eac73120"
+  },
+  "logs/feature-synthesis/reuse.json": {
+    "size": 4,
+    "mtime_ns": 1794666563996920300,
+    "sha256": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f"
+  },
+  "logs/feature-synthesis/synthesis.json": {
+    "size": 2528,
+    "mtime_ns": 1794666563994528000,
+    "sha256": "3fa96e070859add1322c9513763db3e62ec5cbd33845b19ae925cfa551b60477"
+  },
+  "logs/feature-synthesis/B0/config.json": {
+    "size": 3474,
+    "mtime_ns": 1794666563998836500,
+    "sha256": "45289bea43f21434f9e6b8f1fe95725c3bce47f3782f65afa550ba7119830350"
+  },
+  "logs/feature-synthesis/B0/flow.log": {
+    "size": 1768,
+    "mtime_ns": 1794666563998836500,
+    "sha256": "87c8731d453dd000a93f342741db43d04ab71585caad35a664819c991da9850f"
+  },
+  "logs/feature-synthesis/B0/place.rpt": {
+    "size": 2018,
+    "mtime_ns": 1794666563999964700,
+    "sha256": "f2970622cc2dec4f866be3a19f8fdb0673fc0a05fbf89124f6c76147b60c99cc"
+  },
+  "logs/feature-synthesis/B0/timing.rpt": {
+    "size": 915408,
+    "mtime_ns": 1794666564001170800,
+    "sha256": "1c5d284c2c2b33fd0a0f0adc1d76131c5e8301ad6e85efb29d8d0f5d2854692a"
+  },
+  "logs/feature-synthesis/B0/warn.log": {
+    "size": 83660,
+    "mtime_ns": 1794666564001170800,
+    "sha256": "342fd25d888727c0e8d9e494a9511ad88d08291df0f6c7e384b97424a3228fe1"
+  },
+  "logs/runner/feature-synthesis.log": {
+    "size": 338,
+    "mtime_ns": 1794666564154097700,
+    "sha256": "25828f1bec6cbe4108402f190ac3f79c399565b0c408575bcb01e5cf55982d19"
+  }
+}

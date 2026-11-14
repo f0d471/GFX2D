@@ -167,8 +167,8 @@
     doc: Main/doc/赛题二总体设计.md
     section: 3.5 像素流水线
   rules:
-  - find: "            3'd0: begin // COPY     Fs=255 Fd=0\n\n                sel_base = {1'b0, src};"
-    replace: "            3'd0: begin // COPY     Fs=255 Fd=0\n\n                sel_base = {1'b0, src} + {1'b0, dst};"
+  - find: "            3'd0: begin // COPY     Fs=255 Fd=0\n                sel_base = {1'b0, src};"
+    replace: "            3'd0: begin // COPY     Fs=255 Fd=0\n                sel_base = {1'b0, src} + {1'b0, dst};"
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case narrow_copy
     evidence: 'MISMATCH #\d+: eq=0 '

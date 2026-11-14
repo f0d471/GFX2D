@@ -19,3 +19,6 @@ Main/sim/engine/frontend/logs/f4_* -whitespace
 
 # 外部变异闭环的原始输出与证据保持字节原样。
 Engineering/TechReports/platform/evidence/17-mutation-closure-20261114/** -whitespace
+
+# blend 排版复核的原始工具输出保留字节，手写文档与元数据仍检查空白。
+Engineering/TechReports/engine/evidence/01-blend-readability-20261114/*/logs/** -whitespace

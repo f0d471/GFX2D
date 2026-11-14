@@ -1,0 +1,5 @@
+规格侧 check_round255.c:
+  check_round255: 总判定：全部通过
+正常用例:
+  stall: RESULT: PASS
+收窄范围的快速用例:
