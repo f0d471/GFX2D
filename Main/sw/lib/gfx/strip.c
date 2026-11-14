@@ -162,12 +162,6 @@ clipped:
                                                    ((uint32_t)(sy+y0-dy)<<16);
         }
         out.w[7]=s*GFX_STRIP_CAP+counts[s];
-#ifdef INJ_STRIP_DROP
-        if(s!=s0)continue;
-#endif
-#ifdef INJ_STRIP_CLIP
-        out.w[2]++;
-#endif
 #ifdef GFX_FRONTEND_DETAIL_STORE
         DETAIL_BEGIN(store_start);
 #endif

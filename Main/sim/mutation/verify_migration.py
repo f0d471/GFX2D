@@ -53,11 +53,16 @@ def tokens(text: str) -> list[str]:
 
 
 def expand(path: Path, defs: list[str], work: Path) -> str:
+    """预处理一个源文件：Verilog 用 iverilog -E，C 用 gcc -E（只用于比对，不编译）。"""
     out = work / "expand.out"
-    cmd = ["iverilog", "-E", "-I", str(ROOT / INCLUDE), "-o", str(out), *[f"-D{d}" for d in defs], str(path)]
+    if path.suffix == ".c":
+        cmd = ["gcc", "-E", "-P", "-I", str(ROOT / "Main/sw/lib"), "-I", str(ROOT / "Main/sw/lib/core"),
+               "-I", str(ROOT / "Main/sw/lib/gfx"), "-o", str(out), *[f"-D{d}" for d in defs], str(path)]
+    else:
+        cmd = ["iverilog", "-E", "-I", str(ROOT / INCLUDE), "-o", str(out), *[f"-D{d}" for d in defs], str(path)]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode:
-        sys.exit(f"iverilog -E 失败：{' '.join(cmd)}\n{r.stderr}")
+        sys.exit(f"预处理失败：{' '.join(cmd)}\n{r.stderr[:400]}")
     return out.read_text(encoding="utf-8", errors="replace")
 
 
@@ -102,21 +107,27 @@ def main() -> int:
         detail = []
         for row in mutants:
             mid, macro = row["id"], row.get("macro", "")
-            find, repl = row["rule"]["find"], row["rule"]["replace"]
-            if post_text.count(find) != 1:
-                print(f"  {mid:<22} 规则匹配 {post_text.count(find)} 次，无法反演")
+            mutated = work / ("mut_" + Path(target).name)
+            text = post_text
+            ok_rules = True
+            for rule in row["rules"]:
+                if text.count(rule["find"]) != 1:
+                    ok_rules = False
+                    break
+                text = text.replace(rule["find"], rule["replace"])
+            if not ok_rules:
+                print(f"  {mid:<26} 规则匹配次数不是 1，无法反演")
                 ok_all = False
                 detail.append({"id": mid, "ok": False, "why": "规则不唯一"})
                 continue
-            mutated = work / ("mut_" + Path(target).name)
-            mutated.write_text(post_text.replace(find, repl), encoding="utf-8", newline="")
+            mutated.write_text(text, encoding="utf-8", newline="")
             want = tokens(expand(pre_file, [macro], work)) if macro else []
             got = tokens(expand(mutated, [], work))
             same = bool(want) and want == got
             ok_all &= same
-            detail.append({"id": mid, "macro": macro, "ok": same})
-            print(f"  {mid:<22} 反演 {'PASS' if same else 'FAIL'}  "
-                  f"{'-D' + macro if macro else '(无宏名)'}  {len(got)} token")
+            detail.append({"id": mid, "macro": macro, "ok": same, "rules": len(row["rules"])})
+            print(f"  {mid:<26} 反演 {'PASS' if same else 'FAIL'}  "
+                  f"{'-D' + macro if macro else '(无宏名)'}  {len(row['rules'])} 处  {len(got)} token")
 
         report[target] = {"forward": forward, "mutants": detail}
 

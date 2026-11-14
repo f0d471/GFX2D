@@ -47,10 +47,21 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 
 每个 `run.sh` 除了正常用例，还必须带注错用例：把一处改错，对应的判据必须报 FAIL。全部用例都符合预期才输出 `SIM OK`，否则退出码非零。只跑正常用例无法说明判据真的在检查东西。
 
-注错的机制、命名与提交前检查见 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节（原型是变异测试 / functional qualification，与安全标准的 fault injection 不同）。两种机制并存，以迁移进度为准：
+注错已统一为外部变异活动：生产源码不含任何注错分支，75 条变异体写在
+[`mutation/mutants.yaml`](mutation/mutants.yaml)，由 [`mutation/run_mutation.py`](mutation/run_mutation.py)
+在隔离影子树里施加后跑本目录的正常用例，按退出码与见红位置正则判定。机制、状态与命令见
+[mutation/README](mutation/README.md) 与 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节。
 
-- **外部变异活动（迁移目标，2026-11-14 起 `engine/blend`、`engine/pix` 已迁）**：生产 RTL 不含任何注错分支；变异体写在 [`mutation/mutants.yaml`](mutation/mutants.yaml)，由 [`mutation/run_mutation.py`](mutation/run_mutation.py) 在隔离影子树里应用一条规则后调用本目录的 `run.sh --case <名字>`，按登记的见红位置正则判定 KILLED / KILLED-WEAK / SURVIVED / PARTIAL / INVALID。见 [mutation/README](mutation/README.md)。
-- **条件编译（其余模块仍在用）**：变异分支包在 `` `ifdef INJ_xxx `` 内，开关由 `run.sh` 以 `-DINJ_xxx` 传入，不定义时那些行进不了编译输入。`sim/` 下不综合的研究探针（`probe_*.v`）例外，它们继续用参数化注错口，不进网表。
+| 模块 | 清单里的 id 前缀 | 发现它的正常用例 |
+| --- | --- | --- |
+| blend / pix | `blend.*` / `pix.*` | `blend` 的 `exhaustive`、`stall`、`narrow_*`；`pix` 的 `unit_stall`、`pipe_burst`、`path_golden` |
+| geom / mover | `geom.*` / `mover.*` | `geom_directed`、`geom_rfstall`；`normal`、`drain` |
+| cmd / inst / bin | `cmd.*` / `inst.*` / `bin.*` | `ctrl` 的 `engine_top`；`check_f4_instances.py`；`check_f5_bin.py` |
+| band / stripctl / g4 | `band.*`、`strip.*`、`exec_sw.*`、`top.*` | `check_g2_band.py`；`check_g3_stripctl.py`；`check_g4_integration.py --rtl` |
+| rast / rlst / tex | `rast.*`、`rlst.*`、`tex.*` | `check_r2.py --group rtl` / `--group rlst`；`tex` 的 `normal`、`normal_latency2` |
+| display | `display_fetch.*`、`display_out.*` | `image`、`starve`、`inflight`、`swap` |
+
+测试台与探针自己的注错口（`INJECT*`）保留：它们不碰生产源码，也不进网表。
 
 | 用例 | 注错内容 | 期望 |
 | --- | --- | --- |
@@ -65,21 +76,6 @@ wsl -e bash -c 'bash sim/<目录>/run.sh'
 | `axi_mux_guard/inject_noguard` | 关掉 SoC 防饿死保护（`GUARD_EN=0`），激进读引擎 | FAIL，最大地址等待超过同一阈值（实测 889 > 700） |
 | `axi_mux_guard/inject_mask_s0` | 让保护掩码把 S0 位也清掉 | FAIL，扫描拿不到授权 |
 | `axi_mux_guard/inject_wlast` | 引擎替身的 WLAST 打一拍（2026-09-19 之前的真实 bug） | FAIL，从机 `wlast_err` 非零 |
-| `sim/mutation` 的 `blend.*` 五条 | CONST 代入写错、`t` 模截断到 16 位、`base×255` 不取寄存值、COPY 的 `base` 误取 `src + dst`、级 2 不看 `en` | 由跑器施加，不是 `run.sh` 的用例；期望见红位置登记在 `mutants.yaml` 的 `runs[].evidence` |
-| `engine/mover/inject_nogate_rd` | 去掉读方向的在途门控（`-DINJ_NO_GATE_RD`），读核一 ready 就放下一个 | FAIL，读流上下文错位（拍子带的目标缓冲号与命令索引属于另一笔），总线侧也有违例周期 |
-| `engine/mover/inject_mask` | 带内掩码旁路（`-DINJ_MASK_BYPASS`），`wstrb` 与 X 字节直通 | FAIL，被标记「不写」的像素被写进了目的区 |
-| `engine/mover/inject_nodrain` | 排空旁路（`-DINJ_DRAIN_BYPASS`），排空期不帮忙收读流、也不补哑拍 | FAIL，两个方向都停在忙态，排空完成等不到 |
-| `engine/mover/inject_nogate_wr` | 去掉写方向的在途门控（`-DINJ_NO_GATE_WR`） | FAIL，上一笔写还没结束就接受了下一个写描述符 |
-| `engine/mover/inject_drain_level` | 排空按电平重进（`-DINJ_DRAIN_LEVEL`），且只在排空态里挡提交 | FAIL，请求举着时 `drain_done` 打了两次，退出排空那一拍接受了新的读描述符 |
-| `engine/mover/inject_no_tlast` | 正常写流不打 `tlast`（`-DINJ_NO_TLAST`，早期版本靠计算阵列给而它没给） | FAIL，写核进 `DROP_DATA`，吞掉下一笔的写流 |
-| `engine/geom/inject_nosrc` | `-DINJ_SKIP_SURF`：求交跳过第五项（源表面） | FAIL，逐条比对见红：矩形变大，边带、读描述符、写描述符都不同 |
-| `engine/geom/inject_no4k` | `-DINJ_NO_SPLIT`：跨 4KB 不拆，一个描述符盖过页边界 | FAIL，`RULE1 ... crosses 4KB` |
-| `engine/geom/inject_alpha` | `-DINJ_ALPHA_AS_COPY`：ALPHA 也按 COPY 走「不读目的」的避让 | FAIL，`sideband read-dst` 判定不一致，读描述符少一半 |
-| `engine/geom/inject_extra` | `-DINJ_COPY_READ`：COPY 也发读目的描述符（边带仍说不读） | FAIL，握手监视器的 `PROTO handshake count`（消费循环看不见多发的描述符） |
-| `engine/geom/inject_norf` | `-DINJ_ROW_NOFREE`：行开始之前不看 `row_free`，配 `+RFSTALL` | FAIL，行缓冲替身的 `BUFERR ... started on busy half` |
-| `sim/mutation` 的 `pix.*` 五条 | 旋转错一个位置、色键命中的像素照写、丢首拍掩码、计算链不看下游反压、混合核不随流水停 | 由跑器施加；`unit_stall`、`pipe_burst`、`path_golden` 各自负责其中几条，见红位置登记在 `mutants.yaml` |
-| `engine/tex` 的四个注错 | `-DINJ_VALID_EARLY`、`-DINJ_WR_LOOSE`、`-DINJ_STAT_DROP`、`-DINJ_TX_NOWAIT` | FAIL，证据行分别是 `STR-DATA`、`APB-UNALIGN-SIDE-EFFECT`、`TEX INJECT 4 STATUS_MISSING`、`PIXEL_STREAM_COLLISION` |
-| `display` 的七个注错 | `-DINJ_NO_DRAIN`、`-DINJ_NO_CLEAR`、`-DINJ_SWAP_NOW`、`-DINJ_INFLIGHT2`、`-DINJ_LAG0`、`-DINJ_PHASE3`、`-DINJ_ORDER_REV` | FAIL，各自红在对应的判据上 |
 | `engine/geom` 的探针注错 | `probe_geom.v` 的 `INJECT`（跨 4KB 不拆、漏第五项、`probe_geom_d7` 的 ALPHA 误避让） | FAIL，各自红在探针自己的判据上（14/14 → 见红） |
 
 后两个 `apb_probe` 注错对应的是顶层曾经真实存在的 bug：APB 信号在顶层没有声明，被当成 1 位线，32 位地址和数据都被截断。

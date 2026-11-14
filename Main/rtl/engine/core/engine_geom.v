@@ -170,22 +170,15 @@ module engine_geom #(
             t_y1 = (dy1 < 18'sd479) ? dy1 : 18'sd479;
             if ($signed({{2{clip_x1[15]}}, clip_x1}) < t_x1) t_x1 = {{2{clip_x1[15]}}, clip_x1};
             if ($signed({{2{clip_y1[15]}}, clip_y1}) < t_y1) t_y1 = {{2{clip_y1[15]}}, clip_y1};
-`ifdef INJ_BAND_CLIP
-            // 注错：漏掉当前条带求交。
-`else
             if(band_enable) begin
                 if($signed({2'b00,band_y0})>t_y0) t_y0=$signed({2'b00,band_y0});
                 if($signed({2'b00,band_y0})+BAND_H18-18'sd1<t_y1)
                     t_y1=$signed({2'b00,band_y0})+BAND_H18-18'sd1;
             end
-`endif
             if ($signed(p_dsw) - 18'sd1 < t_x1) t_x1 = $signed(p_dsw) - 18'sd1;
             if ($signed(p_dsh) - 18'sd1 < t_y1) t_y1 = $signed(p_dsh) - 18'sd1;
 
             // 第五项：源表面
-`ifdef INJ_SKIP_SURF
-            // 注错：整块跳过第五项求交
-`else
             if (op == OP_BLIT) begin
                 if (p_dx - p_sx > t_x0) t_x0 = p_dx - p_sx;
                 if (p_dy - p_sy > t_y0) t_y0 = p_dy - p_sy;
@@ -194,7 +187,6 @@ module engine_geom #(
                 if (s_hi_x < t_x1) t_x1 = s_hi_x;
                 if (s_hi_y < t_y1) t_y1 = s_hi_y;
             end
-`endif
 
             if ((t_x1 < t_x0) || (t_y1 < t_y0)) i_empty = 1'b1;
             else                                    i_empty = 1'b0;
@@ -210,18 +202,10 @@ module engine_geom #(
 
     // 读写避让判定；声明放在用它的段计算之前（先用后声明可移植性没有保证）。
     wire d7_read_dst;
-`ifdef INJ_ALPHA_AS_COPY
-    assign d7_read_dst = ((r_eq == EQ_COPY) || (r_eq == EQ_ALPHA));  // 注错：ALPHA 也按 COPY
-`else
     assign d7_read_dst = !(r_eq == EQ_COPY);
-`endif
     // 本行发不发读目的描述符：注错版让 COPY 也发，而边带仍说不读，
     // 测试台的握手计数要抓住多出来的那几笔。
-`ifdef INJ_COPY_READ
-    wire seg_read_dst = 1'b1;             // 注错：COPY 也发读目的描述符
-`else
     wire seg_read_dst = d7_read_dst;
-`endif
 
     // 本行的段：从 dst_cur / src_cur / nb 算出本行最多六个候选段与一个边带槽
     reg [31:0] a0, a1, alen;
@@ -249,11 +233,7 @@ module engine_geom #(
         a1   = (dst_cur + nb + 32'd15) & 32'hFFFFFFF0;
         alen = a1 - a0;
         page_left = 13'h1000 - {1'b0, a0[11:0]};
-`ifdef INJ_NO_SPLIT
-        xcross = 1'b0;                       // 注错：跨 4KB 不拆
-`else
         xcross = (({19'b0, a0[11:0]} + {19'b0, alen[11:0]}) > 32'h1000);
-`endif
         if (xcross) begin
             b0 = (page_left > {1'b0, max_bytes}) ? max_bytes : page_left[11:0];
             b1 = alen[11:0] - b0;
@@ -266,11 +246,7 @@ module engine_geom #(
         s_a1  = (src_cur + nb + 32'd15) & 32'hFFFFFFF0;
         s_len = s_a1 - s_a0;
         page_left_s = 13'h1000 - {1'b0, s_a0[11:0]};
-`ifdef INJ_NO_SPLIT
-        sxcross = 1'b0;                      // 注错：跨 4KB 不拆
-`else
         sxcross = (({19'b0, s_a0[11:0]} + {19'b0, s_len[11:0]}) > 32'h1000);
-`endif
         if (sxcross) begin
             s_b0 = (page_left_s > {1'b0, max_bytes}) ? max_bytes : page_left_s[11:0];
             s_b1 = s_len[11:0] - s_b0;
@@ -330,16 +306,9 @@ module engine_geom #(
     wire last_row_now = (row_i == (nrows - 16'd1));
 
     // 行缓冲那一半空没空
-`ifdef INJ_ROW_NOFREE
-    // 注错：不看 row_free，直接开下一行
-    wire rf_first = 1'b1;                 // 命令的第 0 行
-    wire rf_cur   = 1'b1;                 // S_GATE 里等的这一行
-    wire rf_next  = 1'b1;                 // S_ADV 要推进到的下一行
-`else
     wire rf_first = row_free[0];          // 命令的第 0 行
     wire rf_cur   = row_free[row_i[0]];   // S_GATE 里等的这一行
     wire rf_next  = row_free[~row_i[0]];  // S_ADV 要推进到的下一行
-`endif
 
     always @* begin
         sb_valid      = cur_sb;

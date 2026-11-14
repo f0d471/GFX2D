@@ -81,10 +81,8 @@ run_case() {  # <名字> <期望 PASS|FAIL> [注错开关]
 
 run_case normal PASS
 G1_EXTRA_DEFS='-Ptb_engine_tex.TEX_LATENCY=2' run_case normal_latency2 PASS
-run_case inj_valid FAIL -DINJ_VALID_EARLY
-run_case inj_unalign FAIL -DINJ_WR_LOOSE
-run_case inj_stat FAIL -DINJ_STAT_DROP
-run_case inj_stream FAIL -DINJ_TX_NOWAIT
+# 变异（外部活动）：四个变异体在 Main/sim/mutation/mutants.yaml，
+# 由 normal / normal_latency2 承担发现责任。
 
 if [ $bad = 0 ]; then
     echo "SIM OK: 6 checks as expected"

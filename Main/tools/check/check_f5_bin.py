@@ -86,17 +86,9 @@ def frame():
     print('F5 FRAME PASS pixels/padding/READY/AXI_counters',flush=True)
 
 def mutations():
-    control=compile_rtl('bin_control','tb_engine_bin')
-    out=run('bin_control',['vvp','-n',control,'+CASES='+str(BUILD/'bin_cases.dat'),'+LIMIT=32'])
-    assert 'RESULT: PASS' in out
-    for name in ['CLIP','ORDER','SKIP','READY','HIGH_BYTE','STALE']:
-        binary=compile_rtl('mut_'+name,'tb_engine_bin',['INJ_BIN_'+name])
-        p=subprocess.run(['vvp','-n',str(binary),'+CASES='+str(BUILD/'bin_cases.dat'),'+LIMIT=32'],
-                         cwd=ROOT,capture_output=True,text=True,timeout=120)
-        out=p.stdout+p.stderr
-        (LOGS/('f5_mut_'+name+'.log')).write_text(out,encoding='utf-8')
-        assert p.returncode and 'FAIL' in out,'变异未被消费者捕获 '+name
-        print('F5 MUTATION RED '+name,flush=True)
+    # 六个变异体（bin.clip/order/skip/ready/high_byte/stale）已移到
+    # Main/sim/mutation/mutants.yaml，由上面的分桶正常用例承担发现责任。
+    print('F5 MUTATIONS delegated to Main/sim/mutation/mutants.yaml',flush=True)
 
 def protocols():
     for n in [*range(1,9),12,13,14,15,17,18,20,21,22,23,24,25]:

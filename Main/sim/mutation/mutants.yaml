@@ -1,7 +1,178 @@
-# 变异清单（唯一真相）。每条记录对应一处生产 RTL 的故意改错。
-# 字段：defect 缺陷模型；spec 规格出处；rule 字面替换（必须唯一匹配）；
-# runs 应发现它的用例与见红位置正则（旧名 macro 只用于追溯原开关）。
+# 变异清单（唯一真相）。每条记录对应一处生产源码的故意改错。
+# 字段：defect 缺陷模型；spec 规格出处；rules 字面替换（每条必须唯一匹配，同一宏可多处）；
+# runs 应发现它的命令与见红位置正则；macro 只用于追溯原来的 ifdef 开关。
 # 校验与执行：run_mutation.py；迁移等价性：verify_migration.py。
+- id: band.band_addr_stride
+  target: Main/rtl/engine/buffer/engine_band.v
+  macro: INJ_BAND_ADDR_STRIDE
+  defect: 地址与对齐
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rules:
+  - find: '            idx = yy * ROW_WORDS + col;'
+    replace: '            idx = (yy << 8) + col; // 注错：按 256 词固定行距换算，行宽不同时错位'
+  runs:
+  - cmd: python3 Main/tools/check/check_g2_band.py
+    log: Main/sim/engine/band/logs
+    evidence: ''
+  note: 注错：按 256 词固定行距换算，行宽不同时错位
+- id: band.band_early_flush
+  target: Main/rtl/engine/buffer/engine_band.v
+  macro: INJ_BAND_EARLY_FLUSH
+  defect: 排空与生命周期
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rules:
+  - find: '    assign flush_ready = (phase == EXEC) && !rd_busy && !wr_busy && !cancel && !lease_blk;'
+    replace: '    assign flush_ready = (phase == EXEC) && !cancel; // 注错：flush 提前，本地流没收尾'
+  runs:
+  - cmd: python3 Main/tools/check/check_g2_band.py
+    log: Main/sim/engine/band/logs
+    evidence: ''
+  note: 注错：flush 提前，本地流没收尾
+- id: band.band_flush_addr
+  target: Main/rtl/engine/buffer/engine_band.v
+  macro: INJ_BAND_FLUSH_ADDR
+  defect: 地址与对齐
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rules:
+  - find: '    assign dma_wr_addr = dst_cursor;'
+    replace: '    assign dma_wr_addr = dst_cursor + 32''d16; // 注错：flush 地址偏 16 字节'
+  runs:
+  - cmd: python3 Main/tools/check/check_g2_band.py
+    log: Main/sim/engine/band/logs
+    evidence: ''
+  note: 注错：flush 地址偏 16 字节
+- id: band.band_pixel_mask
+  target: Main/rtl/engine/buffer/engine_band.v
+  macro: INJ_BAND_PIXEL_MASK
+  defect: 掩码与写通道
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rules:
+  - find: "        assign ram_we[p] = !rst && (fill_write ||\n            (pixel_write && !bad_keep && !ws_data[32*p+31]) || ras_we_vec[p]);"
+    replace: '        assign ram_we[p] = !rst && (fill_write || (pixel_write && !bad_keep) || ras_we_vec[p]); // 注错：bit31 不写标记失效'
+  runs:
+  - cmd: python3 Main/tools/check/check_g2_band.py
+    log: Main/sim/engine/band/logs
+    evidence: ''
+  note: 注错：bit31 不写标记失效
+- id: band.rast_pix_trunc
+  target: Main/rtl/engine/buffer/engine_band.v
+  macro: INJ_RAST_PIX_TRUNC
+  defect: 位宽与截断
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rules:
+  - find: '    wire [RAST_PIX_AW-1:0] ras_pix = ras_wr_pix;'
+    replace: "    // 注错：像素号截到 11 位，每 2048 个位置别名一次\n    wire [RAST_PIX_AW-1:0] ras_pix = {{(RAST_PIX_AW-11){1'b0}}, ras_wr_pix[10:0]};"
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: 注错：像素号截到 11 位，每 2048 个位置别名一次
+- id: bin.bin_clip
+  target: Main/rtl/engine/frontend/engine_bin.v
+  macro: INJ_BIN_CLIP
+  defect: 表面谓词
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.4 命令与软件接口
+  rules:
+  - find: '    reg [31:0] xy,uv;'
+    replace: "    reg [63:0] inj_last_clip;\n    reg [31:0] xy,uv;"
+  - find: '                    clip<=read_beat[63:0];'
+    replace: '                    clip<=inj_last_clip;'
+  - find: "                    packets<=index;scan<=0;prefix<=0;total_refs<=0;read_bucket(0,PREFIX);end\n                     else if(io_ready)io(0,input_base+(index<<5),32,512'd0,GOT);"
+    replace: "                    inj_last_clip<=clip;\n                    packets<=index;scan<=0;prefix<=0;total_refs<=0;read_bucket(0,PREFIX);end\n                     else if(io_ready)io(0,input_base+(index<<5),32,512'd0,GOT);"
+  - find: '                        packets<=index;scan<=0;prefix<=0;total_refs<=0;read_bucket(0,PREFIX);end'
+    replace: "                        inj_last_clip<=clip;\n                        packets<=index;scan<=0;prefix<=0;total_refs<=0;read_bucket(0,PREFIX);end"
+  runs:
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: TODO
+- id: bin.bin_high_byte
+  target: Main/rtl/engine/frontend/engine_bin.v
+  macro: INJ_BIN_HIGH_BYTE
+  defect: 位宽与截断
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.4 命令与软件接口
+  rules:
+  - find: "                        io(1,pb_base+reference_offset+ram_offset+((ram_cursor-1)<<3),16,\n                            {384'd0,current_ref,ram_half},WROTE);"
+    replace: "                        io(1,pb_base+reference_offset+ram_offset+((ram_cursor-1)<<3),16,\n                            {384'd0,32'd0,index,ram_half},WROTE);"
+  runs:
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: TODO
+- id: bin.bin_order
+  target: Main/rtl/engine/frontend/engine_bin.v
+  macro: INJ_BIN_ORDER
+  defect: 顺序与拍对齐
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.4 命令与软件接口
+  rules:
+  - find: '    wire [63:0] current_ref={packet[7:0]==5?instance_id:32''hffffffff,index};'
+    replace: '    wire [63:0] current_ref={packet[7:0]==5?instance_id:32''hffffffff,index+32''d1};'
+  runs:
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: TODO
+- id: bin.bin_ready
+  target: Main/rtl/engine/frontend/engine_bin.v
+  macro: INJ_BIN_READY
+  defect: 状态与生命周期
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.4 命令与软件接口
+  rules:
+  - find: '    localparam [31:0] INIT_STATUS=1;'
+    replace: '    localparam [31:0] INIT_STATUS=2;'
+  runs:
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: TODO
+- id: bin.bin_skip
+  target: Main/rtl/engine/frontend/engine_bin.v
+  macro: INJ_BIN_SKIP
+  defect: 状态与生命周期
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.4 命令与软件接口
+  rules:
+  - find: '                        if(packet[79:64]==0)state<=NEXT;'
+    replace: "                        if(second_pass)state<=NEXT;\n                        else\n                        if(packet[79:64]==0)state<=NEXT;"
+  runs:
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: TODO
+- id: bin.bin_stale
+  target: Main/rtl/engine/frontend/engine_bin.v
+  macro: INJ_BIN_STALE
+  defect: 状态与生命周期
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.4 命令与软件接口
+  rules:
+  - find: '                    state<=CLEAR;'
+    replace: '                    state<=frame_seen?INIT:CLEAR;'
+  runs:
+  - cmd: python3 Main/tools/check/check_f5_bin.py --models --bin --frame --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: TODO
 - id: blend.copy_dst
   target: Main/rtl/engine/core/engine_blend.v
   macro: INJ_COPY_DST
@@ -9,71 +180,14 @@
   spec:
     doc: Main/doc/赛题二总体设计.md
     section: 3.5 像素流水线
-  rule:
-    find: "            3'd0: begin // COPY     Fs=255 Fd=0\n\n                sel_base = {1'b0, src};"
+  rules:
+  - find: "            3'd0: begin // COPY     Fs=255 Fd=0\n\n                sel_base = {1'b0, src};"
     replace: "            3'd0: begin // COPY     Fs=255 Fd=0\n\n                sel_base = {1'b0, src} + {1'b0, dst};"
   runs:
-  - suite: engine/blend
-    case: narrow_copy
+  - cmd: bash Main/sim/engine/blend/run.sh --case narrow_copy
+    log: Main/sim/engine/blend/build
     evidence: 'MISMATCH #\d+: eq=0 '
-  expect:
-    status: FAIL
-    evidence: ''
   note: COPY 的 Fd 是 0，目的像素不得进入结果；只有让不用的输入变化，这条约束才看得出
-- id: blend.wrong_eq
-  target: Main/rtl/engine/core/engine_blend.v
-  macro: INJ_WRONG_EQ
-  defect: 运算恒等
-  spec:
-    doc: Main/doc/赛题二总体设计.md
-    section: 3.5 像素流水线
-  rule:
-    find: "            3'd3: begin // CONST    Fs=c   Fd=255-c\n\n                sel_base = {1'b0, dst};\n                sel_m1   = $signed({1'b0, src}) - $signed({1'b0, dst});"
-    replace: "            3'd3: begin // CONST    Fs=c   Fd=255-c\n\n                sel_base = {1'b0, src};\n                sel_m1   = $signed({1'b0, dst}) - $signed({1'b0, src});"
-  runs:
-  - suite: engine/blend
-    case: narrow_const
-    evidence: 'MISMATCH #\d+: eq=3 '
-  expect:
-    status: FAIL
-    evidence: ''
-  note: CONST 的 base 与 m1 同时取错后 base×255+m1×m2 不再恒等于规格算式
-- id: blend.unreg_c
-  target: Main/rtl/engine/core/engine_blend.v
-  macro: INJ_UNREG_C
-  defect: 流水对齐
-  spec:
-    doc: Main/doc/赛题二总体设计.md
-    section: 3.5 像素流水线
-  rule:
-    find: '    wire signed [17:0] c_stage = $signed(r_c);  // c255 恒正（<= 130050 < 2^17，第 17 位为 0），按 18 位有符号给进 DSP 的 C 口。'
-    replace: '    wire signed [17:0] c_stage = $signed(c255_comb);'
-  runs:
-  - suite: engine/blend
-    case: narrow_unreg
-    evidence: 'MISMATCH #\d+: eq=1 '
-  expect:
-    status: FAIL
-    evidence: ''
-  note: 级 2 必须用级 1 寄存的 base×255，否则两拍的操作数被相加
-- id: blend.x_no_en
-  target: Main/rtl/engine/core/engine_blend.v
-  macro: INJ_X_NO_EN
-  defect: 停顿时序
-  spec:
-    doc: Main/doc/赛题二总体设计.md
-    section: 3.5 像素流水线
-  rule:
-    find: '        if (en) r_x <= x_comb;'
-    replace: '        r_x <= x_comb;'
-  runs:
-  - suite: engine/blend
-    case: stall
-    evidence: 'MISMATCH #\d+: eq='
-  expect:
-    status: FAIL
-    evidence: ''
-  note: 停顿期间级 2 不得推进；同一份源码在 exhaustive 上 PASS，只有插停顿拍才见红
 - id: blend.trunc16
   target: Main/rtl/engine/core/engine_blend.v
   macro: INJ_TRUNC16
@@ -81,38 +195,607 @@
   spec:
     doc: Main/doc/赛题二总体设计.md
     section: 3.5 像素流水线
-  rule:
-    find: '    wire [17:0] t      = t_full;'
+  rules:
+  - find: '    wire [17:0] t      = t_full;'
     replace: '    wire [17:0] t      = {2''b00, t_full[15:0]};'
   runs:
-  - suite: engine/blend
-    case: narrow_trunc
+  - cmd: bash Main/sim/engine/blend/run.sh --case narrow_trunc
+    log: Main/sim/engine/blend/build
     evidence: 'MISMATCH #\d+: eq=2 '
-  expect:
-    status: FAIL
-    evidence: ''
   note: t 模截断到 16 位会丢进位，规格写明中间量不得截断
-- id: pix.en_notready
-  target: Main/rtl/engine/core/engine_pix.v
-  macro: INJ_EN_NOTREADY
-  defect: 握手反压
+- id: blend.unreg_c
+  target: Main/rtl/engine/core/engine_blend.v
+  macro: INJ_UNREG_C
+  defect: 流水对齐
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.5 像素流水线
+  rules:
+  - find: '    wire signed [17:0] c_stage = $signed(r_c);  // c255 恒正（<= 130050 < 2^17，第 17 位为 0），按 18 位有符号给进 DSP 的 C 口。'
+    replace: '    wire signed [17:0] c_stage = $signed(c255_comb);'
+  runs:
+  - cmd: bash Main/sim/engine/blend/run.sh --case narrow_unreg
+    log: Main/sim/engine/blend/build
+    evidence: 'MISMATCH #\d+: eq=1 '
+  note: 级 2 必须用级 1 寄存的 base×255，否则两拍的操作数被相加
+- id: blend.wrong_eq
+  target: Main/rtl/engine/core/engine_blend.v
+  macro: INJ_WRONG_EQ
+  defect: 运算恒等
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.5 像素流水线
+  rules:
+  - find: "            3'd3: begin // CONST    Fs=c   Fd=255-c\n\n                sel_base = {1'b0, dst};\n                sel_m1   = $signed({1'b0, src}) - $signed({1'b0, dst});"
+    replace: "            3'd3: begin // CONST    Fs=c   Fd=255-c\n\n                sel_base = {1'b0, src};\n                sel_m1   = $signed({1'b0, dst}) - $signed({1'b0, src});"
+  runs:
+  - cmd: bash Main/sim/engine/blend/run.sh --case narrow_const
+    log: Main/sim/engine/blend/build
+    evidence: 'MISMATCH #\d+: eq=3 '
+  note: CONST 的 base 与 m1 同时取错后 base×255+m1×m2 不再恒等于规格算式
+- id: blend.x_no_en
+  target: Main/rtl/engine/core/engine_blend.v
+  macro: INJ_X_NO_EN
+  defect: 停顿时序
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.5 像素流水线
+  rules:
+  - find: '        if (en) r_x <= x_comb;'
+    replace: '        r_x <= x_comb;'
+  runs:
+  - cmd: bash Main/sim/engine/blend/run.sh --case stall
+    log: Main/sim/engine/blend/build
+    evidence: 'MISMATCH #\d+: eq='
+  note: 停顿期间级 2 不得推进；同一份源码在 exhaustive 上 PASS，只有插停顿拍才见红
+- id: cmd.chk_swap
+  target: Main/rtl/engine/core/engine_cmd.v
+  macro: INJ_CHK_SWAP
+  defect: 错误码与判定
   spec:
     doc: Main/rtl/engine/engine-manual.md
-    section: 4.3 计算阵列（engine_pix）
-  rule:
-    find: '    wire pipe_en = ws_tready || !ws_tvalid; // 出口空着就不等 ready'
-    replace: '    wire pipe_en = 1''b1;'
+    section: 4.1 命令层取数契约（engine_cmd）
+  rules:
+  - find: '    wire [4:0] chk = v_norm;'
+    replace: '    wire [4:0] chk = v_swap;              // 注错：用对调 space/format 的错误码'
   runs:
-  - suite: engine/pix
-    case: unit_stall
-    evidence: BEATS_OR_GAP n=
-  - suite: engine/pix
-    case: pipe_burst
-    evidence: PIX_MISMATCH beat=
-  expect:
-    status: FAIL
+  - cmd: bash Main/sim/engine/ctrl/run.sh
+    log: Main/sim/engine/ctrl/build
+    evidence: 'engine_top: RESULT: FAIL'
+  note: 注错：用对调 space/format 的错误码
+- id: cmd.inst_early_done
+  target: Main/rtl/engine/core/engine_cmd.v
+  macro: INJ_INST_EARLY_DONE
+  defect: 实例展开
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.1 命令层取数契约（engine_cmd）
+  rules:
+  - find: "`endif\n                    if (wr_stat_valid && wr_stat_err) begin"
+    replace: "                    if(inst_active && geom_busy)done_set<=1;\n`endif\n                    if (wr_stat_valid && wr_stat_err) begin"
+  runs:
+  - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
+    log: Main/sim/engine/frontend/logs
     evidence: ''
-  note: 出口未 ready 时计算链必须保持；恒 ready 的测试台看不见，必须靠停顿用例
+  note: TODO
+- id: cmd.inst_state
+  target: Main/rtl/engine/core/engine_cmd.v
+  macro: INJ_INST_STATE
+  defect: 实例展开
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.1 命令层取数契约（engine_cmd）
+  rules:
+  - find: "`endif\n                    if (wr_stat_valid && wr_stat_err) begin"
+    replace: "                    if(inst_active)inst_packet[127:96]<=0;\n`endif\n                    if (wr_stat_valid && wr_stat_err) begin"
+  runs:
+  - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: TODO
+- id: cmd.inst_xyuv
+  target: Main/rtl/engine/core/engine_cmd.v
+  macro: INJ_INST_XYUV
+  defect: 实例展开
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.1 命令层取数契约（engine_cmd）
+  rules:
+  - find: '                        w0<={inst_packet[127:96],inst_xy,inst_uv,inst_packet[31:8],8''h02};'
+    replace: '                        w0<={inst_packet[127:96],inst_uv,inst_xy,inst_packet[31:8],8''h02};'
+  runs:
+  - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: TODO
+- id: cmd.no_fb
+  target: Main/rtl/engine/core/engine_cmd.v
+  macro: INJ_NO_FB
+  defect: 错误码与判定
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.1 命令层取数契约（engine_cmd）
+  rules:
+  - find: "                    err_index <= global_bi;\n                    err_tag   <= 32'd0;\n                    st        <= S_TERM;\n                end else if (fe_done && fe_owner == 2'd0) begin\n                    if (fe_err) begin"
+    replace: "                    err_index <= global_bi;\n                    err_tag   <= 32'd0;\n                    st        <= S_TERM;\n                end else if (fe_done && fe_owner == 2'd0) begin\n                    if (fe_err) begin\n                        err_set   <= 1'b1;              // 注错：关掉逐条回退\n                        err_code  <= EC_ERR_FETCH;\n                        err_index <= global_bi;\n                        err_tag   <= 32'd0;\n                        st        <= S_TERM;\n                    end else if (fe_err) begin"
+  - find: '                        st <= S_PERW;'
+    replace: "                        pend_err  <= 1'b1;      // 注错：关掉逐条回退\n                        err_code  <= EC_ERR_FETCH;\n                        err_index <= global_nbi;\n                        err_tag   <= 32'd0;\n                        st        <= S_TERM;"
+  runs:
+  - cmd: bash Main/sim/engine/ctrl/run.sh
+    log: Main/sim/engine/ctrl/build
+    evidence: 'engine_top: RESULT: FAIL'
+  note: 注错：关掉逐条回退
+- id: cmd.strip_header_offset
+  target: Main/rtl/engine/core/engine_cmd.v
+  macro: INJ_STRIP_HEADER_OFFSET
+  defect: 地址与对齐
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.1 命令层取数契约（engine_cmd）
+  rules:
+  - find: '                        base_r<=table_base+({27''d0,strip_id}+32''d1)*32768;'
+    replace: '                        base_r<=table_base+{27''d0,strip_id}*32768;'
+  runs:
+  - cmd: python3 Main/tools/check/check_g4_integration.py --rtl
+    evidence: ''
+  note: TODO
+- id: cmd.strip_local_y
+  target: Main/rtl/engine/core/engine_cmd.v
+  macro: INJ_STRIP_LOCAL_Y
+  defect: 条带语义
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.1 命令层取数契约（engine_cmd）
+  rules:
+  - find: "`ifdef GFX_HAS_STRIP\n                    i1_dst_y <= bmode ? $signed(w0[95:80] + band_y0) : $signed(w0[95:80]);\n`else\n                    i1_dst_y <= $signed(w0[95:80]);\n`endif"
+    replace: '                    i1_dst_y <= $signed(w0[95:80]);'
+  runs:
+  - cmd: python3 Main/tools/check/check_g4_integration.py --rtl
+    evidence: ''
+  note: TODO
+- id: display_fetch.inflight2
+  target: Main/rtl/display/display_fetch.v
+  macro: INJ_INFLIGHT2
+  defect: 门控与在途
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.7 双缓冲与帧节拍
+  rules:
+  - find: "    assign can_issue = (state == S_RUN) && started && en_eff && !ar_valid && !fs_event &&\n                       !in_flight && (row < V_ACTIVE) && room_for_line;"
+    replace: "    // 注错：允许两笔在途\n    assign can_issue = (state == S_RUN) && started && en_eff && !ar_valid && !fs_event &&\n                       (row < V_ACTIVE) && room_for_line;"
+  runs:
+  - cmd: bash Main/sim/display/run.sh
+    log: Main/sim/display/build
+    evidence: 'inflight: RESULT: FAIL'
+  note: 注错：允许两笔在途
+- id: display_fetch.no_clear
+  target: Main/rtl/display/display_fetch.v
+  macro: INJ_NO_CLEAR
+  defect: 切换与排空
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.7 双缓冲与帧节拍
+  rules:
+  - find: '                    fifo_rst <= 1''b1;'
+    replace: '                    fifo_rst <= 1''b0;             // 注错：场起始不清 FIFO'
+  runs:
+  - cmd: bash Main/sim/display/run.sh
+    log: Main/sim/display/build
+    evidence: 'image: RESULT: FAIL'
+  note: 注错：场起始不清 FIFO
+- id: display_fetch.no_drain
+  target: Main/rtl/display/display_fetch.v
+  macro: INJ_NO_DRAIN
+  defect: 切换与排空
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.7 双缓冲与帧节拍
+  rules:
+  - find: '                        state <= (in_flight || ar_valid) ? S_DRAIN : S_RESET;'
+    replace: '                        state <= S_RESET;'
+  runs:
+  - cmd: bash Main/sim/display/run.sh
+    log: Main/sim/display/build
+    evidence: 'starve: RESULT: FAIL'
+  note: TODO
+- id: display_fetch.swap_now
+  target: Main/rtl/display/display_fetch.v
+  macro: INJ_SWAP_NOW
+  defect: 切换与排空
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.7 双缓冲与帧节拍
+  rules:
+  - find: "\n            // SWAP_REQ 的请求位：软件写它（写 0 撤销），场起始那一刻锁存并清零"
+    replace: "            // 注错 SWAP_NOW：写请求立刻切换，不等场起始（会切出撕裂帧）\n            if (swap_write) begin\n                base_eff   <= back_sh;\n                front_base <= back_sh;\n                swap_count <= swap_count + 32'h1;\n            end\n\n            // SWAP_REQ 的请求位：软件写它（写 0 撤销），场起始那一刻锁存并清零"
+  - find: "            if (swap_wr_any)\n                swap_req_sh <= pwdata[0];"
+    replace: "            if (swap_wr_any)\n                swap_req_sh <= 1'b0;      // 注错：请求位不再由软件置起"
+  runs:
+  - cmd: bash Main/sim/display/run.sh
+    log: Main/sim/display/build
+    evidence: 'swap: RESULT: FAIL'
+  note: 注错 SWAP_NOW：写请求立刻切换，不等场起始（会切出撕裂帧）
+- id: display_out.lag0
+  target: Main/rtl/display/display_out.v
+  macro: INJ_LAG0
+  defect: 顺序与拍对齐
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.7 双缓冲与帧节拍
+  rules:
+  - find: '    wire [1:0] sel_base = psel_d1;'
+    replace: '    wire [1:0] sel_base = psel;                // 注错：对齐取 D=0'
+  runs:
+  - cmd: bash Main/sim/display/run.sh
+    log: Main/sim/display/build
+    evidence: 'image: RESULT: FAIL'
+  note: 注错：对齐取 D=0
+- id: display_out.order_rev
+  target: Main/rtl/display/display_out.v
+  macro: INJ_ORDER_REV
+  defect: 顺序与拍对齐
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.7 双缓冲与帧节拍
+  rules:
+  - find: '    wire [1:0] sel = sel_base;'
+    replace: '    wire [1:0] sel = ~sel_base;                // 注错：拍内像素顺序拆反'
+  runs:
+  - cmd: bash Main/sim/display/run.sh
+    log: Main/sim/display/build
+    evidence: 'image: RESULT: FAIL'
+  note: 注错：拍内像素顺序拆反
+- id: display_out.phase3
+  target: Main/rtl/display/display_out.v
+  macro: INJ_PHASE3
+  defect: 顺序与拍对齐
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.7 双缓冲与帧节拍
+  rules:
+  - find: '    wire pop_phase   = group_start;'
+    replace: '    wire pop_phase   = de0 & (psel == 2''d3);   // 注错：弹出相位改成 psel==3'
+  runs:
+  - cmd: bash Main/sim/display/run.sh
+    log: Main/sim/display/build
+    evidence: 'image: RESULT: FAIL'
+  note: 注错：弹出相位改成 psel==3
+- id: exec_sw.strip_noflush
+  target: Main/sw/lib/gfx/exec_sw.c
+  macro: INJ_STRIP_NOFLUSH
+  defect: 软件参考模型
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.8 软件执行器：同一份命令表，两个执行者
+  rules:
+  - find: "        for(y=0;y<sh;y++)\n            memcpy(dev_ptr(m,gfx_addr_of(dst,0,(int32_t)(s*sh+y))),\n                   (const uint8_t *)scratch+y*4096u,2560u);"
+    replace: ''
+  runs:
+  - cmd: python3 Main/tools/check/check_g3_stripctl.py
+    log: Main/sim/engine/stripctl/logs
+    evidence: ''
+  note: TODO
+- id: exec_sw.strip_order
+  target: Main/sw/lib/gfx/exec_sw.c
+  macro: INJ_STRIP_ORDER
+  defect: 软件参考模型
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.8 软件执行器：同一份命令表，两个执行者
+  rules:
+  - find: '            const gfx_cmd *c=&bucket[k];'
+    replace: '            const gfx_cmd *c=&bucket[counts[s]-k-1u];'
+  runs:
+  - cmd: python3 Main/tools/check/check_g3_stripctl.py
+    log: Main/sim/engine/stripctl/logs
+    evidence: ''
+  note: TODO
+- id: geom.alpha_as_copy
+  target: Main/rtl/engine/core/engine_geom.v
+  macro: INJ_ALPHA_AS_COPY
+  defect: 表面谓词
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.4 几何层（engine_geom）
+  rules:
+  - find: '    assign d7_read_dst = !(r_eq == EQ_COPY);'
+    replace: '    assign d7_read_dst = ((r_eq == EQ_COPY) || (r_eq == EQ_ALPHA));  // 注错：ALPHA 也按 COPY'
+  runs:
+  - cmd: bash Main/sim/engine/geom/run.sh
+    log: Main/sim/engine/geom/build
+    evidence: 'geom_directed: RESULT: FAIL'
+  note: 注错：ALPHA 也按 COPY
+- id: geom.band_clip
+  target: Main/rtl/engine/core/engine_geom.v
+  macro: INJ_BAND_CLIP
+  defect: 表面谓词
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.4 几何层（engine_geom）
+  rules:
+  - find: "            if(band_enable) begin\n                if($signed({2'b00,band_y0})>t_y0) t_y0=$signed({2'b00,band_y0});\n                if($signed({2'b00,band_y0})+BAND_H18-18'sd1<t_y1)\n                    t_y1=$signed({2'b00,band_y0})+BAND_H18-18'sd1;\n            end"
+    replace: '            // 注错：漏掉当前条带求交。'
+  runs:
+  - cmd: python3 Main/tools/check/check_g2_band.py
+    log: Main/sim/engine/band/logs
+    evidence: ''
+  note: 注错：漏掉当前条带求交。
+- id: geom.copy_read
+  target: Main/rtl/engine/core/engine_geom.v
+  macro: INJ_COPY_READ
+  defect: 表面谓词
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.4 几何层（engine_geom）
+  rules:
+  - find: '    wire seg_read_dst = d7_read_dst;'
+    replace: '    wire seg_read_dst = 1''b1;             // 注错：COPY 也发读目的描述符'
+  runs:
+  - cmd: bash Main/sim/engine/geom/run.sh
+    log: Main/sim/engine/geom/build
+    evidence: 'geom_directed: RESULT: FAIL'
+  note: 注错：COPY 也发读目的描述符
+- id: geom.no_split
+  target: Main/rtl/engine/core/engine_geom.v
+  macro: INJ_NO_SPLIT
+  defect: 地址与对齐
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.4 几何层（engine_geom）
+  rules:
+  - find: '        xcross = (({19''b0, a0[11:0]} + {19''b0, alen[11:0]}) > 32''h1000);'
+    replace: '        xcross = 1''b0;                       // 注错：跨 4KB 不拆'
+  - find: '        sxcross = (({19''b0, s_a0[11:0]} + {19''b0, s_len[11:0]}) > 32''h1000);'
+    replace: '        sxcross = 1''b0;                      // 注错：跨 4KB 不拆'
+  runs:
+  - cmd: bash Main/sim/engine/geom/run.sh
+    log: Main/sim/engine/geom/build
+    evidence: 'geom_directed: RESULT: FAIL'
+  note: 注错：跨 4KB 不拆
+- id: geom.row_nofree
+  target: Main/rtl/engine/core/engine_geom.v
+  macro: INJ_ROW_NOFREE
+  defect: 行缓冲释放
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.4 几何层（engine_geom）
+  rules:
+  - find: "    wire rf_first = row_free[0];          // 命令的第 0 行\n    wire rf_cur   = row_free[row_i[0]];   // S_GATE 里等的这一行\n    wire rf_next  = row_free[~row_i[0]];  // S_ADV 要推进到的下一行"
+    replace: "    // 注错：不看 row_free，直接开下一行\n    wire rf_first = 1'b1;                 // 命令的第 0 行\n    wire rf_cur   = 1'b1;                 // S_GATE 里等的这一行\n    wire rf_next  = 1'b1;                 // S_ADV 要推进到的下一行"
+  runs:
+  - cmd: bash Main/sim/engine/geom/run.sh
+    log: Main/sim/engine/geom/build
+    evidence: 'geom_rfstall: RESULT: FAIL'
+  note: 注错：不看 row_free，直接开下一行
+- id: geom.skip_surf
+  target: Main/rtl/engine/core/engine_geom.v
+  macro: INJ_SKIP_SURF
+  defect: 表面谓词
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.4 几何层（engine_geom）
+  rules:
+  - find: "            if (op == OP_BLIT) begin\n                if (p_dx - p_sx > t_x0) t_x0 = p_dx - p_sx;\n                if (p_dy - p_sy > t_y0) t_y0 = p_dy - p_sy;\n                s_hi_x = p_dx - p_sx + $signed(p_ssw) - 18'sd1;\n                s_hi_y = p_dy - p_sy + $signed(p_ssh) - 18'sd1;\n                if (s_hi_x < t_x1) t_x1 = s_hi_x;\n                if (s_hi_y < t_y1) t_y1 = s_hi_y;\n            end"
+    replace: '            // 注错：整块跳过第五项求交'
+  runs:
+  - cmd: bash Main/sim/engine/geom/run.sh
+    log: Main/sim/engine/geom/build
+    evidence: 'geom_directed: RESULT: FAIL'
+  note: 注错：整块跳过第五项求交
+- id: inst.inst_skip
+  target: Main/rtl/engine/frontend/engine_inst.v
+  macro: INJ_INST_SKIP
+  defect: 游标与步进
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.4 命令与软件接口
+  rules:
+  - find: '                        instance_id <= instance_id + 32''d1;'
+    replace: '                        instance_id <= instance_id + 32''d2;'
+  runs:
+  - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: 注错：instance_id 每次加 2，跳过一半实例
+- id: inst.inst_stride
+  target: Main/rtl/engine/frontend/engine_inst.v
+  macro: INJ_INST_STRIDE
+  defect: 游标与步进
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.4 命令与软件接口
+  rules:
+  - find: "                        cursor <= cursor + {23'd0, step};\n                        word_addr <= cursor + {23'd0, step};"
+    replace: "                        cursor <= cursor + 32'd4;\n                        word_addr <= cursor + 32'd4;"
+  runs:
+  - cmd: python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: 注错：游标固定步进 4，不按 stride
+- id: instances.inst_xyuv
+  target: Main/sw/lib/gfx/instances.c
+  macro: INJ_INST_XYUV
+  defect: 软件参考模型
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.8 软件执行器：同一份命令表，两个执行者
+  rules:
+  - find: '            *scalar=unpack(c,xy,uv); return GFX_OK;'
+    replace: "            if (entry==8u) { uint32_t tmp=xy;xy=uv;uv=tmp; }\n            *scalar=unpack(c,xy,uv); return GFX_OK;"
+  runs:
+  - cmd: python3 Main/tools/check/check_f4_instances.py --models
+    log: Main/sim/engine/frontend/logs
+    evidence: ''
+  note: TODO
+- id: mover.band_drain_mask
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_BAND_DRAIN_MASK
+  defect: 掩码与写通道
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: '    wire raw_drain_kill=(wr_ctx_flush || wr_ctx_pb) && raw_stop_valid && wr_bus_beats>=raw_stop_after;'
+    replace: '    wire raw_drain_kill=1''b0;'
+  runs:
+  - cmd: python3 Main/tools/check/check_g2_band.py
+    log: Main/sim/engine/band/logs
+    evidence: ''
+  note: TODO
+- id: mover.band_flow_wait
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_BAND_FLOW_WAIT
+  defect: 流控制
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: '    wire        band_data_blocks=b_rbusy;'
+    replace: '    wire        band_data_blocks=1''b0;'
+  runs:
+  - cmd: python3 Main/tools/check/check_g2_band.py
+    log: Main/sim/engine/band/logs
+    evidence: ''
+  note: TODO
+- id: mover.band_raw_mask
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_BAND_RAW_MASK
+  defect: 掩码与写通道
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: '        wire kill = raw_drain_kill || (!(wr_ctx_flush || wr_ctx_pb) && core_wdata[32*gp + 31]);'
+    replace: '        wire kill = core_wdata[32*gp + 31];'
+  - find: '        assign m_axi_wdata[32*gp+24 +: 8] = (wr_ctx_flush || wr_ctx_pb) ? core_wdata[32*gp+24 +:8] : 8''h00;'
+    replace: '        assign m_axi_wdata[32*gp+24 +: 8] = 8''h00;'
+  runs:
+  - cmd: python3 Main/tools/check/check_g2_band.py
+    log: Main/sim/engine/band/logs
+    evidence: ''
+  note: TODO
+- id: mover.drain_bypass
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_DRAIN_BYPASS
+  defect: 排空与生命周期
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: "    wire        rd_drain_help = draining && rd_busy;\n    wire        wr_drain_help = draining && wr_busy;"
+    replace: "    // 注错：排空期不帮忙收/补，直接等两个方向自己空\n    wire        rd_drain_help = 1'b0;\n    wire        wr_drain_help = 1'b0;"
+  runs:
+  - cmd: bash Main/sim/engine/mover/run.sh
+    log: Main/sim/engine/mover/build
+    evidence: 'drain: RESULT: FAIL'
+  note: 注错：排空期不帮忙收/补，直接等两个方向自己空
+- id: mover.drain_level
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_DRAIN_LEVEL
+  defect: 排空与生命周期
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: '    wire drain_enter     = drain_req && !draining && !drain_served;'
+    replace: '    wire drain_enter     = drain_req && !draining;     // 注错：drain_done 之后仍按电平重进'
+  - find: '    assign      drain_hold = draining || drain_req;'
+    replace: '    assign      drain_hold = draining;                 // 注错：只在排空态里挡提交'
+  runs:
+  - cmd: bash Main/sim/engine/mover/run.sh
+    log: Main/sim/engine/mover/build
+    evidence: 'drain: RESULT: FAIL'
+  note: 注错：drain_done 之后仍按电平重进
+- id: mover.inst_owner
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_INST_OWNER
+  defect: 所有权与分流
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: "    assign fs_instance=rd_ctx_instance;\n    assign rd_stat_instance=legacy_rd_stat && rd_ctx_instance;"
+    replace: "    assign fs_instance=1'b0;\n    assign rd_stat_instance=1'b0;"
+  runs:
+  - cmd: bash Main/sim/engine/mover/run.sh
+    log: Main/sim/engine/mover/build
+    evidence: ''
+  note: TODO
+- id: mover.mask_bypass
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_MASK_BYPASS
+  defect: 掩码与写通道
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: "        wire kill = raw_drain_kill || (!(wr_ctx_flush || wr_ctx_pb) && core_wdata[32*gp + 31]);\n        assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4] & {4{~kill}};\n        assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];\n        assign m_axi_wdata[32*gp+24 +: 8] = (wr_ctx_flush || wr_ctx_pb) ? core_wdata[32*gp+24 +:8] : 8'h00;"
+    replace: "        // 注错：带内掩码旁路，wstrb 与 X 字节直通上总线\n        wire kill = 1'b0;\n        assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4];\n        assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];\n        assign m_axi_wdata[32*gp+24 +: 8] = core_wdata[32*gp+24 +: 8];"
+  runs:
+  - cmd: bash Main/sim/engine/mover/run.sh
+    log: Main/sim/engine/mover/build
+    evidence: 'normal: RESULT: FAIL'
+  note: 注错：带内掩码旁路，wstrb 与 X 字节直通上总线
+- id: mover.no_gate_rd
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_NO_GATE_RD
+  defect: 门控与在途
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: '    wire        rd_gate_done = (rd_status_seen && rd_stream_done);'
+    replace: '    wire        rd_gate_done = 1''b1;                   // 注错：去掉读门控'
+  runs:
+  - cmd: bash Main/sim/engine/mover/run.sh
+    log: Main/sim/engine/mover/build
+    evidence: 'normal: RESULT: FAIL'
+  note: 注错：去掉读门控
+- id: mover.no_gate_wr
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_NO_GATE_WR
+  defect: 门控与在途
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: '    wire        wr_gate_done = wr_status_seen;'
+    replace: '    wire        wr_gate_done = 1''b1;                   // 注错：去掉写门控'
+  runs:
+  - cmd: bash Main/sim/engine/mover/run.sh
+    log: Main/sim/engine/mover/build
+    evidence: 'normal: RESULT: FAIL'
+  note: 注错：去掉写门控
+- id: mover.no_tlast
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_NO_TLAST
+  defect: 时序标记
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: '    wire         ws_core_tlast  = (wr_beats_left == 12''d1);'
+    replace: "    // 注错：正常写流不打 tlast，只有排空哑拍打\n    wire         ws_core_tlast  = wr_drain_help ? (wr_beats_left == 12'd1) : 1'b0;"
+  runs:
+  - cmd: bash Main/sim/engine/mover/run.sh
+    log: Main/sim/engine/mover/build
+    evidence: 'normal: RESULT: FAIL'
+  note: 注错：正常写流不打 tlast，只有排空哑拍打
+- id: mover.tx_nowait
+  target: Main/rtl/engine/core/engine_mover.v
+  macro: INJ_TX_NOWAIT
+  defect: 流控制
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.2 搬运层（engine_mover）
+  rules:
+  - find: '    wire        tex_data_blocks = tx_busy;'
+    replace: '    wire        tex_data_blocks = 1''b0;                 // 注错：去掉目的流等待'
+  runs:
+  - cmd: bash Main/sim/engine/mover/run.sh
+    log: Main/sim/engine/mover/build
+    evidence: ''
+  note: 注错：去掉目的流等待
 - id: pix.core_noen
   target: Main/rtl/engine/core/engine_pix.v
   macro: INJ_CORE_NOEN
@@ -120,20 +803,50 @@
   spec:
     doc: Main/rtl/engine/engine-manual.md
     section: 4.3 计算阵列（engine_pix）
-  rule:
-    find: '    wire core_en = pipe_en; // 核与外围同停'
+  rules:
+  - find: '    wire core_en = pipe_en; // 核与外围同停'
     replace: '    wire core_en = 1''b1;'
   runs:
-  - suite: engine/pix
-    case: unit_stall
+  - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
+    log: Main/sim/engine/pix/build
     evidence: PIX_MISMATCH n=
-  - suite: engine/pix
-    case: pipe_burst
+  - cmd: bash Main/sim/engine/pix/run.sh --case pipe_burst
+    log: Main/sim/engine/pix/build
     evidence: PIX_MISMATCH beat=
-  expect:
-    status: FAIL
-    evidence: ''
   note: 混合核必须与外围同停，否则停顿时像素被重复处理
+- id: pix.drop_mask
+  target: Main/rtl/engine/core/engine_pix.v
+  macro: INJ_DROP_MASK
+  defect: 掩码边界
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rules:
+  - find: "    assign s3_mask_next = (s2_beat == 8'd0) ? row_first_mask :\n        (s2_beat == (row_dst_beats - 8'd1)) ? row_last_mask : 4'hf; // beat==0 先判，一拍行用首 mask"
+    replace: "    assign s3_mask_next = (s2_beat == 8'd0) ? 4'hf :\n        (s2_beat == (row_dst_beats - 8'd1)) ? row_last_mask : 4'hf;"
+  runs:
+  - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
+    log: Main/sim/engine/pix/build
+    evidence: MASK_MISMATCH n=\d+ ls=0 ld=0 beat=0 slot=1
+  note: 首拍掩码管住行首越界像素，丢了就会写坏目标行头部
+- id: pix.en_notready
+  target: Main/rtl/engine/core/engine_pix.v
+  macro: INJ_EN_NOTREADY
+  defect: 握手反压
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.3 计算阵列（engine_pix）
+  rules:
+  - find: '    wire pipe_en = ws_tready || !ws_tvalid; // 出口空着就不等 ready'
+    replace: '    wire pipe_en = 1''b1;'
+  runs:
+  - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
+    log: Main/sim/engine/pix/build
+    evidence: BEATS_OR_GAP n=
+  - cmd: bash Main/sim/engine/pix/run.sh --case pipe_burst
+    log: Main/sim/engine/pix/build
+    evidence: PIX_MISMATCH beat=
+  note: 出口未 ready 时计算链必须保持；恒 ready 的测试台看不见，必须靠停顿用例
 - id: pix.rot_off
   target: Main/rtl/engine/core/engine_pix.v
   macro: INJ_ROT_OFF
@@ -141,16 +854,13 @@
   spec:
     doc: Main/rtl/engine/engine-manual.md
     section: 4.3 计算阵列（engine_pix）
-  rule:
-    find: '    wire [2:0] align_start = align_start_raw;'
+  rules:
+  - find: '    wire [2:0] align_start = align_start_raw;'
     replace: '    wire [2:0] align_start = align_start_raw + 3''d1;'
   runs:
-  - suite: engine/pix
-    case: unit_stall
+  - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
+    log: Main/sim/engine/pix/build
     evidence: PIX_MISMATCH n=
-  expect:
-    status: FAIL
-    evidence: ''
   note: 源/目的首拍相位差决定对齐窗口，错一个位置整行像素错位
 - id: pix.skip_key
   target: Main/rtl/engine/core/engine_pix.v
@@ -159,35 +869,283 @@
   spec:
     doc: Main/doc/赛题二总体设计.md
     section: 3.5 像素流水线
-  rule:
-    find: "    `ifdef GFX_KEY\n        wire [3:0] s3_key_hit_next = row_blit && row_key_en ? {\n            s3_src_next[127:96] == row_key, s3_src_next[95:64] == row_key,\n            s3_src_next[63:32] == row_key, s3_src_next[31:0] == row_key} : 4'd0;\n    `else\n        wire [3:0] s3_key_hit_next = 4'd0;\n    `endif"
+  rules:
+  - find: "    `ifdef GFX_KEY\n        wire [3:0] s3_key_hit_next = row_blit && row_key_en ? {\n            s3_src_next[127:96] == row_key, s3_src_next[95:64] == row_key,\n            s3_src_next[63:32] == row_key, s3_src_next[31:0] == row_key} : 4'd0;\n    `else\n        wire [3:0] s3_key_hit_next = 4'd0;\n    `endif"
     replace: '    wire [3:0] s3_key_hit_next = 4''d0;'
   runs:
-  - suite: engine/pix
-    case: unit_stall
+  - cmd: bash Main/sim/engine/pix/run.sh --case unit_stall
+    log: Main/sim/engine/pix/build
     evidence: MASK_MISMATCH n=
-  - suite: engine/pix
-    case: path_golden
+  - cmd: bash Main/sim/engine/pix/run.sh --case path_golden
+    log: Main/sim/engine/pix/build
     evidence: MEM_MISMATCH addr=
-  expect:
-    status: FAIL
-    evidence: ''
   note: 色键命中必须不写目的像素；单元靠「不写」掩码比对，真实通路靠整片内存比对
-- id: pix.drop_mask
-  target: Main/rtl/engine/core/engine_pix.v
-  macro: INJ_DROP_MASK
-  defect: 掩码边界
+- id: rast.rast_bias_reverse
+  target: Main/rtl/engine/rast/engine_rast.v
+  macro: INJ_RAST_BIAS_REVERSE
+  defect: 光栅判定
   spec:
     doc: Main/rtl/engine/engine-manual.md
-    section: 4.3 计算阵列（engine_pix）
-  rule:
-    find: "    assign s3_mask_next = (s2_beat == 8'd0) ? row_first_mask :\n        (s2_beat == (row_dst_beats - 8'd1)) ? row_last_mask : 4'hf; // beat==0 先判，一拍行用首 mask"
-    replace: "    assign s3_mask_next = (s2_beat == 8'd0) ? 4'hf :\n        (s2_beat == (row_dst_beats - 8'd1)) ? row_last_mask : 4'hf;"
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '                    bias_pos0 <= (w_a0 > 32''sd0) || (w_a0 == 32''sd0 && w_b0 > 32''sd0);'
+    replace: '                    bias_pos0 <= !((w_a0 > 32''sd0) || (w_a0 == 32''sd0 && w_b0 > 32''sd0));'
   runs:
-  - suite: engine/pix
-    case: unit_stall
-    evidence: MASK_MISMATCH n=\d+ ls=0 ld=0 beat=0 slot=1
-  expect:
-    status: FAIL
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    log: Main/sim/engine/rast/logs
     evidence: ''
-  note: 首拍掩码管住行首越界像素，丢了就会写坏目标行头部
+  note: TODO
+- id: rast.rast_edge_scale
+  target: Main/rtl/engine/rast/engine_rast.v
+  macro: INJ_RAST_EDGE_SCALE
+  defect: 光栅判定
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '                            c_er[0] <= w_c0 + (c_es[0] <<< 4);'
+    replace: '                            c_er[0] <= w_c0 + c_es[0];'
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: rast.rast_key_miss
+  target: Main/rtl/engine/rast/engine_rast.v
+  macro: INJ_RAST_KEY_MISS
+  defect: 着色判定
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '    wire response_key = mtex[RL-1] && mkey[RL-1] && response_texel == ras_key;'
+    replace: '    wire response_key = 1''b0;'
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: rast.rast_no_barrier
+  target: Main/rtl/engine/rast/engine_rast.v
+  macro: INJ_RAST_NO_BARRIER
+  defect: 提交与屏障
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '                    if ((!scan_active || stopping) && in_flight == 4''d0) begin'
+    replace: '                    if (!scan_active || stopping) begin'
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: rast.rast_partial_commit
+  target: Main/rtl/engine/rast/engine_rast.v
+  macro: INJ_RAST_PARTIAL_COMMIT
+  defect: 提交与屏障
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '    assign zwr_en = commit_fire;'
+    replace: '    assign zwr_en = out_v && out_wr && !stopping;'
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: rast.rast_round
+  target: Main/rtl/engine/rast/engine_rast.v
+  macro: INJ_RAST_ROUND
+  defect: 位宽与截断
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '            q16 = a[47:16] + {31''d0, a[15]};'
+    replace: '            q16 = a[47:16];'
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: rast.rast_z_reverse
+  target: Main/rtl/engine/rast/engine_rast.v
+  macro: INJ_RAST_Z_REVERSE
+  defect: 深度判定
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '    wire response_write = mcover[RL-1] && mz[RL-1] < z_response && !response_key;'
+    replace: '    wire response_write = mcover[RL-1] && mz[RL-1] > z_response && !response_key;'
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: rlst.rlst_credit
+  target: Main/rtl/engine/rast/engine_rlst.v
+  macro: INJ_RLST_CREDIT
+  defect: 信用与流控
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '    wire         s_reserve_ok  = ({1''b0, fifo_used} + s_chunk_valid[7:1]) <= 8''d64;'
+    replace: '    wire         s_reserve_ok = 1''b1;'
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rlst
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: rlst.rlst_drop_tail
+  target: Main/rtl/engine/rast/engine_rlst.v
+  macro: INJ_RLST_DROP_TAIL
+  defect: 分片与尾部
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '                    ) begin'
+    replace: "                                 && 1'b0\n                    ) begin"
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rlst
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: rlst.rlst_owner_early
+  target: Main/rtl/engine/rast/engine_rlst.v
+  macro: INJ_RLST_OWNER_EARLY
+  defect: 状态与生命周期
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '                    if ((s_recv == s_beats || s_last_seen) && !b_v && s_stat_seen) begin'
+    replace: '                    if (s_stat_seen) begin'
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rlst
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: rlst.rlst_sub_offset
+  target: Main/rtl/engine/rast/engine_rlst.v
+  macro: INJ_RLST_SUB_OFFSET
+  defect: 地址与对齐
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 8 三维取数与光栅单元
+  rules:
+  - find: '    wire [23:0]  b_rel_next = s_rel + {s_recv, 4''d0};'
+    replace: '    wire [23:0]  b_rel_next = s_rel + {s_recv, 5''d0};'
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rlst
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: TODO
+- id: strip.strip_clip
+  target: Main/sw/lib/gfx/strip.c
+  macro: INJ_STRIP_CLIP
+  defect: 软件参考模型
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.8 软件执行器：同一份命令表，两个执行者
+  rules:
+  - find: "#ifdef GFX_FRONTEND_DETAIL_STORE\n        DETAIL_BEGIN(store_start);"
+    replace: "        out.w[2]++;\n#ifdef GFX_FRONTEND_DETAIL_STORE\n        DETAIL_BEGIN(store_start);"
+  runs:
+  - cmd: python3 Main/tools/check/check_g3_stripctl.py
+    log: Main/sim/engine/stripctl/logs
+    evidence: ''
+  note: TODO
+- id: strip.strip_drop
+  target: Main/sw/lib/gfx/strip.c
+  macro: INJ_STRIP_DROP
+  defect: 软件参考模型
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 3.8 软件执行器：同一份命令表，两个执行者
+  rules:
+  - find: "#ifdef GFX_FRONTEND_DETAIL_STORE\n        DETAIL_BEGIN(store_start);"
+    replace: "        if(s!=s0)continue;\n#ifdef GFX_FRONTEND_DETAIL_STORE\n        DETAIL_BEGIN(store_start);"
+  runs:
+  - cmd: python3 Main/tools/check/check_g3_stripctl.py
+    log: Main/sim/engine/stripctl/logs
+    evidence: ''
+  note: TODO
+- id: tex.rast_samp_early
+  target: Main/rtl/engine/buffer/engine_tex.v
+  macro: INJ_RAST_SAMP_EARLY
+  defect: 顺序与拍对齐
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.5 片上纹理（engine_tex）
+  rules:
+  - find: "    assign samp_rvalid = (READ_LATENCY == 1) ? sv1 : sv2;\n    assign samp_rdata  = (READ_LATENCY == 1) ? bank_q[32*sb1 +: 32] : sd2;"
+    replace: "    // 注错：valid/data 提前一拍，与 RAM 读出 错拍（连续换 bank 时见红）\n    assign samp_rvalid = (READ_LATENCY == 1) ? samp_fire : sv1;\n    assign samp_rdata  = (READ_LATENCY == 1) ? bank_q[32*samp_word[1:0] +: 32]\n                                             : bank_q[32*sb1 +: 32];"
+  runs:
+  - cmd: python3 Main/tools/check/check_r2.py --group rtl
+    log: Main/sim/engine/rast/logs
+    evidence: ''
+  note: 注错：valid/data 提前一拍，与 RAM 读出 错拍（连续换 bank 时见红）
+- id: tex.stat_drop
+  target: Main/rtl/engine/buffer/engine_tex.v
+  macro: INJ_STAT_DROP
+  defect: 状态与生命周期
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.5 片上纹理（engine_tex）
+  rules:
+  - find: '            if (rs_tvalid && rs_tlast) stat_r <= 1''b1;'
+    replace: '            // 注错：状态脉冲吞掉'
+  runs:
+  - cmd: bash Main/sim/engine/tex/run.sh
+    log: Main/sim/engine/tex/build
+    evidence: 'normal: RESULT: FAIL'
+  note: 注错：状态脉冲吞掉
+- id: tex.valid_early
+  target: Main/rtl/engine/buffer/engine_tex.v
+  macro: INJ_VALID_EARLY
+  defect: 顺序与拍对齐
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.5 片上纹理（engine_tex）
+  rules:
+  - find: "    assign rs_tvalid = (READ_LATENCY == 1) ? v0 : v1;\n    assign rs_tlast  = (READ_LATENCY == 1) ? l0 : l1;"
+    replace: "    // 注错：valid/last 提前一级，与 data 错拍\n    assign rs_tvalid = (READ_LATENCY == 1) ? issue : v0;\n    assign rs_tlast  = (READ_LATENCY == 1) ? (issue && left == 1) : l0;"
+  runs:
+  - cmd: bash Main/sim/engine/tex/run.sh
+    log: Main/sim/engine/tex/build
+    evidence: 'normal: RESULT: FAIL'
+  note: 注错：valid/last 提前一级，与 data 错拍
+- id: tex.wr_loose
+  target: Main/rtl/engine/buffer/engine_tex.v
+  macro: INJ_WR_LOOSE
+  defect: 访问约束
+  spec:
+    doc: Main/rtl/engine/engine-manual.md
+    section: 4.5 片上纹理（engine_tex）
+  rules:
+  - find: '    wire       apb_wr_en    = apb_wr_acc && apb_aligned;'
+    replace: '    wire       apb_wr_en    = apb_wr_acc;              // 注错：未对齐写也放行'
+  runs:
+  - cmd: bash Main/sim/engine/tex/run.sh
+    log: Main/sim/engine/tex/build
+    evidence: 'normal: RESULT: FAIL'
+  note: 注错：未对齐写也放行
+- id: top.strip_perf
+  target: Main/rtl/engine/engine_top.v
+  macro: INJ_STRIP_PERF
+  defect: 统计与计数
+  spec:
+    doc: Main/doc/赛题二总体设计.md
+    section: 4.6 统计埋点
+  rules:
+  - find: '    wire perf_rdb = (g_rd_valid && g_rd_ready && !g_rd_tex && !g_rd_band)'
+    replace: '    wire perf_rdb = (g_rd_valid && g_rd_ready && !g_rd_tex)'
+  runs:
+  - cmd: python3 Main/tools/check/check_g4_integration.py --rtl
+    evidence: ''
+  note: TODO

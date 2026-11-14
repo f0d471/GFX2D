@@ -1,28 +1,20 @@
 #!/usr/bin/env python3
-"""变异测试跑器：在隔离影子树里改一处生产 RTL，用原有测试台跑，按见红位置分类。
+"""变异测试跑器：在隔离影子树里改生产源码，跑该变异对应的用例，按退出码与见红位置分类。
 
-生产 RTL 不含任何注错分支。变异体来自 mutants.yaml 的一条字面替换规则，
-只存在于本轮运行目录的影子树里，跑完即弃。
+生产源码（RTL 与软件执行器）不含任何注错分支。变异体来自 mutants.yaml 的一条或多条
+字面替换规则，只存在于本轮运行目录的影子树里，跑完即弃。
 
-影子树保持原来的相对布局（``Main/rtl``、``Main/sim/<套件>``、``Main/tools``），
-所以各套件 `run.sh` 里的 ``../../../rtl`` 与 ``cd $(dirname $0)`` 照旧成立，
-套件只需支持 ``--case <名字>`` 跑单例。
+影子树保持原来的相对布局（``Main/rtl``、``Main/sim/...``、``Main/tools/check``、``Main/sw``），
+清单里的 ``runs[].cmd`` 是一条在原仓库根可执行的命令，在影子树里原样执行：
+套件的相对路径照旧，Python 检查从 ``__file__`` 推出的仓根也落在影子树上。
 
-六个状态（见 Main/doc/开发环境.md 0.20 节）：
+判定：
 
-  KILLED       变异体 FAIL，且见红位置匹配登记的 evidence 正则
-  KILLED-WEAK  FAIL 了，但红在别处，或只是超时——不算判据有效
-  SURVIVED     变异体 PASS，判据没抓到
-  PARTIAL      部分用例抓到、部分没抓到（登记了多个用例时）
-  INVALID      规则不唯一 / 编译失败 / 同树基线不 PASS
-  EQUIVALENT   有 proof 字段指向已跑过的等价论证；不计入分母
+  基线      同一条命令、同一棵树、不施加规则，要求退出码 0
+  判红     施加规则后退出码非零，且输出/日志里匹配 ``runs[].evidence`` 正则；输出/日志里不能有编译错误
+  超时      单独记，算弱证据
 
-用法：
-
-  python3 Main/sim/mutation/run_mutation.py --list
-  python3 Main/sim/mutation/run_mutation.py --audit
-  python3 Main/sim/mutation/run_mutation.py --run --ids blend.wrong_eq,pix.rot_off
-  python3 Main/sim/mutation/run_mutation.py --run          # 全量，写进新的运行目录
+状态：KILLED / KILLED-WEAK / SURVIVED / PARTIAL / INVALID。
 """
 
 from __future__ import annotations
@@ -44,22 +36,19 @@ import yaml
 ROOT = Path(__file__).resolve().parents[3]
 MANIFEST = ROOT / "Main/sim/mutation/mutants.yaml"
 RUNS = ROOT / "Main/sim/build/check-runs"
-# 影子树要带的目录：相对 Main/。套件里的 ../../.. 相对路径靠这套布局成立。
-COPY_DIRS = ("rtl", "tools/check", "sw/lib", "sim/axi_probe")
-IGNORE = shutil.ignore_patterns("build", "logs", ".git", "__pycache__", "*.vvp", "*.log")
-
+IGNORE = shutil.ignore_patterns("build", "logs", ".git", "__pycache__", "*.vvp", "*.log", "*.bin", "*.bit")
 RESULT_RE = re.compile(r"RESULT:\s*([A-Za-z_-]+)")
+BAD_OUT = re.compile(r"COMPILE FAIL|COMPILE-ERROR|Syntax error|Segmentation fault")
 
 
 @dataclass
 class RunResult:
-    case: str
+    cmd: str
     status: str = ""
     result: str = ""
     evidence: str = ""
     seconds: float = 0.0
     log: str = ""
-    log_path: str = ""
     detail: str = ""
 
 
@@ -69,8 +58,6 @@ class MutantResult:
     target: str
     runs: list[RunResult] = field(default_factory=list)
     status: str = ""
-    sha_before: str = ""
-    sha_after: str = ""
     note: str = ""
 
 
@@ -80,121 +67,110 @@ def load_manifest(path: Path) -> list[dict]:
         sys.exit(f"{path}: 顶层必须是列表")
     seen = set()
     for row in rows:
-        for key in ("id", "target", "defect", "spec", "rule", "runs", "expect"):
+        for key in ("id", "target", "rules", "runs"):
             if key not in row:
                 sys.exit(f"{row.get('id', '?')}: 缺字段 {key}")
         if row["id"] in seen:
             sys.exit(f"重复 id: {row['id']}")
         seen.add(row["id"])
-        if not row["rule"].get("find") or not row["rule"].get("replace"):
-            sys.exit(f"{row['id']}: rule.find / rule.replace 不能为空")
+        if not row["rules"]:
+            sys.exit(f"{row['id']}: rules 为空")
+        for rule in row["rules"]:
+            if not rule.get("find"):
+                sys.exit(f"{row['id']}: 规则的 find 不能为空（replace 可以为空，表示整块删除）")
         if not row["runs"]:
             sys.exit(f"{row['id']}: runs 为空，等于没有判据")
-        for run in row["runs"]:
-            extra = set(run) - {"suite", "case", "evidence"}
-            if not {"suite", "case"} <= set(run) or extra:
-                sys.exit(f"{row['id']}: runs 的字段应为 suite/case[/evidence]，实际 {sorted(run)}")
+        for i, run in enumerate(row["runs"]):
+            extra = set(run) - {"cmd", "log", "evidence"}
+            if "cmd" not in run or extra:
+                sys.exit(f"{row['id']}: runs 的字段应为 cmd/log/evidence，实际 {sorted(run)}")
     return rows
 
 
-def apply_rule(path: Path, find: str, replace: str) -> None:
+def apply_rules(path: Path, rules: list[dict]) -> None:
     text = path.read_text(encoding="utf-8")
-    n = text.count(find)
-    if n != 1:
-        raise SystemExit(f"{path}: 规则匹配 {n} 次（要求恰好 1 次），先跑 --audit 修规则")
-    path.write_text(text.replace(find, replace), encoding="utf-8", newline="")
+    for i, rule in enumerate(rules):
+        n = text.count(rule["find"])
+        if n != 1:
+            raise SystemExit(f"{path}: 第 {i + 1} 条规则匹配 {n} 次（要求恰好 1 次）")
+        text = text.replace(rule["find"], rule["replace"])
+    path.write_text(text, encoding="utf-8", newline="")
 
 
-def build_shadow(run_dir: Path, suites: set[str], targets: list[str]) -> Path:
+def build_shadow(run_dir: Path, targets: list[str]) -> Path:
     shadow = run_dir / "shadow"
-    main = shadow / "Main"
     if shadow.exists():
         shutil.rmtree(shadow)
-    main.mkdir(parents=True)
-    for rel in COPY_DIRS:
-        shutil.copytree(ROOT / "Main" / rel, main / rel, ignore=IGNORE)
-    for suite in sorted(suites):
-        src = ROOT / "Main/sim" / suite
-        if not src.is_dir():
-            sys.exit(f"套件目录不存在: Main/sim/{suite}")
-        shutil.copytree(src, main / "sim" / suite, ignore=IGNORE)
-    pristine = shadow / ".pristine"
+    src = ROOT / "Main"
+    shutil.copytree(src, shadow / "Main", ignore=shutil.ignore_patterns(
+        "build", "logs", ".git", "__pycache__", "*.vvp", "*.log", "*.bin", "*.bit"))
     for rel in targets:
-        dst = pristine / rel
+        dst = shadow / ".pristine" / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ROOT / rel, dst)
+        shutil.copy2(shadow / rel, dst)
     return shadow
 
 
-def run_one(suite_dir: Path, case: str, timeout: float, log_rel: str, dest: Path | None = None) -> RunResult:
-    res = RunResult(case=case)
+def run_cmd(shadow: Path, cmd: str, log_rel: str | None, timeout: float,
+            dest: Path | None = None) -> RunResult:
+    res = RunResult(cmd=cmd)
     t0 = time.time()
-    proc = subprocess.Popen(["bash", "run.sh", "--case", case], cwd=suite_dir,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-                            start_new_session=True)
+    env = dict(os.environ)
+    # 用到 Axi_Mux / EFX 原语的套件要 EFINITY_HOME 取厂商原语模型，由调用者按
+    # 开发环境第 11 节导出；跑器不改写它，免得把某台机器的安装路径写进仓库。
+    proc = subprocess.Popen(["bash", "-lc", cmd], cwd=shadow, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True, start_new_session=True, env=env)
     try:
         out, _ = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         os.killpg(proc.pid, signal.SIGKILL)
         out, _ = proc.communicate()
-        res.status = "超时"
-        res.detail = f"超过 {timeout:.0f}s"
-        res.seconds = time.time() - t0
-        res.log = out[-4000:]
-        if dest:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(out, encoding="utf-8")
+        res.status, res.detail, res.seconds, res.log = "超时", f"超过 {timeout:.0f}s", time.time() - t0, out[-4000:]
         return res
     res.seconds = time.time() - t0
+    text = out
+    if log_rel:
+        p = shadow / log_rel
+        files: list[Path] = []
+        if p.is_dir():
+            # 只看本轮这次命令跑出来的日志，避免拿上一条变异的旧日志当证据
+            files = [f for f in sorted(p.rglob("*.log")) if f.stat().st_mtime >= t0 - 1.0]
+        elif p.is_file() and p.stat().st_mtime >= t0 - 1.0:
+            files = [p]
+        for f in files:
+            text += "\n" + f.read_text(encoding="utf-8", errors="replace")
+    res.log = text
+    if dest:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(text[-200000:], encoding="utf-8")
     m = RESULT_RE.findall(out)
-    res.result = m[-1].upper() if m else ""
-    log_path = suite_dir / log_rel.format(case=case)
-    if log_path.is_file():
-        res.log = log_path.read_text(encoding="utf-8", errors="replace")
-        res.log_path = str(log_path)
-        if dest:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(log_path, dest)
-    else:
-        res.log = out
-        if dest:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(out, encoding="utf-8")
-    # 判红的那几行摘要，便于填 evidence 正则
-    hits = [ln.strip() for ln in res.log.splitlines()
-            if re.search(r"FAIL|MISMATCH|mismatch|BAD|ERROR|不一致", ln)]
-    res.detail = " | ".join(hits[:3])[:300]
-    if not res.result:
-        res.status = "无结果行"
-        res.detail = out.strip().splitlines()[-1][:160] if out.strip() else "无输出"
-        return res
-    if res.result == "PASS":
+    res.result = m[-1].upper() if m else ("" if proc.returncode == 0 else "EXIT")
+    if proc.returncode == 0:
         res.status = "通过"
-    elif res.result == "FAIL":
-        res.status = "见红"
-    elif res.result == "NOT_RED":
-        res.status = "未红"
-    elif res.result.startswith("COMPILE"):
+    elif BAD_OUT.search(text):
         res.status = "编译失败"
     else:
-        res.status = res.result
+        res.status = "见红"
+    hits = [ln.strip() for ln in text.splitlines()
+            if re.search(r"FAIL|MISMATCH|mismatch|BAD|ERROR|不等|不一致", ln)]
+    res.detail = " | ".join(hits[:2])[:260]
     return res
 
 
 def classify(runs: list[RunResult]) -> str:
-    statuses = [r.status for r in runs]
-    if any(s in ("无结果行", "基线未过", "编译失败") for s in statuses):
+    st = [r.status for r in runs]
+    if any(s in ("无结果", "基线未过", "编译失败") for s in st):
         return "INVALID"
-    if all(s == "见红" for s in statuses):
+    if all(s == "见红" for s in st):
         return "KILLED" if all(r.evidence for r in runs) else "KILLED-WEAK"
-    if all(s in ("见红", "超时") for s in statuses):
-        return "KILLED-WEAK"  # 靠超时见红不算判据有效
-    if all(s in ("未红", "通过") for s in statuses):
+    if all(s in ("见红", "超时") for s in st):
+        return "KILLED-WEAK"
+    if all(s == "通过" for s in st):
         return "SURVIVED"
     return "PARTIAL"
 
 
-def sha256(path: Path) -> str:
+def sha(path: Path) -> str:
     import hashlib
     return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
 
@@ -208,55 +184,45 @@ def audit(rows: list[dict]) -> int:
             bad += 1
             continue
         text = path.read_text(encoding="utf-8")
-        n = text.count(row["rule"]["find"])
-        if n != 1:
-            print(f"FAIL {row['id']}: 规则匹配 {n} 次")
+        miss = [i + 1 for i, r in enumerate(row["rules"]) if text.count(r["find"]) != 1]
+        if miss:
+            print(f"FAIL {row['id']}: 第 {miss} 条规则匹配次数不是 1")
             bad += 1
             continue
         doc = ROOT / row["spec"]["doc"]
-        if not doc.is_file():
-            print(f"FAIL {row['id']}: 规格文件不存在 {row['spec']['doc']}")
+        if not doc.is_file() or row["spec"]["section"] not in doc.read_text(encoding="utf-8"):
+            print(f"FAIL {row['id']}: 规格出处找不到 {row['spec']['doc']} #{row['spec']['section']}")
             bad += 1
             continue
-        if row["spec"]["section"] not in doc.read_text(encoding="utf-8"):
-            print(f"FAIL {row['id']}: 规格出处找不到「{row['spec']['section']}」")
-            bad += 1
-            continue
-        if row["expect"].get("evidence"):
-            print(f"WARN {row['id']}: 见红位置写在了行级 expect 上，建议改到该用例的 runs[].evidence")
         if not any(r.get("evidence") for r in row["runs"]):
             print(f"WARN {row['id']}: 没有登记见红位置，只能算 KILLED-WEAK")
-        else:
-            for run in row["runs"]:
-                if not run.get("evidence"):
-                    print(f"WARN {row['id']}: 用例 {run['case']} 没有见红位置，该用例只能算弱证据")
     print(f"audit: {len(rows) - bad}/{len(rows)} 条可用")
     return 1 if bad else 0
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--list", action="store_true", help="列出清单")
-    ap.add_argument("--audit", action="store_true", help="只校验规则与规格出处，不跑仿真")
-    ap.add_argument("--run", action="store_true", help="跑本轮变异")
+    ap.add_argument("--list", action="store_true")
+    ap.add_argument("--audit", action="store_true")
+    ap.add_argument("--run", action="store_true")
     ap.add_argument("--ids", help="逗号分隔的 id；默认全量")
-    ap.add_argument("--run-dir", help="运行目录，默认新建 sim/build/check-runs/mutation-<时间>")
-    ap.add_argument("--timeout", type=float, default=600.0, help="单个用例超时秒数")
+    ap.add_argument("--run-dir")
+    ap.add_argument("--timeout", type=float, default=900.0)
+    ap.add_argument("--autofill-evidence", action="store_true",
+                    help="把见红行里的检查器标签自动写回清单（仍需人工过一遍）")
     args = ap.parse_args()
 
     rows = load_manifest(MANIFEST)
     if args.ids:
         want = [x.strip() for x in args.ids.split(",") if x.strip()]
-        known = {r["id"] for r in rows}
-        missing = [x for x in want if x not in known]
+        missing = [x for x in want if x not in {r["id"] for r in rows}]
         if missing:
             sys.exit(f"未知 id: {', '.join(missing)}")
         rows = [r for r in rows if r["id"] in want]
 
     if args.list:
         for row in rows:
-            cases = ",".join(f"{r['suite']}:{r['case']}" for r in row["runs"])
-            print(f"{row['id']:<22} {row['defect']:<12} {cases}")
+            print(f"{row['id']:<28} {row['defect']:<10} {len(row['rules'])} 处  {row['runs'][0]['cmd']}")
         print(f"共 {len(rows)} 条")
         return 0
     if args.audit:
@@ -266,116 +232,110 @@ def main() -> int:
     run_dir = run_dir if run_dir.is_absolute() else ROOT / run_dir
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    suites = {r["suite"] for row in rows for r in row["runs"]}
     targets = sorted({row["target"] for row in rows})
-    shadow = build_shadow(run_dir, suites, targets)
-    main_shadow = shadow / "Main"
+    shadow = build_shadow(run_dir, targets)
+    print(f"运行目录 {run_dir.relative_to(ROOT)}；{len(targets)} 个目标文件")
 
-    # 规则登记时用的日志相对路径：套件的 run.sh 都是 build/<用例>.log
-    log_rel = "build/{case}.log"
-
-    print(f"运行目录 {run_dir.relative_to(ROOT)}")
-    print(f"影子树 {len(targets)} 个目标、{len(suites)} 个套件")
-
-    # ---- 基线：同一棵影子树，不应用任何规则 ----
-    cases = [(r["suite"], r["case"]) for row in rows for r in row["runs"]]
-    baseline: dict[tuple[str, str], RunResult] = {}
-    for suite, case in dict.fromkeys(cases):
-        baseline[(suite, case)] = run_one(main_shadow / "sim" / suite, case, args.timeout, log_rel,
-                                          dest=run_dir / "baseline" / f"{case}.log")
-        b = baseline[(suite, case)]
-        flag = "PASS" if b.status == "通过" else "FAIL"
-        print(f"  基线 {suite}:{case:<18} {flag}  {b.seconds:.1f}s")
+    baseline: dict[str, RunResult] = {}
+    for cmd in dict.fromkeys(r["cmd"] for row in rows for r in row["runs"]):
+        b = run_cmd(shadow, cmd, None, args.timeout)
+        baseline[cmd] = b
+        print(f"  基线 {cmd[:96]:<96} {'PASS' if b.status == '通过' else 'FAIL'}  {b.seconds:.1f}s")
 
     results: list[MutantResult] = []
     for row in rows:
         mid = row["id"]
         mr = MutantResult(mid=mid, target=row["target"])
         target_path = shadow / row["target"]
-        pristine = shadow / ".pristine" / row["target"]
-        shutil.copy2(pristine, target_path)
-        mr.sha_before = sha256(target_path)
+        shutil.copy2(shadow / ".pristine" / row["target"], target_path)
         try:
-            apply_rule(target_path, row["rule"]["find"], row["rule"]["replace"])
+            apply_rules(target_path, row["rules"])
         except SystemExit as exc:
-            mr.status = "INVALID"
-            mr.note = str(exc)
+            mr.status, mr.note = "INVALID", str(exc)
             results.append(mr)
-            print(f"  {mid:<22} INVALID  {exc}")
+            print(f"  {mid:<28} INVALID {exc}")
             continue
-        mr.sha_after = sha256(target_path)
-
-        for run in row["runs"]:
-            b = baseline[(run["suite"], run["case"])]
-            rr = run_one(main_shadow / "sim" / run["suite"], run["case"], args.timeout, log_rel,
-                         dest=run_dir / "runs" / mid / f"{run['case']}.log")
+        for i, run in enumerate(row["runs"]):
+            b = baseline[run["cmd"]]
+            rr = run_cmd(shadow, run["cmd"], run.get("log"), args.timeout,
+                         dest=run_dir / "logs" / mid / (str(i) + ".log"))
             if b.status != "通过":
-                rr.status = "基线未过"
-                rr.detail = f"同树基线 {b.result or b.status}"
+                rr.status, rr.detail = "基线未过", f"基线 {b.result or b.status}"
             elif rr.status == "见红":
-                pat = run.get("evidence") or row["expect"].get("evidence") or ""
+                pat = run.get("evidence") or ""
                 hit = re.search(pat, rr.log) if pat else None
                 rr.evidence = hit.group(0)[:80] if hit else ""
                 if pat and not hit:
                     rr.detail = f"见红位置不匹配「{pat}」"
             mr.runs.append(rr)
-            print(f"  {mid:<22} {run['case']:<20} {rr.status:<6} {rr.result:<8} {rr.seconds:6.1f}s"
-                  + (f"  「{rr.evidence}」" if rr.evidence else ""))
-            if rr.status == "见红" and rr.detail:
-                print(f"       {rr.detail}")
-
-        if any(r.status == "基线未过" for r in mr.runs):
-            mr.status = "INVALID"
-        else:
-            mr.status = classify(mr.runs)
+            print(f"  {mid:<28} {rr.status:<5} {rr.result:<6} {rr.seconds:6.1f}s" + (f"  「{rr.evidence}」" if rr.evidence else ""))
+        mr.status = "INVALID" if any(r.status == "基线未过" for r in mr.runs) else classify(mr.runs)
         results.append(mr)
 
-    # 恢复影子树，避免留一个改过的 RTL 被后续 checkout 误用
-    for row in rows:
+    for row in rows:  # 恢复影子树
         shutil.copy2(shadow / ".pristine" / row["target"], shadow / row["target"])
 
+    if args.autofill_evidence:
+        import yaml as _yaml
+        manifest = _yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
+        by_id = {row["id"]: row for row in manifest}
+        filled = []
+        for m in results:
+            for r in m.runs:
+                if r.status != "见红" or r.evidence:
+                    continue
+                line = next((ln for ln in r.log.splitlines()
+                             if re.search(r"FAIL|MISMATCH|ERROR|violat|不等|不一致", ln)), "")
+                tok = re.search(r"\b([A-Z][A-Z0-9_]{3,})\b", line.replace("RESULT", "").replace("FAIL", ""))
+                if not tok:
+                    continue
+                pat = re.escape(tok.group(1))
+                for run in by_id[m.mid]["runs"]:
+                    if not run.get("evidence"):
+                        run["evidence"] = pat
+                filled.append((m.mid, pat, line.strip()[:100]))
+        MANIFEST.write_text(
+            "# 变异清单（唯一真相）。每条记录对应一处生产源码的故意改错。\n"
+            "# 字段：defect 缺陷模型；spec 规格出处；rules 字面替换（每条必须唯一匹配，同一宏可多处）；\n"
+            "# runs 应发现它的命令与见红位置正则；macro 只用于追溯原来的 ifdef 开关。\n"
+            "# 校验与执行：run_mutation.py；迁移等价性：verify_migration.py。\n"
+            + _yaml.safe_dump(manifest, allow_unicode=True, sort_keys=False,
+                              default_flow_style=False, width=10000),
+            encoding="utf-8", newline="")
+        for mid, pat, line in filled:
+            print(f"  evidence {mid:<28} {pat:<24} {line}")
+        print(f"自动登记见红位置 {len(filled)} 条（需人工复核）")
+
+    counts: dict[str, int] = {}
+    for m in results:
+        counts[m.status] = counts.get(m.status, 0) + 1
     report = {
         "time": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "git": subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"],
                               capture_output=True, text=True).stdout.strip(),
         "manifest": str(MANIFEST.relative_to(ROOT)),
-        "baseline": {f"{s}:{c}": {"status": b.status, "result": b.result, "seconds": round(b.seconds, 1)}
-                     for (s, c), b in baseline.items()},
-        "mutants": [
-            {
-                "id": m.mid, "target": m.target, "status": m.status, "note": m.note,
-                "sha_before": m.sha_before, "sha_after": m.sha_after,
-                "runs": [
-                    {"case": r.case, "status": r.status, "result": r.result,
-                     "evidence": r.evidence, "detail": r.detail,
-                     "seconds": round(r.seconds, 1)}
-                    for r in m.runs
-                ],
-            }
-            for m in results
-        ],
+        "counts": counts,
+        "baseline": {c: {"status": b.status, "seconds": round(b.seconds, 1)} for c, b in baseline.items()},
+        "mutants": [{
+            "id": m.mid, "target": m.target, "status": m.status, "note": m.note,
+            "runs": [{"cmd": r.cmd, "status": r.status, "result": r.result,
+                      "evidence": r.evidence, "detail": r.detail, "seconds": round(r.seconds, 1)} for r in m.runs],
+        } for m in results],
     }
-    (run_dir / "mutation-report.json").write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-    counts: dict[str, int] = {}
-    for m in results:
-        counts[m.status] = counts.get(m.status, 0) + 1
-    lines = ["| 变异 | 缺陷模型 | 用例 | 结果 | 见红位置 | 状态 |",
-             "| --- | --- | --- | --- | --- | --- |"]
+    (run_dir / "mutation-report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+                                                  encoding="utf-8")
     defects = {row["id"]: row["defect"] for row in rows}
+    lines = ["| 变异 | 缺陷模型 | 用例 | 结果 | 见红位置 | 状态 |", "| --- | --- | --- | --- | --- | --- |"]
     for m in results:
         for i, r in enumerate(m.runs):
-            lines.append(f"| {m.mid if i == 0 else ''} | {defects[m.mid] if i == 0 else ''} "
-                         f"| {r.case} | {r.result or r.status} | {r.evidence or '—'} | "
-                         f"{m.status if i == 0 else ''} |")
-    summary = "、".join(f"{k} {v}" for k, v in sorted(counts.items()))
+            lines.append(f"| {m.mid if i == 0 else ''} | {defects[m.mid] if i == 0 else ''} | `{r.cmd.split()[-1]}` "
+                         f"| {r.result or r.status} | {r.evidence or '—'} | {m.status if i == 0 else ''} |")
     (run_dir / "mutation-report.md").write_text(
         f"# 变异测试报告\n\n运行目录：`{run_dir.relative_to(ROOT)}`\n\n"
         f"基线：{sum(1 for b in baseline.values() if b.status == '通过')}/{len(baseline)} 通过\n\n"
-        + "\n".join(lines) + f"\n\n合计 {len(results)} 条：{summary}\n", encoding="utf-8")
-
-    print(f"\n合计 {len(results)} 条：{summary}")
+        + "\n".join(lines) + "\n\n合计 {len(results)} 条：" + "、".join(f"{k} {v}" for k, v in sorted(counts.items())) + "\n",
+        encoding="utf-8")
+    print(f"\n合计 {len(results)} 条：" + "、".join(f"{k} {v}" for k, v in sorted(counts.items())))
     print(f"报告 {run_dir.relative_to(ROOT)}/mutation-report.md")
     return 1 if counts.get("INVALID") else 0
 

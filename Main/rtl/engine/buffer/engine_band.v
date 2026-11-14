@@ -165,11 +165,7 @@ module engine_band #(
     wire start_fire = start && start_ready;
     wire flush_fire = flush && flush_ready;
     assign start_ready = (phase == EMPTY) && !cancel;
-`ifdef INJ_BAND_EARLY_FLUSH
-    assign flush_ready = (phase == EXEC) && !cancel; // 注错：flush 提前，本地流没收尾
-`else
     assign flush_ready = (phase == EXEC) && !rd_busy && !wr_busy && !cancel && !lease_blk;
-`endif
     assign active   = phase == EXEC;
     assign busy     = phase != EMPTY;
     assign loading  = phase == LOAD_REQ || phase == LOAD_DATA || phase == LOAD_WAIT;
@@ -180,11 +176,7 @@ module engine_band #(
     assign dma_rd_bytes = ROW_BYTES;
     assign dma_rd_valid = phase == LOAD_REQ && !cancel;
     assign dma_rready   = 1'b1;
-`ifdef INJ_BAND_FLUSH_ADDR
-    assign dma_wr_addr = dst_cursor + 32'd16; // 注错：flush 地址偏 16 字节
-`else
     assign dma_wr_addr = dst_cursor;
-`endif
     assign dma_wr_bytes = ROW_BYTES;
     assign dma_wr_valid = phase == FLUSH_REQ && !cancel;
     assign dma_wdata    = ram_q;
@@ -214,11 +206,7 @@ module engine_band #(
             off = a - r_dst;
             yy = (off >> r_slog) - {16'd0, r_y0};
             col = (off & ((32'd1 << r_slog) - 1)) >> 4;
-`ifdef INJ_BAND_ADDR_STRIDE
-            idx = (yy << 8) + col; // 注错：按 256 词固定行距换算，行宽不同时错位
-`else
             idx = yy * ROW_WORDS + col;
-`endif
             local_index = idx[AW-1:0];
         end
     endfunction
@@ -244,12 +232,7 @@ module engine_band #(
     wire fill_write = (phase == LOAD_DATA) && dma_rvalid && !cancel && load_left != 0;
     // R2 光栅写：单 lane 写使能，词号 = 像素号>>2；与在途读同址时退让一拍
 `ifdef GFX_HAS_RAST
-`ifdef INJ_RAST_PIX_TRUNC
-    // 注错：像素号截到 11 位，每 2048 个位置别名一次
-    wire [RAST_PIX_AW-1:0] ras_pix = {{(RAST_PIX_AW-11){1'b0}}, ras_wr_pix[10:0]};
-`else
     wire [RAST_PIX_AW-1:0] ras_pix = ras_wr_pix;
-`endif
     wire [31:0]  ras_dat = ras_wr_data;
     wire [AW-1:0] ras_word = ras_pix[RAST_PIX_AW-1:2];
     wire [1:0]    ras_lane = ras_pix[1:0];
@@ -272,12 +255,8 @@ module engine_band #(
     wire [3:0] ras_we_vec = {4{ras_fire}} & (4'b0001 << ras_lane);
     genvar p;
     generate for (p = 0; p < 4; p = p + 1) begin : pixel_enable
-`ifdef INJ_BAND_PIXEL_MASK
-        assign ram_we[p] = !rst && (fill_write || (pixel_write && !bad_keep) || ras_we_vec[p]); // 注错：bit31 不写标记失效
-`else
         assign ram_we[p] = !rst && (fill_write ||
             (pixel_write && !bad_keep && !ws_data[32*p+31]) || ras_we_vec[p]);
-`endif
     end endgenerate
 
     // 两段均为二次幂深度；段选择随同步输出锁存，反压时不推进

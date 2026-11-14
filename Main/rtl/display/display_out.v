@@ -56,12 +56,9 @@ module display_out #(
 
     localparam [9:0] LEVEL_MAX = 10'd512;
 
-    // 注错（变异测试）：本文件是干净形态，三处变异各包在 `ifdef 内。
-    // 都不定义时它们不进编译输入（预处理阶段已删除），不依赖综合器优化。
-    // 编译开关与 sim/display/run.sh 的用例一一对应，一次只开一个：
-    //   INJ_LAG0      对齐取 D=0，用 psel 而不是 psel_d1
-    //   INJ_PHASE3    弹出相位改成 psel==3
-    //   INJ_ORDER_REV 拍内像素顺序拆反
+    // 变异体（外部活动）：本文件是干净形态，三处改错在
+    // Main/sim/mutation/mutants.yaml 的 display_out.lag0 / .phase3 / .order_rev，
+    // 由 run_mutation.py 在隔离影子树里施加，发现者是 sim/display 的 image 用例。
 
     // 「水位与触底」的计量窗口：一场取 480 行、弹 480 行，起始水位是 0（场起始清空过），
     // 所以**场末必然排空到 0**——这是守恒，不是故障。取数侧发完最后一行就没有行可发了，
@@ -151,11 +148,7 @@ module display_out #(
 
     // 每组的第一个像素周期弹这一组的拍（D=1，见文件头）
     wire group_start = de0 & (psel == 2'd0);
-`ifdef INJ_PHASE3
-    wire pop_phase   = de0 & (psel == 2'd3);   // 注错：弹出相位改成 psel==3
-`else
     wire pop_phase   = group_start;
-`endif
     assign rd_en = pop_phase & ~rd_empty;
 
     // 这一组没弹到（FIFO 空）：本组的 4 个像素输出黑色。miss_sh 在组首装载、每拍左移，
@@ -177,16 +170,8 @@ module display_out #(
         end
     end
 
-`ifdef INJ_LAG0
-    wire [1:0] sel_base = psel;                // 注错：对齐取 D=0
-`else
     wire [1:0] sel_base = psel_d1;
-`endif
-`ifdef INJ_ORDER_REV
-    wire [1:0] sel = ~sel_base;                // 注错：拍内像素顺序拆反
-`else
     wire [1:0] sel = sel_base;
-`endif
     wire missed = miss_sh[sel];
 
     wire [31:0] fifo_pixel = rd_data[{sel, 5'b0} +: 32];

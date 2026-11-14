@@ -10,7 +10,7 @@
 //   1. 控制层挂 rst_ctrl，搬运层挂 ~rst_ddr_n；控制层复位或软复位都经 drain_req 排空搬运层
 //   2. bin_mode=1 时 DOORBELL 走 PB 前端（engine_pb），否则走原命令层；pb_active 按门铃锁存
 //   3. PERF 读事件按 rd_tex 过滤，只计真实 DDR 描述符与命令取数，TEX 读不计入
-//   4. 子模块注错由 `ifdef INJ_xxx 选择 compile 输入，本层不透传参数
+//   4. 子模块的变异体在 Main/sim/mutation/mutants.yaml，本层不含注错分支
 //==============================================================================================//
 `default_nettype none
 `include "engine_feature.vh"
@@ -381,11 +381,8 @@ module engine_top #(
     // PERF 汇聚：读事件只计真实 DDR 描述符与命令取数，TEX 读不计入
     wire [3:0] perf_key_lanes_w;
     wire       perf_key_valid_w;
-`ifdef INJ_STRIP_PERF
-    wire perf_rdb = (g_rd_valid && g_rd_ready && !g_rd_tex)
-`else
     wire perf_rdb = (g_rd_valid && g_rd_ready && !g_rd_tex && !g_rd_band)
-`endif || (fd_valid && fd_ready) ||
+                    || (fd_valid && fd_ready) ||
                     band_perf_rd;
     wire [11:0] perf_rdb_beats = (fd_valid && fd_ready) ? {4'b0, fd_bytes[11:4]}
                                                         : band_perf_rd ? 12'd160 : g_rd_beats;

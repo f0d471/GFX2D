@@ -38,7 +38,7 @@ def rtl(name,sh,defines=(),want='PASS',evidence=None):
     run(name+'_compile',['iverilog','-g2012','-s','tb_stripctl','-Ptb_stripctl.SH='+str(sh),
         '-I'+str(INCLUDE),'-I'+str(MAIN/'rtl/engine/include'),*['-D'+x for x in defines],'-o',BUILD/(name+'.vvp'),SIM/'tb_stripctl.v',*RTL])
     out=run(name,['vvp','-n',BUILD/(name+'.vvp'),'+case='+str(BUILD/('scene'+str(sh)))],SIM,evidence=evidence)
-    if 'RESULT: '+want not in out or 'WATCHDOG' in out:raise RuntimeError(name+' RTL result')
+    if 'RESULT: '+want not in out or 'WATCHDOG' in out:raise RuntimeError(name+' RTL result: '+out[-600:])
     return out
 
 
@@ -116,19 +116,19 @@ def main():
         run('formal_fuzz',[exe,'--json'],evidence=r'10000/10000 scenes byte-identical \(0 skipped\)')
         run('formal_errors',[cc('test_errors','test_errors.c')],evidence=r'errors=0')
         run('formal_fuzz_release',[cc('test_strips_release','test_strips.c',san=False)],evidence=r'10000/10000')
-        for macro in ('INJ_STRIP_DROP','INJ_STRIP_CLIP','INJ_STRIP_ORDER','INJ_STRIP_NOFLUSH'):
-            exe=cc(macro.lower(),'test_strips.c',(macro,),san=False)
-            run('formal_'+macro.lower(),[exe],want=1,evidence=r'bytes differ|skip:')
-        result['software']={'scenes_sanitized':10000,'scenes_release':10000,'skipped':0,'production_mutations_red':4}
+        # 四个软件变异体（STRIP_DROP/CLIP/ORDER/NOFLUSH）已移到 Main/sim/mutation/mutants.yaml，
+        # 由 formal_fuzz 承担发现责任。
+        result['software']={'scenes_sanitized':10000,'scenes_release':10000,'skipped':0,
+                            'production_mutations':'Main/sim/mutation/mutants.yaml'}
     if not a.software_only:
         exe=cc('scene_dump','scene_dump.c')
         for sh in (16,32):
             run('formal_scene'+str(sh)+'_golden',[exe,BUILD/('scene'+str(sh)),str(sh.bit_length()-1)],evidence=r'G3 GOLDEN PASS')
             out=rtl('formal_rtl'+str(sh),sh)
             result['rtl'+str(sh)]={'checks':int(re.search(r'G3 checks=\s*(\d+)',out).group(1)),'errors':0,'frame_word_differences':0}
-        for macro,pattern in [('INJ_STRIP_LOCAL_Y','PIXEL-FAIL'),('INJ_STRIP_HEADER_OFFSET','CASE-FAIL|PIXEL-FAIL'),('INJ_STRIP_PERF','PERF-FAIL')]:
-            rtl('formal_'+macro.lower(),16,(macro,),want='FAIL',evidence=pattern)
-        result['rtl_mutations_red']=3
+        # 三个 RTL 变异体（STRIP_LOCAL_Y/HEADER_OFFSET/PERF）同样在外部清单里，
+        # 由 formal_scene16_golden / formal_rtl16 承担发现责任。
+        result['rtl_mutations']='Main/sim/mutation/mutants.yaml'
     (LOGS/'formal_results.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
     print('G3 FORMAL PASS')
 if __name__=='__main__':main()

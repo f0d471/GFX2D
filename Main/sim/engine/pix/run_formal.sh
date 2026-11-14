@@ -46,7 +46,7 @@ run_case() {
     stat=$(grep -E '^(pipe|PATH stats)' "build/$name.log" | tail -1)
     echo "  $name: ${got:-RESULT: MISSING}"
     [ -n "$stat" ] && [ "$want" = PASS ] && echo "      $stat"
-    if [ -n "$CASE_ONLY" ]; then return 0; fi
+    if [ -n "$CASE_ONLY" ]; then CASE_RESULT="$got"; return 0; fi
     case "$got" in
         "RESULT: $want"*) ;;
         *) bad=$((bad+1));;
@@ -91,7 +91,10 @@ fi
 
 if [ -n "$CASE_ONLY" ]; then
     [ "$matched" = 1 ] || { echo "RESULT: CASE-NOT-FOUND ($CASE_ONLY)"; exit 3; }
-    exit 0
+    case "${CASE_RESULT:-}" in
+        "RESULT: PASS"*) exit 0 ;;
+        *) exit 1 ;;
+    esac
 fi
 
 if [ "$bad" -eq 0 ]; then

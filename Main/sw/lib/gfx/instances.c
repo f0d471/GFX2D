@@ -51,9 +51,6 @@ int gfx_instance_at(const gfx_cmd *c, const gfx_instance_view *views,
             !((uintptr_t)(v->host+(size_t)off)&3u)) {
             const uint32_t *p=(const uint32_t *)(const void *)(v->host+(size_t)off);
             uint32_t xy=p[0],uv=entry==8u?p[1]:c->w[6];
-#ifdef INJ_INST_XYUV
-            if (entry==8u) { uint32_t tmp=xy;xy=uv;uv=tmp; }
-#endif
             *scalar=unpack(c,xy,uv); return GFX_OK;
         }
     }

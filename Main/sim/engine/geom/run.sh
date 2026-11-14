@@ -96,38 +96,9 @@ run_case geom_rfstall_v geom "$BUILD/vectors.hex"  PASS "+RFSTALL"
 run_case geom_rfstall_c geom "$BUILD/cases.hex"    PASS "+RFSTALL"
 echo ""
 
-# ---------------------------------------------------------------- 3 注错
-echo "注错用例（期望 FAIL，且红在对应的判据上）："
-# 五处变异各开一个开关
-build_one inj_nosrc -DINJ_SKIP_SURF
-run_case inj_nosrc inj_nosrc "$BUILD/directed.hex" FAIL
-build_one inj_no4k -DINJ_NO_SPLIT
-run_case inj_no4k inj_no4k "$BUILD/directed.hex" FAIL
-build_one inj_alpha -DINJ_ALPHA_AS_COPY
-run_case inj_alpha inj_alpha "$BUILD/directed.hex" FAIL
-# COPY 也发读目的：多发的描述符，消费循环看不见，要握手监视器抓
-build_one inj_extra -DINJ_COPY_READ
-run_case inj_extra inj_extra "$BUILD/directed.hex" FAIL
-# 行开始之前不看 row_free：要排空拉长才露出来
-build_one inj_norf -DINJ_ROW_NOFREE
-run_case inj_norf inj_norf "$BUILD/directed.hex" FAIL "+RFSTALL"
-
-check_marker() {
-    local name=$1 pat=$2 why=$3
-    if grep -qaE "$pat" "$BUILD/$name.log"; then
-        echo "  $name: $why"
-    else
-        echo "  $name: 不是由「$why」引起"; bad=$((bad + 1))
-    fi
-    total=$((total + 1))
-}
-
-check_marker inj_nosrc 'MISMATCH (sideband row|read descriptor|write descriptor)' \
-    "与模型的逐条比对引起（求交错，矩形变了）"
-check_marker inj_no4k 'RULE1 .*crosses 4KB' "规矩 1 的「不跨 4KB」引起"
-check_marker inj_alpha 'MISMATCH sideband read-dst vs D7' "D7 的「读不读目的」引起"
-check_marker inj_extra 'PROTO handshake count' "握手监视器的「握手条数」引起"
-check_marker inj_norf 'BUFERR row .* started on busy half' "行缓冲替身的「开在占用的那一半上」引起"
+# 3 变异（外部活动）
+# 原先的 inj_* 用例已删：同一组激励由 geom_directed / geom_rfstall 承担，
+# 变异体在 Main/sim/mutation/mutants.yaml，由 run_mutation.py 在隔离树里施加。
 
 # 反面对照：正常构建里不许出现任何违例标记（八份正常日志全查）
 for c in geom_directed geom_vectors geom_cases geom_stall geom_stall_c \

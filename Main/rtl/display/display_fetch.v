@@ -251,14 +251,8 @@ module display_fetch #(
     // 这就是场起始清空要防的那件事，由清空动作自己造出来。
     // 触发条件很窄（本场还有行没取 + 恰好在 fs_event 那一拍空闲），但那正是欠载自愈的场景。
     wire can_issue;
-`ifdef INJ_INFLIGHT2
-    // 注错：允许两笔在途
-    assign can_issue = (state == S_RUN) && started && en_eff && !ar_valid && !fs_event &&
-                       (row < V_ACTIVE) && room_for_line;
-`else
     assign can_issue = (state == S_RUN) && started && en_eff && !ar_valid && !fs_event &&
                        !in_flight && (row < V_ACTIVE) && room_for_line;
-`endif
 
     always @(posedge clk) begin
         if (rst) begin
@@ -325,23 +319,10 @@ module display_fetch #(
                 ar_addr  <= base_eff + ({22'h0, row} << 12);
             end
 
-`ifdef INJ_SWAP_NOW
-            // 注错 SWAP_NOW：写请求立刻切换，不等场起始（会切出撕裂帧）
-            if (swap_write) begin
-                base_eff   <= back_sh;
-                front_base <= back_sh;
-                swap_count <= swap_count + 32'h1;
-            end
-`endif
 
             // SWAP_REQ 的请求位：软件写它（写 0 撤销），场起始那一刻锁存并清零
-`ifdef INJ_SWAP_NOW
-            if (swap_wr_any)
-                swap_req_sh <= 1'b0;      // 注错：请求位不再由软件置起
-`else
             if (swap_wr_any)
                 swap_req_sh <= pwdata[0];
-`endif
 
             // 场起始清空的六步
             case (state)
@@ -357,11 +338,7 @@ module display_fetch #(
                         // ar_valid 挂起时不能直接去复位：那一笔迟早会被接走，然后它的拍会
                         // 流进新场的队头——正是先排空在途要防的那件事。
                         // 注错 NO_DRAIN：跳过第二步，在途那笔剩下的拍会落进新场的队头
-`ifdef INJ_NO_DRAIN
-                        state <= S_RESET;
-`else
                         state <= (in_flight || ar_valid) ? S_DRAIN : S_RESET;
-`endif
                     end
                 end
                 S_DRAIN: begin
@@ -370,11 +347,7 @@ module display_fetch #(
                 end
                 S_RESET: begin
                     // 第三步：两侧一起复位，保持 2 个 core_clk 周期
-`ifdef INJ_NO_CLEAR
-                    fifo_rst <= 1'b0;             // 注错：场起始不清 FIFO
-`else
                     fifo_rst <= 1'b1;
-`endif
                     if (rst_cnt == 2'h1) begin
                         rst_cnt <= 2'h0;
                         state   <= S_WAIT;

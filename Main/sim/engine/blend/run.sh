@@ -53,7 +53,7 @@ check() {
     local r
     r=$(run_case "$name" "$@")
     echo "  $name: $r"
-    if [ -n "$CASE_ONLY" ]; then return 0; fi
+    if [ -n "$CASE_ONLY" ]; then CASE_RESULT="$r"; return 0; fi
     case "$r" in
         "RESULT: $want"*) ;;
         *) bad=$((bad + 1)) ;;
@@ -92,7 +92,10 @@ check narrow_const PASS -DONLY_EQ=3 -DFAILFAST
 
 if [ -n "$CASE_ONLY" ]; then
     [ "$matched" = 1 ] || { echo "RESULT: CASE-NOT-FOUND ($CASE_ONLY)"; exit 3; }
-    exit 0
+    case "${CASE_RESULT:-}" in
+        "RESULT: PASS"*) exit 0 ;;
+        *) exit 1 ;;
+    esac
 fi
 
 if [ "$bad" -eq 0 ]; then

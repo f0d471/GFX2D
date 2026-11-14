@@ -277,11 +277,7 @@ module engine_rast #(
     function signed [31:0] q16;
         input [47:0] a;
         begin
-`ifdef INJ_RAST_ROUND
-            q16 = a[47:16];
-`else
             q16 = a[47:16] + {31'd0, a[15]};
-`endif
         end
     endfunction
     function [15:0] clamp_z;
@@ -394,11 +390,7 @@ module engine_rast #(
     wire tex_req_now = cov_now && tex_en_f;
     wire tex_ok = !tex_req_now || samp_ready;
     wire [31:0] response_texel = samp_rdata;
-`ifdef INJ_RAST_KEY_MISS
-    wire response_key = 1'b0;
-`else
     wire response_key = mtex[RL-1] && mkey[RL-1] && response_texel == ras_key;
-`endif
     wire tex_cfg_bad_c = tex_cfg_bad;
     assign samp_valid = scan_active && !stopping &&
         (in_flight < 4'd8 || retire) && tex_req_now;
@@ -413,11 +405,7 @@ module engine_rast #(
 `endif
     wire fire0 = scan_active && !stopping && !clr_busy && tex_ok &&
         (in_flight < 4'd8 || retire);
-`ifdef INJ_RAST_Z_REVERSE
-    wire response_write = mcover[RL-1] && mz[RL-1] > z_response && !response_key;
-`else
     wire response_write = mcover[RL-1] && mz[RL-1] < z_response && !response_key;
-`endif
     // 浅返回队列用寄存器。按项写使能避免 8×88 被映成数块 RAM。
     genvar response_slot;
     generate for(response_slot=0;response_slot<8;response_slot=response_slot+1) begin : g_response
@@ -430,11 +418,7 @@ module engine_rast #(
     assign ras_wr_valid = out_v && out_wr && !stopping;
     assign ras_wr_pix = out_pix;
     assign ras_wr_data = {8'd0, out_rgb};
-`ifdef INJ_RAST_PARTIAL_COMMIT
-    assign zwr_en = out_v && out_wr && !stopping;
-`else
     assign zwr_en = commit_fire;
-`endif
     assign zwr_pix = out_pix;
     assign zwr_data = out_z;
     assign zrd_en = fire0 && cov_now;
@@ -559,11 +543,7 @@ module engine_rast #(
                 end
 
                 M_VALID: begin
-`ifdef INJ_RAST_BIAS_REVERSE
-                    bias_pos0 <= !((w_a0 > 32'sd0) || (w_a0 == 32'sd0 && w_b0 > 32'sd0));
-`else
                     bias_pos0 <= (w_a0 > 32'sd0) || (w_a0 == 32'sd0 && w_b0 > 32'sd0);
-`endif
                     bias_pos1 <= (w_a1 > 32'sd0) || (w_a1 == 32'sd0 && w_b1 > 32'sd0);
                     bias_pos2 <= (w_a2 > 32'sd0) || (w_a2 == 32'sd0 && w_b2 > 32'sd0);
                     if (record_bad || tex_cfg_bad_c) begin
@@ -714,11 +694,7 @@ module engine_rast #(
                             c_sum[3] <= c_a1[3] + c_a2[3] + 48'sd8;
                             c_sum[4] <= c_a1[4] + c_a2[4] + 48'sd8;
                             c_sum[5] <= c_a1[5] + c_a2[5] + 48'sd8;
-`ifdef INJ_RAST_EDGE_SCALE
-                            c_er[0] <= w_c0 + c_es[0];
-`else
                             c_er[0] <= w_c0 + (c_es[0] <<< 4);
-`endif
                             c_er[1] <= w_c1 + (c_es[1] <<< 4);
                             c_er[2] <= w_c2 + (c_es[2] <<< 4);
                         end
@@ -775,11 +751,7 @@ module engine_rast #(
                             acc4 <= acc4 + attr_gx[4]; acc5 <= acc5 + attr_gx[5];
                         end
                     end
-`ifdef INJ_RAST_NO_BARRIER
-                    if (!scan_active || stopping) begin
-`else
                     if ((!scan_active || stopping) && in_flight == 4'd0) begin
-`endif
                         dbg_retire_cnt <= dbg_retire_cnt + 32'd1;
                         if (act_sel) slot_busy1 <= 1'b0; else slot_busy0 <= 1'b0;
                         state <= M_IDLE;

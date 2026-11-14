@@ -91,24 +91,9 @@ def main():
             run(name+'-random',binaries[name],vector_args('random',name=='l1'))
             run(name+'-directed',binaries[name],vector_args('directed',name=='l1',4000))
         for off in (4032,4064):run(f'split-{off}',binaries['l2'],vector_args('directed',False,off))
-        mutations=[
-            ('INJ_RAST_EDGE_SCALE','full'),('INJ_RAST_BIAS_REVERSE','full'),
-            ('INJ_RAST_Z_REVERSE','full'),('INJ_RAST_ROUND','full'),
-            ('INJ_RLST_DROP_TAIL','rlst'),('INJ_RLST_CREDIT','rlst'),
-            ('INJ_RAST_KEY_MISS','full'),('INJ_RLST_OWNER_EARLY','rlst'),
-            ('INJ_RLST_SUB_OFFSET','rlst'),('INJ_RAST_PIX_TRUNC','full'),
-            ('INJ_RAST_PARTIAL_COMMIT','core'),('INJ_RAST_NO_BARRIER','core'),
-            ('INJ_RAST_SAMP_EARLY','port')]
-        for macro,kind in mutations:
-            if kind=='full':
-                exe=compile_case(macro,'tb_engine_rast',FULL,FLAGS+['GFX_HAS_RAST_TEX',macro])
-                args=vector_args('directed',False,4000)
-            else:
-                top,src={'rlst':('tb_engine_rlst',rlst_src),'core':('tb_rast_core',core_src),
-                         'port':('tb_rast_tex_port',port_src)}[kind]
-                exe=compile_case(macro,top,src,[macro]+(['GFX_HAS_RAST_TEX'] if kind=='port' else []))
-                args=[]
-            run(macro,exe,args,mutation=True)
+        # 十三个变异体已移到 Main/sim/mutation/mutants.yaml；它们的发现者是上面的
+        # 随机/定向/跨页用例（RAST 系）与 rlst/ports 组（RLST 系）。
+        print('R2 变异体已移到 Main/sim/mutation/mutants.yaml',flush=True)
     write_json(logs/'summary.json',{'scope':a.group,'profile':current.profile,'cases':results})
     print(f'R2 {a.group} PASS cases={len(results)}',flush=True)
 

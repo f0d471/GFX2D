@@ -686,11 +686,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                       : premult_bad ? {1'b1, EC_ERR_BAD_PREMULT}
                       : ovl_bad_c   ? {1'b1, EC_ERR_OVERLAP}
                       :               {1'b0, EC_ERR_OK};
-`ifdef INJ_CHK_SWAP
-    wire [4:0] chk = v_swap;              // 注错：用对调 space/format 的错误码
-`else
     wire [4:0] chk = v_norm;
-`endif
 
     // SET_CLIP 的新框：x1 = x + w − 1。x 有符号、w 无符号，和的范围
     // [−32768, 98301]，用 18 位有符号求值再饱和到 16 位；17 位零扩展会把
@@ -846,17 +842,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     err_tag   <= 32'd0;
                     st        <= S_TERM;
                 end else if (fe_done && fe_owner == 2'd0) begin
-`ifdef INJ_NO_FB
                     if (fe_err) begin
-                        err_set   <= 1'b1;              // 注错：关掉逐条回退
-                        err_code  <= EC_ERR_FETCH;
-                        err_index <= global_bi;
-                        err_tag   <= 32'd0;
-                        st        <= S_TERM;
-                    end else if (fe_err) begin
-`else
-                    if (fe_err) begin
-`endif
                         k   <= bi;                      // 整批失败：从批首逐条回退
                         per <= 1'b1;
                         st  <= S_PERW;
@@ -952,11 +938,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                         err_index<=global_k;err_tag<=inst_packet[255:224];
                         err_instance<=inst_next_id;st<=S_TERM;
                     end else if(inst_valid)begin
-`ifdef INJ_INST_XYUV
-                        w0<={inst_packet[127:96],inst_uv,inst_xy,inst_packet[31:8],8'h02};
-`else
                         w0<={inst_packet[127:96],inst_xy,inst_uv,inst_packet[31:8],8'h02};
-`endif
                         w1<={inst_packet[255:224],32'd0,inst_packet[159:128],32'd0};
                         inst_id<=inst_next_id;st<=S_RUN;
                     end
@@ -984,14 +966,10 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                     i1_src_x   <= $signed(w0[47:32]);
                     i1_src_y   <= $signed(w0[63:48]);
                     i1_dst_x   <= $signed(w0[79:64]);
-                    `ifdef INJ_STRIP_LOCAL_Y
-                    i1_dst_y <= $signed(w0[95:80]);
-`else
 `ifdef GFX_HAS_STRIP
                     i1_dst_y <= bmode ? $signed(w0[95:80] + band_y0) : $signed(w0[95:80]);
 `else
                     i1_dst_y <= $signed(w0[95:80]);
-`endif
 `endif
                     i1_w       <= w0[111:96];
                     i1_h       <= w0[127:112];
@@ -1015,12 +993,6 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                 // 等活动命令完成
                 S_ACTIVE: begin
 `ifdef GFX_HAS_INST
-`ifdef INJ_INST_EARLY_DONE
-                    if(inst_active && geom_busy)done_set<=1;
-`endif
-`ifdef INJ_INST_STATE
-                    if(inst_active)inst_packet[127:96]<=0;
-`endif
 `endif
                     if (wr_stat_valid && wr_stat_err) begin
                         pend_err  <= 1'b1;
@@ -1132,15 +1104,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                         per <= 1'b1;
                         nst <= N_IDLE;
                         rq_pf <= 1'b0;
-`ifdef INJ_NO_FB
-                        pend_err  <= 1'b1;      // 注错：关掉逐条回退
-                        err_code  <= EC_ERR_FETCH;
-                        err_index <= global_nbi;
-                        err_tag   <= 32'd0;
-                        st        <= S_TERM;
-`else
                         st <= S_PERW;
-`endif
                     end
                     // N_INFL：等预取收尾（不能停 fs_tready）
                 end
@@ -1225,11 +1189,7 @@ module engine_cmd #(parameter integer STRIP_H = 16) (
                         pend_err<=1;err_code<=EC_ERR_BAD_FIELD;err_index<={17'd0,strip_id,10'd0};
                         err_tag<=0;st<=S_TERM;
                     end else begin
-                        `ifdef INJ_STRIP_HEADER_OFFSET
-                        base_r<=table_base+{27'd0,strip_id}*32768;
-`else
                         base_r<=table_base+({27'd0,strip_id}+32'd1)*32768;
-`endif
                         count_r<=counts[strip_id];bi<=0;k<=0;half<=0;per<=0;nst<=N_IDLE;
                         st<=S_BSTART;
                     end

@@ -97,9 +97,6 @@ module engine_bin #(parameter integer STRIP_H = 16) (
     reg [255:0] packet;
     reg [63:0] clip;
     wire [63:0] snapshot=clip;
-`ifdef INJ_BIN_CLIP
-    reg [63:0] inj_last_clip;
-`endif
     reg [31:0] xy,uv;
     reg [4:0] bucket,last_bucket,scan;
     reg [4:0] header_chunk;
@@ -176,16 +173,8 @@ module engine_bin #(parameter integer STRIP_H = 16) (
     wire signed [17:0] xx=ex>639?18'sd639:ex, yy=ey>479?18'sd479:ey;
     wire [63:0] next_clip=(packet[111:96]==0 || packet[127:112]==0 || nx>xx || ny>yy)
         ?64'hffffffff00000000:{yy[15:0],xx[15:0],ny[15:0],nx[15:0]};
-`ifdef INJ_BIN_ORDER
-    wire [63:0] current_ref={packet[7:0]==5?instance_id:32'hffffffff,index+32'd1};
-`else
     wire [63:0] current_ref={packet[7:0]==5?instance_id:32'hffffffff,index};
-`endif
-`ifdef INJ_BIN_READY
-    localparam [31:0] INIT_STATUS=2;
-`else
     localparam [31:0] INIT_STATUS=1;
-`endif
     wire [32:0] next_prefix={12'd0,prefix}+((({1'b0,ram_count}<<3)+33'd15)&~33'd15);
     wire [32:0] next_sum={1'b0,total_refs}+{1'b0,ram_count};
     wire [127:0] header_data=header_chunk==0?
@@ -240,11 +229,7 @@ module engine_bin #(parameter integer STRIP_H = 16) (
                 if(read_index==0)packet[127:0]<=read_beat;
                 if(read_index==1)packet[255:128]<=read_beat;
                 if(read_index==2 && ret==GOT_META)begin
-`ifdef INJ_BIN_CLIP
-                    clip<=inj_last_clip;
-`else
                     clip<=read_beat[63:0];
-`endif
                 end
             end
             case(state)
@@ -255,19 +240,12 @@ module engine_bin #(parameter integer STRIP_H = 16) (
                     packet<=0;second_pass<=0;clip<=64'h01df027f00000000;
                     reference_offset<=512+((draw_cap+1)&32'hfffffffe)*64;
                     port_id<=0;frame_seen<=1;
-`ifdef INJ_BIN_STALE
-                    state<=frame_seen?INIT:CLEAR;
-`else
                     state<=CLEAR;
-`endif
                 end
                 CLEAR:if(port_id==31)state<=INIT;else port_id<=port_id+5'd1;
                 RAM_WAIT:state<=ram_ret;
                 INIT: if(io_ready)io(1,pb_base,16,{384'd0,{26'd0,strips},INIT_STATUS,32'd1,32'h31425046},GET);
                 GET: if(index>=input_count)begin
-`ifdef INJ_BIN_CLIP
-                    inj_last_clip<=clip;
-`endif
                     packets<=index;scan<=0;prefix<=0;total_refs<=0;read_bucket(0,PREFIX);end
                      else if(io_ready)io(0,input_base+(index<<5),32,512'd0,GOT);
                 GOT:begin instance_r<=0;state<=CHECK_INPUT;end
@@ -275,9 +253,6 @@ module engine_bin #(parameter integer STRIP_H = 16) (
                 CHECK_LATCH:begin checked_error_q<=checked_error;state<=CHECK;end
                 CHECK: if(checked_error_q!=0)fault(checked_error_q,1);
                     else if(packet[7:0]==255)begin
-`ifdef INJ_BIN_CLIP
-                        inj_last_clip<=clip;
-`endif
                         packets<=index;scan<=0;prefix<=0;total_refs<=0;read_bucket(0,PREFIX);end
                     else begin
                         if(packet[7:0]==3)clip<=next_clip;
@@ -286,10 +261,6 @@ module engine_bin #(parameter integer STRIP_H = 16) (
                 META: if(io_ready)io(1,pb_base+512+(index<<6),64,{160'd0,index,snapshot,packet},PREP);
                 PREP: if(packet[7:0]==0 || packet[7:0]==3)state<=NEXT;
                     else if(packet[7:0]==5)begin
-`ifdef INJ_BIN_SKIP
-                        if(second_pass)state<=NEXT;
-                        else
-`endif
                         if(packet[79:64]==0)state<=NEXT;
                         else begin inst_go<=1;state<=ITEM;end
                     end else begin xy<=packet[95:64];uv<=packet[63:32];instance_r<=16'hffff;state<=BOUND;end
@@ -308,13 +279,8 @@ module engine_bin #(parameter integer STRIP_H = 16) (
                     end else if(!ram_cursor[0])begin
                         scattered<=scattered+18'd1;state<=COUNT_REF;
                     end else if(io_ready)begin
-`ifdef INJ_BIN_HIGH_BYTE
-                        io(1,pb_base+reference_offset+ram_offset+((ram_cursor-1)<<3),16,
-                            {384'd0,32'd0,index,ram_half},WROTE);
-`else
                         io(1,pb_base+reference_offset+ram_offset+((ram_cursor-1)<<3),16,
                             {384'd0,current_ref,ram_half},WROTE);
-`endif
                     end
                 WROTE:begin scattered<=scattered+18'd1;ref_add<=2;state<=COUNT_REF;end
                 COUNT_REF: if(bucket==last_bucket)state<=NEXT_ITEM;

@@ -231,18 +231,9 @@ module engine_inst (
                     if (instance_id + 32'd1 == {16'd0, n}) begin
                         state <= IDLE;
                     end else begin
-`ifdef INJ_INST_SKIP // 注错：instance_id 每次加 2，跳过一半实例
-                        instance_id <= instance_id + 32'd2;
-`else
                         instance_id <= instance_id + 32'd1;
-`endif
-`ifdef INJ_INST_STRIDE // 注错：游标固定步进 4，不按 stride
-                        cursor <= cursor + 32'd4;
-                        word_addr <= cursor + 32'd4;
-`else
                         cursor <= cursor + {23'd0, step};
                         word_addr <= cursor + {23'd0, step};
-`endif
                         second <= 0;
                         state <= LOOK;
                     end

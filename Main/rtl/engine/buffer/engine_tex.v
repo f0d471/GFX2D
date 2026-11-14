@@ -69,11 +69,7 @@ module engine_tex #(
     wire       apb_wr_acc   = apb_access && pwrite;
     wire       apb_rd_setup = psel && !penable && !pwrite;
     wire       apb_aligned  = (paddr[1:0] == 2'b00);
-`ifdef INJ_WR_LOOSE
-    wire       apb_wr_en    = apb_wr_acc;              // 注错：未对齐写也放行
-`else
     wire       apb_wr_en    = apb_wr_acc && apb_aligned;
-`endif
     wire       apb_rd_req   = apb_rd_setup && apb_aligned;
     wire [9:0] apb_row      = paddr[13:4];
     wire [1:0] apb_wsel     = paddr[3:2];
@@ -155,24 +151,14 @@ module engine_tex #(
             l1 <= l0;
 
             if (stat_r && stat_ready) stat_r <= 1'b0;
-`ifdef INJ_STAT_DROP
-            // 注错：状态脉冲吞掉
-`else
             if (rs_tvalid && rs_tlast) stat_r <= 1'b1;
-`endif
         end
     end
 
     // RAM 自带同步输出级；可选 q1 只用于二拍配置。
     assign rs_tdata  = READ_LATENCY == 1 ? bank_q : q1;
-`ifdef INJ_VALID_EARLY
-    // 注错：valid/last 提前一级，与 data 错拍
-    assign rs_tvalid = (READ_LATENCY == 1) ? issue : v0;
-    assign rs_tlast  = (READ_LATENCY == 1) ? (issue && left == 1) : l0;
-`else
     assign rs_tvalid = (READ_LATENCY == 1) ? v0 : v1;
     assign rs_tlast  = (READ_LATENCY == 1) ? l0 : l1;
-`endif
     assign rs_buf    = ctx_buf;
     assign stat_valid = stat_r;
     assign stat_cidx  = ctx_cidx;
@@ -221,15 +207,8 @@ module engine_tex #(
             samp_cnt <= samp_cnt + (samp_fire ? 2'd1 : 2'd0) - (samp_rvalid ? 2'd1 : 2'd0);
         end
     end
-`ifdef INJ_RAST_SAMP_EARLY
-    // 注错：valid/data 提前一拍，与 RAM 读出 错拍（连续换 bank 时见红）
-    assign samp_rvalid = (READ_LATENCY == 1) ? samp_fire : sv1;
-    assign samp_rdata  = (READ_LATENCY == 1) ? bank_q[32*samp_word[1:0] +: 32]
-                                             : bank_q[32*sb1 +: 32];
-`else
     assign samp_rvalid = (READ_LATENCY == 1) ? sv1 : sv2;
     assign samp_rdata  = (READ_LATENCY == 1) ? bank_q[32*sb1 +: 32] : sd2;
-`endif
 `endif
 
 endmodule

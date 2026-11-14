@@ -74,9 +74,8 @@ echo "engine_top 单元仿真（B1~B5 全部，159 向量 + 定向）："
 if build_engine engine_top "" "" "PASS"; then total=$((total + 1)); else bad=$((bad + 1)); fi
 echo ""
 
-echo "注错构建（期望见红，即 RESULT: FAIL）："
-if build_engine inject_swap "-DINJ_CHK_SWAP" "vectors_only" "FAIL"; then total=$((total + 1)); else bad=$((bad + 1)); fi
-if build_engine inject_nofb "-DINJ_NO_FB" "vectors_only" "FAIL"; then total=$((total + 1)); else bad=$((bad + 1)); fi
+# 变异（外部活动）：CHK_SWAP 与 NO_FB 两个变异体在 Main/sim/mutation/mutants.yaml，
+# 由上面的 engine_top 单元仿真承担发现责任。
 echo ""
 
 # ---------------------------------------------------------------- 结论

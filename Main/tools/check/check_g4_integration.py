@@ -155,9 +155,9 @@ def rtl():
         MAIN/'rtl/vendor/verilog-axi/axi_dma_rd.v', MAIN/'rtl/vendor/verilog-axi/axi_dma_wr.v',
         MAIN/'sim/axi_probe/axi_ram_model.v']
     result = {}
-    for name, define in [('game_frame', None), ('game_bad_local_y', 'INJ_STRIP_LOCAL_Y'),
-                         ('game_bad_header', 'INJ_STRIP_HEADER_OFFSET'),
-                         ('game_bad_perf', 'INJ_STRIP_PERF')]:
+    # 三个变异体（cmd.strip_local_y / cmd.strip_header_offset / top.strip_perf）已移到
+    # Main/sim/mutation/mutants.yaml，由这一帧正常回放承担发现责任。
+    for name, define in [('game_frame', None)]:
         exe = BUILD/(name+'.vvp')
         args = ['iverilog', '-g2012', '-s', 'tb_g4_frame', '-I'+str(MAIN/'rtl/engine/include')]
         if define:
@@ -168,7 +168,7 @@ def rtl():
         need(expected in output and 'WATCHDOG' not in output, name+': unexpected RTL result')
         result[name] = {'expected': expected, 'observed': expected}
     (LOGS/'rtl_results.json').write_text(json.dumps(result, indent=2)+'\n')
-    print('G4 RTL PASS: real game frame and three mutations red', flush=True)
+    print('G4 RTL PASS: real game frame', flush=True)
 
 
 def performance():

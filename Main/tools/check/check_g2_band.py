@@ -225,24 +225,19 @@ def main():
     cases=[('path_random',(),(),'PASS',None),('path_timed',('TIMED',),(),'PASS',None),
            ('path_overlap',('NO_FETCH',),(),'PASS',None),
            ('path_seed7',(),('MODEL_SEED=7',),'PASS',None),('empty',('EMPTY_CASE',),(),'PASS',None),
-           ('height8',(),('STRIP_H=8',),'PASS',None),('height32',(),('STRIP_H=32',),'PASS',None),
-           ('pixel_mask',('INJ_BAND_PIXEL_MASK',),(),'FAIL','MEM_MISMATCH'),
-           ('flush_address',('INJ_BAND_FLUSH_ADDR',),(),'FAIL','MEM_MISMATCH'),
-           ('address_stride',('INJ_BAND_ADDR_STRIDE',),(),'FAIL','MEM_MISMATCH'),
-           ('band_clip',('INJ_BAND_CLIP',),(),'FAIL','BAND_ERROR|READ_ERROR|WRITE_ERROR'),
-           ('early_flush',('INJ_BAND_EARLY_FLUSH',),(),'FAIL','EARLY_FLUSH_ACCEPTED'),
-           ('flow_wait',('NO_FETCH','INJ_BAND_FLOW_WAIT'),(),'FAIL','BAND_FLOW_COLLISION')]
+           ('height8',(),('STRIP_H=8',),'PASS',None),('height32',(),('STRIP_H=32',),'PASS',None)]
+    # 八个变异体（BAND 五个、mover 三个）已移到 Main/sim/mutation/mutants.yaml，
+    # 由 path_random / empty / control 三条正常用例承担发现责任。
     if args.case!='all' and args.case not in {c[0] for c in cases}:
         ap.error('unknown --case '+args.case)
     summary={}
     if args.case=='all':
         for name,unit,defs,want,reason in [
             ('unit',SIM/'tb_engine_band.v',(),'PASS',None),
-            ('control',SIM/'tb_engine_band_mover.v',(),'PASS',None),
-            ('drain_mask',SIM/'tb_engine_band_mover.v',('INJ_BAND_DRAIN_MASK',),'FAIL','DRAIN_MEMORY'),
-            ('raw_mask',bench,('INJ_BAND_RAW_MASK','EMPTY_CASE'),'FAIL','MEM_MISMATCH')]:
+            ('control',SIM/'tb_engine_band_mover.v',(),'PASS',None)]:
             compile_run(name,unit,defs,expect=want,evidence=reason)
             summary[name]=dict(expected=want,evidence=reason,passed=True)
+        print('G2 变异体已移到 Main/sim/mutation/mutants.yaml（drain_mask/raw_mask 由 control/empty 承担）')
     for name,defs,params,want,reason in cases:
         if args.case!='all' and name!=args.case:continue
         text=compile_run(name,bench,defs,params,want,reason)

@@ -291,11 +291,7 @@ module engine_mover #(
     // 复位排空状态机
     reg draining;
     reg drain_served;        // 这一次请求已经完成过，等 drain_req 撤下才清
-`ifdef INJ_DRAIN_LEVEL
-    wire drain_enter     = drain_req && !draining;     // 注错：drain_done 之后仍按电平重进
-`else
     wire drain_enter     = drain_req && !draining && !drain_served;
-`endif
 
     always @(posedge clk) begin
         if (rst)                                   draining <= 1'b0;
@@ -310,20 +306,10 @@ module engine_mover #(
     end
 
     // 挡新提交：排空态里，以及请求还举着的每一拍
-`ifdef INJ_DRAIN_LEVEL
-    assign      drain_hold = draining;                 // 注错：只在排空态里挡提交
-`else
     assign      drain_hold = draining || drain_req;
-`endif
 
-`ifdef INJ_DRAIN_BYPASS
-    // 注错：排空期不帮忙收/补，直接等两个方向自己空
-    wire        rd_drain_help = 1'b0;
-    wire        wr_drain_help = 1'b0;
-`else
     wire        rd_drain_help = draining && rd_busy;
     wire        wr_drain_help = draining && wr_busy;
-`endif
 
     assign      drain_busy = draining;
     assign      drain_done = draining && !rd_busy && !wr_busy && !tx_busy && !band_busy;
@@ -336,11 +322,7 @@ module engine_mover #(
     reg         rd_stat_v;
 
     // 门控条件：状态脉冲已捕获且读流 tlast 已握手
-`ifdef INJ_NO_GATE_RD
-    wire        rd_gate_done = 1'b1;                   // 注错：去掉读门控
-`else
     wire        rd_gate_done = (rd_status_seen && rd_stream_done);
-`endif
     // 排空期间挡新提交。TEX 流在途时可预发 DDR 请求，但读流保持单流所有者。
     wire        rd_block     = (rd_busy && !rd_gate_done) || drain_hold || b_xfer || b_start_fire || b_flush_fire;
     wire        rd_open      = !rd_block;
@@ -377,16 +359,8 @@ module engine_mover #(
     wire [127:0] core_rs_tdata;
     wire [15:0]  core_rs_tkeep;
     wire         core_rs_tlast, core_rs_tvalid, core_rs_tready;
-`ifdef INJ_TX_NOWAIT
-    wire        tex_data_blocks = 1'b0;                 // 注错：去掉目的流等待
-`else
     wire        tex_data_blocks = tx_busy;
-`endif
-`ifdef INJ_BAND_FLOW_WAIT
-    wire        band_data_blocks=1'b0;
-`else
     wire        band_data_blocks=b_rbusy;
-`endif
     wire        tx_data_blocks = tex_data_blocks || band_data_blocks;
     wire        core_rs_pix   = core_rs_tvalid && !rd_ctx_cmd && !rd_ctx_bg && !rd_drain_help && !tx_data_blocks;
     wire        tex_rs_pix    = tx_rs_tvalid && !drain_hold;
@@ -472,13 +446,8 @@ module engine_mover #(
     assign rd_stat_cidx  = legacy_rd_stat ? rd_ctx_cidx : (tx_stat_valid ? tx_stat_cidx : b_rcidx);
     assign rd_stat_buf   = legacy_rd_stat ? rd_ctx_buf : (tx_stat_valid ? tx_stat_buf : b_rstatbuf);
     assign rd_stat_fetch = legacy_rd_stat && rd_ctx_cmd;
-`ifdef INJ_INST_OWNER
-    assign fs_instance=1'b0;
-    assign rd_stat_instance=1'b0;
-`else
     assign fs_instance=rd_ctx_instance;
     assign rd_stat_instance=legacy_rd_stat && rd_ctx_instance;
-`endif
     // DDR 状态无反压口；本地状态遇到同拍 DDR 状态时保留到下一拍。
     assign tx_stat_ready = !legacy_rd_stat;
     assign b_rstat_ready = !legacy_rd_stat && !tx_stat_valid;
@@ -506,11 +475,7 @@ module engine_mover #(
     assign pb_wr_beat = m_axi_wvalid && m_axi_wready && wr_ctx_pb;
     wire pb_request = (pw_valid === 1'b1);
 
-`ifdef INJ_NO_GATE_WR
-    wire        wr_gate_done = 1'b1;                   // 注错：去掉写门控
-`else
     wire        wr_gate_done = wr_status_seen;
-`endif
     wire        wr_block     = (wr_busy && !wr_gate_done) || drain_hold || b_xfer || b_start_fire || b_flush_fire || b_wbusy;
     wire        wr_open      = !wr_block;
     wire        flush_open   = !drain_hold && (!wr_busy || wr_gate_done);
@@ -536,12 +501,7 @@ module engine_mover #(
     wire [11:0]  wr_beats_left  = wr_beats_total - wr_beats_sent;
     wire         ws_core_tvalid = wr_drain_help ? (wr_beats_left != 12'd0) :
                                   (wr_ctx_flush ? b_wvalid : (wr_ctx_pb ? pw_data_valid : (ws_tvalid && !b_wbusy)));
-`ifdef INJ_NO_TLAST
-    // 注错：正常写流不打 tlast，只有排空哑拍打
-    wire         ws_core_tlast  = wr_drain_help ? (wr_beats_left == 12'd1) : 1'b0;
-`else
     wire         ws_core_tlast  = (wr_beats_left == 12'd1);
-`endif
     wire [127:0] ws_core_tdata  = wr_drain_help ? {4{32'h8000_0000}} :
                                   (wr_ctx_flush ? b_wdata : (wr_ctx_pb ? pw_data : ws_tdata));
     // 写核整拍路径不保留输入 keep；BAND 取消掩码必须在 AXI 出口按前缀施加。
@@ -564,11 +524,7 @@ module engine_mover #(
             end
         end
     end
-`ifdef INJ_BAND_DRAIN_MASK
-    wire raw_drain_kill=1'b0;
-`else
     wire raw_drain_kill=(wr_ctx_flush || wr_ctx_pb) && raw_stop_valid && wr_bus_beats>=raw_stop_after;
-`endif
 
     always @(posedge clk) begin
         if (rst) begin
@@ -733,26 +689,10 @@ module engine_mover #(
     genvar gp;
     generate
     for (gp = 0; gp < 4; gp = gp + 1) begin : g_wrap
-`ifdef INJ_MASK_BYPASS
-        // 注错：带内掩码旁路，wstrb 与 X 字节直通上总线
-        wire kill = 1'b0;
-        assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4];
-        assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];
-        assign m_axi_wdata[32*gp+24 +: 8] = core_wdata[32*gp+24 +: 8];
-`else
-`ifdef INJ_BAND_RAW_MASK
-        wire kill = core_wdata[32*gp + 31];
-`else
         wire kill = raw_drain_kill || (!(wr_ctx_flush || wr_ctx_pb) && core_wdata[32*gp + 31]);
-`endif
         assign m_axi_wstrb[4*gp +: 4]     = core_wstrb[4*gp +: 4] & {4{~kill}};
         assign m_axi_wdata[32*gp +: 24]   = core_wdata[32*gp +: 24];
-`ifdef INJ_BAND_RAW_MASK
-        assign m_axi_wdata[32*gp+24 +: 8] = 8'h00;
-`else
         assign m_axi_wdata[32*gp+24 +: 8] = (wr_ctx_flush || wr_ctx_pb) ? core_wdata[32*gp+24 +:8] : 8'h00;
-`endif
-`endif
     end
     endgenerate
 

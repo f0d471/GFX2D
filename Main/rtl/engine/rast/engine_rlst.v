@@ -139,11 +139,7 @@ module engine_rlst (
     wire [23:0]  s_logic_done  = env_total[23:0] - env_left[23:0];
     wire [24:0]  s_logic_left25 = {1'b0, sub_bytes} - {1'b0, s_logic_done};
     wire [24:0]  s_chunk_valid = (s_logic_left25 < s_chunk) ? s_logic_left25 : s_chunk;
-`ifdef INJ_RLST_CREDIT
-    wire         s_reserve_ok = 1'b1;
-`else
     wire         s_reserve_ok  = ({1'b0, fifo_used} + s_chunk_valid[7:1]) <= 8'd64;
-`endif
 
     // ---------------------------------------------------------------- 表头/游走
     reg  [4:0]   strip;
@@ -203,11 +199,7 @@ module engine_rlst (
     assign busy = started;
 
     // 下一拍的拍缓存基偏移与本拍有效 u16 数（sub_bytes 偶、b_rel 偶 → 全 u16）
-`ifdef INJ_RLST_SUB_OFFSET
-    wire [23:0]  b_rel_next = s_rel + {s_recv, 5'd0};
-`else
     wire [23:0]  b_rel_next = s_rel + {s_recv, 4'd0};
-`endif
     wire [24:0]  rel_to_go  = {1'b0, sub_bytes} - {1'b0, b_rel_next};
     wire [3:0]   beat_cnt   = rel_to_go[24] ? 4'd0 :
                               (rel_to_go >= 25'd16) ? 4'd8 :
@@ -304,11 +296,7 @@ module engine_rlst (
                         s_stat_seen <= 1'b1;
                         if (st_error || st_cidx != 4'd0) s_stat_err <= 1'b1;
                     end
-`ifdef INJ_RLST_OWNER_EARLY
-                    if (s_stat_seen) begin
-`else
                     if ((s_recv == s_beats || s_last_seen) && !b_v && s_stat_seen) begin
-`endif
                         sub_state <= 2'd0;
                         sub_p     <= sub_p + {s_beats, 4'd0};
                         env_left  <= env_left - {s_beats, 4'd0};
@@ -438,9 +426,6 @@ module engine_rlst (
                         fail_latch(EC_ERR_FETCH, r_index, r_strip, r_ord);
                         state <= S_HALT;
                     end else if (!r_frag_final
-`ifdef INJ_RLST_DROP_TAIL
-                                 && 1'b0
-`endif
                     ) begin
                         r_addr       <= r_addr + {24'd0, r_frag_len};
                         r_frag_off   <= r_frag_len;

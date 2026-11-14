@@ -24,10 +24,10 @@
 | `display_fifo.v` | 跨时钟的异步 FIFO：仓内厂商明文源码 `efx_fifo_wrapper` 的薄封装（`SYNC_CLK=0`、512 深 × 128 位、`OUTPUT_REG=0`），定值与三条纪律写在文件头 |
 | `display_out.v` | 像素侧（像素时钟）：唯一的视频时序发生器（例化官方 `color_bar_rgb`）、拍拆像素、D=1 对齐、`SRC` 二选一、水位与欠载观测、帧快照 |
 
-`display_fetch`/`display_out` 各有若干处注错（变异测试），各包在 `` `ifdef INJ_xxx `` 内：不定义时
-那些行进不了编译输入，RTL 的干净形态就是正式配置。开关名见两个文件的文件头，
-用它的地方只有 `sim/display/run.sh`；机制与提交前检查见
-[`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节。
+`display_fetch`/`display_out` 的变异体（7 条）不在 RTL 里：它们写在
+[`../sim/mutation/mutants.yaml`](../sim/mutation/mutants.yaml)，由 `run_mutation.py`
+在隔离影子树里施加，`sim/display/run.sh` 的 `image`/`starve`/`inflight`/`swap`
+是它们的发现者。机制见 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节。
 设计依据与寄存器表见 `display/display-manual.md`。
 
 ## engine/
@@ -73,12 +73,13 @@
 生成、同步与校验用 [`../tools/check/feature_build.py`](../tools/check/feature_build.py)，
 按构型的判据入口见 [`../tools/check/README.md`](../tools/check/README.md)。
 
-混合、搬运、几何、计算、控制与片上纹理的六个文件各有若干处注错（变异测试），各包在 `` `ifdef INJ_xxx `` 内：
-不定义时那些行进不了编译输入，RTL 的干净形态就是正式配置，不依赖综合器把常量分支优化掉。
-开关名见各自文件头，用它的地方只有 `sim/engine/` 下各自目录的 `run.sh`（计算阵列是 `run_formal.sh`）。
-机制、命名与提交前检查见 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节。
+引擎与显示共 15 个文件、75 条变异，全部写在
+[`../sim/mutation/mutants.yaml`](../sim/mutation/mutants.yaml)：生产源码里没有任何注错分支，
+变异体只存在于跑器建的隔离影子树里。每条记录带缺陷模型、规格出处、字面替换规则与
+发现它的用例，执行与判定见 [`../sim/mutation/README.md`](../sim/mutation/README.md)。
+机制与提交前检查见 [`../doc/开发环境.md`](../doc/开发环境.md) 0.20 节。
 
-各层的层间协议、编码表与注错清单见 `engine/engine-manual.md`。
+各层的层间协议与编码表见 `engine/engine-manual.md`。
 
 ## top/
 

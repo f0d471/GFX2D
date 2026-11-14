@@ -487,19 +487,13 @@ int exec_sw_run_strips(const gfx_surface_table *t, const gfx_mem *m,
             if(off+k*32u+32u>readable_bytes) return fail(err,GFX_E_FETCH,idx,0u);
             e=gfx_strip_cmd_check(t,cfg,&bucket[k]);
             if(e)return fail(err,e,idx,bucket[k].w[7]);
-#ifdef INJ_STRIP_ORDER
-            const gfx_cmd *c=&bucket[counts[s]-k-1u];
-#else
             const gfx_cmd *c=&bucket[k];
-#endif
             e=run_core(m,&es,&shadow,&local,c,1u,1u,st,&local_err,GFX_SCREEN_W,GFX_SCREEN_H);
             if(e)return fail(err,e,idx,c->w[7]);
         }
-#ifndef INJ_STRIP_NOFLUSH
         for(y=0;y<sh;y++)
             memcpy(dev_ptr(m,gfx_addr_of(dst,0,(int32_t)(s*sh+y))),
                    (const uint8_t *)scratch+y*4096u,2560u);
-#endif
     }
     return GFX_OK;
 }

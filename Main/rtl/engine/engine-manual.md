@@ -141,71 +141,33 @@ WAIT_DDR/BUSY），9~13 为实例命令与硬件分桶前端追加（INSTANCE/RE
 - 消费者恒 ready（无 ready 口、无 skid buffer）；描述符恰好一笔的纪律由几何层保证，
   本模块把地址截到窗口内使用，越界是上游检查的责任。
 
-## 5 注错开关（变异测试）
+## 5 变异测试（外部活动）
 
-正常编译不定义任何 `INJ_*`（预处理删除，不依赖综合器优化）；一次只开一个，
-用例与各 `sim/engine/*/run.sh` 一一对应，变异必须在指明的消费者处见红。
+生产源码里没有注错分支。75 条变异体写在
+[`../../sim/mutation/mutants.yaml`](../../sim/mutation/mutants.yaml)，由
+[`../../sim/mutation/run_mutation.py`](../../sim/mutation/run_mutation.py) 在隔离影子树里
+施加后调用本目录各 `sim/` 套件的正常用例，按退出码与见红位置判定。缺陷模型、规格出处、
+字面替换规则与发现它的用例逐条登记在清单里，本节只给模块到发现者的索引。
 
-**迁移进行中（2026-11-14）。** `engine_blend` 与 `engine_pix` 的十条已经移出生产 RTL，
-改成外部变异活动：变异体写在 `Main/sim/mutation/mutants.yaml`，由
-`run_mutation.py` 在隔离影子树里施加，生产源码一个字符都不动。下面表里这两组留在
-原处，只是记录每处「改错什么」；它们对应的 `INJ_*` 开关已不存在，别的模块仍按条件编译走。
-全部迁完后本节改成对外部活动的索引。
+| 模块 | 条数 | 发现者 |
+| --- | ---: | --- |
+| blend | 5 | `sim/engine/blend` 的 `exhaustive`、`stall`、`narrow_*` |
+| pix | 5 | `sim/engine/pix` 的 `unit_stall`、`pipe_burst`、`path_golden` |
+| geom | 6 | `sim/engine/geom` 的 `geom_directed`、`geom_rfstall`、`check_g2_band.py` |
+| mover | 11 | `sim/engine/mover` 的 `normal`、`drain`、`check_g2_band.py` |
+| tex | 4 | `sim/engine/tex` 的 `normal`、`normal_latency2`、`check_r2.py` |
+| cmd | 7 | `sim/engine/ctrl` 的 `engine_top`、`check_f4_instances.py`、`check_g3/g4` |
+| inst | 2 | `check_f4_instances.py` |
+| bin | 6 | `check_f5_bin.py` |
+| band | 5 | `check_g2_band.py` 的 `path_random`、`control`、`empty` |
+| rast / rlst | 7 + 4 | `check_r2.py --group rtl` / `--group rlst` |
+| display（fetch / out） | 4 + 3 | `sim/display` 的 `image`、`starve`、`inflight`、`swap` |
+| engine_top | 1 | `check_g4_integration.py --rtl` |
+| 软件执行器（strip / exec_sw / instances） | 2 + 2 + 1 | `check_g3_stripctl.py`、`check_f4_instances.py --models` |
 
-| 开关 | 注入缺陷 |
-| --- | --- |
-| `INJ_WRONG_EQ`（blend） | CONST 用 base=src、m1=dst-src 代入，恒等不成立 |
-| `INJ_TRUNC16`（blend） | 中间量截到 16 位丢进位 |
-| `INJ_UNREG_C`（blend） | 只寄存乘积，级 2 相加两拍操作数 |
-| `INJ_COPY_DST`（blend） | COPY 的 base 误取 src+dst（不用的输入会变才看得出） |
-| `INJ_X_NO_EN`（blend） | 级 2 不看 en |
-| `INJ_VALID_EARLY`（tex） | valid 提前一级与 data 错拍 |
-| `INJ_WR_LOOSE`（tex） | 未对齐 APB 写放行 |
-| `INJ_STAT_DROP`（tex） | 状态脉冲吞掉 |
-| `INJ_SKIP_SURF`（geom） | 漏掉第五项求交（源表面） |
-| `INJ_NO_SPLIT`（geom） | 跨 4KB 不拆描述符 |
-| `INJ_ALPHA_AS_COPY`（geom） | ALPHA 也走 COPY 的不读目的避让 |
-| `INJ_COPY_READ`（geom） | COPY 也发读目的描述符（边带仍说不读） |
-| `INJ_ROW_NOFREE`（geom） | 行开始前不看 row_free |
-| `INJ_BAND_CLIP`（geom） | 漏掉当前条带求交 |
-| `INJ_ROT_OFF`（pix） | 旋转错一个位置（st 多加 1） |
-| `INJ_SKIP_KEY`（pix） | 跳过色键，命中像素照写 |
-| `INJ_DROP_MASK`（pix） | 丢首拍掩码，行首行外像素写坏 |
-| `INJ_EN_NOTREADY`（pix） | en 恒 1，写核停顿丢拍 |
-| `INJ_CORE_NOEN`（pix） | 混合核不随流水停 |
-| `INJ_NO_GATE_RD`（mover） | 去掉读门控 |
-| `INJ_NO_GATE_WR`（mover） | 去掉写门控 |
-| `INJ_MASK_BYPASS`（mover） | 带内掩码旁路，wstrb/X 字节直通 |
-| `INJ_DRAIN_BYPASS`（mover） | 排空期不帮忙收/补 |
-| `INJ_DRAIN_LEVEL`（mover） | 排空按电平重进 |
-| `INJ_NO_TLAST`（mover） | 正常写流不打 tlast |
-| `INJ_TX_NOWAIT`（mover） | 去掉目的流等待，长行抓流碰撞 |
-| `INJ_INST_OWNER`（mover） | 实例分流位恒 0 |
-| `INJ_BAND_FLOW_WAIT`（mover） | 去掉 BAND 流等待 |
-| `INJ_BAND_RAW_MASK`（mover） | 原始写也施像素掩码 |
-| `INJ_BAND_DRAIN_MASK`（mover） | 排空杀前缀失效 |
-| `INJ_CHK_SWAP`（cmd） | 对调 space/format 两步的错误码 |
-| `INJ_NO_FB`（cmd） | 关掉逐条回退 |
-| `INJ_INST_XYUV`（cmd） | 实例展开 xy/uv 对调 |
-| `INJ_INST_EARLY_DONE`（cmd） | 实例包提前置 done |
-| `INJ_INST_STATE`（cmd） | 活动期间改写实例包状态字 |
-| `INJ_STRIP_LOCAL_Y`（cmd） | 条带模式 dst_y 不加 band_y0 |
-| `INJ_STRIP_PERF`（top） | PERF 读事件漏掉 BAND 过滤 |
-| `INJ_STRIP_HEADER_OFFSET`（cmd） | 条带表基址偏移算错 |
-| `INJ_INST_SKIP`（inst） | instance_id 每次加 2 |
-| `INJ_INST_STRIDE`（inst） | 游标固定步进 4，不按 stride |
-| `INJ_BIN_CLIP`（bin） | clip 快照取场景末次值 |
-| `INJ_BIN_ORDER`（bin） | 引用序号偏移 1 |
-| `INJ_BIN_SKIP`（bin） | 第二遍跳过实例包 |
-| `INJ_BIN_READY`（bin） | READY 状态值错（2 而非 1） |
-| `INJ_BIN_HIGH_BYTE`（bin） | 引用高位清零 |
-| `INJ_BIN_STALE`（bin） | 双帧复用不重清桶表 |
-| `INJ_BAND_EARLY_FLUSH`（band） | flush 不等本地流收尾 |
-| `INJ_BAND_FLUSH_ADDR`（band） | flush 地址偏 16 字节 |
-| `INJ_BAND_PIXEL_MASK`（band） | bit31 不写标记失效 |
-| `INJ_BAND_ADDR_STRIDE`（band） | 局部地址按固定 256 词行距换算 |
-
-注错机制的标准做法见 `Main/doc/开发环境.md` 0.3 节。
+迁移前这些开关包在 `` `ifdef INJ_* `` 里，本轮全部撤掉；等价性由
+`verify_migration.py` 用预处理输出双向证明（正向逐行相同、反演词法相同），
+结论见 platform 系列第 17 章。
 
 ## 6 排版约束
 
@@ -375,17 +337,17 @@ FD 另作 CMD/RAST/INST/CMD 交接，末拍停顿时请求侧类别/tag 的改�
 
 | 宏 | 指定判据 |
 | --- | --- |
-| `INJ_RAST_EDGE_SCALE`、`INJ_RAST_BIAS_REVERSE` | 定向覆盖/共享边逐像素比较 |
-| `INJ_RAST_Z_REVERSE`、`INJ_RAST_ROUND` | 严格 LESS 与提交半值深度 |
-| `INJ_RLST_DROP_TAIL` | 三种跨页记录逐词重组 |
-| `INJ_RLST_CREDIT` | 余 16 项时不得发 64 项请求 |
-| `INJ_RAST_KEY_MISS` | 原始 texel 命中时颜色与深度均保持 |
-| `INJ_RLST_OWNER_EARLY` | 状态早到，流仍未收齐 |
-| `INJ_RLST_SUB_OFFSET` | 拍内偏移与完整逻辑子表长度 |
-| `INJ_RAST_PIX_TRUNC` | 非零局部行、高像素号及其它 lane 保持 |
-| `INJ_RAST_PARTIAL_COMMIT` | ready=0 时色/z 均不得写 |
-| `INJ_RAST_NO_BARRIER` | 连续 64 点必须完整退休及双槽长反压 RAW |
-| `INJ_RAST_SAMP_EARLY` | TEX 全地址域连续换 bank，逐笔检查固定延迟 |
+| `rast.rast_edge_scale`、`rast.rast_bias_reverse` | 定向覆盖/共享边逐像素比较 |
+| `rast.rast_z_reverse`、`rast.rast_round` | 严格 LESS 与提交半值深度 |
+| `rlst.rlst_drop_tail` | 三种跨页记录逐词重组 |
+| `rlst.rlst_credit` | 余 16 项时不得发 64 项请求 |
+| `rast.rast_key_miss` | 原始 texel 命中时颜色与深度均保持 |
+| `rlst.rlst_owner_early` | 状态早到，流仍未收齐 |
+| `rlst.rlst_sub_offset` | 拍内偏移与完整逻辑子表长度 |
+| `band.rast_pix_trunc` | 非零局部行、高像素号及其它 lane 保持 |
+| `rast.rast_partial_commit` | ready=0 时色/z 均不得写 |
+| `rast.rast_no_barrier` | 连续 64 点必须完整退休及双槽长反压 RAW |
+| `tex.rast_samp_early` | TEX 全地址域连续换 bank，逐笔检查固定延迟 |
 
 关闭态以真实生产源清单和旧二维消费者检查为准，不能用裁掉旧 TEX 的构型代替 L1。
 本节没有三维整机性能或板上通过结论。
