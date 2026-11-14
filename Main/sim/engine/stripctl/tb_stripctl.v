@@ -172,7 +172,7 @@ module tb_stripctl #(parameter integer SH=16);
     localparam [31:0] TABLE=32'h00300000, FB=32'h00001000;
     reg [127:0] expected [0:262143];
     reg [31:0] surfaces [0:47];
-    reg [1023:0] prefix;
+    reg [2047:0] prefix;
     reg inject_write=0;
     integer ar_cmd=0, ar_pixel=0, aw_pixel=0;
     always @(posedge clk) begin

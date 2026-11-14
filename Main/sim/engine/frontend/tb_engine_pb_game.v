@@ -152,7 +152,7 @@ module tb_engine_pb_game #(parameter integer SH=16,TIMED_MODEL=0);
     reg [31:0] surfaces [0:47];
     reg [31:0] texture [0:4095];
     reg [31:0] stats [0:8];
-    reg [1023:0] prefix;
+    reg [2047:0] prefix;
     reg inject_write=0;
     integer ar_cmd=0, ar_pixel=0, aw_pixel=0,aw_band=0,obs_rd=0,obs_wr=0,obs_pb_rd=0,obs_pb_wr=0;
     reg rd_owner=0,wr_owner=0;

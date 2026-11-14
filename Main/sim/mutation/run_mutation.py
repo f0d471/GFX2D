@@ -27,6 +27,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -98,9 +99,12 @@ def apply_rules(path: Path, rules: list[dict]) -> None:
 
 
 def build_shadow(run_dir: Path, targets: list[str]) -> Path:
+    # 影子树放在运行目录下，保持 Main/ 的相对布局；套件把绝对路径经 +case= 传给测试台，
+    # 测试台的 plusarg 缓冲是定宽的，这里路径不能太长（曾因仓库路径变深而截断）。
     shadow = run_dir / "shadow"
     if shadow.exists():
         shutil.rmtree(shadow)
+    print(f"影子树 {shadow.relative_to(ROOT) if shadow.is_relative_to(ROOT) else shadow}")
     src = ROOT / "Main"
     shutil.copytree(src, shadow / "Main", ignore=shutil.ignore_patterns(
         "build", "logs", ".git", "__pycache__", "*.vvp", "*.log", "*.bin", "*.bit"))
@@ -208,6 +212,7 @@ def main() -> int:
     ap.add_argument("--ids", help="逗号分隔的 id；默认全量")
     ap.add_argument("--run-dir")
     ap.add_argument("--timeout", type=float, default=900.0)
+    ap.add_argument("--keep-shadow", action="store_true", help="跑完保留影子树，便于排查")
     ap.add_argument("--autofill-evidence", action="store_true",
                     help="把见红行里的检查器标签自动写回清单（仍需人工过一遍）")
     args = ap.parse_args()
@@ -337,6 +342,8 @@ def main() -> int:
         encoding="utf-8")
     print(f"\n合计 {len(results)} 条：" + "、".join(f"{k} {v}" for k, v in sorted(counts.items())))
     print(f"报告 {run_dir.relative_to(ROOT)}/mutation-report.md")
+    if not args.keep_shadow:
+        shutil.rmtree(shadow, ignore_errors=True)
     return 1 if counts.get("INVALID") else 0
 
 
