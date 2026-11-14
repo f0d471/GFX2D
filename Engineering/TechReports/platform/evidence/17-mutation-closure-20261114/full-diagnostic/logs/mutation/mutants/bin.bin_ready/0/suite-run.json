@@ -6283,7 +6283,7 @@
     "f5.bin": {
       "status": "FAIL",
       "attempt": 1,
-      "error": "bin: FAIL scene=          0 failed=0 code= 0 stage= 0 index=         0 state= 0\nFATAL: /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/frontend/tb_engine_bin.v:131: F5 BIN model mismatch\n       Time: 8560000  Scope: tb_engine_bin\n",
+      "error": "bin: FAIL scene=          0 failed=0 code= 0 stage= 0 index=         0 state= 0\nFATAL: <REPO>/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/frontend/tb_engine_bin.v:131: F5 BIN model mismatch\n       Time: 8560000  Scope: tb_engine_bin\n",
       "seconds": 0.619
     }
   },

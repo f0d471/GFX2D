@@ -1,6 +1,7 @@
 """只读复核本工作点的 79 条覆盖；保留不同运行的来源，不伪造单轮汇总。"""
 from pathlib import Path
 import copy
+import ast
 import hashlib
 import json
 import sys
@@ -24,6 +25,23 @@ def digest(data):
 def frozen_bytes(name):
     """逆向还原已单独证明的注释整理，要求字节摘要、行数和可执行前缀相符。"""
     data = (ROOT/name).read_bytes()
+    if name in ('Main/tools/check/validate.py', 'Main/tools/check/test_validation.py'):
+        capture=BASE/'archive-portability'/('before-'+Path(name).name+'.raw.log')
+        if capture.exists():
+            before=capture.read_bytes()
+            def execution_tree(payload):
+                tree=ast.parse(payload.decode())
+                if name.endswith('/validate.py'):
+                    tree.body=[n for n in tree.body if not isinstance(n,ast.FunctionDef) or
+                               n.name not in ('portable','archive','normalize_archive_metadata')]
+                else:
+                    for node in tree.body:
+                        if isinstance(node,ast.ClassDef):
+                            node.body=[n for n in node.body if not isinstance(n,ast.FunctionDef) or
+                                       n.name!='test_archive_nested_metadata_is_portable_and_raw_bytes_survive']
+                return ast.dump(tree,include_attributes=False)
+            assert execution_tree(before)==execution_tree(data), name
+            data=before
     for record in read(BASE/'comment-review.json')['files']:
         if record['path'] != name:
             continue

@@ -6283,7 +6283,7 @@
     "f5.bin": {
       "status": "FAIL",
       "attempt": 1,
-      "error": "bin: FAIL ref scene=          1 beat=         11\nFAIL ref scene=          1 beat=         12\nFAIL ref scene=          1 beat=         13\nFAIL ref scene=          1 beat=         14\nFAIL ref scene=          1 beat=         18\nFAIL ref scene=          1 beat=         19\nFATAL: /mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/frontend/tb_engine_bin.v:131: F5 BIN model mismatch\n       Time: 20880000  Scope: tb_engine_bin\n",
+      "error": "bin: FAIL ref scene=          1 beat=         11\nFAIL ref scene=          1 beat=         12\nFAIL ref scene=          1 beat=         13\nFAIL ref scene=          1 beat=         14\nFAIL ref scene=          1 beat=         18\nFAIL ref scene=          1 beat=         19\nFATAL: <REPO>/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/frontend/tb_engine_bin.v:131: F5 BIN model mismatch\n       Time: 20880000  Scope: tb_engine_bin\n",
       "seconds": 0.603
     }
   },

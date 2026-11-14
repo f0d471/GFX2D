@@ -2,5 +2,8 @@
   "kind": "current_run",
   "current_inputs_revalidated": true,
   "local_paths": "placeholders in metadata; raw logs byte-identical",
-  "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729"
+  "source_run": "Main/sim/build/check-runs/20261114-204813-938e9729",
+  "normalized_json_metadata": [
+    "logs/mutation/toolchain.json"
+  ]
 }

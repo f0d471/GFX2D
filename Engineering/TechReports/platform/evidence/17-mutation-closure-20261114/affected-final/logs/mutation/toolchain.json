@@ -1,7 +1,7 @@
 {
   "pyyaml": "6.0.3",
   "environment": {
-    "EFINITY_HOME": "/mnt/c/Efinity/2026.1"
+    "EFINITY_HOME": "<EFINITY>"
   },
   "python3": {
     "path": "/usr/bin/python3.14",
@@ -29,7 +29,7 @@
     "version": "GNU bash, version 5.3.9(1)-release (x86_64-pc-linux-gnu)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law."
   },
   "vendor_primitive": {
-    "path": "/mnt/c/Efinity/2026.1/sim_models/verilog/efx_srl8.v",
+    "path": "<EFINITY>/sim_models/verilog/efx_srl8.v",
     "sha256": "9b2bc5bac291eeb983149d95ac69e3cc3da761758cb4f5f116da6661cb9c3233"
   }
 }

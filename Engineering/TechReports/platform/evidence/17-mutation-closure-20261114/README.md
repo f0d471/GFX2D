@@ -18,6 +18,7 @@
 | `synthesis/` | 四构型真实四步与资源/时序/网表；current-input-review 对当前编译输入复核，原始报告仅保留一份 |
 | `comment-review.json` | 验收后只同步五文件旧机制注释，可执行内容及行数不变 |
 | `device/usb.log` | 实际 USB 扫描未识别目标；不代表板测通过 |
+| `archive-portability/` | 嵌套 JSON 元数据规范化修复、源文件前像和新归档行为回归；原始字节在 `.raw.log` 保留 |
 
 `archive.json` 区分当前输入重验与历史冻结快照。原始日志逐字节保留，不能仅复制其中的 PASS 文本
 宣称其它源码、构型、档位或板卡状态已验证。

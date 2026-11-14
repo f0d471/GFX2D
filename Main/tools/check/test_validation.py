@@ -258,6 +258,29 @@ class WorkflowTests(unittest.TestCase):
         virtual_path=chr(90)+':'+chr(92)*2+'fixture'+chr(92)*2+'python.exe'
         self.assertIsNone(SUSPECT.search(validate.portable('Command ['+repr(virtual_path)+']')))
 
+    def test_archive_nested_metadata_is_portable_and_raw_bytes_survive(self):
+        from types import SimpleNamespace
+        virtual_tool_dir='/'.join(('', 'mnt', 'q', 'vendor-tools', '2026.1'))
+        payload={'environment':{'EFINITY_HOME':virtual_tool_dir},
+                 'path':virtual_tool_dir+'/sim_models/primitive.v',
+                 'error':'failed in '+str(check_run.ROOT/'Main/input.v')}
+        original=(json.dumps(payload)+'\n').encode()
+        logs=self.current.logs('nested')
+        (logs/'toolchain.json').write_bytes(original)
+        raw_log=b'raw tool output must not change\r\n'
+        (logs/'stdout.log').write_bytes(raw_log)
+        target=self.directory/'portable-archive'
+        validate.archive(SimpleNamespace(path=self.current.path),target,True)
+        exported=json.loads((target/'logs/nested/toolchain.json').read_text())
+        self.assertEqual(exported['environment']['EFINITY_HOME'],'<EFINITY>')
+        self.assertEqual(exported['path'],'<EFINITY>/sim_models/primitive.v')
+        self.assertNotIn(str(check_run.ROOT),exported['error'])
+        self.assertEqual((target/'logs/nested/toolchain.json.raw.log').read_bytes(),original)
+        self.assertEqual((target/'logs/nested/stdout.log').read_bytes(),raw_log)
+        receipt=json.loads((target/'archive-files.json').read_text())['logs/nested/toolchain.json']
+        self.assertEqual(receipt['archived_raw'],'logs/nested/toolchain.json.raw.log')
+        self.assertEqual(receipt['sha256'],check_run.identity(logs/'toolchain.json')['sha256'])
+
     def test_current_instance_collect_is_host_rtl_only(self):
         current=check_run.Session(self.directory/'formal','acceptance')
         with patch.object(check_run,'_SESSION',current):

@@ -17,7 +17,9 @@
   "logs/mutation/toolchain.json": {
     "size": 5830,
     "mtime_ns": 1794650952257101300,
-    "sha256": "47e5f1b09d38ab2294ef2849a09839970ef140f2ca1152e61d36f73aecd8d5a5"
+    "sha256": "47e5f1b09d38ab2294ef2849a09839970ef140f2ca1152e61d36f73aecd8d5a5",
+    "archived_raw": "logs/mutation/toolchain.json.raw.log",
+    "portable_sha256": "d31a8e87ba108f0dd286a75dac4b2104ac9238716698fe6af655c920b439cce3"
   },
   "logs/runner/mutation.log": {
     "size": 5208,
@@ -1402,7 +1404,9 @@
   "logs/mutation/mutants/instances.inst_xyuv/0/suite-run.json": {
     "size": 258045,
     "mtime_ns": 1794654093000000000,
-    "sha256": "a3d20b07aba75e1b8b4df65d34abc0e7f6f10ae1392946e92bc250d788c940a1"
+    "sha256": "a3d20b07aba75e1b8b4df65d34abc0e7f6f10ae1392946e92bc250d788c940a1",
+    "archived_raw": "logs/mutation/mutants/instances.inst_xyuv/0/suite-run.json.raw.log",
+    "portable_sha256": "43cc13b10845d810b09e969ec53516e719dcfb8203fed2b2b75f6e37a353986a"
   },
   "logs/mutation/mutants/instances.inst_xyuv/0/suite/frontend/f4_host.log": {
     "size": 209,
@@ -1422,7 +1426,9 @@
   "logs/mutation/mutants/inst.inst_stride/0/suite-run.json": {
     "size": 259961,
     "mtime_ns": 1794654068000000000,
-    "sha256": "38cc2db4496ad893ef9019edf4f9432aa458fab5fa1d15801de325ab46a8c1a2"
+    "sha256": "38cc2db4496ad893ef9019edf4f9432aa458fab5fa1d15801de325ab46a8c1a2",
+    "archived_raw": "logs/mutation/mutants/inst.inst_stride/0/suite-run.json.raw.log",
+    "portable_sha256": "fd4feb43618c54087a3e9fc779037192c3725c6907298bd0b348217742888fba"
   },
   "logs/mutation/mutants/inst.inst_stride/0/suite/frontend/f4_host.log": {
     "size": 210,
@@ -1602,7 +1608,9 @@
   "logs/mutation/mutants/inst.inst_skip/0/suite-run.json": {
     "size": 259204,
     "mtime_ns": 1794653982000000000,
-    "sha256": "91cb6f10ce15f421fdc7d0d09d67457353d9d4e6f40e7b50cb923be01ddfff97"
+    "sha256": "91cb6f10ce15f421fdc7d0d09d67457353d9d4e6f40e7b50cb923be01ddfff97",
+    "archived_raw": "logs/mutation/mutants/inst.inst_skip/0/suite-run.json.raw.log",
+    "portable_sha256": "b90a431b52f053f3dae7ef3ea0b52d7f16c41b2559fb5a5f49c7d6eaa501064a"
   },
   "logs/mutation/mutants/inst.inst_skip/0/suite/frontend/f4_host.log": {
     "size": 210,
@@ -2487,7 +2495,9 @@
   "logs/mutation/mutants/cmd.inst_xyuv/0/suite-run.json": {
     "size": 259371,
     "mtime_ns": 1794653556000000000,
-    "sha256": "de8ddb00d25f9b4b3d507958bf4ee6d03345466ae8b3ed497222d1392150caea"
+    "sha256": "de8ddb00d25f9b4b3d507958bf4ee6d03345466ae8b3ed497222d1392150caea",
+    "archived_raw": "logs/mutation/mutants/cmd.inst_xyuv/0/suite-run.json.raw.log",
+    "portable_sha256": "89c12b53b9dd1e3ad96d34eb495ed99866fc3cb98b41b6b8cb338ea49c8d2783"
   },
   "logs/mutation/mutants/cmd.inst_xyuv/0/suite/frontend/f4_host.log": {
     "size": 210,
@@ -2577,7 +2587,9 @@
   "logs/mutation/mutants/cmd.inst_state/0/suite-run.json": {
     "size": 259944,
     "mtime_ns": 1794653496000000000,
-    "sha256": "d706aa97875f1579635910648be96fd72ba4c5ca3b4f8eaa37d5e7045d09e7bd"
+    "sha256": "d706aa97875f1579635910648be96fd72ba4c5ca3b4f8eaa37d5e7045d09e7bd",
+    "archived_raw": "logs/mutation/mutants/cmd.inst_state/0/suite-run.json.raw.log",
+    "portable_sha256": "5cfc536ff4ee25821cd659e71149bdbfa502b3579682b6e4fd66ee1d91014237"
   },
   "logs/mutation/mutants/cmd.inst_state/0/suite/frontend/f4_host.log": {
     "size": 210,
@@ -2732,7 +2744,9 @@
   "logs/mutation/mutants/cmd.inst_early_done/0/suite-run.json": {
     "size": 259276,
     "mtime_ns": 1794653434000000000,
-    "sha256": "5c1f4685050315585272c81dae635bc4ceb8dc92aa9331c6e7466b65081fb46a"
+    "sha256": "5c1f4685050315585272c81dae635bc4ceb8dc92aa9331c6e7466b65081fb46a",
+    "archived_raw": "logs/mutation/mutants/cmd.inst_early_done/0/suite-run.json.raw.log",
+    "portable_sha256": "904073cbf8156fc831c087d97fc27e04c566b0cb2c3d412da01f2f75750b7f72"
   },
   "logs/mutation/mutants/cmd.inst_early_done/0/suite/frontend/f4_host.log": {
     "size": 210,
@@ -3017,7 +3031,9 @@
   "logs/mutation/mutants/bin.bin_stale/0/suite-run.json": {
     "size": 259335,
     "mtime_ns": 1794653365000000000,
-    "sha256": "9b5209b94917399b1e4326fda537efc294a51522fb8e139346c56f4872d01d2e"
+    "sha256": "9b5209b94917399b1e4326fda537efc294a51522fb8e139346c56f4872d01d2e",
+    "archived_raw": "logs/mutation/mutants/bin.bin_stale/0/suite-run.json.raw.log",
+    "portable_sha256": "0e793f42427571aef2bad8ec537ff0d9152be2363d0521872a263fc51e2d8346"
   },
   "logs/mutation/mutants/bin.bin_stale/0/suite/frontend/f5_bin.log": {
     "size": 1385,
@@ -3062,7 +3078,9 @@
   "logs/mutation/mutants/bin.bin_skip/0/suite-run.json": {
     "size": 259335,
     "mtime_ns": 1794653312000000000,
-    "sha256": "420c64569b813bfa60f826a3e2f3339362b635f6af25b9b37c29b26c38c3bb92"
+    "sha256": "420c64569b813bfa60f826a3e2f3339362b635f6af25b9b37c29b26c38c3bb92",
+    "archived_raw": "logs/mutation/mutants/bin.bin_skip/0/suite-run.json.raw.log",
+    "portable_sha256": "e9d89a2a546f104e90d6c08caa9a7b5c4f1596103414a43d814a95587e1e0f08"
   },
   "logs/mutation/mutants/bin.bin_skip/0/suite/frontend/f5_bin.log": {
     "size": 1385,
@@ -3107,7 +3125,9 @@
   "logs/mutation/mutants/bin.bin_ready/0/suite-run.json": {
     "size": 258236,
     "mtime_ns": 1794653259000000000,
-    "sha256": "7ab431920772bdaf0f27265d8e65716f253bdc5b63bf87e4334af16f45c1356f"
+    "sha256": "7ab431920772bdaf0f27265d8e65716f253bdc5b63bf87e4334af16f45c1356f",
+    "archived_raw": "logs/mutation/mutants/bin.bin_ready/0/suite-run.json.raw.log",
+    "portable_sha256": "60aefc901e8713f9a64e87df20d49d267894975cb88142a89f6b6bb09e8926c7"
   },
   "logs/mutation/mutants/bin.bin_ready/0/suite/frontend/f5_bin.log": {
     "size": 295,
@@ -3152,7 +3172,9 @@
   "logs/mutation/mutants/bin.bin_order/0/suite-run.json": {
     "size": 258431,
     "mtime_ns": 1794653206000000000,
-    "sha256": "f84740abac2ba12d43b2a0e6883237b2b67d11648f0fb5194b0cb60c249fc9e3"
+    "sha256": "f84740abac2ba12d43b2a0e6883237b2b67d11648f0fb5194b0cb60c249fc9e3",
+    "archived_raw": "logs/mutation/mutants/bin.bin_order/0/suite-run.json.raw.log",
+    "portable_sha256": "cb32603d159784dcb7b9894287164cc23f6804560f9dbdc00ffe3cfbf253803a"
   },
   "logs/mutation/mutants/bin.bin_order/0/suite/frontend/f5_bin.log": {
     "size": 485,
@@ -3197,7 +3219,9 @@
   "logs/mutation/mutants/bin.bin_high_byte/0/suite-run.json": {
     "size": 258431,
     "mtime_ns": 1794653152000000000,
-    "sha256": "cb055d5b5da748b5762e346323d7eb763b4d409bf5ac3b44c16bea6dd5001908"
+    "sha256": "cb055d5b5da748b5762e346323d7eb763b4d409bf5ac3b44c16bea6dd5001908",
+    "archived_raw": "logs/mutation/mutants/bin.bin_high_byte/0/suite-run.json.raw.log",
+    "portable_sha256": "66571a3e6ee3437b47d9ed979d6f5a813f3ee7385e7cda309b7738fe95f6b236"
   },
   "logs/mutation/mutants/bin.bin_high_byte/0/suite/frontend/f5_bin.log": {
     "size": 485,
@@ -3242,7 +3266,9 @@
   "logs/mutation/mutants/bin.bin_clip/0/suite-run.json": {
     "size": 259334,
     "mtime_ns": 1794653098000000000,
-    "sha256": "279b22064f38b4ef7a172162642f0ab6c63d73a5f71aa7a2d49756388e2bae76"
+    "sha256": "279b22064f38b4ef7a172162642f0ab6c63d73a5f71aa7a2d49756388e2bae76",
+    "archived_raw": "logs/mutation/mutants/bin.bin_clip/0/suite-run.json.raw.log",
+    "portable_sha256": "011c5c8ea3c34de4494378529fbb113f6599a90ebb722327af67aa95fe737160"
   },
   "logs/mutation/mutants/bin.bin_clip/0/suite/frontend/f5_bin.log": {
     "size": 1385,

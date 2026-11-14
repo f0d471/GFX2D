@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "updates": [
+    {
+      "archive": "affected-final",
+      "files": [
+        "logs/mutation/toolchain.json"
+      ],
+      "raw_bytes_preserved": true
+    },
+    {
+      "archive": "full-diagnostic",
+      "files": [
+        "logs/mutation/toolchain.json",
+        "logs/mutation/mutants/instances.inst_xyuv/0/suite-run.json",
+        "logs/mutation/mutants/inst.inst_stride/0/suite-run.json",
+        "logs/mutation/mutants/inst.inst_skip/0/suite-run.json",
+        "logs/mutation/mutants/cmd.inst_xyuv/0/suite-run.json",
+        "logs/mutation/mutants/cmd.inst_state/0/suite-run.json",
+        "logs/mutation/mutants/cmd.inst_early_done/0/suite-run.json",
+        "logs/mutation/mutants/bin.bin_stale/0/suite-run.json",
+        "logs/mutation/mutants/bin.bin_skip/0/suite-run.json",
+        "logs/mutation/mutants/bin.bin_ready/0/suite-run.json",
+        "logs/mutation/mutants/bin.bin_order/0/suite-run.json",
+        "logs/mutation/mutants/bin.bin_high_byte/0/suite-run.json",
+        "logs/mutation/mutants/bin.bin_clip/0/suite-run.json"
+      ],
+      "raw_bytes_preserved": true
+    }
+  ],
+  "normalized_count": 14
+}

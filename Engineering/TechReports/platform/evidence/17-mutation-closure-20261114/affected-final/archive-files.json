@@ -17,7 +17,9 @@
   "logs/mutation/toolchain.json": {
     "size": 5830,
     "mtime_ns": 1794660519003768500,
-    "sha256": "47e5f1b09d38ab2294ef2849a09839970ef140f2ca1152e61d36f73aecd8d5a5"
+    "sha256": "47e5f1b09d38ab2294ef2849a09839970ef140f2ca1152e61d36f73aecd8d5a5",
+    "archived_raw": "logs/mutation/toolchain.json.raw.log",
+    "portable_sha256": "d31a8e87ba108f0dd286a75dac4b2104ac9238716698fe6af655c920b439cce3"
   },
   "logs/runner/mutation.log": {
     "size": 770,

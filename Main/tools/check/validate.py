@@ -278,9 +278,21 @@ def suggest(changed):
     return expand(selected)
 
 
-def portable(value):
-    if isinstance(value,dict):return {key:portable(item) for key,item in value.items()}
-    if isinstance(value,list):return [portable(item) for item in value]
+def portable(value, external=None):
+    if external is None:
+        external={}
+        labels={'EFINITY_HOME':'<EFINITY>','PYTHONHOME':'<PYTHON_HOME>','RISCV_BIN':'<RISCV_BIN>'}
+        def collect(item):
+            if isinstance(item,dict):
+                for key,val in item.items():
+                    if key in labels and isinstance(val,str) and val and (val.startswith('/') or PureWindowsPath(val).is_absolute()):
+                        external[val]=labels[key]
+                    collect(val)
+            elif isinstance(item,list):
+                for val in item:collect(val)
+        collect(value)
+    if isinstance(value,dict):return {key:portable(item,external) for key,item in value.items()}
+    if isinstance(value,list):return [portable(item,external) for item in value]
     if not isinstance(value,str):return value
     roots={str(ROOT),ROOT.as_posix()}
     match=re.match(r'/mnt/([a-z])/(.*)',ROOT.as_posix())
@@ -291,10 +303,33 @@ def portable(value):
         match=re.match(r'([A-Za-z]):/(.*)',ROOT.as_posix())
         if match:roots.add('/mnt/'+match[1].lower()+'/'+match[2])
     for prefix in sorted(roots,key=len,reverse=True):value=value.replace(prefix,'<REPO>')
+    for prefix in sorted(external,key=len,reverse=True):value=value.replace(prefix,external[prefix])
     value=re.sub(r'/home/[^/]+/','<HOME>/',value)
     value=re.sub(r"(?<![A-Za-z0-9])[A-Za-z]:[\\/][^\s'\"\],]+",lambda match:'<HOST_PATH>/'+PureWindowsPath(match[0]).name,value)
     if PureWindowsPath(value).is_absolute():value='<HOST_PATH>/'+PureWindowsPath(value).name
     return value
+
+
+def normalize_archive_metadata(target, originals):
+    """规范化 JSON 元数据，同时原样保留捕获字节及其摘要映射。"""
+    if not target.resolve().is_relative_to(ROOT.resolve()):raise ValueError('归档目标越界')
+    changed=[]
+    for name,record in originals.items():
+        path=target/name
+        if path.suffix!='.json' or record.get('archived_raw'):continue
+        try:before=json.loads(path.read_text(encoding='utf-8'))
+        except (UnicodeDecodeError,json.JSONDecodeError):continue
+        after=portable(before)
+        if after==before:continue
+        if identity(path)['sha256']!=record['sha256']:raise RuntimeError('元数据原始字节不符: '+name)
+        raw=target/(name+'.raw.log')
+        if raw.exists():raise ValueError('拒绝覆盖原始元数据: '+name)
+        shutil.copyfile(path,raw)
+        write_json(path,after)
+        record['archived_raw']=raw.relative_to(target).as_posix()
+        record['portable_sha256']=identity(path)['sha256']
+        changed.append(name)
+    return changed
 
 
 def archive(current, destination, snapshot=False):
@@ -309,17 +344,22 @@ def archive(current, destination, snapshot=False):
     # 摘要的消费者是归档后的字节比较；源对象登记一次，复制后验证目标。
     originals = {p.relative_to(current.path).as_posix(): identity(p)
                  for p in current.path.rglob('*') if p.is_file() and 'logs' in p.relative_to(current.path).parts}
-    write_json(current.path/'archive-files.json', originals)
     target.mkdir(parents=True)
-    for filename in ['run.json','plan.json','result.json','archive-files.json']:
+    for filename in ['run.json','plan.json','result.json']:
         if (current.path/filename).exists():
             write_json(target/filename,portable(json.loads((current.path/filename).read_text(encoding='utf-8'))))
     shutil.copytree(current.path/'logs',target/'logs')
+    normalized=normalize_archive_metadata(target,originals)
     for name, expected in originals.items():
-        if identity(target/name)['sha256'] != expected['sha256']:
+        if identity(target/expected.get('archived_raw',name))['sha256'] != expected['sha256']:
             raise RuntimeError('归档复制不一致: '+name)
+        if expected.get('portable_sha256') and identity(target/name)['sha256']!=expected['portable_sha256']:
+            raise RuntimeError('归档元数据摘要不符: '+name)
+    write_json(current.path/'archive-files.json',originals)
+    write_json(target/'archive-files.json',portable(originals))
     write_json(target/'archive.json',{'kind':'historical_run_snapshot' if snapshot else 'current_run',
         'current_inputs_revalidated':not snapshot,'local_paths':'placeholders in metadata; raw logs byte-identical',
+        'normalized_json_metadata':normalized,
         'source_run':current.path.relative_to(ROOT).as_posix()})
     print('ARCHIVE '+('SNAPSHOT ' if snapshot else 'PASS ')+target.relative_to(ROOT).as_posix())
 
