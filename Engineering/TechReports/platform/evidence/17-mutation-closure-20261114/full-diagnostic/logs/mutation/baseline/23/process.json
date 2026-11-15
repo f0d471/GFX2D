@@ -1,6 +1,0 @@
-{
-  "returncode": 0,
-  "timeout": false,
-  "seconds": 3.146,
-  "cmd": "bash Main/sim/engine/pix/run.sh --case path_golden"
-}

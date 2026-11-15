@@ -1,3 +1,0 @@
-display/inflight: RESULT: PASS checks=16 fields=10
-display/image_full: SKIPPED（要整帧跑就 FULL=1 bash run.sh）
-SIM OK

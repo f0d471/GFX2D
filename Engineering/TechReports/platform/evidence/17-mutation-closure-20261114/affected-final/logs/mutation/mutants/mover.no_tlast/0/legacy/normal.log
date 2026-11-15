@@ -1,3 +1,0 @@
-ERR WRITE-LAST-MISMATCH remaining=1 last=0
-FATAL: tb_engine_mover.v:431: WRITE-LAST-MISMATCH
-       Time: 1615000  Scope: tb_engine_mover

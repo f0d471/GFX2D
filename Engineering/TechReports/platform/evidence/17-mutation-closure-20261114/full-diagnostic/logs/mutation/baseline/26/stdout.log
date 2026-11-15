@@ -1,9 +1,0 @@
-研究探针 probe_check（B5 前期研究）：
-  probe: RESULT: PASS
-
-vec_to_sim: 159 条向量，2767 行记录 -> build/vec_stream.txt
-engine_top 单元仿真（B1~B5 全部，159 向量 + 定向）：
-  registers: RESULT: PASS registers
-
-
-SIM OK: 2/2 checks as expected

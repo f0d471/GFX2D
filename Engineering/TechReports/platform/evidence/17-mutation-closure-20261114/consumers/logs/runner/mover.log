@@ -1,7 +1,0 @@
-正常用例:
-  normal: RESULT: PASS
-  stream_owner: RESULT: PASS
-  drain: RESULT: PASS
-  err: RESULT: PASS
-  timeout: RESULT: PASS
-SIM OK: 5/5 checks as expected

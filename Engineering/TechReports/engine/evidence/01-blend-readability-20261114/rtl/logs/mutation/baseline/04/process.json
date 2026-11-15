@@ -1,6 +1,0 @@
-{
-  "returncode": 0,
-  "timeout": false,
-  "seconds": 5.451,
-  "cmd": "bash Main/sim/engine/blend/run.sh --case stall"
-}

@@ -1,6 +1,0 @@
-{
-  "returncode": 1,
-  "timeout": false,
-  "seconds": 4.805,
-  "cmd": "bash Main/sim/engine/pix/run.sh --case unit_stall"
-}

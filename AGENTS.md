@@ -7,7 +7,7 @@
 - 日常使用 quick；工作点验收使用 acceptance；交付按冻结清单使用 release。明确记录实际检查项，快速通过不能冒充完整验收。
 - 必需项未执行是 INCOMPLETE，不以退出码 0 或 `fail 0` 掩盖缺项。不同变异、输入和构建参数不合并。
 - 同轮公共正常测试去重；输入与参数未变才能复用。新运行写入已有忽略目录，不覆盖历史日志。
-- 工程问题的检查命令、对象身份、必要输出和结论直接写入对应 TechReport。禁止在 Engineering 新增 evidence，或改名为 records/archive 等同类独立输出层；既有历史目录不续写。
+- 工程问题的检查命令、对象身份、必要输出和结论直接写入对应 TechReport。Engineering 不得新增或保留 evidence、records/archive 等同类独立输出层；既有内容提取到对应报告后删除目录，不另建归档替身。
 - RTL 排版后仍需综合；板测按部署对象与影响范围决定，不因修改文档或解析器重做全游戏性能实验。
 - Main 自包含，不指向 Engineering 或仓外记忆。当前机制与接口写在 Main；开发过程和检查输出写在对应 TechReport。
 - Todo 的状态、开发日志和验收删除规则见 `Engineering/README.md`。保留已有未提交改动；不改生产默认后端来替代流程验证。

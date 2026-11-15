@@ -1,6 +1,0 @@
-{
-  "returncode": 1,
-  "timeout": false,
-  "seconds": 4.236,
-  "cmd": "bash Main/sim/engine/geom/run.sh"
-}

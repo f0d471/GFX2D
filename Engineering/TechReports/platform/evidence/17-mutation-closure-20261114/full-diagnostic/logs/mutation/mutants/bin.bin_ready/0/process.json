@@ -1,6 +1,0 @@
-{
-  "returncode": 1,
-  "timeout": false,
-  "seconds": 52.669,
-  "cmd": "python3 Main/tools/check/check_f5_bin.py --models --bin"
-}

@@ -1,3 +1,0 @@
-IRQ-FAIL W1C empty status=00000003 irq=1
-RESULT: FAIL registers errors=1
-tb_engine_top.v:831: $finish called at 265000 (1ps)

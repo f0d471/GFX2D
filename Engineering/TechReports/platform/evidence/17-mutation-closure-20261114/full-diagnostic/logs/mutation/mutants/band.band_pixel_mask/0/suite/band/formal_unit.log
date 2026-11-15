@@ -1,5 +1,0 @@
-UNIT-READ-DATA index=0
-UNIT-FLUSH-DATA index=0
-BAND UNIT errors=2 reads=33 writes=32
-RESULT: FAIL
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/band/tb_engine_band.v:178: $finish called at 119200000 (1ps)

@@ -1,6 +1,0 @@
-{
-  "returncode": 0,
-  "timeout": false,
-  "seconds": 13.955,
-  "cmd": "bash Main/sim/display/run.sh --case inflight"
-}

@@ -1,3 +1,0 @@
-display/image: RESULT: FAIL errors=5 checks=16 fields=10
-display/image_full: SKIPPED（要整帧跑就 FULL=1 bash run.sh）
-SIM BROKEN: 1 case(s) not as expected

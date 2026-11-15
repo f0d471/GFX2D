@@ -7,18 +7,8 @@
 # `-text` 让 git 不做任何 LF/CRLF 转换，检出的字节与提交的字节一致。
 * -text
 
-# 原始工具输出与冻结取证输入保持字节原样，不按源码格式修剪空白。
-Engineering/TechReports/platform/evidence/12-validation-workflow/*/logs/** -whitespace
-Engineering/TechReports/platform/evidence/12-validation-workflow/reuse-inputs/* -whitespace
-
 # G4 原始串口与厂商综合报告保留行尾填充，代码和文档仍检查空白。
 Main/sim/engine/g4/logs/** -whitespace
 
 # F4 原始串口与厂商报告保留行尾对齐，源码和文档仍检查空白。
 Main/sim/engine/frontend/logs/f4_* -whitespace
-
-# 外部变异闭环的原始输出与证据保持字节原样。
-Engineering/TechReports/platform/evidence/17-mutation-closure-20261114/** -whitespace
-
-# blend 排版复核的原始工具输出保留字节，手写文档与元数据仍检查空白。
-Engineering/TechReports/engine/evidence/01-blend-readability-20261114/*/logs/** -whitespace

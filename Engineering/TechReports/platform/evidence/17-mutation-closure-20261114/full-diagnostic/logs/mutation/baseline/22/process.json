@@ -1,6 +1,0 @@
-{
-  "returncode": 0,
-  "timeout": false,
-  "seconds": 6.035,
-  "cmd": "bash Main/sim/engine/pix/run.sh --case pipe_burst"
-}

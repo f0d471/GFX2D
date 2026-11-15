@@ -34,3 +34,11 @@
 十四位快照穷举、十五位全快照/旧包兼容和逐位CRC反例由console输入检查覆盖。
 脚本送位图验证消费者，不能代替真实键盘路径；面板解析器还检查状态往返、跨应用清理和故障。
 历史十五位采样来自2026-11-05接入，线协议与提交记录容量没有共同工程边界。
+
+2026-11-05 线格式往返检查的结果如下（完整三行输出）：
+
+```text
+byte-identical frames for keys <0x4000: PASS
+new packet -> new decoder 32768: PASS
+old packet -> new decoder 16384: PASS
+```

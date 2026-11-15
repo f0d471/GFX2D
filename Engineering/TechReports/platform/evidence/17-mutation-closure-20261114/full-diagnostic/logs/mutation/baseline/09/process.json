@@ -1,6 +1,0 @@
-{
-  "returncode": 0,
-  "timeout": false,
-  "seconds": 146.415,
-  "cmd": "python3 Main/tools/check/check_f4_instances.py --models --rtl --protocols --lease"
-}

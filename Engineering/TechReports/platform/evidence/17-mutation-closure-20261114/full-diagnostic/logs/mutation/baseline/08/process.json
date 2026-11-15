@@ -1,6 +1,0 @@
-{
-  "returncode": 0,
-  "timeout": false,
-  "seconds": 3.419,
-  "cmd": "bash Main/sim/engine/ctrl/run.sh"
-}

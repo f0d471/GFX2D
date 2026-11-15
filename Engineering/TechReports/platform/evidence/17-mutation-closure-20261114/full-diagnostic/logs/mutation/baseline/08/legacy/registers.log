@@ -1,2 +1,0 @@
-RESULT: PASS registers
-tb_engine_top.v:831: $finish called at 265000 (1ps)

@@ -80,10 +80,6 @@ ALLOW = {
     "Main/doc/开发环境.md",
     "Main/tools/check/localize_paths.py",
     "Engineering/TechReports/platform/07-SoC-IP定型与工具链升级.md",
-    # 证据归档里的运行脚本原件按当时实际运行的样子入库（探测的是系统 PowerShell
-    # 位置，不是仓库路径，占位符机制不适用），与「原样引用厂商报错输出」同类。
-    "Engineering/TechReports/engine/evidence/19-r4-polish-review-20261024/startup/prepare_verification.py",
-    "Engineering/TechReports/sw/evidence/11-pc-wide-20261025/delivery/sampling-scripts/check_entry_tamper.py",
 }
 
 # This exact line supplies invalid path inputs to a confinement test. It is

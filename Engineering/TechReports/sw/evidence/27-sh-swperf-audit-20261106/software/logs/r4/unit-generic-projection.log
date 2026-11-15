@@ -1,4 +1,0 @@
-R4 PROJECTION PASS 50000 generic/optimized triangles
-R4 GAMEPLAY PASS ship-plane hit, no gate wall, enemy hit, bomb edge
-R4 GATES REMOVED PASS gate data emits no geometry
-R4 SCENE PASS ticks=2000 peak=238 crc=591840a9

@@ -1,6 +1,0 @@
-{
-  "returncode": 0,
-  "timeout": false,
-  "seconds": 0.386,
-  "cmd": "bash Main/sim/engine/mover/run.sh --case stream_owner"
-}

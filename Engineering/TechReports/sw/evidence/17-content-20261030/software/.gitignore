@@ -1,3 +1,0 @@
-# Manifest-listed nested raw logs only; no build binaries are copied.
-!build/
-!build/**

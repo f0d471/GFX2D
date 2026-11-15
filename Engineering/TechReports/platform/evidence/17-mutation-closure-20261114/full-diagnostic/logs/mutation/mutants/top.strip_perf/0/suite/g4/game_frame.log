@@ -1,5 +1,0 @@
-PERF-FAIL rd=     22084 ar=       3007 wr=       480 aw=        480
-G3 FRAME SH=         16 diff=          0 cmd_reads=        206 pixel_reads=       2801 writes=        480 DDR_beats=    190513
-G4 game frame checks=      38513 errors=          1
-RESULT: FAIL
-/mnt/e/Workspace/FPGA/Efinix/Main/sim/build/check-runs/20261114-180849-ceb7cfd2/build/mutation/shadow/Main/sim/engine/g4/tb_g4_frame.v:238: $finish called at 8025475000 (1ps)

@@ -1,6 +1,0 @@
-{
-  "returncode": 1,
-  "timeout": false,
-  "seconds": 44.202,
-  "cmd": "python3 Main/tools/check/check_g4_integration.py --rtl"
-}

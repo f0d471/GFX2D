@@ -1,6 +1,0 @@
-OWNER PASS kind=0 beats=8 last-held=32
-OWNER PASS kind=2 beats=8 last-held=32
-OWNER PASS kind=1 beats=8 last-held=32
-OWNER PASS kind=0 beats=8 last-held=32
-FATAL: Main/sim/engine/rast/tb_engine_rast.v:35: atomic color/z commit
-       Time: 46705000  Scope: tb_engine_rast

@@ -1,5 +1,0 @@
-RUN Main/sim/build/check-runs/task
-F5 PB HOST PASS scenes=10000 exact_pixels=10000 skipped=0
-F5 PB BOUNDARY PASS capacity/identities/ERROR/READY/windows/empty/max_encoding
-F5 BIN PASS scenes=10000 scope=acceptance
-F5 CHECK PASS scope=acceptance run=Main/sim/build/check-runs/task
