@@ -306,6 +306,13 @@ class WorkflowTests(unittest.TestCase):
         with patch.object(localize_paths.subprocess,'run',return_value=subprocess.CompletedProcess([],1,'','git failed')):
             with self.assertRaises(RuntimeError):localize_paths.check(True)
 
+    def test_archive_does_not_create_engineering_output_directories(self):
+        for name in ('evidence','records','archive'):
+            destination='Engineering/TechReports/engine/'+name+'/'+self.directory.name
+            with self.subTest(name=name),self.assertRaisesRegex(ValueError,'TechReport'):
+                validate.archive(self.current,destination)
+            self.assertFalse((check_run.ROOT/destination).exists())
+
     def test_snapshot_keeps_incomplete_state_and_redacts_metadata_paths(self):
         from types import SimpleNamespace
         self.current.record('missing','INCOMPLETE',error='tool missing')

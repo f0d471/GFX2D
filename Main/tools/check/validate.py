@@ -337,6 +337,8 @@ def archive(current, destination, snapshot=False):
     target = (ROOT / destination).resolve()
     if not target.is_relative_to(ROOT.resolve()) or target.exists():
         raise ValueError('归档目标必须是仓库内尚不存在的目录')
+    if target.is_relative_to((ROOT/'Engineering').resolve()):
+        raise ValueError('Engineering 禁止新增输出目录；请把必要输出直接写入对应 TechReport，完整产物保留在本地忽略目录')
     data=json.loads((current.path/'run.json').read_text(encoding='utf-8'))
     if any(item['status']=='RUNNING' for item in data['checks'].values()):raise ValueError('运行尚未结束，不能归档')
     if not snapshot:
