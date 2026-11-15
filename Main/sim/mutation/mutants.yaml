@@ -167,8 +167,9 @@
     doc: Main/doc/赛题二总体设计.md
     section: 3.5 像素流水线
   rules:
-  - find: "            3'd0: begin // COPY     Fs=255 Fd=0\n                sel_base = {1'b0, src};"
-    replace: "            3'd0: begin // COPY     Fs=255 Fd=0\n                sel_base = {1'b0, src} + {1'b0, dst};"
+  - match: verilog
+    find: "3'd0: begin sel_base = {1'b0, src};"
+    replace: "3'd0: begin\n                sel_base = {1'b0, src} + {1'b0, dst};"
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case narrow_copy
     evidence: 'MISMATCH #\d+: eq=0 '
@@ -181,8 +182,9 @@
     doc: Main/doc/赛题二总体设计.md
     section: 3.5 像素流水线
   rules:
-  - find: '    wire [17:0] t      = t_full;'
-    replace: '    wire [17:0] t      = {2''b00, t_full[15:0]};'
+  - match: verilog
+    find: 'wire [17:0] t = t_full;'
+    replace: 'wire [17:0] t = {2''b00, t_full[15:0]};'
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case narrow_trunc
     evidence: 'MISMATCH #\d+: eq=2 '
@@ -195,8 +197,9 @@
     doc: Main/doc/赛题二总体设计.md
     section: 3.5 像素流水线
   rules:
-  - find: '    wire signed [17:0] c_stage = $signed(r_c);  // c255 恒正（<= 130050 < 2^17，第 17 位为 0），按 18 位有符号给进 DSP 的 C 口。'
-    replace: '    wire signed [17:0] c_stage = $signed(c255_comb);'
+  - match: verilog
+    find: 'wire signed [17:0] c_stage = $signed(r_c);'
+    replace: 'wire signed [17:0] c_stage = $signed(c255_comb);'
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case narrow_unreg
     evidence: 'MISMATCH #\d+: eq=1 '
@@ -209,8 +212,9 @@
     doc: Main/doc/赛题二总体设计.md
     section: 3.5 像素流水线
   rules:
-  - find: "            3'd3: begin // CONST    Fs=c   Fd=255-c\n\n                sel_base = {1'b0, dst};\n                sel_m1   = $signed({1'b0, src}) - $signed({1'b0, dst});"
-    replace: "            3'd3: begin // CONST    Fs=c   Fd=255-c\n\n                sel_base = {1'b0, src};\n                sel_m1   = $signed({1'b0, dst}) - $signed({1'b0, src});"
+  - match: verilog
+    find: "3'd3: begin sel_base = {1'b0, dst}; sel_m1 = $signed({1'b0, src}) - $signed({1'b0, dst});"
+    replace: "3'd3: begin\n                sel_base = {1'b0, src};\n                sel_m1 = $signed({1'b0, dst}) - $signed({1'b0, src});"
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case narrow_const
     evidence: 'MISMATCH #\d+: eq=3 '
@@ -223,8 +227,9 @@
     doc: Main/doc/赛题二总体设计.md
     section: 3.5 像素流水线
   rules:
-  - find: '        if (en) r_x <= x_comb;'
-    replace: '        r_x <= x_comb;'
+  - match: verilog
+    find: 'if (en) r_x <= x_comb;'
+    replace: 'r_x <= x_comb;'
   runs:
   - cmd: bash Main/sim/engine/blend/run.sh --case stall
     evidence: 'MISMATCH #\d+: eq='

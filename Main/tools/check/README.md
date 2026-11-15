@@ -73,7 +73,7 @@ SHA256查找配套综合树、配置与完整报告；它不验收当前RTL。`r
 | `test_game_control.py` | 离线核对后端确认切换、CSV 弹数、硬件/软件按钮、一行状态、shortcut 5 目录、手柄切应用与按键表 | 控制协议或面板改动后；不打开 GUI/串口 |
 | `check_sw_layers.sh` | 软件分层与构建的结构判据，七项，含三处注错 | 改了 `sw/` 的结构、构建文件或 `bsp/include` 时，提交前 |
 | `check_round255.c` | 逐像素规格（设计文档 3.5 节）的穷举校验：舍入、中间量位宽、舍入顺序、预乘量化误差 | 改像素规格时；v1 不实现 tint，后续 profile 启用时再加对应穷举 |
-| `check_subst.c` | 引擎单通道混合核的六方程**代入表**校验：`x = base×255 + m1×m2` 与 `src×Fs + dst×Fd` 的逐位等价、位宽与符号、16 位模截断注错，另有替代代入（两个乘数都压进 8 位）的等价性 | 改混合方程、代入方式或引擎的位宽时，提交前 |
+| `check_subst.c` | 引擎单通道混合核的六方程代入恒等、范围、16 位截断反例与替代代入 | 已接入 `validate.py --checks blend`；修改混合方程、代入或位宽时选择 blend |
 | `check_cmd_semantics.py` | 命令语义规格（设计文档 3.4 节）的结构校验与 159 条一致性向量（ABI 1），带六项注错自检 | 改命令 ABI 或错误模型时，提交前 |
 | `geom_model.py` | 引擎几何层（engine_geom）的**独立模型**：五者求交、逐行迭代、16 字节对齐的读写描述符、读写避让、每行边带；`--selftest` `--directed` 自检，`--vectors` `--cases` 吃两组真实输入并与软件执行器逐像素对照，`--dump-records` 导 $readmemh 记录 | 几何层开工前的研究已用它；几何层的单元仿真与它逐条比对；改裁剪规则、地址公式或读写避让规则时重跑 |
 | `geom_cases_dump.c` / `geom_cases_dump.sh` | 把十一个整帧用例的表面表与命令表导成几何模型能吃的记录（**链接 `sw/lib/gfx` 的 `cases.c` 与 `list.c`**，不照抄命令表） | 用例的命令表改了、或几何模型要重跑整帧用例时 |
@@ -172,6 +172,9 @@ wsl -e bash -c 'gcc -O2 -o /tmp/check_round255 Main/tools/check/check_round255.c
 不带参数时的输出与加这个模式之前逐字节相同。
 
 ## check_subst.c
+
+默认 blend 回归先执行本工具和 `check_round255.c`，再运行 RTL；单独复核数学检查可用
+`bash Main/sim/engine/blend/run.sh --case spec`。数学最小位宽和 RTL 实际声明位宽分别报告。
 
 ```
 wsl -e bash -c 'gcc -O2 -o /tmp/check_subst Main/tools/check/check_subst.c && /tmp/check_subst'

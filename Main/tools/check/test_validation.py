@@ -49,6 +49,68 @@ class WorkflowTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
+    def test_blend_runner_failure_propagation_and_case_dependencies(self):
+        """真实运行 shell，替代外部进程以定向制造编译、规格、导出及仿真失败。"""
+        if os.name == 'nt':self.skipTest('shell 行为反例在 WSL 执行')
+        import textwrap
+        root=self.directory/'blend-runner'
+        root.mkdir()
+        shutil.copy2(check_run.ROOT/'Main/sim/engine/blend/run.sh',root/'run.sh')
+        binaries=root/'bin';binaries.mkdir()
+        fake=textwrap.dedent('''\
+            #!/usr/bin/env python3
+            import os,sys
+            from pathlib import Path
+            name=Path(sys.argv[0]).name
+            mode=os.environ.get('BLEND_TEST_FAIL','')
+            with Path(os.environ['BLEND_TEST_CALLS']).open('a') as out:out.write(name+' '+repr(sys.argv[1:])+'\\n')
+            if name=='gcc':
+                if mode=='compile':sys.exit(1)
+                target=Path(sys.argv[sys.argv.index('-o')+1])
+                target.write_text(Path(__file__).read_text())
+                target.chmod(0o755)
+            elif name=='iverilog':
+                if mode=='rtl_compile':sys.exit(1)
+                Path(sys.argv[sys.argv.index('-o')+1]).touch()
+            elif name=='vvp':
+                if mode=='missing':print('no verdict')
+                elif mode=='duplicate':print('RESULT: PASS\\nRESULT: FAIL')
+                else:print('RESULT: PASS')
+                if mode=='runtime':sys.exit(2)
+            elif '--golden' in sys.argv:
+                if mode=='export':sys.exit(1)
+                if mode!='empty':Path(sys.argv[-1]).write_text('00\\n')
+            else:
+                if mode=='spec':sys.exit(1)
+                if mode!='spec_missing':print('总判定：全部通过')
+            ''')
+        for name in ('gcc','iverilog','vvp'):
+            path=binaries/name;path.write_text(fake,encoding='utf-8');path.chmod(0o755)
+        calls=root/'calls.log'
+        env={**os.environ,'PATH':str(binaries)+os.pathsep+os.environ['PATH'],'BLEND_TEST_CALLS':str(calls)}
+        def run(case=None,fail=''):
+            calls.write_text('')
+            result=subprocess.run(['bash','run.sh',*(['--case',case] if case else [])],cwd=root,
+                                  env={**env,'BLEND_TEST_FAIL':fail},capture_output=True,text=True)
+            return result,calls.read_text()
+        for mode in ('compile','spec','spec_missing','export','empty'):
+            with self.subTest(mode=mode):
+                result,trace=run('golden',mode)
+                self.assertNotEqual(result.returncode,0)
+                self.assertNotIn('vvp ',trace)
+        for mode in ('rtl_compile','runtime','missing','duplicate'):
+            with self.subTest(mode=mode):self.assertNotEqual(run('narrow_copy',mode)[0].returncode,0)
+        result,trace=run('narrow_unreg','compile')
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        self.assertNotIn('gcc ',trace)
+        self.assertIn('-DSTRIDE=17',trace)
+        result,trace=run()
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        self.assertEqual(sum(line.startswith('gcc ') for line in trace.splitlines()),2)
+        self.assertEqual(sum(line.startswith('vvp ') for line in trace.splitlines()),3)
+        self.assertNotIn('narrow_',trace)
+        self.assertEqual(run('unknown')[0].returncode,3)
+
     def test_same_run_pass_executes_once(self):
         calls=[]
         self.current.perform('normal',lambda:calls.append(1))

@@ -95,6 +95,7 @@ CHECKS['layers']['timeout']=3000
 for name in ['hdmi','apb_probe','axi_probe','axi_mux_guard','display','engine/blend',
              'engine/mover','engine/geom','engine/pix','engine/ctrl','engine/frame','engine/tex']:
     add(name.replace('engine/',''), ['bash','Main/sim/'+name+'/run.sh'], name+' 模块与变异')
+CHECKS['blend']['purpose']='两项数学检查、50462976 有效操作数组合、金标准与停顿；变异单列 mutation'
 add('band', [sys.executable,P+'check_g2_band.py'], '条带数据面')
 add('stripctl', [sys.executable,P+'check_g3_stripctl.py'], '条带控制与生产构造')
 add('g4-host',[sys.executable,P+'check_g4_integration.py','--host'],'整机条带宿主回放', ['pack'])

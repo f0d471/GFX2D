@@ -295,10 +295,11 @@ int main(void)
         printf("  |m1×m2| 上限 %d，需 17 位有符号（2^16 = 65536）\n", p_max);
         printf("  base×255 上限 %d，需 17 位无符号\n", x_max);
         printf("  x 上限 %d，需 17 位无符号；2^17 = 131072\n", x_max);
-        printf("  t = x + 128 上限 %d，需 18 位无符号\n", t_max);
-        printf("  t + (t>>8) 上限 %d，需 18 位无符号（RTL 按 19 位写）\n", q_max);
+        printf("  t = x + 128 上限 %d，最小 17 位无符号；RTL 使用 18 位\n", t_max);
+        printf("  t + (t>>8) 上限 %d，最小 17 位无符号；RTL 使用 19 位\n", q_max);
         expect_u64("x 上限 < 2^17", (uint64_t)(x_max < 131072), 1);
-        expect_u64("t 上限 < 2^18", (uint64_t)(t_max < 262144), 1);
+        expect_u64("t 上限 < 2^17", (uint64_t)(t_max < 131072), 1);
+        expect_u64("t + (t>>8) 上限 < 2^17", (uint64_t)(q_max < 131072), 1);
 
         printf("\n  能到 x = 130050 的只有 ADD 与 ALPHA 预乘（a = 0 时 Fd = 255）：\n");
         printf("    ADD          x = (src+dst) × 255\n");

@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """证明「把注错分支从生产 RTL 里拿掉」没有改动生产逻辑。
 
-两个方向都做，都是逐行比对预处理结果（`iverilog -E`），不是肉眼看差异：
+两个方向都做，均比较预处理结果的代码 token（Verilog 用 `iverilog -E`，C 用 `gcc -E`）：
 
 1. **正向**：迁移前（``--base-rev`` 那个版本）不定义任何 ``INJ_`` 的展开，必须与
-   迁移后的当前文件逐行相同。
+   迁移后的当前文件 token 序列相同。
 2. **反演**：把 mutants.yaml 的规则应用回当前文件，展开必须与「迁移前 +
-   ``-D<原宏名>``」逐行相同。这条同时证明规则忠实复现了原来的变异。
+   ``-D<原宏名>``」token 序列相同。这条同时证明规则忠实复现了原来的变异。
 
-预处理输出会为被删掉的指令行和未取分支各留一个空行，所以比对时只忽略空行；
-其余每一行（含缩进与行内注释）必须一字不差。
+比对忽略注释和排版，保留运算符、标识符与字符串差异；规则应用与变异跑器共用实现。
 
   python3 Main/sim/mutation/verify_migration.py --base-rev 551c2029
 """
@@ -28,6 +27,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'Main/tools/check'))
 from feature_build import write_headers
+from run_mutation import mutated_bytes, verilog_tokens
 MANIFEST = ROOT / "Main/sim/mutation/mutants.yaml"
 INCLUDE = "Main/rtl/engine/include"
 
@@ -38,20 +38,8 @@ def norm(text: str) -> list[str]:
 
 
 def tokens(text: str) -> list[str]:
-    """词法级规范化：去注释与空白，只留 token 序列。
-
-    反演证明要用它：`ifdef 行尾的注错说明会作为注释残留在 -E 输出里，
-    而迁移后的文件按约定不留注错痕迹，所以反演只能比到词法层。
-    """
-    if "/*" in text:
-        sys.exit("文件里有块注释，词法比对需要先扩展；本工具只处理 // 注释")
-    out: list[str] = []
-    for line in text.splitlines():
-        cut = line.find("//")
-        if cut >= 0:
-            line = line[:cut]
-        out.extend(line.split())
-    return out
+    """去掉注释与空白，保留字符串和运算符；与规则匹配使用同一个 lexer。"""
+    return [m.group() for m in verilog_tokens(text)]
 
 
 def expand(path: Path, defs: list[str], work: Path, include=None) -> str:
@@ -96,10 +84,7 @@ def main() -> int:
         ok_all &= forward
         detail=[]
         for row in mutants:
-            text=post_file.read_text()
-            for rule in row['rules']:
-                if text.count(rule['find'])!=1:raise RuntimeError(row['id']+': rule not unique')
-                text=text.replace(rule['find'],rule['replace'],1)
+            text=mutated_bytes(post_file.read_bytes(),row['rules']).decode('utf-8')
             mutated=work/('mut_'+Path(target).name);mutated.write_text(text)
             active=[];same=True
             for config,include in configs.items():

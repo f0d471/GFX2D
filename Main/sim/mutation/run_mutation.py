@@ -25,6 +25,27 @@ MANIFEST = ROOT / 'Main/sim/mutation/mutants.yaml'
 # 只识别基础设施失败；检查器的 AssertionError/RuntimeError 本身不代表编译失败。
 INFRA = re.compile(r'COMPILE[- ](?:FAIL|ERROR)|SETUP-ERROR|\berror:\s|syntax error|Unable to bind|error\(s\) during elaboration|Unable to open|missing cases|main open|No such file or directory|Segmentation fault', re.I)
 WATCHDOG = re.compile(r'WATCHDOG|看门狗|仿真没有自己结束', re.I)
+VERILOG_TOKEN = re.compile(
+    r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|\\\S+|'
+    r"(?:\d+)?'[sS]?[bBoOdDhH][0-9a-fA-F_xXzZ?]+|'[01xXzZ]|"
+    r'[A-Za-z_$][A-Za-z0-9_$]*|\d+|===|!==|>>>|<<<|==|!=|<=|>=|'
+    r'<<|>>|&&|\|\||\+\+|--|\*\*|~\^|\^~|~&|~\||\+:|-:|::|->|=>|\*>|[^\s]')
+
+
+def verilog_tokens(text):
+    """返回代码 token 及字节解码后的字符区间；字符串和多字符运算符保持完整。"""
+    return [m for m in VERILOG_TOKEN.finditer(text) if not m.group().startswith(('//', '/*'))]
+
+
+def token_span(text, find):
+    source = verilog_tokens(text)
+    wanted = [m.group() for m in verilog_tokens(find)]
+    if not wanted: raise ValueError('Verilog 规则没有代码 token')
+    values = [m.group() for m in source]
+    hits = [i for i in range(len(source)-len(wanted)+1) if values[i:i+len(wanted)] == wanted]
+    if len(hits) != 1: raise ValueError('规则必须恰好匹配一次')
+    begin = hits[0]
+    return source[begin].start(), source[begin+len(wanted)-1].end()
 
 
 def load_manifest(path=MANIFEST):
@@ -43,6 +64,9 @@ def load_manifest(path=MANIFEST):
         for rule in row['rules']:
             if not rule.get('find') or 'replace' not in rule:
                 raise ValueError(row['id']+': 规则不完整')
+            mode = rule.get('match', 'literal')
+            if mode not in ('literal', 'verilog') or (mode == 'verilog' and rel.suffix not in ('.v', '.sv', '.vh')):
+                raise ValueError(row['id']+': 不支持的规则匹配方式')
         for run in row['runs']:
             if set(run)-{'cmd','evidence'}:raise ValueError(row['id']+': 发现者只接受 cmd/evidence')
             if not run.get('cmd') or not run.get('evidence'):
@@ -58,8 +82,16 @@ def mutated_bytes(original, rules):
     text = text.replace('\r\n', '\n')
     for rule in rules:
         find = rule['find'].replace('\r\n', '\n')
-        if text.count(find) != 1: raise ValueError('规则必须恰好匹配一次')
-        text = text.replace(find, rule['replace'].replace('\r\n', '\n'), 1)
+        replace = rule['replace'].replace('\r\n', '\n')
+        mode = rule.get('match', 'literal')
+        if mode == 'verilog':
+            begin, end = token_span(text, find)
+            text = text[:begin] + replace + text[end:]
+        elif mode == 'literal':
+            if text.count(find) != 1: raise ValueError('规则必须恰好匹配一次')
+            text = text.replace(find, replace, 1)
+        else:
+            raise ValueError('不支持的规则匹配方式: '+str(mode))
     result = text.replace('\n', '\r\n').encode() if crlf else text.encode()
     if result == original: raise ValueError('变异没有改变源码')
     return result

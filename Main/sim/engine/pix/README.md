@@ -35,19 +35,19 @@ wsl -e bash -c 'cd Main/sim/engine/pix && bash run.sh'
 cd "$(git rev-parse --show-toplevel)/Main/sim/engine/pix" && bash run_formal.sh >/dev/null
 build/pix_cases_dump --sprites build/sprites
 M="$(git rev-parse --show-toplevel)/Main"; RTL="$M/rtl/engine"
-iverilog -g2012 -s tb_engine_path -DTIMED '-DCASE="build/sprites"' -o build/perf.vvp \
-tb_engine_path.v "$RTL/engine_geom.v" "$RTL/engine_pix.v" "$RTL/engine_blend.v" \
-"$RTL/engine_mover.v" "$M/rtl/vendor/verilog-axi/axi_dma_rd.v" \
-"$M/rtl/vendor/verilog-axi/axi_dma_wr.v" "$M/sim/axi_probe/axi_ram_model.v" \
+PATH_SRC=(tb_engine_path.v "$RTL/core/engine_geom.v" "$RTL/core/engine_pix.v"
+  "$RTL/core/engine_blend.v" "$RTL/core/engine_mover.v"
+  "$M/rtl/vendor/verilog-axi/axi_dma_rd.v" "$M/rtl/vendor/verilog-axi/axi_dma_wr.v"
+  "$M/sim/axi_probe/axi_ram_model.v")
+iverilog -g2012 -I "$RTL/include" -s tb_engine_path -DTIMED '-DCASE="build/sprites"' \
+-o build/perf.vvp "${PATH_SRC[@]}" \
 && vvp -n build/perf.vvp | grep PERF
-iverilog -g2012 -s tb_engine_path -DTIMED -DNOWAIT '-DCASE="build/sprites"' -o build/perf_nw.vvp \
-tb_engine_path.v "$RTL/engine_geom.v" "$RTL/engine_pix.v" "$RTL/engine_blend.v" \
-"$RTL/engine_mover.v" "$M/rtl/vendor/verilog-axi/axi_dma_rd.v" \
-"$M/rtl/vendor/verilog-axi/axi_dma_wr.v" "$M/sim/axi_probe/axi_ram_model.v" \
+iverilog -g2012 -I "$RTL/include" -s tb_engine_path -DTIMED -DNOWAIT '-DCASE="build/sprites"' \
+-o build/perf_nw.vvp "${PATH_SRC[@]}" \
 && vvp -n build/perf_nw.vvp | grep PERF
 ```
 
-期望 `PERF cycles=17668` 与 `PERF cycles=17304`。
+历史定时从机对照记录为 `PERF cycles=17668` 与 `PERF cycles=17304`；当前结果以本轮输出为准。
 
 `syn/` 要 Windows 上的 Efinity（`<EFINITY>` 见 `Main/doc/开发环境.md` 第 1 节）：
 

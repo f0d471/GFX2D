@@ -29,6 +29,29 @@ class CampaignTests(unittest.TestCase):
         for raw,rules in [(b'aa',[{'find':'a','replace':'b'}]),(b'a',[{'find':'a','replace':'a'}])]:
             with self.assertRaises(ValueError):m.mutated_bytes(raw,rules)
 
+    def test_verilog_rule_ignores_layout_but_preserves_surroundings(self):
+        original=b'// keep\r\nwire /* gap */ [7:0] value = src ; // tail\r\n'
+        rule={'match':'verilog','find':'wire [7:0] value=src;', 'replace':'wire [7:0] value=dst;'}
+        self.assertEqual(m.mutated_bytes(original,[rule]),b'// keep\r\nwire [7:0] value=dst; // tail\r\n')
+        for raw in (b'wire [7:0] other=src;',b'wire [7:0] value=src; wire [7:0] value=src;'):
+            with self.assertRaises(ValueError):m.mutated_bytes(raw,[rule])
+
+    def test_verilog_tokens_keep_operators_and_string_content(self):
+        rule={'match':'verilog','find':'value = a + + b;', 'replace':'value = 0;'}
+        with self.assertRaises(ValueError):m.mutated_bytes(b'value = a ++ b;',[rule])
+        strings={'match':'verilog','find':'value = "a b";', 'replace':'value = "x";'}
+        with self.assertRaises(ValueError):m.mutated_bytes(b'value = "ab";',[strings])
+        with self.assertRaises(ValueError):m.mutated_bytes(b'value=src;',[{'match':'unknown','find':'src','replace':'dst'}])
+
+    def test_blend_rules_accept_comment_and_blank_line_changes(self):
+        rows=[r for r in m.load_manifest() if r['id'].startswith('blend.')]
+        original=(m.ROOT/rows[0]['target']).read_bytes()
+        text=original.decode('utf-8').replace('// COPY     Fs=255 Fd=0','// COPY revised')
+        text=text.replace('begin //','begin\n\n //')
+        for row in rows:
+            with self.subTest(id=row['id']):
+                self.assertNotEqual(m.mutated_bytes(text.encode(),row['rules']),text.encode())
+
     def test_foreign_target_deletion_restores_everything(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);(root/'a').write_bytes(b'a');(root/'b').write_bytes(b'b')
