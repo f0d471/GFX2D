@@ -32,11 +32,6 @@ MANIFEST = ROOT / "Main/sim/mutation/mutants.yaml"
 INCLUDE = "Main/rtl/engine/include"
 
 
-def norm(text: str) -> list[str]:
-    """逐行规范化：只去掉行尾 CR 和空行，其余（含缩进、行内注释）必须原样。"""
-    return [ln.rstrip("\r") for ln in text.splitlines() if ln.strip()]
-
-
 def tokens(text: str) -> list[str]:
     """去掉注释与空白，保留字符串和运算符；与规则匹配使用同一个 lexer。"""
     return [m.group() for m in verilog_tokens(text)]
