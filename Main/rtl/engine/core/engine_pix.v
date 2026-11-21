@@ -53,6 +53,10 @@ module engine_pix (
     output wire [3:0]   perf_key_lanes, // 逐槽命中，与写数据同拍
     output wire         perf_key_valid  // 写流握手那一拍
 );
+    //============================================================
+    // 0. 常量与辅助函数
+    //============================================================
+
     localparam [7:0] OP_BLIT = 8'd2;
     localparam [3:0] FMT_XRGB = 4'd0;
     localparam [1:0] PS_IDLE = 2'd0;
@@ -79,6 +83,16 @@ module engine_pix (
         end
     endfunction
 
+    //============================================================
+    // 1. 跨段接口：声明集中在 §1，驱动逻辑在所属段。产自 → 消费于：
+    //   write_fire 交接（端口直算）      → §4 色键统计、§5 交接计数与行完成
+    //   pipe_en   计算链使能（端口直算） → §3 发射状态机、§4 S1~S7 全链
+    //   core_en   十二核使能（=pipe_en） → §4 混合核阵列
+    //   row_take  开行（§3 产生）        → §2 弹队头、§3 装载与发射、§5 计数清零
+    //   row_done  行完成（§5 产生）      → §2 释放半
+    //   （head_half / head_row_ready 移至 §2.5 队首输出，消费于 §3）
+    //============================================================
+
     // 跨段事件：开行 row_take、完成 row_done、交接 write_fire
     wire row_take;
     wire row_done;
@@ -94,11 +108,34 @@ module engine_pix (
     assign ws_tkeep = 16'hffff;
     assign rs_tready = 1'b1;
 
-    // 行接收状态：两半各一套参数、计数与读齐位
+    //============================================================
+    // 2. 行缓冲管理（上游）：所有权/上下文/记账/FIFO 四个自包含单元 + 队首输出；
+    //    全段不受 pipe_en 控制。纪律：每个寄存器只由一个过程驱动；各过程的复位、
+    //    装载与计数顺序与拆分前逐项一致；参数与 row_queue 内容保持无复位。
+    //============================================================
+
+    //---- 2.1 半区所有权与预约准入 --------------------------------------------
     reg [1:0] half_occupied;
-    reg row_queue [0:1];
-    reg row_queue_read_ptr, row_queue_write_ptr;
-    reg [1:0] row_queue_count;
+    reg [1:0] row_queue_count; // FIFO 占用数，驱动在 §2.4，准入判断在此只读
+
+    assign row_free = ~half_occupied;
+    assign sb_ready = !rst && !half_occupied[sb_row[0]] && (row_queue_count != 2'd2);
+    wire row_accept = sb_valid && sb_ready;
+
+    // 所有权：预约置位在前，完成清零在后（同沿冲突时清零赢，与拆分前一致）
+    always @(posedge clk) begin
+        if (rst) begin
+            half_occupied <= 2'd0;
+        end else begin
+            if (row_accept) half_occupied[sb_row[0]] <= 1'b1;
+            if (row_done) half_occupied[row_done_half] <= 1'b0;
+        end
+    end
+
+    //---- 2.2 行任务上下文保存（无复位，仅预约沿装载，整行保持） ----------
+    // 源拍数：ceil((ls+npx)/4)
+    wire [11:0] src_span_plus3 = {1'b0, sb_npx} + {10'd0, sb_lead_src} + 12'd3;
+    wire [7:0] half_src_beats_next = src_span_plus3[9:2];
 
     reg half_blit [0:1], half_key_en [0:1], half_read_dst [0:1];
     reg [2:0] half_eq [0:1];
@@ -108,30 +145,35 @@ module engine_pix (
     reg [1:0] half_lead_src [0:1], half_lead_dst [0:1];
     reg [7:0] half_dst_beats [0:1], half_src_beats [0:1];
     reg [3:0] half_first_mask [0:1], half_last_mask [0:1];
+
+    always @(posedge clk) begin
+        if (!rst && row_accept) begin
+            half_blit[sb_row[0]] <= (sb_op == OP_BLIT);
+            half_key_en[sb_row[0]] <= sb_key_en;
+            half_read_dst[sb_row[0]] <= sb_read_dst;
+            half_eq[sb_row[0]] <= sb_eq[2:0];
+            half_key[sb_row[0]] <= sb_key;
+            half_fill[sb_row[0]] <= sb_w4;
+            half_const_coeff[sb_row[0]] <= sb_c;
+            half_src_format[sb_row[0]] <= sb_sfmt;
+            half_lead_src[sb_row[0]] <= sb_lead_src;
+            half_lead_dst[sb_row[0]] <= sb_lead_dst;
+            half_dst_beats[sb_row[0]] <= sb_beats;
+            half_src_beats[sb_row[0]] <= half_src_beats_next;
+            half_first_mask[sb_row[0]] <= row_mask(sb_lead_dst, sb_npx, 8'd0);
+            half_last_mask[sb_row[0]] <= row_mask(sb_lead_dst, sb_npx, sb_beats - 8'd1);
+        end
+    end
+
+    //---- 2.3 读流接收与完成记账（不受 pipe_en 控制）----------------------
+    wire src_we = !rst && rs_tvalid && !rs_buf[1] && half_occupied[rs_buf[0]]; // 未预约的半丢弃
+    wire dst_we = !rst && rs_tvalid && rs_buf[1] && half_occupied[rs_buf[0]];
+
     reg [7:0] half_src_count [0:1], half_dst_count [0:1];
     reg half_src_done [0:1], half_dst_done [0:1];
 
-    assign row_free = ~half_occupied;
-    assign sb_ready = !rst && !half_occupied[sb_row[0]] && (row_queue_count != 2'd2);
-    wire row_accept = sb_valid && sb_ready;
-
-    // 源拍数：ceil((ls+npx)/4)
-    wire [11:0] src_span_plus3 = {1'b0, sb_npx} + {10'd0, sb_lead_src} + 12'd3;
-    wire [7:0] half_src_beats_next = src_span_plus3[9:2];
-
-    // 接收写口：按半号与各路计数写入
-    wire src_we = !rst && rs_tvalid && !rs_buf[1] && half_occupied[rs_buf[0]]; // 未预约的半丢弃
-    wire dst_we = !rst && rs_tvalid && rs_buf[1] && half_occupied[rs_buf[0]];
-    wire [8:0] src_waddr = {rs_buf[0], half_src_count[rs_buf[0]]};
-    wire [8:0] dst_waddr = {rs_buf[0], half_dst_count[rs_buf[0]]};
-    wire [95:0] dst_wdata = {rs_tdata[119:96], rs_tdata[87:64], rs_tdata[55:32], rs_tdata[23:0]};
-
-    always @(posedge clk) begin // 不受 pipe_en 控制
+    always @(posedge clk) begin
         if (rst) begin
-            half_occupied <= 2'd0;
-            row_queue_read_ptr <= 1'b0;
-            row_queue_write_ptr <= 1'b0;
-            row_queue_count <= 2'd0;
             half_src_count[0] <= 8'd0;
             half_src_count[1] <= 8'd0;
             half_dst_count[0] <= 8'd0;
@@ -142,27 +184,10 @@ module engine_pix (
             half_dst_done[1] <= 1'b0;
         end else begin
             if (row_accept) begin
-                half_occupied[sb_row[0]] <= 1'b1;
-                row_queue[row_queue_write_ptr] <= sb_row[0];
-                row_queue_write_ptr <= ~row_queue_write_ptr;
-                half_blit[sb_row[0]] <= (sb_op == OP_BLIT);
-                half_key_en[sb_row[0]] <= sb_key_en;
-                half_read_dst[sb_row[0]] <= sb_read_dst;
-                half_eq[sb_row[0]] <= sb_eq[2:0];
-                half_key[sb_row[0]] <= sb_key;
-                half_fill[sb_row[0]] <= sb_w4;
-                half_const_coeff[sb_row[0]] <= sb_c;
-                half_src_format[sb_row[0]] <= sb_sfmt;
-                half_lead_src[sb_row[0]] <= sb_lead_src;
-                half_lead_dst[sb_row[0]] <= sb_lead_dst;
-                half_dst_beats[sb_row[0]] <= sb_beats;
-                half_src_beats[sb_row[0]] <= half_src_beats_next;
                 half_src_count[sb_row[0]] <= 8'd0;
                 half_dst_count[sb_row[0]] <= 8'd0;
                 half_src_done[sb_row[0]] <= (sb_op != OP_BLIT);
                 half_dst_done[sb_row[0]] <= !sb_read_dst;
-                half_first_mask[sb_row[0]] <= row_mask(sb_lead_dst, sb_npx, 8'd0);
-                half_last_mask[sb_row[0]] <= row_mask(sb_lead_dst, sb_npx, sb_beats - 8'd1);
             end
             if (src_we) begin
                 half_src_count[rs_buf[0]] <= half_src_count[rs_buf[0]] + 8'd1;
@@ -174,19 +199,40 @@ module engine_pix (
                 if (half_dst_count[rs_buf[0]] + 8'd1 == half_dst_beats[rs_buf[0]])
                     half_dst_done[rs_buf[0]] <= 1'b1;
             end
+        end
+    end
+
+    //---- 2.4 行任务 FIFO ------------------------------------------------------
+    reg row_queue [0:1];
+    reg row_queue_read_ptr, row_queue_write_ptr;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            row_queue_read_ptr <= 1'b0;
+            row_queue_write_ptr <= 1'b0;
+            row_queue_count <= 2'd0;
+        end else begin
+            if (row_accept) begin
+                row_queue[row_queue_write_ptr] <= sb_row[0];
+                row_queue_write_ptr <= ~row_queue_write_ptr;
+            end
             if (row_take) row_queue_read_ptr <= ~row_queue_read_ptr;
             case ({row_accept, row_take})
                 2'b10: row_queue_count <= row_queue_count + 2'd1;
                 2'b01: row_queue_count <= row_queue_count - 2'd1;
                 default: row_queue_count <= row_queue_count;
             endcase
-            if (row_done) half_occupied[row_done_half] <= 1'b0;
         end
     end
 
+    //---- 2.5 队首任务就绪输出（消费方：§3 的 row_take 与预热判据）
     wire head_half = row_queue[row_queue_read_ptr];
     wire head_row_ready = (row_queue_count != 2'd0) &&
                           half_src_done[head_half] && half_dst_done[head_half];
+
+    //============================================================
+    // 3. 行计算控制（下游）：当前行参数锁存与发射状态机
+    //============================================================
 
     // 行调度与当前行参数：开行时整组装入，整行保持
     reg [1:0] row_state;
@@ -281,6 +327,10 @@ module engine_pix (
         end
     end
 
+    //============================================================
+    // 4. 像素计算数据通路 S1~S7：数据、拍号、valid 同沿随行
+    //============================================================
+
     // S1：行 RAM 同步读出，读地址按相位差与 PRE 生成
     reg [127:0] src_mem [0:511];
     reg [95:0] dst_mem [0:511];
@@ -295,6 +345,11 @@ module engine_pix (
     wire [8:0] dst_raddr = {row_half, issue_beat};
     wire src_re = pipe_en && (row_state == PS_PRE || row_state == PS_RUN) && row_blit;
     wire dst_re = pipe_en && (row_state == PS_PRE || row_state == PS_RUN) && row_read_dst;
+
+    // RAM 写端口：地址与写数据格式只服务下面的写口（记账状态在 §2.3）
+    wire [8:0] src_waddr = {rs_buf[0], half_src_count[rs_buf[0]]};
+    wire [8:0] dst_waddr = {rs_buf[0], half_dst_count[rs_buf[0]]};
+    wire [95:0] dst_wdata = {rs_tdata[119:96], rs_tdata[87:64], rs_tdata[55:32], rs_tdata[23:0]};
 
     always @(posedge clk) begin // 写口不看 pipe_en，读口按行开
         if (src_we) src_mem[src_waddr] <= rs_tdata;
@@ -519,6 +574,10 @@ module engine_pix (
     // 色键统计：只计行内命中，握手拍才有效
     assign perf_key_lanes = ws_key_lanes;
     assign perf_key_valid = write_fire;
+
+    //============================================================
+    // 5. 写流完成反馈：交接计数与行完成
+    //============================================================
 
     // 行完成：末拍交接后释放半
     reg [7:0] out_beat_count;
